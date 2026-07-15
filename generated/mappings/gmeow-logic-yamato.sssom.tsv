@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Version-pinned bridge views onto the YAMATO 2021-08-08 OWL export. Its process/event and role commitments remain distinct, so no identity-strength axiom is emitted."
+# comment: "Version-pinned bridge views onto the YAMATO 2021-08-08 OWL export. Its process/event, role, material-quantity, and quality-value commitments remain distinct, so no identity-strength axiom is emitted."
 # curie_map:
 #   logic: https://blackcatinformatics.ca/logic/
 #   semapv: https://w3id.org/semapv/vocab/
@@ -16,4 +16,6 @@ logic:Individual	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#p
 logic:Object	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#object	semapv:ManualMappingCuration	0.8	
 logic:Process	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#process	semapv:ManualMappingCuration	0.85	YAMATO process is stative and therefore a commitment-shifting view, not an equivalent class.
 logic:Quality	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#quality	semapv:ManualMappingCuration	0.85	
+logic:QualityValue	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#quality_value	semapv:ManualMappingCuration	0.85	Both categories locate a quality in a value space; YAMATO additionally commits quality_value to a generically-dependent context with exactly one value dimension and bearer.
+logic:Quantity	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#amount_of_matter	semapv:ManualMappingCuration	0.9	YAMATO amount_of_matter is the material-portion category matching logic:Quantity; it is not YAMATO's numerical quantity or measurement-value hierarchy.
 logic:Role	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#role	semapv:ManualMappingCuration	0.8	YAMATO separates role concepts and holders through its Hozo role model; this row names only the nearest role-class bridge.

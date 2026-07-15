@@ -275,9 +275,9 @@ ex:saMorphismNotFunction a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    math:Morphism rdfs:subClassOf math:Function .
+    math:Morphism logic:subClassOf math:Function .
 }""" ;
     gmeow:saRationale "A math:Morphism MUST NOT be a subclass of math:Function: a morphism's domain and codomain range over algebraic structures, not bare sets, so making it a function would let the set-typed math:FunctionFramingShape misfire on structure-typed domains. Morphism is its own object-layer parent." .
 
@@ -1188,3 +1188,118 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "The closed-form scene carries the same four ring measure evaluations as its qualitative twin, so the same dominance MUST hold: Ring 2's math:measureResult strictly exceeds every other radial-cf ring's, executed as the numeric FILTER inequality. Pinning the dominance on BOTH paths proves the two co-equal demonstrators agree on the volume-dominant plateau — the equation entails what the qualitative markers assert." .
+
+# --- Reference layer, expression AST, ACT, and quantity authority (#1557) -- #
+
+ex:saMathematicalReferenceLayer a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:MathematicalConcept logic:subClassOf math:MathematicalObject .
+    math:MathematicalSymbol logic:subClassOf math:MathematicalObject .
+    math:MathematicalNotation logic:subClassOf math:MathematicalObject .
+    math:MathematicalTheory logic:subClassOf math:MathematicalObject .
+    math:MathematicalContext logic:subClassOf math:MathematicalObject .
+    math:MathematicalDefinition logic:subClassOf math:MathematicalObject .
+    math:hasMathematicalSymbol a owl:ObjectProperty .
+    math:hasNotation a owl:ObjectProperty .
+    math:definedInTheory a owl:ObjectProperty .
+    math:usesDefinition a owl:ObjectProperty .
+    math:formalizesExpression a owl:ObjectProperty .
+    math:informalGloss a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "The reference layer MUST keep mathematical concept, symbol, notation, theory, context, and definition as distinct local mathematical-object classes, connected by the six designed properties rather than collapsed into glyphs or external identifiers." .
+
+ex:saReferenceAstContract a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:LiteralExpression logic:subClassOf math:MathematicalExpression .
+    math:NumberLiteral logic:subClassOf math:LiteralExpression .
+    math:SymbolReference logic:subClassOf math:MathematicalExpression .
+    math:ExpressionType logic:subClassOf math:MathematicalObject .
+    math:expressionType a owl:ObjectProperty .
+    math:normalForm a owl:ObjectProperty .
+    math:SymbolReference logic:subClassOf ?allRestriction, ?maxRestriction, ?minRestriction .
+    ?allRestriction logic:onProperty math:hasMathematicalSymbol ; logic:allValuesFrom math:MathematicalSymbol .
+    ?maxRestriction logic:onProperty math:hasMathematicalSymbol ; logic:maxQualifiedCardinality 1 .
+    ?minRestriction logic:onProperty math:hasMathematicalSymbol ; logic:minQualifiedCardinality 1 .
+}""" ;
+    gmeow:saRationale "The AST MUST expose literal and symbol-reference leaves, expression typing and normalization, and an exact-one typed symbol-resolution obligation; a display string is never the computable expression." .
+
+ex:saAppliedCategoryTheoryCore a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:Category logic:subClassOf math:MathematicalObject .
+    math:Morphism logic:subClassOf math:MathematicalObject .
+    math:Functor logic:subClassOf math:Morphism .
+    math:NaturalTransformation logic:subClassOf math:Morphism .
+    math:sourceObject a owl:ObjectProperty .
+    math:targetObject a owl:ObjectProperty .
+    math:composesWith a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The applied-category-theory seam MUST provide first-class Category, Morphism, Functor, and NaturalTransformation referents with explicit source, target, and composition properties; it must not overload set-typed function domain/codomain." .
+
+ex:saArgumentSlotContiguityGrounded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ArgumentSlotContiguityConstraint a logic:Constraint ;
+        logic:formalizes math:ArgumentSlotContiguityShape ;
+        logic:integrity ?formula ;
+        gmeow:enforcesFailureClass math:NonContiguousArgumentSlots .
+    math:NonContiguousArgumentSlots logic:subClassOf math:MathConformanceFailure .
+    ?sumAtom logic:relation logic:termSum .
+    ?equalAtom logic:relation logic:termEqual .
+}""" ;
+    gmeow:saRationale "Strict slot contiguity MUST be a canonical executable logic:Constraint using predecessor arithmetic, wired to math:NonContiguousArgumentSlots; prose-only strict mode is not sufficient." .
+
+ex:saMathQuantityAuthority a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Quantity a owl:Class ;
+        logic:subClassOf math:MathematicalObject , logic:QualityValue .
+    math:quantityValue a owl:DatatypeProperty .
+    FILTER NOT EXISTS { math:Quantity logic:subClassOf logic:Object }
+    FILTER NOT EXISTS { math:quantityValue logic:subPropertyOf logic:measuredValue }
+    FILTER NOT EXISTS { gmeow:Quantity a owl:Class }
+    FILTER NOT EXISTS { gmeow:ScalarQuantity a owl:Class }
+    FILTER NOT EXISTS { gmeow:MeasuredValue a owl:Class }
+    FILTER NOT EXISTS { gmeow:quantityValue a owl:DatatypeProperty }
+}""" ;
+    gmeow:saRationale "The math slice MUST own the sole quantity class and numeric-value property. A math:Quantity is an abstract logic:QualityValue, never a substantial logic:Object; the generic value property is not globally a logic:measuredValue because it also serves cardinalities, approximations, and declared values. Observation-specific frame, unit, provenance, determinacy, and uncertainty properties qualify measured quantities contextually." .
+
+ex:saProbabilityScalesAreDimensionless a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?scale { math:ProbabilityValue math:OddsValue math:LogOddsValue }
+    ?scale logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty math:hasDimension ;
+        logic:hasValue math:dimensionless
+    ] .
+}""" ;
+    gmeow:saRationale "Probability, odds, and log-odds are dimensionless quantity scales by axiom, not prose only; their inherited exactly-one dimension must therefore be math:dimensionless." .

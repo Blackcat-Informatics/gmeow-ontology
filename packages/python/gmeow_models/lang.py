@@ -21,6 +21,13 @@ class GmnCompartmentEnum(StrEnum):
     gmnCompartmentPartner = "gmeow:gmnCompartmentPartner"
 
 
+class GmnDispositionBasisEnum(StrEnum):
+    gmnBasisAmbiguity = "gmeow:gmnBasisAmbiguity"
+    gmnBasisConfusability = "gmeow:gmnBasisConfusability"
+    gmnBasisSemanticMismatch = "gmeow:gmnBasisSemanticMismatch"
+    gmnBasisTokenCost = "gmeow:gmnBasisTokenCost"
+
+
 class GmnFixityEnum(StrEnum):
     gmnFixityBracketing = "gmeow:gmnFixityBracketing"
     gmnFixityInfix = "gmeow:gmnFixityInfix"
@@ -57,6 +64,13 @@ class GmnSigilRoleEnum(StrEnum):
     gmnSigilProcess = "gmeow:gmnSigilProcess"
     gmnSigilProof = "gmeow:gmnSigilProof"
     gmnSigilStandpoint = "gmeow:gmnSigilStandpoint"
+
+
+class GmnSymbolDispositionEnum(StrEnum):
+    gmnDispositionAdoptedGlyph = "gmeow:gmnDispositionAdoptedGlyph"
+    gmnDispositionNamedKey = "gmeow:gmnDispositionNamedKey"
+    gmnDispositionSemanticRejection = "gmeow:gmnDispositionSemanticRejection"
+    gmnDispositionStructuredConstructor = "gmeow:gmnDispositionStructuredConstructor"
 
 
 class GmnCompaction(ConfiguredBaseModel):
@@ -101,7 +115,7 @@ class GmnCompaction(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnCompaction", "curie": "gmeow:GmnCompaction", "definitionDigest": "blake3:f2d3869e83cf1c865db7602cdfd8436afa3ed5fd797a71e6be52bdf10975b227", "iri": "https://blackcatinformatics.ca/gmeow/GmnCompaction"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnCompaction", "curie": "gmeow:GmnCompaction", "definitionDigest": "blake3:3979ecb0a2dc0fbc86705462e2d4058fe1392c1718ce170919923b6dda3ad6a4", "iri": "https://blackcatinformatics.ca/gmeow/GmnCompaction"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -139,7 +153,7 @@ class GmnDictionary(ConfiguredBaseModel):
           linkage GmnCodebook already uses for the script and sigil roles).
 
     Examples:
-        - gmeow:gmnDictV1 a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "1" ;
+        - gmeow:gmnDictV2 a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "2" ;
           gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope .
 
     Usage:
@@ -155,7 +169,7 @@ class GmnDictionary(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnDictionary", "curie": "gmeow:GmnDictionary", "definitionDigest": "blake3:e551c4f8310dd8ff8467e21ad8c57ec831af509ae7af2e60553f3bac5e2de66b", "iri": "https://blackcatinformatics.ca/gmeow/GmnDictionary"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnDictionary", "curie": "gmeow:GmnDictionary", "definitionDigest": "blake3:356ce4ed88a033919be20b01861419ebbb66d52294e6c4dcfc6f9337bf24cf61", "iri": "https://blackcatinformatics.ca/gmeow/GmnDictionary"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -209,7 +223,7 @@ class GmnEnvelope(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnEnvelope", "curie": "gmeow:GmnEnvelope", "definitionDigest": "blake3:ef5b099a07d69af262445ab5fff411f6b9690eb021e53eeea8368a1b2bd8701a", "iri": "https://blackcatinformatics.ca/gmeow/GmnEnvelope"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnEnvelope", "curie": "gmeow:GmnEnvelope", "definitionDigest": "blake3:9dbc477993e79a78aa13c287a9e3e47c2b20c0be6a2c7f43e3174a335042d839", "iri": "https://blackcatinformatics.ca/gmeow/GmnEnvelope"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -217,7 +231,7 @@ class GmnEnvelope(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     accordingTo: list[Any] = Field(min_length=1, description="The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal.", alias="gmeow:accordingTo")
     contentDigest: list[Any] = Field(min_length=1, description="A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms.", alias="gmeow:contentDigest")
-    gmnDictionaryVersion: list[Any] = Field(min_length=1, description="The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable.", alias="gmeow:gmnDictionaryVersion")
+    gmnDictionaryVersion: Any = Field(description="The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable.", alias="gmeow:gmnDictionaryVersion")
     gmnEnvelopeCorrespondence: list[Any] | None = Field(default=None, description="Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope, range logic:Correspondence (stated in prose). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing.", alias="gmeow:gmnEnvelopeCorrespondence")
     gmnGlyphTableVersion: list[Any] = Field(min_length=1, description="The glyph-table version an envelope or codebook was serialized against — the coordinate of the projected glyph/codepoint table (the gmeow:gmnGlyph / gmeow:gmnCodepoints projection state). Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose).", alias="gmeow:gmnGlyphTableVersion")
     gmnSchemaVersion: list[Any] = Field(min_length=1, description="The GMN dialect schema version an envelope was serialized under — the major grammar/record-shape coordinate. Domain gmeow:GmnEnvelope, range a string literal (stated in prose). A reader accepts the current major plus the majors inside the version set's gmeow:gmnAcceptWindow, via migration.", alias="gmeow:gmnSchemaVersion")
@@ -286,14 +300,14 @@ class GmnSecurityRing(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing", "curie": "gmeow:GmnSecurityRing", "definitionDigest": "blake3:062b8863c9feed5991996e8f6ee797b2a8bcb436e7d2dfcb43cc0bfc55cde34a", "iri": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing", "curie": "gmeow:GmnSecurityRing", "definitionDigest": "blake3:6eafce56f02eea4352c37a5e1050f9a69d2aba2a0eac090cffe006b35edbc363", "iri": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    gmnRingCompartment: list[str] | None = Field(default=None, description="The compartment/caveat coordinate of a GMN security ring — the second axis gmeow:gmnRingWithin's derivation reads (⊇ containment). Non-functional: zero or more compartments per ring; an empty set is well-formed (the three default-preset rings carry none). Domain gmeow:GmnSecurityRing, range gmeow:GmnCompartment.", alias="gmeow:gmnRingCompartment")
-    gmnRingLevel: str = Field(description="The classification-level coordinate of a GMN security ring — one of the two axes gmeow:gmnRingWithin's derivation reads. Functional: exactly one level per ring. Domain gmeow:GmnSecurityRing, range gmeow:GmnRingLevel.", alias="gmeow:gmnRingLevel")
+    gmnRingCompartment: list[GmnCompartmentEnum] | None = Field(default=None, description="The compartment/caveat coordinate of a GMN security ring — the second axis gmeow:gmnRingWithin's derivation reads (⊇ containment). Non-functional: zero or more compartments per ring; an empty set is well-formed (the three default-preset rings carry none). Domain gmeow:GmnSecurityRing, range gmeow:GmnCompartment.", alias="gmeow:gmnRingCompartment")
+    gmnRingLevel: list[GmnRingLevelEnum] | None = Field(default=None, description="The classification-level coordinate of a GMN security ring — one of the two axes gmeow:gmnRingWithin's derivation reads. Functional: exactly one level per ring. Domain gmeow:GmnSecurityRing, range gmeow:GmnRingLevel.", alias="gmeow:gmnRingLevel")
 
 
 class Lang_ComposedForm(ConfiguredBaseModel):
@@ -423,7 +437,7 @@ class Lang_Form(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    inSignSystem: list[Any] | None = Field(default=None, description="Situates a form in the sign system it belongs to. Domain lang:Form, range lang:SignSystem (stated in prose). Every lang:Form declares exactly one — an unsituated form is ill-formed. Code-switching is compositional: a composed form belongs to its matrix system while embedded constituents carry their own.", alias="lang:inSignSystem")
+    inSignSystem: list[str] = Field(min_length=1, description="Situates a form in the sign system it belongs to. Domain lang:Form, range lang:SignSystem (stated in prose). Every lang:Form declares exactly one — an unsituated form is ill-formed. Code-switching is compositional: a composed form belongs to its matrix system while embedded constituents carry their own.", alias="lang:inSignSystem")
 
 
 class Lang_FormSlot(ConfiguredBaseModel):
@@ -491,6 +505,68 @@ class Lang_GmnImportedPlane(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     cites: list[Any] = Field(min_length=1, description="Relates an entity to a creative work it cites — the flat 80%-case shortcut. Non-functional: an entity may cite many works. Promote to a gmeow:CitationAct node when the intent, selector, provenance, or standpoint of the citation must be recorded.", alias="gmeow:cites")
     hasVersion: list[Any] = Field(min_length=1, alias="http://purl.org/dc/terms/hasVersion")
+
+
+class Lang_Grammar(ConfiguredBaseModel):
+    """Grammar.
+
+    A grammar: a first-class object naming the sign system it licenses (through
+    lang:grammarFor) and carrying its rules as lang:GrammarRule individuals. Declares its
+    formalism through lang:grammarFormalism (context-free, PEG, regular, ABNF, EBNF). Formal
+    grammars (Turtle's, GTS's) are held natively and projected to EBNF/ABNF — a grammar file
+    is a rendering of the grammar object, not the grammar. A grammar licenses forms; it
+    never owns their identity.
+
+    Usage:
+        >>> from gmeow_models.lang import Lang_Grammar
+        >>> Lang_Grammar.model_config["json_schema_extra"]["curie"]
+        'lang:Grammar'
+
+    IRI:    https://blackcatinformatics.ca/lang/Grammar
+    CURIE:  lang:Grammar
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/lang/Grammar", "curie": "lang:Grammar", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/lang/Grammar"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")
+    grammarFor: list[str] = Field(min_length=1, description="Relates a grammar to the sign system it licenses. Domain lang:Grammar, range lang:SignSystem (stated in prose).", alias="lang:grammarFor")
+
+
+class Lang_GrammarRule(ConfiguredBaseModel):
+    """Grammar Rule.
+
+    A production rule of a grammar: names the grammar it belongs to through
+    lang:grammarRuleOf. A form may declare the rule that licenses it through
+    lang:licensedBy, but form identity never depends on the grammar — grammars change, forms
+    persist, and the licensing link is versioned like any evolving claim.
+
+    Usage:
+        >>> from gmeow_models.lang import Lang_GrammarRule
+        >>> Lang_GrammarRule.model_config["json_schema_extra"]["curie"]
+        'lang:GrammarRule'
+
+    IRI:    https://blackcatinformatics.ca/lang/GrammarRule
+    CURIE:  lang:GrammarRule
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/lang/GrammarRule", "curie": "lang:GrammarRule", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/lang/GrammarRule"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")
+    grammarRuleOf: list[Lang_Grammar] = Field(min_length=1, description="Relates a grammar rule to the grammar it belongs to. Domain lang:GrammarRule, range lang:Grammar (stated in prose).", alias="lang:grammarRuleOf")
 
 
 class Lang_Grapheme(ConfiguredBaseModel):
@@ -586,21 +662,21 @@ class Lang_MorphFeature(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    featureKey: list[Any] | None = Field(default=None, description="Names the key of a morphological feature. Domain lang:MorphFeature, range lang:FeatureKey (stated in prose). An inventory individual, never a bare string.", alias="lang:featureKey")
-    featureValue: list[Any] | None = Field(default=None, description="Names the value (or, for disjunctive underspecification, values) of a morphological feature. Domain lang:MorphFeature, range lang:FeatureValue (stated in prose). An inventory individual, never a bare string; a value set is unordered.", alias="lang:featureValue")
+    featureKey: list[str] = Field(min_length=1, description="Names the key of a morphological feature. Domain lang:MorphFeature, range lang:FeatureKey (stated in prose). An inventory individual, never a bare string.", alias="lang:featureKey")
+    featureValue: list[Lang_FeatureValue] = Field(min_length=1, description="Names the value (or, for disjunctive underspecification, values) of a morphological feature. Domain lang:MorphFeature, range lang:FeatureValue (stated in prose). An inventory individual, never a bare string; a value set is unordered.", alias="lang:featureValue")
 
 
 class Lang_Paraphrase(ConfiguredBaseModel):
     """Paraphrase.
 
     A form-to-form crossing within one sign system under a declared sameness kind — a
-    restatement, a plain-language rewrite, a definitional gloss. Names the form it
-    paraphrases through lang:paraphraseOf, the sameness it claims to preserve through
-    lang:paraphraseSamenessKind (a lang:ParaphraseSamenessKind individual — same denotation,
-    same sense, or same force and content), and, where the crossing is judged, a
-    preservation kind through lang:paraphrasePreservation, which carries a
-    logic:preservationKind. Sameness is never a bare assertion: a paraphrase claim is
-    vantage-held, so that a paraphrase-correctness claim is a gmeow:Observation from a
+    restatement, a plain-language rewrite, a definitional gloss. Names its source form
+    through lang:paraphraseOf, its produced form through lang:paraphraseForm, the sameness
+    it claims to preserve through lang:paraphraseSamenessKind (a lang:ParaphraseSamenessKind
+    individual — same denotation, same sense, or same force and content), and, where the
+    crossing is judged, a preservation kind through lang:paraphrasePreservation, which
+    carries a logic:preservationKind. Sameness is never a bare assertion: a paraphrase claim
+    is vantage-held, so that a paraphrase-correctness claim is a gmeow:Observation from a
     gmeow:vantage rather than a groundless equivalence. Unlike translation, both forms
     belong to one sign system; unlike rendering, both sides are forms rather than content
     and form.
@@ -624,7 +700,9 @@ class Lang_Paraphrase(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    paraphraseSamenessKind: list[Any] | None = Field(default=None, description="Names the kind of sameness a paraphrase claims to preserve. Domain lang:Paraphrase, range lang:ParaphraseSamenessKind (stated in prose). The kind fixes which corner of the Frege triangle is held constant; a paraphrase that declares no sameness kind is ill-formed, because an undeclared sameness is an equivalence smuggled in without saying what it preserves.", alias="lang:paraphraseSamenessKind")
+    paraphraseForm: list[Lang_Form] | None = Field(default=None, description="Relates a lang:Paraphrase to the produced restatement form. Domain lang:Paraphrase, range lang:Form (stated in prose). The source side is lang:paraphraseOf; keeping both roles explicit makes the form-to-form crossing and its relator mediation queryable without treating the reified paraphrase record as a form.", alias="lang:paraphraseForm")
+    paraphraseOf: list[Lang_Form] | None = Field(default=None, description="Relates a lang:Paraphrase to the form it paraphrases. Domain lang:Paraphrase, range lang:Form (stated in prose). Both forms belong to one sign system; the sameness the paraphrase preserves is declared through lang:paraphraseSamenessKind and its degree judged on the paraphrase's logic:Correspondence.", alias="lang:paraphraseOf")
+    paraphraseSamenessKind: list[str] = Field(min_length=1, description="Names the kind of sameness a paraphrase claims to preserve. Domain lang:Paraphrase, range lang:ParaphraseSamenessKind (stated in prose). The kind fixes which corner of the Frege triangle is held constant; a paraphrase that declares no sameness kind is ill-formed, because an undeclared sameness is an equivalence smuggled in without saying what it preserves.", alias="lang:paraphraseSamenessKind")
 
 
 class Lang_ProjectionEmission(ConfiguredBaseModel):
@@ -697,10 +775,10 @@ class Lang_Rendering(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    renderedContent: list[Any] = Field(min_length=1, description="Relates a lang:Rendering to the content it realizes — a lang:Form, a lang:Denotation, a composed form, or a document node. Domain lang:Rendering, range a content resource (stated in prose). The content side of the rendering's crossing; the form side is lang:renderingForm.", alias="lang:renderedContent")
-    renderingConvention: list[Any] = Field(min_length=1, description="Names the convention governing a rendering — a lang:Grammar, a lang:Orthography, or a gmeow:TransliterationScheme that fixes how content becomes form. Domain lang:Rendering, range a convention resource (stated in prose). The convention licenses the surface; it does not own the rendered form's identity.", alias="lang:renderingConvention")
-    renderingKind: list[Any] | None = Field(default=None, description="Names the kind of a rendering. Domain lang:Rendering, range lang:RenderingKind (stated in prose). A facet only; the preservation and morphism class of the crossing live on the linked logic:Correspondence.", alias="lang:renderingKind")
-    renderingPreservation: list[Any] = Field(min_length=1, description="Relates a lang:Rendering to the preservation judgment of its crossing, carried as a logic:preservationKind on the rendering's logic:Correspondence. Domain lang:Rendering, range logic:PreservationKind (stated in prose). Preservation is never a lang: enum: this property is the facet handle onto the shared logic: judgment, not a second grade.", alias="lang:renderingPreservation")
+    renderedContent: list[str] = Field(min_length=1, description="Relates a lang:Rendering to the content it realizes — a lang:Form, a lang:Denotation, a composed form, or a document node. Domain lang:Rendering, range a content resource (stated in prose). The content side of the rendering's crossing; the form side is lang:renderingForm.", alias="lang:renderedContent")
+    renderingConvention: list[str] = Field(min_length=1, description="Names the convention governing a rendering — a lang:Grammar, a lang:Orthography, or a gmeow:TransliterationScheme that fixes how content becomes form. Domain lang:Rendering, range a convention resource (stated in prose). The convention licenses the surface; it does not own the rendered form's identity.", alias="lang:renderingConvention")
+    renderingKind: list[str] = Field(min_length=1, description="Names the kind of a rendering. Domain lang:Rendering, range lang:RenderingKind (stated in prose). A facet only; the preservation and morphism class of the crossing live on the linked logic:Correspondence.", alias="lang:renderingKind")
+    renderingPreservation: list[str] = Field(min_length=1, description="Relates a lang:Rendering to the preservation judgment of its crossing, carried as a logic:preservationKind on the rendering's logic:Correspondence. Domain lang:Rendering, range logic:PreservationKind (stated in prose). Preservation is never a lang: enum: this property is the facet handle onto the shared logic: judgment, not a second grade.", alias="lang:renderingPreservation")
 
 
 class Lang_Sense(ConfiguredBaseModel):
@@ -877,3 +955,33 @@ class Lang_TransliterationMap(ConfiguredBaseModel):
     transliterationScheme: list[Any] = Field(min_length=1, description="Relates a lang:TransliterationMap to the named romanization or transliteration scheme it grafts — a gmeow:TransliterationScheme individual in the core language slice, whose FnO transform the projection layer resolves. Domain lang:TransliterationMap, range gmeow:TransliterationScheme (stated in prose). The scheme names the convention; the map's preservation is judged on its logic:Correspondence.", alias="lang:transliterationScheme")
     transliterationSourceOrthography: list[Any] = Field(min_length=1, description="Relates a lang:TransliterationMap to the orthography its input surfaces are written in. Domain lang:TransliterationMap, range lang:Orthography (stated in prose). The source side of the orthography-to-orthography map; the target is lang:transliterationTargetOrthography.", alias="lang:transliterationSourceOrthography")
     transliterationTargetOrthography: list[Any] = Field(min_length=1, description="Relates a lang:TransliterationMap to the orthography its output surfaces are written in. Domain lang:TransliterationMap, range lang:Orthography (stated in prose). The target side of the orthography-to-orthography map; the source is lang:transliterationSourceOrthography.", alias="lang:transliterationTargetOrthography")
+
+
+class Lang_WordForm(ConfiguredBaseModel):
+    """Word Form.
+
+    A word form: an inflection of a lexeme — cats as an inflection of the lexeme cat. Names
+    its lexeme through lang:lexemeOf (and the inflection relation through
+    lang:inflectionOf), and carries the morphological features distinguishing it through
+    lang:morphFeature (cats carries Number=Plur).
+
+    Usage:
+        >>> from gmeow_models.lang import Lang_WordForm
+        >>> Lang_WordForm.model_config["json_schema_extra"]["curie"]
+        'lang:WordForm'
+
+    IRI:    https://blackcatinformatics.ca/lang/WordForm
+    CURIE:  lang:WordForm
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/lang/WordForm", "curie": "lang:WordForm", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/lang/WordForm"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")
+    lexemeOf: list[str] = Field(min_length=1, description="Relates a word form to the lexeme it realizes. Domain lang:WordForm, range lang:Lexeme (stated in prose). The general form-to-lexeme membership that lang:inflectionOf refines.", alias="lang:lexemeOf")

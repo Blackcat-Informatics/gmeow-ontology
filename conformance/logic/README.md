@@ -3,19 +3,18 @@
 
 # GMEOW Logic — Conformance Corpus
 
-The Python oracle and the Rust core — and any future port — certify against **one shared,
-language-neutral corpus of cases**: static files, not re-derived assertions. This is the contract
-that lets the slow, correct reference and the fast Rust engine coexist and *provably agree*
-(Constitution Principle 7), exactly as it promotes the GTS §18 vectors into a `conformance/`
-directory so any implementation certifies against the same files.
+The native Rust runtime — and any future independent implementation — certifies against **one
+shared, language-neutral corpus of cases**: static files, not re-derived assertions. This is the
+contract that keeps every implementation aligned with the same executable specification
+(Constitution Principle 7).
 
 This corpus is the **executable specification of GMEOW Logic's hardest invariants** — no engine can
 drift from them without a red build. It is the implementation contract for the rungs.
 
-> **Status: scaffold.** The category directories are empty (`.gitkeep`) because cases cannot be
-> authored before the `logic:` surface syntax and the engine exist (the later EPIC rungs). This
-> directory and the [runner contract](runner/README.md) are created now, so every
-> subsequent rung populates a category that already has a home and a verification gate.
+> **Status: active.** The category directories contain the live native-runtime corpus, including
+> foundation, correspondence, projection, profile, transaction, and world-semantics cases. The
+> [runner contract](runner/README.md) and `make conformance` gate keep their expected outputs in
+> sync with the production engine.
 
 Normative source: [`../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md`](../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md).
 

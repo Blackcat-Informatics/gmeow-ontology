@@ -42,8 +42,8 @@ fn loads_the_real_rubric_structure() {
         "Registered is the floor"
     );
 
-    // Fourteen quality axes, each with a producer, a dimension, a scope, and floors.
-    assert_eq!(rubric.standard.axes.len(), 14, "fourteen quality axes");
+    // Fifteen quality axes, each with a producer, a dimension, a scope, and floors.
+    assert_eq!(rubric.standard.axes.len(), 15, "fifteen quality axes");
     for axis in &rubric.standard.axes {
         assert!(!axis.producer.is_empty(), "{} binds a producer", axis.iri);
         assert!(

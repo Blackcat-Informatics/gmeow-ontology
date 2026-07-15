@@ -113,13 +113,11 @@ class Math_AnalyticProperty(ConfiguredBaseModel):
 class Math_ApplicationExpression(ConfiguredBaseModel):
     """Application Expression.
 
-    The application of an operator to operands: the expression node an arithmetic operation
-    lowers to. It applies exactly one math:operator — zero operators leave the application
-    undefined and two or more make it ambiguous which operator is applied
-    (math:ApplicationOperatorCardinality); the sibling binder AST (math:BindingExpression)
-    is not a subclass, so the obligation targets only true applications, never the binders.
-    The indexed argument-slot machinery that fixes operand order belongs to the
-    mathematical-core surface this bedrock builds on, and is deliberately not minted here.
+    The application of an operator to ordered operands. It applies exactly one math:operator
+    — zero operators leave the application undefined and two or more make it ambiguous
+    (math:ApplicationOperatorCardinality) — and carries its operands through unique, strict
+    zero-based contiguous math:ArgumentSlot cells. The sibling math:BindingExpression is not
+    a subclass, so the operator-cardinality obligation targets only true applications.
 
     Usage:
         >>> from gmeow_models.math import Math_ApplicationExpression
@@ -185,9 +183,8 @@ class Math_ArgumentSlot(ConfiguredBaseModel):
     Operand order is carried by these slots, not by RDF list ordering — swapping two slots'
     expressions is a different expression, so non-commutative operators (matrix product,
     function composition, subtraction, the body of a binder) are order-safe. Slot indexes
-    are unique within one application; strict canonical mode additionally requires them
-    zero-based and contiguous. A slot missing its index or expression is ill-formed
-    (math:MalformedArgumentSlot).
+    are unique, non-negative, zero-based, and contiguous within one parent. A slot missing
+    its index or expression, a duplicate index, or a gap is ill-formed.
 
     Usage:
         >>> from gmeow_models.math import Math_ArgumentSlot
@@ -210,7 +207,7 @@ class Math_ArgumentSlot(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     slotExpression: str = Field(description="The math:MathematicalExpression filling one math:ArgumentSlot — the operand, or the body of a binder. Domain math:ArgumentSlot, range math:MathematicalExpression (stated in prose). Every slot names exactly one; a slot without an expression is ill-formed (math:MalformedArgumentSlot).", alias="math:slotExpression")
-    slotIndex: int = Field(ge=0, description="The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Unique within one application; strict canonical mode requires the indexes zero-based and contiguous. A slot without exactly one index is ill-formed (math:MalformedArgumentSlot).", alias="math:slotIndex")
+    slotIndex: int = Field(ge=0, description="The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; a family with a gap is math:NonContiguousArgumentSlots.", alias="math:slotIndex")
 
 
 class Math_ArithmeticOperation(ConfiguredBaseModel):
@@ -1397,7 +1394,7 @@ class Math_FiltrationStage(ConfiguredBaseModel):
     """Filtration Stage.
 
     One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued
-    threshold ε it sits at through math:filtrationThreshold (a gmeow:Quantity) and the
+    threshold ε it sits at through math:filtrationThreshold (a math:Quantity) and the
     substructure present at that threshold through math:stageStructure (a
     math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of
     math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage.
@@ -1425,7 +1422,7 @@ class Math_FiltrationStage(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    filtrationThreshold: str = Field(description="Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range gmeow:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold.", alias="math:filtrationThreshold")
+    filtrationThreshold: str = Field(description="Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range math:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold.", alias="math:filtrationThreshold")
     stageStructure: str = Field(description="Relates a math:FiltrationStage to the substructure present at its threshold — the sub-space Kε of the filtered object at ε. Domain math:FiltrationStage, range math:TopologicalSpace (stated in prose). Every stage names exactly one; a stage without its structure is ill-formed (math:UnderspecifiedFiltration). The structure at a lower threshold is a math:subsetOf the structure at a higher one (math:filtrationMonotonicityLaw).", alias="math:stageStructure")
 
 
@@ -2055,7 +2052,7 @@ class Math_LogOddsValue(ConfiguredBaseModel):
     """Log-Odds Value.
 
     A log-odds (logit) value: log(p/(1−p)), a quantity on the whole real line (−∞, ∞). A
-    subclass of gmeow:Quantity and a probability-scale transform of a probability, NOT a
+    subclass of math:Quantity and a probability-scale transform of a probability, NOT a
     probability — held owl:disjointWith math:ProbabilityValue so a log-odds handed to a
     consumer expecting [0, 1] is a caught error (math:ProbabilityScaleConflation), not a
     silent one. It links back to the probability it transforms through a
@@ -2080,6 +2077,7 @@ class Math_LogOddsValue(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    hasDimension: list[str] | None = Field(default=None, description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
 
 
 class Math_Manifold(ConfiguredBaseModel):
@@ -2145,7 +2143,36 @@ class Math_MathematicalConstant(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     isExact: list[bool] = Field(min_length=1, description="Declares whether a number is an exact value (true) or the abstract value a math:ApproximateValue approximates. Domain math:Number, range xsd:boolean (stated in prose). A math:MathematicalConstant is always exact.", alias="math:isExact")
-    quantityValue: list[Any] | None = Field(default=None, max_length=0, description="The concrete numeric literal a value carries — the floating-point or decimal expansion of a math:ApproximateValue, or the finite count of a cardinality. Domain math:ApproximateValue or math:Cardinality, range a numeric literal (stated in prose). A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue.", alias="math:quantityValue")
+    quantityValue: list[Any] | None = Field(default=None, max_length=0, description="The sole canonical numeric-value property for a math:Quantity and the existing mathematical value carriers math:ApproximateValue and math:Cardinality. Range a numeric literal (stated in prose). On a measured quantity it is meaningful with the quantity's math:hasDimension and applicable gmeow:unit/reference frame. A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue.", alias="math:quantityValue")
+
+
+class Math_MathematicalExpression(ConfiguredBaseModel):
+    """Mathematical Expression.
+
+    The abstract root of the mathematical expression tree: a computable form is an abstract
+    syntax tree, not a display string. Literal, symbol-reference, variable, application, and
+    binding nodes compose through indexed argument slots; expression type and normalization
+    are explicit, while concrete notation remains a separate rendering.
+
+    Usage:
+        >>> from gmeow_models.math import Math_MathematicalExpression
+        >>> Math_MathematicalExpression.model_config["json_schema_extra"]["curie"]
+        'math:MathematicalExpression'
+
+    IRI:    https://blackcatinformatics.ca/math/MathematicalExpression
+    CURIE:  math:MathematicalExpression
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/math/MathematicalExpression", "curie": "math:MathematicalExpression", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/math/MathematicalExpression"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")
 
 
 class Math_Measure(ConfiguredBaseModel):
@@ -2421,7 +2448,7 @@ class Math_OddsValue(ConfiguredBaseModel):
     """Odds Value.
 
     An odds value: p/(1−p), a quantity in the open interval (0, ∞). A subclass of
-    gmeow:Quantity and a probability-scale transform of a probability, NOT a probability —
+    math:Quantity and a probability-scale transform of a probability, NOT a probability —
     held owl:disjointWith math:ProbabilityValue so it can never be read as one
     (math:ProbabilityScaleConflation). It links back to the probability it transforms
     through a math:ProbabilityScaleTransform.
@@ -2445,6 +2472,7 @@ class Math_OddsValue(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    hasDimension: list[str] | None = Field(default=None, description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
 
 
 class Math_OrthogonalComplement(ConfiguredBaseModel):
@@ -2587,7 +2615,7 @@ class Math_PersistenceLifetime(ConfiguredBaseModel):
     dimension) exists. A subclass of math:MathematicalObject. It names the filtration it is
     read over through math:overFiltration, the feature it tracks through
     math:persistenceFeature (a math:HomologyGroup generator), the threshold at which the
-    feature appears through math:bornAt (a gmeow:Quantity), and the threshold at which it
+    feature appears through math:bornAt (a math:Quantity), and the threshold at which it
     disappears through math:diesAt. Its persistence value is death − birth; a long-lived
     feature is signal, a short-lived one is noise. An ESSENTIAL feature never dies within
     the filtration, so its math:diesAt is the individual math:PositiveInfinity rather than a
@@ -2782,7 +2810,7 @@ class Math_ProbabilityValue(ConfiguredBaseModel):
 
     A probability value: a quantity/result object that is ALWAYS in the closed unit interval
     [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of
-    gmeow:Quantity (a probability is math:dimensionless). Where exact, it is carried as a
+    math:Quantity (a probability is math:dimensionless). Where exact, it is carried as a
     math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not
     0.333); where empirical it may be an approximate value. The [0, 1] bound is a genuine
     hard fail enforced by SHACL and a native numeric check (math:ProbabilityOutOfBounds);
@@ -2848,12 +2876,14 @@ class Math_ProofCheckActivity(ConfiguredBaseModel):
 class Math_Quantity(ConfiguredBaseModel):
     """Quantity.
 
-    A dimensioned quantity: a value that carries a math:Dimension through math:hasDimension
-    and, where measured, a unit (gmeow:unit, aligned to QUDT / OM 2) that realizes that
-    dimension and a numeric magnitude (math:quantityValue). Every quantity carries a
-    dimension — an undimensioned quantity is ill-formed (math:UndimensionedQuantity). Units
-    live within a dimension; two quantities are comparable exactly when their dimensions are
-    equal (math:commensurableWith).
+    The sole canonical class authority for a dimensioned quantity: an object that carries
+    exactly one math:Dimension through math:hasDimension and, where measured, a numeric
+    magnitude through math:quantityValue. Observation-specific unit, reference-frame,
+    determinacy, provenance, and uncertainty properties may further qualify the same
+    math:Quantity; they do not mint a parallel quantity class or value property. Every
+    quantity carries a dimension — an undimensioned quantity is ill-formed
+    (math:UndimensionedQuantity). Units live within a dimension; two quantities are
+    comparable exactly when their dimensions are equal (math:commensurableWith).
 
     Usage:
         >>> from gmeow_models.math import Math_Quantity
@@ -2875,7 +2905,6 @@ class Math_Quantity(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hasDimension: str = Field(description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
 
 
 class Math_RandomVariable(ConfiguredBaseModel):
@@ -2978,7 +3007,7 @@ class Math_ResidualInterpretationClaim(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    observationResult: list[str] = Field(min_length=1, description="The entity-valued result of an observation — a coordinate set, an instant, a quality value, a quantity, or another entity. For literal scalar readings (e.g. 22.5°C), the observationResult entity carries the literal via a datatype property (e.g. qudt:quantityValue or a module-specific scalar property). Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse.", alias="gmeow:observationResult")
+    observationResult: list[str] = Field(min_length=1, description="The individual-valued result of an observation — a concrete entity, coordinate set, instant, abstract quality value, math:Quantity, or another particular. A scalar reading such as 22.5°C is a math:Quantity carrying its literal through math:quantityValue and its dimension through math:hasDimension; observations adds unit/frame, determinacy, provenance, and uncertainty qualifiers. Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse.", alias="gmeow:observationResult")
     observedFeature: list[str] = Field(min_length=1, description="The individual whose property or state is being observed — the feature of interest. The range is intentionally open (owl:Thing) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind.", alias="gmeow:observedFeature")
     vantage: list[str] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
 
@@ -3271,6 +3300,36 @@ class Math_StatisticalVariable(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+
+
+class Math_SymbolReference(ConfiguredBaseModel):
+    """Symbol Reference.
+
+    A symbol-occurrence leaf in a mathematical expression AST. It resolves through exactly
+    one math:hasMathematicalSymbol edge to a local math:MathematicalSymbol whose meaning is
+    scoped by theory/context; a dangling or multiply resolved reference is ill-formed
+    (math:UnresolvedSymbolReference).
+
+    Usage:
+        >>> from gmeow_models.math import Math_SymbolReference
+        >>> Math_SymbolReference.model_config["json_schema_extra"]["curie"]
+        'math:SymbolReference'
+
+    IRI:    https://blackcatinformatics.ca/math/SymbolReference
+    CURIE:  math:SymbolReference
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/math/SymbolReference", "curie": "math:SymbolReference", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/math/SymbolReference"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")
+    hasMathematicalSymbol: str = Field(description="Relates a mathematical concept, operation, or math:SymbolReference occurrence to the math:MathematicalSymbol that denotes it in the applicable theory or context. A symbol reference resolves through exactly one such edge; the symbol identity is distinct from every glyph or rendering.", alias="math:hasMathematicalSymbol")
 
 
 class Math_TangentSpace(ConfiguredBaseModel):

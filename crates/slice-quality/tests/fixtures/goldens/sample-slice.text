@@ -9,6 +9,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisMaximalInformation: Maximal (1.00)
     axisMaximalLinkage: Maximal (1.00)
     axisGmn1Coverage: Maximal (1.00)
+    axisGmnGlyphOptimality: Maximal (1.00)
     axisMaximalProjection: Maximal (1.00)
     axisShapeMigration: Maximal (1.00)
     axisProseQuality: Maximal (1.00)

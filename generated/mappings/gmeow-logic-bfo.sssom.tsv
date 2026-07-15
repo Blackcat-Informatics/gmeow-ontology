@@ -15,13 +15,12 @@ subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	
 logic:Collection	skos:closeMatch	bfo:BFO_0000027	object aggregate	semapv:ManualMappingCuration	0.85	
 logic:Disposition	skos:closeMatch	bfo:BFO_0000016	disposition	semapv:ManualMappingCuration	0.9	
 logic:Endurant	skos:closeMatch	bfo:BFO_0000002	continuant	semapv:ManualMappingCuration	0.9	
-logic:Event	skos:closeMatch	bfo:BFO_0000003	occurrent	semapv:ManualMappingCuration	0.85	
+logic:Event	skos:broadMatch	bfo:BFO_0000003	occurrent	semapv:ManualMappingCuration	0.85	BFO occurrent includes processes and process boundaries as well as event-like occurrents, so it is broader than logic:Event.
 logic:FunctionalComplex	skos:closeMatch	bfo:BFO_0000030	object	semapv:ManualMappingCuration	0.9	
 logic:Individual	skos:closeMatch	bfo:BFO_0000001	entity	semapv:ManualMappingCuration	0.9	
 logic:Mode	skos:relatedMatch	bfo:BFO_0000020	specifically dependent continuant	semapv:ManualMappingCuration	0.7	BFO's dependent-continuant category is broader than the modal notion carried by logic:Mode.
 logic:Object	skos:closeMatch	bfo:BFO_0000040	material entity	semapv:ManualMappingCuration	0.85	
-logic:OccurrentBoundary	skos:closeMatch	bfo:BFO_0000035	process boundary	semapv:ManualMappingCuration	0.85	
 logic:Process	skos:closeMatch	bfo:BFO_0000015	process	semapv:ManualMappingCuration	0.9	
 logic:Quality	skos:closeMatch	bfo:BFO_0000019	quality	semapv:ManualMappingCuration	0.9	
 logic:Relator	skos:relatedMatch	bfo:BFO_0000020	specifically dependent continuant	semapv:ManualMappingCuration	0.7	BFO has no relator category; this points only to its nearest dependent-continuant region.
-logic:Role	skos:closeMatch	bfo:BFO_0000023	role	semapv:ManualMappingCuration	0.8	
+logic:Role	skos:relatedMatch	bfo:BFO_0000023	role	semapv:ManualMappingCuration	0.8	BFO role is a specifically dependent realizable entity, while logic:Role is an anti-rigid type; the shared name does not warrant a close category match.

@@ -49,7 +49,7 @@
             ] ;
             align:relation "<=" ;
             edoal:measure "0.7"^^xsd:double ;
-            rdfs:label "ScalarQuantity → obscore:observable"@en ;
+            rdfs:label "math:Quantity → obscore:observable"@en ;
         ] ,
         [
             a align:Cell ;

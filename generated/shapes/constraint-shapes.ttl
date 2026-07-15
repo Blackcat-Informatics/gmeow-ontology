@@ -9,6 +9,20 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
+<https://blackcatinformatics.ca/gmeow/ActObservationDisjointnessAxiomConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/ActObservationDisjointnessAxiom> ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a/rdfs:subClassOf* ?m . FILTER(?m IN (<https://blackcatinformatics.ca/lang/InterpretationAct>, <https://blackcatinformatics.ca/gmeow/Observation>)) }""" ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An individual may fill at most one of these mutually disjoint classes (no overtyping)." ;
+        sh:select """SELECT $this WHERE { $this a/rdfs:subClassOf* ?a ; a/rdfs:subClassOf* ?b . FILTER(STR(?a) < STR(?b)) FILTER(?a IN (<https://blackcatinformatics.ca/lang/InterpretationAct>, <https://blackcatinformatics.ca/gmeow/Observation>)) FILTER(?b IN (<https://blackcatinformatics.ca/lang/InterpretationAct>, <https://blackcatinformatics.ca/gmeow/Observation>)) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/AttackComponentSelfExclusionConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/logic/attackComponentSelfExclusion> ;
@@ -117,6 +131,20 @@
         sh:severity sh:Violation ;
         sh:message "A <https://blackcatinformatics.ca/gmeow/Criterion> instance's gmeow:penaltyPole and gmeow:rewardPole must be distinct." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/penaltyPole> ?v . $this <https://blackcatinformatics.ca/gmeow/rewardPole> ?v . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/FregeDisjointnessAxiomConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/FregeDisjointnessAxiom> ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a/rdfs:subClassOf* ?m . FILTER(?m IN (<https://blackcatinformatics.ca/lang/Form>, <https://blackcatinformatics.ca/lang/Sense>, <https://blackcatinformatics.ca/lang/Denotation>)) }""" ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An individual may fill at most one of these mutually disjoint classes (no overtyping)." ;
+        sh:select """SELECT $this WHERE { $this a/rdfs:subClassOf* ?a ; a/rdfs:subClassOf* ?b . FILTER(STR(?a) < STR(?b)) FILTER(?a IN (<https://blackcatinformatics.ca/lang/Form>, <https://blackcatinformatics.ca/lang/Sense>, <https://blackcatinformatics.ca/lang/Denotation>)) FILTER(?b IN (<https://blackcatinformatics.ca/lang/Form>, <https://blackcatinformatics.ca/lang/Sense>, <https://blackcatinformatics.ca/lang/Denotation>)) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/IdentityAxisDisjointnessConstraintShape>

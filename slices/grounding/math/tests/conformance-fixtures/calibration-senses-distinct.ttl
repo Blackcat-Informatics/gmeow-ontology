@@ -81,6 +81,8 @@ ex:stageEps1 a math:FiltrationStage ;
 ex:cx1 a math:TopologicalSpace .
 
 # The threshold ε₁ as a dimensioned quantity (a latent-space scale).
-ex:eps1 a gmeow:Quantity ;
-    gmeow:quantityValue "0.10"^^xsd:decimal ;
-    gmeow:unit ex:latentScaleUnit .
+ex:eps1 a math:Quantity ;
+    math:quantityValue "0.10"^^xsd:decimal ;
+    gmeow:unit ex:latentScaleUnit ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
+<http://example.org/math/eps1> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

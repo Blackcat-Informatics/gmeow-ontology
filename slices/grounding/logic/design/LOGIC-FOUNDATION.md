@@ -12,10 +12,10 @@
 > is in [LOGIC-IR.md](LOGIC-IR.md); state-change semantics are in
 > [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md). Where this charter states a doctrine once, the
 > semantics document makes it precise — repetition is replaced by cross-reference on purpose.
-> The realized grounding catalogs for gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL Core/AF are
+> The realized grounding catalogs for gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL Core/AF, plus
+> the version-pinned DUL, IAO, PATO, YAMATO, and OpenCyc commitment-shifting bridge catalog, are
 > recorded in [`docs/foundational-bridging.md`](../../../../docs/foundational-bridging.md) and
 > consumed by the correspondence calculus ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)).
-> DOLCE and YAMATO remain documented by-reference refinement lineages, not yet pinned catalogs.
 
 ## Thesis
 

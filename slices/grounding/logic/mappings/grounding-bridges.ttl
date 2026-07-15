@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix bfo: <http://purl.obolibrary.org/obo/> .
 @prefix ro: <http://purl.obolibrary.org/obo/RO_> .
@@ -27,8 +28,8 @@ gmeow:mapsetLogicGufo a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-gufo" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Complete gUFO-class coverage from canonical logic: terms. The five temporary-situation reifiers are explicitly related to the logic:Fluent replacement pattern and marked Unsupported; no target class disappears silently." ;
-    gmeow:setTrailer "# gUFO is a generated ValidationOnly projection. These links document its complete class surface; the vendored transition snapshot does not outrank logic: as canon." .
+    gmeow:setComment "Complete gUFO-class coverage from canonical logic: terms plus the audited strict-parthood and mediation relation seams. The five temporary-situation reifiers are explicitly related to the logic:Fluent replacement pattern and marked Unsupported; no target class disappears silently." ;
+    gmeow:setTrailer "# gUFO is a generated ValidationOnly projection. These links document its complete class surface and warranted relation seams; the vendored transition snapshot does not outrank logic: as canon." .
 
 gmeow:mapsetLogicBfo a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
@@ -48,7 +49,7 @@ gmeow:mapsetLogicSumo a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-sumo" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Foundational category and structural-relation bridge views onto SUMO's published OWL translation IRIs. SUMO and logic: make different commitments, so every row is a BridgeView." ;
+    gmeow:setComment "Foundational category, structural-relation, and dimensioned-quantity bridge views onto SUMO's published OWL translation IRIs. The logic slice owns the SUMO boundary even when a canonical source endpoint is math-owned. SUMO and GMEOW make different commitments, so every row is a BridgeView." ;
     gmeow:setTrailer "# SUMO links are by-reference validation aids; no SUMO axiom is imported and no equivalence is emitted." .
 
 gmeow:mapsetLogicOwl a gmeow:MappingSet ;
@@ -484,6 +485,28 @@ gmeow:eqLogicGufo050 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:Unsupported .
 
+# ── gUFO: audited high-confidence relation surface ────────────────────────────
+
+gmeow:eqLogicGufo051 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:properPartOf ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:isProperPartOf ;
+    logic:sourceEndpoint logic:properPartOf ; logic:targetEndpoint gufo:isProperPartOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Both relations express strict transitive parthood; the close-match surface keeps gUFO's OWL-profile realization distinct from logic:'s transitive, asymmetric, and irreflexive canonical relation." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo052 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:mediates ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:mediates ;
+    logic:sourceEndpoint logic:mediates ; logic:targetEndpoint gufo:mediates ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Both predicates connect a relator to the relata it existentially depends on; the validation-only rung preserves logic:'s stronger relator-mediation discipline outside the gUFO view." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
 # ── BFO 2020: commitment-shifting category bridge ────────────────────────────
 
 gmeow:eqLogicBfo001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
@@ -503,10 +526,11 @@ gmeow:eqLogicBfo002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLogicBfo003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject bfo:BFO_0000003 ;
     logic:sourceEndpoint logic:Event ; logic:targetEndpoint bfo:BFO_0000003 ; gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ; gmeow:objectLabel "occurrent" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    gmeow:comment "BFO occurrent includes processes and process boundaries as well as event-like occurrents, so it is broader than logic:Event." ;
     logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -577,18 +601,11 @@ gmeow:eqLogicBfo011 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLogicBfo012 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject bfo:BFO_0000023 ;
     logic:sourceEndpoint logic:Role ; logic:targetEndpoint bfo:BFO_0000023 ; gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ; gmeow:objectLabel "role" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
-    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
-    logic:preservationKind logic:ValidationOnly .
-
-gmeow:eqLogicBfo013 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:OccurrentBoundary ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bfo:BFO_0000035 ;
-    logic:sourceEndpoint logic:OccurrentBoundary ; logic:targetEndpoint bfo:BFO_0000035 ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:objectLabel "process boundary" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    gmeow:comment "BFO role is a specifically dependent realizable entity, while logic:Role is an anti-rigid type; the shared name does not warrant a close category match." ;
     logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -599,14 +616,6 @@ gmeow:eqLogicObo001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignObject bfo:BFO_0000050 ;
     logic:sourceEndpoint logic:partOf ; logic:targetEndpoint bfo:BFO_0000050 ; gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ; gmeow:objectLabel "part of" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
-    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
-    logic:preservationKind logic:ValidationOnly .
-
-gmeow:eqLogicObo002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:precedes ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bfo:BFO_0000063 ;
-    logic:sourceEndpoint logic:precedes ; logic:targetEndpoint bfo:BFO_0000063 ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:objectLabel "precedes" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
     logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -692,12 +701,6 @@ gmeow:eqLogicSumo008 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:Collection ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Collection ;
     logic:sourceEndpoint logic:Collection ; logic:targetEndpoint sumo:Collection ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
-    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
-
-gmeow:eqLogicSumo009 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:Quantity ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Quantity ;
-    logic:sourceEndpoint logic:Quantity ; logic:targetEndpoint sumo:Quantity ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
     logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLogicSumo010 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
@@ -788,6 +791,15 @@ gmeow:eqLogicSumo024 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:disjoint ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:disjoint ;
     logic:sourceEndpoint logic:disjoint ; logic:targetEndpoint sumo:disjoint ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo025 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Quantity ; gmeow:alignPredicate skos:broadMatch ; gmeow:alignObject sumo:Quantity ;
+    logic:sourceEndpoint math:Quantity ; logic:targetEndpoint sumo:Quantity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:objectLabel "SUMO Quantity" ;
+    gmeow:comment "SUMO Quantity broadly includes numbers, physical quantities, and other quantifiable entities, while math:Quantity is the stricter GMEOW class of objects carrying exactly one explicit math:Dimension. The logic-owned SUMO boundary therefore records a broad, validation-only bridge rather than an equivalence or imported semantic spine." ;
+    gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
     logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
 
 # ── OWL/RDFS: complete compiler-recognized construct surface ─────────────────

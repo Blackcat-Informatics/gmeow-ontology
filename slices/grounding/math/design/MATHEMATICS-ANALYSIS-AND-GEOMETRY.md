@@ -15,7 +15,7 @@
 > [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
@@ -128,7 +128,7 @@ Core properties: `math:hasFiltrationStage`, `math:filtrationThreshold`, `math:st
 `math:bornAt`, and `math:diesAt`.
 
 A `math:Filtration` is a monotone family of substructures of an ambient object indexed by a real-valued
-threshold ε: each `math:FiltrationStage` pairs a `math:filtrationThreshold` (a `gmeow:Quantity`) with
+threshold ε: each `math:FiltrationStage` pairs a `math:filtrationThreshold` (a `math:Quantity`) with
 the `math:stageStructure` present at it (a `math:TopologicalSpace`), and for thresholds ε₁ ≤ ε₂ the
 stage at ε₁ is contained in the stage at ε₂. The containment is the **existing** transitive
 `math:subsetOf`, not a new order relation; the nesting law that ε₁ ≤ ε₂ *entails* containment is
@@ -140,7 +140,7 @@ and a structure) — monotonicity is a law, not a shape, exactly as for the sepa
 A `math:PersistenceLifetime` is the birth–death interval of one topological feature — a
 `math:HomologyGroup` generator, a hole of some dimension — across a filtration: it names the filtration
 (`math:overFiltration`), the feature (`math:persistenceFeature`), the threshold the feature appears at
-(`math:bornAt`, a `gmeow:Quantity`), and the threshold it disappears at (`math:diesAt`). Its persistence
+(`math:bornAt`, a `math:Quantity`), and the threshold it disappears at (`math:diesAt`). Its persistence
 is death − birth: a long-lived feature is signal, a short-lived one is noise. An **essential** feature
 never dies within the filtration, so its `math:diesAt` is the individual `math:PositiveInfinity` rather
 than a finite threshold — the same extended-real range `math:totalMass` carries, which is why

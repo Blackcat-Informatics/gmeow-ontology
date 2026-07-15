@@ -129,3 +129,5 @@ ex:crispDeterminacy a gmeow:Determinacy ;
     rdfs:label "Crisp determinacy — an exact value, not vague or fuzzy"@x-gmeow-english .
 ex:probabilityAxis a gmeow:Axis ;
     rdfs:label "The scalar probability-magnitude axis in [0, 1]"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/intervals/level95> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/intervals/mass95> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

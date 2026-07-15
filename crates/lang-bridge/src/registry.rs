@@ -73,6 +73,10 @@ pub struct LangProjectionInput {
     /// from `lang_models` so the TBox-bearing module surface is scanned ONLY for varieties and
     /// never fed to a document/surface/meaning bridge.
     pub varieties: Vec<NamedSource>,
+    /// The one carrier-authored GMN dictionary and scoped glyph registry. Keeping this
+    /// separate from each projected source graph ensures every writer/reader invocation uses
+    /// the codebook the shipped ontology pins, rather than a source-local empty fallback.
+    pub gmn_dictionary: Option<GmnDictionary>,
 }
 
 /// One generated external artifact an emission produces, keyed by the path suffix under
@@ -395,22 +399,29 @@ impl LangProjectionTarget for Gmn1Target {
                 continue;
             };
             let model = Gmn0Model::from_dataset(&ds);
-            let dict = GmnDictionary::from_dataset(&ds).unwrap_or_default();
-
-            let write_result = gmn1_write(&model, &dict);
-            let (exact, artifact_text, unsupported) = match write_result {
-                Ok(doc) => match gmn1_read(&doc, &dict) {
-                    Ok(back) if gmn0_canonically_equal(&model, &back) => {
-                        (true, doc.text, Vec::new())
-                    }
-                    Ok(_) => (
-                        false,
-                        String::new(),
-                        vec!["round-trip canonical mismatch".to_owned()],
-                    ),
+            let (exact, artifact_text, unsupported) = match input.gmn_dictionary.as_ref() {
+                Some(dict) => match gmn1_write(&model, dict) {
+                    Ok(doc) => match gmn1_read(&doc, dict) {
+                        Ok(back) if gmn0_canonically_equal(&model, &back) => {
+                            (true, doc.text, Vec::new())
+                        }
+                        Ok(_) => (
+                            false,
+                            String::new(),
+                            vec!["round-trip canonical mismatch".to_owned()],
+                        ),
+                        Err(e) => (false, String::new(), vec![e.to_string()]),
+                    },
                     Err(e) => (false, String::new(), vec![e.to_string()]),
                 },
-                Err(e) => (false, String::new(), vec![e.to_string()]),
+                None => (
+                    false,
+                    String::new(),
+                    vec![
+                        "current GMN codebook dictionary is absent; version-pinned resolution cannot default"
+                            .to_owned(),
+                    ],
+                ),
             };
 
             let source_iri = format!(

@@ -46,5 +46,5 @@ ex:meanRole a math:DistributionParameterRole ;
     math:roleWithinParameterization ex:meanStddevParam ;
     math:quantityDimension math:sameAsRandomVariableDimension .
 # The location parameter's quantity carries the SAME dimension as the random variable.
-ex:muQty a gmeow:Quantity ;
+ex:muQty a math:Quantity ;
     math:hasDimension math:lengthDimension .

@@ -411,6 +411,29 @@
             }
           ],
           "message": {
+            "text": "axisGmnGlyphOptimality: Maximal (score 1.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "68a9aa19fed4baf1"
+          },
+          "ruleId": "slice-quality.grade"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "axisMaximalGrounding: Maximal (score 1.00)"
           },
           "partialFingerprints": {

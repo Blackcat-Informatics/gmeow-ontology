@@ -375,7 +375,7 @@ projection, never as the authority over `logic:` semantics.
   `BridgeView` + `CommitmentShiftingBridge` correspondences, so no equivalence can be fabricated.
   BFO IRIs and labels are verified against `imports/targets/bfo.ttl`; BFO/OBO/SUMO target axioms
   stay outside object-level closure. OWL/RDFS is a `SoundUnderApproximation` compiler dialect and
-  SHACL Core/AF is `ValidationOnly`. The 141-row core and 21-row additive sources are
+  SHACL Core/AF is `ValidationOnly`. The 140-row core and 23-row additive sources are
   `slices/grounding/logic/mappings/grounding-bridges.ttl` and
   `slices/grounding/logic/mappings/foundation-bridges.ttl`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
@@ -709,8 +709,8 @@ provenance/confidence/standpoint layer every other slice already uses:
   result, a procedure, a time, and a vantage — so a sensor reading, a survey, and a model
   output are all first-class and comparable. Standpoint-indexed claims are themselves a
   *specialization* of observation (claim-from-a-vantage), unifying the epistemics spine.
-- **Quantities carry their units and their uncertainty.** A universal `gmeow:Quantity` /
-  `MeasuredValue` (value × unit × determinacy × provenance) aligns to **QUDT**, so "5 nm" and
+- **Quantities carry their units and their uncertainty.** The universal `math:Quantity`
+  (dimension × value × unit/frame × determinacy × provenance) aligns to **QUDT**, so "5 nm" and
   "5 µm" are never confused, and `SpatialMeasurement` + `CoordinateObservation` capture
   position *in an explicit reference frame*.
 - **Frame-relativity is the law, not a convention ([Principle 11](./CONSTITUTION.md)).** Every

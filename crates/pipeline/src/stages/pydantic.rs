@@ -2039,6 +2039,90 @@ mod tests {
         n
     }
 
+    /// The canonical logic restriction vocabulary must reach the functional-model
+    /// surface without relying on a pre-generated OWL/RDFS copy.  These three lang
+    /// classes are intentionally restriction-only Pydantic targets: losing the
+    /// `logic:subClassOf [ a logic:Restriction ; ... ]` derivation removes their
+    /// JSON-Schema `$defs` and therefore their Python models/re-exports.
+    #[test]
+    fn logic_authored_lang_restrictions_remain_exported() {
+        let source = r#"
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# The package's universal @annotation field references this infrastructure model.
+gmeow:Annotation a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty gmeow:annotationTarget ;
+        logic:allValuesFrom gmeow:Entity ] .
+
+lang:WordForm a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:lexemeOf ;
+        logic:allValuesFrom lang:Lexeme ] .
+
+lang:Grammar a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:grammarFor ;
+        logic:allValuesFrom lang:SignSystem ] .
+
+lang:GrammarRule a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:grammarRuleOf ;
+        logic:allValuesFrom lang:Grammar ] .
+"#;
+        let ontology = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("parse canonical logic restriction fixture");
+        let validation_shapes =
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .expect("derive validation shapes from logic restrictions");
+        let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+            .with_validation_shapes(validation_shapes);
+        let shacl =
+            gmeow_logic_compile::projections::shapes::project_validation_shapes_shacl(&program);
+        let shape_dataset = purrdf::parse_dataset(shacl.as_bytes(), "text/turtle", None)
+            .expect("parse projected SHACL");
+        let prefixes = purrdf::shapes::text_ingest::extract_prefixes(&shacl);
+        let shapes = purrdf::shapes::shapes::from_dataset_with_prefixes(&shape_dataset, &prefixes)
+            .expect("type projected SHACL");
+
+        let rendered = render_models_python_from_shapes(&repo_root(), &shapes)
+            .expect("render Pydantic models from logic-derived shapes");
+        let init = utf8(&rendered.artifacts, "gmeow_models/__init__.py");
+        let lang = utf8(&rendered.artifacts, "gmeow_models/lang.py");
+        for (iri, class) in [
+            (
+                "https://blackcatinformatics.ca/lang/Grammar",
+                "Lang_Grammar",
+            ),
+            (
+                "https://blackcatinformatics.ca/lang/GrammarRule",
+                "Lang_GrammarRule",
+            ),
+            (
+                "https://blackcatinformatics.ca/lang/WordForm",
+                "Lang_WordForm",
+            ),
+        ] {
+            let dotted = format!("gmeow_models.lang.{class}");
+            assert_eq!(
+                rendered.dotted_paths.get(iri).map(String::as_str),
+                Some(dotted.as_str()),
+                "{iri} must retain its importable Pydantic model"
+            );
+            assert!(
+                lang.contains(&format!("class {class}(")),
+                "lang module must define {class}"
+            );
+            assert!(
+                init.contains(&format!("\"{class}\"")),
+                "package __init__ must re-export {class}"
+            );
+        }
+    }
+
     /// The whole package, rendered over the real repo, is deterministic and
     /// structurally well-formed: one model per compiled `$def`, the package
     /// scaffolding is present, and the value-vocabulary / field / identity

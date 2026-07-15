@@ -35,22 +35,22 @@
 <https://blackcatinformatics.ca/gmeow/full> <http://purl.org/dc/terms/hasPart> <https://blackcatinformatics.ca/gmeow> .
 <https://blackcatinformatics.ca/gmeow/profiles/claims> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
 <https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/title> "GMEOW — claims profile"@en .
-<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 13 declared slice(s), 37 in the import closure."@en .
+<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 13 declared slice(s), 38 in the import closure."@en .
 <https://blackcatinformatics.ca/gmeow/profiles/claims> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/claims> .
 <https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
 <https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
 <https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/title> "GMEOW — dreaming profile"@en .
-<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 1 declared slice(s), 36 in the import closure."@en .
+<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 1 declared slice(s), 37 in the import closure."@en .
 <https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/dreaming> .
 <https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
 <https://blackcatinformatics.ca/gmeow/profiles/memory> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
 <https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/title> "GMEOW — memory profile"@en .
-<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 18 declared slice(s), 38 in the import closure."@en .
+<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 18 declared slice(s), 39 in the import closure."@en .
 <https://blackcatinformatics.ca/gmeow/profiles/memory> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/memory> .
 <https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/title> "GMEOW — music profile"@en .
-<https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 1 declared slice(s), 29 in the import closure."@en .
+<https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 1 declared slice(s), 30 in the import closure."@en .
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/music> .
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .

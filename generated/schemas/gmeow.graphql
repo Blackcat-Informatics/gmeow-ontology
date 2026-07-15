@@ -353,263 +353,307 @@ enum AxisFloorCommitmentEnum {
   afc_accessibility_axisDocMaturity
   afc_accessibility_axisDocumentation
   afc_accessibility_axisGmn1Coverage
+  afc_accessibility_axisGmnGlyphOptimality
   afc_accessibility_axisProseQuality
   afc_accessibility_axisShapeMigration
   afc_accessibility_axisTranslationCoverage
   afc_accounts_axisDocMaturity
   afc_accounts_axisDocumentation
   afc_accounts_axisGmn1Coverage
+  afc_accounts_axisGmnGlyphOptimality
   afc_accounts_axisProseQuality
   afc_accounts_axisShapeMigration
   afc_accounts_axisTranslationCoverage
   afc_affect_axisDocMaturity
   afc_affect_axisDocumentation
   afc_affect_axisGmn1Coverage
+  afc_affect_axisGmnGlyphOptimality
   afc_affect_axisProseQuality
   afc_affect_axisShapeMigration
   afc_affect_axisTranslationCoverage
   afc_agent_runtime_axisDocMaturity
   afc_agent_runtime_axisDocumentation
   afc_agent_runtime_axisGmn1Coverage
+  afc_agent_runtime_axisGmnGlyphOptimality
   afc_agent_runtime_axisProseQuality
   afc_agent_runtime_axisShapeMigration
   afc_agent_runtime_axisTranslationCoverage
   afc_agentic_axisDocMaturity
   afc_agentic_axisDocumentation
   afc_agentic_axisGmn1Coverage
+  afc_agentic_axisGmnGlyphOptimality
   afc_agentic_axisProseQuality
   afc_agentic_axisShapeMigration
   afc_agentic_axisTranslationCoverage
   afc_aggregation_axisDocMaturity
   afc_aggregation_axisDocumentation
   afc_aggregation_axisGmn1Coverage
+  afc_aggregation_axisGmnGlyphOptimality
   afc_aggregation_axisProseQuality
   afc_aggregation_axisShapeMigration
   afc_aggregation_axisTranslationCoverage
   afc_agreements_axisDocMaturity
   afc_agreements_axisDocumentation
   afc_agreements_axisGmn1Coverage
+  afc_agreements_axisGmnGlyphOptimality
   afc_agreements_axisProseQuality
   afc_agreements_axisShapeMigration
   afc_agreements_axisTranslationCoverage
   afc_ai_axisDocMaturity
   afc_ai_axisDocumentation
   afc_ai_axisGmn1Coverage
+  afc_ai_axisGmnGlyphOptimality
   afc_ai_axisProseQuality
   afc_ai_axisShapeMigration
   afc_ai_axisTranslationCoverage
   afc_archaeological_evidence_axisDocMaturity
   afc_archaeological_evidence_axisDocumentation
   afc_archaeological_evidence_axisGmn1Coverage
+  afc_archaeological_evidence_axisGmnGlyphOptimality
   afc_archaeological_evidence_axisProseQuality
   afc_archaeological_evidence_axisShapeMigration
   afc_archaeological_evidence_axisTranslationCoverage
   afc_attestation_axisDocMaturity
   afc_attestation_axisDocumentation
   afc_attestation_axisGmn1Coverage
+  afc_attestation_axisGmnGlyphOptimality
   afc_attestation_axisProseQuality
   afc_attestation_axisShapeMigration
   afc_attestation_axisTranslationCoverage
   afc_awareness_axisDocMaturity
   afc_awareness_axisDocumentation
   afc_awareness_axisGmn1Coverage
+  afc_awareness_axisGmnGlyphOptimality
   afc_awareness_axisProseQuality
   afc_awareness_axisShapeMigration
   afc_awareness_axisTranslationCoverage
   afc_calendar_axisDocMaturity
   afc_calendar_axisDocumentation
   afc_calendar_axisGmn1Coverage
+  afc_calendar_axisGmnGlyphOptimality
   afc_calendar_axisProseQuality
   afc_calendar_axisShapeMigration
   afc_calendar_axisTranslationCoverage
   afc_citations_axisDocMaturity
   afc_citations_axisDocumentation
   afc_citations_axisGmn1Coverage
+  afc_citations_axisGmnGlyphOptimality
   afc_citations_axisProseQuality
   afc_citations_axisShapeMigration
   afc_citations_axisTranslationCoverage
   afc_cognition_axisDocMaturity
   afc_cognition_axisDocumentation
   afc_cognition_axisGmn1Coverage
+  afc_cognition_axisGmnGlyphOptimality
   afc_cognition_axisProseQuality
   afc_cognition_axisShapeMigration
   afc_cognition_axisTranslationCoverage
   afc_concepts_axisDocMaturity
   afc_concepts_axisDocumentation
   afc_concepts_axisGmn1Coverage
+  afc_concepts_axisGmnGlyphOptimality
   afc_concepts_axisProseQuality
   afc_concepts_axisShapeMigration
   afc_concepts_axisTranslationCoverage
   afc_connectivity_axisDocMaturity
   afc_connectivity_axisDocumentation
   afc_connectivity_axisGmn1Coverage
+  afc_connectivity_axisGmnGlyphOptimality
   afc_connectivity_axisProseQuality
   afc_connectivity_axisShapeMigration
   afc_connectivity_axisTranslationCoverage
   afc_contacts_axisDocMaturity
   afc_contacts_axisDocumentation
   afc_contacts_axisGmn1Coverage
+  afc_contacts_axisGmnGlyphOptimality
   afc_contacts_axisProseQuality
   afc_contacts_axisShapeMigration
   afc_contacts_axisTranslationCoverage
   afc_coreference_axisDocMaturity
   afc_coreference_axisDocumentation
   afc_coreference_axisGmn1Coverage
+  afc_coreference_axisGmnGlyphOptimality
   afc_coreference_axisProseQuality
   afc_coreference_axisShapeMigration
   afc_coreference_axisTranslationCoverage
   afc_creative_works_axisDocMaturity
   afc_creative_works_axisDocumentation
   afc_creative_works_axisGmn1Coverage
+  afc_creative_works_axisGmnGlyphOptimality
   afc_creative_works_axisProseQuality
   afc_creative_works_axisShapeMigration
   afc_creative_works_axisTranslationCoverage
   afc_deception_axisDocMaturity
   afc_deception_axisDocumentation
   afc_deception_axisGmn1Coverage
+  afc_deception_axisGmnGlyphOptimality
   afc_deception_axisProseQuality
   afc_deception_axisShapeMigration
   afc_deception_axisTranslationCoverage
   afc_diagnostics_axisDocMaturity
   afc_diagnostics_axisDocumentation
   afc_diagnostics_axisGmn1Coverage
+  afc_diagnostics_axisGmnGlyphOptimality
   afc_diagnostics_axisProseQuality
   afc_diagnostics_axisShapeMigration
   afc_diagnostics_axisTranslationCoverage
   afc_documentation_axisDocMaturity
   afc_documentation_axisDocumentation
   afc_documentation_axisGmn1Coverage
+  afc_documentation_axisGmnGlyphOptimality
   afc_documentation_axisProseQuality
   afc_documentation_axisTranslationCoverage
   afc_documents_axisDocMaturity
   afc_documents_axisDocumentation
   afc_documents_axisGmn1Coverage
+  afc_documents_axisGmnGlyphOptimality
   afc_documents_axisProseQuality
   afc_documents_axisShapeMigration
   afc_documents_axisTranslationCoverage
   afc_dreaming_axisDocMaturity
   afc_dreaming_axisDocumentation
   afc_dreaming_axisGmn1Coverage
+  afc_dreaming_axisGmnGlyphOptimality
   afc_dreaming_axisProseQuality
   afc_dreaming_axisShapeMigration
   afc_dreaming_axisTranslationCoverage
   afc_email_axisDocMaturity
   afc_email_axisDocumentation
   afc_email_axisGmn1Coverage
+  afc_email_axisGmnGlyphOptimality
   afc_email_axisProseQuality
   afc_email_axisShapeMigration
   afc_email_axisTranslationCoverage
   afc_employment_axisDocMaturity
   afc_employment_axisDocumentation
   afc_employment_axisGmn1Coverage
+  afc_employment_axisGmnGlyphOptimality
   afc_employment_axisProseQuality
   afc_employment_axisShapeMigration
   afc_employment_axisTranslationCoverage
   afc_entities_axisDocMaturity
   afc_entities_axisDocumentation
   afc_entities_axisGmn1Coverage
+  afc_entities_axisGmnGlyphOptimality
   afc_entities_axisProseQuality
   afc_entities_axisShapeMigration
   afc_entities_axisTranslationCoverage
   afc_epistemics_axisDocMaturity
   afc_epistemics_axisDocumentation
   afc_epistemics_axisGmn1Coverage
+  afc_epistemics_axisGmnGlyphOptimality
   afc_epistemics_axisProseQuality
   afc_epistemics_axisShapeMigration
   afc_epistemics_axisTranslationCoverage
   afc_events_axisDocMaturity
   afc_events_axisDocumentation
   afc_events_axisGmn1Coverage
+  afc_events_axisGmnGlyphOptimality
   afc_events_axisProseQuality
   afc_events_axisShapeMigration
   afc_events_axisTranslationCoverage
   afc_evidence_axisDocMaturity
   afc_evidence_axisDocumentation
   afc_evidence_axisGmn1Coverage
+  afc_evidence_axisGmnGlyphOptimality
   afc_evidence_axisProseQuality
   afc_evidence_axisShapeMigration
   afc_evidence_axisTranslationCoverage
   afc_expertise_axisDocMaturity
   afc_expertise_axisDocumentation
   afc_expertise_axisGmn1Coverage
+  afc_expertise_axisGmnGlyphOptimality
   afc_expertise_axisProseQuality
   afc_expertise_axisShapeMigration
   afc_expertise_axisTranslationCoverage
   afc_finance_axisDocMaturity
   afc_finance_axisDocumentation
   afc_finance_axisGmn1Coverage
+  afc_finance_axisGmnGlyphOptimality
   afc_finance_axisProseQuality
   afc_finance_axisShapeMigration
   afc_finance_axisTranslationCoverage
   afc_gender_axisDocMaturity
   afc_gender_axisDocumentation
   afc_gender_axisGmn1Coverage
+  afc_gender_axisGmnGlyphOptimality
   afc_gender_axisProseQuality
   afc_gender_axisShapeMigration
   afc_gender_axisTranslationCoverage
   afc_genealogy_axisDocMaturity
   afc_genealogy_axisDocumentation
   afc_genealogy_axisGmn1Coverage
+  afc_genealogy_axisGmnGlyphOptimality
   afc_genealogy_axisProseQuality
   afc_genealogy_axisShapeMigration
   afc_genealogy_axisTranslationCoverage
   afc_graphrag_axisDocMaturity
   afc_graphrag_axisDocumentation
   afc_graphrag_axisGmn1Coverage
+  afc_graphrag_axisGmnGlyphOptimality
   afc_graphrag_axisProseQuality
   afc_graphrag_axisShapeMigration
   afc_graphrag_axisTranslationCoverage
   afc_gts_axisDocMaturity
   afc_gts_axisDocumentation
   afc_gts_axisGmn1Coverage
+  afc_gts_axisGmnGlyphOptimality
   afc_gts_axisProseQuality
   afc_gts_axisShapeMigration
   afc_gts_axisTranslationCoverage
   afc_guides_axisDocMaturity
   afc_guides_axisDocumentation
   afc_guides_axisGmn1Coverage
+  afc_guides_axisGmnGlyphOptimality
   afc_guides_axisProseQuality
   afc_guides_axisShapeMigration
   afc_guides_axisTranslationCoverage
   afc_images_axisDocMaturity
   afc_images_axisDocumentation
   afc_images_axisGmn1Coverage
+  afc_images_axisGmnGlyphOptimality
   afc_images_axisProseQuality
   afc_images_axisShapeMigration
   afc_images_axisTranslationCoverage
   afc_imagination_axisDocMaturity
   afc_imagination_axisDocumentation
   afc_imagination_axisGmn1Coverage
+  afc_imagination_axisGmnGlyphOptimality
   afc_imagination_axisProseQuality
   afc_imagination_axisShapeMigration
   afc_imagination_axisTranslationCoverage
   afc_inference_axisDocMaturity
   afc_inference_axisDocumentation
   afc_inference_axisGmn1Coverage
+  afc_inference_axisGmnGlyphOptimality
   afc_inference_axisProseQuality
   afc_inference_axisShapeMigration
   afc_inference_axisTranslationCoverage
   afc_inhabitation_axisDocMaturity
   afc_inhabitation_axisDocumentation
   afc_inhabitation_axisGmn1Coverage
+  afc_inhabitation_axisGmnGlyphOptimality
   afc_inhabitation_axisProseQuality
   afc_inhabitation_axisShapeMigration
   afc_inhabitation_axisTranslationCoverage
   afc_inquiry_axisDocMaturity
   afc_inquiry_axisDocumentation
   afc_inquiry_axisGmn1Coverage
+  afc_inquiry_axisGmnGlyphOptimality
   afc_inquiry_axisProseQuality
   afc_inquiry_axisShapeMigration
   afc_inquiry_axisTranslationCoverage
   afc_kernel_axisDocMaturity
   afc_kernel_axisDocumentation
   afc_kernel_axisGmn1Coverage
+  afc_kernel_axisGmnGlyphOptimality
   afc_kernel_axisProseQuality
   afc_kernel_axisShapeMigration
   afc_kernel_axisTranslationCoverage
   afc_lang_axisDocMaturity
   afc_lang_axisDocumentation
   afc_lang_axisGmn1Coverage
+  afc_lang_axisGmnGlyphOptimality
   afc_lang_axisMaximalGrounding
   afc_lang_axisMaximalLinkage
   afc_lang_axisProseQuality
@@ -618,30 +662,35 @@ enum AxisFloorCommitmentEnum {
   afc_language_axisDocMaturity
   afc_language_axisDocumentation
   afc_language_axisGmn1Coverage
+  afc_language_axisGmnGlyphOptimality
   afc_language_axisProseQuality
   afc_language_axisShapeMigration
   afc_language_axisTranslationCoverage
   afc_languages_axisDocMaturity
   afc_languages_axisDocumentation
   afc_languages_axisGmn1Coverage
+  afc_languages_axisGmnGlyphOptimality
   afc_languages_axisProseQuality
   afc_languages_axisShapeMigration
   afc_languages_axisTranslationCoverage
   afc_learning_axisDocMaturity
   afc_learning_axisDocumentation
   afc_learning_axisGmn1Coverage
+  afc_learning_axisGmnGlyphOptimality
   afc_learning_axisProseQuality
   afc_learning_axisShapeMigration
   afc_learning_axisTranslationCoverage
   afc_lexicon_axisDocMaturity
   afc_lexicon_axisDocumentation
   afc_lexicon_axisGmn1Coverage
+  afc_lexicon_axisGmnGlyphOptimality
   afc_lexicon_axisProseQuality
   afc_lexicon_axisShapeMigration
   afc_lexicon_axisTranslationCoverage
   afc_lifecycle_axisDocMaturity
   afc_lifecycle_axisDocumentation
   afc_lifecycle_axisGmn1Coverage
+  afc_lifecycle_axisGmnGlyphOptimality
   afc_lifecycle_axisProseQuality
   afc_lifecycle_axisShapeMigration
   afc_lifecycle_axisTranslationCoverage
@@ -649,6 +698,7 @@ enum AxisFloorCommitmentEnum {
   afc_logic_axisDocumentation
   afc_logic_axisFlagshipCounterExampleDepth
   afc_logic_axisGmn1Coverage
+  afc_logic_axisGmnGlyphOptimality
   afc_logic_axisMaximalGrounding
   afc_logic_axisMaximalInformation
   afc_logic_axisMaximalLinkage
@@ -663,6 +713,7 @@ enum AxisFloorCommitmentEnum {
   afc_math_axisDocumentation
   afc_math_axisFlagshipCounterExampleDepth
   afc_math_axisGmn1Coverage
+  afc_math_axisGmnGlyphOptimality
   afc_math_axisMaximalGrounding
   afc_math_axisMaximalInformation
   afc_math_axisMaximalLinkage
@@ -676,186 +727,217 @@ enum AxisFloorCommitmentEnum {
   afc_mentation_axisDocMaturity
   afc_mentation_axisDocumentation
   afc_mentation_axisGmn1Coverage
+  afc_mentation_axisGmnGlyphOptimality
   afc_mentation_axisProseQuality
   afc_mentation_axisShapeMigration
   afc_mentation_axisTranslationCoverage
   afc_metacognition_axisDocMaturity
   afc_metacognition_axisDocumentation
   afc_metacognition_axisGmn1Coverage
+  afc_metacognition_axisGmnGlyphOptimality
   afc_metacognition_axisProseQuality
   afc_metacognition_axisShapeMigration
   afc_metacognition_axisTranslationCoverage
   afc_model_serving_axisDocMaturity
   afc_model_serving_axisDocumentation
   afc_model_serving_axisGmn1Coverage
+  afc_model_serving_axisGmnGlyphOptimality
   afc_model_serving_axisProseQuality
   afc_model_serving_axisShapeMigration
   afc_model_serving_axisTranslationCoverage
   afc_music_axisDocMaturity
   afc_music_axisDocumentation
   afc_music_axisGmn1Coverage
+  afc_music_axisGmnGlyphOptimality
   afc_music_axisProseQuality
   afc_music_axisShapeMigration
   afc_music_axisTranslationCoverage
   afc_names_axisDocMaturity
   afc_names_axisDocumentation
   afc_names_axisGmn1Coverage
+  afc_names_axisGmnGlyphOptimality
   afc_names_axisProseQuality
   afc_names_axisShapeMigration
   afc_names_axisTranslationCoverage
   afc_narrative_axisDocMaturity
   afc_narrative_axisDocumentation
   afc_narrative_axisGmn1Coverage
+  afc_narrative_axisGmnGlyphOptimality
   afc_narrative_axisProseQuality
   afc_narrative_axisShapeMigration
   afc_narrative_axisTranslationCoverage
   afc_norms_axisDocMaturity
   afc_norms_axisDocumentation
   afc_norms_axisGmn1Coverage
+  afc_norms_axisGmnGlyphOptimality
   afc_norms_axisProseQuality
   afc_norms_axisShapeMigration
   afc_norms_axisTranslationCoverage
   afc_notation_axisDocMaturity
   afc_notation_axisDocumentation
   afc_notation_axisGmn1Coverage
+  afc_notation_axisGmnGlyphOptimality
   afc_notation_axisProseQuality
   afc_notation_axisShapeMigration
   afc_notation_axisTranslationCoverage
   afc_notes_axisDocMaturity
   afc_notes_axisDocumentation
   afc_notes_axisGmn1Coverage
+  afc_notes_axisGmnGlyphOptimality
   afc_notes_axisProseQuality
   afc_notes_axisShapeMigration
   afc_notes_axisTranslationCoverage
   afc_observations_axisDocMaturity
   afc_observations_axisDocumentation
   afc_observations_axisGmn1Coverage
+  afc_observations_axisGmnGlyphOptimality
   afc_observations_axisProseQuality
   afc_observations_axisShapeMigration
   afc_observations_axisTranslationCoverage
   afc_organization_axisDocMaturity
   afc_organization_axisDocumentation
   afc_organization_axisGmn1Coverage
+  afc_organization_axisGmnGlyphOptimality
   afc_organization_axisProseQuality
   afc_organization_axisShapeMigration
   afc_organization_axisTranslationCoverage
   afc_pipeline_axisDocMaturity
   afc_pipeline_axisDocumentation
   afc_pipeline_axisGmn1Coverage
+  afc_pipeline_axisGmnGlyphOptimality
   afc_pipeline_axisProseQuality
   afc_pipeline_axisShapeMigration
   afc_pipeline_axisTranslationCoverage
   afc_places_axisDocMaturity
   afc_places_axisDocumentation
   afc_places_axisGmn1Coverage
+  afc_places_axisGmnGlyphOptimality
   afc_places_axisProseQuality
   afc_places_axisShapeMigration
   afc_places_axisTranslationCoverage
   afc_procedures_axisDocMaturity
   afc_procedures_axisDocumentation
   afc_procedures_axisGmn1Coverage
+  afc_procedures_axisGmnGlyphOptimality
   afc_procedures_axisProseQuality
   afc_procedures_axisShapeMigration
   afc_procedures_axisTranslationCoverage
   afc_profiles_axisDocMaturity
   afc_profiles_axisDocumentation
   afc_profiles_axisGmn1Coverage
+  afc_profiles_axisGmnGlyphOptimality
   afc_profiles_axisProseQuality
   afc_profiles_axisShapeMigration
   afc_profiles_axisTranslationCoverage
   afc_provenance_axisDocMaturity
   afc_provenance_axisDocumentation
   afc_provenance_axisGmn1Coverage
+  afc_provenance_axisGmnGlyphOptimality
   afc_provenance_axisProseQuality
   afc_provenance_axisShapeMigration
   afc_provenance_axisTranslationCoverage
   afc_quality_axisDocMaturity
   afc_quality_axisDocumentation
   afc_quality_axisGmn1Coverage
+  afc_quality_axisGmnGlyphOptimality
   afc_quality_axisProseQuality
   afc_quality_axisShapeMigration
   afc_quality_axisTranslationCoverage
   afc_rights_axisDocMaturity
   afc_rights_axisDocumentation
   afc_rights_axisGmn1Coverage
+  afc_rights_axisGmnGlyphOptimality
   afc_rights_axisProseQuality
   afc_rights_axisShapeMigration
   afc_rights_axisTranslationCoverage
   afc_risk_axisDocMaturity
   afc_risk_axisDocumentation
   afc_risk_axisGmn1Coverage
+  afc_risk_axisGmnGlyphOptimality
   afc_risk_axisProseQuality
   afc_risk_axisShapeMigration
   afc_risk_axisTranslationCoverage
   afc_sensory_axisDocMaturity
   afc_sensory_axisDocumentation
   afc_sensory_axisGmn1Coverage
+  afc_sensory_axisGmnGlyphOptimality
   afc_sensory_axisProseQuality
   afc_sensory_axisShapeMigration
   afc_sensory_axisTranslationCoverage
   afc_sensory_environment_axisDocMaturity
   afc_sensory_environment_axisDocumentation
   afc_sensory_environment_axisGmn1Coverage
+  afc_sensory_environment_axisGmnGlyphOptimality
   afc_sensory_environment_axisProseQuality
   afc_sensory_environment_axisShapeMigration
   afc_sensory_environment_axisTranslationCoverage
   afc_sexuality_axisDocMaturity
   afc_sexuality_axisDocumentation
   afc_sexuality_axisGmn1Coverage
+  afc_sexuality_axisGmnGlyphOptimality
   afc_sexuality_axisProseQuality
   afc_sexuality_axisShapeMigration
   afc_sexuality_axisTranslationCoverage
   afc_slice_quality_rubric_axisDocMaturity
   afc_slice_quality_rubric_axisDocumentation
   afc_slice_quality_rubric_axisGmn1Coverage
+  afc_slice_quality_rubric_axisGmnGlyphOptimality
   afc_slice_quality_rubric_axisProseQuality
   afc_slice_quality_rubric_axisShapeMigration
   afc_slice_quality_rubric_axisTranslationCoverage
   afc_software_axisDocMaturity
   afc_software_axisDocumentation
   afc_software_axisGmn1Coverage
+  afc_software_axisGmnGlyphOptimality
   afc_software_axisProseQuality
   afc_software_axisShapeMigration
   afc_software_axisTranslationCoverage
   afc_sources_axisDocMaturity
   afc_sources_axisDocumentation
   afc_sources_axisGmn1Coverage
+  afc_sources_axisGmnGlyphOptimality
   afc_sources_axisProseQuality
   afc_sources_axisShapeMigration
   afc_sources_axisTranslationCoverage
   afc_standpoint_axisDocMaturity
   afc_standpoint_axisDocumentation
   afc_standpoint_axisGmn1Coverage
+  afc_standpoint_axisGmnGlyphOptimality
   afc_standpoint_axisProseQuality
   afc_standpoint_axisShapeMigration
   afc_standpoint_axisTranslationCoverage
   afc_tags_axisDocMaturity
   afc_tags_axisDocumentation
   afc_tags_axisGmn1Coverage
+  afc_tags_axisGmnGlyphOptimality
   afc_tags_axisProseQuality
   afc_tags_axisShapeMigration
   afc_tags_axisTranslationCoverage
   afc_teleology_axisDocMaturity
   afc_teleology_axisDocumentation
   afc_teleology_axisGmn1Coverage
+  afc_teleology_axisGmnGlyphOptimality
   afc_teleology_axisProseQuality
   afc_teleology_axisShapeMigration
   afc_teleology_axisTranslationCoverage
   afc_temporal_axisDocMaturity
   afc_temporal_axisDocumentation
   afc_temporal_axisGmn1Coverage
+  afc_temporal_axisGmnGlyphOptimality
   afc_temporal_axisProseQuality
   afc_temporal_axisShapeMigration
   afc_temporal_axisTranslationCoverage
   afc_trust_axisDocMaturity
   afc_trust_axisDocumentation
   afc_trust_axisGmn1Coverage
+  afc_trust_axisGmnGlyphOptimality
   afc_trust_axisProseQuality
   afc_trust_axisShapeMigration
   afc_trust_axisTranslationCoverage
   afc_versions_axisDocMaturity
   afc_versions_axisDocumentation
   afc_versions_axisGmn1Coverage
+  afc_versions_axisGmnGlyphOptimality
   afc_versions_axisProseQuality
   afc_versions_axisShapeMigration
   afc_versions_axisTranslationCoverage
@@ -880,6 +962,10 @@ enum AxisThresholdEnum {
   thrGmn1CoverageGrounded
   thrGmn1CoverageLinked
   thrGmn1CoverageMaximal
+  thrGmnGlyphExemplified
+  thrGmnGlyphGrounded
+  thrGmnGlyphLinked
+  thrGmnGlyphMaximal
   thrGroundingExemplified
   thrGroundingGrounded
   thrGroundingLinked
@@ -1232,6 +1318,12 @@ enum CoverageDepthEnum {
 }
 
 enum CreativeWorkEnum {
+  gmnCommonLogicWork
+  gmnDescriptionLogicNotationWork
+  gmnFormalSemanticsNotationWork
+  gmnLinguisticNotationWork
+  gmnOpenMathWork
+  gmnUnicodeMathWork
   ipaChartWork
   leipzigWork
   workNatyashastra
@@ -1877,10 +1969,26 @@ enum GmnDictionaryEntryEnum {
   gmnDictV1EntryModalCounterfactual
   gmnDictV1EntryModalNecessary
   gmnDictV1EntryModalPossible
+  gmnDictV2EntryDenotation
+  gmnDictV2EntryLogicAnd
+  gmnDictV2EntryLogicExists
+  gmnDictV2EntryLogicForall
+  gmnDictV2EntryLogicIff
+  gmnDictV2EntryLogicOr
+  gmnDictV2EntryMathDivision
+  gmnDictV2EntryMorphemeBoundary
+  gmnDictV2EntryTranslation
 }
 
 enum GmnDictionaryEnum {
-  gmnDictV1
+  gmnDictV2
+}
+
+enum GmnDispositionBasisEnum {
+  gmnBasisAmbiguity
+  gmnBasisConfusability
+  gmnBasisSemanticMismatch
+  gmnBasisTokenCost
 }
 
 enum GmnFixityEnum {
@@ -1923,6 +2031,39 @@ enum GmnSigilRoleEnum {
   gmnSigilProcess
   gmnSigilProof
   gmnSigilStandpoint
+}
+
+enum GmnSymbolCandidateEnum {
+  gmnCandidateIpaAe
+  gmnCandidateIpaK
+  gmnCandidateIpaStress
+  gmnCandidateIpaT
+  gmnCandidateLangDenotation
+  gmnCandidateLangMorphemeBoundary
+  gmnCandidateLangTranslation
+  gmnCandidateLangUngrammatical
+  gmnCandidateLogicAnd
+  gmnCandidateLogicExists
+  gmnCandidateLogicForall
+  gmnCandidateLogicIff
+  gmnCandidateLogicNot
+  gmnCandidateLogicOr
+  gmnCandidateLogicSubClassOf
+  gmnCandidateMathAddition
+  gmnCandidateMathDivision
+  gmnCandidateMathEulerMascheroni
+  gmnCandidateMathExponentiation
+  gmnCandidateMathMultiplication
+  gmnCandidateMathNegation
+  gmnCandidateMathPi
+  gmnCandidateMathSubtraction
+}
+
+enum GmnSymbolDispositionEnum {
+  gmnDispositionAdoptedGlyph
+  gmnDispositionNamedKey
+  gmnDispositionSemanticRejection
+  gmnDispositionStructuredConstructor
 }
 
 enum GoalEnum {
@@ -2049,6 +2190,8 @@ enum InferenceModeEnum {
 
 enum InformationObjectEnum {
   gmnLangGlyphContext
+  gmnLogicGlyphContext
+  gmnMathGlyphContext
   gmnVersionOne
   ipaPlaneSourceRecord
   leipzigPlaneSourceRecord
@@ -3470,6 +3613,7 @@ enum QualityAxisEnum {
   axisDocumentation
   axisFlagshipCounterExampleDepth
   axisGmn1Coverage
+  axisGmnGlyphOptimality
   axisMaximalGrounding
   axisMaximalInformation
   axisMaximalLinkage
@@ -3917,6 +4061,7 @@ enum SiteTypeEnum {
 enum SliceQualityDimensionEnum {
   qualityDimensionCounterExampleDepth
   qualityDimensionDocumentation
+  qualityDimensionGlyphOptimality
   qualityDimensionGrounding
   qualityDimensionInferentialDensity
   qualityDimensionLinkage
@@ -6050,7 +6195,6 @@ type Entity {
   isAbout: [Entity!]
   isAccessibleForFree: [Boolean!]
   isReferencedBy: [Entity!]
-  isResultOf: [Observation!]
   locatedAt: [Location!]
   mediaType: String
   mentionedIn: [Note!]
@@ -6062,7 +6206,6 @@ type Entity {
   storedIn: [StorageLocation!]
   supersededBy: [Entity!]
   supersedes: [Entity!]
-  trueQuantity: Magnitude
   usageInfo: [String!]
   versionFingerprint: [String!]
   versionLabel: [String!]
@@ -6534,6 +6677,11 @@ type GmnDictionaryEntry {
   gmnDictionaryEntryTerm: String
 }
 
+type GmnDispositionBasis {
+  id: String
+  iri: String
+}
+
 type GmnEnvelope {
   id: String
   iri: String
@@ -6572,6 +6720,16 @@ type GmnSecurityRing {
 }
 
 type GmnSigilRole {
+  id: String
+  iri: String
+}
+
+type GmnSymbolCandidate {
+  id: String
+  iri: String
+}
+
+type GmnSymbolDisposition {
   id: String
   iri: String
 }
@@ -7264,8 +7422,8 @@ type LocationState {
   iri: String
   stateAtInstant: [Instant!]
   stateDuringInterval: [TimeInterval!]
-  stateHasAngularVelocity: [ScalarQuantity!]
-  stateHasVelocity: [ScalarQuantity!]
+  stateHasAngularVelocity: [String!]
+  stateHasVelocity: [String!]
   stateOf: Entity
   stateReferenceFrame: ReferenceFrame
 }
@@ -7334,11 +7492,6 @@ type Mark {
 }
 
 type MaximViolationType {
-  id: String
-  iri: String
-}
-
-type MeasuredValue {
   id: String
   iri: String
 }
@@ -7886,7 +8039,7 @@ type Observation {
   observationEvent: [Event!]
   observationMethod: ObservationMethod
   observationOf: [Quality!]
-  observationResult: Entity
+  observationResult: [String!]
   observationType: [ObservationType!]
   observedAt: String
   observedFeature: String
@@ -8584,11 +8737,6 @@ type QualityTier {
   tierRank: Int
 }
 
-type Quantity {
-  id: String
-  iri: String
-}
-
 type Question {
   id: String
   iri: String
@@ -8676,11 +8824,11 @@ type RegulatoryOverlay {
   overlayAuthority: Agent
   overlayDesignator: String
   overlayDeterminacy: [Determinacy!]
-  overlayLowerBound: [ScalarQuantity!]
+  overlayLowerBound: [String!]
   overlayPlace: Place
   overlayRegulation: [RightsStatement!]
   overlayType: [RegulatoryOverlayType!]
-  overlayUpperBound: [ScalarQuantity!]
+  overlayUpperBound: [String!]
 }
 
 type RegulatoryOverlayType {
@@ -8859,13 +9007,6 @@ type SLSALevel {
 type SMIMESignature {
   id: String
   iri: String
-}
-
-type ScalarQuantity {
-  id: String
-  iri: String
-  quantityUncertainty: Float
-  quantityValue: Float
 }
 
 type ScalePolarity {

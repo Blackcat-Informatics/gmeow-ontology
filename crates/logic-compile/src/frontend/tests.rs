@@ -1177,6 +1177,7 @@ fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
          @prefix owl:  <http://www.w3.org/2002/07/owl#> .\n\
          @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix g:    <https://blackcatinformatics.ca/gmeow/> .\n{ttl}"
     );
     parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
@@ -1213,6 +1214,40 @@ fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
         }
     }
     out
+}
+
+#[test]
+fn derive_logic_restrictions_matches_the_lowered_owl_spelling() {
+    let owl = shape_dataset(
+        "g:Record a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:item ; owl:allValuesFrom g:Item ] , \
+         [ a owl:Restriction ; owl:onProperty g:item ; \
+           owl:maxQualifiedCardinality 1 ; owl:onClass g:Item ] .",
+    );
+    let logic = shape_dataset(
+        "g:Record a owl:Class ; logic:subClassOf \
+         [ a logic:Restriction ; logic:onProperty g:item ; logic:allValuesFrom g:Item ] , \
+         [ a logic:Restriction ; logic:onProperty g:item ; \
+           logic:maxQualifiedCardinality 1 ; logic:onClass g:Item ] .",
+    );
+
+    let owl_shapes = derive_validation_shapes(owl.as_ref()).expect("derive OWL spelling");
+    let logic_shapes =
+        derive_validation_shapes(logic.as_ref()).expect("derive canonical logic spelling");
+
+    assert_eq!(
+        logic_shapes, owl_shapes,
+        "canonical logic: restrictions must derive the same ValidationShapeIr as their OWL projection"
+    );
+    let record = logic_shapes
+        .iter()
+        .find(|shape| shape.iri.ends_with("/Record-shape"))
+        .expect("logic-authored Record restriction must produce a class shape");
+    assert_eq!(record.properties.len(), 1, "same-path restrictions merge");
+    assert_eq!(
+        record.properties[0].path,
+        "https://blackcatinformatics.ca/gmeow/item"
+    );
 }
 
 #[test]

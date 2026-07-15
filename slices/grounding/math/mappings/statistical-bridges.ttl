@@ -151,11 +151,11 @@ gmeow:eqMathSioDataset a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqMathObiTransformation a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-    gmeow:alignSubject math:DataTransformation ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignSubject math:DataTransformation ; gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject obi:OBI_0200000 ;
     logic:sourceEndpoint math:DataTransformation ; logic:targetEndpoint obi:OBI_0200000 ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ;
     gmeow:sssomFile "gmeow-math-information.sssom.tsv" ;
-    gmeow:comment "OBI data transformation is a process-oriented bridge onto the native typed transformation construct." ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:comment "OBI_0200000 is a completely executed planned process producing output data from input data; math:DataTransformation is a mathematical transformation specification and need not denote an executed process. The concepts are usefully related but not close enough for interchange, so this is a validation-only commitment-shifting bridge." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .

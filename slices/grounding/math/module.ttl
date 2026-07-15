@@ -18,12 +18,111 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     vann:preferredNamespacePrefix "math" ;
     vann:preferredNamespaceUri "https://blackcatinformatics.ca/math/" ;
-    rdfs:comment "Grounding vocabulary for GMEOW Mathematics. The math: namespace <https://blackcatinformatics.ca/math/> is the grounding surface for the primitive mathematical objects — number systems and exactness, arithmetic, sets, and relations and functions — that every other mathematical charter quantifies, indexes, maps, and measures over. It is a peer of logic:; the intensional-set condition denotes a logic: formula and the preservation-polarity vocabulary is reused verbatim from the logic: loss ledger rather than re-minted. The object-layer parents (math:Set, math:Function, math:Operation, math:Relation, math:MathematicalExpression) are minted here as the ground the bedrock builds on."@x-gmeow-english ;
+    rdfs:comment "Grounding vocabulary for GMEOW Mathematics. The math: namespace <https://blackcatinformatics.ca/math/> is the grounding surface for mathematical references, expression ASTs, category-theoretic objects, number systems and exactness, arithmetic, sets, relations, functions, quantities, and dimensions. It is a peer of logic: and lang:: mathematical expressions lower explicitly into logic: and render through lang:, while the preservation-polarity vocabulary is reused verbatim from the logic: loss ledger rather than re-minted."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "GMEOW Mathematics"@x-gmeow-english ;
-    skos:definition "The GMEOW Mathematics module — home of the math: grounding vocabulary. Its single discipline is that exactness is explicit: a number declares the system it lives in (the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ), an exact value and an approximation of it are distinct objects, and a named constant is an exact individual anchored to an external authority rather than a decimal literal. A set is given extensionally by its elements or intensionally by a condition that denotes a logic: formula, never both silently; a function declares its domain and codomain. The typed conformance-failure vocabulary (math:MathConformanceFailure and its subclasses) makes every well-formedness violation a queryable object."@x-gmeow-english ;
+    skos:definition "The GMEOW Mathematics module — home of the math: grounding vocabulary. A mathematical concept has local identity distinct from symbols, notations, renderings, and external identifiers; a computable expression is a typed AST with strict zero-based contiguous argument slots; category-theoretic categories, morphisms, functors, and natural transformations are first-class referents. Exactness is explicit: a number declares the system it lives in, an exact value and an approximation are distinct, and a named constant is an exact individual rather than a decimal literal. Dimensioned quantity authority and its numeric value property live here. The typed conformance-failure vocabulary makes every well-formedness violation a queryable object."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Mathematical reference layer
+#
+# Local mathematical identity precedes every rendering and external identifier.
+# A concept may have symbols and notations, live in a theory/context, and use a
+# versionable definition; those resources may formalize an expression AST, but no
+# glyph, prose gloss, OpenMath symbol, or Wikidata item becomes the local identity.
+# =========================================================================== #
+
+math:MathematicalConcept
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Concept"@x-gmeow-english ;
+    skos:definition "A locally identified mathematical concept: the abstract referent a symbol, notation, definition, expression, or external alignment may present, such as matrix multiplication or the Riemann zeta function. Its identity is the math: resource, never a glyph, prose gloss, rendering, Wikidata item, or OpenMath symbol."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MathematicalSymbol
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Symbol"@x-gmeow-english ;
+    skos:definition "A symbol identity used to refer to a mathematical concept or operation within a declared theory or context. It is distinct from its visual glyph and from a math:SymbolReference occurrence in an expression; one symbol may have several notations, and the same glyph may realize different symbols in different theories."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MathematicalNotation
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Notation"@x-gmeow-english ;
+    skos:definition "A convention for presenting mathematical symbols and expressions, such as a conventional infix notation, MathML content notation, or a named diagrammatic calculus. It is the mathematical convention selected by a rendering, not the rendered form and not the concept it presents."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MathematicalTheory
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Theory"@x-gmeow-english ;
+    skos:definition "A named mathematical theory that scopes concepts, symbols, definitions, axioms, and statement roles. Theory identity is explicit and may be versioned; a statement or symbol meaningful in one theory is never silently globalized to every theory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MathematicalContext
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Context"@x-gmeow-english ;
+    skos:definition "A local interpretive context within which mathematical symbols, assumptions, and definitions are read. It narrows a theory for a particular construction or discourse so a reused glyph can resolve without being treated as globally unambiguous."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MathematicalDefinition
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Definition"@x-gmeow-english ;
+    skos:definition "A first-class, theory-scoped definition of a mathematical concept. It may carry an informal gloss and formalize a structured expression; an evolving definition is versioned rather than overwritten, and it remains distinct from the concept it defines and from a math:DefinitionStatement role projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasMathematicalSymbol
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has mathematical symbol"@x-gmeow-english ;
+    skos:definition "Relates a mathematical concept, operation, or math:SymbolReference occurrence to the math:MathematicalSymbol that denotes it in the applicable theory or context. A symbol reference resolves through exactly one such edge; the symbol identity is distinct from every glyph or rendering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasNotation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has notation"@x-gmeow-english ;
+    skos:definition "Relates a mathematical concept or symbol to a math:MathematicalNotation convention under which it may be presented. This records the notation system, not a concrete rendered form; expression renderings remain on the lang: rendering seam."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:definedInTheory
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "defined in theory"@x-gmeow-english ;
+    skos:definition "Relates a mathematical concept, symbol, context, definition, or statement to the math:MathematicalTheory that scopes its meaning. It prevents a theory-relative use from being read as an unconditional global identity or truth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:usesDefinition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uses definition"@x-gmeow-english ;
+    skos:definition "Relates a mathematical concept, context, expression, or statement to the math:MathematicalDefinition it relies on. The edge makes definitional dependence explicit and version-addressable rather than burying it in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:formalizesExpression
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "formalizes expression"@x-gmeow-english ;
+    skos:definition "Relates a mathematical concept or definition to the structured math:MathematicalExpression that formalizes it. The target is an AST, never an opaque display string; a rendering of that AST is a separate lang:-grounded projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:informalGloss
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "informal gloss"@x-gmeow-english ;
+    skos:definition "A human-readable informal explanation of a mathematical concept or definition. It aids interpretation but is never the concept's identity and never substitutes for a structured expression when one is intended to be checked or projected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
 # Number systems and exactness
@@ -200,7 +299,15 @@ math:MathematicalExpression
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Expression"@x-gmeow-english ;
-    skos:definition "The abstract root of the mathematical expression tree: a computable form is an abstract syntax tree, not a display string. The object-layer parent the bedrock references; the full expression grammar (literals, variables, indexed argument slots, binding and scope) belongs to the mathematical-core surface this bedrock builds on."@x-gmeow-english ;
+    skos:definition "The abstract root of the mathematical expression tree: a computable form is an abstract syntax tree, not a display string. Literal, symbol-reference, variable, application, and binding nodes compose through indexed argument slots; expression type and normalization are explicit, while concrete notation remains a separate rendering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LiteralExpression
+    a owl:Class ;
+    logic:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Literal Expression"@x-gmeow-english ;
+    skos:definition "A literal leaf in a mathematical expression AST: a syntactic node that denotes a value without applying an operator. math:NumberLiteral is its numeric specialization; the leaf remains a structured expression node rather than a raw RDF literal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ApplicationExpression
@@ -208,7 +315,23 @@ math:ApplicationExpression
     rdfs:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Application Expression"@x-gmeow-english ;
-    skos:definition "The application of an operator to operands: the expression node an arithmetic operation lowers to. It applies exactly one math:operator — zero operators leave the application undefined and two or more make it ambiguous which operator is applied (math:ApplicationOperatorCardinality); the sibling binder AST (math:BindingExpression) is not a subclass, so the obligation targets only true applications, never the binders. The indexed argument-slot machinery that fixes operand order belongs to the mathematical-core surface this bedrock builds on, and is deliberately not minted here."@x-gmeow-english ;
+    skos:definition "The application of an operator to ordered operands. It applies exactly one math:operator — zero operators leave the application undefined and two or more make it ambiguous (math:ApplicationOperatorCardinality) — and carries its operands through unique, strict zero-based contiguous math:ArgumentSlot cells. The sibling math:BindingExpression is not a subclass, so the operator-cardinality obligation targets only true applications."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SymbolReference
+    a owl:Class ;
+    logic:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Symbol Reference"@x-gmeow-english ;
+    skos:definition "A symbol-occurrence leaf in a mathematical expression AST. It resolves through exactly one math:hasMathematicalSymbol edge to a local math:MathematicalSymbol whose meaning is scoped by theory/context; a dangling or multiply resolved reference is ill-formed (math:UnresolvedSymbolReference)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExpressionType
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Expression Type"@x-gmeow-english ;
+    skos:definition "A mathematical type assigned to an expression independently of its rendering — scalar, matrix, proposition, function-space member, or another theory-scoped expression category. It is descriptive mathematical typing, not an undeclared promotion into the logic: type system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:operator
@@ -338,6 +461,20 @@ math:rendersAs
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "renders as"@x-gmeow-english ;
     skos:definition "The convenience shortcut from a mathematical expression to the notation form it is rendered as. Domain math:MathematicalExpression, range lang:Form (stated in prose). The shortcut whose reified record is a math:ExpressionRendering: the rendering node carries the notation convention through lang:renderingConvention and the preservation judgment through lang:renderingPreservation, so math:rendersAs is a lossy read-off that names only the produced form, while the ExpressionRendering holds the full crossing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:expressionType
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "expression type"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to the math:ExpressionType assigned to it in its mathematical theory or context. This is AST-level mathematical typing, kept distinct from math:denotationKind and from an explicit math:compilesToLogicType lowering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:normalForm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normal form"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to a declared normalized expression under an identified mathematical convention or procedure. Equality is never inferred from coincident strings: the normalized target is another AST, and any stronger semantic-equivalence claim remains attributable and preservation-judged."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
@@ -540,7 +677,7 @@ math:ClosedFormFunction
 
 math:NumberLiteral
     a owl:Class ;
-    rdfs:subClassOf math:MathematicalExpression ;
+    logic:subClassOf math:LiteralExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number Literal"@x-gmeow-english ;
     skos:definition "The numeric-literal leaf of an expression AST: the expression node denoting a specific math:Number — the 1 in (1 − x), the constant 2 in 2·x, the exponents in a closed form. It carries its value through math:literalValue, which points at a well-formed math:Number (situated in a number system through math:inNumberSystem). Distinct from a bare RDF literal: a math:NumberLiteral is an expression node (a subclass of math:MathematicalExpression), so it can fill a math:slotExpression, whereas a raw literal cannot. Distinct too from a math:MathematicalConstant such as π: a constant is a named exact number object, while a NumberLiteral is a syntactic leaf of a formula that names the number it denotes. See MATHEMATICS-NUMBERS-AND-SETS.md for the number-system grounding its math:literalValue rests on."@x-gmeow-english ;
@@ -717,7 +854,7 @@ math:quantityValue
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quantity value"@x-gmeow-english ;
-    skos:definition "The concrete numeric literal a value carries — the floating-point or decimal expansion of a math:ApproximateValue, or the finite count of a cardinality. Domain math:ApproximateValue or math:Cardinality, range a numeric literal (stated in prose). A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."@x-gmeow-english ;
+    skos:definition "The sole canonical numeric-value property for a math:Quantity and the existing mathematical value carriers math:ApproximateValue and math:Cardinality. Range a numeric literal (stated in prose). On a measured quantity it is meaningful with the quantity's math:hasDimension and applicable gmeow:unit/reference frame. A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:extendedRealValue
@@ -1013,10 +1150,56 @@ math:definingLaw
 
 math:Morphism
     a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Morphism"@x-gmeow-english ;
-    skos:definition "A structure-preserving map between mathematical objects: the object-layer parent of math:Homomorphism. Deliberately NOT a subclass of math:Function — a morphism's math:domain and math:codomain range over math:AlgebraicStructure (or another object), not a bare math:Set, so the set-typed function-framing gate never targets it. What a morphism preserves is declared through math:preservesStructure and its preservation law; richer categorical structure (composition, identity morphisms) belongs to a downstream category charter and is deliberately not minted here."@x-gmeow-english ;
+    skos:definition "A structure-preserving map between mathematical objects: the object-layer parent of math:Homomorphism, math:Functor, and math:NaturalTransformation. Deliberately not a subclass of math:Function — a morphism's math:sourceObject and math:targetObject may be structures, categories, or functors rather than bare sets. What it preserves is declared through math:preservesStructure; composition is stated through math:composesWith."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Category
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Category"@x-gmeow-english ;
+    skos:definition "A category-theoretic category: mathematical objects together with composable morphisms, identity morphisms, and associative composition. It is a first-class ACT referent for grounding cross-slice constructions, not the foundational metatype logic:Category and not a prose label."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Functor
+    a owl:Class ;
+    logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Functor"@x-gmeow-english ;
+    skos:definition "A structure-preserving morphism between math:Category objects that maps objects and morphisms while preserving identities and composition. Its source and target categories are named through math:sourceObject and math:targetObject; the preserved categorical structure is explicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NaturalTransformation
+    a owl:Class ;
+    logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Natural Transformation"@x-gmeow-english ;
+    skos:definition "A morphism between functors whose component morphisms satisfy the naturality law. Its math:sourceObject and math:targetObject are math:Functor individuals; it is first-class so applied-category-theory correspondences can point to a real mathematical referent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:sourceObject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "source object"@x-gmeow-english ;
+    skos:definition "Names the source mathematical object of a math:Morphism. For a math:Functor it is the source math:Category; for a math:NaturalTransformation it is the source math:Functor. Kept distinct from math:domain, whose function framing ranges over sets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetObject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target object"@x-gmeow-english ;
+    skos:definition "Names the target mathematical object of a math:Morphism. For a math:Functor it is the target math:Category; for a math:NaturalTransformation it is the target math:Functor. Kept distinct from math:codomain, whose function framing ranges over sets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:composesWith
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "composes with"@x-gmeow-english ;
+    skos:definition "Relates a math:Morphism to another morphism with which it is composable under the applicable category's source/target discipline. It records composability, not an unproved equation or an implicit identity morphism."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 math:Axiom
     a owl:Class ;
@@ -1798,9 +1981,11 @@ math:DimensionalExpression
 
 math:Quantity
     a owl:Class ;
+    logic:subClassOf math:MathematicalObject ,
+        logic:QualityValue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Quantity"@x-gmeow-english ;
-    skos:definition "A dimensioned quantity: a value that carries a math:Dimension through math:hasDimension and, where measured, a unit (gmeow:unit, aligned to QUDT / OM 2) that realizes that dimension and a numeric magnitude (math:quantityValue). Every quantity carries a dimension — an undimensioned quantity is ill-formed (math:UndimensionedQuantity). Units live within a dimension; two quantities are comparable exactly when their dimensions are equal (math:commensurableWith)."@x-gmeow-english ;
+    skos:definition "The sole canonical class authority for a dimensioned quantity: an object that carries exactly one math:Dimension through math:hasDimension and, where measured, a numeric magnitude through math:quantityValue. Observation-specific unit, reference-frame, determinacy, provenance, and uncertainty properties may further qualify the same math:Quantity; they do not mint a parallel quantity class or value property. Every quantity carries a dimension — an undimensioned quantity is ill-formed (math:UndimensionedQuantity). Units live within a dimension; two quantities are comparable exactly when their dimensions are equal (math:commensurableWith)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DimensionExponent
@@ -2223,8 +2408,7 @@ math:dimensionalHomogeneityLowering
         math:DimensionalInhomogeneity .
 
 # =========================================================================== #
-# Mathematical-core binder AST (EXPRESSIONS charter — the subset the
-# analysis-and-geometry charter consumes)
+# Mathematical-core expression AST (EXPRESSIONS charter)
 #
 # Calculus operators (d/dx, ∂, ∫, ∑, lim) are binders over the expression AST,
 # not display strings (MATHEMATICS-EXPRESSIONS.md §Expression AST layer). A
@@ -2239,10 +2423,9 @@ math:dimensionalHomogeneityLowering
 # match. Any expression that crosses into reasoning declares what it denotes
 # (math:denotationKind) and how it lowers (math:compilesToLogicTerm/Formula/Type)
 # with a recorded preservation polarity — the seam that keeps the mathematical
-# surface from silently becoming a logic: assertion. Bedrock landed
-# math:ApplicationExpression + math:operator and deferred this surface; the
-# analysis-and-geometry charter is its first consumer and lands exactly the
-# subset its binders need, using the canonical reserved names (no near-synonyms).
+# surface from silently becoming a logic: assertion. SymbolReference and
+# LiteralExpression provide the reference/literal leaves; the binder machinery
+# below provides explicit declaration, occurrence, and scope identities.
 # =========================================================================== #
 
 # --- Expression AST: argument slots and the binding form -------------------- #
@@ -2251,7 +2434,7 @@ math:ArgumentSlot
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Argument Slot"@x-gmeow-english ;
-    skos:definition "One indexed operand position of a math:ApplicationExpression or math:BindingExpression: it carries exactly one integer math:slotIndex and exactly one math:slotExpression. Operand order is carried by these slots, not by RDF list ordering — swapping two slots' expressions is a different expression, so non-commutative operators (matrix product, function composition, subtraction, the body of a binder) are order-safe. Slot indexes are unique within one application; strict canonical mode additionally requires them zero-based and contiguous. A slot missing its index or expression is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    skos:definition "One indexed operand position of a math:ApplicationExpression or math:BindingExpression: it carries exactly one integer math:slotIndex and exactly one math:slotExpression. Operand order is carried by these slots, not by RDF list ordering — swapping two slots' expressions is a different expression, so non-commutative operators (matrix product, function composition, subtraction, the body of a binder) are order-safe. Slot indexes are unique, non-negative, zero-based, and contiguous within one parent. A slot missing its index or expression, a duplicate index, or a gap is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:BindingExpression
@@ -2355,7 +2538,7 @@ math:limitBinder
     a owl:NamedIndividual , math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "lim (limit binder)"@x-gmeow-english ;
-    skos:definition "The limit binder lim: the math:operator a math:Limit binding expression applies, binding the variable that approaches the limit point over the body. Anchored to the OpenMath calculus1 limit symbol."@x-gmeow-english .
+    skos:definition "The limit binder lim: the math:operator a math:Limit binding expression applies, binding the variable that approaches the limit point over the body. Anchored to the OpenMath limit1 limit symbol."@x-gmeow-english .
 
 # --- Integration binder retrofit (∫ is a binding expression) ---------------- #
 
@@ -2369,6 +2552,22 @@ math:MalformedArgumentSlot
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Malformed Argument Slot"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression, or when two slots of one application share an index. Operand order is carried by unique indexed slots; a slot missing its index or expression, or a duplicated index, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NonContiguousArgumentSlots
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Non-Contiguous Argument Slots"@x-gmeow-english ;
+    skos:definition "The failure raised when the math:argumentSlot indexes of a mathematical expression are not the strict zero-based contiguous sequence 0..n−1. Together with non-negativity and sibling-index uniqueness, the predecessor rule rejects leading gaps and interior gaps while preserving explicit operand order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnresolvedSymbolReference
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unresolved Symbol Reference"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:SymbolReference expression resolves to no math:MathematicalSymbol, resolves to more than one symbol, or points outside that class. A reference occurrence has exactly one local symbol identity; glyph and external-identifier ambiguity is represented on that symbol rather than by leaving the AST leaf unresolved."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnscopedVariableOccurrence
@@ -2408,7 +2607,7 @@ math:slotIndex
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "slot index"@x-gmeow-english ;
-    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Unique within one application; strict canonical mode requires the indexes zero-based and contiguous. A slot without exactly one index is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; a family with a gap is math:NonContiguousArgumentSlots."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:slotExpression
@@ -4688,7 +4887,7 @@ math:FiltrationStage
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Filtration Stage"@x-gmeow-english ;
-    skos:definition "One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued threshold ε it sits at through math:filtrationThreshold (a gmeow:Quantity) and the substructure present at that threshold through math:stageStructure (a math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage. Stages are ordered by their thresholds, and the monotonicity law math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a math:subsetOf the structure at a higher one. A stage missing its threshold or its structure is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
+    skos:definition "One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued threshold ε it sits at through math:filtrationThreshold (a math:Quantity) and the substructure present at that threshold through math:stageStructure (a math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage. Stages are ordered by their thresholds, and the monotonicity law math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a math:subsetOf the structure at a higher one. A stage missing its threshold or its structure is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UnderspecifiedFiltration .
 
@@ -4697,7 +4896,7 @@ math:PersistenceLifetime
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Persistence Lifetime"@x-gmeow-english ;
-    skos:definition "The birth–death interval of a single topological feature across a math:Filtration: the range of thresholds over which one math:HomologyGroup generator (a hole of some dimension) exists. A subclass of math:MathematicalObject. It names the filtration it is read over through math:overFiltration, the feature it tracks through math:persistenceFeature (a math:HomologyGroup generator), the threshold at which the feature appears through math:bornAt (a gmeow:Quantity), and the threshold at which it disappears through math:diesAt. Its persistence value is death − birth; a long-lived feature is signal, a short-lived one is noise. An ESSENTIAL feature never dies within the filtration, so its math:diesAt is the individual math:PositiveInfinity rather than a finite threshold — exactly as math:totalMass ranges over a finite value or math:PositiveInfinity, which is why math:diesAt is a bare rdf:Property. A lifetime missing its birth or death is ill-formed (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
+    skos:definition "The birth–death interval of a single topological feature across a math:Filtration: the range of thresholds over which one math:HomologyGroup generator (a hole of some dimension) exists. A subclass of math:MathematicalObject. It names the filtration it is read over through math:overFiltration, the feature it tracks through math:persistenceFeature (a math:HomologyGroup generator), the threshold at which the feature appears through math:bornAt (a math:Quantity), and the threshold at which it disappears through math:diesAt. Its persistence value is death − birth; a long-lived feature is signal, a short-lived one is noise. An ESSENTIAL feature never dies within the filtration, so its math:diesAt is the individual math:PositiveInfinity rather than a finite threshold — exactly as math:totalMass ranges over a finite value or math:PositiveInfinity, which is why math:diesAt is a bare rdf:Property. A lifetime missing its birth or death is ill-formed (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UnderspecifiedPersistenceLifetime .
 
@@ -4755,7 +4954,7 @@ math:UnderspecifiedPersistenceLifetime
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Persistence Lifetime"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:PersistenceLifetime does not declare both endpoints of its birth–death interval: it is missing its math:bornAt (the threshold the feature appears at) or its math:diesAt (the threshold it disappears at — a finite gmeow:Quantity, or math:PositiveInfinity for an essential feature that never dies within the filtration). A lifetime is the interval death − birth; one missing either endpoint has no persistence value and is ill-formed. Omitting math:diesAt entirely is a violation even for an essential feature — the death must be stated as math:PositiveInfinity, never left absent."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PersistenceLifetime does not declare both endpoints of its birth–death interval: it is missing its math:bornAt (the threshold the feature appears at) or its math:diesAt (the threshold it disappears at — a finite math:Quantity, or math:PositiveInfinity for an essential feature that never dies within the filtration). A lifetime is the interval death − birth; one missing either endpoint has no persistence value and is ill-formed. Omitting math:diesAt entirely is a violation even for an essential feature — the death must be stated as math:PositiveInfinity, never left absent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UngroundedStabilityCalibration
@@ -4786,7 +4985,7 @@ math:filtrationThreshold
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "filtration threshold"@x-gmeow-english ;
-    skos:definition "Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range gmeow:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold."@x-gmeow-english ;
+    skos:definition "Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range math:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:stageStructure
@@ -4828,14 +5027,14 @@ math:bornAt
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "born at"@x-gmeow-english ;
-    skos:definition "Relates a math:PersistenceLifetime to the threshold at which its feature appears in the filtration — the birth ε of the feature. Domain math:PersistenceLifetime, range gmeow:Quantity (stated in prose). Every lifetime names exactly one birth; a lifetime without it is ill-formed (math:UnderspecifiedPersistenceLifetime). Birth is always a finite threshold (a feature is born when it first appears); the death (math:diesAt) may be finite or math:PositiveInfinity."@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceLifetime to the threshold at which its feature appears in the filtration — the birth ε of the feature. Domain math:PersistenceLifetime, range math:Quantity (stated in prose). Every lifetime names exactly one birth; a lifetime without it is ill-formed (math:UnderspecifiedPersistenceLifetime). Birth is always a finite threshold (a feature is born when it first appears); the death (math:diesAt) may be finite or math:PositiveInfinity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:diesAt
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "dies at"@x-gmeow-english ;
-    skos:definition "Relates a math:PersistenceLifetime to the threshold at which its feature disappears — the death ε of the feature, or math:PositiveInfinity for an ESSENTIAL feature that never dies within the filtration. Domain math:PersistenceLifetime, range a gmeow:Quantity (the finite death threshold) or the individual math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a finite quantity individual and the extended-real math:PositiveInfinity — the same extended-real modelling math:totalMass uses, so the honest RDF supertype carries both without a DL contradiction. A lifetime missing its death entirely is ill-formed (math:UnderspecifiedPersistenceLifetime): even an essential feature must state math:PositiveInfinity rather than omit the death."@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceLifetime to the threshold at which its feature disappears — the death ε of the feature, or math:PositiveInfinity for an ESSENTIAL feature that never dies within the filtration. Domain math:PersistenceLifetime, range a math:Quantity (the finite death threshold) or the individual math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a finite quantity individual and the extended-real math:PositiveInfinity — the same extended-real modelling math:totalMass uses, so the honest RDF supertype carries both without a DL contradiction. A lifetime missing its death entirely is ill-formed (math:UnderspecifiedPersistenceLifetime): even an essential feature must state math:PositiveInfinity rather than omit the death."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:credenceDerivationKind
@@ -7113,6 +7312,13 @@ math:ArgumentSlot rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:slotExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     gmeow:enforcesFailureClass math:MalformedArgumentSlot .
 
+math:SymbolReference logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:hasMathematicalSymbol ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty math:hasMathematicalSymbol ; logic:allValuesFrom math:MathematicalSymbol ] ,
+    [ a logic:Restriction ; logic:onProperty math:hasMathematicalSymbol ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty math:hasMathematicalSymbol ; logic:maxQualifiedCardinality 1 ; logic:onClass math:MathematicalSymbol ] ;
+    gmeow:enforcesFailureClass math:UnresolvedSymbolReference .
+
 math:ApplicationExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     gmeow:enforcesFailureClass math:ApplicationOperatorCardinality .
@@ -7424,27 +7630,42 @@ math:probabilityOfEvent
 
 math:ProbabilityValue
     a owl:Class ;
-    rdfs:subClassOf gmeow:Quantity ;
+    logic:subClassOf math:Quantity ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ;
+        ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Probability Value"@x-gmeow-english ;
-    skos:definition "A probability value: a quantity/result object that is ALWAYS in the closed unit interval [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of gmeow:Quantity (a probability is math:dimensionless). Where exact, it is carried as a math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not 0.333); where empirical it may be an approximate value. The [0, 1] bound is a genuine hard fail enforced by SHACL and a native numeric check (math:ProbabilityOutOfBounds); odds and log-odds are NOT probabilities and are their own kinds (math:OddsValue, math:LogOddsValue), held disjoint from this class so a consumer seeing a math:ProbabilityValue may correctly assume a closed unit interval."@x-gmeow-english ;
+    skos:definition "A probability value: a quantity/result object that is ALWAYS in the closed unit interval [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of math:Quantity (a probability is math:dimensionless). Where exact, it is carried as a math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not 0.333); where empirical it may be an approximate value. The [0, 1] bound is a genuine hard fail enforced by SHACL and a native numeric check (math:ProbabilityOutOfBounds); odds and log-odds are NOT probabilities and are their own kinds (math:OddsValue, math:LogOddsValue), held disjoint from this class so a consumer seeing a math:ProbabilityValue may correctly assume a closed unit interval."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:ProbabilityScaleConflation .
 
 math:OddsValue
     a owl:Class ;
-    rdfs:subClassOf gmeow:Quantity ;
+    logic:subClassOf math:Quantity ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ;
+        ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Odds Value"@x-gmeow-english ;
-    skos:definition "An odds value: p/(1−p), a quantity in the open interval (0, ∞). A subclass of gmeow:Quantity and a probability-scale transform of a probability, NOT a probability — held owl:disjointWith math:ProbabilityValue so it can never be read as one (math:ProbabilityScaleConflation). It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
+    skos:definition "An odds value: p/(1−p), a quantity in the open interval (0, ∞). A subclass of math:Quantity and a probability-scale transform of a probability, NOT a probability — held owl:disjointWith math:ProbabilityValue so it can never be read as one (math:ProbabilityScaleConflation). It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LogOddsValue
     a owl:Class ;
-    rdfs:subClassOf gmeow:Quantity ;
+    logic:subClassOf math:Quantity ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ;
+        ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Log-Odds Value"@x-gmeow-english ;
-    skos:definition "A log-odds (logit) value: log(p/(1−p)), a quantity on the whole real line (−∞, ∞). A subclass of gmeow:Quantity and a probability-scale transform of a probability, NOT a probability — held owl:disjointWith math:ProbabilityValue so a log-odds handed to a consumer expecting [0, 1] is a caught error (math:ProbabilityScaleConflation), not a silent one. It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
+    skos:definition "A log-odds (logit) value: log(p/(1−p)), a quantity on the whole real line (−∞, ∞). A subclass of math:Quantity and a probability-scale transform of a probability, NOT a probability — held owl:disjointWith math:ProbabilityValue so a log-odds handed to a consumer expecting [0, 1] is a caught error (math:ProbabilityScaleConflation), not a silent one. It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ProbabilityScaleTransform
@@ -7494,7 +7715,7 @@ math:DistributionParameter
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution Parameter"@x-gmeow-english ;
-    skos:definition "A distribution parameter: one supplied parameter of a math:Distribution, carrying its role in the parameterization (math:parameterRole, a math:DistributionParameterRole) and its value as EITHER a numeric quantity (math:parameterQuantity, a gmeow:Quantity) OR a symbolic expression (math:parameterExpression, a math:MathematicalExpression). A subclass of math:MathematicalObject. The earlier single overloaded parameterValue property is REMOVED (greenfield): the role, the numeric value, and the symbolic value are three distinct properties, never one. Each required role is supplied by exactly one parameter (math:DistributionParameterRoleCardinality otherwise), whose quantity satisfies the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
+    skos:definition "A distribution parameter: one supplied parameter of a math:Distribution, carrying its role in the parameterization (math:parameterRole, a math:DistributionParameterRole) and its value as EITHER a numeric quantity (math:parameterQuantity, a math:Quantity) OR a symbolic expression (math:parameterExpression, a math:MathematicalExpression). A subclass of math:MathematicalObject. The earlier single overloaded parameterValue property is REMOVED (greenfield): the role, the numeric value, and the symbolic value are three distinct properties, never one. Each required role is supplied by exactly one parameter (math:DistributionParameterRoleCardinality otherwise), whose quantity satisfies the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DistributionParameterRole
@@ -7606,7 +7827,7 @@ math:parameterQuantity
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "parameter quantity"@x-gmeow-english ;
-    skos:definition "Relates a math:DistributionParameter to its numeric value as a dimensioned quantity. Domain math:DistributionParameter, range gmeow:Quantity (stated in prose). One of the two mutually exclusive value carriers of a parameter (the other being math:parameterExpression for a symbolic value); it replaces the removed overloaded parameterValue property, and its quantity must satisfy the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
+    skos:definition "Relates a math:DistributionParameter to its numeric value as a dimensioned quantity. Domain math:DistributionParameter, range math:Quantity (stated in prose). One of the two mutually exclusive value carriers of a parameter (the other being math:parameterExpression for a symbolic value); it replaces the removed overloaded parameterValue property, and its quantity must satisfy the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:parameterExpression
@@ -9130,6 +9351,7 @@ math:AnalyticPropertyBackedConstraint
 <https://blackcatinformatics.ca/math/DimensionExponent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/exponentDenominator> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/math/ArgumentSlot> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/slotIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/math/ArgumentSlot> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/slotExpression> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/SymbolReference> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/hasMathematicalSymbol> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/MathematicalSymbol> ] .
 <https://blackcatinformatics.ca/math/ApplicationExpression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/operator> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/BindingExpression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/boundVariable> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/VariableOccurrence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/declaredVariable> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -9182,6 +9404,66 @@ math:ArgumentSlotIndexUniquenessConstraint
     logic:formalizes math:SlotIndexUniquenessShape ;
     gmeow:enforcesFailureClass math:MalformedArgumentSlot ;
     logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." .
+
+# Every positive slot index must have a predecessor slot under the same parent.
+# The existing non-negative and sibling-uniqueness gates complete the proof:
+# together the three rules admit exactly the strict zero-based contiguous
+# sequence 0..n−1, with neither a leading gap nor an interior gap.
+math:ArgumentSlotContiguityConstraint
+    a logic:Constraint ;
+    rdfs:label "Argument-slot contiguity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    skos:definition "A closed-world integrity constraint requiring every positive math:slotIndex under one math:argumentSlot parent to have a sibling at the immediately preceding index. Combined with the non-negative and sibling-uniqueness rules, this enforces exactly 0..n−1 for every non-empty slot family."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes math:ArgumentSlotContiguityShape ;
+    gmeow:enforcesFailureClass math:NonContiguousArgumentSlots ;
+    logic:severity "Violation" ;
+    logic:message "A mathematical expression's math:argumentSlot indexes must form the strict zero-based contiguous sequence 0..n−1; every positive index must have a sibling at its immediate predecessor (math:NonContiguousArgumentSlots)." ;
+    logic:integrity math:ascForall .
+math:ascForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:ascImpl .
+math:ascImpl a logic:Formula ;
+    logic:antecedent math:ascGuard ;
+    logic:consequent math:ascAllSlots .
+math:ascGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termIri math:MathematicalExpression ] .
+math:ascAllSlots a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "slot" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "index" ] ;
+    logic:forall math:ascSlotImpl .
+math:ascSlotImpl a logic:Formula ;
+    logic:antecedent math:ascSlotGuard ;
+    logic:consequent math:ascZeroOrPredecessor .
+math:ascSlotGuard a logic:Formula ;
+    logic:and math:ascSlot , math:ascIndex .
+math:ascSlot a logic:Formula ; logic:relation math:argumentSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "slot" ] .
+math:ascIndex a logic:Formula ; logic:relation math:slotIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "slot" ] , [ logic:termIndex 1 ; logic:termVariable "index" ] .
+math:ascZeroOrPredecessor a logic:Formula ;
+    logic:or math:ascZero , math:ascPredecessorExists .
+math:ascZero a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "index" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
+math:ascPredecessorExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predecessorSlot" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "predecessorIndex" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "successorIndex" ] ;
+    logic:exists math:ascPredecessorBody .
+math:ascPredecessorBody a logic:Formula ;
+    logic:and math:ascPredecessorSlot , math:ascPredecessorIndex , math:ascSuccessor , math:ascIndexEqual .
+math:ascPredecessorSlot a logic:Formula ; logic:relation math:argumentSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "predecessorSlot" ] .
+math:ascPredecessorIndex a logic:Formula ; logic:relation math:slotIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "predecessorSlot" ] , [ logic:termIndex 1 ; logic:termVariable "predecessorIndex" ] .
+math:ascSuccessor a logic:Formula ; logic:relation logic:termSum ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "successorIndex" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "predecessorIndex" ] ,
+        [ logic:termIndex 2 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+math:ascIndexEqual a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "successorIndex" ] , [ logic:termIndex 1 ; logic:termVariable "index" ] .
 
 # A math:FormalVerificationResult must be grounded in an observation that names it through
 # gmeow:observationResult — an ungrounded verification result is ill-formed (an inverse-existence
@@ -9934,6 +10216,7 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ApplicationExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/operator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotExpression" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotIndex" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/SymbolReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasMathematicalSymbol" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AutomorphismGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/automorphismGroupOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/argumentSlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/boundVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -10056,13 +10339,13 @@ math:ProbabilityValue rdfs:subClassOf [ owl:unionOf (
     [ a owl:Restriction ; owl:onProperty gmeow:hasReferenceFrame ; owl:someValuesFrom owl:Thing ]
     [ a owl:Restriction ; owl:onProperty logic:probabilityModel ; owl:someValuesFrom owl:Thing ] ) ] .
 
-# Rule P1 (retires math:ProbabilityValueRangeShape): any concrete gmeow:quantityValue
+# Rule P1 (retires math:ProbabilityValueRangeShape): any concrete math:quantityValue
 # of a math:ProbabilityValue lies in the closed unit interval [0, 1], carrying
 # math:ProbabilityOutOfBounds (the class annotation on math:ProbabilityValue is owned
 # by the scale-conflation gate, so the finer failure identity rides this exact
 # record). A validation-only value-range record, never an OWL faceted-datatype
 # antecedent: the native reasoner carries no datatype value-space reasoning, so a
-# facet on the corpus-wide gmeow:quantityValue (quality scores assert it throughout
+# facet on the corpus-wide math:quantityValue (quality scores assert it throughout
 # the bundle) would be an undecidable axiom in the reasoning core. The record lowers
 # declaratively onto the projected class shape as sh:minInclusive 0 /
 # sh:maxInclusive 1 (the exact components the legacy facet carried) and expands to
@@ -10072,14 +10355,14 @@ math:ProbabilityValueRangeConstraint
     rdfs:label "Probability-value range constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "The canonical grounding of the retired math:ProbabilityValueRangeShape: any concrete gmeow:quantityValue a math:ProbabilityValue carries lies in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)."@x-gmeow-english ;
+    skos:definition "The canonical grounding of the retired math:ProbabilityValueRangeShape: any concrete math:quantityValue a math:ProbabilityValue carries lies in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)."@x-gmeow-english ;
     logic:onClass math:ProbabilityValue ;
-    logic:valuePath gmeow:quantityValue ;
+    logic:valuePath math:quantityValue ;
     logic:minInclusiveBound 0 ;
     logic:maxInclusiveBound 1 ;
     logic:formalizes math:ProbabilityValueRangeShape ;
     gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
-    logic:message "A math:ProbabilityValue's gmeow:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." .
+    logic:message "A math:ProbabilityValue's math:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." .
 
 # The typed-failure twin of Rule P3: at-least-one of the frame/model alternatives,
 # carrying math:UnframedProbabilityValue for the retired framing shape.
@@ -10410,10 +10693,10 @@ math:PersistenceDeathNamedConstraint
     rdfs:label "Persistence-lifetime named-death constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "The canonical grounding of the retired math:PersistenceLifetimeShape's death node-kind: a math:PersistenceLifetime's math:diesAt names an IRI individual — the finite gmeow:Quantity death threshold or math:PositiveInfinity — never a blank node or a bare literal (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
+    skos:definition "The canonical grounding of the retired math:PersistenceLifetimeShape's death node-kind: a math:PersistenceLifetime's math:diesAt names an IRI individual — the finite math:Quantity death threshold or math:PositiveInfinity — never a blank node or a bare literal (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
     logic:formalizes math:PersistenceLifetimeShape ;
     gmeow:enforcesFailureClass math:UnderspecifiedPersistenceLifetime ;
-    logic:message "A math:PersistenceLifetime's math:diesAt must name an IRI individual — the finite gmeow:Quantity death threshold, or math:PositiveInfinity for an essential feature; a blank or literal death is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    logic:message "A math:PersistenceLifetime's math:diesAt must name an IRI individual — the finite math:Quantity death threshold, or math:PositiveInfinity for an essential feature; a blank or literal death is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
     logic:integrity math:pdnForall .
 math:pdnForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
@@ -10478,6 +10761,7 @@ math:CalibrationDiagnostic a logic:AbstractIndividualType .
 math:Cardinality a logic:AbstractIndividualType .
 math:CartanMatrix a logic:AbstractIndividualType .
 math:CartesianProduct a logic:AbstractIndividualType .
+math:Category a logic:AbstractIndividualType .
 math:CenteringPolicy a logic:AbstractIndividualType .
 math:ChainDiagnostic a logic:AbstractIndividualType .
 math:Chart a logic:AbstractIndividualType .
@@ -10540,6 +10824,7 @@ math:Embedding a logic:AbstractIndividualType .
 math:EmbeddingDimension a logic:AbstractIndividualType .
 math:EncryptionScheme a logic:AbstractIndividualType .
 math:EndpointInclusion a logic:AbstractIndividualType .
+math:ExpressionType a logic:AbstractIndividualType .
 math:Estimand a logic:AbstractIndividualType .
 math:Estimate a logic:AbstractIndividualType .
 math:Estimator a logic:AbstractIndividualType .
@@ -10559,6 +10844,7 @@ math:FullIndependenceModel a logic:AbstractIndividualType .
 math:Function a logic:AbstractIndividualType .
 math:FunctionPiece a logic:AbstractIndividualType .
 math:FunctionSpace a logic:AbstractIndividualType .
+math:Functor a logic:AbstractIndividualType .
 math:GeneratedSampleSpace a logic:AbstractIndividualType .
 math:GramMatrix a logic:AbstractIndividualType .
 math:Group a logic:AbstractIndividualType .
@@ -10599,6 +10885,7 @@ math:LimitMode a logic:AbstractIndividualType .
 math:LimitOutcome a logic:AbstractIndividualType .
 math:LimitResult a logic:AbstractIndividualType .
 math:LinearMap a logic:AbstractIndividualType .
+math:LiteralExpression a logic:AbstractIndividualType .
 math:LoadingVector a logic:AbstractIndividualType .
 math:LogOddsValue a logic:AbstractIndividualType .
 math:LorentzianManifold a logic:AbstractIndividualType .
@@ -10608,9 +10895,15 @@ math:Manifold a logic:AbstractIndividualType .
 math:ManifoldStructureKind a logic:AbstractIndividualType .
 math:MarkovKernel a logic:AbstractIndividualType .
 math:MathematicalConstant a logic:AbstractIndividualType .
+math:MathematicalConcept a logic:AbstractIndividualType .
+math:MathematicalContext a logic:AbstractIndividualType .
+math:MathematicalDefinition a logic:AbstractIndividualType .
 math:MathematicalExpression a logic:AbstractIndividualType .
+math:MathematicalNotation a logic:AbstractIndividualType .
 math:MathematicalObject a logic:AbstractIndividualType .
 math:MathematicalStatement a logic:AbstractIndividualType .
+math:MathematicalSymbol a logic:AbstractIndividualType .
+math:MathematicalTheory a logic:AbstractIndividualType .
 math:Matrix a logic:AbstractIndividualType .
 math:MatrixEntry a logic:AbstractIndividualType .
 math:MeasurableFunction a logic:AbstractIndividualType .
@@ -10635,6 +10928,7 @@ math:Moment a logic:AbstractIndividualType .
 math:Monoid a logic:AbstractIndividualType .
 math:MonotonicityKind a logic:AbstractIndividualType .
 math:Morphism a logic:AbstractIndividualType .
+math:NaturalTransformation a logic:AbstractIndividualType .
 math:NaturalNumber a logic:AbstractIndividualType .
 math:Neighbourhood a logic:AbstractIndividualType .
 math:NeuralLayer a logic:AbstractIndividualType .
@@ -10725,6 +11019,7 @@ math:Stratum a logic:AbstractIndividualType .
 math:Subspace a logic:AbstractIndividualType .
 math:SurjectiveFunction a logic:AbstractIndividualType .
 math:SurveyDesign a logic:AbstractIndividualType .
+math:SymbolReference a logic:AbstractIndividualType .
 math:SymbolicSampleSpace a logic:AbstractIndividualType .
 math:SymmetricBilinearForm a logic:AbstractIndividualType .
 math:SymmetricMatrix a logic:AbstractIndividualType .
@@ -10807,6 +11102,7 @@ math:MathConformanceFailure a logic:Situation .
 math:MissingDistributionParameterization a logic:Situation .
 math:MissingProbabilityModelLowering a logic:Situation .
 math:NonDistributiveRing a logic:Situation .
+math:NonContiguousArgumentSlots a logic:Situation .
 math:NonPositiveDefiniteNorm a logic:Situation .
 math:ProbabilityEventOccurrentConflation a logic:Situation .
 math:ProbabilityMeasureMassViolation a logic:Situation .
@@ -10857,6 +11153,7 @@ math:UngroundedVerificationResult a logic:Situation .
 math:UnliftableIngest a logic:Situation .
 math:UnqualifiedComplement a logic:Situation .
 math:UnqualifiedOrthogonalComplement a logic:Situation .
+math:UnresolvedSymbolReference a logic:Situation .
 math:UnscopedRandomVariable a logic:Situation .
 math:UnscopedVariableOccurrence a logic:Situation .
 math:UnsituatedNumber a logic:Situation .
