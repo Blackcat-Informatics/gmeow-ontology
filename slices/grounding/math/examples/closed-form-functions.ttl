@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A small worked closed-form function, proving the closed-form expression algebra
+# composes over the existing expression AST. The curve is f(x) = a·x + 1: a
+# math:ClosedFormFunction whose math:definingExpression is the structured tree
+# Addition( Multiplication( a, x ), 1 ), with the formal argument x distinguished
+# from the tunable slope parameter a, and the constant 1 carried as a
+# math:NumberLiteral leaf. It reuses math:ApplicationExpression, math:operator,
+# math:argumentSlot, math:VariableExpression, and the framed arithmetic operators
+# math:Addition / math:Multiplication — nothing about the algebra is rebuilt. This
+# is the general facility; the flagship signed compactified curve T(x) is authored
+# elsewhere as another instance. It validates cleanly under the global gate.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/math/> .
+
+# The closed-form function f: ℝ → ℝ, f(x) = a·x + 1, of the formal argument x,
+# tuned by the slope parameter a.
+ex:linearForm a math:ClosedFormFunction ;
+    rdfs:label "f(x) = a·x + 1"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    math:formalArgument ex:xDeclaration ;
+    math:functionParameter ex:aDeclaration ;
+    math:definingExpression ex:linearBody .
+
+# The abstraction variable (the x the function is OF) and the fitted parameter
+# (the slope a it is tuned BY) are distinct declarations.
+ex:xDeclaration a math:FreeVariableDeclaration ;
+    rdfs:label "x — the formal argument"@x-gmeow-english .
+
+ex:aDeclaration a math:FreeVariableDeclaration ;
+    rdfs:label "a — the slope parameter"@x-gmeow-english .
+
+# The body AST: Addition( Multiplication(a, x), 1 ).
+ex:linearBody a math:ApplicationExpression ;
+    rdfs:label "a·x + 1"@x-gmeow-english ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:bodySlot0 , ex:bodySlot1 .
+
+ex:bodySlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:product .
+
+ex:bodySlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:oneLiteral .
+
+# The product a·x = Multiplication(a, x).
+ex:product a math:ApplicationExpression ;
+    rdfs:label "a·x"@x-gmeow-english ;
+    math:operator math:Multiplication ;
+    math:argumentSlot ex:productSlot0 , ex:productSlot1 .
+
+ex:productSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:aOccurrenceExpr .
+
+ex:productSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:xOccurrenceExpr .
+
+# The variable leaves: each stands for an occurrence resolving to its declaration —
+# a (the parameter) and x (the formal argument).
+ex:aOccurrenceExpr a math:VariableExpression ;
+    math:variableOccurrence ex:aOccurrence .
+
+ex:xOccurrenceExpr a math:VariableExpression ;
+    math:variableOccurrence ex:xOccurrence .
+
+ex:aOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:aDeclaration ;
+    math:occursInScope ex:product .
+
+ex:xOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:xDeclaration ;
+    math:occursInScope ex:product .
+
+# The constant 1: a numeric-literal leaf denoting the exact real number 1.
+ex:oneLiteral a math:NumberLiteral ;
+    rdfs:label "1"@x-gmeow-english ;
+    math:literalValue ex:oneNumber .
+
+ex:oneNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .

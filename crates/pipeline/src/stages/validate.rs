@@ -156,8 +156,8 @@ impl ValidateStage {
     /// class).
     ///
     /// Typed dataflow (artifact-level): the `stage-compile-logic` dependency is
-    /// narrowed to the object-level named graphs
-    /// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]) — the program-level
+    /// narrowed to the complete compiled carrier graphs
+    /// ([`crate::stages::compile_logic::CARRIER_GRAPHS`]) — the program-level
     /// digest standing in for the validation-shape byte artifacts this stage
     /// actually reads off that product. The narrowing is what keeps this stage's
     /// `graph/diagnostics` attachment a genuine DELTA (compile-logic's product
@@ -175,7 +175,7 @@ impl ValidateStage {
             ],
             entities: vec![(
                 "stage-compile-logic".to_string(),
-                crate::stages::compile_logic::object_level_entity_list(),
+                crate::stages::compile_logic::carrier_entity_list(),
             )],
         }
     }

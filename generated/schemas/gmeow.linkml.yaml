@@ -2328,6 +2328,11 @@ classes:
     slots:
     - relationshipInterval
     - relationshipParty
+  InventedWitness:
+    class_uri: https://blackcatinformatics.ca/gmeow/InventedWitness
+    title: Invented Witness
+    slots:
+    - existentialOrdinal
   InvitationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/InvitationStatus
     title: Invitation Status
@@ -3700,6 +3705,13 @@ classes:
     - projectHomepage
     - projectIdentifier
     - projectLicense
+  ProjectionCeilingCommitment:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionCeilingCommitment
+    title: Projection Ceiling Commitment
+    slots:
+    - ceilingCount
+    - ceilingSlice
+    - ceilingVocabulary
   ProjectionContext:
     class_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     title: Projection Context
@@ -3711,6 +3723,19 @@ classes:
     title: Projection Loss
     slots:
     - accountsForParameter
+  ProjectionVocabulary:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionVocabulary
+    title: Projection Vocabulary
+    slots:
+    - vocabularyAlignmentPredicate
+    - vocabularyCountKind
+    - vocabularyCountPredicate
+    - vocabularyDefaultCeiling
+    - vocabularyNamespace
+    - vocabularyOwner
+    - vocabularyPrefix
+    - vocabularyPreservation
+    - vocabularySubsumedBy
   Prompt:
     class_uri: https://blackcatinformatics.ca/gmeow/Prompt
     title: Prompt
@@ -6053,6 +6078,25 @@ slots:
     range: EmailAddress
     domain: EmailMessage
     multivalued: true
+  ceilingCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ceilingCount
+    title: ceiling count
+    range: integer
+    domain: ProjectionCeilingCommitment
+    minimum_value: 0
+    multivalued: false
+  ceilingSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ceilingSlice
+    title: ceiling slice
+    range: uriorcurie
+    domain: ProjectionCeilingCommitment
+    multivalued: false
+  ceilingVocabulary:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ceilingVocabulary
+    title: ceiling vocabulary
+    range: ProjectionVocabulary
+    domain: ProjectionCeilingCommitment
+    multivalued: false
   celestialEpoch:
     slot_uri: https://blackcatinformatics.ca/gmeow/celestialEpoch
     title: celestial epoch
@@ -8202,6 +8246,13 @@ slots:
     range: TimeInterval
     domain: Entity
     multivalued: true
+  existentialOrdinal:
+    slot_uri: https://blackcatinformatics.ca/gmeow/existentialOrdinal
+    title: existential ordinal
+    range: integer
+    domain: InventedWitness
+    minimum_value: 0
+    multivalued: false
   experiencer:
     slot_uri: https://blackcatinformatics.ca/gmeow/experiencer
     title: experiencer
@@ -15520,6 +15571,61 @@ slots:
     range: string
     domain: VirtualLocation
     multivalued: true
+  vocabularyAlignmentPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyAlignmentPredicate
+    title: vocabulary alignment predicate
+    range: uri
+    domain: ProjectionVocabulary
+    multivalued: true
+  vocabularyCountKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyCountKind
+    title: vocabulary count kind
+    range: string
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularyCountPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyCountPredicate
+    title: vocabulary count predicate
+    range: uri
+    domain: ProjectionVocabulary
+    multivalued: true
+  vocabularyDefaultCeiling:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling
+    title: vocabulary default ceiling
+    range: integer
+    domain: ProjectionVocabulary
+    minimum_value: 0
+    multivalued: false
+  vocabularyNamespace:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyNamespace
+    title: vocabulary namespace
+    range: uri
+    domain: ProjectionVocabulary
+    multivalued: true
+  vocabularyOwner:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyOwner
+    title: vocabulary owner
+    range: uriorcurie
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularyPrefix:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyPrefix
+    title: vocabulary prefix
+    range: string
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularyPreservation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyPreservation
+    title: vocabulary preservation
+    range: uriorcurie
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularySubsumedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy
+    title: vocabulary subsumed by
+    range: uriorcurie
+    domain: ProjectionVocabulary
+    multivalued: false
   voiceExemplifiedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/voiceExemplifiedBy
     title: voice exemplified by
@@ -23022,6 +23128,9 @@ enums:
       stage-export-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-profiles
         title: 'export: profiles'
+      stage-export-projection-ceilings:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-projection-ceilings
+        title: 'export: projection ceilings'
       stage-export-pydantic:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-pydantic
         title: 'export: pydantic models'
@@ -23832,6 +23941,381 @@ enums:
       sliceQualityRubric:
         meaning: https://blackcatinformatics.ca/gmeow/sliceQualityRubric
         title: Slice-Quality Rubric
+  ProjectionCeilingCommitmentEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionCeilingCommitment
+    permissible_values:
+      pcc-accessibility-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-accessibility-rdfs
+        title: projection-ceiling commitment — accessibility / rdfs
+      pcc-accounts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-accounts-rdfs
+        title: projection-ceiling commitment — accounts / rdfs
+      pcc-affect-mfoem:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-mfoem
+        title: projection-ceiling commitment — affect / mfoem
+      pcc-affect-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-rdfs
+        title: projection-ceiling commitment — affect / rdfs
+      pcc-agentic-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-agentic-rdfs
+        title: projection-ceiling commitment — agentic / rdfs
+      pcc-agentic-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-agentic-sh
+        title: projection-ceiling commitment — agentic / sh
+      pcc-aggregation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-aggregation-rdfs
+        title: projection-ceiling commitment — aggregation / rdfs
+      pcc-agreements-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-agreements-rdfs
+        title: projection-ceiling commitment — agreements / rdfs
+      pcc-ai-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-rdfs
+        title: projection-ceiling commitment — ai / rdfs
+      pcc-ai-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-sh
+        title: projection-ceiling commitment — ai / sh
+      pcc-archaeological-evidence-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-archaeological-evidence-rdfs
+        title: projection-ceiling commitment — archaeological-evidence / rdfs
+      pcc-attestation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-attestation-rdfs
+        title: projection-ceiling commitment — attestation / rdfs
+      pcc-awareness-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-awareness-rdfs
+        title: projection-ceiling commitment — awareness / rdfs
+      pcc-calendar-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-calendar-rdfs
+        title: projection-ceiling commitment — calendar / rdfs
+      pcc-citations-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-citations-rdfs
+        title: projection-ceiling commitment — citations / rdfs
+      pcc-cognition-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-cognition-rdfs
+        title: projection-ceiling commitment — cognition / rdfs
+      pcc-cognition-sumo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-cognition-sumo
+        title: projection-ceiling commitment — cognition / sumo
+      pcc-concepts-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-concepts-ontolex
+        title: projection-ceiling commitment — concepts / ontolex
+      pcc-concepts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-concepts-rdfs
+        title: projection-ceiling commitment — concepts / rdfs
+      pcc-concepts-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-concepts-sh
+        title: projection-ceiling commitment — concepts / sh
+      pcc-connectivity-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-connectivity-rdfs
+        title: projection-ceiling commitment — connectivity / rdfs
+      pcc-contacts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-contacts-rdfs
+        title: projection-ceiling commitment — contacts / rdfs
+      pcc-creative-works-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-creative-works-rdfs
+        title: projection-ceiling commitment — creative-works / rdfs
+      pcc-deception-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-deception-rdfs
+        title: projection-ceiling commitment — deception / rdfs
+      pcc-diagnostics-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-diagnostics-rdfs
+        title: projection-ceiling commitment — diagnostics / rdfs
+      pcc-diagnostics-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-diagnostics-sh
+        title: projection-ceiling commitment — diagnostics / sh
+      pcc-documentation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-documentation-rdfs
+        title: projection-ceiling commitment — documentation / rdfs
+      pcc-documentation-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-documentation-sh
+        title: projection-ceiling commitment — documentation / sh
+      pcc-documents-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-documents-rdfs
+        title: projection-ceiling commitment — documents / rdfs
+      pcc-dreaming-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-dreaming-rdfs
+        title: projection-ceiling commitment — dreaming / rdfs
+      pcc-email-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-email-rdfs
+        title: projection-ceiling commitment — email / rdfs
+      pcc-employment-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-employment-rdfs
+        title: projection-ceiling commitment — employment / rdfs
+      pcc-entities-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-entities-rdfs
+        title: projection-ceiling commitment — entities / rdfs
+      pcc-epistemics-iao:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-iao
+        title: projection-ceiling commitment — epistemics / iao
+      pcc-epistemics-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-rdfs
+        title: projection-ceiling commitment — epistemics / rdfs
+      pcc-epistemics-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-sh
+        title: projection-ceiling commitment — epistemics / sh
+      pcc-epistemics-sumo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-sumo
+        title: projection-ceiling commitment — epistemics / sumo
+      pcc-events-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-events-rdfs
+        title: projection-ceiling commitment — events / rdfs
+      pcc-evidence-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-evidence-rdfs
+        title: projection-ceiling commitment — evidence / rdfs
+      pcc-expertise-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-expertise-rdfs
+        title: projection-ceiling commitment — expertise / rdfs
+      pcc-finance-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-finance-rdfs
+        title: projection-ceiling commitment — finance / rdfs
+      pcc-gender-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-gender-rdfs
+        title: projection-ceiling commitment — gender / rdfs
+      pcc-genealogy-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-genealogy-rdfs
+        title: projection-ceiling commitment — genealogy / rdfs
+      pcc-graphrag-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-graphrag-rdfs
+        title: projection-ceiling commitment — graphrag / rdfs
+      pcc-graphrag-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-graphrag-sh
+        title: projection-ceiling commitment — graphrag / sh
+      pcc-gts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-gts-rdfs
+        title: projection-ceiling commitment — gts / rdfs
+      pcc-gts-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-gts-sh
+        title: projection-ceiling commitment — gts / sh
+      pcc-guides-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-guides-rdfs
+        title: projection-ceiling commitment — guides / rdfs
+      pcc-images-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-images-rdfs
+        title: projection-ceiling commitment — images / rdfs
+      pcc-imagination-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-imagination-rdfs
+        title: projection-ceiling commitment — imagination / rdfs
+      pcc-inference-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inference-rdfs
+        title: projection-ceiling commitment — inference / rdfs
+      pcc-inhabitation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inhabitation-rdfs
+        title: projection-ceiling commitment — inhabitation / rdfs
+      pcc-inhabitation-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inhabitation-sh
+        title: projection-ceiling commitment — inhabitation / sh
+      pcc-inquiry-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inquiry-rdfs
+        title: projection-ceiling commitment — inquiry / rdfs
+      pcc-kernel-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-bfo
+        title: projection-ceiling commitment — kernel / bfo
+      pcc-kernel-gufo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-gufo
+        title: projection-ceiling commitment — kernel / gufo
+      pcc-kernel-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-rdfs
+        title: projection-ceiling commitment — kernel / rdfs
+      pcc-kernel-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-sh
+        title: projection-ceiling commitment — kernel / sh
+      pcc-lang-lexvo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lang-lexvo
+        title: projection-ceiling commitment — lang / lexvo
+      pcc-lang-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lang-rdfs
+        title: projection-ceiling commitment — lang / rdfs
+      pcc-lang-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lang-sh
+        title: projection-ceiling commitment — lang / sh
+      pcc-language-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-language-rdfs
+        title: projection-ceiling commitment — language / rdfs
+      pcc-languages-lexvo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-languages-lexvo
+        title: projection-ceiling commitment — languages / lexvo
+      pcc-languages-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-languages-rdfs
+        title: projection-ceiling commitment — languages / rdfs
+      pcc-learning-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-learning-rdfs
+        title: projection-ceiling commitment — learning / rdfs
+      pcc-learning-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-learning-sh
+        title: projection-ceiling commitment — learning / sh
+      pcc-lexicon-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lexicon-ontolex
+        title: projection-ceiling commitment — lexicon / ontolex
+      pcc-lexicon-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lexicon-rdfs
+        title: projection-ceiling commitment — lexicon / rdfs
+      pcc-lifecycle-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lifecycle-rdfs
+        title: projection-ceiling commitment — lifecycle / rdfs
+      pcc-logic-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-logic-rdfs
+        title: projection-ceiling commitment — logic / rdfs
+      pcc-mappings-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-fno
+        title: projection-ceiling commitment — mappings / fno
+      pcc-mappings-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-ontolex
+        title: projection-ceiling commitment — mappings / ontolex
+      pcc-math-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-math-rdfs
+        title: projection-ceiling commitment — math / rdfs
+      pcc-mentation-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mentation-bfo
+        title: projection-ceiling commitment — mentation / bfo
+      pcc-mentation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mentation-rdfs
+        title: projection-ceiling commitment — mentation / rdfs
+      pcc-metacognition-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-metacognition-rdfs
+        title: projection-ceiling commitment — metacognition / rdfs
+      pcc-model-serving-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-model-serving-rdfs
+        title: projection-ceiling commitment — model-serving / rdfs
+      pcc-model-serving-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-model-serving-sh
+        title: projection-ceiling commitment — model-serving / sh
+      pcc-music-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-music-fno
+        title: projection-ceiling commitment — music / fno
+      pcc-music-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-music-rdfs
+        title: projection-ceiling commitment — music / rdfs
+      pcc-music-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-music-sh
+        title: projection-ceiling commitment — music / sh
+      pcc-names-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-names-ontolex
+        title: projection-ceiling commitment — names / ontolex
+      pcc-names-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-names-rdfs
+        title: projection-ceiling commitment — names / rdfs
+      pcc-narrative-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-narrative-rdfs
+        title: projection-ceiling commitment — narrative / rdfs
+      pcc-norms-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-norms-rdfs
+        title: projection-ceiling commitment — norms / rdfs
+      pcc-notation-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-fno
+        title: projection-ceiling commitment — notation / fno
+      pcc-notation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-rdfs
+        title: projection-ceiling commitment — notation / rdfs
+      pcc-notation-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-sh
+        title: projection-ceiling commitment — notation / sh
+      pcc-notes-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notes-rdfs
+        title: projection-ceiling commitment — notes / rdfs
+      pcc-observations-pato:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-pato
+        title: projection-ceiling commitment — observations / pato
+      pcc-observations-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-qudt
+        title: projection-ceiling commitment — observations / qudt
+      pcc-observations-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-rdfs
+        title: projection-ceiling commitment — observations / rdfs
+      pcc-organization-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-organization-rdfs
+        title: projection-ceiling commitment — organization / rdfs
+      pcc-pipeline-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-pipeline-rdfs
+        title: projection-ceiling commitment — pipeline / rdfs
+      pcc-pipeline-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-pipeline-sh
+        title: projection-ceiling commitment — pipeline / sh
+      pcc-places-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-bfo
+        title: projection-ceiling commitment — places / bfo
+      pcc-places-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-qudt
+        title: projection-ceiling commitment — places / qudt
+      pcc-places-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-rdfs
+        title: projection-ceiling commitment — places / rdfs
+      pcc-places-so:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-so
+        title: projection-ceiling commitment — places / so
+      pcc-procedures-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-procedures-rdfs
+        title: projection-ceiling commitment — procedures / rdfs
+      pcc-profiles-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-profiles-rdfs
+        title: projection-ceiling commitment — profiles / rdfs
+      pcc-provenance-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-provenance-rdfs
+        title: projection-ceiling commitment — provenance / rdfs
+      pcc-quality-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-quality-rdfs
+        title: projection-ceiling commitment — quality / rdfs
+      pcc-rights-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-rights-rdfs
+        title: projection-ceiling commitment — rights / rdfs
+      pcc-rights-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-rights-sh
+        title: projection-ceiling commitment — rights / sh
+      pcc-risk-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-risk-rdfs
+        title: projection-ceiling commitment — risk / rdfs
+      pcc-sensory-environment-mfoem:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-mfoem
+        title: projection-ceiling commitment — sensory-environment / mfoem
+      pcc-sensory-environment-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-rdfs
+        title: projection-ceiling commitment — sensory-environment / rdfs
+      pcc-sensory-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sensory-rdfs
+        title: projection-ceiling commitment — sensory / rdfs
+      pcc-sexuality-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sexuality-rdfs
+        title: projection-ceiling commitment — sexuality / rdfs
+      pcc-slice-quality-rubric-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-slice-quality-rubric-rdfs
+        title: projection-ceiling commitment — slice-quality-rubric / rdfs
+      pcc-software-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-software-rdfs
+        title: projection-ceiling commitment — software / rdfs
+      pcc-standpoint-dul:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-dul
+        title: projection-ceiling commitment — standpoint / dul
+      pcc-standpoint-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-fno
+        title: projection-ceiling commitment — standpoint / fno
+      pcc-standpoint-iao:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-iao
+        title: projection-ceiling commitment — standpoint / iao
+      pcc-standpoint-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-rdfs
+        title: projection-ceiling commitment — standpoint / rdfs
+      pcc-standpoint-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-sh
+        title: projection-ceiling commitment — standpoint / sh
+      pcc-tags-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-tags-rdfs
+        title: projection-ceiling commitment — tags / rdfs
+      pcc-teleology-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-teleology-rdfs
+        title: projection-ceiling commitment — teleology / rdfs
+      pcc-temporal-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-temporal-qudt
+        title: projection-ceiling commitment — temporal / qudt
+      pcc-temporal-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-temporal-rdfs
+        title: projection-ceiling commitment — temporal / rdfs
+      pcc-temporal-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-temporal-sh
+        title: projection-ceiling commitment — temporal / sh
+      pcc-trust-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-trust-rdfs
+        title: projection-ceiling commitment — trust / rdfs
+      pcc-versions-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-versions-rdfs
+        title: projection-ceiling commitment — versions / rdfs
   ProjectionContextEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     permissible_values:
@@ -23904,6 +24388,99 @@ enums:
       lossSymbolizesContinuousTrajectory:
         meaning: https://blackcatinformatics.ca/gmeow/lossSymbolizesContinuousTrajectory
         title: 'loss: symbolizes continuous trajectory'
+  ProjectionVocabularyEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionVocabulary
+    permissible_values:
+      projVocab-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-bfo
+        title: projection vocabulary — BFO
+      projVocab-datalog:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-datalog
+        title: projection vocabulary — Datalog (documentary-only)
+      projVocab-dul:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-dul
+        title: projection vocabulary — DOLCE (dul)
+      projVocab-edoal:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-edoal
+        title: projection vocabulary — EDOAL
+      projVocab-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-fno
+        title: projection vocabulary — Function Ontology (fno)
+      projVocab-glottolog:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-glottolog
+        title: projection vocabulary — Glottolog
+      projVocab-gufo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-gufo
+        title: projection vocabulary — gUFO
+      projVocab-iao:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-iao
+        title: projection vocabulary — OBO Information Artifact Ontology (IAO)
+      projVocab-lexinfo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-lexinfo
+        title: projection vocabulary — LexInfo
+      projVocab-lexvo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-lexvo
+        title: projection vocabulary — Lexvo
+      projVocab-mathml:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-mathml
+        title: projection vocabulary — MathML
+      projVocab-mfoem:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-mfoem
+        title: projection vocabulary — OBO Emotion Ontology (MFOEM)
+      projVocab-n3:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-n3
+        title: projection vocabulary — Notation3 (documentary-only)
+      projVocab-obcs:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-obcs
+        title: projection vocabulary — OBO Biological/Clinical Statistics (OBCS)
+      projVocab-om2:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-om2
+        title: projection vocabulary — OM-2 (Ontology of units of Measure)
+      projVocab-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ontolex
+        title: projection vocabulary — OntoLex-Lemon
+      projVocab-openmath:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-openmath
+        title: projection vocabulary — OpenMath
+      projVocab-pato:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-pato
+        title: projection vocabulary — OBO Phenotype And Trait Ontology (PATO)
+      projVocab-prolog:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-prolog
+        title: projection vocabulary — Prolog (documentary-only)
+      projVocab-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-qudt
+        title: projection vocabulary — QUDT
+      projVocab-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-rdfs
+        title: projection vocabulary — RDFS structural axioms
+      projVocab-ro:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ro
+        title: projection vocabulary — OBO Relation Ontology (RO)
+      projVocab-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sh
+        title: projection vocabulary — SHACL (sh)
+      projVocab-so:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-so
+        title: projection vocabulary — OBO Sequence Ontology (SO)
+      projVocab-sssom:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sssom
+        title: projection vocabulary — SSSOM
+      projVocab-stato:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-stato
+        title: projection vocabulary — OBO Statistics Ontology (STATO)
+      projVocab-sumo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sumo
+        title: projection vocabulary — SUMO
+      projVocab-ucum:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ucum
+        title: projection vocabulary — UCUM
+      projVocab-ud:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ud
+        title: projection vocabulary — Universal Dependencies
+      projVocab-wordnet:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-wordnet
+        title: projection vocabulary — WordNet
   PromptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PromptRole
     permissible_values:

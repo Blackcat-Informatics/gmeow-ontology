@@ -27,10 +27,11 @@
 // per-bench "unused" is expected — mirror the conformance_support harness pattern.
 #![allow(dead_code)]
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use purrdf::shapes::engine::validate_dataset;
+use purrdf::shapes::engine::{project_dataset, validate_dataset, validate_projected_dataset};
 use purrdf::shapes::report::ValidationReport;
 use purrdf::shapes::shapes::Shapes;
 use purrdf::{
@@ -126,6 +127,51 @@ pub fn load_production_shapes() -> Shapes {
     shapes
 }
 
+fn load_shape_files(files: &[PathBuf]) -> Shapes {
+    let mut prefixes = BTreeMap::new();
+    let mut datasets = Vec::with_capacity(files.len());
+    for file in files {
+        let bytes = std::fs::read(file)
+            .unwrap_or_else(|e| panic!("read shape file {}: {e}", file.display()));
+        let text = std::str::from_utf8(&bytes)
+            .unwrap_or_else(|e| panic!("shape file {} is not UTF-8: {e}", file.display()));
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .unwrap_or_else(|e| panic!("parse shape file {}: {e}", file.display()));
+        datasets.push(dataset);
+        for (prefix, namespace) in purrdf::shapes::text_ingest::extract_prefixes(text) {
+            prefixes.insert(prefix, namespace);
+        }
+    }
+    let refs: Vec<&RdfDataset> = datasets.iter().map(AsRef::as_ref).collect();
+    let merged = Arc::new(RdfDataset::union(&refs));
+    purrdf::shapes::shapes::from_dataset_with_prefixes(
+        &merged,
+        &prefixes.into_iter().collect::<Vec<_>>(),
+    )
+    .expect("parse selected production shapes")
+}
+
+/// Production shape corpus excluding the generated procedural-constraint
+/// projection, used only to attribute the whole-graph scan cost.
+#[must_use]
+pub fn load_shapes_without_procedural() -> Shapes {
+    let files = purrdf::shapes::shape_union::shape_files(&repo_root())
+        .expect("enumerate production SHACL shape union")
+        .into_iter()
+        .filter(|path| {
+            path.file_name().and_then(|name| name.to_str()) != Some("procedural-constraints.ttl")
+        })
+        .collect::<Vec<_>>();
+    load_shape_files(&files)
+}
+
+/// The generated procedural-constraint projection in isolation, used only to
+/// attribute the whole-graph scan cost.
+#[must_use]
+pub fn load_procedural_shapes() -> Shapes {
+    load_shape_files(&[repo_root().join("generated/shapes/procedural-constraints.ttl")])
+}
+
 /// Parse the representative fixture into default-graph quads.
 #[must_use]
 pub fn fixture_quads() -> Vec<RdfQuad> {
@@ -155,4 +201,17 @@ pub fn ontology_plus_fixture(ontology: &RdfDataset) -> Arc<RdfDataset> {
 #[must_use]
 pub fn validate(data: &RdfDataset, shapes: &Shapes) -> ValidationReport {
     validate_dataset(data, shapes).expect("native SHACL validation must succeed")
+}
+
+/// Materialize the SHACL default-graph/reifier projection separately so the
+/// cost harness can distinguish transport preparation from constraint execution.
+#[must_use]
+pub fn project(data: &RdfDataset) -> Arc<RdfDataset> {
+    project_dataset(data).expect("native SHACL projection must succeed")
+}
+
+/// Validate an already-projected graph, isolating the constraint-engine cost.
+#[must_use]
+pub fn validate_projected(data: Arc<RdfDataset>, shapes: &Shapes) -> ValidationReport {
+    validate_projected_dataset(data, shapes).expect("native SHACL validation must succeed")
 }

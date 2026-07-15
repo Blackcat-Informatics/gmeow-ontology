@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "For the qualitative signed-radial-field scene, what are the
+# field's key qualitative facts — the central +∞ singularity (R′), the −∞ asymptote
+# at compactified infinity, the near-zero plateau bound, and the four ring measure
+# evaluations?"  This exercises the claim that the whole target is recoverable WITHOUT
+# any closed form: the two divergent limits, the plateau magnitude bound, and the four
+# comparable subset masses each surface as data. Every value column is a genuine
+# projected value (a pole IRI, a bound, or a mass), coerced to a string so one column
+# carries them uniformly. Over examples/signed-radial-field-qualitative.ttl the answer
+# is exactly seven rows: centre → +∞ (R′), infinity → −∞, plateau bound 0.01, and the
+# four ring masses {0.1, 0.25, 0.55, 0.1} with Ring 2 the dominant band.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/>
+
+SELECT ?aspect ?item ?value WHERE {
+    {
+        BIND("central-singularity" AS ?aspect)
+        BIND(ex:centreLimit AS ?item)
+        ex:centreLimit math:hasLimitResult/math:limitResultValue ?pole .
+        BIND(STR(?pole) AS ?value)
+    } UNION {
+        BIND("infinity-asymptote" AS ?aspect)
+        BIND(ex:infinityLimit AS ?item)
+        ex:infinityLimit math:hasLimitResult/math:limitResultValue ?pole .
+        BIND(STR(?pole) AS ?value)
+    } UNION {
+        BIND("plateau-bound" AS ?aspect)
+        ?item math:hasAnalyticProperty math:boundedness ;
+              math:hasBound ?bound ;
+              math:boundOnInterval ex:ring2 .
+        BIND(STR(?bound) AS ?value)
+    } UNION {
+        BIND("ring-measure" AS ?aspect)
+        ?item a math:MeasureEvaluation ;
+              math:evaluatedMeasure ex:radialMeasure ;
+              math:measureResult ?mass .
+        BIND(STR(?mass) AS ?value)
+    }
+}
+ORDER BY ?aspect ?item

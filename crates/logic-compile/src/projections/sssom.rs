@@ -39,6 +39,11 @@ const GM_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
 const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GM_SUBJECT_LABEL: &str = "https://blackcatinformatics.ca/gmeow/subjectLabel";
 const GM_OBJECT_LABEL: &str = "https://blackcatinformatics.ca/gmeow/objectLabel";
+const LOGIC_GROUNDING_CORRESPONDENCE: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+const LOGIC_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
+const LOGIC_MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
+const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
 const GM_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
 const GM_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GM_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
@@ -83,6 +88,16 @@ pub struct EquivalenceCell {
     pub obj: String,
     pub confidence: Option<f64>,
     pub(crate) justification: Option<String>,
+    /// Optional authored law-spine rung. Absent cells retain the predicate-derived SSSOM
+    /// default; grounding bridges author this explicitly so a commitment shift can never
+    /// be flattened into an ordinary lens.
+    pub(crate) morphism_class: Option<String>,
+    /// Optional authored satisfaction/commitment qualifier.
+    pub(crate) morphism_kind: Option<String>,
+    /// Optional authored per-correspondence preservation judgment.
+    pub(crate) preservation: Option<String>,
+    /// Whether the frontend cell is explicitly a `logic:GroundingCorrespondence`.
+    pub(crate) grounding: bool,
     comment: String,
     /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
     /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
@@ -523,6 +538,10 @@ fn fixed_template_values(binding: &ProfileBinding) -> Vec<String> {
 
 fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
     let _ = RDF_TYPE; // documented surface; subjects_of_type uses it internally.
+    let grounding: BTreeSet<String> = view
+        .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
+        .into_iter()
+        .collect();
     for subject in view.subjects_of_type(GM_TERM_EQUIVALENCE) {
         let (Some(subject_iri), Some(predicate_iri), Some(object_iri_v), Some(sssom_file)) = (
             view.object_iri(&subject, GM_ALIGN_SUBJECT),
@@ -543,6 +562,10 @@ fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
             obj: object_iri_v,
             confidence,
             justification: view.object_iri(&subject, GM_JUSTIFICATION),
+            morphism_class: view.object_iri(&subject, LOGIC_MORPHISM_CLASS),
+            morphism_kind: view.object_iri(&subject, LOGIC_MORPHISM_KIND),
+            preservation: view.object_iri(&subject, LOGIC_PRESERVATION_KIND),
+            grounding: grounding.contains(&subject),
             comment: view
                 .object_literal(&subject, GM_COMMENT)
                 .unwrap_or_default(),

@@ -1818,6 +1818,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/causalModality> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingCount> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ceilingCount-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/ceilingCount> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingSlice> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ceilingSlice-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/ceilingSlice> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingVocabulary> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ceilingVocabulary-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/ceilingVocabulary> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/centsFromOrigin> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/centsFromOrigin-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/centsFromOrigin> . {0,1} ;
@@ -2491,6 +2506,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/existenceEntity> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/existenceEntity-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/existenceEntity> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/existentialOrdinal> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/existentialOrdinal-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/existentialOrdinal> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/experiencer> (associate via ShapeMap)
@@ -5265,6 +5285,36 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/versionSet> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyCountKind> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyCountKind-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyCountKind> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyOwner> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyOwner-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyOwner> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyPrefix> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyPrefix-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyPrefix> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyPreservation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyPreservation-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyPreservation> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/voiceMetricStructure> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/voiceMetricStructure-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/voiceMetricStructure> . {0,1} ;
@@ -5434,6 +5484,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/logic/Event> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/Event-shape> {
+}
+
+# targetClass <https://blackcatinformatics.ca/logic/ExistentialChaseDemonstrand> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/ExistentialChaseDemonstrand-shape> {
+  <https://blackcatinformatics.ca/logic/demonstratesChaseWitness> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/logic/FormalizationCandidate> (associate via ShapeMap)
@@ -5758,6 +5813,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/slotExpression> NONLITERAL ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/ArithmeticOperation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/ArithmeticOperation-shape> {
+  <https://blackcatinformatics.ca/math/operatorDomain> IRI ;
+  <https://blackcatinformatics.ca/math/operatorCodomain> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/AutomorphismGroup> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/AutomorphismGroup-shape> {
   <https://blackcatinformatics.ca/math/automorphismGroupOf> NONLITERAL + ;
@@ -5784,9 +5845,23 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/targetCoordinateSpace> NONLITERAL ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/ClosedFormFunction> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/ClosedFormFunction-shape> {
+  <https://blackcatinformatics.ca/math/formalArgument> IRI ;
+  <https://blackcatinformatics.ca/math/definingExpression> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/CompactSpace> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/CompactSpace-shape> {
   <https://blackcatinformatics.ca/math/isCompact> <http://www.w3.org/2001/XMLSchema#boolean> ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/Compactification> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/Compactification-shape> {
+  <https://blackcatinformatics.ca/math/originalSpace> . ;
+  <https://blackcatinformatics.ca/math/compactifyingMap> . ;
+  <https://blackcatinformatics.ca/math/compactifiedSpace> . ;
+  <https://blackcatinformatics.ca/math/boundaryAtInfinity> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/Complement> (associate via ShapeMap)
@@ -5809,6 +5884,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/ConfidenceInterval-shape> {
   <https://blackcatinformatics.ca/math/confidenceLevel> NONLITERAL + ;
   <https://blackcatinformatics.ca/math/hasIntervalBound> NONLITERAL {2,} ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/ConformalCompactification> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/ConformalCompactification-shape> {
+  <https://blackcatinformatics.ca/math/conformalFactor> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ConnectedSpace> (associate via ShapeMap)
@@ -5917,6 +5997,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/codomain> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/FunctionPiece> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/FunctionPiece-shape> {
+  <https://blackcatinformatics.ca/math/pieceDomain> IRI ;
+  <https://blackcatinformatics.ca/math/pieceExpression> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/GramMatrix> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/GramMatrix-shape> {
   <https://blackcatinformatics.ca/math/inBasis> IRI ;
@@ -5955,6 +6041,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/integrationDomain> NONLITERAL ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/Interval> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/Interval-shape> {
+  <https://blackcatinformatics.ca/math/lowerEndpoint> . ;
+  <https://blackcatinformatics.ca/math/upperEndpoint> . ;
+  <https://blackcatinformatics.ca/math/lowerInclusion> IRI ;
+  <https://blackcatinformatics.ca/math/upperInclusion> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/LieGroup> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/LieGroup-shape> {
   <https://blackcatinformatics.ca/math/hasRootSystem> IRI + ;
@@ -5964,6 +6058,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/Limit-shape> {
   <https://blackcatinformatics.ca/math/limitOf> NONLITERAL ;
   <https://blackcatinformatics.ca/math/limitPoint> NONLITERAL ;
+  <https://blackcatinformatics.ca/math/hasLimitResult> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/LimitResult> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/LimitResult-shape> {
+  <https://blackcatinformatics.ca/math/limitOutcome> IRI ;
+  <https://blackcatinformatics.ca/math/limitResultValue> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/LogOddsValue> (associate via ShapeMap)
@@ -5986,6 +6087,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/Measure-shape> {
   <https://blackcatinformatics.ca/math/measureOn> IRI ;
   <https://blackcatinformatics.ca/math/totalMass> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/MeasureEvaluation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/MeasureEvaluation-shape> {
+  <https://blackcatinformatics.ca/math/measureResult> . ;
+  <https://blackcatinformatics.ca/math/measuredSubset> IRI ;
+  <https://blackcatinformatics.ca/math/evaluatedMeasure> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ModelDiagnostic> (associate via ShapeMap)
@@ -6043,6 +6151,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/diesAt> NONLITERAL ;
   <https://blackcatinformatics.ca/math/overFiltration> IRI ;
   <https://blackcatinformatics.ca/math/persistenceFeature> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/PiecewiseFunction> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/PiecewiseFunction-shape> {
+  <https://blackcatinformatics.ca/math/hasPiece> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProbabilityEvent> (associate via ShapeMap)

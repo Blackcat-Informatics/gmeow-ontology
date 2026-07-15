@@ -513,6 +513,31 @@ pub enum Commands {
         #[arg(long = "all-axes")]
         all_axes: bool,
     },
+    /// Emit `gmeow:ProjectionCeilingCommitment` TTL at the CURRENT measured
+    /// ungrounded residue for every (slice, guarded-vocabulary) pair with nonzero
+    /// residue, so a human can grandfather the existing residue into
+    /// `slices/core/slice-quality-rubric/module.ttl`. Uses the SAME shared counter
+    /// (`gmeow_slice_quality::measure_repo_residues`) the ratchet gate reads — seed
+    /// and gate can never diverge. EMIT-ONLY, GRANDFATHER-ONCE: this seeds the
+    /// ceiling ABox at whatever residue is live the moment it is run; re-running it
+    /// to "refresh" a ceiling whose measured residue has since risen is a banned
+    /// auto-calibration (the correct response to a risen residue is the gate reading,
+    /// never a re-seed that raises the ceiling to match). Lowering a ceiling later,
+    /// after a genuine measured migration grounds constructs out of the residue, is
+    /// always a deliberate hand-edit of the individual, never a seeder re-run. The
+    /// TTL goes to stdout for the human to commit.
+    #[command(name = "slice-quality-seed-ceilings")]
+    SliceQualitySeedCeilings {},
+    /// Report-only migration dashboard for the projection-vocabulary ratchet: for
+    /// every (slice, guarded-vocabulary) cell with either a live measured residue
+    /// or a committed ceiling, print measured/ceiling/headroom. `measured` is a
+    /// LIVE scan through the same shared counter the ratchet gate reads — it is
+    /// NEVER persisted as a `SoundUnder` projection (a scan result is entailed by
+    /// no resident individual). Always exits 0; never gates `make check`. A
+    /// ceiling is never tuned to this report's numbers — lowering one is always a
+    /// deliberate hand-edit after a genuine measured migration.
+    #[command(name = "slice-quality-projection-debt")]
+    SliceQualityProjectionDebt {},
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -936,6 +961,10 @@ pub fn run() -> i32 {
         Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
         Commands::SliceQualitySeedFloors { axis, all_axes } => {
             dev_slice_quality::slice_quality_seed_floors(axis.as_deref(), all_axes)
+        }
+        Commands::SliceQualitySeedCeilings {} => dev_slice_quality::slice_quality_seed_ceilings(),
+        Commands::SliceQualityProjectionDebt {} => {
+            dev_slice_quality::slice_quality_projection_debt()
         }
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())

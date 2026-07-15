@@ -64,6 +64,32 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     status.exit_code()
 }
 
+/// Build the site render's [`gmeow_docs::ExecutableDocsData`] from the committed
+/// `gmeow.gts` bundle: its `playground_trig` is `documentation graph ∪ reasoned closure
+/// ∪ the chase-invented-null witness subgraph`, so the shipped SPARQL playground page
+/// carries the reasoned data and can decompose an invented individual. A missing or
+/// unreadable committed bundle is a hard fail (no-optionality): the `Err` carries the
+/// console exit code the caller returns.
+fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocsData, i32> {
+    let gts_path = root.join(crate::dev_common::GTS_SNAPSHOT_REL);
+    let bytes = std::fs::read(&gts_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed bundle {}: {e}",
+            gts_path.display()
+        ))
+    })?;
+    let graph = purrdf::gts::read_all_segments(&bytes)
+        .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
+        .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
+    let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
+        .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
+    Ok(gmeow_docs::ExecutableDocsData {
+        playground_trig,
+        ..Default::default()
+    })
+}
+
 /// `gmeow-dev export-docs --format F -d DIR [--force --lang]` — render from
 /// canonical repository sources.
 pub fn export_docs(
@@ -103,10 +129,26 @@ pub fn export_docs(
     let source_lang = pick_source_lang(lang, &model.translations);
 
     use crate::ExportFormat;
+
+    // The reasoned SPARQL playground is a SITE surface: build its `ExecutableDocsData`
+    // from the committed bundle — which already carries the documentation graph, the
+    // reasoned closure, and the chase-invented-null (Skolem witness) subgraph — ONLY for
+    // the formats that render the site. No-optionality: for a site render a missing or
+    // unreadable committed bundle is a HARD FAIL (mirrors the schema-fragment gate above),
+    // never a silently empty playground; non-site formats never touch the bundle.
+    let exec = if matches!(format, ExportFormat::Site | ExportFormat::All) {
+        match playground_exec_from_bundle(&root) {
+            Ok(exec) => exec,
+            Err(code) => return code,
+        }
+    } else {
+        gmeow_docs::ExecutableDocsData::default()
+    };
+
     match format {
         ExportFormat::Site => write_docs_projection(
             directory,
-            Ok(gmeow_docs::render_site_lang(&model, &source_lang).files),
+            Ok(gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files),
         ),
         ExportFormat::Mdbook => write_docs_projection(directory, Ok(render_source_book(&model))),
         ExportFormat::Pdf => write_docs_projection(directory, render_source_print(&root, &model)),
@@ -122,7 +164,7 @@ pub fn export_docs(
             let plan = [
                 (
                     "site",
-                    Ok(gmeow_docs::render_site_lang(&model, &source_lang).files),
+                    Ok(gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files),
                 ),
                 ("mdbook", Ok(render_source_book(&model))),
                 ("pdf", render_source_print(&root, &model)),

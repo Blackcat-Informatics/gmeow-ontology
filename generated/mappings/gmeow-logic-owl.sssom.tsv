@@ -1,0 +1,48 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/logic-owl
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "The complete compiler-recognized logic: to OWL/RDFS construct surface. OWL is a SoundUnder projection of the richer logic: canon, not a competing grounding source."
+# curie_map:
+#   logic: https://blackcatinformatics.ca/logic/
+#   owl: http://www.w3.org/2002/07/owl#
+#   rdfs: http://www.w3.org/2000/01/rdf-schema#
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+# # Coverage is pinned to the adapter, restriction frontend, and OWL projector tables by native tests.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+logic:Datarange	skos:closeMatch	rdfs:Datatype	semapv:ManualMappingCuration	0.9	A logic:Datarange is the restricted datatype construct; rdfs:Datatype is its emitted carrier class.
+logic:Enumeration	skos:relatedMatch	owl:oneOf	semapv:ManualMappingCuration	0.9	logic:Enumeration names the construct; owl:oneOf is the list-valued edge that serializes it.
+logic:Restriction	skos:exactMatch	owl:Restriction	semapv:ManualMappingCuration	1.0	
+logic:allValuesFrom	skos:exactMatch	owl:allValuesFrom	semapv:ManualMappingCuration	1.0	
+logic:asymmetricProperty	skos:exactMatch	owl:AsymmetricProperty	semapv:ManualMappingCuration	1.0	
+logic:cardinality	skos:exactMatch	owl:cardinality	semapv:ManualMappingCuration	1.0	
+logic:disjointWith	skos:exactMatch	owl:disjointWith	semapv:ManualMappingCuration	1.0	
+logic:domain	skos:exactMatch	rdfs:domain	semapv:ManualMappingCuration	1.0	
+logic:equivalentClass	skos:exactMatch	owl:equivalentClass	semapv:ManualMappingCuration	1.0	
+logic:equivalentProperty	skos:exactMatch	owl:equivalentProperty	semapv:ManualMappingCuration	1.0	
+logic:functionalProperty	skos:exactMatch	owl:FunctionalProperty	semapv:ManualMappingCuration	1.0	
+logic:hasValue	skos:exactMatch	owl:hasValue	semapv:ManualMappingCuration	1.0	
+logic:inverseFunctionalProperty	skos:exactMatch	owl:InverseFunctionalProperty	semapv:ManualMappingCuration	1.0	
+logic:inverseOf	skos:exactMatch	owl:inverseOf	semapv:ManualMappingCuration	1.0	
+logic:irreflexiveProperty	skos:exactMatch	owl:IrreflexiveProperty	semapv:ManualMappingCuration	1.0	
+logic:maxCardinality	skos:exactMatch	owl:maxCardinality	semapv:ManualMappingCuration	1.0	
+logic:maxQualifiedCardinality	skos:exactMatch	owl:maxQualifiedCardinality	semapv:ManualMappingCuration	1.0	
+logic:minCardinality	skos:exactMatch	owl:minCardinality	semapv:ManualMappingCuration	1.0	
+logic:minQualifiedCardinality	skos:exactMatch	owl:minQualifiedCardinality	semapv:ManualMappingCuration	1.0	
+logic:onClass	skos:exactMatch	owl:onClass	semapv:ManualMappingCuration	0.95	This exact construct band is the qualified-restriction use of logic:onClass; its constraint-target use lowers separately.
+logic:onDataRange	skos:exactMatch	owl:onDataRange	semapv:ManualMappingCuration	1.0	
+logic:onDatatype	skos:exactMatch	owl:onDatatype	semapv:ManualMappingCuration	1.0	
+logic:onProperty	skos:exactMatch	owl:onProperty	semapv:ManualMappingCuration	1.0	
+logic:oneOf	skos:exactMatch	owl:oneOf	semapv:ManualMappingCuration	1.0	
+logic:qualifiedCardinality	skos:exactMatch	owl:qualifiedCardinality	semapv:ManualMappingCuration	1.0	
+logic:range	skos:exactMatch	rdfs:range	semapv:ManualMappingCuration	1.0	
+logic:reflexiveProperty	skos:exactMatch	owl:ReflexiveProperty	semapv:ManualMappingCuration	1.0	
+logic:someValuesFrom	skos:exactMatch	owl:someValuesFrom	semapv:ManualMappingCuration	1.0	
+logic:subClassOf	skos:exactMatch	rdfs:subClassOf	semapv:ManualMappingCuration	1.0	
+logic:subPropertyOf	skos:exactMatch	rdfs:subPropertyOf	semapv:ManualMappingCuration	1.0	
+logic:symmetricProperty	skos:exactMatch	owl:SymmetricProperty	semapv:ManualMappingCuration	1.0	
+logic:transitiveProperty	skos:exactMatch	owl:TransitiveProperty	semapv:ManualMappingCuration	1.0	
+logic:withRestrictions	skos:exactMatch	owl:withRestrictions	semapv:ManualMappingCuration	1.0	

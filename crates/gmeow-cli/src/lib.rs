@@ -277,9 +277,9 @@ pub enum SliceCommands {
     },
     /// Assemble and render a `gmeow:AuthoringPacket` authoring brief for a slice
     /// directory, computed over the slice's OWN sources (module.ttl, mappings/,
-    /// i18n/) with the SINGLE canonical completeness tiering. The committed
-    /// `generated/briefs/authoring-packets.nt` is the canonical repo projection of
-    /// this brief for in-repo slices; this command is its live, checkout-free twin.
+    /// i18n/) with the SINGLE canonical, SHACL-conformance-gated exemplar tiering. The
+    /// committed `generated/briefs/authoring-packets.nt` is the canonical repo projection
+    /// of this brief for in-repo slices; this command is its live, checkout-free twin.
     Brief {
         /// Path to the slice directory to brief.
         dir: PathBuf,
@@ -291,6 +291,14 @@ pub enum SliceCommands {
         #[arg(long)]
         batch: Option<u32>,
         /// Output serialization: `human` (default), `json`, or `turtle`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
+    /// Show the committed projection-vocabulary ratchet — the guarded registry and the
+    /// per-(slice, vocabulary) ceilings — straight from the embedded gmeow.gts bundle
+    /// (the commitments view; live measured residue needs a repo checkout).
+    ProjectionCeilings {
+        /// Output serialization: `human` (default) or `tsv`.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
     },
@@ -533,6 +541,9 @@ pub fn run() -> i32 {
                 batch,
                 format,
             } => commands::slice_brief(reporter, &dir, axis.as_deref(), batch, &format),
+            SliceCommands::ProjectionCeilings { format } => {
+                commands::slice_projection_ceilings(reporter, &format)
+            }
         },
     }
 }

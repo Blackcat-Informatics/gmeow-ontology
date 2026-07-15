@@ -152,15 +152,15 @@ impl SkolemTerm {
 /// "explain invented individual" surface the recipe is retained per witness precisely to
 /// support: an opaque interned IRI is a hash and cannot be decomposed; this can.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct WitnessDerivation {
+pub struct WitnessDerivation {
     /// The invented-null IRI surface being explained.
-    pub(crate) witness: String,
+    pub witness: String,
     /// The content-addressed firing rule IRI that invented the witness.
-    pub(crate) rule_iri: String,
+    pub rule_iri: String,
     /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct witnesses).
-    pub(crate) ordinal: usize,
+    pub ordinal: usize,
     /// The Skolem-function arguments: the bound frontier terms, in a fixed order.
-    pub(crate) frontier: Vec<TermValue>,
+    pub frontier: Vec<TermValue>,
 }
 
 /// The witnesses a chase has invented, keyed by their IRI surface → recipe.

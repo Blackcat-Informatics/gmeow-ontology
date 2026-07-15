@@ -14,4 +14,4 @@
     dcterms:title "GMEOW Core Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
-    gmeow:sliceConsumer "Every slice: the gUFO-grounded kernel (Entity, Agent, InformationObject, base relations)."@x-gmeow-english .
+    gmeow:sliceConsumer "Every domain slice: the logic:-grounded kernel (Entity, Agent, InformationObject, base relations), consuming the co-foundational lang:/math:/logic: grounding triad."@x-gmeow-english .
