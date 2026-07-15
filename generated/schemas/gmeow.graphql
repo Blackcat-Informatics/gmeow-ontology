@@ -2902,6 +2902,7 @@ enum PipelineStageEnum {
   stage_export_okf
   stage_export_parquet
   stage_export_profiles
+  stage_export_projection_ceilings
   stage_export_pydantic
   stage_export_references
   stage_export_research_objects
@@ -3217,6 +3218,133 @@ enum ProfileEnum {
   sliceQualityRubric
 }
 
+enum ProjectionCeilingCommitmentEnum {
+  pcc_accessibility_rdfs
+  pcc_accounts_rdfs
+  pcc_affect_mfoem
+  pcc_affect_rdfs
+  pcc_agentic_rdfs
+  pcc_agentic_sh
+  pcc_aggregation_rdfs
+  pcc_agreements_rdfs
+  pcc_ai_rdfs
+  pcc_ai_sh
+  pcc_archaeological_evidence_rdfs
+  pcc_attestation_rdfs
+  pcc_awareness_rdfs
+  pcc_calendar_rdfs
+  pcc_citations_rdfs
+  pcc_cognition_rdfs
+  pcc_cognition_sumo
+  pcc_concepts_ontolex
+  pcc_concepts_rdfs
+  pcc_concepts_sh
+  pcc_connectivity_rdfs
+  pcc_contacts_rdfs
+  pcc_creative_works_rdfs
+  pcc_deception_rdfs
+  pcc_diagnostics_rdfs
+  pcc_diagnostics_sh
+  pcc_documentation_rdfs
+  pcc_documentation_sh
+  pcc_documents_rdfs
+  pcc_dreaming_rdfs
+  pcc_email_rdfs
+  pcc_employment_rdfs
+  pcc_entities_rdfs
+  pcc_epistemics_iao
+  pcc_epistemics_rdfs
+  pcc_epistemics_sh
+  pcc_epistemics_sumo
+  pcc_events_rdfs
+  pcc_evidence_rdfs
+  pcc_expertise_rdfs
+  pcc_finance_rdfs
+  pcc_gender_rdfs
+  pcc_genealogy_rdfs
+  pcc_graphrag_rdfs
+  pcc_graphrag_sh
+  pcc_gts_rdfs
+  pcc_gts_sh
+  pcc_guides_rdfs
+  pcc_images_rdfs
+  pcc_imagination_rdfs
+  pcc_inference_rdfs
+  pcc_inhabitation_rdfs
+  pcc_inhabitation_sh
+  pcc_inquiry_rdfs
+  pcc_kernel_bfo
+  pcc_kernel_gufo
+  pcc_kernel_rdfs
+  pcc_kernel_sh
+  pcc_lang_lexvo
+  pcc_lang_rdfs
+  pcc_lang_sh
+  pcc_language_rdfs
+  pcc_languages_lexvo
+  pcc_languages_rdfs
+  pcc_learning_rdfs
+  pcc_learning_sh
+  pcc_lexicon_ontolex
+  pcc_lexicon_rdfs
+  pcc_lifecycle_rdfs
+  pcc_logic_rdfs
+  pcc_mappings_fno
+  pcc_mappings_ontolex
+  pcc_math_rdfs
+  pcc_mentation_bfo
+  pcc_mentation_rdfs
+  pcc_metacognition_rdfs
+  pcc_model_serving_rdfs
+  pcc_model_serving_sh
+  pcc_music_fno
+  pcc_music_rdfs
+  pcc_music_sh
+  pcc_names_ontolex
+  pcc_names_rdfs
+  pcc_narrative_rdfs
+  pcc_norms_rdfs
+  pcc_notation_fno
+  pcc_notation_rdfs
+  pcc_notation_sh
+  pcc_notes_rdfs
+  pcc_observations_pato
+  pcc_observations_qudt
+  pcc_observations_rdfs
+  pcc_organization_rdfs
+  pcc_pipeline_rdfs
+  pcc_pipeline_sh
+  pcc_places_bfo
+  pcc_places_qudt
+  pcc_places_rdfs
+  pcc_places_so
+  pcc_procedures_rdfs
+  pcc_profiles_rdfs
+  pcc_provenance_rdfs
+  pcc_quality_rdfs
+  pcc_rights_rdfs
+  pcc_rights_sh
+  pcc_risk_rdfs
+  pcc_sensory_environment_mfoem
+  pcc_sensory_environment_rdfs
+  pcc_sensory_rdfs
+  pcc_sexuality_rdfs
+  pcc_slice_quality_rubric_rdfs
+  pcc_software_rdfs
+  pcc_standpoint_dul
+  pcc_standpoint_fno
+  pcc_standpoint_iao
+  pcc_standpoint_rdfs
+  pcc_standpoint_sh
+  pcc_tags_rdfs
+  pcc_teleology_rdfs
+  pcc_temporal_qudt
+  pcc_temporal_rdfs
+  pcc_temporal_sh
+  pcc_trust_rdfs
+  pcc_versions_rdfs
+}
+
 enum ProjectionContextEnum {
   consumerAdviceCatalog
   consumerAgentMemory
@@ -3243,6 +3371,39 @@ enum ProjectionLossEnum {
   lossQuantizesPitchTo12Edo
   lossQuantizesTimeToRationalGrid
   lossSymbolizesContinuousTrajectory
+}
+
+enum ProjectionVocabularyEnum {
+  projVocab_bfo
+  projVocab_datalog
+  projVocab_dul
+  projVocab_edoal
+  projVocab_fno
+  projVocab_glottolog
+  projVocab_gufo
+  projVocab_iao
+  projVocab_lexinfo
+  projVocab_lexvo
+  projVocab_mathml
+  projVocab_mfoem
+  projVocab_n3
+  projVocab_obcs
+  projVocab_om2
+  projVocab_ontolex
+  projVocab_openmath
+  projVocab_pato
+  projVocab_prolog
+  projVocab_qudt
+  projVocab_rdfs
+  projVocab_ro
+  projVocab_sh
+  projVocab_so
+  projVocab_sssom
+  projVocab_stato
+  projVocab_sumo
+  projVocab_ucum
+  projVocab_ud
+  projVocab_wordnet
 }
 
 enum PromptRoleEnum {
@@ -8281,6 +8442,14 @@ type Project {
   projectLicense: [License!]
 }
 
+type ProjectionCeilingCommitment {
+  id: String
+  iri: String
+  ceilingCount: Int
+  ceilingSlice: String
+  ceilingVocabulary: ProjectionVocabulary
+}
+
 type ProjectionContext {
   id: String
   iri: String
@@ -8295,6 +8464,20 @@ type ProjectionLoss {
   id: String
   iri: String
   accountsForParameter: [String!]
+}
+
+type ProjectionVocabulary {
+  id: String
+  iri: String
+  vocabularyAlignmentPredicate: [String!]
+  vocabularyCountKind: String
+  vocabularyCountPredicate: [String!]
+  vocabularyDefaultCeiling: Int
+  vocabularyNamespace: [String!]
+  vocabularyOwner: String
+  vocabularyPrefix: String
+  vocabularyPreservation: String
+  vocabularySubsumedBy: String
 }
 
 type Prompt {
