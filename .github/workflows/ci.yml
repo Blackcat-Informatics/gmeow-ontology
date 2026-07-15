@@ -199,7 +199,7 @@ jobs:
   # balances wall-time, isolating the long poles (validate and strict sync)
   # into separate jobs.
   #
-  # Every original gate lands in exactly one job:
+  # Every remaining gate lands in exactly one job:
   #   ontology-validate  : validate
   #   ontology-generated : sync, constitution-check
   #   ontology-reason    : verify --mode native, acceptance, coverage
