@@ -635,3 +635,32 @@ independently landed the sh:/owl:-removal migration (retired math/shapes.ttl, gr
 63 obligations in logic:), so the hack was reverted to main's version and the
 regressions are GONE. Follow-on issue #1551 (that migration) is thus effectively
 subsumed; #1546 (logic:-authoring ratchet gate) remains open as repo-wide infra.
+
+## 2026-07-14 — logic-layer seam cleanups (four seams)
+
+Honest boundaries on the Seam-3 compile-logic cache narrowing (user-approved
+mechanism, disclosed limits — NOT omissions):
+- The cache narrowing is a DENYLIST (authored base minus pure-documentation
+  predicates never read by the compiler), not the originally-planned allowlist
+  "reuse the readers' own selection (sound by construction)". The readers key on
+  their vocabulary entirely inline via structural bnode-walks, so the allowlist
+  would have meant a disproportionate, high-regression refactor of the core logic
+  compiler. Soundness is therefore GUARD-ENFORCED (a non-vacuous byte-identity
+  test proves all five readers produce identical output over the narrowed
+  subgraph) rather than sound-by-construction. A future reader that starts
+  consuming a currently-denylisted predicate would be caught by that guard in CI
+  when first exercised, not prevented structurally — but the denylist is a
+  subset-of-never-read and new reader vocab is included by default, so it can
+  never silently go stale.
+- The practical cache win is BOUNDED: because derive_validation_shapes reads most
+  of the TBox (restriction/domain/range closures), a structural edit still
+  correctly busts compile-logic's cache. Only documentation/prose edits
+  (skos:definition@x-gmeow-english, labels, dcterms/prov metadata) stop busting
+  it. "Not busting on a TBox edit" would be UNSOUND, so this bound is correct, not
+  a shortfall — but it is narrower than the issue's "busting on any authored
+  change" framing implied.
+
+Nothing was scoped down or deferred: all four seams are fully implemented (Seam 2
+duplicate deleted; Seam 4 affine cell dogfooded with graph/correspondence
+byte-parity; Seam 1 counts single-owned with projection-report byte-parity; Seam 3
+sound narrowing). make check green after regenerate + snapshot re-bless.

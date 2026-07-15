@@ -86,5 +86,5 @@ This term is a stage of the [build pipeline](../../pipeline/index.md) — a type
 
 ---
 
-**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-source-load`
 Rendered from `gmeow.gts` by the dogfooded build pipeline.
