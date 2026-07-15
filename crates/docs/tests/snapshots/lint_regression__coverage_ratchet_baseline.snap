@@ -4,10 +4,10 @@ assertion_line: 192
 expression: coverage
 ---
 {
-  "docs/missing-annotation-coat": 3166,
+  "docs/missing-annotation-coat": 3113,
   "docs/missing-competency-rationale": 4532,
   "docs/missing-definition": 1,
-  "docs/missing-example": 3169,
+  "docs/missing-example": 3116,
   "docs/missing-fixture-pair": 4592,
   "docs/missing-label": 1,
   "docs/missing-prose-quality": 4731,
@@ -15,6 +15,6 @@ expression: coverage
   "docs/missing-scope-note": 4653,
   "docs/missing-test-reach": 4239,
   "docs/missing-translation-coverage": 4653,
-  "docs/missing-usage-advice": 3160,
+  "docs/missing-usage-advice": 3107,
   "docs/missing-worked-instance": 4189
 }
