@@ -231,14 +231,22 @@ math:operatorDomain
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator domain"@x-gmeow-english ;
     skos:definition "The number system an operator's operands are drawn from — the source of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its domain is unframed (math:UnframedOperator). Distinct from math:domain (a function's or relation's source set): math:operatorDomain frames the operator symbol itself, over the number-system tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and the signed extended real line ℝ̄)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the number system a math:ArithmeticOperation's operands are drawn from — the source of its signature over the tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and ℝ̄)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:domain (a function's source set); math:operatorDomain frames the operator SYMBOL, and omitting it makes the operator math:UnframedOperator."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:ArithmeticOperation to a math:NumberSystem; exactly one per operation, paired with math:operatorCodomain."@x-gmeow-english ;
+    skos:example "exf:realRoot math:operatorDomain math:realNumbers ."@x-gmeow-english .
 
 math:operatorCodomain
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator codomain"@x-gmeow-english ;
     skos:definition "The number system an operator's result lies in — the target of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its codomain is unframed (math:UnframedOperator). The declared target may be wider than the operator's domain — a real even root or a real logarithm lands in ℂ, so math:Root and math:Logarithm frame math:realNumbers → math:complexNumbers honestly rather than pretending the result stays real."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the number system a math:ArithmeticOperation's result lies in — the target of its signature, which may be wider than its domain (a real even root lands in ℂ)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:codomain (a function's target set), and do not assume the result stays in the operand system; omitting it makes the operator math:UnframedOperator."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:ArithmeticOperation to a math:NumberSystem; exactly one per operation, honestly widening to ℂ where a real root or logarithm requires it."@x-gmeow-english ;
+    skos:example "exf:realRoot math:operatorCodomain math:complexNumbers ."@x-gmeow-english .
 
 # --- Arithmetic operator individuals (each carries its operator signature) --- #
 
@@ -430,14 +438,22 @@ math:Interval
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Interval"@x-gmeow-english ;
     skos:definition "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to name a pure order-theoretic stretch of the extended real line between two ordered endpoints — a domain restriction, a piece-domain, or the region a bound holds on."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a statistics math:ConfidenceInterval (a frequentist estimator with a coverage level and a point estimate), and never omit an endpoint or an inclusion; a half-specified interval is math:UnderspecifiedInterval."@x-gmeow-english ;
+    gmeow:howToUse "Name all four of math:lowerEndpoint, math:upperEndpoint, math:lowerInclusion, and math:upperInclusion; a bounded end is a finite literal, an unbounded end is a pole with an open inclusion."@x-gmeow-english ;
+    skos:example "exf:halfOpenUnit a math:Interval ; math:lowerEndpoint 0 ; math:lowerInclusion math:closedEndpoint ; math:upperEndpoint 1 ; math:upperInclusion math:openEndpoint ."@x-gmeow-english .
 
 math:EndpointInclusion
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Endpoint Inclusion"@x-gmeow-english ;
     skos:definition "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the type of the two inclusion markers an interval's ends take — whether each end is a member (closed) or excluded (open)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mint fresh inclusion individuals; the vocabulary is exactly math:closedEndpoint and math:openEndpoint, and an infinite pole end is always math:openEndpoint."@x-gmeow-english ;
+    gmeow:howToUse "Fill a math:lowerInclusion or math:upperInclusion slot with one of its two members; it is required on both ends of every math:Interval."@x-gmeow-english ;
+    skos:example "exf:closedUnit a math:Interval ; math:lowerInclusion math:closedEndpoint ; math:upperInclusion math:closedEndpoint ."@x-gmeow-english .
 
 math:closedEndpoint
     a owl:NamedIndividual , math:EndpointInclusion ;
@@ -516,7 +532,11 @@ math:ClosedFormFunction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Closed-Form Function"@x-gmeow-english ;
     skos:definition "A function given by an explicit closed-form expression in one formal argument over tunable parameters: the general facility for stating a parameterized curve — for example T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — natively as a math:MathematicalExpression AST rather than as an opaque string. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction). It additionally names its body through math:definingExpression (the expression AST) and its abstraction variable's declaration through math:formalArgument, and it distinguishes that formal argument from its fitted parameters, each declared through math:functionParameter — so in T(x) the argument x and the parameters A, B, C, p, q are separate declarations, not conflated. A closed form missing its body or its formal argument is ill-formed (math:UnboundClosedForm). It is a general facility supporting ANY curve, not a hardwired one; a concrete curve such as T(x) is an instance authored elsewhere."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to state a parameterized curve — such as T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — natively as an expression AST in one formal argument over tunable parameters, not an opaque string."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a case-split (that is math:PiecewiseFunction), and do not conflate the formal argument with the fitted parameters; a closed form missing its body or argument is math:UnboundClosedForm."@x-gmeow-english ;
+    gmeow:howToUse "Declare its math:domain and math:codomain, name its body through math:definingExpression, its abstraction variable through math:formalArgument, and each fitted parameter through math:functionParameter."@x-gmeow-english ;
+    skos:example "exf:tCurve a math:ClosedFormFunction ; math:formalArgument exf:xArg ; math:definingExpression exf:tBody ; math:functionParameter exf:paramA ."@x-gmeow-english .
 
 math:NumberLiteral
     a owl:Class ;
@@ -524,7 +544,11 @@ math:NumberLiteral
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number Literal"@x-gmeow-english ;
     skos:definition "The numeric-literal leaf of an expression AST: the expression node denoting a specific math:Number — the 1 in (1 − x), the constant 2 in 2·x, the exponents in a closed form. It carries its value through math:literalValue, which points at a well-formed math:Number (situated in a number system through math:inNumberSystem). Distinct from a bare RDF literal: a math:NumberLiteral is an expression node (a subclass of math:MathematicalExpression), so it can fill a math:slotExpression, whereas a raw literal cannot. Distinct too from a math:MathematicalConstant such as π: a constant is a named exact number object, while a NumberLiteral is a syntactic leaf of a formula that names the number it denotes. See MATHEMATICS-NUMBERS-AND-SETS.md for the number-system grounding its math:literalValue rests on."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the numeric-literal leaf of an expression AST — the 1 in (1 − x) or an exponent in a closed form — that must denote a well-formed math:Number and can fill a math:slotExpression."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a bare RDF literal where an expression node is expected, and do not use it for a named exact constant such as π (that is a math:MathematicalConstant)."@x-gmeow-english ;
+    gmeow:howToUse "Point it at the number it denotes through math:literalValue (a math:Number situated in a number system through math:inNumberSystem), then place it as a leaf of a math:MathematicalExpression."@x-gmeow-english ;
+    skos:example "exf:oneLeaf a math:NumberLiteral ; math:literalValue exf:oneNumber ."@x-gmeow-english .
 
 # =========================================================================== #
 # Conformance-failure vocabulary (typed, queryable violation objects)
@@ -591,7 +615,11 @@ math:UnderspecifiedInterval
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Interval"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Interval does not name both of its endpoints (math:lowerEndpoint and math:upperEndpoint) and both of its endpoint inclusions (math:lowerInclusion and math:upperInclusion). An ordered interval is { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; without both endpoints and both inclusions, whether [0, 1], [0, 1), or (0, 1) is meant is undetermined. Endpoint inclusion is never silently omitted, so an interval missing an endpoint or an inclusion is ill-formed."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:Interval omits either of its two endpoints or either of its two endpoint inclusions."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an interval whose infinite end is legitimately open — an unbounded end at a pole is correctly math:openEndpoint, not a missing inclusion."@x-gmeow-english ;
+    gmeow:howToUse "Point the shapes enforcing the four-role cardinality on math:Interval at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:i a math:Interval ; math:lowerEndpoint 0 ; math:upperEndpoint 1 . # no inclusions declared -> math:UnderspecifiedInterval"@x-gmeow-english .
 
 math:UnframedFunction
     a owl:Class ;
@@ -607,7 +635,11 @@ math:MalformedExtendedReal
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Malformed Extended Real"@x-gmeow-english ;
     skos:definition "The failure raised when a signed-extended-real slot (a value of math:extendedRealValue) holds something that is not a point of the extended real line ℝ̄ — a non-numeric literal, or an IRI that is neither math:PositiveInfinity nor math:NegativeInfinity. A value on ℝ̄ is a finite numeric literal of either sign, math:PositiveInfinity, or math:NegativeInfinity; anything else is ill-formed."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a signed-extended-real slot (a math:extendedRealValue) holds something off the extended real line ℝ̄ — a non-numeric literal or an IRI that is not one of the two poles."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a legitimate +∞ or −∞: those ARE points of ℝ̄; it fires only for values outside the set {finite real, math:PositiveInfinity, math:NegativeInfinity}."@x-gmeow-english ;
+    gmeow:howToUse "Point the shape guarding math:extendedRealValue at it through gmeow:enforcesFailureClass; conformance mints the instance."@x-gmeow-english ;
+    skos:example "exf:badSlot math:extendedRealValue exf:notAPole . # an IRI that is neither pole -> math:MalformedExtendedReal"@x-gmeow-english .
 
 math:UnframedOperator
     a owl:Class ;
@@ -615,7 +647,11 @@ math:UnframedOperator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unframed Operator"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ArithmeticOperation does not declare both its math:operatorDomain and its math:operatorCodomain — the number system its operands are drawn from and the system its result lies in. An operator is not a bare glyph; every arithmetic operator carries its signature over the number-system tower, so an operator missing either half of its signature is ill-formed."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:ArithmeticOperation omits either half of its signature — its math:operatorDomain or its math:operatorCodomain."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:UnframedFunction (a function missing its math:domain/math:codomain); this failure is about the operator symbol's number-system signature, not a function's frame."@x-gmeow-english ;
+    gmeow:howToUse "Point the exactly-one restrictions on math:operatorDomain and math:operatorCodomain at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:plus a math:ArithmeticOperation ; math:operatorDomain math:realNumbers . # no operatorCodomain -> math:UnframedOperator"@x-gmeow-english .
 
 math:UnboundClosedForm
     a owl:Class ;
@@ -623,7 +659,11 @@ math:UnboundClosedForm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unbound Closed Form"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ClosedFormFunction does not declare both its math:definingExpression (the body AST) and its math:formalArgument (the abstraction variable's declaration). A closed-form function is an explicit expression in one formal argument; a closed form missing its body or its formal argument does not say what it computes or over which variable, and is ill-formed. Its tunable math:functionParameters are 0..n and unconstrained — only the body and the formal argument are required."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:ClosedFormFunction omits its math:definingExpression (body) or its math:formalArgument (abstraction variable)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a closed form that merely has no math:functionParameters — parameters are 0..n and optional; only the body and the formal argument are required."@x-gmeow-english ;
+    gmeow:howToUse "Point the shapes enforcing presence of the body and the formal argument on math:ClosedFormFunction at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:c a math:ClosedFormFunction ; math:formalArgument exf:xArg . # no math:definingExpression -> math:UnboundClosedForm"@x-gmeow-english .
 
 # =========================================================================== #
 # Properties
@@ -685,7 +725,11 @@ math:extendedRealValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "extended-real value"@x-gmeow-english ;
     skos:definition "The signed-extended-real value in an extended-real slot — a value on the extended real line ℝ̄ that may be finite or run off to either pole. Range a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Unlike math:totalMass (a non-negative mass), an extended-real value carries a sign, so its finite branch admits negatives. A slot holding anything else is a math:MalformedExtendedReal."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to carry a signed value on the extended real line ℝ̄ — one that may be finite of either sign or run off to either pole."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a non-negative mass (use math:totalMass or math:measureResult), and do not put a non-ℝ̄ value in the slot; anything but a finite literal or a pole is math:MalformedExtendedReal."@x-gmeow-english ;
+    gmeow:howToUse "Set it on the value-bearing object to a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; its rdf:Property typing is deliberate, spanning literal and pole individual."@x-gmeow-english ;
+    skos:example "exf:divergentField math:extendedRealValue math:NegativeInfinity ."@x-gmeow-english .
 
 # --- Set properties --------------------------------------------------------- #
 
@@ -782,28 +826,44 @@ math:lowerEndpoint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "lower endpoint"@x-gmeow-english ;
     skos:definition "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the left end of a math:Interval — a bounded finite literal or, for an unbounded-below interval, the pole math:NegativeInfinity."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not put math:PositiveInfinity here (that is the upper end's unbounded pole), and do not omit it; an interval without it is math:UnderspecifiedInterval."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Interval to a finite numeric literal or math:NegativeInfinity; pair it with a math:lowerInclusion, always open for an infinite end."@x-gmeow-english ;
+    skos:example "exf:i math:lowerEndpoint math:NegativeInfinity ; math:lowerInclusion math:openEndpoint ."@x-gmeow-english .
 
 math:upperEndpoint
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "upper endpoint"@x-gmeow-english ;
     skos:definition "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the right end of a math:Interval — a bounded finite literal or, for an unbounded-above interval, the pole math:PositiveInfinity."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not put math:NegativeInfinity here (that is the lower end's unbounded pole), and do not omit it; an interval without it is math:UnderspecifiedInterval."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Interval to a finite numeric literal or math:PositiveInfinity; pair it with a math:upperInclusion, always open for an infinite end."@x-gmeow-english ;
+    skos:example "exf:i math:upperEndpoint math:PositiveInfinity ; math:upperInclusion math:openEndpoint ."@x-gmeow-english .
 
 math:lowerInclusion
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "lower inclusion"@x-gmeow-english ;
     skos:definition "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to declare whether the lower endpoint of a math:Interval is a member (closed) or excluded (open) — the difference between [0, 1) and (0, 1)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not silently omit it; the inclusion is data, not convention, and an interval missing it is math:UnderspecifiedInterval. An infinite lower end is always math:openEndpoint."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Interval to a math:EndpointInclusion member matching the lower end's bracket."@x-gmeow-english ;
+    skos:example "exf:unitClosedLeft math:lowerInclusion math:closedEndpoint ."@x-gmeow-english .
 
 math:upperInclusion
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "upper inclusion"@x-gmeow-english ;
     skos:definition "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to declare whether the upper endpoint of a math:Interval is a member (closed) or excluded (open) — the difference between [0, 1] and [0, 1)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not silently omit it; the inclusion is data, not convention, and an interval missing it is math:UnderspecifiedInterval. An infinite upper end is always math:openEndpoint."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Interval to a math:EndpointInclusion member matching the upper end's bracket."@x-gmeow-english ;
+    skos:example "exf:unitOpenRight math:upperInclusion math:openEndpoint ."@x-gmeow-english .
 
 # --- Function properties ---------------------------------------------------- #
 
@@ -835,28 +895,44 @@ math:definingExpression
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "defining expression"@x-gmeow-english ;
     skos:definition "The body AST of a function given in closed form: relates a math:Function to the math:MathematicalExpression that is its explicit closed-form body. Domain math:Function, range math:MathematicalExpression (stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a body does not say what it computes and is ill-formed (math:UnboundClosedForm). The body is a structured expression tree, never a display string — the argument and the parameters enter it as math:VariableExpression leaves resolving to the function's math:formalArgument and math:functionParameters."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to give a closed-form function its body — the explicit math:MathematicalExpression AST it computes, with argument and parameters entering as variable leaves."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at a display string; the range is a structured expression tree. A closed form without a body is math:UnboundClosedForm."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:ClosedFormFunction to a math:MathematicalExpression whose math:VariableExpression leaves resolve to the function's math:formalArgument and math:functionParameters; exactly one per closed form."@x-gmeow-english ;
+    skos:example "exf:tCurve math:definingExpression exf:tBody ."@x-gmeow-english .
 
 math:formalArgument
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "formal argument"@x-gmeow-english ;
     skos:definition "The abstraction variable of a closed-form function — the x in f(x): relates a math:ClosedFormFunction to the math:VariableDeclaration that is its formal argument. Domain math:ClosedFormFunction, range math:VariableDeclaration (typically a math:FreeVariableDeclaration, since the argument is free in the body; stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a formal argument does not say over which variable it abstracts and is ill-formed (math:UnboundClosedForm). It is the one declaration the function is a function OF, distinguished from the fitted math:functionParameters it is tuned by."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the abstraction variable a closed-form function is a function OF — the x in f(x)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a fitted parameter (that is math:functionParameter); the argument varies while parameters are held fixed. A closed form without it is math:UnboundClosedForm."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:ClosedFormFunction to the math:VariableDeclaration (typically a math:FreeVariableDeclaration) that is free in the body; exactly one per closed form."@x-gmeow-english ;
+    skos:example "exf:tCurve math:formalArgument exf:xArg ."@x-gmeow-english .
 
 math:functionParameter
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "function parameter"@x-gmeow-english ;
     skos:definition "A tunable parameter of a closed-form function — one of the A, B, C, p, q that fix a particular curve within the family: relates a math:ClosedFormFunction to a math:VariableDeclaration that is a fitted parameter. Domain math:ClosedFormFunction, range math:VariableDeclaration (stated in prose). Unconstrained cardinality (0..n): a curve may have no parameters or many. A parameter is held fixed while the math:formalArgument varies, which is exactly what distinguishes the argument the function is OF from the parameters it is tuned BY; both enter the math:definingExpression as math:VariableExpression leaves."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name a tunable parameter of a closed-form function — one of the A, B, C, p, q that fix a particular curve within the family."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for the abstraction variable (that is math:formalArgument); a parameter is held fixed while the argument varies. It is 0..n, so a curve may have none."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:ClosedFormFunction once per fitted parameter, each a math:VariableDeclaration entering the math:definingExpression as a math:VariableExpression leaf."@x-gmeow-english ;
+    skos:example "exf:tCurve math:functionParameter exf:paramA , exf:paramP ."@x-gmeow-english .
 
 math:literalValue
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "literal value"@x-gmeow-english ;
     skos:definition "The number a math:NumberLiteral leaf denotes: relates a math:NumberLiteral expression node to the math:Number it stands for. Domain math:NumberLiteral, range math:Number (stated in prose). The value is a well-formed math:Number situated in a number system, not a bare RDF literal — this is the seam by which a syntactic literal leaf of a formula names an exact numeric object rather than carrying an opaque decimal."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to point a math:NumberLiteral leaf at the exact math:Number it denotes, so a formula's syntactic literal names a real numeric object."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at a bare RDF literal or an approximate decimal; the range is a well-formed math:Number situated in a number system through math:inNumberSystem."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:NumberLiteral to the math:Number it stands for; the leaf then fills a math:slotExpression as a genuine expression node."@x-gmeow-english ;
+    skos:example "exf:oneLeaf math:literalValue exf:oneNumber ."@x-gmeow-english .
 
 math:isInjective
     a owl:DatatypeProperty ;
@@ -1587,7 +1663,11 @@ math:MeasurableSet
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Measurable Set"@x-gmeow-english ;
     skos:definition "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to name one measurable piece of a space — the individual argument A of an evaluation μ(A), the region whose mass a math:MeasureEvaluation reads."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for the whole ground (X, Σ) a measure acts over (that is math:MeasurableSpace); a measurable set is one element of the σ-algebra, not the space itself."@x-gmeow-english ;
+    gmeow:howToUse "Name it as the math:measuredSubset of a math:MeasureEvaluation; in the probability charter the same object is an event."@x-gmeow-english ;
+    skos:example "exf:ballB2 a math:MeasurableSet . exf:evalB2 math:measuredSubset exf:ballB2 ."@x-gmeow-english .
 
 math:Measure
     a owl:Class ;
@@ -1625,7 +1705,11 @@ math:MeasureEvaluation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Measure Evaluation"@x-gmeow-english ;
     skos:definition "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to reify μ(A) — the mass one named measure assigns one named subset — as a queryable datum, so distinct subsets can be evaluated and compared side by side."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for the whole-space math:totalMass μ(X); an evaluation is the mass of a NAMED subset A ⊆ X, and it must name all three of measure, subset, and result or it is math:UnderspecifiedMeasureEvaluation."@x-gmeow-english ;
+    gmeow:howToUse "Name math:evaluatedMeasure, math:measuredSubset, and math:measureResult; the result is a finite non-negative number or math:PositiveInfinity, never math:NegativeInfinity."@x-gmeow-english ;
+    skos:example "exf:evalB2 a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue ; math:measuredSubset exf:ballB2 ; math:measureResult exf:massB2 ."@x-gmeow-english .
 
 math:MeasurableFunction
     a owl:Class ;
@@ -1792,7 +1876,11 @@ math:UnderspecifiedMeasureEvaluation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Measure Evaluation"@x-gmeow-english ;
     skos:definition "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MeasureEvaluation omits any of its measure, its subset, or its result."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a whole-space mass carried correctly by math:totalMass; this failure is specific to the three-role evaluation object μ(A)."@x-gmeow-english ;
+    gmeow:howToUse "Point the shapes enforcing the three cardinalities on math:MeasureEvaluation at it through gmeow:enforcesFailureClass; a negative result is also caught here."@x-gmeow-english ;
+    skos:example "exf:eval a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue . # no subset, no result -> math:UnderspecifiedMeasureEvaluation"@x-gmeow-english .
 
 math:ProbabilityMeasureMassViolation
     a owl:Class ;
@@ -1883,21 +1971,33 @@ math:evaluatedMeasure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "evaluated measure"@x-gmeow-english ;
     skos:definition "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the measure a math:MeasureEvaluation reads — the μ in μ(A)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at the subset (that is math:measuredSubset) or the result; and do not omit it, an evaluation without it is math:UnderspecifiedMeasureEvaluation."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:MeasureEvaluation to the math:Measure whose mass is being read; exactly one per evaluation."@x-gmeow-english ;
+    skos:example "exf:evalB2 math:evaluatedMeasure exf:lebesgue ."@x-gmeow-english .
 
 math:measuredSubset
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "measured subset"@x-gmeow-english ;
     skos:definition "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the measurable subset a math:MeasureEvaluation assigns mass to — the A in μ(A) — so two evaluations of one measure over different subsets can be compared."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at the whole space or the measure itself; the range is a math:MeasurableSet, and omitting it yields math:UnderspecifiedMeasureEvaluation."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:MeasureEvaluation to a math:MeasurableSet; exactly one per evaluation."@x-gmeow-english ;
+    skos:example "exf:evalB2 math:measuredSubset exf:ballB2 ."@x-gmeow-english .
 
 math:measureResult
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "measure result"@x-gmeow-english ;
     skos:definition "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to carry the mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or math:PositiveInfinity."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not carry math:NegativeInfinity here — a measure is non-negative, so a negative result is a violation; and do not use it for the whole-space math:totalMass."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:MeasureEvaluation to a non-negative numeric literal or math:PositiveInfinity; its rdf:Property typing spans literal and the pole individual."@x-gmeow-english ;
+    skos:example "exf:evalB2 math:measureResult exf:massB2 ."@x-gmeow-english .
 
 # --- Dimension properties --------------------------------------------------- #
 
@@ -2480,14 +2580,22 @@ math:LimitResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Limit Result"@x-gmeow-english ;
     skos:definition "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to record what a math:Limit evaluates to — its outcome and, for a finite limit, its value — as a structured object rather than a bare number."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for the limit EXPRESSION lim_{x→a} f(x) (that is math:Limit, naming math:limitOf and math:limitPoint); the result is what the limit runs to, not the binding."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to its math:Limit through math:hasLimitResult, always name math:limitOutcome, and add math:limitResultValue only when the outcome is finite or pole-divergent."@x-gmeow-english ;
+    skos:example "exf:res a math:LimitResult ; math:limitOutcome math:convergesFinitely ; math:limitResultValue 0 ."@x-gmeow-english .
 
 math:LimitOutcome
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Limit Outcome"@x-gmeow-english ;
     skos:definition "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the type of the four outcomes a limit runs to — finite convergence or one of the three modes of divergence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not invent outcomes beyond the four members, and do not conflate math:divergesWithoutLimit (oscillation, no limit) with divergence to a pole (a definite point of ℝ̄)."@x-gmeow-english ;
+    gmeow:howToUse "Fill a math:limitOutcome slot with one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit; it is required on every math:LimitResult."@x-gmeow-english ;
+    skos:example "exf:res math:limitOutcome math:divergesToPositiveInfinity ."@x-gmeow-english .
 
 math:SpecialFunction
     a owl:Class ;
@@ -2667,7 +2775,11 @@ math:UnderspecifiedLimitResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Limit Result"@x-gmeow-english ;
     skos:definition "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:LimitResult names no math:limitOutcome, or carries a math:limitResultValue that contradicts its declared outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a math:divergesWithoutLimit result that legitimately carries NO value — absence of a value there is correct, not a violation."@x-gmeow-english ;
+    gmeow:howToUse "Point the shape enforcing outcome presence and outcome/value agreement on math:LimitResult at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:res a math:LimitResult ; math:limitResultValue 3 . # no math:limitOutcome -> math:UnderspecifiedLimitResult"@x-gmeow-english .
 
 # --- Calculus properties ---------------------------------------------------- #
 
@@ -2746,21 +2858,33 @@ math:hasLimitResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has limit result"@x-gmeow-english ;
     skos:definition "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to attach the evaluated result to a math:Limit — what the limit runs to, once you want to state it."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat it as required — a math:Limit may name only its expression, point, and mode; and do not point it at a bare literal, the range is a math:LimitResult so the outcome stays explicit."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Limit with range a math:LimitResult carrying math:limitOutcome and, where finite, math:limitResultValue."@x-gmeow-english ;
+    skos:example "exf:lim math:hasLimitResult exf:limRes ."@x-gmeow-english .
 
 math:limitOutcome
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "limit outcome"@x-gmeow-english ;
     skos:definition "Relates a math:LimitResult to its math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit. Domain math:LimitResult, range math:LimitOutcome (stated in prose). The outcome is required; a result without a declared outcome is ill-formed (math:UnderspecifiedLimitResult)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to state which of finite convergence or the three modes of divergence a math:LimitResult is."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not leave it off a math:LimitResult (that is math:UnderspecifiedLimitResult), and do not point it at a bare literal; the range is a math:LimitOutcome individual."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:LimitResult to one of the four math:LimitOutcome members; it is required on every result."@x-gmeow-english ;
+    skos:example "exf:limRes math:limitOutcome math:convergesFinitely ."@x-gmeow-english .
 
 math:limitResultValue
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "limit result value"@x-gmeow-english ;
     skos:definition "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to carry the point a convergent or pole-divergent limit evaluates to — a finite literal or an extended-real pole."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach it to a math:divergesWithoutLimit result (there is no point of ℝ̄ to name), and do not carry a value that disagrees with the declared math:limitOutcome."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:LimitResult to a finite numeric literal for math:convergesFinitely, or to math:PositiveInfinity / math:NegativeInfinity for the matching pole-divergence outcome."@x-gmeow-english ;
+    skos:example "exf:limRes math:limitOutcome math:divergesToNegativeInfinity ; math:limitResultValue math:NegativeInfinity ."@x-gmeow-english .
 
 # =========================================================================== #
 # Topology (ANALYSIS-AND-GEOMETRY charter)
@@ -3723,7 +3847,11 @@ math:Compactification
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Compactification"@x-gmeow-english ;
     skos:definition "A compactification: a structured record embedding an unbounded space in a bounded (compact) one as a dense subset, so the points the original space runs off toward are adjoined as a boundary at infinity. It names FOUR roles — the original unbounded space through math:originalSpace, the embedding/map through math:compactifyingMap, the resulting bounded space through math:compactifiedSpace, and the boundary added at infinity through math:boundaryAtInfinity. It is NOT any one construction — not the one-point (Alexandroff) versus Stone–Čech distinction per se — but the general structured record every such construction instantiates; a compactification missing any of the four roles is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to record embedding an unbounded space into a bounded one with its points at infinity adjoined as a boundary — the general four-role record any such construction instantiates."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to assert a particular construction kind (one-point versus Stone–Čech) by name alone, and do not leave any of the four roles unnamed; a partial one is math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Name all four roles — math:originalSpace, math:compactifyingMap, math:compactifiedSpace, and math:boundaryAtInfinity; specialize to math:ConformalCompactification when the map is angle-preserving."@x-gmeow-english ;
+    skos:example "exf:radialCompactification a math:Compactification ; math:originalSpace exf:halfLine ; math:compactifyingMap exf:phi ; math:compactifiedSpace exf:closedUnit ; math:boundaryAtInfinity exf:idealPoint ."@x-gmeow-english .
 
 math:ConformalCompactification
     a owl:Class ;
@@ -3731,14 +3859,22 @@ math:ConformalCompactification
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Conformal Compactification"@x-gmeow-english ;
     skos:definition "A conformal (Penrose-style) compactification: the specialization whose math:compactifyingMap is angle-preserving (conformal), carrying a math:conformalFactor Ω that rescales the metric so the points at infinity sit at a finite conformal boundary. A subclass of math:Compactification; it additionally names its math:conformalFactor — a conformal compactification missing it is ill-formed (math:UnderspecifiedCompactification). This is the correct general home for embedding a math:LorentzianManifold's radial chart's infinity as a finite boundary: the conformal factor sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle) structure the Lorentzian metric carries. The metric and its rescaling stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this math object."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it when the embedding is angle-preserving and a conformal factor Ω rescales the metric so infinity sits at a finite conformal boundary — the general home for a radial chart's infinity."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a non-conformal compactification (use plain math:Compactification), and do not omit math:conformalFactor; a conformal one missing Ω is math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Name its four inherited compactification roles and additionally name math:conformalFactor; keep the metric and Ω math-side, leaving any Penrose-diagram reading downstream."@x-gmeow-english ;
+    skos:example "exf:penroseRadial a math:ConformalCompactification ; math:conformalFactor exf:omega ; math:boundaryAtInfinity exf:scri ."@x-gmeow-english .
 
 math:BoundaryAtInfinity
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Boundary at Infinity"@x-gmeow-english ;
     skos:definition "The boundary a compactification adjoins at infinity: the ideal points — the conformal boundary — the original unbounded space approaches but never reaches, made a first-class object rather than an informal edge. Named by a math:Compactification through math:boundaryAtInfinity. For a math:ConformalCompactification it is where the math:conformalFactor vanishes; for the radial half-line r ∈ [0, ∞) it is the single ideal point r = +∞."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to make the ideal points a compactification adjoins at infinity a first-class object rather than an informal edge."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat it as an ordinary interior boundary or a finite endpoint; it is the conformal/ideal boundary the original space approaches but never reaches."@x-gmeow-english ;
+    gmeow:howToUse "Name it from a math:Compactification through math:boundaryAtInfinity; for a conformal compactification it is where the math:conformalFactor vanishes."@x-gmeow-english ;
+    skos:example "exf:idealPoint a math:BoundaryAtInfinity . exf:radialCompactification math:boundaryAtInfinity exf:idealPoint ."@x-gmeow-english .
 
 math:UnderspecifiedCompactification
     a owl:Class ;
@@ -3746,42 +3882,66 @@ math:UnderspecifiedCompactification
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Compactification"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Compactification does not name all four of its roles — its original space (math:originalSpace), its compactifying map (math:compactifyingMap), its compactified space (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity) — or when a math:ConformalCompactification additionally omits its math:conformalFactor. A compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity is ill-formed. Mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:Compactification omits any of its four roles, or a math:ConformalCompactification additionally omits math:conformalFactor."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a non-conformal compactification that legitimately carries no conformal factor — Ω is required only of the conformal subclass."@x-gmeow-english ;
+    gmeow:howToUse "Point the shapes enforcing the four-role (and conformal-factor) cardinalities at it through gmeow:enforcesFailureClass; it mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."@x-gmeow-english ;
+    skos:example "exf:c a math:Compactification ; math:originalSpace exf:halfLine . # three roles unnamed -> math:UnderspecifiedCompactification"@x-gmeow-english .
 
 math:originalSpace
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "original space"@x-gmeow-english ;
     skos:definition "Relates a math:Compactification to the original unbounded space it embeds — the space whose points at infinity the compactification adjoins as a boundary. Domain math:Compactification, range a math:TopologicalSpace or math:Manifold (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the unbounded space a compactification embeds — the space whose points at infinity are adjoined as a boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at the resulting bounded space (that is math:compactifiedSpace); and do not omit it, a compactification without it is math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Compactification to the math:TopologicalSpace or math:Manifold being embedded; exactly one per compactification."@x-gmeow-english ;
+    skos:example "exf:radialCompactification math:originalSpace exf:halfLine ."@x-gmeow-english .
 
 math:compactifyingMap
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "compactifying map"@x-gmeow-english ;
     skos:definition "Relates a math:Compactification to the embedding taking its original space into the compactified one — a math:Function (a math:CoordinateMap when it coordinatizes), angle-preserving for a math:ConformalCompactification. Domain math:Compactification, range math:Function (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the embedding that takes a compactification's original space into the compactified one — angle-preserving for a conformal compactification."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at either space (those are math:originalSpace and math:compactifiedSpace); it names the MAP between them, and omitting it yields math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Compactification to a math:Function (a math:CoordinateMap when it coordinatizes); exactly one per compactification."@x-gmeow-english ;
+    skos:example "exf:radialCompactification math:compactifyingMap exf:phi ."@x-gmeow-english .
 
 math:compactifiedSpace
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "compactified space"@x-gmeow-english ;
     skos:definition "Relates a math:Compactification to the resulting bounded (compact) space — the image the embedding lands in together with the adjoined boundary at infinity. Domain math:Compactification, range a math:TopologicalSpace (a math:Interval for a compactified half-line) (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the resulting bounded (compact) space a compactification lands in — the image together with the adjoined boundary at infinity."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at the original unbounded space (that is math:originalSpace); and do not omit it, a compactification without it is math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Compactification to a math:TopologicalSpace (a math:Interval for a compactified half-line); exactly one per compactification."@x-gmeow-english ;
+    skos:example "exf:radialCompactification math:compactifiedSpace exf:closedUnit ."@x-gmeow-english .
 
 math:boundaryAtInfinity
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "boundary at infinity"@x-gmeow-english ;
     skos:definition "Relates a math:Compactification to the math:BoundaryAtInfinity it adjoins — the ideal points at infinity the original space approaches but never reaches. Domain math:Compactification, range math:BoundaryAtInfinity (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the math:BoundaryAtInfinity a compactification adjoins — the ideal points at infinity the original space approaches but never reaches."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at an ordinary interior boundary or a finite endpoint; and do not omit it, a compactification without it is math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Compactification to a math:BoundaryAtInfinity; exactly one per compactification, and where the math:conformalFactor vanishes for a conformal one."@x-gmeow-english ;
+    skos:example "exf:radialCompactification math:boundaryAtInfinity exf:idealPoint ."@x-gmeow-english .
 
 math:conformalFactor
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "conformal factor"@x-gmeow-english ;
     skos:definition "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the conformal rescaling Ω of a math:ConformalCompactification — the positive factor multiplying the metric so unbounded distance becomes finite at the boundary while angles are preserved."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not put a bare literal here (Ω is a function or quantity individual, hence an owl:ObjectProperty), and do not attach it to a non-conformal compactification; omitting it on a conformal one is math:UnderspecifiedCompactification."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:ConformalCompactification to a positive math:Function or math:Quantity; exactly one per conformal compactification."@x-gmeow-english ;
+    skos:example "exf:penroseRadial math:conformalFactor exf:omega ."@x-gmeow-english .
 
 # =========================================================================== #
 # Linear algebra, learning, and representation (LINEAR-ALGEBRA-AND-LEARNING
@@ -6120,7 +6280,11 @@ math:PiecewiseFunction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Piecewise Function"@x-gmeow-english ;
     skos:definition "A function defined by pieces: a math:Function whose behaviour is given not by one closed form but by a family of math:FunctionPiece parts, each a sub-behaviour over its own domain restriction. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction); it additionally names one or more pieces through math:hasPiece. A piecewise function declaring NO piece says nothing about what it computes and is ill-formed (math:UnderspecifiedPiecewiseFunction). The pieces partition (or cover) the domain; each piece names the sub-domain it governs through math:pieceDomain and, where it has an explicit form, its behaviour through math:pieceExpression — so the classic split f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} is data (two pieces over two intervals), not prose. It is not a math:ClosedFormFunction (one expression in one formal argument); it is the case-split generalization, and a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) rather than a full expression."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it when a function's behaviour is a case-split — a family of pieces each over its own sub-domain, such as f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} — so the split is data rather than prose."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a single closed form in one argument (that is math:ClosedFormFunction), and do not leave it with zero pieces; a piece-less one is math:UnderspecifiedPiecewiseFunction."@x-gmeow-english ;
+    gmeow:howToUse "Declare its math:domain and math:codomain, then name one or more math:FunctionPiece parts through math:hasPiece; each piece carries its own math:pieceDomain."@x-gmeow-english ;
+    skos:example "exf:split a math:PiecewiseFunction ; math:hasPiece exf:negPiece , exf:nonnegPiece ."@x-gmeow-english .
 
 math:FunctionPiece
     a owl:Class ;
@@ -6128,28 +6292,44 @@ math:FunctionPiece
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Function Piece"@x-gmeow-english ;
     skos:definition "One piece of a math:PiecewiseFunction: a domain restriction paired with the sub-behaviour that holds on it. A subclass of math:MathematicalObject named by a piecewise function through math:hasPiece. It names EXACTLY ONE sub-domain through math:pieceDomain (a math:Interval — the sub-domain the piece governs), and, where the piece has an explicit closed form, its behaviour through math:pieceExpression (a math:MathematicalExpression); a piece whose behaviour is qualitative rather than symbolic carries instead a math:hasMonotonicity or a math:hasBound. A piece that names no math:pieceDomain does not say WHERE it applies and is ill-formed (the exactly-one math:pieceDomain gate). The piece is the case-split cell: the interval says over which points the cell holds, the expression or the qualitative marker says what the function does there."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to model one cell of a case-split — a sub-domain paired with the behaviour that holds on it, whether an explicit form or a qualitative marker."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not give a piece two conflicting expressions, and do not omit its math:pieceDomain; a piece with no sub-domain does not say WHERE it applies and is ill-formed."@x-gmeow-english ;
+    gmeow:howToUse "Name it from a math:PiecewiseFunction through math:hasPiece; give it exactly one math:pieceDomain (an interval) and either a math:pieceExpression or a qualitative math:hasMonotonicity / math:hasBound."@x-gmeow-english ;
+    skos:example "exf:negPiece a math:FunctionPiece ; math:pieceDomain exf:negReals ; math:pieceExpression exf:xSquared ."@x-gmeow-english .
 
 math:hasPiece
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has piece"@x-gmeow-english ;
     skos:definition "Relates a math:PiecewiseFunction to one of its math:FunctionPiece parts. Domain math:PiecewiseFunction, range math:FunctionPiece (stated in prose). A piecewise function names one or more pieces (≥ 1, unbounded — a function has at least one piece, and may have arbitrarily many); a piecewise function with no piece is ill-formed (math:UnderspecifiedPiecewiseFunction)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to attach a math:FunctionPiece cell to a math:PiecewiseFunction — one per case of the split."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not leave a piecewise function with zero pieces (that is math:UnderspecifiedPiecewiseFunction); at least one is required, and the pieces should cover the declared domain."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:PiecewiseFunction once per cell, each a math:FunctionPiece with its own math:pieceDomain; cardinality is one-or-more, unbounded."@x-gmeow-english ;
+    skos:example "exf:split math:hasPiece exf:negPiece , exf:nonnegPiece ."@x-gmeow-english .
 
 math:pieceDomain
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "piece domain"@x-gmeow-english ;
     skos:definition "Relates a math:FunctionPiece to the math:Interval it governs — the sub-domain over which the piece's behaviour holds. Domain math:FunctionPiece, range math:Interval (stated in prose). Each piece names exactly one piece-domain; a piece without it does not say where it applies and is ill-formed. The interval is a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed cell [0, 1]."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to name the math:Interval a math:FunctionPiece governs — the sub-domain over which the piece's behaviour holds."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not omit it (a piece without it does not say WHERE it applies), and do not give a piece two piece-domains; exactly one per piece."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:FunctionPiece to a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed [0, 1]."@x-gmeow-english ;
+    skos:example "exf:negPiece math:pieceDomain exf:negReals ."@x-gmeow-english .
 
 math:pieceExpression
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "piece expression"@x-gmeow-english ;
     skos:definition "Relates a math:FunctionPiece to the math:MathematicalExpression giving its behaviour on its piece-domain — the closed form the function takes on that cell. Domain math:FunctionPiece, range math:MathematicalExpression (stated in prose). At most one; it is optional because a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) instead of an explicit expression, but a piece never carries two conflicting expressions."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to give a math:FunctionPiece the closed form it takes on its cell — the explicit behaviour over that sub-domain."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not give a piece two conflicting expressions, and do not require it — a piece may carry qualitative behaviour (math:hasMonotonicity, math:hasBound) instead of a symbolic form."@x-gmeow-english ;
+    gmeow:howToUse "Set it at most once on a math:FunctionPiece to a math:MathematicalExpression; omit it where the piece's behaviour is qualitative rather than symbolic."@x-gmeow-english ;
+    skos:example "exf:negPiece math:pieceExpression exf:xSquared ."@x-gmeow-english .
 
 # --- Monotonicity — the open vocabulary of monotonic behaviours ------------- #
 
@@ -6158,14 +6338,22 @@ math:MonotonicityKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Monotonicity Kind"@x-gmeow-english ;
     skos:definition "The kind of monotonic behaviour a function (or a math:FunctionPiece) exhibits over an ordered domain — one of math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, or math:constant. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), so a new monotonic sort joins by minting an individual. Each kind is NOT a bare token: it resolves through math:definingLaw to a real first-order logic:Formula stating what the kind MEANS as an ordering condition on the function's values — math:strictMonotonicityLaw for math:strictlyDecreasing, math:strictIncreaseLaw for math:strictlyIncreasing, and so on — so 'this piece is strictly decreasing' is a quantified statement over the reified real/value signature, not prose. A function names its monotonicity through math:hasMonotonicity."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the type of a function's or piece's monotonic behaviour over an ordered domain — increasing, decreasing, or constant, in strict or weak form."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it as a bare flag; every kind must resolve through math:definingLaw to a first-order logic:Formula, and a new monotonic sort joins by minting an individual, never by an owl:oneOf enumeration."@x-gmeow-english ;
+    gmeow:howToUse "Attach one of its members to a function or piece through math:hasMonotonicity; the named kind carries the ordering law that fixes its meaning."@x-gmeow-english ;
+    skos:example "exf:decay math:hasMonotonicity math:strictlyDecreasing ."@x-gmeow-english .
 
 math:hasMonotonicity
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has monotonicity"@x-gmeow-english ;
     skos:definition "Relates a math:Function (or a math:FunctionPiece) to the math:MonotonicityKind classifying its monotonic behaviour over its ordered domain. Domain math:Function or math:FunctionPiece, range math:MonotonicityKind (stated in prose). The declared, checkable bearer of monotonicity: monotonicity is stated here, and the named kind carries the first-order defining law (math:definingLaw) that fixes its meaning, so a monotonicity claim is always backed by a real logic:Formula, never a flag."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to declare the monotonic behaviour of a function or a math:FunctionPiece over its ordered domain — the checkable bearer of a monotonicity claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat it as a bare flag; the named math:MonotonicityKind carries the first-order math:definingLaw that fixes its meaning, so the claim is always law-backed."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Function or math:FunctionPiece to a math:MonotonicityKind member such as math:strictlyDecreasing."@x-gmeow-english ;
+    skos:example "exf:decayPiece math:hasMonotonicity math:strictlyDecreasing ."@x-gmeow-english .
 
 math:strictlyDecreasing
     a owl:NamedIndividual , math:MonotonicityKind ;
@@ -6214,14 +6402,22 @@ math:AnalyticProperty
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Analytic Property"@x-gmeow-english ;
     skos:definition "A qualitative analytic property a function may bear — non-affinity, convexity, boundedness, smoothness. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration); a function declares one through math:hasAnalyticProperty. Every analytic property MUST resolve through math:definingLaw to a real first-order logic:Formula (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OR — for a genuinely higher-order property — to an honest logic:expressivenessBoundary record (math:smoothness → math:smoothnessBoundary). A bare analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a quantified statement about the function's values, never a flag."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it to attach a qualitative analytic claim to a function — non-affinity, convexity, boundedness, or smoothness — as a law-backed statement rather than a flag."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mint a property backed by no law and no boundary (that is math:UnbackedAnalyticProperty), and do not fake a genuinely higher-order property as a first-order law — disclose it as a boundary instead."@x-gmeow-english ;
+    gmeow:howToUse "Attach one of its members to a function or piece through math:hasAnalyticProperty; each resolves through math:definingLaw to a first-order logic:Formula or, for smoothness, to an honest logic:expressivenessBoundary."@x-gmeow-english ;
+    skos:example "exf:plateau math:hasAnalyticProperty math:boundedness ."@x-gmeow-english .
 
 math:hasAnalyticProperty
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has analytic property"@x-gmeow-english ;
     skos:definition "Relates a math:Function (or a math:FunctionPiece) to a math:AnalyticProperty it bears — its non-affinity, convexity, boundedness, or smoothness. Domain math:Function or math:FunctionPiece, range math:AnalyticProperty (stated in prose). The declared bearer of a qualitative analytic claim; because the named property carries its defining law or boundary (math:definingLaw), the claim is always backed by a real logic:Formula or an honest recorded boundary, never a bare flag."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to declare a qualitative analytic property of a function or piece — its non-affinity, convexity, boundedness, or smoothness."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach a property backed by no law or boundary (that yields math:UnbackedAnalyticProperty); each named property carries its math:definingLaw or recorded boundary."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Function or math:FunctionPiece to a math:AnalyticProperty member; for boundedness pair it with math:hasBound and math:boundOnInterval."@x-gmeow-english ;
+    skos:example "exf:plateauPiece math:hasAnalyticProperty math:boundedness ."@x-gmeow-english .
 
 math:nonAffinity
     a owl:NamedIndividual , math:AnalyticProperty ;
@@ -6260,14 +6456,22 @@ math:hasBound
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has bound"@x-gmeow-english ;
     skos:definition "Relates a math:Function (or a math:FunctionPiece) to the bound ε on its magnitude — the value such that |f(x)| ≤ ε holds over the declared interval. Domain math:Function or math:FunctionPiece, range a finite non-negative numeric literal (stated in prose); an owl:DatatypeProperty, because a magnitude bound is always a finite number, never a pole. The bound is the ε of the boundedness law math:boundednessLaw; the interval over which it holds is named through math:boundOnInterval. A near-zero plateau declares a small ε here."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to declare the bound ε on a function's or piece's magnitude — the value such that |f(x)| ≤ ε over a declared interval, the ε of the boundedness law."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not put a pole here (a magnitude bound is always a finite non-negative number, hence a datatype property), and do not state a bound without its interval — pair it with math:boundOnInterval."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Function or math:FunctionPiece to a finite non-negative numeric literal; a near-zero plateau declares a small ε."@x-gmeow-english ;
+    skos:example "exf:plateauPiece math:hasBound 0.01 ; math:boundOnInterval exf:plateauInterval ."@x-gmeow-english .
 
 math:boundOnInterval
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "bound on interval"@x-gmeow-english ;
     skos:definition "Relates a math:Function (or a math:FunctionPiece) to the math:Interval over which its math:hasBound ε holds. Domain math:Function or math:FunctionPiece, range math:Interval (stated in prose). Together with math:hasBound it grounds the boundedness law math:boundednessLaw: |f(x)| ≤ ε for every x in this interval. A bound stated without the interval it holds on is incomplete — the boundedness claim is scoped to a region, never global by default."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to scope a magnitude bound to the math:Interval it holds on — the region over which math:hasBound ε applies."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not state a bound as if it were global by default; the boundedness claim is scoped to a region, and a bound without its interval is incomplete."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Function or math:FunctionPiece to the math:Interval over which its math:hasBound holds; together they ground the boundedness law."@x-gmeow-english ;
+    skos:example "exf:plateauPiece math:boundOnInterval exf:plateauInterval ."@x-gmeow-english .
 
 # --- Reified relation atoms for the analytic laws (HiLog reflection) --------- #
 # Each relation atom used inside an analytic law's logic:Formula AST is declared
@@ -6715,7 +6919,11 @@ math:UnderspecifiedPiecewiseFunction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Piecewise Function"@x-gmeow-english ;
     skos:definition "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:PiecewiseFunction declares no math:hasPiece."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:UnframedFunction (missing math:domain/math:codomain, which a piecewise function also inherits); this is specifically the missing-piece gate."@x-gmeow-english ;
+    gmeow:howToUse "Point the min-count-1 restriction on math:hasPiece at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:pw a math:PiecewiseFunction ; math:domain exf:reals ; math:codomain exf:reals . # no math:hasPiece -> math:UnderspecifiedPiecewiseFunction"@x-gmeow-english .
 
 math:UnbackedAnalyticProperty
     a owl:Class ;
@@ -6723,7 +6931,11 @@ math:UnbackedAnalyticProperty
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unbacked Analytic Property"@x-gmeow-english ;
     skos:definition "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:AnalyticProperty carries no math:definingLaw — no edge to a first-order logic:Formula nor to a recorded expressiveness boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for math:smoothness, which is legitimately backed by the boundary record math:smoothnessBoundary rather than a first-order law; a recorded boundary counts as backing."@x-gmeow-english ;
+    gmeow:howToUse "Point the guarded-existence constraint math:AnalyticPropertyBackedConstraint at it through gmeow:enforcesFailureClass; a bare analytic-property token is unauthorable by construction."@x-gmeow-english ;
+    skos:example "exf:mystery a math:AnalyticProperty . # no math:definingLaw -> math:UnbackedAnalyticProperty"@x-gmeow-english .
 
 # =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world cardinality/
