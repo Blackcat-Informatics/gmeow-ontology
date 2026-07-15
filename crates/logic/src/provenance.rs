@@ -397,6 +397,88 @@ fn literal_n3_parts(
     format!("\"{}\"^^<{}>", lex, datatype)
 }
 
+#[derive(Clone, Copy)]
+enum TermRenderStyle {
+    N3,
+    Display,
+}
+
+enum TermRenderTask<'term> {
+    Term(&'term TermValue),
+    Text(&'static str),
+}
+
+fn render_term(term: &TermValue, style: TermRenderStyle) -> String {
+    let mut rendered = String::new();
+    let mut tasks = vec![TermRenderTask::Term(term)];
+    while let Some(task) = tasks.pop() {
+        let term = match task {
+            TermRenderTask::Term(term) => term,
+            TermRenderTask::Text(text) => {
+                rendered.push_str(text);
+                continue;
+            }
+        };
+        match term {
+            TermValue::Iri(iri) => {
+                rendered.push('<');
+                rendered.push_str(iri);
+                rendered.push('>');
+            }
+            TermValue::Blank { label, scope } => {
+                rendered.push_str("_:");
+                rendered.push_str(&scope.qualify_label(label));
+            }
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language,
+                direction,
+            } => match style {
+                TermRenderStyle::N3 => rendered.push_str(&literal_n3_parts(
+                    lexical_form,
+                    datatype,
+                    language.as_deref(),
+                    *direction,
+                )),
+                TermRenderStyle::Display => {
+                    let lex = escape_lexical(lexical_form);
+                    if let Some(lang) = language {
+                        rendered.push('"');
+                        rendered.push_str(&lex);
+                        rendered.push_str("\"@");
+                        rendered.push_str(lang);
+                        if let Some(direction) = direction {
+                            rendered.push_str("--");
+                            rendered.push_str(direction.as_str());
+                        }
+                    } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
+                        rendered.push('"');
+                        rendered.push_str(&lex);
+                        rendered.push('"');
+                    } else {
+                        rendered.push('"');
+                        rendered.push_str(&lex);
+                        rendered.push_str("\"^^<");
+                        rendered.push_str(datatype);
+                        rendered.push('>');
+                    }
+                }
+            },
+            TermValue::Triple { s, p, o } => {
+                tasks.push(TermRenderTask::Text(" )>>"));
+                tasks.push(TermRenderTask::Term(o));
+                tasks.push(TermRenderTask::Text(" "));
+                tasks.push(TermRenderTask::Term(p));
+                tasks.push(TermRenderTask::Text(" "));
+                tasks.push(TermRenderTask::Term(s));
+                tasks.push(TermRenderTask::Text("<<( "));
+            }
+        }
+    }
+    rendered
+}
+
 /// Serialize a native [`TermValue`] to rdflib `.n3()` form.
 ///
 /// - `Iri(iri)` → `<iri>`
@@ -406,29 +488,9 @@ fn literal_n3_parts(
 ///
 /// # Errors
 ///
-/// Returns an error only when a recursively-contained term is invalid.
+/// The result remains fallible for API compatibility with provenance callers.
 pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
-    match term {
-        TermValue::Iri(iri) => Ok(format!("<{}>", iri)),
-        TermValue::Blank { label, scope } => Ok(format!("_:{}", scope.qualify_label(label))),
-        TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            direction,
-        } => Ok(literal_n3_parts(
-            lexical_form,
-            datatype,
-            language.as_deref(),
-            *direction,
-        )),
-        TermValue::Triple { s, p, o } => Ok(format!(
-            "<<( {} {} {} )>>",
-            term_n3(s)?,
-            term_n3(p)?,
-            term_n3(o)?
-        )),
-    }
+    Ok(render_term(term, TermRenderStyle::N3))
 }
 
 /// Serialize an IRI string to rdflib `.n3()` form: `<iri>`.
@@ -449,36 +511,9 @@ pub fn named_node_n3(iri: &str) -> String {
 /// - `Blank` → `_:label`
 /// - `Literal` xsd:string / rdf:langString → `"lex"` ; lang → `"lex"@lang` ;
 ///   typed → `"lex"^^<dt>`
-/// - `Triple` → `<<( s p o )>>` (recursive)
+/// - `Triple` → `<<( s p o )>>` (iteratively traversed, including nested triples)
 pub fn term_display(term: &TermValue) -> String {
-    match term {
-        TermValue::Iri(iri) => format!("<{iri}>"),
-        TermValue::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
-        TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            direction,
-        } => {
-            let lex = escape_lexical(lexical_form);
-            if let Some(lang) = language {
-                match direction {
-                    Some(direction) => format!("\"{lex}\"@{lang}--{}", direction.as_str()),
-                    None => format!("\"{lex}\"@{lang}"),
-                }
-            } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
-                format!("\"{lex}\"")
-            } else {
-                format!("\"{lex}\"^^<{datatype}>")
-            }
-        }
-        TermValue::Triple { s, p, o } => format!(
-            "<<( {} {} {} )>>",
-            term_display(s),
-            term_display(p),
-            term_display(o)
-        ),
-    }
+    render_term(term, TermRenderStyle::Display)
 }
 
 // ── mint_reifier ─────────────────────────────────────────────────────────────
@@ -834,6 +869,28 @@ mod tests {
         )
         .expect("flat reifier");
         assert_ne!(nested, flat);
+    }
+
+    #[test]
+    fn deeply_nested_rdf12_triple_terms_render_without_call_stack_recursion() {
+        const DEPTH: usize = 4_096;
+        let mut nested = TermValue::iri("http://example.org/leaf");
+        for _ in 0..DEPTH {
+            nested = TermValue::Triple {
+                s: Box::new(TermValue::iri("http://example.org/s")),
+                p: Box::new(TermValue::iri("http://example.org/p")),
+                o: Box::new(nested),
+            };
+        }
+
+        let n3 = term_n3(&nested).expect("iterative N3 renderer");
+        let display = term_display(&nested);
+        assert_eq!(n3, display);
+        assert_eq!(n3.matches("<<( ").count(), DEPTH);
+        assert!(n3.contains("<http://example.org/leaf>"));
+
+        // Box's recursive destructor is outside the renderer contract under test.
+        std::mem::forget(nested);
     }
 
     #[test]
