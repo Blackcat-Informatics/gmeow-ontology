@@ -46,6 +46,10 @@ pub mod gate_verdict;
 // lossy views of the ontology-resident gmeow:AxisFloorCommitment / gmeow:SliceTierFloor
 // individuals (Principle 17 — the ontology is canonical, these TSVs are its projection).
 pub mod governance_floors;
+// The projection-ceilings export leaf: the two projection-vocabulary ratchet TSVs
+// projected as lossy views of the ontology-resident gmeow:ProjectionCeilingCommitment /
+// gmeow:ProjectionVocabulary individuals (Principle 17).
+pub mod projection_ceilings;
 // The GMN-1 round-trip gate: the executed byte witness behind
 // `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
 // `superset`'s byte-reconstruction discipline over the grounding slices' GMN-0.
@@ -138,6 +142,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register(
         "governance_floors",
         Arc::new(governance_floors::GovernanceFloorsStage),
+    );
+    registry.register(
+        "projection_ceilings",
+        Arc::new(projection_ceilings::ProjectionCeilingsStage),
     );
     registry.register("result_shapes", Arc::new(result_shapes::ResultShapesStage));
     registry.register(

@@ -6,6 +6,7 @@ use crate::ir::CorrespondenceRelation;
 use crate::projections::correspondence::{extract_correspondences, project_correspondence};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
@@ -92,6 +93,13 @@ fn fixture_dsl() -> std::sync::Arc<purrdf::RdfDataset> {
     triple(
         &mut b,
         &eq2,
+        RDF_TYPE,
+        Some(&format!("{LOGIC}GroundingCorrespondence")),
+        None,
+    );
+    triple(
+        &mut b,
+        &eq2,
         &format!("{GMEOW}alignSubject"),
         Some(&format!("{GMEOW}Baz")),
         None,
@@ -123,6 +131,27 @@ fn fixture_dsl() -> std::sync::Arc<purrdf::RdfDataset> {
         &format!("{GMEOW}confidence"),
         None,
         Some("0.8"),
+    );
+    triple(
+        &mut b,
+        &eq2,
+        &format!("{LOGIC}morphismClass"),
+        Some(&format!("{LOGIC}AffineCorrespondence")),
+        None,
+    );
+    triple(
+        &mut b,
+        &eq2,
+        &format!("{LOGIC}morphismKind"),
+        Some(&format!("{LOGIC}InstitutionMorphism")),
+        None,
+    );
+    triple(
+        &mut b,
+        &eq2,
+        &format!("{LOGIC}preservationKind"),
+        Some(&format!("{LOGIC}ValidationOnly")),
+        None,
     );
 
     // ── One ProjectionMapping with one per-profile binding ─────────────────────────
@@ -182,6 +211,76 @@ fn parse_nt(nt: &str) -> std::sync::Arc<purrdf::RdfDataset> {
         .expect("parse projection N-Triples")
 }
 
+/// A single term-level grounding bridge fixture. `metadata=false` deliberately omits the
+/// three required authored judgments so the fail-closed frontend can be tested directly.
+fn term_grounding_dsl(predicate: &str, metadata: bool) -> std::sync::Arc<purrdf::RdfDataset> {
+    use purrdf::{RdfDatasetBuilder, RdfLiteral};
+
+    let mut b = RdfDatasetBuilder::new();
+    let triple =
+        |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
+            let s = b.intern_iri(s);
+            let p = b.intern_iri(p);
+            let o = match (o_iri, o_lit) {
+                (Some(o), _) => b.intern_iri(o),
+                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
+                _ => unreachable!(),
+            };
+            b.push_quad(s, p, o, None);
+        };
+    let cell = format!("{GMEOW}groundingBridge");
+    for ty in [
+        format!("{GMEOW}TermEquivalence"),
+        format!("{LOGIC}GroundingCorrespondence"),
+    ] {
+        triple(&mut b, &cell, RDF_TYPE, Some(&ty), None);
+    }
+    triple(
+        &mut b,
+        &cell,
+        &format!("{GMEOW}alignSubject"),
+        Some(&format!("{LOGIC}Object")),
+        None,
+    );
+    triple(
+        &mut b,
+        &cell,
+        &format!("{GMEOW}alignPredicate"),
+        Some(predicate),
+        None,
+    );
+    triple(
+        &mut b,
+        &cell,
+        &format!("{GMEOW}alignObject"),
+        Some("http://purl.obolibrary.org/obo/BFO_0000040"),
+        None,
+    );
+    triple(
+        &mut b,
+        &cell,
+        &format!("{GMEOW}sssomFile"),
+        None,
+        Some("grounding.sssom.tsv"),
+    );
+    if metadata {
+        for (property, value) in [
+            ("morphismClass", "BridgeView"),
+            ("morphismKind", "CommitmentShiftingBridge"),
+            ("preservationKind", "ValidationOnly"),
+        ] {
+            triple(
+                &mut b,
+                &cell,
+                &format!("{LOGIC}{property}"),
+                Some(&format!("{LOGIC}{value}")),
+                None,
+            );
+        }
+    }
+    b.freeze().expect("freeze term grounding fixture")
+}
+
 /// The transpiler materializes one typed node per cell, and the projected program
 /// ROUND-TRIPS through its backing graph: `extract_correspondences` re-derives the exact
 /// typed nodes (content identity) AND returns NO errors (a malformed transpile must not
@@ -219,6 +318,29 @@ fn transpile_round_trips_with_no_extract_errors() {
     assert!(
         relations.contains(&CorrespondenceRelation::Overlaps),
         "the closeMatch cell is an Overlaps"
+    );
+
+    let grounding = program
+        .correspondences
+        .iter()
+        .find(|c| c.grounding)
+        .expect("the explicitly-authored grounding cell is retained as such");
+    assert_eq!(
+        grounding.source_endpoint.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/Baz")
+    );
+    assert_eq!(
+        grounding.target_endpoint.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/Qux")
+    );
+    assert_eq!(
+        grounding.morphism_class,
+        MorphismClass::AffineCorrespondence
+    );
+    assert_eq!(grounding.morphism_kind, MorphismKind::InstitutionMorphism);
+    assert_eq!(
+        grounding.preservation,
+        Some(PreservationKind::ValidationOnly)
     );
 
     // Project the typed program to its backing graph, then re-extract the bare nodes.
@@ -263,6 +385,55 @@ fn correspondence_iris_are_content_stable() {
     assert_eq!(iris_a, iris_b, "content-addressed IRIs are run-stable");
     // And the whole program keys identically.
     assert_eq!(a.content_key(), b.content_key());
+}
+
+#[test]
+fn grounding_term_bridge_keeps_typed_commitment_and_endpoints() {
+    let dsl = term_grounding_dsl(SKOS_CLOSE_MATCH, true);
+    let empty = parse_nt("");
+    let program = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect("transpile the grounding bridge");
+    let [bridge] = program.correspondences.as_slice() else {
+        panic!("one authored grounding cell must produce one correspondence")
+    };
+    assert!(bridge.grounding);
+    assert_eq!(bridge.morphism_class, MorphismClass::BridgeView);
+    assert_eq!(bridge.morphism_kind, MorphismKind::CommitmentShiftingBridge);
+    assert_eq!(bridge.preservation, Some(PreservationKind::ValidationOnly));
+    assert_eq!(
+        bridge.source_endpoint.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/Object")
+    );
+    assert_eq!(
+        bridge.target_endpoint.as_deref(),
+        Some("http://purl.obolibrary.org/obo/BFO_0000040")
+    );
+}
+
+#[test]
+fn grounding_term_bridge_requires_explicit_judgments() {
+    let dsl = term_grounding_dsl(SKOS_CLOSE_MATCH, false);
+    let empty = parse_nt("");
+    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect_err("a grounding bridge with implicit defaults must fail closed");
+    assert!(err.message().contains("must explicitly author"), "{err}");
+}
+
+#[test]
+fn grounding_term_bridge_cannot_surface_exact_match() {
+    use crate::projections::sssom::lower_sssom;
+
+    let dsl = term_grounding_dsl(SKOS_EXACT_MATCH, true);
+    let empty = parse_nt("");
+    let view = DslView::new(&dsl);
+    let (_program, lookup) = transpile_correspondences_indexed(&view, &DslView::new(&empty))
+        .expect("the typed bridge materializes before the dialect gate");
+    let err = match lower_sssom(&view, "test", "2026-01-01", &lookup) {
+        Err(err) => err,
+        Ok(_) => panic!("a commitment-shifting bridge must not emit exactMatch"),
+    };
+    assert!(err.message().contains("bridge"), "{err}");
+    assert!(err.message().contains("Principle 5"), "{err}");
 }
 
 /// A `dsl/mappings/` fixture with ONE `gmeow:ProjectionMapping` whose single per-profile

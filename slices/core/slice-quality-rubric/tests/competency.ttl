@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the slice-quality-rubric slice
-# (crates/slicetest). The QC query (queries/qc/axes-without-producer.rq) finds
-# any gmeow:QualityAxis lacking a gmeow:axisProducer binding; a non-empty result
-# is a failure, so the cell pins the empty set. It runs in the default asserted
-# lane on purpose: reasoning must not be able to invent a producer binding, so
-# the completeness guard is meaningful only over what is actually authored. Each
+# Declarative competency questions for the slice-quality-rubric slice
+# (crates/slicetest). Each QC query finds a class of structural incompleteness
+# in the resident rubric ABox; a non-empty result is a failure, so every cell
+# below pins the empty set. Each runs in the default asserted lane on purpose:
+# reasoning must not be able to invent the missing binding/descriptor, so the
+# completeness guard is meaningful only over what is actually authored. Each
 # rationale states the ontological reason and names no test artifact.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -22,5 +22,27 @@ ex:cqAxesBindProducers a gmeow:CompetencyQuestion ;
 ex:cqAxesBindProducersShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .
+
+# The QC query (queries/qc/projection-ceilings.rq) finds any committed
+# gmeow:ProjectionCeilingCommitment whose gmeow:ceilingVocabulary fails to
+# declare a complete descriptor (gmeow:vocabularyDefaultCeiling,
+# gmeow:vocabularySubsumedBy, gmeow:vocabularyPreservation); a non-empty result
+# is a failure, so the cell pins the empty set. It runs in the default asserted
+# lane on purpose: reasoning must not be able to invent a missing descriptor
+# triple, so the completeness guard is meaningful only over what is actually
+# authored.
+ex:cqProjectionCeilingsHold a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/slice-quality-rubric/queries/qc/projection-ceilings.rq" ;
+    gmeow:cqRationale "Every committed projection ceiling names a vocabulary, and Principle 17 requires that vocabulary to carry its own descriptor — a default ceiling, a logic: subsumption witness, and a preservation judgment — or the loss-ledger audit trail is broken for a vocabulary actually in use; the query that finds committed ceilings referencing an incompletely-described vocabulary must return the empty set." ;
+    gmeow:cqResultShape ex:cqProjectionCeilingsHoldShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqProjectionCeilingsHoldShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "ceiling" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "slice" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "vocab" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .

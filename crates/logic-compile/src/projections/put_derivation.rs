@@ -293,7 +293,7 @@ impl CorrespondenceProgram {
                             body: get_body.invert(),
                         });
                     }
-                    rebuilt.push(Correspondence::new(
+                    let mut rebuilt_correspondence = Correspondence::new(
                         c.iri.clone(),
                         c.relation,
                         c.morphism_class,
@@ -311,7 +311,15 @@ impl CorrespondenceProgram {
                         // Preserve the authored per-correspondence preservation judgment so
                         // the derived program the gates run over still sees the rung.
                         c.preservation,
-                    )?);
+                    )?;
+                    if let (Some(source), Some(target)) = (&c.source_endpoint, &c.target_endpoint) {
+                        rebuilt_correspondence = rebuilt_correspondence
+                            .with_endpoints(source.clone(), target.clone())?;
+                    }
+                    if c.grounding {
+                        rebuilt_correspondence = rebuilt_correspondence.as_grounding();
+                    }
+                    rebuilt.push(rebuilt_correspondence);
                 }
                 PutDerivation::Unsupported { .. } => {
                     // No lawful put: keep the put-less cell; the residue rides the outcome.

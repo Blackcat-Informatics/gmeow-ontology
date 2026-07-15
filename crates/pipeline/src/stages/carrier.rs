@@ -500,7 +500,8 @@ fn okf_link_targets_missing_from(
 
 /// Assemble the FULL snapshot carrier: every named graph parsed into ONE native
 /// `RdfDataset` and unioned once. The carried logic / relational-core / correspondence
-/// / reasoning graphs ride in from the upstream producers' carriers (no re-derivation);
+/// / reasoning graphs ride in from the upstream producers' carriers (no re-derivation),
+/// while only logic / relational-core enter the object-level reasoning EDB;
 /// the snapshot-owned graphs (authored default, statement layer, imports, metadata,
 /// alignments, slice-analysis, verify, documentation, diagnostics, conformance,
 /// projection-ledger, provenance) are parsed and re-rooted here. This carrier is the
@@ -559,8 +560,8 @@ pub(crate) fn self_description_source_files(
 ///
 /// The SSSOM alignment axioms ([`GRAPH_ALIGNMENTS`]) are NO LONGER built here: they are a
 /// projection of the compiled SSSOM, so `stage-mappings` builds that graph from its fresh
-/// product (via [`alignment_nquads_from_artifacts`]) and the presenter + reasoning EDB read
-/// it back through `producer_graph`. Building it here would re-read the stale committed
+/// product (via [`alignment_nquads_from_artifacts`]) and the presenter reads it back through
+/// `producer_graph`; it remains outside object-level reasoning. Building it here would re-read the stale committed
 /// `generated/mappings/*.sssom.tsv` off disk (the stale-disk-fold class).
 #[cfg(test)]
 pub(crate) fn build_self_description_dataset(
@@ -817,7 +818,7 @@ fn assemble_carrier(
     for graph_iri in MATH_PRODUCER_GRAPHS {
         datasets.push(producer_graph(upstream, "stage-math-producers", graph_iri)?);
     }
-    datasets.extend(compile_logic_object_graphs(upstream)?);
+    datasets.extend(compile_logic_carrier_graphs(upstream)?);
     datasets.push(rooted_in_graph(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
         reasoning_iri,
@@ -1065,9 +1066,11 @@ fn rdf_fanout_members(
 }
 
 /// Assemble the OBJECT-LEVEL reasoned EDB: the authored default graph plus the
-/// statement / import / alignment / logic / relational-core / correspondence named
-/// graphs, in the EXACT graph layout [`assemble_carrier`] uses (so the reasoned
-/// closure's worlds match the bundle's).
+/// statement / import / alignment / logic / relational-core named graphs, in the
+/// EXACT graph layout [`assemble_carrier`] uses (so the reasoned closure's worlds
+/// match the bundle's). The shipped `graph/correspondence` graph stays meta-level and
+/// is deliberately absent: its source/target endpoints describe mappings rather than
+/// ontology axioms.
 ///
 /// The meta/report graphs (metadata, slice-analysis, verify, documentation,
 /// diagnostics, conformance, projection-ledger, provenance) are EXCLUDED: they assert
@@ -1077,17 +1080,17 @@ fn rdf_fanout_members(
 /// function of the ontology alone, not of its self-description. This is the single
 /// EDB the sole `stage-reason` pass reasons over; it depends only on the
 /// `stage-statements`, `stage-compile-logic`, `stage-source-load` products (the authored
-/// / imports self-description graphs) and `stage-mappings` (graph/alignments, a compiled
-/// SSSOM projection) — never on the snapshot, so reasoning need not wait on carrier
-/// assembly. `stage-reason` already consumes all four (see `run.rs`).
+/// / imports self-description graphs) — never on mapping/correspondence projections or
+/// the snapshot, so reasoning need not wait on either. `stage-reason` consumes exactly
+/// those three producers (see `run.rs`).
 pub(crate) fn assemble_object_level_edb(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // The authored default and imports are read (not re-loaded) off stage-source-load —
     // the same self-description graphs the presenter folds — so the reasoned closure's
-    // worlds match the bundle's by construction, with ONE load. graph/alignments is a
-    // projection of the compiled SSSOM and rides off the fresh stage-mappings product
-    // (both the presenter and this EDB read the SAME graph, so the worlds still match).
+    // worlds match the bundle's by construction, with ONE load. Mapping and
+    // correspondence graphs are shipped by the presenter but stay meta-level, so no
+    // external endpoint IRI can be mistaken for an authored object-level construct.
     let base = std::sync::Arc::new(
         source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
@@ -1101,28 +1104,138 @@ pub(crate) fn assemble_object_level_edb(
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
-        producer_graph(upstream, "stage-mappings", GRAPH_ALIGNMENTS)?,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
 }
 
-/// The compile-logic object-level named graphs
-/// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]), each projected off the
-/// stage-compile-logic product and re-rooted into its own graph — the SINGLE fold
-/// routine shared by [`assemble_carrier`]'s snapshot union and
-/// [`assemble_object_level_edb`], so the two folds can never drift on the set.
-fn compile_logic_object_graphs(
+/// Project a shipped snapshot back to the exact object-level EDB admitted by
+/// [`assemble_object_level_edb`]. The authored default graph remains default-world;
+/// statement/import/logic/relational-core worlds retain their graph names. Every
+/// mapping, correspondence, report, documentation, and fanout graph is excluded.
+///
+/// This is the single snapshot-reader boundary used by the maintainer reasoning CLI.
+/// Keeping it beside the producer-side assembly prevents `--fresh` and `reason-gate`
+/// from accidentally reasoning over more of the shipped ontology than the pipeline
+/// authority did.
+pub fn snapshot_reasoning_edb(
+    snapshot: &purrdf::RdfDataset,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    fn admitted_graph(graph: &Option<RdfTerm>) -> bool {
+        match graph {
+            None => true,
+            Some(RdfTerm::Iri(iri)) => {
+                iri == GRAPH_STATEMENTS
+                    || iri == GRAPH_IMPORTS
+                    || crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS.contains(&iri.as_str())
+            }
+            Some(_) => false,
+        }
+    }
+
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in snapshot.owned_quads() {
+        if admitted_graph(&quad.graph_name) {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in snapshot.owned_reifiers() {
+        if admitted_graph(&reifier.graph) {
+            builder.push_owned_reifier(&reifier);
+        }
+    }
+    for annotation in snapshot.owned_annotations() {
+        if admitted_graph(&annotation.graph) {
+            builder.push_owned_annotation(&annotation);
+        }
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze snapshot object-level reasoning EDB: {e}")))
+}
+
+#[cfg(test)]
+mod reasoning_edb_projection_tests {
+    use super::*;
+
+    #[test]
+    fn shipped_correspondence_and_alignment_targets_never_enter_reasoning() {
+        let trig = format!(
+            "@prefix ex: <https://example.test/> .\n\
+             ex:authored ex:p ex:o .\n\
+             GRAPH <{GRAPH_STATEMENTS}> {{ ex:statement ex:p ex:o . }}\n\
+             GRAPH <{GRAPH_IMPORTS}> {{ ex:imported ex:p ex:o . }}\n\
+             GRAPH <{logic}> {{ ex:logic ex:p ex:o . }}\n\
+             GRAPH <{relational}> {{ ex:relational ex:p ex:o . }}\n\
+             GRAPH <{GRAPH_ALIGNMENTS}> {{ ex:map ex:target <http://www.w3.org/2002/07/owl#maxCardinality> . }}\n\
+             GRAPH <{correspondence}> {{ ex:corr ex:target <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> . }}\n\
+             GRAPH <{reasoning}> {{ ex:result ex:p ex:o . }}\n",
+            logic = crate::stages::compile_logic::GRAPH_LOGIC,
+            relational = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
+            correspondence = crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
+            reasoning = gmeow_logic::result_rdf::GRAPH_REASONING,
+        );
+        let snapshot = parse_dataset(trig.as_bytes(), "application/trig", None)
+            .expect("parse snapshot-shaped fixture");
+        let edb = snapshot_reasoning_edb(snapshot.as_ref()).expect("project reasoning EDB");
+
+        assert_eq!(
+            edb.quad_count(),
+            5,
+            "default plus four admitted reasoning worlds"
+        );
+        let graph_iris: std::collections::BTreeSet<String> = edb
+            .owned_quads()
+            .filter_map(|quad| match quad.graph_name {
+                Some(RdfTerm::Iri(iri)) => Some(iri),
+                _ => None,
+            })
+            .collect();
+        assert!(!graph_iris.contains(GRAPH_ALIGNMENTS));
+        assert!(!graph_iris.contains(crate::stages::compile_logic::GRAPH_CORRESPONDENCE));
+        assert!(!graph_iris.contains(gmeow_logic::result_rdf::GRAPH_REASONING));
+
+        let coverage = gmeow_logic::reason::dl::scan_coverage(edb.as_ref())
+            .expect("scan projected EDB coverage");
+        assert!(
+            coverage.unsupported.is_empty(),
+            "meta-level target references must not become DL coverage gaps: {:?}",
+            coverage.unsupported
+        );
+    }
+}
+
+/// Project the selected compile-logic named graphs off the stage product and re-root
+/// each into its carrier graph. The caller chooses the complete shipped set or the
+/// strictly object-level reasoning subset; keeping that distinction explicit prevents
+/// the correspondence meta-formula envelope from leaking into closure.
+fn compile_logic_graphs(
     upstream: &BTreeMap<String, StageProduct>,
+    graph_iris: &[&str],
 ) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
     let compile = upstream
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
-    crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS
+    graph_iris
         .iter()
         .map(|iri| rooted_in_graph(&compile.bundle().dataset().project_named_graph(iri), iri))
         .collect()
+}
+
+/// Every compile-logic graph shipped by [`assemble_carrier`], including the
+/// meta-level correspondence program and its digest-pinned handle backing graph.
+fn compile_logic_carrier_graphs(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
+    compile_logic_graphs(upstream, &crate::stages::compile_logic::CARRIER_GRAPHS)
+}
+
+/// Only the compile-logic graphs admitted to object-level reasoning.
+fn compile_logic_object_graphs(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
+    compile_logic_graphs(upstream, &crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS)
 }
 
 /// Serialize the fully-assembled carrier to the `dist`-profile `gmeow.gts` bytes: fold
@@ -1705,6 +1818,15 @@ fn build_fanout_opaque_blob(
     take_opaque(
         &mut members,
         producer_artifacts("stage-export-governance-floors", upstream)?,
+    );
+    // The two projection-vocabulary ratchet TSVs (P17 projection of the ontology-resident
+    // gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary individuals):
+    // projected once in stage-export-projection-ceilings from the rubric slice; read off
+    // its product, never re-rendered from disk. Non-RDF, so they ride here as opaque
+    // byte members.
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-projection-ceilings", upstream)?,
     );
 
     // evals + research-objects: the OPAQUE members only (their `.ttl`/`.dcat.ttl` ride

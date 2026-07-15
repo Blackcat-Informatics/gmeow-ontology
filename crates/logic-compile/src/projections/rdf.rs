@@ -125,6 +125,9 @@ fn owl_for_char(obj: &str) -> Option<String> {
         "symmetricProperty" => owl("SymmetricProperty"),
         "functionalProperty" => owl("FunctionalProperty"),
         "inverseFunctionalProperty" => owl("InverseFunctionalProperty"),
+        "reflexiveProperty" => owl("ReflexiveProperty"),
+        "asymmetricProperty" => owl("AsymmetricProperty"),
+        "irreflexiveProperty" => owl("IrreflexiveProperty"),
         _ => return None,
     })
 }

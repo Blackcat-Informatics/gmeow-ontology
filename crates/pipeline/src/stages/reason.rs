@@ -6,7 +6,7 @@
 //!
 //! It reasons ONCE over the object-level EDB
 //! ([`crate::stages::carrier::assemble_object_level_edb`]: ontology + imports +
-//! statements + alignments + logic/relational-core/correspondence, WITHOUT the
+//! statements + alignments + logic/relational-core, WITHOUT correspondence or the
 //! meta/report graphs), canonicalizes it (RDFC-1.0) for transport-independent Skolem
 //! witnesses, runs `gmeow_logic::reason::reason_all_certified`, and serializes the
 //! committed artifacts via the `gmeow_logic::reason::artifacts` builders. The single
@@ -395,23 +395,23 @@ pub struct ReasonStage {
 
 impl ReasonStage {
     /// Construct the stage. It reasons over the object-level EDB assembled from the
-    /// compile-logic / mappings / source-load / statements producers (plus the on-disk
-    /// authored / imports / alignments sources); the slice DAG's `stage-reason`
+    /// compile-logic / source-load / statements producers (plus the on-disk authored /
+    /// imports sources); the slice DAG's `stage-reason`
     /// `dataflowConsumes` mirrors this set. It requires the exclusive
     /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
     /// serializes it against any stage competing for the reasoning engine.
     ///
     /// Typed dataflow (artifact-level): from `stage-compile-logic` it reads ONLY the
-    /// `logic`, `relational-core`, and `correspondence` named graphs (see
+    /// `logic` and `relational-core` named graphs (see
     /// [`crate::stages::carrier::assemble_object_level_edb`]) — never that product's
     /// other graphs or byte artifacts (diagnostics, the eight projection
-    /// serializations). Declaring those three entities lets a change to compile-logic's
+    /// serializations). The shipped correspondence graph is meta-level and therefore
+    /// excluded. Declaring these two entities lets a change to compile-logic's
     /// diagnostics or projection bytes alone skip re-running the (expensive) reasoner.
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
-                "stage-mappings".to_string(),
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
             ],
@@ -471,7 +471,7 @@ impl Stage for ReasonStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Reason ONCE over the object-level EDB (ontology + imports + statements +
-        // alignments + logic/relational-core/correspondence), assembled in the SAME
+        // alignments + logic/relational-core), assembled in the SAME
         // graph layout the bundle carries but WITHOUT the meta/report graphs — they
         // assert no axioms, so excluding them is closure-isomorphic and makes the
         // Skolem witnesses a function of the ontology alone. This pass owns the
