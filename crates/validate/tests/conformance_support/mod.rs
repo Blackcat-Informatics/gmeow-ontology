@@ -33,6 +33,28 @@ use purrdf::{
     parse_dataset, serialize_dataset,
 };
 
+// ── Grounding-correspondence vocabulary ──────────────────────────────────────
+
+pub const TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
+pub const GROUNDING_CORRESPONDENCE: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+pub const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
+pub const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
+pub const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
+pub const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
+pub const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
+pub const MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
+pub const PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+
+pub fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String {
+    assert_eq!(
+        values.len(),
+        1,
+        "{cell} must carry exactly one {field}, found {values:?}"
+    );
+    values.into_iter().next().unwrap()
+}
+
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
 /// Absolute path to the repository root (`crates/validate/../../`).

@@ -5,13 +5,14 @@
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/logic` · **tier: core**
 > The maximally expressive, RDF 1.2-native logic in which GMEOW's model is authored, and of which
-> every prior formalism (OWL, RDFS, SHACL, Datalog, Prolog, N3, SPARQL, and the gUFO/BFO/DOLCE upper
-> ontologies) is a *generated lossy projection* — Constitution **Principle 17**.
+> OWL, RDFS, SHACL, Datalog, Prolog, N3, SPARQL, and gUFO are typed, lossy projections. BFO,
+> DUL, OBO/RO, SUMO, YAMATO, and OpenCyc are explicit commitment-shifting bridge views —
+> Constitution **Principle 17**.
 
 This slice is the home of **GMEOW Logic (`logic:`)**, the canonical reasoning language for GMEOW.
 The `logic:` namespace is the authoritative ground; the full UFO⁺ foundational vocabulary is
-minted here, and every other formalism is a generated lossy projection of it, never a second
-source of truth.
+minted here. External formalisms are projections or typed bridge views of that ground, never a
+second source of truth.
 
 The vocabulary covers the UFO⁺ foundational sorts
 (`Kind`/`SubKind`/`Phase`/`Role`/`Category`/`Mixin`/`RoleMixin`/`PhaseMixin`/`Relator`/`Event`/`Situation`

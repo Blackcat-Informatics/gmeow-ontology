@@ -374,13 +374,25 @@ The mapping DSL has two main authoring units:
 * `gmeow:TermEquivalence` for pure cross-ontology links that compile to SSSOM rows.
 * `gmeow:ProjectionMapping` for directional, possibly lossy projections that compile to SPARQL branches and, when applicable, EDOAL/FnO/SSSOM artifacts.
 
-`logic:GroundingCorrespondence` is the explicit grounding marker on a
-`gmeow:TermEquivalence` frontend cell. It requires authored
-`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`, and
-compiles to a shipped content-addressed `logic:Correspondence` with named
-source and target endpoints. Formal and upper-ontology catalogs belong in
-[`slices/grounding/logic/mappings/`](./slices/grounding/logic/mappings/), never
-in a domain slice or a generated SSSOM table.
+`logic:GroundingCorrespondence` is the explicit grounding marker on either a
+`gmeow:TermEquivalence` frontend cell or a single-binding
+`gmeow:ProjectionMapping`. It requires `gmeow:justification`, named
+`logic:sourceEndpoint` and `logic:targetEndpoint` values, and explicit
+`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`
+judgments; the complete contract is specified in
+[`LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md).
+The cell compiles to a shipped content-addressed `logic:Correspondence`. All
+external grounding belongs to exactly one
+grounding slice: linguistic and serialization catalogs in
+[`slices/grounding/lang/mappings/`](./slices/grounding/lang/mappings/),
+mathematical catalogs in
+[`slices/grounding/math/mappings/`](./slices/grounding/math/mappings/), and
+formal or upper-ontology catalogs in
+[`slices/grounding/logic/mappings/`](./slices/grounding/logic/mappings/).
+These laws ship in `gmeow.gts`; they are not disposable documentation
+projections. A domain slice must use the grounding term and must not re-author
+the external term or a competing correspondence. Incomplete marker metadata is
+a validation error.
 
 Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to satisfy review feedback. Patch the DSL source, re-run the compiler, and include the regenerated artifacts.
 

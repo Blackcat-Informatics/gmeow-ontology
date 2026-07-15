@@ -45,10 +45,10 @@ status. Competing analyses of one surface are held co-resident and non-collapsin
 | Document | Genre | Realized state | Contents |
 |---|---|---|---|
 | [`LANG.md`](design/LANG.md) | manifesto | realized | the third grounding layer, doctrine, and lineage |
-| [`LANG-FORMS.md`](design/LANG-FORMS.md) | charter | realized (**this slice** — module.ttl + shapes.ttl) | the sign-system reference layer and the typed form AST |
+| [`LANG-FORMS.md`](design/LANG-FORMS.md) | charter | realized (**this slice** — canonical `module.ttl` + projected validation surfaces) | the sign-system reference layer and the typed form AST |
 | [`LANG-MEANING.md`](design/LANG-MEANING.md) | charter | realized | sense, reference, the denotation bridge into `logic:` |
-| [`LANG-TRANSLATION.md`](design/LANG-TRANSLATION.md) | charter | realized (`lang:Rendering`, `lang:RenderingRecordShape`) | rendering, translation, and paraphrase |
-| [`LANG-GMN.md`](design/LANG-GMN.md) | charter | partial — the qualifier vocabulary, cost razor, and GMN-1 codec (`crates/lang-bridge/src/gmn1_codec.rs`) are realized; the doc's own note that no marker yet qualifies under the ambiguity-elimination razor half stands | GMN — the token-compact model-notation dialect ladder and its contracts |
+| [`LANG-TRANSLATION.md`](design/LANG-TRANSLATION.md) | charter | realized (`lang:Rendering` plus canonical closure/constraint authorities) | rendering, translation, and paraphrase |
+| [`LANG-GMN.md`](design/LANG-GMN.md) | charter | realized — graph-derived glyph/dictionary registries, a candidate audit closed over every executable target, scoped reader/writer resolution, Unicode security, measured cost, a single sentinel-to-generated grammar seam, and round-trip gates are executable | GMN — the token-compact model-notation dialect ladder and its contracts |
 | [`LANG-PROJECTIONS.md`](design/LANG-PROJECTIONS.md) | contract | realized (`crates/lang-bridge/src/{ontolex,nif,conllu}.rs`, loss-ledger counter-examples) | the generated lossy lowerings + loss ledger |
 | [`LANG-RUNTIME.md`](design/LANG-RUNTIME.md) | runtime | realized (`crates/lang-form/src/intern.rs`, `crates/lang-bridge/src/{conllu,plain_text,engine}.rs`) | ingestion, content-addressed interning, engine handoff |
 | [`LANG-CONFORMANCE.md`](design/LANG-CONFORMANCE.md) | contract | realized (41 conformance fixtures, 56 counter-examples) | the gate matrix and failure classes |
@@ -56,22 +56,24 @@ status. Competing analyses of one surface are held co-resident and non-collapsin
 
 ## Hard rules → gates → failure classes
 
-Every hard rule of the form AST maps to a SHACL gate (in `shapes.ttl`) that points at a typed
-`lang:LangConformanceFailure` subclass through `gmeow:enforcesFailureClass`, so a violation is a
-queryable object rather than a log line.
+Every hard rule of the form AST has one canonical OWL/`logic:` authority in `module.ttl` and maps
+to a typed `lang:LangConformanceFailure` subclass through `gmeow:enforcesFailureClass`, so a
+violation is a queryable object rather than a log line. SHACL is a generated validation view. The
+small authored residue retained during equivalence-before-deletion carries resolvable
+`logic:formalizes` links back to those authorities; it is not a second source of truth.
 
 | Rule | Gate | Failure class |
 |---|---|---|
-| Every form names exactly one sign system | `lang:FormSituatedShape` | `lang:UnsituatedForm` |
-| Analyzed or explicitly unanalyzed; structure matches level | `lang:SurfaceAnalysisShape` | `lang:MisdeclaredAnalysis` |
-| Slot indexes unique per composed form | `lang:SlotIndexUniqueShape` | `lang:DuplicateSlotIndex` |
-| Slot indexes zero-based and contiguous | `lang:SlotContiguityShape` | `lang:NonContiguousSlots` |
-| Dependency/token edges stay in their analysis, acyclic | `lang:DependencyIntegrityShape` | `lang:DanglingDependency` |
-| Morphology typed from the feature inventory | `lang:TypedMorphologyShape` | `lang:UntypedMorphology` |
-| Surfaces declare their material identity | `lang:SurfaceMaterialShape` | `lang:UnhashableSurface` |
-| Anchors declare source, span, and offset space | `lang:AnchorCompleteShape` | `lang:UnanchoredOffset` |
-| Structural positions hold forms, not literals | `lang:StructuralFormShape` | `lang:StringOnlyForm` |
-| Graphemes grounded in their script's repertoire | `lang:GraphemeGroundedShape` | `lang:UngroundedGrapheme` |
+| Every form names exactly one sign system | `lang:formInSignSystemClosure` + qualified maximum | `lang:UnsituatedForm` |
+| Analyzed or explicitly unanalyzed; structure matches level | `lang:surfaceAnalysisLevelClosure` + `lang:SurfaceAnalysisStructureConstraint` | `lang:MisdeclaredAnalysis` |
+| Slot indexes unique per composed form | `lang:FormSlotIndexUniquenessConstraint` | `lang:DuplicateSlotIndex` |
+| Slot indexes zero-based and contiguous | `lang:SlotContiguityConstraint` + native validator | `lang:NonContiguousSlots` |
+| Dependency/token edges stay in their analysis, acyclic | `lang:DependencyLeavesAnalysisConstraint` + `lang:FormSlotAcyclicDependencyConstraint` | `lang:DanglingDependency` |
+| Morphology typed from the feature inventory | class-scoped feature-key/value closure + OWL value typing | `lang:UntypedMorphology` |
+| Surfaces declare their material identity | `lang:SurfaceMaterialChoiceConstraint` + class-scoped field closure | `lang:UnhashableSurface` |
+| Anchors declare source, span, and offset space | class-scoped anchor closure + OWL value typing | `lang:UnanchoredOffset` |
+| Structural positions hold forms, not literals | `lang:SlotFormNodeKindConstraint`, `lang:RealizesNodeKindConstraint`, `lang:FormHeadNodeKindConstraint` | `lang:StringOnlyForm` |
+| Graphemes grounded in their script's repertoire | `lang:GraphemeRepertoireConstraint` + `lang:graphemeScriptClosure` | `lang:UngroundedGrapheme` |
 
 ## The meaning stratum
 
@@ -113,27 +115,28 @@ the **Frege triangle**, the **reified denotation record**, the **one-way bridge 
 
 | Rule | Gate | Failure class |
 |---|---|---|
-| Form, sense, and denotation kinds are disjoint | OWL disjointness (+ `lang:FregeDisjointShape`) | `lang:FregeConflation` |
-| A denotation names its form, kind, target, and context | `lang:DenotationRecordShape` | `lang:UnderspecifiedDenotation` |
-| A denotation attaches to a form, never a surface | `lang:DenotationNonSurfaceShape` | `lang:SurfaceLevelDenotation` |
-| Ambiguous denotations route through a sense | `lang:AmbiguityRoutingShape` | `lang:UnroutedAmbiguousDenotation` |
-| A denotation kind matches its target's type | `lang:DenotationKindMatchShape` | `lang:DenotationKindMismatch` |
-| An interpretation act is never an observation | OWL disjointness (+ `lang:ActObservationDisjointShape`) | `lang:ActObservationConflation` |
-| A reading-correctness claim has a vantage | `lang:ReadingClaimGroundedShape` | `lang:UngroundedReadingClaim` |
+| Form, sense, and denotation kinds are disjoint | `lang:FregeDisjointnessAxiom` | `lang:FregeConflation` |
+| A denotation names its form, kind, target, and context | class-scoped denotation closure + OWL value typing | `lang:UnderspecifiedDenotation` |
+| A denotation attaches to a form, never a surface | `lang:DenotationNonSurfaceConstraint` | `lang:SurfaceLevelDenotation` |
+| Ambiguous denotations route through a sense | `lang:AmbiguousDenotationRoutingConstraint` | `lang:UnroutedAmbiguousDenotation` |
+| A denotation kind matches its target's type | `lang:DenotationKindMatchConstraint` | `lang:DenotationKindMismatch` |
+| An interpretation act is never an observation | `lang:ActObservationDisjointnessAxiom` | `lang:ActObservationConflation` |
+| A reading-correctness claim has a vantage | `lang:ReadingClaimVantageConstraint` | `lang:UngroundedReadingClaim` |
 | Co-resident readings are never silently collapsed | native Rust validator | `lang:SilentDisambiguation` |
-| An indexical denotation names its anchor | `lang:IndexicalAnchoredShape` | `lang:UnanchoredIndexical` |
-| Preference weights are confidences, not probabilities | `lang:ConfidenceNotProbabilityShape` | `lang:ConfidenceAsProbability` |
+| An indexical denotation names its anchor | `lang:IndexicalAnchoredConstraint` | `lang:UnanchoredIndexical` |
+| Preference weights are confidences, not probabilities | `lang:ConfidenceModelConstraint` | `lang:ConfidenceAsProbability` |
 | A compositional lowering declares its preservation | native Rust validator | `lang:UndeclaredLoweringStage` |
 
-Two rows above are enforced by a **native Rust validator** rather than a SHACL shape:
+Two rows above are enforced directly by a **native Rust validator** rather than by the generated
+SHACL view:
 `lang:SilentDisambiguation` and `lang:UndeclaredLoweringStage`. Both require reasoning SHACL
 cannot express cleanly — the first is a whole-dataset check that a resolved reading is backed
 somewhere by a vantage-held observation, the second a kind-derived stage-coverage check over the
 compositional program — so they run bundle-wide inside `structural_lint_dataset`
 (`crates/validate/src/lint.rs`) alongside the one-way-bridge acyclicity check. Their negative
 fixtures accordingly live inline in that crate's Rust tests, not as `example-conformance.ttl`
-cells; the nine SHACL rules keep their fixture cells. The split is intentional: each gate lives
-where the invariant it enforces can actually be stated.
+cells; the projected validation rules keep their fixture cells. The split is intentional: each
+gate lives where the invariant it enforces can actually be stated.
 
 ## Competency
 

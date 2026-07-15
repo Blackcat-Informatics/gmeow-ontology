@@ -5,10 +5,11 @@
 # gmeow:Measurement records WHAT was observed (gmeow:observedFeature), HOW
 # (gmeow:observationMethod), and from WHERE (gmeow:vantage — the sensor). Its
 # result is NOT a bare number on the observation: the scalar lives in an
-# entity-valued gmeow:ScalarQuantity wrapper that bundles the value with its UNIT
+# entity-valued math:Quantity wrapper that bundles the value with its UNIT
 # and uncertainty, so a temperature is never asserted free-floating (P11 — every
 # value carries its frame). The unit is aligned to QUDT by reference (P5).
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -23,7 +24,9 @@ ex:reading a gmeow:Measurement ;
     gmeow:observationResult ex:temp .
 
 # --- The result wrapper: value + unit + uncertainty, not a bare literal.
-ex:temp a gmeow:ScalarQuantity ;
-    gmeow:quantityValue       "22.5"^^xsd:decimal ;
+ex:temp a math:Quantity ;
+    math:hasDimension       math:temperatureDimension ;
+    math:quantityValue      "22.5"^^xsd:decimal ;
     gmeow:quantityUncertainty "0.1"^^xsd:decimal ;
-    gmeow:unit             <http://qudt.org/vocab/unit/DEG_C> .
+    gmeow:unit              <http://qudt.org/vocab/unit/DEG_C> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI .

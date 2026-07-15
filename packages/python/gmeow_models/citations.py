@@ -87,5 +87,5 @@ class CitationAct(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     citationIntent: list[CitationIntentEnum] | None = Field(default=None, description="The intent with which the citation is made — a value from the open gmeow:CitationIntent vocabulary. Functional per relator: one intent per CitationAct.", alias="gmeow:citationIntent")
-    citedEntity: list[str] | None = Field(default=None, description="The creative work that is cited — a Work, Expression, Manifestation, or Item. Functional per relator: one cited entity per CitationAct.", alias="gmeow:citedEntity")
+    citedEntity: list[str] | None = Field(default=None, description="Within gmeow:CitationAct, values are node references constrained to gmeow:CreativeWork. The creative work that is cited — a Work, Expression, Manifestation, or Item. Functional per relator: one cited entity per CitationAct.", alias="gmeow:citedEntity")
     citingEntity: list[Entity] | None = Field(default=None, description="The entity that makes the citation — a claim, a work, a module, a dataset. Functional per relator: one citing entity per CitationAct.", alias="gmeow:citingEntity")

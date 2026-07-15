@@ -10,7 +10,6 @@
 
 # === Axioms ===
 <https://gmeow.example/openehr/bp/bpSection> a <https://blackcatinformatics.ca/logic/Correspondence> .
-<https://gmeow.example/openehr/bp/bpSection> <https://blackcatinformatics.ca/logic/accordingTo> <https://gmeow.example/openehr/bp/clinicStandpointDE> .
 <https://gmeow.example/openehr/bp/bpSection> <https://blackcatinformatics.ca/logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes> .
 <https://gmeow.example/openehr/bp/bpSection> <https://blackcatinformatics.ca/logic/getLeg> <https://gmeow.example/openehr/bp/bpGet> .
 <https://gmeow.example/openehr/bp/bpSection> <https://blackcatinformatics.ca/logic/hasDeterminacy> <https://blackcatinformatics.ca/logic/Crisp> .
@@ -21,7 +20,6 @@
 <https://gmeow.example/openehr/bp/diaBP> a <https://blackcatinformatics.ca/logic/Quality> .
 <https://gmeow.example/openehr/bp/diaBP> <https://blackcatinformatics.ca/logic/genericQuality> <https://blackcatinformatics.ca/gmeow/pressure> .
 <https://gmeow.example/openehr/bp/diaBP> <https://blackcatinformatics.ca/logic/qualityRole> <https://blackcatinformatics.ca/gmeow/diastolicRole> .
-<https://gmeow.example/openehr/bp/obsSys1> <https://blackcatinformatics.ca/logic/accordingTo> <https://gmeow.example/openehr/bp/clinicStandpointDE> .
 <https://gmeow.example/openehr/bp/obsSys1> <https://blackcatinformatics.ca/logic/confidence> '0.98' .
 <https://gmeow.example/openehr/bp/obsSys1> <https://blackcatinformatics.ca/logic/determinacy> <https://blackcatinformatics.ca/logic/Crisp> .
 <https://gmeow.example/openehr/bp/obsSys1> <https://blackcatinformatics.ca/logic/evidenceStrength> 'device-measured' .

@@ -4322,6 +4322,7 @@ ex:restEnergy a math:Quantity ;
     rdfs:label "rest energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "8.187e-14"^^xsd:double .
 
 ex:energyDimension a math:DerivedDimension ;

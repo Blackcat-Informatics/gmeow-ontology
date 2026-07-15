@@ -6,6 +6,7 @@
 
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -97,13 +98,15 @@ ex:noFlyZone a gmeow:RegulatoryOverlay ;
     gmeow:accordingTo ex:standpoint-national ;
     gmeow:duringInterval ex:intervalOngoing .
 
-ex:altitude0 a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "0"^^xsd:decimal ;
+ex:altitude0 a math:Quantity ;
+    math:hasDimension math:lengthDimension ;
+    math:quantityValue "0"^^xsd:decimal ;
     gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 .
 
-ex:altitude3000 a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "3000"^^xsd:decimal ;
+ex:altitude3000 a math:Quantity ;
+    math:hasDimension math:lengthDimension ;
+    math:quantityValue "3000"^^xsd:decimal ;
     gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 .
 

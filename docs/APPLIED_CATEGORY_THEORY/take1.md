@@ -305,7 +305,7 @@ single `gmeow:confidence` destroys the distinctions:
   - `class = affine`, **not** a low-confidence equivalence. Conflating "the relationship is
   fuzzy" with "I am unsure of the relationship" is the single most common alignment error.
 
-Every correspondence is **standpoint-indexed** (`logic:accordingTo`). The same pair may be
+Every correspondence is **standpoint-indexed** (`gmeow:accordingTo`). The same pair may be
 `iso` under one standpoint and `affine` under another, coexisting and contested. An *unindexed*
 correspondence holds in `gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills
 the silent-universality bug where a curated alignment is applied where it was never validated.

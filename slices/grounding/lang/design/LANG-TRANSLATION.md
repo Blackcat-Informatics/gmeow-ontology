@@ -13,9 +13,9 @@
 > [`LANG-MEANING.md`](LANG-MEANING.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
-> projection loss ledger — not a claim that any implementation already realizes X except as those
-> gates demonstrate.
+> realization implements X, established by canonical OWL/`logic:` authorities in `module.ttl`,
+> their generated validation projections, competency queries, and the projection loss ledger —
+> not a claim that any implementation already realizes X except as those gates demonstrate.
 
 ## Purpose
 
@@ -132,8 +132,11 @@ charter's rules, no special case anywhere.
 
 ## Paraphrase — same system, declared sameness
 
-A `lang:Paraphrase` pairs forms within one sign system under a declared sameness claim: same
-denotation (strong), same sense (stronger), or same communicative force and content (strongest).
+A `lang:Paraphrase` pairs forms within one sign system under a declared sameness claim: its
+`lang:paraphraseOf` role names the source and its `lang:paraphraseForm` role names the produced
+restatement, while `logic:mediates` makes both ends explicit in the foundation calculus. The
+declared sameness is same denotation (strong), same sense (stronger), or same communicative force
+and content (strongest).
 Paraphrase is what label alternatives, definition rewrites, and plain-language summaries actually
 are, and the declared-sameness kind is what keeps a summary from silently claiming to be the
 definition. A paraphrase claim is vantage-held like any observation — two editors may disagree

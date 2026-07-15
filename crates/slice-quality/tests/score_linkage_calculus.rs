@@ -3,8 +3,9 @@
 
 //! The linkage axis measures correspondence-calculus ADOPTION: of the identity-strength
 //! correspondences a slice authors, the fraction routed through the calculus
-//! (`gmeow:ProjectionMapping` mnemomorphic `=` cells / `logic:Correspondence` lenses) rather
-//! than hand-authored (`gmeow:TermEquivalence` rows / hand-authored `dc:` alignments). These
+//! (`gmeow:ProjectionMapping` mnemomorphic `=` cells / `logic:Correspondence` lenses /
+//! validated grounding frontends) rather than hand-authored (`gmeow:TermEquivalence` rows /
+//! hand-authored `dc:` alignments). These
 //! tests pin the metric on purpose-built slice fixtures: a fully-calculus slice scores 1.0, a
 //! hand-authored `dc:` slice scores below 1.0 with an advisory naming the record, and a slice
 //! with no calculus-eligible surface is vacuous (a neutral 1.0 that says so).
@@ -189,27 +190,51 @@ fn identity_hand_authored_term_equivalence_is_a_migration_target() {
 }
 
 #[test]
-fn identity_grounding_frontend_cell_is_already_calculus_routed() {
-    // Grounding correspondences are authored as dual-typed TermEquivalence frontend
-    // cells. The compiler turns this marker + its three mandatory judgments into the
-    // typed correspondence IR, so the authored surface is adoption rather than debt.
+fn validated_grounding_term_equivalence_is_calculus_routed() {
     let mappings = format!(
         "{PREFIXES}\n\
-         gmeow:eqGrounding a gmeow:TermEquivalence, logic:GroundingCorrespondence ;\n\
-            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate skos:exactMatch ;\n\
+         gmeow:eqThing a gmeow:TermEquivalence, logic:GroundingCorrespondence ;\n\
+            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate owl:equivalentClass ;\n\
             gmeow:alignObject schema:Thing ;\n\
+            gmeow:sssomFile \"grounding.sssom.tsv\" ;\n\
+            gmeow:justification semapv:ManualMappingCuration ;\n\
+            logic:sourceEndpoint gmeow:Thing ; logic:targetEndpoint schema:Thing ;\n\
             logic:morphismClass logic:WellBehavedLens ;\n\
             logic:morphismKind logic:InstitutionMorphism ;\n\
             logic:preservationKind logic:SoundUnderApproximation .\n"
     );
     let f = Fixture::new("grounding", &mappings);
     let r = f.score();
-    assert_eq!(r.score, 1.0, "the grounding frontend is calculus-routed");
+    assert_eq!(
+        r.score, 1.0,
+        "a complete grounding frontend is calculus-routed"
+    );
     assert!(
-        !r.codes
-            .iter()
-            .any(|code| code == "slice-quality.linkage.uncalculated-correspondence"),
-        "an explicitly routed grounding cell is not legacy debt"
+        r.messages.is_empty(),
+        "no migration debt remains: {:?}",
+        r.messages
+    );
+}
+
+#[test]
+fn malformed_grounding_marker_remains_legacy_debt() {
+    let mappings = format!(
+        "{PREFIXES}\n\
+         gmeow:eqThing a gmeow:TermEquivalence, logic:GroundingCorrespondence ;\n\
+            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate owl:equivalentClass ;\n\
+            gmeow:alignObject schema:Thing ;\n\
+            gmeow:justification semapv:ManualMappingCuration .\n"
+    );
+    let f = Fixture::new("malformed-grounding", &mappings);
+    let r = f.score();
+    assert_eq!(
+        r.score, 0.0,
+        "a type marker alone grants no calculus credit"
+    );
+    assert!(
+        r.messages.iter().any(|message| message.contains("eqThing")),
+        "the incomplete cell remains named debt: {:?}",
+        r.messages
     );
 }
 

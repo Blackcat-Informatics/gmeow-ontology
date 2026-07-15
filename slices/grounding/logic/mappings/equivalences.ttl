@@ -16,23 +16,29 @@
 # refusals (dialects, cl-imports, sequence markers) are recorded on
 # gmeow:mapsetCommonLogic in dsl/mappings/mapping-sets.ttl.
 
-gmeow:eqCommonLogic001 a gmeow:TermEquivalence ;
+gmeow:eqCommonLogic001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:CommonLogicProjection ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q5153563 ;
+    logic:sourceEndpoint logic:CommonLogicProjection ; logic:targetEndpoint wd:Q5153563 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:comment "logic:CommonLogicProjection is the projection target that renders an answer onto the ISO/IEC 24707 Common Logic surface; wd:Q5153563 (Common Logic) is the framework it targets. closeMatch, not equivalence: the projection target is a standing rendering request over the canonical logic: IR, not the CL framework itself." ;
-    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" .
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqCommonLogic002 a gmeow:TermEquivalence ;
+gmeow:eqCommonLogic002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:Module ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wd:Q5153563 ;
+    logic:sourceEndpoint logic:Module ; logic:targetEndpoint wd:Q5153563 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
     gmeow:comment "logic:Module is the Common Logic theory/module construct onto which the ingested and emitted CLIF, CGIF, and XCL (module …) and (cl-imports …) forms map; relatedMatch to wd:Q5153563 (Common Logic) — a component construct of the framework, not the framework as a whole. No stable external entity names a CL module/text on its own." ;
-    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" .
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # External correctness-corpus verdict alignment: the community-decided ground-truth
 # vocabularies the external corpora carry are subsumed by reference (Principle 5 — real
@@ -46,42 +52,54 @@ gmeow:eqCommonLogic002 a gmeow:TermEquivalence ;
 # refusal and licence note are recorded on gmeow:mapsetConformanceCorpus in
 # dsl/mappings/mapping-sets.ttl.
 
-gmeow:eqConfCorpus001 a gmeow:TermEquivalence ;
+gmeow:eqConfCorpus001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:ConfInconsistent ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> ;
+    logic:sourceEndpoint logic:ConfInconsistent ; logic:targetEndpoint <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "PositiveEntailment" ;
     gmeow:comment "The W3C «PositiveEntailment» test kind: the conclusion IS entailed by the premises. Its community-decided ground-truth outcome is logic:ConfInconsistent (the negated-conclusion reduction is unsatisfiable). closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqConfCorpus002 a gmeow:TermEquivalence ;
+gmeow:eqConfCorpus002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:ConfConsistent ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> ;
+    logic:sourceEndpoint logic:ConfConsistent ; logic:targetEndpoint <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "NegativeEntailment" ;
     gmeow:comment "The W3C «NegativeEntailment» test kind: the conclusion is NOT entailed. Its ground-truth outcome is logic:ConfConsistent (a counter-model exists). closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqConfCorpus003 a gmeow:TermEquivalence ;
+gmeow:eqConfCorpus003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:ConfInconsistent ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> ;
+    logic:sourceEndpoint logic:ConfInconsistent ; logic:targetEndpoint <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "InconsistencyTest" ;
     gmeow:comment "The OWL «InconsistencyTest» test kind: the ontology is expected to be inconsistent. Its ground-truth outcome is logic:ConfInconsistent. closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqConfCorpus004 a gmeow:TermEquivalence ;
+gmeow:eqConfCorpus004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:ConfConsistent ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> ;
+    logic:sourceEndpoint logic:ConfConsistent ; logic:targetEndpoint <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "ConsistencyTest" ;
     gmeow:comment "The OWL «ConsistencyTest» test kind: the ontology is expected to be consistent. Its ground-truth outcome is logic:ConfConsistent. closeMatch — a test classification, not a verdict value." ;
-    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

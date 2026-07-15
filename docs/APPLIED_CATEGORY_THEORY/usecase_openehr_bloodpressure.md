@@ -65,12 +65,20 @@ The canonical object is **not** a flat `{systolic: 1.0}`. It is the YAMATO quali
     gmeow:observedAt       "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
     gmeow:observationResult :meas1 ;
     gmeow:committer        :practitionerX ;     # == composer
-    logic:accordingTo      :clinicStandpointDE .
+    gmeow:accordingTo      :clinicStandpointDE .
+
+# --- The measured dimension: pressure = M·L⁻¹·T⁻², grounded structurally in math: ---
+:pressureDimension a math:DerivedDimension ;
+    math:baseDimensionExponent
+        [ a math:DimensionExponent ; math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ; math:exponentNumerator -1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ] .
 
 # --- The measurement: YAMATO unit-independent true quantity vs the framed measured value (P11) ---
-:meas1 a gmeow:Quantity ;                       # the framed measured value (the observation's result-wrapper)
+:meas1 a math:Quantity ;                       # the framed measured value (the observation's result-wrapper)
     gmeow:trueQuantity     [ a gmeow:Magnitude ; gmeow:dimension gmeow:pressure ] ;  # frame-independent magnitude (⊑ logic:trueQuantity)
-    gmeow:quantityValue    1.0 ;
+    math:hasDimension     :pressureDimension ; # M·L⁻¹·T⁻², carried explicitly in the math grounding
+    math:quantityValue    1.0 ;
     gmeow:unit             qudt:MilliM_HG ;     # the unit belongs to the measured value, by reference (QUDT)
     gmeow:hasReferenceFrame :clinicFrameDE .    # the frame; a value without its frame is ill-formed (P11)
 

@@ -182,7 +182,7 @@ class Contribution(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     contributionRole: list[ContributionRoleEnum] | None = Field(default=None, description="The role the contributor played in this Contribution — a value from the open gmeow:ContributionRole vocabulary. Functional per relator: one role per Contribution.", alias="gmeow:contributionRole")
-    contributionTarget: list[str] | None = Field(default=None, description="The creative-work target of this Contribution — a Work, Expression, Manifestation, or Item. Functional per relator: one target per Contribution.", alias="gmeow:contributionTarget")
+    contributionTarget: list[str] | None = Field(default=None, description="Within gmeow:Contribution, values are node references constrained to gmeow:CreativeWork. The creative-work target of this Contribution — a Work, Expression, Manifestation, or Item. Functional per relator: one target per Contribution.", alias="gmeow:contributionTarget")
     contributor: list[Agent] | None = Field(default=None, description="The agent that contributed to the target in this Contribution. Functional per relator: one contributor per Contribution.", alias="gmeow:contributor")
 
 
@@ -232,8 +232,8 @@ class CreativeDerivation(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    derivationProduct: list[str] | None = Field(default=None, description="The product creative work that was derived from the source. Functional per relator: one product per CreativeDerivation.", alias="gmeow:derivationProduct")
-    derivationSource: list[str] | None = Field(default=None, description="The source creative work from which the derivation product was derived. Functional per relator: one source per CreativeDerivation.", alias="gmeow:derivationSource")
+    derivationProduct: list[str] | None = Field(default=None, description="Within gmeow:CreativeDerivation, values are node references constrained to gmeow:CreativeWork. The product creative work that was derived from the source. Functional per relator: one product per CreativeDerivation.", alias="gmeow:derivationProduct")
+    derivationSource: list[str] | None = Field(default=None, description="Within gmeow:CreativeDerivation, values are node references constrained to gmeow:CreativeWork. The source creative work from which the derivation product was derived. Functional per relator: one source per CreativeDerivation.", alias="gmeow:derivationSource")
     derivationType: list[DerivationTypeEnum] | None = Field(default=None, description="The kind(s) of derivation relating source and product — cover, remix, sample, arrangement, etc. Non-functional: a single derivation may combine types (e.g. a sampled cover).", alias="gmeow:derivationType")
 
 
