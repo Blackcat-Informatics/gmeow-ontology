@@ -181,7 +181,7 @@ gmeow:groundingExemplar
     a gmeow:GroundingAttribute ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "exemplar grounding"@x-gmeow-english ;
-    skos:definition "The grounding attribute for a term offered as a same-slice exemplar coat that passed the quality gates — a worked model an author can imitate."@x-gmeow-english ;
+    skos:definition "The grounding attribute for a term offered as a same-slice exemplar coat that passed the SHACL validation gate — a worked model an author can imitate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # Authoring-packet properties (RBox)
@@ -202,7 +202,7 @@ gmeow:packetAxis
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "packet axis"@x-gmeow-english ;
-    skos:definition "The subdomain axis a packet is partitioned along — the local name of the grouping used to select which of a slice's terms this packet covers. Under the interim partition it filters the slice's sorted term set before batching; absent means the whole slice. It names the subdomain partition a packet is scoped to, not the ordinal chunk within that partition — that ordinal is gmeow:packetBatch."@x-gmeow-english ;
+    skos:definition "The subdomain axis a packet is partitioned along — the local name of the grouping used to select which of a slice's terms this packet covers. Under the deterministic partition it filters the slice's sorted term set before batching; absent means the whole slice. It names the subdomain partition a packet is scoped to, not the ordinal chunk within that partition — that ordinal is gmeow:packetBatch."@x-gmeow-english ;
     skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetAxis \"inference\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -212,7 +212,7 @@ gmeow:packetBatch
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "packet batch"@x-gmeow-english ;
-    skos:definition "The zero-based index of the ~25-term chunk this packet covers within its axis's sorted term set, under the interim deterministic partition. It is the ordinal position of a chunk within its axis, not the axis label itself (gmeow:packetAxis), and is meaningful only against that axis's sorted term set."@x-gmeow-english ;
+    skos:definition "The zero-based index of the ~25-term chunk this packet covers within its axis's sorted term set, under the deterministic partition. It is the ordinal position of a chunk within its axis, not the axis label itself (gmeow:packetAxis), and is meaningful only against that axis's sorted term set."@x-gmeow-english ;
     skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetBatch 0 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -242,7 +242,7 @@ gmeow:packetExemplar
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "packet exemplar"@x-gmeow-english ;
-    skos:definition "Relates a packet to a same-slice term offered as an exemplar coat that passed the quality gates — a worked model for the author to imitate. Non-functional: a packet offers a small handful of exemplars. An exemplar is a passing model held up for imitation, not necessarily one of the batch's covered terms under review — the two roles are named separately (gmeow:packetCoversTerm)."@x-gmeow-english ;
+    skos:definition "Relates a packet to a same-slice term offered as an exemplar coat that passed the SHACL validation gate — a worked model for the author to imitate. Non-functional: a packet offers a small handful of exemplars. An exemplar is a passing model held up for imitation, not necessarily one of the batch's covered terms under review — the two roles are named separately (gmeow:packetCoversTerm)."@x-gmeow-english ;
     skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetExemplar logic:ModusPonens ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

@@ -23,7 +23,7 @@
 //! [`assemble_packet`] is the single canonical entry point, designed for both the
 //! pipeline stage and the `gmeow slice brief` CLI to call.
 //!
-//! ## Partition rule (interim, deterministic)
+//! ## Partition rule (deterministic)
 //! The slice's defined terms (subjects with `rdfs:isDefinedBy` the slice IRI) are
 //! sorted ascending by IRI string. `axis` filters to the terms whose **local name
 //! starts with** the axis string. `batch N` selects the `N`-th 25-term chunk of the

@@ -80,7 +80,7 @@ const COAT_PREDICATES: [&str; 6] = [
 /// GATED by SHACL per-term conformance (a term is eligible iff it passed the
 /// validation gate — no `sh:Violation`-severity result names it as focus node) and
 /// ORDERED by coat completeness. A term with any shape violation is rank `0` and is
-/// never surfaced: exemplars are coats that "passed the quality gates".
+/// never surfaced: exemplars are coats that passed the SHACL validation gate.
 pub struct BriefInputs<'a> {
     /// The slice directory (holding `manifest.ttl`, `module.ttl`, …).
     pub slice_dir: &'a Path,
