@@ -359,8 +359,17 @@ pub fn materialize_program_source(
     worlds.sort();
     worlds.dedup();
     let store = crate::store::WorldStore::new();
+    let mut source_provenance = std::collections::BTreeMap::new();
     for world in &worlds {
         crate::physical::visit_edb_patterns(source, world, &patterns, &mut |quad| {
+            source_provenance
+                .entry((
+                    quad.graph.clone(),
+                    quad.subject.clone(),
+                    quad.predicate.clone(),
+                    quad.object.clone(),
+                ))
+                .or_insert_with(|| quad.clone());
             store.insert_quad_terms(
                 world,
                 quad.subject.clone(),
@@ -370,7 +379,18 @@ pub fn materialize_program_source(
         })
         .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
     }
-    materialize_program_store(program, &store, limits, declared_profile)
+    let mut materialization = materialize_program_store(program, &store, limits, declared_profile)?;
+    for quad in &mut materialization.quads {
+        if let Some(source_quad) = source_provenance.get(&(
+            quad.graph.clone(),
+            quad.subject.clone(),
+            quad.predicate.clone(),
+            quad.object.clone(),
+        )) {
+            *quad = source_quad.clone();
+        }
+    }
+    Ok(materialization)
 }
 
 /// Materialize directly from an infallible resident or succinct-pack RDF view.

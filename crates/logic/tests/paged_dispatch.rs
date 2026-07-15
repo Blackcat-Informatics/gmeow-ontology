@@ -13,10 +13,14 @@ use gmeow_logic::dispatch::{
 };
 use gmeow_logic::materialize::{
     MaterializationLimits, materialize_program, materialize_program_fallible_view,
+    materialize_program_source,
 };
 use gmeow_logic::provenance::ZWeightSemiring;
 use gmeow_logic::query_ir::{Budget, parse_query_program};
-use gmeow_logic::seam::{RdfViewFactSource, WorldFactSource, WorldSourceIdentity};
+use gmeow_logic::seam::{
+    BudgetStatus, DerivationId, DerivationRecord, DerivedQuad, RdfViewFactSource, WorldFactPattern,
+    WorldFactSource, WorldSourceIdentity,
+};
 use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use purrdf::ir::{CountingDemandProvider, InMemoryPageProvider};
 use purrdf::{
@@ -399,18 +403,12 @@ fn selected_materialization_matches_resident_semantics_without_noise_page() {
     let whole = materialize_program(&program, &resident, MaterializationLimits::default(), None)
         .expect("resident whole materialization");
 
-    let relevant = |rows: &[gmeow_logic::seam::DerivedQuad]| {
+    let relevant = |rows: &[DerivedQuad]| {
         rows.iter()
             .filter(|row| {
                 row.predicate == format!("{EX}edge") || row.predicate == format!("{EX}reach")
             })
-            .map(|row| {
-                (
-                    gmeow_logic::provenance::term_display(&row.subject),
-                    row.predicate.clone(),
-                    gmeow_logic::provenance::term_display(&row.object),
-                )
-            })
+            .cloned()
             .collect::<Vec<_>>()
     };
     assert_eq!(
@@ -669,6 +667,22 @@ fn rdf12_triple_terms_reifiers_annotations_and_provenance_cross_the_view_seam() 
     assert_eq!(mentions[0].source_quad_ids.len(), 1);
     assert!(mentions[0].source_quad_ids[0].contains("/reifier/"));
 
+    let lineage = source
+        .derived_by(None, None, None)
+        .expect("owned view provenance scan");
+    assert_eq!(lineage.len(), 3);
+    for row in source
+        .in_world(WORLD, None, None, None)
+        .expect("scan primary and virtual RDF 1.2 rows")
+    {
+        assert_eq!(
+            source
+                .derived_by(Some(&row.derivation_id), None, Some(&row.source_quad_ids))
+                .expect("lookup explicit reifier lineage"),
+            vec![(row.derivation_id, row.rule_iri, row.source_quad_ids)]
+        );
+    }
+
     for (predicate, expected_kind) in [
         (
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
@@ -693,4 +707,96 @@ fn rdf12_triple_terms_reifiers_annotations_and_provenance_cross_the_view_seam() 
             "{expected_kind} virtual quad must be queryable"
         );
     }
+}
+
+struct ProvenanceSource {
+    row: DerivedQuad,
+    identity: WorldSourceIdentity,
+}
+
+impl WorldFactSource for ProvenanceSource {
+    fn identity(&self) -> &WorldSourceIdentity {
+        &self.identity
+    }
+
+    fn visit_world(
+        &self,
+        world: &str,
+        pattern: &WorldFactPattern,
+        visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+    ) -> gmeow_errors::Result<()> {
+        if self.row.graph == world
+            && pattern
+                .subject
+                .as_ref()
+                .is_none_or(|subject| subject == &self.row.subject)
+            && pattern
+                .predicate
+                .as_ref()
+                .is_none_or(|predicate| predicate == &self.row.predicate)
+            && pattern
+                .object
+                .as_ref()
+                .is_none_or(|object| object == &self.row.object)
+        {
+            visitor(&self.row)?;
+        }
+        Ok(())
+    }
+
+    fn derived_by(
+        &self,
+        quad_id: Option<&DerivationId>,
+        rule: Option<&str>,
+        sources: Option<&[String]>,
+    ) -> gmeow_errors::Result<Vec<DerivationRecord>> {
+        if quad_id.is_none_or(|candidate| candidate == &self.row.derivation_id)
+            && rule.is_none_or(|candidate| candidate == self.row.rule_iri)
+            && sources.is_none_or(|candidate| candidate == self.row.source_quad_ids)
+        {
+            return Ok(vec![(
+                self.row.derivation_id.clone(),
+                self.row.rule_iri.clone(),
+                self.row.source_quad_ids.clone(),
+            )]);
+        }
+        Ok(Vec::new())
+    }
+}
+
+#[test]
+fn selected_materialization_preserves_source_provenance_exactly() {
+    let source_row = DerivedQuad {
+        graph: WORLD.to_owned(),
+        subject: purrdf::TermValue::iri(format!("{EX}a")),
+        predicate: format!("{EX}edge"),
+        object: purrdf::TermValue::iri(format!("{EX}b")),
+        graph_component: WORLD.to_owned(),
+        derivation_id: DerivationId(format!("{EX}derivation/source")),
+        rule_iri: format!("{EX}rule/import"),
+        source_quad_ids: vec![format!("{EX}statement/source")],
+        profile: format!("{EX}profile/source"),
+        budget_status: BudgetStatus::Partial,
+    };
+    let source = ProvenanceSource {
+        row: source_row.clone(),
+        identity: identity(26),
+    };
+    let materialized = materialize_program_source(
+        &ground_forward_program(),
+        &source,
+        &[WORLD.to_owned()],
+        MaterializationLimits::default(),
+        None,
+    )
+    .expect("selected source materialization");
+
+    assert_eq!(
+        materialized
+            .quads
+            .iter()
+            .find(|row| row.predicate == source_row.predicate)
+            .expect("source row survives materialization"),
+        &source_row
+    );
 }

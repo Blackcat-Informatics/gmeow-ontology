@@ -1418,6 +1418,30 @@ mod tests {
             }
             Ok(())
         }
+
+        fn derived_by(
+            &self,
+            quad_id: Option<&DerivationId>,
+            rule: Option<&str>,
+            sources: Option<&[String]>,
+        ) -> gmeow_errors::Result<Vec<crate::seam::DerivationRecord>> {
+            Ok(self
+                .quads
+                .iter()
+                .filter(|quad| {
+                    quad_id.is_none_or(|candidate| candidate == &quad.derivation_id)
+                        && rule.is_none_or(|candidate| candidate == quad.rule_iri)
+                        && sources.is_none_or(|candidate| candidate == quad.source_quad_ids)
+                })
+                .map(|quad| {
+                    (
+                        quad.derivation_id.clone(),
+                        quad.rule_iri.clone(),
+                        quad.source_quad_ids.clone(),
+                    )
+                })
+                .collect())
+        }
     }
 
     #[test]
