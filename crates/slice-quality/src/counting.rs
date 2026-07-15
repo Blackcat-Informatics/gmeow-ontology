@@ -46,14 +46,24 @@ pub const SH_PATH: &str = "http://www.w3.org/ns/shacl#path";
 pub const SH_SPARQL: &str = "http://www.w3.org/ns/shacl#sparql";
 /// SHACL `sh:rule` predicate — a SHACL rule.
 pub const SH_RULE: &str = "http://www.w3.org/ns/shacl#rule";
+/// SHACL `sh:property` predicate — its OBJECT is a (usually anonymous) property
+/// shape carrying constraint obligations, counted as a construct so that adding a
+/// nested obligation block to an existing shape is not free.
+pub const SH_PROPERTY: &str = "http://www.w3.org/ns/shacl#property";
+/// SHACL `sh:node` predicate — its OBJECT is a nested node shape, counted for the
+/// same reason as `sh:property`.
+pub const SH_NODE: &str = "http://www.w3.org/ns/shacl#node";
 /// The `logic:formalizes` back-reference predicate — a construct naming the
-/// `logic:` axiom it was derived from.
+/// `logic:` axiom it was derived from. This is the SOLE grounding back-reference
+/// predicate: `logic:grounds` was a phantom (defined nowhere) and is gone.
 pub const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
-/// The `logic:grounds` back-reference predicate — the inverse-direction sibling of
-/// `logic:formalizes` some producers author instead.
-pub const LOGIC_GROUNDS: &str = "https://blackcatinformatics.ca/logic/grounds";
-/// The `logic:` core namespace — every guarded vocab's `subsumed_by` witness.
+/// The `logic:` core namespace — every guarded vocab's `subsumed_by` witness, and
+/// (per [`resolvable_grounding`]) the namespace an appropriately-typed grounding
+/// target's `rdf:type` must fall in.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// `owl:AllDisjointClasses` — the one non-`logic:`-namespaced grounding-target type
+/// (a named disjointness axiom a shape may formalize).
+const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
 
 /// The enumeration scope [`enumerate`] runs at.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -126,25 +136,39 @@ fn subjects_of(ds: &RdfDataset, pred_iri: &str) -> Vec<TermId> {
         .collect()
 }
 
-/// RESOLVABLE grounding: `subject` carries a `logic:formalizes`/`logic:grounds`
-/// back-reference AND the referenced object IRI appears as the subject of at least
-/// one triple in `ds`. A dangling back-reference (the object is never itself a
-/// subject) does NOT ground — otherwise a migration could be faked with a
-/// rubber-stamped triple to nowhere (back-ref integrity).
+/// Every object of `pred_iri` that is an IRI or blank node (the nested shape a
+/// `sh:property`/`sh:node` obligation points at). Literal objects are skipped —
+/// only a shape node is a construct.
+fn objects_of(ds: &RdfDataset, pred_iri: &str) -> Vec<TermId> {
+    let Some(pred_id) = id(ds, pred_iri) else {
+        return Vec::new();
+    };
+    ds.quads_for_pattern(None, Some(pred_id), None, GraphMatch::Any)
+        .filter(|q| matches!(ds.resolve(q.o), TermRef::Iri(_) | TermRef::Blank { .. }))
+        .map(|q| q.o)
+        .collect()
+}
+
+/// RESOLVABLE grounding: `subject` carries a `logic:formalizes` back-reference to a
+/// target that is an APPROPRIATELY TYPED grounding construct — one whose `rdf:type`
+/// is a `logic:` axiom class (`logic:Formula`/`logic:Rule`/`logic:*Assertion`, i.e.
+/// any type in the `logic:` namespace) or the named `owl:AllDisjointClasses`
+/// disjointness axiom. Merely being the subject of *some* triple no longer grounds a
+/// construct: a back-reference to an untyped or non-axiom target (a rubber-stamp to a
+/// domain term, or to nowhere) does NOT ground, so a migration cannot be faked. The
+/// direction follows the `logic:formalizes` contract (the projection construct is the
+/// subject, the axiom it re-encodes is the object); the phantom `logic:grounds` — a
+/// predicate the ontology never defined — is gone.
 fn resolvable_grounding(ds: &RdfDataset, subject: TermId) -> bool {
-    for pred_iri in [LOGIC_FORMALIZES, LOGIC_GROUNDS] {
-        let Some(pred_id) = id(ds, pred_iri) else {
-            continue;
+    let (Some(formalizes_p), Some(type_p)) = (id(ds, LOGIC_FORMALIZES), id(ds, RDF_TYPE)) else {
+        return false;
+    };
+    for target_iri in all_iris(ds, subject, formalizes_p) {
+        let Some(target_id) = id(ds, &target_iri) else {
+            continue; // the target IRI never appears in ds at all → dangling
         };
-        for target_iri in all_iris(ds, subject, pred_id) {
-            let Some(target_id) = id(ds, &target_iri) else {
-                continue; // never appears as any term in ds at all → dangling
-            };
-            let resolves = ds
-                .quads_for_pattern(Some(target_id), None, None, GraphMatch::Any)
-                .next()
-                .is_some();
-            if resolves {
+        for type_iri in all_iris(ds, target_id, type_p) {
+            if type_iri.starts_with(LOGIC_NS) || type_iri == OWL_ALL_DISJOINT_CLASSES {
                 return true;
             }
         }
@@ -271,6 +295,12 @@ fn enumerate_shape(ds: &RdfDataset, mode: CountMode) -> Vec<Construct> {
             node_ids.extend(subjects_of(ds, SH_PATH));
             node_ids.extend(subjects_of(ds, SH_SPARQL));
             node_ids.extend(subjects_of(ds, SH_RULE));
+            // The OBJECT of sh:property / sh:node is a nested obligation-carrying
+            // shape — count it too, so bolting an extra sh:property block onto an
+            // existing shape is not a free constraint (docs §2 "count obligations,
+            // not only shape roots").
+            node_ids.extend(objects_of(ds, SH_PROPERTY));
+            node_ids.extend(objects_of(ds, SH_NODE));
             // Dedup on the interned `TermId` itself — one dataset resolves each
             // distinct term to exactly one `TermId`, so this is equivalent to the
             // former dedup-by-formatted-key but skips formatting every candidate
@@ -444,10 +474,39 @@ mod tests {
 
     #[test]
     fn grounded_shape_not_counted_in_residue() {
+        // The grounding target is a real logic: axiom construct (logic:Formula is in
+        // the logic: namespace), so the shape is grounded and subtracted.
         let ds = ds_of(
             r#"
-            gmeow:S a sh:NodeShape ; logic:formalizes logic:Obligation .
-            logic:Obligation a owl:Class .
+            gmeow:S a sh:NodeShape ; logic:formalizes logic:disjointGoals .
+            logic:disjointGoals a logic:Formula .
+            "#,
+        );
+        assert_eq!(residue(&ds, &shacl_vocab()), 0);
+    }
+
+    #[test]
+    fn back_ref_to_non_axiom_target_still_counts() {
+        // logic:formalizes points at a target typed owl:Class — a plain class
+        // declaration, NOT a logic: axiom / owl:AllDisjointClasses. Under the tightened
+        // typed-grounding contract this does NOT ground the shape, so it is counted.
+        let ds = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ; logic:formalizes gmeow:Goal .
+            gmeow:Goal a owl:Class .
+            "#,
+        );
+        assert_eq!(residue(&ds, &shacl_vocab()), 1);
+    }
+
+    #[test]
+    fn back_ref_to_named_disjointness_axiom_grounds() {
+        // A shape may formalize a named owl:AllDisjointClasses axiom (the one
+        // non-logic:-namespaced grounding-target type) — grounded, not counted.
+        let ds = ds_of(
+            r#"
+            gmeow:S a sh:NodeShape ; logic:formalizes gmeow:identityDisjointness .
+            gmeow:identityDisjointness a owl:AllDisjointClasses .
             "#,
         );
         assert_eq!(residue(&ds, &shacl_vocab()), 0);
