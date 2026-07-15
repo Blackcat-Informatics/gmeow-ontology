@@ -383,6 +383,28 @@ ex:ecBindingScoped a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:BindingExpression with a bound math:VariableDeclaration, an indexed math:ArgumentSlot, and a math:VariableOccurrence resolving to the declaration satisfies math:BindingExpressionShape, math:ArgumentSlotShape, and math:VariableOccurrenceShape and validates with no findings." .
 
+ex:ecArgumentSlotsContiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/argument-slots-contiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An application with unique, non-negative math:slotIndex values 0, 1, and 2 satisfies the strict predecessor rule projected from math:ArgumentSlotContiguityConstraint and validates with no findings." .
+
+ex:ecArgumentSlotsNoncontiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slots-noncontiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The slot family has unique, non-negative indexes 0 and 2 but no sibling at predecessor index 1, so math:ArgumentSlotContiguityConstraint MUST emit exactly one shacl.SPARQLConstraintComponent finding (math:NonContiguousArgumentSlots)." .
+
+ex:ecSymbolReferenceResolved a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/symbol-reference-resolved.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:SymbolReference resolving through exactly one math:hasMathematicalSymbol edge to a math:MathematicalSymbol satisfies the reference-leaf contract and validates with no findings." .
+
+ex:ecSymbolReferenceUnresolved a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/symbol-reference-unresolved.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The math:SymbolReference has no math:hasMathematicalSymbol value of class math:MathematicalSymbol, so the exact-one typed minimum MUST emit exactly one shacl.QualifiedMinCountConstraintComponent finding (math:UnresolvedSymbolReference)." .
+
 ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -638,7 +660,7 @@ ex:ecEmbeddingMissingModel a gmeow:ExampleConformance ;
 ex:ecPersistenceCalibratedEmbedding a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/persistence-calibrated-embedding.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:Filtration over an embedded image declaring four math:FiltrationStages (each with a math:filtrationThreshold gmeow:Quantity and a math:TopologicalSpace math:stageStructure, nested under math:subsetOf), two math:PersistenceLifetimes exercising both a finite math:diesAt and math:diesAt math:PositiveInfinity, and a math:StabilityCalibrationRecord naming its math:calibrationEvidence, math:persistenceDerivedCredence, and math:bottleneckStabilityTheorem, with the credence landing as logic:confidence on a math:ResidualInterpretationClaim — satisfies math:FiltrationShape, math:FiltrationStageShape, math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape, math:EmbeddingShape, math:ResidualInterpretationClaimShape, and the inherited math:AlgebraicStructureShape frames, and validates with no findings." .
+    gmeow:conformanceRationale "A math:Filtration over an embedded image declaring four math:FiltrationStages (each with a math:filtrationThreshold math:Quantity and a math:TopologicalSpace math:stageStructure, nested under math:subsetOf), two math:PersistenceLifetimes exercising both a finite math:diesAt and math:diesAt math:PositiveInfinity, and a math:StabilityCalibrationRecord naming its math:calibrationEvidence, math:persistenceDerivedCredence, and math:bottleneckStabilityTheorem, with the credence landing as logic:confidence on a math:ResidualInterpretationClaim — satisfies math:FiltrationShape, math:FiltrationStageShape, math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape, math:EmbeddingShape, math:ResidualInterpretationClaimShape, and the inherited math:AlgebraicStructureShape frames, and validates with no findings." .
 
 ex:ecFiltrationNoStages a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/filtration-no-stages.ttl" ;
@@ -979,7 +1001,7 @@ ex:ecProbabilityValueAboveUnitBad a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/probability-value-above-unit.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a framed math:ProbabilityValue whose gmeow:quantityValue (1.5) exceeds the closed unit interval's sh:maxInclusive 1 on math:ProbabilityValueRangeShape, so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding — the frame keeps math:ProbabilityValueFramedShape satisfied (math:ProbabilityOutOfBounds)." .
+    gmeow:conformanceRationale "The counter-example is a framed math:ProbabilityValue whose math:quantityValue (1.5) exceeds the closed unit interval's sh:maxInclusive 1 on math:ProbabilityValueRangeShape, so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding — the frame keeps math:ProbabilityValueFramedShape satisfied (math:ProbabilityOutOfBounds)." .
 
 # === Rule P2: a probability value is never also an odds or log-odds value === #
 

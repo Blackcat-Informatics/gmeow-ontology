@@ -6,7 +6,7 @@
 # is NOT typed math:ProbabilityValue, and which recovers its probability through a declared
 # math:ProbabilityScaleTransform rather than being conflated with it. Because it is not a
 # math:ProbabilityValue it faces none of the probability-value gates, and math:OddsValue
-# (a gmeow:Quantity) carries no math: target shape. It MUST raise NO probability failure class.
+# (a math:Quantity) carries no math: target shape. It MUST raise NO probability failure class.
 # Positive counterpart of counter-examples/probability-scale-conflation.ttl.
 # Bound by tests/example-conformance.ttl (ex:ecOddsValueDistinct).
 @prefix math:  <https://blackcatinformatics.ca/math/> .
@@ -15,7 +15,7 @@
 @prefix ex:    <http://example.org/math/> .
 
 ex:threeToOneOdds a math:OddsValue ;
-    gmeow:quantityValue "3.0"^^xsd:decimal ;
+    math:quantityValue "3.0"^^xsd:decimal ;
     gmeow:hasReferenceFrame ex:forecastFrame .
 
 # The scale recovers its probability by a DECLARED transform, never by being typed a probability.
@@ -28,3 +28,5 @@ ex:threeQuartersProbability a math:ProbabilityValue , math:RationalValue ;
     gmeow:hasReferenceFrame ex:forecastFrame .
 
 ex:forecastFrame a gmeow:ReferenceFrame .
+<http://example.org/math/threeQuartersProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/threeToOneOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

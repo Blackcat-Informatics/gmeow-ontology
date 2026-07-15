@@ -19,3 +19,4 @@ ex:calibratedProbability a math:ProbabilityValue ;
     logic:probabilityModel ex:logisticCalibrationModel .
 
 ex:logisticCalibrationModel a math:MathematicalObject .
+<http://example.org/math/calibratedProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

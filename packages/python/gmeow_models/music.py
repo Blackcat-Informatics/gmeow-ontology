@@ -339,8 +339,8 @@ class DegreeOfFreedom(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     dofConstraintFunction: Any | None = Field(default=None, description="An optional FnO function reference that evaluates or validates the constraint text (Principle 12).", alias="gmeow:dofConstraintFunction")
     dofExpression: Any | None = Field(default=None, description="The Expression whose parameter determination this DegreeOfFreedom declares. Exactly one of dofWork or dofExpression is required per relator; SHACL enforces the XOR.", alias="gmeow:dofExpression")
-    dofParameter: str = Field(description="The musical parameter whose determination status is declared (pitch, duration, order, tempo, dynamics, timbre, instrumentation, performer count, sound content, location, tacet, etc.).", alias="gmeow:dofParameter")
-    dofStatus: str = Field(description="The determination status of the parameter in this DegreeOfFreedom relator.", alias="gmeow:dofStatus")
+    dofParameter: str = Field(description="Within gmeow:DegreeOfFreedom, values are node references constrained to gmeow:MusicalParameter. The musical parameter whose determination status is declared (pitch, duration, order, tempo, dynamics, timbre, instrumentation, performer count, sound content, location, tacet, etc.).", alias="gmeow:dofParameter")
+    dofStatus: str = Field(description="Within gmeow:DegreeOfFreedom, values are node references constrained to gmeow:DeterminationStatus. The determination status of the parameter in this DegreeOfFreedom relator.", alias="gmeow:dofStatus")
     dofWork: Any | None = Field(default=None, description="The Work whose parameter determination this DegreeOfFreedom declares. Exactly one of dofWork or dofExpression is required per relator; SHACL enforces the XOR (Principle 4).", alias="gmeow:dofWork")
 
 
@@ -372,7 +372,7 @@ class GenerativeProcess(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     processFunction: Any | None = Field(default=None, description="An FnO function reference that realizes the process, e.g. fnRealizePhasing or fnRealizeStochasticProcess (Principle 12).", alias="gmeow:processFunction")
-    processKind: str = Field(description="The kind of generative process (phasing, stochastic, verbal score, rule-based, algorithmic).", alias="gmeow:processKind")
+    processKind: str = Field(description="Within gmeow:GenerativeProcess, values are node references constrained to gmeow:GenerativeProcessKind. The kind of generative process (phasing, stochastic, verbal score, rule-based, algorithmic).", alias="gmeow:processKind")
     processRuleText: list[Any] = Field(min_length=1, description="A human-readable statement of the generative rule (e.g. 'two voices begin in unison; one accelerates by one beat every X measures until re-aligned'). Language-tagged; at most one value per language (Principle 9).", alias="gmeow:processRuleText")
 
 
@@ -437,7 +437,7 @@ class InstrumentConfiguration(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     configurationInstrumentType: Any | None = Field(default=None, description="The kind of instrument this configuration applies to, when no specific item is named (e.g. drop-D electric guitar). Functional per relator.", alias="gmeow:configurationInstrumentType")
     configurationInterval: Any | None = Field(default=None, description="The interval that describes this configuration (e.g. the whole-step drop for drop-D). Functional per relator; optional because some modifications (prepared piano) alter timbre without a named interval.", alias="gmeow:configurationInterval")
-    configurationModification: list[str] = Field(min_length=1, description="A modification applied in this configuration — prepared, scordatura, capo, mute, electrified, extended range, etc. Non-functional so that compound modifications (e.g. muted + electrified) can be asserted in one relator.", alias="gmeow:configurationModification")
+    configurationModification: list[str] = Field(min_length=1, description="Within gmeow:InstrumentConfiguration, values are node references constrained to gmeow:InstrumentModification. A modification applied in this configuration — prepared, scordatura, capo, mute, electrified, extended range, etc. Non-functional so that compound modifications (e.g. muted + electrified) can be asserted in one relator.", alias="gmeow:configurationModification")
     configurationOf: Any | None = Field(default=None, description="The specific instrument item this configuration applies to — a PhysicalObject (e.g. a 1959 Les Paul), an InformationObject (e.g. a synth plugin), or any other Entity. Functional per relator; use configurationInstrumentType when no specific item is named.", alias="gmeow:configurationOf")
     configurationTuningFrame: TuningSystem | None = Field(default=None, description="The tuning frame relative to which this configuration is expressed (Principle 11). Functional per relator.", alias="gmeow:configurationTuningFrame")
 
@@ -725,7 +725,7 @@ class OrnamentProfile(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    ornamentProfileKind: str = Field(description="The kind of ornament profile (gamaka family, baroque agrément, etc.).", alias="gmeow:ornamentProfileKind")
+    ornamentProfileKind: str = Field(description="Within gmeow:OrnamentProfile, values are node references constrained to gmeow:OrnamentProfileKind. The kind of ornament profile (gamaka family, baroque agrément, etc.).", alias="gmeow:ornamentProfileKind")
     ornamentReferenceFrame: Any | None = Field(default=None, description="The tuning system relative to which the ornament profile's pitch gestures are expressed (Principle 11).", alias="gmeow:ornamentReferenceFrame")
 
 
@@ -794,7 +794,7 @@ class PerformanceParticipation(ConfiguredBaseModel):
     participationInstrumentItem: Any | None = Field(default=None, description="The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named drum kit, etc. Ranges over Entity so that any item-kind can be named without minting a new class (instruments and configurations; Principle 9). Functional per relator.", alias="gmeow:participationInstrumentItem")
     participationPart: Any | None = Field(default=None, description="The musical part or role the participant performed — e.g. bass line, lead vocal, first violin. Range intentionally open (the tenurePosition precedent) so a part may be a segment, a voice, a named chair, or any other entity. Functional per relator.", alias="gmeow:participationPart")
     participationParticipant: Entity = Field(description="The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants.", alias="gmeow:participationParticipant")
-    participationRole: str = Field(description="The role(s) the participant played, drawn from the open gmeow:ParticipantRole value vocabulary. NON-FUNCTIONAL — mirroring gmeow:eventType: a participation may bear several roles, and competing standpoint-indexed role claims coexist (accordingTo) rather than contradict (Principle 9). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties.", alias="gmeow:participationRole")
+    participationRole: str = Field(description="Within gmeow:PerformanceParticipation, values are node references constrained to gmeow:ParticipantRole. The role(s) the participant played, drawn from the open gmeow:ParticipantRole value vocabulary. NON-FUNCTIONAL — mirroring gmeow:eventType: a participation may bear several roles, and competing standpoint-indexed role claims coexist (accordingTo) rather than contradict (Principle 9). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties.", alias="gmeow:participationRole")
     participationTechnique: Any | None = Field(default=None, description="The playing technique used in this participation. Functional per relator.", alias="gmeow:participationTechnique")
 
 
@@ -891,7 +891,7 @@ class PitchCollectionMembership(ConfiguredBaseModel):
     membershipCollection: PitchCollection = Field(description="The pitch collection that this membership relator belongs to. Functional per relator: one collection per membership.", alias="gmeow:membershipCollection")
     membershipDegreeIndex: int | None = Field(default=None, description="The zero-based degree index of the member pitch within the collection, when the collection has a conventional ordering (e.g. scale degree 0 = tonic/finalis). Optional.", alias="gmeow:membershipDegreeIndex")
     membershipPitch: PitchValue = Field(description="The pitch value that is a member of the collection in this membership. Functional per relator: one pitch per membership.", alias="gmeow:membershipPitch")
-    membershipRole: str = Field(description="The role the pitch plays in this collection (tonic/finalis, vādī, samvādī, ghammāz, ascent-only, descent-only, ornamental, or generic member). Functional per relator: one role per membership.", alias="gmeow:membershipRole")
+    membershipRole: str = Field(description="Within gmeow:PitchCollectionMembership, values are node references constrained to gmeow:CollectionMemberRole. The role the pitch plays in this collection (tonic/finalis, vādī, samvādī, ghammāz, ascent-only, descent-only, ornamental, or generic member). Functional per relator: one role per membership.", alias="gmeow:membershipRole")
 
 
 class PitchExpression(ConfiguredBaseModel):
@@ -982,7 +982,7 @@ class PitchSpelling(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     spelledName: str = Field(description="The note-name string produced by this spelling, e.g. \"C♯4\", \"Ga\", \"+7\". Functional per relator: one spelled name per spelling.", alias="gmeow:spelledName")
     spellingPitch: PitchValue = Field(description="The frame-relative pitch value that this spelling names. Functional per relator: one pitch per spelling.", alias="gmeow:spellingPitch")
-    spellingSystem: str = Field(description="The pitch spelling system in which the name is expressed (e.g. CMN staff, sargam, Johnston). Functional per relator: one system per spelling.", alias="gmeow:spellingSystem")
+    spellingSystem: str = Field(description="Within gmeow:PitchSpelling, values are node references constrained to gmeow:PitchSpellingSystem. The pitch spelling system in which the name is expressed (e.g. CMN staff, sargam, Johnston). Functional per relator: one system per spelling.", alias="gmeow:spellingSystem")
 
 
 class PitchTrajectory(ConfiguredBaseModel):

@@ -40,10 +40,10 @@ const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 
 /// The named-graph IRIs (mirror `config.GTS_GRAPH_*`).
-const GRAPH_IMPORTS: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
+const GRAPH_IMPORTS: &str = gmeow_logic::reasoning_graphs::GRAPH_IMPORTS;
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
 pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
-pub(crate) const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
+pub(crate) const GRAPH_STATEMENTS: &str = gmeow_logic::reasoning_graphs::GRAPH_STATEMENTS;
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
 /// The per-slice quality-assessment corpus: every slice scored against the
@@ -1126,9 +1126,7 @@ pub fn snapshot_reasoning_edb(
         match graph {
             None => true,
             Some(RdfTerm::Iri(iri)) => {
-                iri == GRAPH_STATEMENTS
-                    || iri == GRAPH_IMPORTS
-                    || crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS.contains(&iri.as_str())
+                gmeow_logic::reasoning_graphs::is_object_level_named_graph(iri)
             }
             Some(_) => false,
         }

@@ -4,35 +4,36 @@
 # mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Foundational category and structural-relation bridge views onto SUMO's published OWL translation IRIs. SUMO and logic: make different commitments, so every row is a BridgeView."
+# comment: "Foundational category, structural-relation, and dimensioned-quantity bridge views onto SUMO's published OWL translation IRIs. The logic slice owns the SUMO boundary even when a canonical source endpoint is math-owned. SUMO and GMEOW make different commitments, so every row is a BridgeView."
 # curie_map:
 #   logic: https://blackcatinformatics.ca/logic/
+#   math: https://blackcatinformatics.ca/math/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   sumo: https://www.ontologyportal.org/SUMO.owl#
 # # SUMO links are by-reference validation aids; no SUMO axiom is imported and no equivalence is emitted.
-subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-logic:AbstractIndividual	skos:closeMatch	sumo:Abstract	semapv:ManualMappingCuration	0.8	
-logic:Collection	skos:closeMatch	sumo:Collection	semapv:ManualMappingCuration	0.85	
-logic:ConcreteIndividual	skos:closeMatch	sumo:Physical	semapv:ManualMappingCuration	0.8	
-logic:Disposition	skos:relatedMatch	sumo:Attribute	semapv:ManualMappingCuration	0.65	
-logic:Endurant	skos:closeMatch	sumo:Object	semapv:ManualMappingCuration	0.8	
-logic:Event	skos:closeMatch	sumo:Process	semapv:ManualMappingCuration	0.8	
-logic:Individual	skos:closeMatch	sumo:Entity	semapv:ManualMappingCuration	0.85	
-logic:Object	skos:closeMatch	sumo:Object	semapv:ManualMappingCuration	0.85	
-logic:Process	skos:closeMatch	sumo:Process	semapv:ManualMappingCuration	0.85	
-logic:Quality	skos:relatedMatch	sumo:Attribute	semapv:ManualMappingCuration	0.7	
-logic:Quantity	skos:closeMatch	sumo:Quantity	semapv:ManualMappingCuration	0.8	
-logic:RelationshipType	skos:closeMatch	sumo:Relation	semapv:ManualMappingCuration	0.75	
-logic:Role	skos:relatedMatch	sumo:Attribute	semapv:ManualMappingCuration	0.65	
-logic:Type	skos:closeMatch	sumo:Class	semapv:ManualMappingCuration	0.75	
-logic:disjoint	skos:closeMatch	sumo:disjoint	semapv:ManualMappingCuration	0.7	
-logic:domain	skos:closeMatch	sumo:domain	semapv:ManualMappingCuration	0.8	
-logic:instanceOf	skos:closeMatch	sumo:instance	semapv:ManualMappingCuration	0.8	
-logic:inverseOf	skos:closeMatch	sumo:inverse	semapv:ManualMappingCuration	0.75	
-logic:memberOf	skos:closeMatch	sumo:member	semapv:ManualMappingCuration	0.75	
-logic:partOf	skos:closeMatch	sumo:part	semapv:ManualMappingCuration	0.75	
-logic:properPartOf	skos:closeMatch	sumo:properPart	semapv:ManualMappingCuration	0.75	
-logic:range	skos:closeMatch	sumo:range	semapv:ManualMappingCuration	0.8	
-logic:subClassOf	skos:closeMatch	sumo:subclass	semapv:ManualMappingCuration	0.8	
-logic:subPropertyOf	skos:closeMatch	sumo:subrelation	semapv:ManualMappingCuration	0.8	
+subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+logic:AbstractIndividual	skos:closeMatch	sumo:Abstract		semapv:ManualMappingCuration	0.8	
+logic:Collection	skos:closeMatch	sumo:Collection		semapv:ManualMappingCuration	0.85	
+logic:ConcreteIndividual	skos:closeMatch	sumo:Physical		semapv:ManualMappingCuration	0.8	
+logic:Disposition	skos:relatedMatch	sumo:Attribute		semapv:ManualMappingCuration	0.65	
+logic:Endurant	skos:closeMatch	sumo:Object		semapv:ManualMappingCuration	0.8	
+logic:Event	skos:closeMatch	sumo:Process		semapv:ManualMappingCuration	0.8	
+logic:Individual	skos:closeMatch	sumo:Entity		semapv:ManualMappingCuration	0.85	
+logic:Object	skos:closeMatch	sumo:Object		semapv:ManualMappingCuration	0.85	
+logic:Process	skos:closeMatch	sumo:Process		semapv:ManualMappingCuration	0.85	
+logic:Quality	skos:relatedMatch	sumo:Attribute		semapv:ManualMappingCuration	0.7	
+logic:RelationshipType	skos:closeMatch	sumo:Relation		semapv:ManualMappingCuration	0.75	
+logic:Role	skos:relatedMatch	sumo:Attribute		semapv:ManualMappingCuration	0.65	
+logic:Type	skos:closeMatch	sumo:Class		semapv:ManualMappingCuration	0.75	
+logic:disjoint	skos:closeMatch	sumo:disjoint		semapv:ManualMappingCuration	0.7	
+logic:domain	skos:closeMatch	sumo:domain		semapv:ManualMappingCuration	0.8	
+logic:instanceOf	skos:closeMatch	sumo:instance		semapv:ManualMappingCuration	0.8	
+logic:inverseOf	skos:closeMatch	sumo:inverse		semapv:ManualMappingCuration	0.75	
+logic:memberOf	skos:closeMatch	sumo:member		semapv:ManualMappingCuration	0.75	
+logic:partOf	skos:closeMatch	sumo:part		semapv:ManualMappingCuration	0.75	
+logic:properPartOf	skos:closeMatch	sumo:properPart		semapv:ManualMappingCuration	0.75	
+logic:range	skos:closeMatch	sumo:range		semapv:ManualMappingCuration	0.8	
+logic:subClassOf	skos:closeMatch	sumo:subclass		semapv:ManualMappingCuration	0.8	
+logic:subPropertyOf	skos:closeMatch	sumo:subrelation		semapv:ManualMappingCuration	0.8	
+math:Quantity	skos:broadMatch	sumo:Quantity	SUMO Quantity	semapv:ManualMappingCuration	0.8	SUMO Quantity broadly includes numbers, physical quantities, and other quantifiable entities, while math:Quantity is the stricter GMEOW class of objects carrying exactly one explicit math:Dimension. The logic-owned SUMO boundary therefore records a broad, validation-only bridge rather than an equivalence or imported semantic spine.

@@ -10,7 +10,7 @@
 @prefix ex:    <http://example.org/lang/> .
 
 ex:english a lang:SignSystem .
-ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+ex:form a lang:Form ; lang:inSignSystem ex:english .
 ex:r a lang:Reading ; lang:readingOf ex:form .
 
 # 1st order: a vantage-held claim that the reading is correct.

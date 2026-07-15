@@ -3,6 +3,7 @@
 
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -15,9 +16,9 @@ ex:qualityAssessment a gmeow:QualityAssessment ;
     gmeow:vantage ex:auditor ;
     gmeow:observationResult ex:completenessScore .
 
-ex:completenessScore a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "98.5"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .
+ex:completenessScore a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.985"^^xsd:decimal .
 
 ex:auditor a gmeow:Organization ;
     rdfs:label "Data Quality Audit Ltd."@en .

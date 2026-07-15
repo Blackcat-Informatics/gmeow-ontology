@@ -723,6 +723,7 @@ fn owl_time_templated_cell() -> ProjectionCell {
             sssom_predicate: None,
             sssom_file: None,
         }],
+        grounding: None,
     }
 }
 
