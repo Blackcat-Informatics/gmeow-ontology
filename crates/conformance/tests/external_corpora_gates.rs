@@ -764,7 +764,10 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
         &[tup("http://ex/A", "http://ex/B", "http://ex/w")],
         &[tup("http://ex/C", "http://ex/B", "http://ex/w")],
     );
-    let gaps = dl_gap_rows(&[purrdf::RdfLoss::new("reason.dl-gap.union", "beyond EL")]);
+    let gaps = dl_gap_rows(&[gmeow_logic::reason::DlGap::new(
+        "reason.dl-gap.union",
+        "beyond EL",
+    )]);
     let corpus = compare_external_corpus(
         "w3c-owl2-el",
         &[

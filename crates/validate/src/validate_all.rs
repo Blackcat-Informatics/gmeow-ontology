@@ -926,7 +926,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
             pair_loss_ledger("gts", to)
                 .entries()
                 .iter()
-                .map(|e| e.code.to_owned())
+                .map(|e| e.code.to_string())
                 .collect::<Vec<_>>()
         })
         .collect();
@@ -2537,7 +2537,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
                 pair_loss_ledger("gts", to)
                     .entries()
                     .iter()
-                    .map(|e| e.code.to_owned())
+                    .map(|e| e.code.to_string())
                     .collect::<Vec<_>>()
             })
             .collect();

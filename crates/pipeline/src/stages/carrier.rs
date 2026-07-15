@@ -3090,9 +3090,10 @@ impl Stage for SnapshotStage {
         &self.consumes
     }
     fn cache_policy(&self) -> CachePolicy {
-        // The aggregate snapshot is cheaper to assemble from its live upstream
-        // carriers than to deserialize and reparse its full canonical projection.
-        // Recompute preserves the complete fold and all downstream drift checks.
+        // Snapshot is a cumulative carrier boundary. Restoring its packed cache
+        // requires hydrating the entire aggregate dataset and all typed handles,
+        // which measured slower than assembling it from live upstream products.
+        // The sync-level manifest owns the zero-work warm path instead.
         CachePolicy::Recompute
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the

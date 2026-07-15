@@ -87,12 +87,12 @@ const BUILD_DAG_CONTRACT: &str = "contract:gmeow:pipeline-build:dag-workflow";
 /// The world the build plan's certification verdict holds in.
 const BUILD_DAG_WORLD: &str = "urn:gmeow:pipeline-build";
 
-/// Whether `run_full` writes artifacts to disk (regenerate) or compares them to
+/// Whether `run_full` reconciles artifacts to disk (update) or compares them to
 /// the committed bytes and reports drift (check).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RunMode {
-    /// Write every produced artifact to `root.join(path)` (regenerate).
-    Regenerate,
+    /// Reconcile every produced artifact, then run the same strict post-build gates.
+    Update,
     /// Compare every produced artifact to the committed bytes, collecting drift.
     Check,
 }
@@ -126,6 +126,10 @@ pub struct RunReport {
     pub drifted: Vec<String>,
     /// Per-phase timing records for profiling the gate without parsing stderr.
     pub timings: Vec<TimingRecord>,
+    /// Every non-internal logical output path produced by the run, sorted and
+    /// deduplicated. Callers use this to build whole-run output manifests without
+    /// rediscovering or re-running the pipeline.
+    pub output_paths: Vec<String>,
     /// The build plan's DAG-workflow certification, lowered to the typed
     /// [`ReasoningResult`] a consumer reads — the Rust-struct counterpart of the
     /// RDF `logic:ReasoningResult` `teleology::emit_dag_certification` emits, both
@@ -612,6 +616,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     let mut reproduced = 0usize;
     let mut written = 0usize;
     let mut skipped_writes = 0usize;
+    let mut output_paths: Vec<String> = Vec::new();
 
     // ── Reconcile every produced artifact against committed / write it. ──
     let reconcile_started = Instant::now();
@@ -623,6 +628,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             if path.starts_with("pipeline/") {
                 continue;
             }
+            output_paths.push(path.clone());
             produced += 1;
 
             // The `gmeow.gts` bundle: in Regenerate mode WRITE the freshly-assembled
@@ -633,7 +639,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.
             if path == GTS_PATH {
-                if mode == RunMode::Regenerate {
+                if mode == RunMode::Update {
                     if write_artifact(root, path, bytes)? {
                         written += 1;
                     } else {
@@ -787,7 +793,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             // SKIPPED in Check (their reproducibility is covered by the second-run
             // determinism check in `tests/full_parity.rs`).
             if path.starts_with("dist/") {
-                if mode == RunMode::Regenerate {
+                if mode == RunMode::Update {
                     if write_artifact(root, path, bytes)? {
                         written += 1;
                     } else {
@@ -798,7 +804,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                 continue;
             }
 
-            if mode == RunMode::Regenerate {
+            if mode == RunMode::Update {
                 // A stage's only output is its carrier contribution (PIPELINE_SPINE
                 // §3.1): a committed `generated/` file is NOT written here — it is
                 // projected from the bundle by the post-pipeline fanout phase (§6),
@@ -870,7 +876,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     // of the `generated/` tree — the stages contributed to the carrier, the terminal
     // presented it, and fanout unpacks it. Check mode does NOT fan out: the superset
     // gate above already proved every committed path is reconstructible.
-    if mode == RunMode::Regenerate {
+    if mode == RunMode::Update {
         let fanout_started = Instant::now();
         let report = crate::fanout::fanout(root, jobs)?;
         timings.push(TimingRecord {
@@ -883,10 +889,26 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         });
         written += report.written;
         skipped_writes += report.skipped;
+
+        // Update is check-while-writing, not a weaker generation lane. Run the
+        // strict carrier/syntax gates against the freshly fanned-out tree without
+        // executing the pipeline a second time.
+        let gts = products
+            .values()
+            .find_map(|product| product.artifact(GTS_PATH))
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "pipeline".to_string(),
+                    message: format!("no produced {GTS_PATH} available for post-update gates"),
+                })
+            })?;
+        run_post_update_gates(root, gts, &mut ledger, &mut drifted, &mut timings)?;
     }
 
     drifted.sort();
     drifted.dedup();
+    output_paths.sort();
+    output_paths.dedup();
 
     // The DAG-workflow certification of the build plan (the build-pipeline executor's typed surface): the
     // SAME verdict the RDF `emit_dag_certification` emits, lowered to the typed
@@ -900,7 +922,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             "mode={}",
             match mode {
                 RunMode::Check => "check",
-                RunMode::Regenerate => "regenerate",
+                RunMode::Update => "update",
             }
         )),
     });
@@ -921,8 +943,105 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         ledger,
         drifted,
         timings,
+        output_paths,
         certification,
     })
+}
+
+/// Run the strict gates that historically lived only on the read-only drift path
+/// against the freshly written carrier/tree. Update therefore has the same
+/// superset and GMN teeth without executing the pipeline a second time.
+fn run_post_update_gates(
+    root: &Path,
+    gts: &[u8],
+    ledger: &mut DiagLedger,
+    drifted: &mut Vec<String>,
+    timings: &mut Vec<TimingRecord>,
+) -> Result<(), gmeow_errors::Diag> {
+    let started = Instant::now();
+    let report = crate::stages::superset::check_superset(root, gts)?;
+    timings.push(TimingRecord {
+        phase: "superset".to_string(),
+        elapsed_ms: started.elapsed().as_millis(),
+        metadata: Some("path=generated/dist/gmeow.gts;after=update".to_string()),
+    });
+    for path in report.missing {
+        drifted.push(path.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_SUPERSET_MISSING,
+            &path,
+            format!("{path} has no carrier representative in gmeow.gts"),
+        );
+    }
+    for path in report.mismatch {
+        drifted.push(path.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_SUPERSET_MISMATCH,
+            &path,
+            format!("{path} differs from its gmeow.gts reconstruction"),
+        );
+    }
+    for rep in report.orphan {
+        drifted.push(rep.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_SUPERSET_ORPHAN,
+            &rep,
+            format!("{rep} is carried in gmeow.gts but maps to no generated path"),
+        );
+    }
+
+    let started = Instant::now();
+    let roundtrip = crate::stages::gmn1_gate::check_gmn1_roundtrip(root)?;
+    timings.push(TimingRecord {
+        phase: "gmn1-roundtrip".to_string(),
+        elapsed_ms: started.elapsed().as_millis(),
+        metadata: Some(format!("failures={}", roundtrip.failures.len())),
+    });
+    for failure in roundtrip.failures {
+        drifted.push(failure.path.clone());
+        gmeow_lang_bridge::error::attach_gmn_failure(
+            ledger,
+            PIPELINE_STAGE_ID,
+            &failure.path,
+            &failure.error,
+        );
+    }
+
+    for failure in crate::stages::gmn1_gate::check_gmn1_shipped_projections(root)?.failures {
+        drifted.push(failure.path.clone());
+        gmeow_lang_bridge::error::attach_gmn_failure(
+            ledger,
+            PIPELINE_STAGE_ID,
+            &failure.path,
+            &failure.error,
+        );
+    }
+
+    let started = Instant::now();
+    let coverage = crate::stages::gmn1_gate::check_gmn1_construct_coverage(root)?;
+    timings.push(TimingRecord {
+        phase: "gmn1-construct-coverage".to_string(),
+        elapsed_ms: started.elapsed().as_millis(),
+        metadata: Some(format!("unexercised={}", coverage.unexercised.len())),
+    });
+    if !coverage.is_complete() {
+        let focus = "slices/grounding (gmn1-construct-coverage)";
+        drifted.push(focus.to_string());
+        attach_pipeline_finding(
+            ledger,
+            CODE_GMN1_CONSTRUCT_COVERAGE_GAP,
+            focus,
+            format!(
+                "GMN-1 construct-coverage audit found {} unexercised categories: {:?}",
+                coverage.unexercised.len(),
+                coverage.unexercised
+            ),
+        );
+    }
+    Ok(())
 }
 
 /// The stage_id that DECLARES [`SINK_CAPABILITY`] in `spec` — the identity the runtime

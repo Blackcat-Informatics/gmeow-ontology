@@ -20,8 +20,9 @@ use gmeow_errors::{
     Diag, DiagLedger, Finding, FindingCategory, GateVerdict, Grade, Severity, StageId, Standpoint,
     register_code,
 };
-use purrdf::RdfLoss;
 use std::collections::BTreeSet;
+
+use crate::reason::dl::DlGap;
 
 /// How a single compared tuple relates between the native engine and an oracle.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -233,7 +234,7 @@ pub fn compare_subsumption(
 /// Each gap is a construct whose consistency the native check did not decide;
 /// the row carries the gap's message and code as its `detail`, with empty
 /// positional fields.
-pub fn dl_gap_rows(gaps: &[RdfLoss]) -> Vec<LedgerRow> {
+pub fn dl_gap_rows(gaps: &[DlGap]) -> Vec<LedgerRow> {
     gaps.iter()
         .map(|gap| LedgerRow {
             kind: DivergenceKind::DlGap,
@@ -586,7 +587,7 @@ mod tests {
 
     #[test]
     fn dl_gap_rows_and_tally() {
-        let gaps = vec![RdfLoss::new("reason.dl-gap.complementOf", "msg")];
+        let gaps = vec![DlGap::new("reason.dl-gap.complementOf", "msg")];
         let rows = dl_gap_rows(&gaps);
         assert_eq!(rows.len(), 1, "one DlGap row per gap");
         assert_eq!(rows[0].kind, DivergenceKind::DlGap);
@@ -696,7 +697,7 @@ mod tests {
     #[test]
     fn enforce_fails_on_dl_gap_alone() {
         // A DlGap is a native coverage defect and fails even with no oracle drift.
-        let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.complementOf", "beyond EL")]);
+        let gaps = dl_gap_rows(&[DlGap::new("reason.dl-gap.complementOf", "beyond EL")]);
         let ledger = build_ledger(Vec::new(), Vec::new(), gaps, Vec::new());
         assert_eq!(ledger.dl_gap, 1);
         let verdict = enforce(&ledger);
@@ -712,7 +713,7 @@ mod tests {
         // One of each kind. native {A⊑B}, oracle {C⊑B}: A⊑B is NativeOnly (richness,
         // NOT a failure under the superset criterion), C⊑B is OracleOnly (a failure).
         let subs = compare_subsumption(&[t(A, B, W)], &[t(C, B, W)]);
-        let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.union", "beyond EL")]);
+        let gaps = dl_gap_rows(&[DlGap::new("reason.dl-gap.union", "beyond EL")]);
         let ledger = build_ledger(subs, Vec::new(), gaps, Vec::new());
         assert_eq!(ledger.native_only, 1);
         assert_eq!(ledger.oracle_only, 1);
