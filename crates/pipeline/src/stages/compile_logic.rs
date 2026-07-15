@@ -201,12 +201,35 @@ pub const LOGIC_PROJECTIONS_CHANNEL: &str = "pipeline/logic-projections.json";
 
 /// The payload of [`LOGIC_PROJECTIONS_CHANNEL`]: the logic program's projection rows
 /// (the eight whole-program targets + the per-shape `property-path:<iri>` rows) and the
-/// three report-header counts, so the mappings stage can re-serialize the report over
-/// the union without re-running the logic compiler.
+/// report-header counts, so the mappings stage can re-serialize the report over the union
+/// without re-running the logic compiler.
+///
+/// Count ownership is split by seam:
+/// - `header` carries ONLY the axiom/rule/profile/formula counts compile-logic solely
+///   owns (read straight off the compiled program). Its `correspondence_count` /
+///   `lawful_uplift_count` / `claimed_uplift_count` fields ride the channel as 0 — they are
+///   NOT owned here.
+/// - `base_correspondence_count` / `base_lawful_uplift_count` carry the curated affine-gate
+///   BASE (the §14 affine-triangle worked-example gate verdicts). mappings composes this
+///   base with the external-term up-projection audit to form the committed
+///   `correspondenceCount` / `lawfulUpliftCount`. mappings is the SINGLE writer of the final
+///   correspondence/uplift/claimed counts (`fold_up_projection_audit`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicProjectionsChannel {
-    /// The report-header counts (`axiomCount`/`ruleCount`/`profileCount`).
+    /// The report-header counts compile-logic solely owns
+    /// (`axiomCount`/`ruleCount`/`profileCount`/`formulaCount`). The correspondence/uplift
+    /// count fields of this header ride as 0: mappings owns the final composed values.
     pub header: ReportHeader,
+    /// The curated affine-gate BASE for `logic:correspondenceCount`: the number of
+    /// correspondences in the §14 affine-triangle gate lane. mappings adds the external-term
+    /// audit's `total()` to this base to form the committed count (mappings is the single
+    /// writer of the final field).
+    pub base_correspondence_count: usize,
+    /// The curated affine-gate BASE for `logic:lawfulUpliftCount`: the lawful (round-trip /
+    /// mnemomorphism PASS) up-lift count from the affine-triangle gate report. mappings adds
+    /// the external-term audit's proved tier to this base to form the committed count
+    /// (mappings is the single writer of the final field).
+    pub base_lawful_uplift_count: usize,
     /// The logic projection rows that fed the compiler's own (diagnostics-only) report.
     pub projections: Vec<ProjectionResult>,
     /// The compile's single loss store as owned, serializable nodes (the channel is JSON, so the
@@ -328,7 +351,9 @@ impl Stage for CompileLogicStage {
         // projection-loss table is no longer vacuous).
         // v6: the affine worked example is now read from `CORRESPONDENCE_EXAMPLE_PATH`
         // (authored `logic:` TTL) via `parse_correspondence`, not a hardcoded Rust literal.
-        "compile-logic.v6"
+        // v7: the correspondence/uplift BASE rides the channel's `base_*` fields; the report
+        // header's count fields ship as 0, and mappings is the single owner of the final counts.
+        "compile-logic.v7"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
@@ -465,8 +490,19 @@ impl Stage for CompileLogicStage {
         let gate_report = evaluate_gates(&gated, &[], &gate_verdicts);
         assert_gates(&gate_report).map_err(|e| stage_err(format!("correspondence gate: {e}")))?;
         let lift = liftability(&gate_report);
-        arts.report_header.correspondence_count = gated.correspondences.len();
-        arts.report_header.lawful_uplift_count = lift.lawful;
+        // Count-ownership seam (Seam 1): compile-logic no longer writes the FINAL
+        // `correspondence_count` / `lawful_uplift_count` into the report header. It ships the
+        // curated affine-gate BASE explicitly on the channel (`base_correspondence_count` /
+        // `base_lawful_uplift_count`, populated below from `gated`/`lift`), and mappings'
+        // `fold_up_projection_audit` is the SINGLE writer that composes base + external-term
+        // audit into the committed counts. Force the header's count fields to 0 so the channel
+        // header carries no correspondence/uplift base (`ReportHeader::of_program` seeds
+        // `correspondence_count` from `program.correspondences.len()`, which is empty in
+        // production but is zeroed here to make the single-owner contract explicit and
+        // future-proof).
+        arts.report_header.correspondence_count = 0;
+        arts.report_header.lawful_uplift_count = 0;
+        arts.report_header.claimed_uplift_count = 0;
 
         // Authored-correspondence enforcement: extract EVERY `a logic:Correspondence`
         // individual from the merged authored surface (the supersession ledger and any
@@ -572,6 +608,10 @@ impl Stage for CompileLogicStage {
         // mappings assembles + emits the final `PROJECTION_REPORT_PATH`.
         let channel = LogicProjectionsChannel {
             header: arts.report_header,
+            // The curated affine-gate BASE the mappings stage composes with the external-term
+            // up-projection audit to form the committed correspondence/uplift counts.
+            base_correspondence_count: gated.correspondences.len(),
+            base_lawful_uplift_count: lift.lawful,
             projections: arts.logic_projections.clone(),
             loss_nodes: arts.loss.to_nodes(),
         };
