@@ -17,7 +17,7 @@
 /// The canonical one-paragraph vocabulary summary — the `llms.txt` blockquote
 /// body WITHOUT the leading `> `. The single source of truth shared by every
 /// `llms.txt`-family surface (was previously duplicated in three renderers).
-pub const GMEOW_SUMMARY: &str = "A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that unifies a person's or organization's digital existence (entities, contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, PROV, the WOT schema, Wikidata, and more.";
+pub const GMEOW_SUMMARY: &str = "A reasoning-centric, RDF 1.2-native super-vocabulary grounded by its co-foundational language, mathematics, and logic slices; it unifies a person's or organization's digital existence (entities, contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, PROV, the WOT schema, Wikidata, and more.";
 
 /// The maximum number of characters of a bullet note in the link-INDEX form
 /// (`llms.txt`). The COMPLETE form (`llms-full.txt`) inlines content and is bounded

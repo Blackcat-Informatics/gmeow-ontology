@@ -276,6 +276,10 @@ fn preservation_kind_values_match_module_ttl() {
         from_ttl.contains("Unsupported"),
         "the Unsupported floor is declared"
     );
+    for kind in PreservationKind::ALL {
+        assert_eq!(PreservationKind::from_local(kind.as_str()), Some(kind));
+    }
+    assert_eq!(PreservationKind::from_local("NotAPreservationKind"), None);
 }
 
 #[test]

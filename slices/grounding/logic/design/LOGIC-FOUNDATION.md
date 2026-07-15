@@ -12,11 +12,10 @@
 > is in [LOGIC-IR.md](LOGIC-IR.md); state-change semantics are in
 > [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md). Where this charter states a doctrine once, the
 > semantics document makes it precise — repetition is replaced by cross-reference on purpose.
-> Foundational **bridge views** (BFO/DOLCE/SUMO, and **YAMATO** — the latter adopted by-reference as a
-> *refinement source*: persistent quality identity, generic-quality→role ladder, unit-independent true
-> quantity; process≠event, action/event open-closed, causal-vs-temporal parts) are recorded in
-> [`docs/foundational-bridging.md`](../../../../docs/foundational-bridging.md) and consumed by the
-> correspondence calculus ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)).
+> The realized grounding catalogs for gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL Core/AF are
+> recorded in [`docs/foundational-bridging.md`](../../../../docs/foundational-bridging.md) and
+> consumed by the correspondence calculus ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)).
+> DOLCE and YAMATO remain documented by-reference refinement lineages, not yet pinned catalogs.
 
 ## Thesis
 

@@ -68,10 +68,11 @@ gh attestation verify <path-to-artifact> --repo Blackcat-Informatics/gmeow-ontol
 
 SPDX SBOMs are also generated for each release and attached as workflow artifacts.
 
-**The engine** underneath is a reasoning-centric, OWL 2 DL, upper-ontology-grounded
+**The engine** underneath is a reasoning-centric, RDF 1.2-native, `logic:`-grounded
 super-vocabulary for modelling *digital existence* — people, organizations, documents,
 agreements, contacts, observations, measurements, locations, rights, identity, and
-contested facts — grounded in **gUFO**, **projected** down to 15+ consumer vocabularies
+contested facts — bridged comprehensively to **gUFO**, **BFO/OBO**, **SUMO**, **OWL/RDFS**,
+and **SHACL**, and **projected** down to 15+ consumer vocabularies
 (schema.org, FOAF, GeoSPARQL, vCard, iCalendar, OWL-Time, ODRL, …) and **aligned by
 reference** to dozens more (PROV-O, ORG, OntoLex-Lemon, Wikidata, BFO, QUDT, FALDO, IVOA,
 CIDOC-CRM, …) — see the [projection](#projection-targets) and
@@ -159,7 +160,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) | Specification | The build dataflow — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout; every `generated/` file is a projection of the bundle |
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
 | [`docs/okf.md`](./docs/okf.md) | Doctrine | The Open Knowledge Format agent surface — bidirectional Markdown-per-concept export (`gmeow okf`) + lift (`gmeow transpile <okf-dir>`); a lossy projection consuming the Rust `gts from-okf` codec |
-| [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The gUFO ↔ BFO 2020 foundational-spine bridge, by reference (Principle 5 applied recursively) |
+| [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The shipped `logic:` grounding correspondence catalogs for gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL, with explicit bridge and preservation policy |
 | [`docs/import-provenance.md`](./docs/import-provenance.md) | Doctrine | How external vocabularies are sourced; the IMPORT_OK vs reference-only license policy and carrier-time |
 | [`docs/CITATIONS.md`](./docs/CITATIONS.md) | Doctrine | The canonical citation ledger, generated bibliography exports, and agent maintenance rule |
 | [`docs/standpoints.md`](./docs/standpoints.md) | Doctrine | Contested facts as coexisting, standpoint-indexed claims — no privileged winner |
@@ -313,9 +314,9 @@ slices/<group>/<name>/    A slice: manifest.ttl (IRI + tier + deps + consumer),
                           docs.md. The <group> dir (core/, extensions/) is human
                           organization only — the build reads manifests.
 slices/vocabulary.ttl     The slice-manifest authoring vocabulary (spec layer)
-ontology/gmeow.ttl        Root ontology: metadata + owl:imports (gUFO + slices)
-dsl/mappings/             Mapping DSL: vocabulary, foundational gUFO↔BFO bridge,
-                          per-target projections, transforms.fno.ttl
+ontology/gmeow.ttl        Root ontology: metadata + owl:imports for slices
+dsl/mappings/             Shared mapping vocabulary, cross-cutting sets,
+                          shared equivalences, transforms.fno.ttl
 dsl/statements/           The canonical RDF 1.2 / RDF* statement-metadata source
 shapes/                   Authored SHACL (incl. the slice-manifest shapes)
 queries/                  Authored SPARQL: competency/, verify/, qc/, codecs/
@@ -356,24 +357,30 @@ derivation provenance. The cross-check oracle is the in-process `purrdf::entail`
 70/70 W3C-entailment conformance-tested, run as a *secondary* validator of the exported OWL
 projection, never as the authority over `logic:` semantics.
 
-### Upper-ontology spine
+### Grounding and upper-ontology spine
 
-- **gUFO** (MIT) is imported whole as the foundational categories.
+- **`logic:` is canonical.** Formal and upper-ontology grounding is authored in
+  `slices/grounding/logic/`; external vocabularies are target views, never the source from which
+  GMEOW derives meaning.
+- **gUFO** (MIT) remains vendored as a transition/conformance input and generated projection
+  surface. The complete class catalog is oriented `logic:` → gUFO, including explicit
+  `Unsupported` rows where the richer canonical model must not be flattened.
 - **UMBEL** (CC-BY-3.0) is intended as a *curated, extracted* reference-concept layer — never
   imported whole (it is too large for DL reasoning). Extraction is via ROBOT `extract` (SLME).
 - **DOLCE/DUL** (LGPL) is **link-only** — referenced, never imported.
-- **Foundational bridging (the spine reaches outward).** gUFO's *nature* categories are aligned
-  by reference to **BFO 2020** (ISO/IEC 21838-2) — `skos:closeMatch`, never imported — so GMEOW
-  interoperates with the OBO-Foundry / ISO top-level world. This is Principle 5 applied
-  recursively to the foundational layer; the emitted BFO IRIs are verified against a vendored
-  class snapshot (`imports/targets/bfo.ttl`), kept out of the reasoned closure. DOLCE/SUMO are
-  link-only bridge views, not imported truth sources. Authoring source: `dsl/mappings/foundational/`; full guide:
+- **The shipped bridge reaches outward.** BFO 2020, OBO/RO, and SUMO are explicit
+  `BridgeView` + `CommitmentShiftingBridge` correspondences, so no equivalence can be fabricated.
+  BFO IRIs and labels are verified against `imports/targets/bfo.ttl`; BFO/OBO/SUMO target axioms
+  stay outside object-level closure. OWL/RDFS is a `SoundUnderApproximation` compiler dialect and
+  SHACL Core/AF is `ValidationOnly`. The canonical 141-row source is
+  `slices/grounding/logic/mappings/grounding-bridges.ttl`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 
 ### Linking & the license policy
 
 Alignments are canonical `logic:Correspondence` objects (authored via the mapping-DSL frontend
-in `dsl/mappings/`), from which SSSOM + EDOAL + FnO + SPARQL are generated lowerings — see
+in the owning slice's `mappings/` directory, or in `dsl/mappings/` when genuinely cross-cutting),
+from which SSSOM + EDOAL + FnO + SPARQL are generated lowerings — see
 [§ The correspondence calculus](#the-correspondence-calculus--alignment-as-a-first-class-logical-construct). Asserting a link (`owl:equivalentClass`,
 `skos:exactMatch`, …) to any external term is always permitted — it copies nothing.
 **Copying** axioms in (via `owl:imports` / ROBOT `extract`) is license-gated: a
@@ -444,7 +451,8 @@ representative, grouped sample:
 
 | Domain | Aligned vocabularies (by reference) |
 |---|---|
-| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), DOLCE/SUMO bridge views |
+| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), OBO/RO, SUMO; DOLCE/YAMATO refinement lineage |
+| **Logic & validation** | OWL/RDFS, SHACL Core/AF, Datalog, N3, Prolog, Common Logic dialects |
 | **Hub & coreference** | **Wikidata**, schema.org, FOAF, ORG, PROV-O |
 | **Identity & language** | GSSO, Homosaurus, FHIR, FOAF, OntoLex-Lemon, LIME, Glottolog, CEFR/ILR/ACTFL |
 | **Geospatial & place** | GeoSPARQL, CIDOC-CRM + CRMgeo, BOT/ifcOWL, LADM, INSPIRE, AIXM, UNCLOS, MRGID, OGC GeoPose, OGC Moving Features |
@@ -485,8 +493,8 @@ GMEOW's logical core is a maximally expressive, RDF-1.2-native `logic:` layer
 a new namespace. **Every prior formalism is a generated, lossy projection of it**, and the
 relations are kept distinct on one lattice
 ([`LOGIC-META-SEMANTICS.md`](./slices/grounding/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
-*built atop* RDF 1.2; it is a *superset of* the definitional formalisms (OWL, RDFS, SKOS, gUFO,
-UFO — lifted in and projected back at exact preservation); it *down-projects lossily to* the
+*built atop* RDF 1.2; it provides typed correspondences to the definitional formalisms (OWL, RDFS,
+SKOS, gUFO, UFO) with preservation stated per construct rather than presumed; it *down-projects lossily to* the
 closed-world validation surfaces (**SHACL Core + ShEx**, derived from a `logic:` validation-shape
 node kind — [`LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md)); and it
 *derives, via the correspondence layer,* the alignment surfaces (SSSOM/EDOAL/FnO). OWL DL/EL,

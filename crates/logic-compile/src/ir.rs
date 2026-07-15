@@ -239,6 +239,20 @@ impl PreservationKind {
     pub fn iri(&self) -> String {
         format!("{LOGIC_NAMESPACE}{}", self.as_str())
     }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "ExactPreservation" => Self::Exact,
+            "SoundUnderApproximation" => Self::SoundUnder,
+            "CompleteOverApproximation" => Self::CompleteOver,
+            "ValidationOnly" => Self::ValidationOnly,
+            "InconsistencyPreserving" => Self::InconsistencyPreserving,
+            "InconsistencyReflecting" => Self::InconsistencyReflecting,
+            "Unsupported" => Self::Unsupported,
+            _ => return None,
+        })
+    }
 }
 
 impl PreservationKind {
@@ -1737,6 +1751,20 @@ pub struct Correspondence {
     /// the loss ledger as ONE per-correspondence preservation row (the canonical doc's "one
     /// preservation row per correspondence"), so the dropped construct is never DARK.
     pub preservation: Option<PreservationKind>,
+    /// The source endpoint of a term-level correspondence (`logic:sourceEndpoint`).
+    /// This is distinct from [`Self::get_leg`]: an endpoint names the term or pattern being
+    /// related, while a leg names the executable transaction program that performs a
+    /// projection. `None` for correspondences whose endpoints are expressed only by their
+    /// executable legs.
+    pub source_endpoint: Option<String>,
+    /// The target endpoint of a term-level correspondence (`logic:targetEndpoint`).
+    /// Kept separate from [`Self::put_leg`] for the same reason as
+    /// [`Self::source_endpoint`].
+    pub target_endpoint: Option<String>,
+    /// Whether this correspondence belongs to the co-foundational grounding seam and is
+    /// therefore also projected as a `logic:GroundingCorrespondence`. Ordinary consumer
+    /// mappings remain plain `logic:Correspondence` nodes.
+    pub grounding: bool,
 }
 
 impl Correspondence {
@@ -1826,7 +1854,39 @@ impl Correspondence {
             probability,
             according_to,
             preservation,
+            source_endpoint: None,
+            target_endpoint: None,
+            grounding: false,
         })
+    }
+
+    /// Attach the two term/pattern endpoints of this correspondence.
+    ///
+    /// Endpoints are all-or-nothing: a one-sided term correspondence is not a meaningful
+    /// bridge and would make the shipped correspondence graph impossible to traverse.
+    /// Empty endpoint IRIs are rejected for the same content-identity reason as empty leg
+    /// IRIs in [`Self::new`].
+    pub fn with_endpoints(
+        mut self,
+        source_endpoint: impl Into<String>,
+        target_endpoint: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let source_endpoint = source_endpoint.into();
+        let target_endpoint = target_endpoint.into();
+        if source_endpoint.trim().is_empty() || target_endpoint.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Correspondence endpoints must both be non-empty IRI strings".to_owned(),
+            }));
+        }
+        self.source_endpoint = Some(source_endpoint);
+        self.target_endpoint = Some(target_endpoint);
+        Ok(self)
+    }
+
+    /// Mark this node as a co-foundational grounding correspondence.
+    pub fn as_grounding(mut self) -> Self {
+        self.grounding = true;
+        self
     }
 
     /// A deterministic full-content key for canonical equality, folding every field
@@ -1838,10 +1898,19 @@ impl Correspondence {
             .map(LawClaimIr::sort_key)
             .collect::<Vec<_>>()
             .join(",");
+        let endpoints = match (&self.source_endpoint, &self.target_endpoint) {
+            (Some(source), Some(target)) => format!("{SEP}source={source}{SEP}target={target}"),
+            (None, None) => String::new(),
+            _ => unreachable!("Correspondence endpoints are constructed all-or-nothing"),
+        };
+        let grounding = self
+            .grounding
+            .then_some(format!("{SEP}grounding=True"))
+            .unwrap_or_default();
         format!(
             "{}{SEP}rel={}{SEP}class={}{SEP}kind={}{SEP}mnemo={}{SEP}det={}{SEP}\
              get={}{SEP}put={}{SEP}conf={}{SEP}ev={}{SEP}w={}{SEP}prob={}{SEP}\
-             at={}{SEP}pres={}{SEP}laws={claims}",
+             at={}{SEP}pres={}{SEP}laws={claims}{endpoints}{grounding}",
             self.iri,
             self.relation.as_str(),
             self.morphism_class.as_str(),
