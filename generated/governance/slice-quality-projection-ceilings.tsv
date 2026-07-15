@@ -61,8 +61,8 @@ https://blackcatinformatics.ca/gmeow/slices/inference	rdfs	66
 https://blackcatinformatics.ca/gmeow/slices/inhabitation	rdfs	64
 https://blackcatinformatics.ca/gmeow/slices/inhabitation	sh	4
 https://blackcatinformatics.ca/gmeow/slices/inquiry	rdfs	4
-https://blackcatinformatics.ca/gmeow/slices/kernel	bfo	10
-https://blackcatinformatics.ca/gmeow/slices/kernel	gufo	13
+https://blackcatinformatics.ca/gmeow/slices/kernel	bfo	3
+https://blackcatinformatics.ca/gmeow/slices/kernel	gufo	6
 https://blackcatinformatics.ca/gmeow/slices/kernel	rdfs	23
 https://blackcatinformatics.ca/gmeow/slices/kernel	sh	4
 https://blackcatinformatics.ca/gmeow/slices/lang	lexvo	3
@@ -76,8 +76,8 @@ https://blackcatinformatics.ca/gmeow/slices/learning	sh	4
 https://blackcatinformatics.ca/gmeow/slices/lexicon	ontolex	4
 https://blackcatinformatics.ca/gmeow/slices/lexicon	rdfs	16
 https://blackcatinformatics.ca/gmeow/slices/lifecycle	rdfs	6
-https://blackcatinformatics.ca/gmeow/slices/logic	rdfs	67
-https://blackcatinformatics.ca/gmeow/slices/math	rdfs	630
+https://blackcatinformatics.ca/gmeow/slices/logic	rdfs	68
+https://blackcatinformatics.ca/gmeow/slices/math	rdfs	686
 https://blackcatinformatics.ca/gmeow/slices/mentation	bfo	1
 https://blackcatinformatics.ca/gmeow/slices/mentation	rdfs	3
 https://blackcatinformatics.ca/gmeow/slices/metacognition	rdfs	2
