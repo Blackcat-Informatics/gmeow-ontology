@@ -25,6 +25,13 @@
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
+      "message": "axisGmnGlyphOptimality: Disposition every audited grounding-plane symbol candidate exactly once as an adopted glyph, named key, structured constructor, or semantic rejection; add its cited rationale, candidate rendering, ASCII fallback, spoken label, and decision basis; and make adopted signs executable through a scoped lang:Denotation-backed glyph registry binding whose measured token cost does not lose to the fallback.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
       "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
       "tool": "slice-quality",
       "standpoint": "advisory"
@@ -54,6 +61,13 @@
       "severity": "warning",
       "code": "slice-quality.documentation.no-docs",
       "message": "the slice ships no docs.md.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
+      "message": "GMN glyph optimality cannot be audited because the slice directory has no resolvable slices/ path prefix; scoring fails closed at 0.0 until the canonical grounding authority is available",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -123,7 +137,7 @@
     {
       "severity": "info",
       "code": "slice-quality.grade",
-      "message": "axisGmnGlyphOptimality: Maximal (score 1.00)",
+      "message": "axisGmnGlyphOptimality: Registered (score 0.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -219,6 +233,11 @@
     {
       "id": "slice-quality.documentation.no-docs",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-gmn-glyph-optimality-audit-graph-unavailable",
       "default_severity": "warning"
     },
     {

@@ -33,7 +33,7 @@
 //! codec's own write-side dispatch (a category with zero real occurrences could carry a
 //! latent bug that no amount of round-tripping the SAME corpus would ever surface).
 //! [`check_gmn1_construct_coverage`] closes that gap: it classifies every quad via
-//! [`gmeow_lang_bridge::classify_quad`] (the SAME dispatch [`gmn1_write`] calls, so the
+//! [`gmeow_lang_bridge::classify_model`] (the SAME dispatch [`gmn1_write`] calls, so the
 //! classification can never drift from what the codec actually does) and hard-fails if
 //! any [`gmeow_lang_bridge::Gmn1ConstructCategory`] has zero occurrences across the real
 //! grounding sources. Both audits run in `run.rs`'s reconcile phase; both are total,
@@ -580,9 +580,10 @@ mod tests {
             let ds = parse_dataset(&bytes, "text/turtle", None).expect("parse source");
             let model = Gmn0Model::from_dataset(&ds);
             full_tally.absorb(&model, &dict);
-            for q in &model.quads {
+            let classifications = gmeow_lang_bridge::classify_model(&model, &dict);
+            for (q, coverage) in model.quads.iter().zip(classifications) {
                 let hits_decimal = matches!(
-                    gmeow_lang_bridge::classify_quad(q, &dict),
+                    coverage,
                     gmeow_lang_bridge::QuadCoverage::Covered {
                         subject,
                         predicate,

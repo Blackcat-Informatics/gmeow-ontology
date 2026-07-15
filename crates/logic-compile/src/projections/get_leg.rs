@@ -348,7 +348,8 @@ pub fn relation_lattice(relation: &str) -> (CorrespondenceRelation, MorphismClas
     }
 }
 
-/// A projection mapping: a pattern + its per-profile bindings.
+/// Authored metadata that promotes a projection mapping to an explicit grounding
+/// correspondence, including its justification, endpoints, morphism, and preservation claims.
 #[derive(Debug, Clone)]
 pub struct GroundingAuthoring {
     pub justification: Option<String>,

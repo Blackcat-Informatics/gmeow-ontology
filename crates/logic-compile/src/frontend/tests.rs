@@ -1218,27 +1218,128 @@ fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
 
 #[test]
 fn derive_logic_restrictions_matches_the_lowered_owl_spelling() {
-    let owl = shape_dataset(
-        "g:Record a owl:Class ; rdfs:subClassOf \
-         [ a owl:Restriction ; owl:onProperty g:item ; owl:allValuesFrom g:Item ] , \
-         [ a owl:Restriction ; owl:onProperty g:item ; \
-           owl:maxQualifiedCardinality 1 ; owl:onClass g:Item ] .",
-    );
-    let logic = shape_dataset(
-        "g:Record a owl:Class ; logic:subClassOf \
-         [ a logic:Restriction ; logic:onProperty g:item ; logic:allValuesFrom g:Item ] , \
-         [ a logic:Restriction ; logic:onProperty g:item ; \
-           logic:maxQualifiedCardinality 1 ; logic:onClass g:Item ] .",
-    );
+    let cases = [
+        (
+            "same-path allValuesFrom + maxQualifiedCardinality/onClass",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:item ; owl:allValuesFrom g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:item ;
+                 owl:maxQualifiedCardinality 1 ; owl:onClass g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:item ; logic:allValuesFrom g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:item ;
+                 logic:maxQualifiedCardinality 1 ; logic:onClass g:Item ] ."#,
+        ),
+        (
+            "someValuesFrom",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:someItem ; owl:someValuesFrom g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:someItem ; logic:someValuesFrom g:Item ] ."#,
+        ),
+        (
+            "hasValue",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:state ; owl:hasValue g:active ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:state ; logic:hasValue g:active ] ."#,
+        ),
+        (
+            "unqualified cardinalities",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:minItem ; owl:minCardinality 1 ] ,
+               [ a owl:Restriction ; owl:onProperty g:maxItem ; owl:maxCardinality 2 ] ,
+               [ a owl:Restriction ; owl:onProperty g:exactItem ; owl:cardinality 1 ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:minItem ; logic:minCardinality 1 ] ,
+               [ a logic:Restriction ; logic:onProperty g:maxItem ; logic:maxCardinality 2 ] ,
+               [ a logic:Restriction ; logic:onProperty g:exactItem ; logic:cardinality 1 ] ."#,
+        ),
+        (
+            "qualified cardinalities with class qualifiers",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:exactMember ; owl:qualifiedCardinality 1 ; owl:onClass g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:minMember ; owl:minQualifiedCardinality 1 ; owl:onClass g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:maxMember ; owl:maxQualifiedCardinality 2 ; owl:onClass g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:exactMember ; logic:qualifiedCardinality 1 ; logic:onClass g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:minMember ; logic:minQualifiedCardinality 1 ; logic:onClass g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:maxMember ; logic:maxQualifiedCardinality 2 ; logic:onClass g:Item ] ."#,
+        ),
+        (
+            "qualified cardinality with data-range qualifier",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:score ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:score ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ."#,
+        ),
+        (
+            "unionOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:unionOf ( g:Item g:OtherItem ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:unionOf ( g:Item g:OtherItem ) ] ] ."#,
+        ),
+        (
+            "disjointUnionOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:disjointUnionOf ( g:Item g:OtherItem ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:disjointUnionOf ( g:Item g:OtherItem ) ] ] ."#,
+        ),
+        (
+            "oneOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:state ;
+                 owl:allValuesFrom [ owl:oneOf ( g:active g:inactive ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:state ;
+                 logic:allValuesFrom [ logic:oneOf ( g:active g:inactive ) ] ] ."#,
+        ),
+        (
+            "complementOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:complementOf g:ForbiddenItem ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:complementOf g:ForbiddenItem ] ] ."#,
+        ),
+        (
+            "faceted datatype onDatatype/withRestrictions filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:code ; owl:allValuesFrom
+                 [ a rdfs:Datatype ; owl:onDatatype xsd:string ;
+                   owl:withRestrictions ( [ xsd:minLength 2 ] ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:code ; logic:allValuesFrom
+                 [ a rdfs:Datatype ; logic:onDatatype xsd:string ;
+                   logic:withRestrictions ( [ xsd:minLength 2 ] ) ] ] ."#,
+        ),
+    ];
 
-    let owl_shapes = derive_validation_shapes(owl.as_ref()).expect("derive OWL spelling");
-    let logic_shapes =
-        derive_validation_shapes(logic.as_ref()).expect("derive canonical logic spelling");
+    let mut merged_logic_shapes = None;
+    for (name, owl_ttl, logic_ttl) in cases {
+        let owl = shape_dataset(owl_ttl);
+        let logic = shape_dataset(logic_ttl);
+        let owl_shapes = derive_validation_shapes(owl.as_ref())
+            .unwrap_or_else(|error| panic!("derive OWL spelling for {name}: {error}"));
+        let logic_shapes = derive_validation_shapes(logic.as_ref())
+            .unwrap_or_else(|error| panic!("derive canonical logic spelling for {name}: {error}"));
+        assert_eq!(
+            logic_shapes, owl_shapes,
+            "canonical logic: spelling must match its OWL projection for {name}"
+        );
+        if name.starts_with("same-path") {
+            merged_logic_shapes = Some(logic_shapes);
+        }
+    }
 
-    assert_eq!(
-        logic_shapes, owl_shapes,
-        "canonical logic: restrictions must derive the same ValidationShapeIr as their OWL projection"
-    );
+    let logic_shapes = merged_logic_shapes.expect("the same-path merge case ran");
     let record = logic_shapes
         .iter()
         .find(|shape| shape.iri.ends_with("/Record-shape"))

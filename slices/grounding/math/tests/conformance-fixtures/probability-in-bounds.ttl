@@ -8,7 +8,8 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:inBoundsProbability a math:ProbabilityValue ;
-    math:quantityValue "0.72" .
+    math:quantityValue "0.72"^^xsd:decimal .
 ex:inBoundsProbability math:hasDimension math:dimensionless .

@@ -34,6 +34,7 @@ use gmeow_logic::foundation::{
     AntiRigidityPolicy, FoundationQuad, evaluate as foundation_evaluate,
 };
 use gmeow_logic::reason::dl_consistency;
+use gmeow_logic::reasoning_graphs::is_object_level_named_graph;
 use gmeow_logic::store::WorldStore;
 use purrdf::{
     NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes, import_gts_events,
@@ -52,15 +53,6 @@ const LOGIC_VIOLATION: &str = "https://blackcatinformatics.ca/logic/violation";
 const LOGIC_RELCOMP: &str = "https://blackcatinformatics.ca/logic/RelComp";
 const LOGIC_KIND: &str = "https://blackcatinformatics.ca/logic/Kind";
 const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
-// The production reasoning boundary admitted by
-// `gmeow_pipeline::stages::carrier::snapshot_reasoning_edb`. This test cannot depend on
-// the pipeline crate (the pipeline already depends on `gmeow-logic`), so the graph IRIs
-// are mirrored here. The pipeline boundary has its own focused inclusion/exclusion test;
-// this mirror keeps the gate-teeth proof on the lower-layer reasoner crate.
-const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
-const GRAPH_IMPORTS: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
-const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
-const GRAPH_RELATIONAL_CORE: &str = "https://blackcatinformatics.ca/gmeow/graph/relational-core";
 // One synthetic world holding the whole bundle's relator schema — RelComp is a
 // class-level (TBox) discipline, so a single world is the correct scope.
 const BUNDLE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/relcomp/world";
@@ -127,10 +119,7 @@ fn repo_root() -> PathBuf {
 fn admitted_reasoning_graph(graph: &Option<RdfTerm>) -> bool {
     match graph {
         None => true,
-        Some(RdfTerm::Iri(iri)) => matches!(
-            iri.as_str(),
-            GRAPH_STATEMENTS | GRAPH_IMPORTS | GRAPH_LOGIC | GRAPH_RELATIONAL_CORE
-        ),
+        Some(RdfTerm::Iri(iri)) => is_object_level_named_graph(iri),
         Some(_) => false,
     }
 }

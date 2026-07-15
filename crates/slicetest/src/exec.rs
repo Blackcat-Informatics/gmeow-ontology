@@ -973,6 +973,37 @@ mod tests {
     }
 
     #[test]
+    fn lang_gmn_nonlexical_guard_rejects_word_form_subclasses() {
+        let spec_path = paths::repo_root().join("slices/grounding/lang/tests/structural.ttl");
+        let spec = dsl::load_spec(&spec_path).expect("lang structural assertions parse");
+        let pattern = spec
+            .structural
+            .iter()
+            .find(|assertion| assertion.iri.ends_with("saGmnSignsAreNonLexicalForms"))
+            .and_then(|assertion| assertion.pattern.as_deref())
+            .expect("the GMN non-lexical structural ASK is present");
+        let store = store_from_turtle(
+            r#"
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix lang: <https://blackcatinformatics.ca/lang/> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix ex: <https://example.org/> .
+
+            lang:SyntacticWord rdfs:subClassOf lang:WordForm .
+            ex:form a lang:Form, lang:SyntacticWord .
+            ex:denotation a lang:Denotation ;
+                gmeow:gmnDenotationGrapheme ex:glyph ;
+                lang:denotedForm ex:form .
+            "#,
+        );
+
+        assert!(
+            !run_ask(&store, pattern).expect("the GMN non-lexical ASK executes"),
+            "a directly situated GMN form must still be rejected when its specific type is a WordForm subclass"
+        );
+    }
+
+    #[test]
     fn result_shape_conforming_bindings_pass() {
         let store = one_thing_store();
         let mut cq = cq_with(Q_X);

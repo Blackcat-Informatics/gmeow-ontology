@@ -1262,6 +1262,8 @@ ASK {
         logic:formalizes math:ArgumentSlotContiguityShape ;
         logic:integrity ?formula ;
         gmeow:enforcesFailureClass math:NonContiguousArgumentSlots .
+    ?formula (logic:forall|logic:antecedent|logic:consequent|logic:and|logic:or|logic:exists)+ ?sumAtom .
+    ?formula (logic:forall|logic:antecedent|logic:consequent|logic:and|logic:or|logic:exists)+ ?equalAtom .
     math:NonContiguousArgumentSlots logic:subClassOf math:MathConformanceFailure .
     ?sumAtom logic:relation logic:termSum .
     ?equalAtom logic:relation logic:termEqual .
@@ -1294,6 +1296,7 @@ ex:saProbabilityScalesAreDimensionless a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?scale { math:ProbabilityValue math:OddsValue math:LogOddsValue }
     ?scale logic:subClassOf [
@@ -1301,5 +1304,11 @@ ASK {
         logic:onProperty math:hasDimension ;
         logic:hasValue math:dimensionless
     ] .
+    VALUES ?generatedScale { math:OddsValue math:LogOddsValue }
+    ?generatedScale logic:subClassOf
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Dimension ] .
 }""" ;
-    gmeow:saRationale "Probability, odds, and log-odds are dimensionless quantity scales by axiom, not prose only; their inherited exactly-one dimension must therefore be math:dimensionless." .
+    gmeow:saRationale "Probability, odds, and log-odds are dimensionless quantity scales by axiom, not prose only; their inherited exactly-one dimension must therefore be math:dimensionless. Odds and log-odds restate the exact-one restriction locally because generated validation and functional-model views target those subclasses directly rather than assuming an entailment pre-pass." .

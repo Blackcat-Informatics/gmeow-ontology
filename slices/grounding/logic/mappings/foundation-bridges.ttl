@@ -108,8 +108,8 @@ gmeow:eqLogicDulInformationObject a gmeow:TermEquivalence, logic:GroundingCorres
 
 gmeow:eqLogicIaoInformationObject a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject gmeow:InformationObject ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iao:IAO_0000030 ;
-    logic:sourceEndpoint gmeow:InformationObject ; logic:targetEndpoint iao:IAO_0000030 ;
+    gmeow:alignObject iao:0000030 ;
+    logic:sourceEndpoint gmeow:InformationObject ; logic:targetEndpoint iao:0000030 ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
     gmeow:sssomFile "gmeow-logic-iao.sssom.tsv" ;
     gmeow:comment "IAO information content entity is a close bridge, not an identity assertion over the kernel information-object sort." ;
@@ -118,8 +118,8 @@ gmeow:eqLogicIaoInformationObject a gmeow:TermEquivalence, logic:GroundingCorres
 
 gmeow:eqLogicPatoQuality a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pato:PATO_0000001 ;
-    logic:sourceEndpoint logic:Quality ; logic:targetEndpoint pato:PATO_0000001 ;
+    gmeow:alignObject pato:0000001 ;
+    logic:sourceEndpoint logic:Quality ; logic:targetEndpoint pato:0000001 ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
     gmeow:sssomFile "gmeow-logic-pato.sssom.tsv" ;
     gmeow:comment "PATO's quality root specializes a biomedical quality commitment; it is a validation bridge onto logic:Quality." ;

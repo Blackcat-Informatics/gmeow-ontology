@@ -774,7 +774,7 @@ class Place(Location):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hasCentroid: str | None = Field(default=None, description="The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.", alias="gmeow:hasCentroid")
+    hasCentroid: str | None = Field(default=None, description="Within gmeow:Place, values are node references constrained to gmeow:Geometry. The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.", alias="gmeow:hasCentroid")
 
 
 class Pose(ConfiguredBaseModel):

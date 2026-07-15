@@ -2077,7 +2077,7 @@ class Math_LogOddsValue(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hasDimension: list[str] | None = Field(default=None, description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
+    hasDimension: str = Field(description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
 
 
 class Math_Manifold(ConfiguredBaseModel):
@@ -2472,7 +2472,7 @@ class Math_OddsValue(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hasDimension: list[str] | None = Field(default=None, description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
+    hasDimension: str = Field(description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
 
 
 class Math_OrthogonalComplement(ConfiguredBaseModel):

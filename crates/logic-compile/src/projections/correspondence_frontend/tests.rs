@@ -330,7 +330,31 @@ fn projection_grounding_dsl(
     target_matches: bool,
     bridge_pair: bool,
 ) -> std::sync::Arc<purrdf::RdfDataset> {
+    projection_grounding_dsl_with_binding(
+        binding_count,
+        metadata,
+        target_matches,
+        bridge_pair,
+        None,
+        1,
+    )
+}
+
+/// The configurable grounding-projection fixture used by the fail-closed binding-envelope
+/// tests. `relation` overrides the honest default for a bridge/non-bridge pair, while
+/// `target_count` controls how many of the three mutually-exclusive target properties are
+/// authored on each binding.
+fn projection_grounding_dsl_with_binding(
+    binding_count: usize,
+    metadata: bool,
+    target_matches: bool,
+    bridge_pair: bool,
+    relation: Option<&str>,
+    target_count: usize,
+) -> std::sync::Arc<purrdf::RdfDataset> {
     use purrdf::{RdfDatasetBuilder, RdfLiteral};
+
+    assert!(target_count <= 3, "the fixture has three target properties");
 
     let mut b = RdfDatasetBuilder::new();
     let triple =
@@ -430,19 +454,39 @@ fn projection_grounding_dsl(
             &binding,
             &format!("{GMEOW}relation"),
             None,
-            Some(if bridge_pair { "~" } else { "=" }),
+            Some(relation.unwrap_or(if bridge_pair { "~" } else { "=" })),
         );
-        triple(
-            &mut b,
-            &binding,
-            &format!("{GMEOW}toPredicate"),
-            Some(if index == 0 {
-                "https://schema.org/name"
-            } else {
-                "http://xmlns.com/foaf/0.1/name"
-            }),
-            None,
-        );
+        if target_count >= 1 {
+            triple(
+                &mut b,
+                &binding,
+                &format!("{GMEOW}toPredicate"),
+                Some(if index == 0 {
+                    "https://schema.org/name"
+                } else {
+                    "http://xmlns.com/foaf/0.1/name"
+                }),
+                None,
+            );
+        }
+        if target_count >= 2 {
+            triple(
+                &mut b,
+                &binding,
+                &format!("{GMEOW}toClass"),
+                Some("https://schema.org/Thing"),
+                None,
+            );
+        }
+        if target_count >= 3 {
+            triple(
+                &mut b,
+                &binding,
+                &format!("{GMEOW}edoalTarget"),
+                Some("https://schema.org/PropertyValue"),
+                None,
+            );
+        }
     }
     b.freeze().expect("freeze projection grounding fixture")
 }
@@ -661,6 +705,33 @@ fn grounding_projection_accepts_an_honest_commitment_shift() {
     assert_eq!(bridge.morphism_class, MorphismClass::BridgeView);
     assert_eq!(bridge.morphism_kind, MorphismKind::CommitmentShiftingBridge);
     assert_ne!(bridge.relation, CorrespondenceRelation::Equiv);
+}
+
+#[test]
+fn grounding_projection_rejects_a_commitment_shift_with_equivalence_relation() {
+    let dsl = projection_grounding_dsl_with_binding(1, true, true, true, Some("="), 1);
+    let empty = parse_nt("");
+    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect_err("a commitment-shifting bridge may not materialize as equivalence");
+    assert!(
+        err.message().contains("must not declare an equivalence"),
+        "{err}"
+    );
+}
+
+#[test]
+fn grounding_projection_requires_exactly_one_binding_target_form() {
+    let empty = parse_nt("");
+    for target_count in [0, 2] {
+        let dsl = projection_grounding_dsl_with_binding(1, true, true, false, None, target_count);
+        let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+            .expect_err("a grounding binding target must be unambiguous and present");
+        assert!(err.message().contains("exactly one of"), "{err}");
+        assert!(
+            err.message().contains(&format!("found {target_count}")),
+            "{err}"
+        );
+    }
 }
 
 /// A `dsl/mappings/` fixture with ONE `gmeow:ProjectionMapping` whose single per-profile

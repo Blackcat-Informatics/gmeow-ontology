@@ -12,8 +12,8 @@ use gmeow_lang_bridge::registry::{
     assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{
-    ConlluBridge, EbnfBridge, Formalism, exact_round_trip_holds, is_exact_correspondence,
-    parse_grammar, serialize_grammar,
+    ConlluBridge, EbnfBridge, Formalism, LangFailure, exact_round_trip_holds,
+    is_exact_correspondence, parse_grammar, serialize_grammar,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 
@@ -211,15 +211,15 @@ fn gmn1_target_never_defaults_a_missing_current_codebook() {
         }],
         ..Default::default()
     };
-    let emission = &target("gmn1").emit(&input).expect("emit")[0];
-    assert!(!emission.round_trip_holds);
-    assert!(emission.artifacts.is_empty());
+    let error = target("gmn1")
+        .emit(&input)
+        .expect_err("a selected GMN target cannot run without its pinned dictionary");
+    assert_eq!(error.failure_class, LangFailure::SilentIngestDrop);
     assert!(
-        emission
-            .unsupported
-            .iter()
-            .any(|finding| finding.contains("version-pinned resolution cannot default")),
-        "a missing carrier dictionary must be an explicit unsupported finding"
+        error
+            .construct
+            .contains("version-pinned resolution cannot default"),
+        "a missing carrier dictionary must hard-fail with an explicit diagnostic: {error:?}"
     );
 }
 

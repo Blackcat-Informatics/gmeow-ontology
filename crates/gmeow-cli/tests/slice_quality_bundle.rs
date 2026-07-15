@@ -26,6 +26,7 @@ use gmeow_slice_quality::{BundleStandards, MeasurementStandard, ScoringEnv, scor
 
 /// The three environment-anchored axis IRIs, keyed by the rubric individual names.
 const AXIS_GMN1: &str = "https://blackcatinformatics.ca/gmeow/axisGmn1Coverage";
+const AXIS_GMN_GLYPH: &str = "https://blackcatinformatics.ca/gmeow/axisGmnGlyphOptimality";
 const AXIS_DOC_MATURITY: &str = "https://blackcatinformatics.ca/gmeow/axisDocMaturity";
 const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage";
 
@@ -297,8 +298,9 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     let bundle = score_external_slice(&std, &slice_dir).expect("bundle score");
 
     // Repo run against the SAME standard (loaded via the public rubric API), scored
-    // in Repo mode. Off-repo, gmn1 + DocMaturity legitimately go vacuous (1.0);
-    // every other axis must be identical to the Bundle run.
+    // in Repo mode. Off-repo, gmn1 + DocMaturity legitimately go vacuous (1.0),
+    // while GMN glyph optimality fails closed because its canonical lang authority
+    // cannot be assembled. Every other axis must be identical to the Bundle run.
     let ds = purrdf::gts::flattened_dataset_from_bytes(gmeow_cli::BUNDLE_GTS)
         .expect("flatten bundle dataset");
     let std_meas: MeasurementStandard = gmeow_slice_quality::rubric::load_rubric(&ds)
@@ -311,7 +313,8 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     )
     .expect("repo score");
 
-    // The two env-DIVERGENT axes: Repo mode is vacuous off-repo.
+    // The three env-DIVERGENT axes: two are vacuous off-repo; glyph optimality is
+    // deliberately non-vacuous because losing its audit authority must be visible.
     assert_eq!(
         grade_for(&repo, AXIS_GMN1).score,
         1.0,
@@ -322,11 +325,25 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
         1.0,
         "DocMaturity goes vacuous 1.0 in Repo mode off-repo"
     );
+    assert_eq!(
+        grade_for(&repo, AXIS_GMN_GLYPH).score,
+        0.0,
+        "glyph optimality fails closed when Repo mode has no lang audit authority"
+    );
+    assert!(
+        advisory_codes(&repo)
+            .iter()
+            .any(|code| code == "slice-quality.gmn-glyph-optimality.audit-graph-unavailable"),
+        "the failed-closed glyph score names the missing audit graph"
+    );
 
     // Every OTHER axis grade is byte-for-byte equal between the two runs.
     let mut compared = 0usize;
     for bg in &bundle.assessment.grades {
-        if bg.axis_iri == AXIS_GMN1 || bg.axis_iri == AXIS_DOC_MATURITY {
+        if bg.axis_iri == AXIS_GMN1
+            || bg.axis_iri == AXIS_GMN_GLYPH
+            || bg.axis_iri == AXIS_DOC_MATURITY
+        {
             continue;
         }
         let rg = grade_for(&repo, &bg.axis_iri);
@@ -344,8 +361,8 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
         compared += 1;
     }
     assert_eq!(
-        compared, 13,
-        "exactly the 13 env-agnostic axes are compared (15 total − gmn1 − DocMaturity)"
+        compared, 12,
+        "exactly the 12 env-agnostic axes are compared (15 total minus three environment-dependent axes)"
     );
 }
 

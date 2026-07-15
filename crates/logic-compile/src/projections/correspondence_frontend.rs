@@ -517,14 +517,40 @@ fn correspondence_for_binding(
             ),
         }));
     }
+    if grounding.is_some()
+        && morphism_class == MorphismClass::BridgeView
+        && relation == CorrespondenceRelation::Equiv
+    {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} is a commitment-shifting BridgeView and must \
+                 not declare an equivalence binding relation",
+                cell.iri
+            ),
+        }));
+    }
     // The per-profile target IRI the binding projects onto (predicate, class, or EDOAL
-    // target — the first one named). It is the put leg's apex.
-    let target = binding
-        .to_predicate
-        .as_deref()
-        .or(binding.to_class.as_deref())
-        .or(binding.edoal_target.as_deref())
-        .unwrap_or("");
+    // target). A grounding binding names EXACTLY one of these target forms; otherwise its
+    // authored targetEndpoint is ambiguous (or points at no executable target at all).
+    let binding_targets = [
+        binding.to_predicate.as_deref(),
+        binding.to_class.as_deref(),
+        binding.edoal_target.as_deref(),
+    ];
+    let target_count = binding_targets
+        .iter()
+        .filter(|target| target.is_some())
+        .count();
+    if grounding.is_some() && target_count != 1 {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} single binding must carry exactly one of \
+                 gmeow:toPredicate, gmeow:toClass, or gmeow:edoalTarget; found {target_count}",
+                cell.iri
+            ),
+        }));
+    }
+    let target = binding_targets.into_iter().flatten().next().unwrap_or("");
     if let Some(grounding) = grounding
         && grounding.target_endpoint.as_deref() != Some(target)
     {

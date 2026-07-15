@@ -134,7 +134,9 @@ ex:saRetiredQuantityAliasesAbsent a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK {
     VALUES ?legacy { gmeow:Quantity gmeow:ScalarQuantity gmeow:MeasuredValue gmeow:quantityValue }
-    ?legacy ?predicate ?object .
+    { ?legacy ?predicate ?object }
+    UNION { ?subject ?legacy ?object }
+    UNION { ?subject ?predicate ?legacy }
 }""" ;
     gmeow:saRationale "The observation-local Quantity, ScalarQuantity, MeasuredValue, and quantityValue authorities are retired; consumers use math:Quantity and math:quantityValue." .
 

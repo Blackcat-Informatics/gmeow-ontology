@@ -11,7 +11,9 @@ This slice therefore adds almost nothing — and that is its doctrine. Every agg
 `gmeow:Measurement` in the universal observation stack, so vantage, observed feature,
 result, confidence, granularity, and temporal scope are inherited without duplication
 (Principle 4: one observation spine, reused everywhere). The aggregation region is the
-`observedFeature`; the result is a `math:Quantity`. The actual arithmetic —
+`observedFeature`; an aggregation may yield one or more results. Dimensioned numeric
+results use `math:Quantity`, while results with an existing canonical carrier, such as
+`gmeow:MonetaryAmount` for a currency-framed average, retain that type. The actual arithmetic —
 counting, density, centroid, binning — is performed by the solver layer (Principle 12),
 never materialised as asserted triples in the OWL core. The slice realises the the design
 Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
@@ -29,10 +31,13 @@ time, never delete). The k-anonymity *check* itself is a solver computation.
 
 ### gmeow:SpatialAggregation
 
-A `Measurement` subkind whose `observedFeature` is a Place and whose `observationResult`
-is a `math:Quantity`. Because it *is* a measurement, a published census count and a rival
-survey estimate over the same region are two coexisting, vantage-bearing aggregations —
-no privileged figure (Principle 9). Pair with `gmeow:hasReferenceFrame` (the spatial
+A `Measurement` subkind whose `observedFeature` is a Place and whose
+`observationResult` may name one or more domain-appropriate carriers. Dimensioned numeric
+summaries use `math:Quantity`; canonical result types such as `gmeow:MonetaryAmount`
+remain available where their domain semantics apply. Because it *is* a measurement, a
+published census count and a rival survey estimate over the same region are coexisting,
+vantage-bearing aggregations — no privileged figure (Principle 9). Multiple frame- or
+standpoint-indexed results may coexist. Pair with `gmeow:hasReferenceFrame` (the spatial
 frame, Principle 11) and `gmeow:hasGranularity` from the reused core spine.
 
 ### gmeow:aggregationFunction
