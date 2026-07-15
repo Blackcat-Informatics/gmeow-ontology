@@ -18066,6 +18066,9 @@ enums:
   BuildDataFlowEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
     permissible_values:
+      pipeline-dataflow-compile-logic-source-load:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-compile-logic-source-load
+        title: 'dataflow: source-load → compile-logic'
       pipeline-dataflow-reason-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
         title: 'dataflow: compile-logic → reason'
