@@ -10,7 +10,7 @@
 //! rail — they terminated on disk and in conformance fixtures. This stage makes the
 //! compiler a first-class DAG node: it parses the canonical logic source, runs every
 //! projection back-end once, and emits — as committed artifacts the single-pass
-//! regenerate/drift gate owns —
+//! update/drift gate owns —
 //!
 //! * the projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
 //!   Datalog, N3, gUFO, CLIF, CGIF and XCL projections, and the projection-report loss

@@ -53,11 +53,11 @@ impl SyncMode {
 /// Which projections the unified synchronization phase materializes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum SyncOutput {
-    /// Pipeline, committed/generated, and all external documentation outputs.
+    /// Complete pipeline: committed/generated, runtime dist, and external docs.
     All,
-    /// Pipeline and committed/generated outputs only.
+    /// Complete pipeline with only committed/generated outputs materialized.
     Generated,
-    /// All documentation outputs plus their required fresh pipeline inputs.
+    /// External site/book/print/snippet/model docs plus required fresh inputs.
     Docs,
 }
 
@@ -114,6 +114,9 @@ pub enum Commands {
         lang: Option<String>,
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
+        /// Stream live DAG stages and synchronization boundaries.
+        #[arg(short = 'v', long = "verbose")]
+        verbose: bool,
     },
     /// Project the flat consumer tree back out of gmeow.gts.
     Fanout {
@@ -712,7 +715,7 @@ fn info() -> i32 {
 /// stdio. Reads the on-disk `generated/dist/gmeow.gts` snapshot from the working
 /// tree (like every other dev command) and passes the repository root so the
 /// [`McpMode::Dev`](gmeow_pipeline::mcp::McpMode::Dev) repo-reading maintenance
-/// tools (validate/reason/regenerate/constitution) are exposed alongside the
+/// tools (validate/reason/sync/constitution) are exposed alongside the
 /// consumer surface. Blocks on the JSON-RPC loop until EOF.
 fn mcp() -> i32 {
     use gmeow_pipeline::mcp::{McpMode, McpServer};
@@ -746,6 +749,7 @@ pub fn run() -> i32 {
             list_paths,
             lang,
             timings_json,
+            verbose,
         } => dev_sync::sync(
             mode,
             outputs,
@@ -754,6 +758,7 @@ pub fn run() -> i32 {
             timings_json.as_deref(),
             metadata,
             list_paths,
+            verbose,
             console,
         ),
         Commands::Fanout { jobs, timings_json } => {

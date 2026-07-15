@@ -9,11 +9,13 @@ use std::collections::BTreeSet;
 use std::fs::{File, OpenOptions, TryLockError};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::time::Instant;
 use std::time::UNIX_EPOCH;
 
 use gmeow_cli_core::{ConsoleMode, Reporter};
 use gmeow_pipeline::cache::BUILD_FINGERPRINT;
-use gmeow_pipeline::run::{RunMode, RunReport, run_full};
+use gmeow_pipeline::run::{RunMode, RunOutputScope, RunReport, run_full_scoped_with_progress};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -22,7 +24,7 @@ use crate::dev_common::{
 };
 use crate::{SyncMode, SyncOutput};
 
-const MANIFEST_VERSION: u32 = 1;
+const MANIFEST_VERSION: u32 = 3;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
 
@@ -42,6 +44,9 @@ struct SyncManifest {
     output: String,
     language: String,
     strict_checked: bool,
+    /// Whether the selected outputs were reconciled to disk, rather than only
+    /// rendered and checked in memory.
+    materialized: bool,
     docs_rendered: bool,
     managed_roots: Vec<String>,
     files: Vec<FileWitness>,
@@ -55,10 +60,10 @@ struct TaskLock {
 }
 
 impl TaskLock {
-    fn acquire(root: &Path, purpose: &str) -> Result<Self, String> {
+    fn acquire(root: &Path, purpose: &str) -> gmeow_errors::Result<Self> {
         let canonical = root
             .canonicalize()
-            .map_err(|e| format!("resolve worktree root: {e}"))?;
+            .map_err(|e| crate::error::sync(format!("resolve worktree root: {e}")))?;
         let root_text = canonical.to_string_lossy();
         if std::env::var(LOCK_ROOT_ENV).ok().as_deref() == Some(root_text.as_ref())
             && std::env::var(LOCK_TOKEN_ENV).is_ok_and(|token| !token.is_empty())
@@ -67,8 +72,9 @@ impl TaskLock {
         }
 
         let dir = root.join(".cache/gmeow-task");
-        std::fs::create_dir_all(&dir)
-            .map_err(|e| format!("create task-lock directory {}: {e}", dir.display()))?;
+        std::fs::create_dir_all(&dir).map_err(|e| {
+            crate::error::sync(format!("create task-lock directory {}: {e}", dir.display()))
+        })?;
         let path = dir.join("runner.lock");
         let mut file = OpenOptions::new()
             .read(true)
@@ -76,7 +82,7 @@ impl TaskLock {
             .create(true)
             .truncate(false)
             .open(&path)
-            .map_err(|e| format!("open task lock {}: {e}", path.display()))?;
+            .map_err(|e| crate::error::sync(format!("open task lock {}: {e}", path.display())))?;
         match file.try_lock() {
             Ok(()) => {
                 let owner = format!(
@@ -85,28 +91,31 @@ impl TaskLock {
                     root.display()
                 );
                 file.set_len(0)
-                    .map_err(|e| format!("truncate task lock: {e}"))?;
+                    .map_err(|e| crate::error::sync(format!("truncate task lock: {e}")))?;
                 file.seek(SeekFrom::Start(0))
-                    .map_err(|e| format!("seek task lock: {e}"))?;
+                    .map_err(|e| crate::error::sync(format!("seek task lock: {e}")))?;
                 file.write_all(owner.as_bytes())
-                    .map_err(|e| format!("write task lock: {e}"))?;
-                file.flush().map_err(|e| format!("flush task lock: {e}"))?;
+                    .map_err(|e| crate::error::sync(format!("write task lock: {e}")))?;
+                file.flush()
+                    .map_err(|e| crate::error::sync(format!("flush task lock: {e}")))?;
                 Ok(Self { file: Some(file) })
             }
             Err(TryLockError::WouldBlock) => {
                 let mut owner = String::new();
                 let _ = file.seek(SeekFrom::Start(0));
                 let _ = file.read_to_string(&mut owner);
-                Err(format!(
+                Err(crate::error::sync(format!(
                     "another GMEOW task owns this worktree{}",
                     if owner.trim().is_empty() {
                         String::new()
                     } else {
                         format!(": {}", owner.trim())
                     }
-                ))
+                )))
             }
-            Err(TryLockError::Error(e)) => Err(format!("acquire task lock: {e}")),
+            Err(TryLockError::Error(e)) => {
+                Err(crate::error::sync(format!("acquire task lock: {e}")))
+            }
         }
     }
 }
@@ -119,13 +128,15 @@ impl Drop for TaskLock {
     }
 }
 
-fn stream_report(reporter: &dyn Reporter, report: &RunReport) {
+fn stream_report(reporter: &dyn Reporter, report: &RunReport, include_timings: bool) {
     use std::time::Duration;
-    for timing in &report.timings {
-        reporter.stage_end(
-            &timing.phase,
-            Duration::from_millis(timing.elapsed_ms as u64),
-        );
+    if include_timings {
+        for timing in &report.timings {
+            reporter.stage_end(
+                &timing.phase,
+                Duration::from_millis(u64::try_from(timing.elapsed_ms).unwrap_or(u64::MAX)),
+            );
+        }
     }
     let mut diagnostics = gmeow_errors::Report::new("pipeline");
     for finding in &report.findings {
@@ -144,6 +155,7 @@ pub fn sync(
     timings_json: Option<&Path>,
     metadata: bool,
     list_paths: bool,
+    verbose: bool,
     console: Option<ConsoleMode>,
 ) -> i32 {
     let root = project_root();
@@ -174,20 +186,37 @@ pub fn sync(
         Ok(lock) => lock,
         Err(e) => return fail(e),
     };
-    let reporter = reporter_for(resolve_console(console));
+    let reporter: Arc<dyn Reporter> = Arc::from(reporter_for(resolve_console(console)));
     let language = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok())
         .unwrap_or_else(|| "default".to_string());
+    let input_started = Instant::now();
+    if verbose {
+        reporter.stage_start("sync:hash-inputs");
+    }
     let input_digest = match sync_input_digest(&root) {
         Ok(digest) => digest,
         Err(e) => return fail(format!("hash sync inputs: {e}")),
     };
+    if verbose {
+        reporter.stage_end("sync:hash-inputs", input_started.elapsed());
+    }
     let manifest_path = manifest_path(&root, output, &language);
-    if let Ok(bytes) = std::fs::read(&manifest_path)
-        && let Ok(manifest) = serde_json::from_slice::<SyncManifest>(&bytes)
-        && manifest_is_current(&root, &manifest, mode, output, &language, &input_digest)
-    {
+    let manifest_started = Instant::now();
+    if verbose {
+        reporter.stage_start("sync:validate-manifest");
+    }
+    let manifest_hit = std::fs::read(&manifest_path)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<SyncManifest>(&bytes).ok())
+        .is_some_and(|manifest| {
+            manifest_is_current(&root, &manifest, mode, output, &language, &input_digest)
+        });
+    if verbose {
+        reporter.stage_end("sync:validate-manifest", manifest_started.elapsed());
+    }
+    if manifest_hit {
         println!(
             "sync: clean manifest hit (mode={}, output={}); pipeline and docs skipped",
             mode.as_str(),
@@ -213,11 +242,17 @@ pub fn sync(
         SyncMode::Update => RunMode::Update,
         SyncMode::Check => RunMode::Check,
     };
-    let report = match run_full(&root, jobs, run_mode) {
+    let output_scope = match output {
+        SyncOutput::All => RunOutputScope::All,
+        SyncOutput::Generated | SyncOutput::Docs => RunOutputScope::Committed,
+    };
+    let progress = verbose.then(|| Arc::clone(&reporter));
+    let report = match run_full_scoped_with_progress(&root, jobs, run_mode, output_scope, progress)
+    {
         Ok(report) => report,
         Err(e) => return fail(format!("sync pipeline failed: {e}")),
     };
-    stream_report(reporter.as_ref(), &report);
+    stream_report(reporter.as_ref(), &report, !verbose);
     if !report.drifted.is_empty() {
         for path in &report.drifted {
             gmeow_cli_core::note(
@@ -233,29 +268,58 @@ pub fn sync(
         ));
     }
 
+    if let Err(e) = reconcile_owned_tree(
+        &root,
+        "packages/python/gmeow_models",
+        &report.output_paths,
+        mode == SyncMode::Update,
+    ) {
+        return fail(e);
+    }
+
     let docs_rendered = matches!(output, SyncOutput::All | SyncOutput::Docs);
-    let docs_paths = if docs_rendered {
-        match crate::dev_project::sync_docs(mode == SyncMode::Update, lang) {
-            Ok(paths) => paths,
+    let docs_report = if docs_rendered {
+        let docs_started = Instant::now();
+        if verbose {
+            reporter.stage_start("sync:docs");
+        }
+        let result = crate::dev_project::sync_docs(mode == SyncMode::Update, lang);
+        if verbose && result.is_ok() {
+            reporter.stage_end("sync:docs", docs_started.elapsed());
+        }
+        match result {
+            Ok(report) => report,
             Err(code) => return code,
         }
     } else {
-        Vec::new()
+        crate::dev_project::DocsSyncReport::default()
     };
 
-    let mut logical_outputs = report.output_paths.clone();
+    let mut logical_outputs = report
+        .output_paths
+        .iter()
+        .filter(|path| pipeline_output_selected(output, path))
+        .cloned()
+        .collect::<Vec<_>>();
     if mode == SyncMode::Update {
-        logical_outputs.extend(docs_paths);
+        logical_outputs.extend(docs_report.output_paths.iter().cloned());
     }
     let managed_roots = managed_roots(output, mode);
     let files = match capture_outputs(&root, &logical_outputs, &managed_roots) {
         Ok(files) => files,
         Err(e) => return fail(format!("capture sync outputs: {e}")),
     };
+    let final_hash_started = Instant::now();
+    if verbose {
+        reporter.stage_start("sync:rehash-inputs");
+    }
     let final_input_digest = match sync_input_digest(&root) {
         Ok(digest) => digest,
         Err(e) => return fail(format!("rehash synchronized inputs: {e}")),
     };
+    if verbose {
+        reporter.stage_end("sync:rehash-inputs", final_hash_started.elapsed());
+    }
     let manifest = SyncManifest {
         version: MANIFEST_VERSION,
         build_fingerprint: BUILD_FINGERPRINT.to_string(),
@@ -263,14 +327,26 @@ pub fn sync(
         output: output.as_str().to_string(),
         language,
         strict_checked: true,
+        materialized: mode == SyncMode::Update,
         docs_rendered,
         managed_roots,
         files,
     };
+    let write_manifest_started = Instant::now();
+    if verbose {
+        reporter.stage_start("sync:write-manifest");
+    }
     if let Err(e) = write_manifest(&manifest_path, &manifest) {
         return fail(format!("write sync manifest: {e}"));
     }
+    if verbose {
+        reporter.stage_end("sync:write-manifest", write_manifest_started.elapsed());
+    }
 
+    let total_produced = report.produced + docs_report.reconciliation.produced;
+    let total_written = report.written + docs_report.reconciliation.written;
+    let total_unchanged = report.skipped_writes + docs_report.reconciliation.unchanged;
+    let total_removed = report.removed + docs_report.reconciliation.removed;
     if let Some(path) = timings_json {
         let timings = report
             .timings
@@ -289,9 +365,10 @@ pub fn sync(
             "output": output.as_str(),
             "cache_hit": false,
             "pipeline_runs": 1,
-            "produced": report.produced,
-            "written": report.written,
-            "unchanged": report.skipped_writes,
+            "produced": total_produced,
+            "written": total_written,
+            "unchanged": total_unchanged,
+            "removed": total_removed,
             "timings": timings,
         });
         let code = write_timings_json(path, &payload);
@@ -300,11 +377,13 @@ pub fn sync(
         }
     }
     println!(
-        "sync: mode={}, output={}, pipeline-runs=1, written={}, unchanged={}",
+        "sync: mode={}, output={}, pipeline-runs=1, produced={}, written={}, unchanged={}, removed={}",
         mode.as_str(),
         output.as_str(),
-        report.written,
-        report.skipped_writes
+        total_produced,
+        total_written,
+        total_unchanged,
+        total_removed
     );
     0
 }
@@ -337,13 +416,86 @@ fn manifest_path(root: &Path, output: SyncOutput, language: &str) -> PathBuf {
         .join(format!("{}-{safe_language}.json", output.as_str()))
 }
 
+fn pipeline_output_selected(output: SyncOutput, path: &str) -> bool {
+    output == SyncOutput::All || !path.starts_with("dist/")
+}
+
 fn managed_roots(output: SyncOutput, mode: SyncMode) -> Vec<String> {
-    let mut roots = vec!["generated".to_string()];
+    let mut roots = vec![
+        "generated".to_string(),
+        "packages/python/gmeow_models".to_string(),
+    ];
     if mode == SyncMode::Update && matches!(output, SyncOutput::All | SyncOutput::Docs) {
         roots.push("ontology-docs".to_string());
         roots.push("dist/gmeow-docs".to_string());
     }
     roots
+}
+
+fn reconcile_owned_tree(
+    root: &Path,
+    owned_root: &str,
+    logical_outputs: &[String],
+    update: bool,
+) -> gmeow_errors::Result<()> {
+    let prefix = format!("{owned_root}/");
+    let expected = logical_outputs
+        .iter()
+        .filter(|path| path.starts_with(&prefix))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let mut current = Vec::new();
+    collect_files(&root.join(owned_root), root, &mut current);
+    let stale = current
+        .iter()
+        .filter(|path| !expected.contains(path.as_str()))
+        .cloned()
+        .collect::<Vec<_>>();
+    if stale.is_empty() {
+        return Ok(());
+    }
+    if !update {
+        return Err(crate::error::sync(format!(
+            "sync found {} stale artifact(s) under {owned_root}: {}",
+            stale.len(),
+            stale.join(", ")
+        )));
+    }
+    for rel in stale {
+        std::fs::remove_file(root.join(&rel)).map_err(|e| {
+            crate::error::sync(format!("remove stale synchronized artifact {rel}: {e}"))
+        })?;
+    }
+    prune_empty_dirs(&root.join(owned_root)).map_err(|e| {
+        crate::error::sync(format!(
+            "prune empty synchronized directories under {owned_root}: {e}"
+        ))
+    })?;
+    Ok(())
+}
+
+fn prune_empty_dirs(dir: &Path) -> std::io::Result<()> {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(e),
+    };
+    let mut children = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+    children.sort();
+    for child in children {
+        prune_empty_dirs(&child)?;
+        match std::fs::remove_dir(&child) {
+            Ok(()) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::DirectoryNotEmpty => {}
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(())
 }
 
 fn manifest_is_current(
@@ -360,6 +512,7 @@ fn manifest_is_current(
         || manifest.output != output.as_str()
         || manifest.language != language
         || (mode == SyncMode::Check && !manifest.strict_checked)
+        || (mode == SyncMode::Update && !manifest.materialized)
         || (matches!(output, SyncOutput::All | SyncOutput::Docs) && !manifest.docs_rendered)
     {
         return false;
@@ -440,24 +593,39 @@ fn modified_ns(metadata: &std::fs::Metadata) -> u128 {
 fn sync_input_digest(root: &Path) -> std::io::Result<String> {
     let mut paths = Vec::new();
     for rel in [
-        "slices",
+        "bench",
+        "conformance",
+        "coverage",
+        "crates",
+        "docs",
         "dsl",
+        "evals",
+        "governance",
+        "i18n",
         "imports",
         "metadata",
-        "shapes",
-        "queries",
-        "evals",
-        "bench",
-        "docs",
-        "i18n",
         "ontology",
-        "governance",
-        "config",
+        "queries",
+        "shapes",
+        "slices",
+        "tests",
         "validations",
     ] {
         collect_files(&root.join(rel), root, &mut paths);
     }
-    for rel in ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml"] {
+    for rel in [
+        ".cargo/config.toml",
+        ".goals",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CONSTITUTION.md",
+        "CONTRIBUTING.md",
+        "Cargo.lock",
+        "Cargo.toml",
+        "Makefile",
+        "README.md",
+        "rust-toolchain.toml",
+    ] {
         if root.join(rel).is_file() {
             paths.push(rel.to_string());
         }
@@ -547,5 +715,60 @@ mod tests {
         for value in ["", "0", "false", "off", "no"] {
             assert!(matches!(value, "" | "0" | "false" | "off" | "no"));
         }
+    }
+
+    #[test]
+    fn read_only_manifest_cannot_satisfy_update() {
+        let manifest = SyncManifest {
+            version: MANIFEST_VERSION,
+            build_fingerprint: BUILD_FINGERPRINT.to_string(),
+            input_digest: "same".to_string(),
+            output: SyncOutput::Generated.as_str().to_string(),
+            language: "default".to_string(),
+            strict_checked: true,
+            materialized: false,
+            docs_rendered: false,
+            managed_roots: Vec::new(),
+            files: Vec::new(),
+        };
+        assert!(!manifest_is_current(
+            Path::new("/does/not/matter"),
+            &manifest,
+            SyncMode::Update,
+            SyncOutput::Generated,
+            "default",
+            "same",
+        ));
+        assert!(manifest_is_current(
+            Path::new("/does/not/matter"),
+            &manifest,
+            SyncMode::Check,
+            SyncOutput::Generated,
+            "default",
+            "same",
+        ));
+    }
+
+    #[test]
+    fn generated_and_docs_selection_exclude_unrequested_runtime_outputs() {
+        let paths = [
+            "generated/module-status.md".to_string(),
+            "dist/gmeow-okf/index.md".to_string(),
+        ];
+        for output in [SyncOutput::Generated, SyncOutput::Docs] {
+            let selected = paths
+                .iter()
+                .filter(|path| pipeline_output_selected(output, path))
+                .cloned()
+                .collect::<Vec<_>>();
+            assert_eq!(selected, vec!["generated/module-status.md"]);
+        }
+        assert_eq!(
+            paths
+                .iter()
+                .filter(|path| pipeline_output_selected(SyncOutput::All, path))
+                .count(),
+            2
+        );
     }
 }

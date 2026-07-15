@@ -3,7 +3,7 @@
 
 //! The full-build entry point: [`run_full`] runs the WHOLE
 //! dogfooded DAG single-pass and either WRITES every produced artifact to disk
-//! (regenerate mode) or COMPARES each against the committed bytes and collects
+//! (update mode) or COMPARES each against the committed bytes and collects
 //! drift [`Finding`]s (check mode).
 //!
 //! # The single-pass property
@@ -18,15 +18,17 @@
 //!
 //! The native `schemas` leaf consumes the `stage-gts-sink` product because the
 //! generated schema surfaces are projections of the exact folded GTS bytes that
-//! are shipped. `run_full` still runs the DAG in two phases so the sink product
-//! exists before schemas render, but schemas read those bytes from the in-memory
-//! upstream product; there is no Python subprocess and no disk-read dependency.
+//! are shipped. The sink product and schemas tail execute in one scheduled DAG;
+//! schemas read those bytes from their in-memory upstream product, with no Python
+//! subprocess and no disk-read dependency.
 
 use std::collections::BTreeMap;
 use std::io::ErrorKind;
 use std::path::Path;
+use std::sync::Arc;
 use std::time::Instant;
 
+use gmeow_cli_core::Reporter;
 use gmeow_errors::{
     Diag, DiagLedger, Finding, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
 };
@@ -97,20 +99,37 @@ pub enum RunMode {
     Check,
 }
 
+/// Which output family an update-mode run materializes.
+///
+/// This is explicit feature selection, not capability degradation: the complete
+/// DAG still executes and all strict gates still run. The selected output family
+/// is then mandatory. [`Committed`](Self::Committed) suppresses only gitignored
+/// `dist/*` runtime projections so a generated-only sync does not churn unrelated
+/// presentation files.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RunOutputScope {
+    /// Materialize committed outputs and every gitignored runtime projection.
+    All,
+    /// Materialize only committed/generated outputs.
+    Committed,
+}
+
 /// The outcome of a [`run_full`]: how many artifacts were produced / reproduced
 /// and any drift findings (check mode) or write errors.
 #[derive(Debug, Clone)]
 pub struct RunReport {
     /// The run mode.
     pub mode: RunMode,
-    /// Total committed-artifact paths the run produced.
+    /// Total logical output paths the run produced.
     pub produced: usize,
-    /// Paths that reproduced byte-for-byte (check) / reconciled cleanly (regenerate).
+    /// Paths that reproduced byte-for-byte (check) / reconciled cleanly (update).
     pub reproduced: usize,
-    /// Artifacts rewritten in regenerate mode because bytes changed or the file was missing.
+    /// Artifacts rewritten in update mode because bytes changed or the file was missing.
     pub written: usize,
-    /// Artifacts left untouched in regenerate mode because committed bytes already matched.
+    /// Artifacts left untouched in update mode because committed bytes already matched.
     pub skipped_writes: usize,
+    /// Stale projection-owned files removed while reconciling output trees.
+    pub removed: usize,
     /// Drift / write findings (empty ⇒ full parity). These are a *projection* of
     /// [`ledger`](RunReport::ledger) — the drift/superset producers intern their
     /// diagnostics into the carrier ledger, and this field is
@@ -537,7 +556,7 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 }
 
 /// Run the FULL dogfooded build single-pass and either write every produced
-/// artifact (regenerate) or compare it to the committed bytes (check).
+/// artifact (update) or compare it to the committed bytes (check).
 ///
 /// `jobs` is the per-level parallelism budget. Returns a [`RunReport`]; in check
 /// mode `report.is_clean()` is the cutover gate (zero drift across every
@@ -545,6 +564,28 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// deterministic); the `gmeow.gts` bundle is compared by the FOLD (see
 /// `tests/full_parity.rs`) because CBOR has encoding skew.
 pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gmeow_errors::Diag> {
+    run_full_scoped(root, jobs, mode, RunOutputScope::All)
+}
+
+/// Run the complete build once while materializing only the explicitly selected
+/// output family. Selection never removes a stage or gate from the DAG.
+pub fn run_full_scoped(
+    root: &Path,
+    jobs: usize,
+    mode: RunMode,
+    output_scope: RunOutputScope,
+) -> Result<RunReport, gmeow_errors::Diag> {
+    run_full_scoped_with_progress(root, jobs, mode, output_scope, None)
+}
+
+/// Run the scoped pipeline with an optional live progress sink.
+pub fn run_full_scoped_with_progress(
+    root: &Path,
+    jobs: usize,
+    mode: RunMode,
+    output_scope: RunOutputScope,
+    progress: Option<Arc<dyn Reporter>>,
+) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
     let spec = full_spec();
 
@@ -555,19 +596,24 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     let graph = spec.validate()?;
     let registry = default_registry();
     let bound = bind(&spec, &graph, &registry)?;
-    // A full single-pass build runs over the PERSISTENT per-stage cache
-    // (`generated/.pipeline-cache/`, gitignored) for cross-invocation reuse: an edit to
-    // one slice re-runs only the affected stages, not the whole DAG. This is safe
-    // because every `stage_key` folds `cache::BUILD_FINGERPRINT` (a hash of the whole
-    // workspace source + Cargo.lock + rustc), so ANY code/dependency/toolchain change —
-    // including one with no `impl_version` bump — yields fresh keys and recomputes. The
-    // cache is also self-verifying (blobs re-hashed on load; a mismatch hard-fails), so
-    // it can never serve a stale or corrupt product. A clean checkout (CI) has no cache
-    // dir and builds cold; subsequent local runs are warm.
-    let mut ctx = RunContext::open(root, jobs)?;
+    // The whole-run sync manifest is the profitable cache boundary. Pipeline stage
+    // products are cumulative carrier snapshots; persisting or hydrating them creates
+    // multi-gigabyte duplicate state and measured slower than recomputation. On a
+    // manifest miss, execute the DAG once with no per-stage cache I/O.
+    let mut ctx = RunContext::open_uncached(root, jobs);
+    if let Some(progress) = progress.as_ref() {
+        ctx = ctx.with_progress(Arc::clone(progress));
+        progress.stage_start("pipeline:dag");
+    }
     let scheduler_started = Instant::now();
     let result = run(&graph, &bound, &mut ctx)?;
     let scheduler_elapsed = scheduler_started.elapsed().as_millis();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_end(
+            "pipeline:dag",
+            std::time::Duration::from_millis(u64::try_from(scheduler_elapsed).unwrap_or(u64::MAX)),
+        );
+    }
     let mut timings: Vec<TimingRecord> = Vec::new();
     timings.push(TimingRecord {
         phase: "pipeline-scheduler".to_string(),
@@ -615,7 +661,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     // artifacts — stronger than the loader's capability-declaration-count gate — so a
     // stage emitting `gmeow.gts` WITHOUT declaring `sinkCapability` (identity mismatch),
     // a stage emitting it in addition to the declared sink, or a second declared sink,
-    // is a hard failure in BOTH regenerate and check modes.
+    // is a hard failure in BOTH update and check modes.
     let declared_sink = declared_sink_stage(&spec)?;
     assert_single_gts_writer(&products, declared_sink)?;
 
@@ -624,10 +670,14 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     let mut reproduced = 0usize;
     let mut written = 0usize;
     let mut skipped_writes = 0usize;
+    let mut removed = 0usize;
     let mut output_paths: Vec<String> = Vec::new();
 
     // ── Reconcile every produced artifact against committed / write it. ──
     let reconcile_started = Instant::now();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_start("pipeline:reconcile");
+    }
     for product in products.values() {
         for (path, bytes) in &product.artifacts() {
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
@@ -639,9 +689,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             output_paths.push(path.clone());
             produced += 1;
 
-            // The `gmeow.gts` bundle: in Regenerate mode WRITE the freshly-assembled
+            // The `gmeow.gts` bundle: in Update mode WRITE the freshly-assembled
             // bundle to disk (the terminal's sole output — without this a stale
-            // `merge=ours` bundle survives an `integrate-main` + regenerate, the exact
+            // `merge=ours` bundle survives an `integrate-main` + update, the exact
             // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
             // has encoding skew — so it is only counted here; the fold gate is
@@ -796,12 +846,12 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             }
 
             // `dist/*` artifacts are gitignored runtime outputs with NO committed
-            // authority: a fresh checkout (CI `check-generated`) has no `dist/` tree,
-            // so they can never be drift-compared. They are WRITTEN in Regenerate but
+            // authority: a fresh checkout (CI strict sync) has no `dist/` tree,
+            // so they can never be drift-compared. They are WRITTEN in Update but
             // SKIPPED in Check (their reproducibility is covered by the second-run
             // determinism check in `tests/full_parity.rs`).
             if path.starts_with("dist/") {
-                if mode == RunMode::Update {
+                if mode == RunMode::Update && output_scope == RunOutputScope::All {
                     if write_artifact(root, path, bytes)? {
                         written += 1;
                     } else {
@@ -817,8 +867,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                 // §3.1): a committed `generated/` file is NOT written here — it is
                 // projected from the bundle by the post-pipeline fanout phase (§6),
                 // which runs after this loop writes `gmeow.gts`. Retiring the direct
-                // write leaves the terminal `gmeow.gts` (and gitignored `dist/*`) as
-                // the pipeline's only disk output. Paths OUTSIDE `generated/` (e.g. the
+                // write leaves the terminal `gmeow.gts` (plus explicitly selected
+                // gitignored `dist/*` projections) as the pipeline's only disk output.
+                // Paths OUTSIDE `generated/` (e.g. the
                 // root OASIS catalog) are out of the superset law's scope (§5 governs
                 // `generated/`), so their producing stage still writes them directly.
                 if !path.starts_with("generated/") {
@@ -877,6 +928,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         elapsed_ms: reconcile_started.elapsed().as_millis(),
         metadata: Some(format!("produced={produced};reproduced={reproduced}")),
     });
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_end("pipeline:reconcile", reconcile_started.elapsed());
+    }
 
     // ── Fanout (PIPELINE_SPINE §6): the separate post-pipeline projection phase. ──
     // The pipeline has now written `gmeow.gts`; project every committed `generated/`
@@ -886,17 +940,24 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     // gate above already proved every committed path is reconstructible.
     if mode == RunMode::Update {
         let fanout_started = Instant::now();
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_start("pipeline:fanout");
+        }
         let report = crate::fanout::fanout(root, jobs)?;
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_end("pipeline:fanout", fanout_started.elapsed());
+        }
         timings.push(TimingRecord {
             phase: "fanout".to_string(),
             elapsed_ms: fanout_started.elapsed().as_millis(),
             metadata: Some(format!(
-                "produced={};written={};skipped={}",
-                report.produced, report.written, report.skipped
+                "produced={};written={};skipped={};removed={}",
+                report.produced, report.written, report.skipped, report.removed
             )),
         });
         written += report.written;
         skipped_writes += report.skipped;
+        removed += report.removed;
 
         // Update is check-while-writing, not a weaker generation lane. Run the
         // strict carrier/syntax gates against the freshly fanned-out tree without
@@ -910,7 +971,14 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                     message: format!("no produced {GTS_PATH} available for post-update gates"),
                 })
             })?;
+        let gates_started = Instant::now();
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_start("pipeline:post-update-gates");
+        }
         run_post_update_gates(root, gts, &mut ledger, &mut drifted, &mut timings)?;
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_end("pipeline:post-update-gates", gates_started.elapsed());
+        }
     }
 
     drifted.sort();
@@ -927,11 +995,15 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         phase: "pipeline-total".to_string(),
         elapsed_ms: total_started.elapsed().as_millis(),
         metadata: Some(format!(
-            "mode={}",
+            "mode={};outputs={}",
             match mode {
                 RunMode::Check => "check",
                 RunMode::Update => "update",
-            }
+            },
+            match output_scope {
+                RunOutputScope::All => "all",
+                RunOutputScope::Committed => "committed",
+            },
         )),
     });
 
@@ -947,6 +1019,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         reproduced,
         written,
         skipped_writes,
+        removed,
         findings,
         ledger,
         drifted,
@@ -1093,7 +1166,7 @@ fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, gmeow_errors::Diag> 
 /// bundle bytes without declaring the capability (identity mismatch — a rogue writer
 /// impersonating the terminal), the declared sink NOT emitting it, or a second writer, is
 /// a hard failure (no-optionality, fail-closed) — never a silent second terminal, in
-/// either regenerate or check mode.
+/// either update or check mode.
 fn assert_single_gts_writer(
     products: &BTreeMap<String, StageProduct>,
     declared_sink: &str,

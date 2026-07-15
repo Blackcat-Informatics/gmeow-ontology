@@ -12,7 +12,7 @@
 //!
 //! [`run_constitution_gate`] is fully self-contained here (it reuses
 //! [`crate::constitution::constitution_full_report`]). The remaining runnable
-//! gates — `validate`, `lint-alignment`, `check-generated` — orchestrate the
+//! gates — `validate`, `lint-alignment`, `sync` — orchestrate the
 //! whole-repo validation and the regeneration pipeline, which live above this
 //! crate; the `gmeow-dev` binary supplies their [`GateRun`] outcomes. The report
 //! rendering ([`build_report`]) is pure: gate outcomes in, Turtle out.
@@ -33,12 +33,7 @@ pub const META: &str = "https://blackcatinformatics.ca/gmeow/meta#";
 ///
 /// Mirrors the Python `RUNNERS` keys: an enforcement citing one of these (as a
 /// make target or CLI command) has its status decided by that gate's outcome.
-pub const RUNNER_NAMES: &[&str] = &[
-    "validate",
-    "constitution-check",
-    "lint-alignment",
-    "check-generated",
-];
+pub const RUNNER_NAMES: &[&str] = &["validate", "constitution-check", "lint-alignment", "sync"];
 
 /// The outcome of one executed gate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -243,7 +238,7 @@ pub fn build_report(
 
 /// Run the self-contained gates and render the full compliance report.
 ///
-/// The `validate` / `lint-alignment` / `check-generated` outcomes must be
+/// The `validate` / `lint-alignment` / `sync` outcomes must be
 /// supplied by the caller (they orchestrate crates above this one); the
 /// constitution gate is run here. `generated_at` is the current UTC instant and
 /// `source_commit` is the repo `HEAD`.
@@ -336,7 +331,7 @@ mod tests {
             ("validate", GateRun::new(0, Some(3))),
             ("constitution-check", GateRun::new(0, Some(3))),
             ("lint-alignment", GateRun::new(0, Some(0))),
-            ("check-generated", GateRun::new(0, Some(0))),
+            ("sync", GateRun::new(0, Some(0))),
         ]
         .into_iter()
         .map(|(k, v)| (k.to_string(), v))

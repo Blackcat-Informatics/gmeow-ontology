@@ -4,11 +4,11 @@
 //! Merge per-command perf-gate timing JSONs into `gate-timings.json`.
 //!
 //! Replaces the inline Python one-liner in `make perf-gate`. Reads
-//! `validate.json`, `check-generated.json`, and `reason-verify.json` from the
+//! `validate.json`, `sync.json`, and `reason-verify.json` from the
 //! given directory and emits a single JSON object with the identical schema:
 //!
 //! ```json
-//! {"commands": [<validate>, <check-generated>, <reason-verify>]}
+//! {"commands": [<validate>, <sync>, <reason-verify>]}
 //! ```
 
 use std::io::IsTerminal;
@@ -18,11 +18,7 @@ use std::time::Duration;
 use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
 use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 
-const FILES: [&str; 3] = [
-    "validate.json",
-    "check-generated.json",
-    "reason-verify.json",
-];
+const FILES: [&str; 3] = ["validate.json", "sync.json", "reason-verify.json"];
 
 /// The emitting tool name every diagnostic here is stamped with.
 const TOOL: &str = "perf-gate-merge";

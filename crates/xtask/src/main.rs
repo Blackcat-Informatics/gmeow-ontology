@@ -148,17 +148,26 @@ struct WorktreeLock {
 }
 
 impl WorktreeLock {
-    fn acquire(root: &Path) -> Result<Self, String> {
+    fn acquire(root: &Path) -> Option<Self> {
         let dir = root.join(".cache/gmeow-task");
-        std::fs::create_dir_all(&dir).map_err(|e| format!("create {}: {e}", dir.display()))?;
+        if let Err(e) = std::fs::create_dir_all(&dir) {
+            eprintln!("xtask: create {}: {e}", dir.display());
+            return None;
+        }
         let path = dir.join("runner.lock");
-        let mut file = OpenOptions::new()
+        let mut file = match OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
             .truncate(false)
             .open(&path)
-            .map_err(|e| format!("open {}: {e}", path.display()))?;
+        {
+            Ok(file) => file,
+            Err(e) => {
+                eprintln!("xtask: open {}: {e}", path.display());
+                return None;
+            }
+        };
         match file.try_lock() {
             Ok(()) => {
                 let owner = format!(
@@ -166,21 +175,28 @@ impl WorktreeLock {
                     std::process::id(),
                     root.display()
                 );
-                file.set_len(0).map_err(|e| format!("truncate lock: {e}"))?;
-                file.seek(SeekFrom::Start(0))
-                    .map_err(|e| format!("seek lock: {e}"))?;
-                file.write_all(owner.as_bytes())
-                    .map_err(|e| format!("write lock: {e}"))?;
-                file.flush().map_err(|e| format!("flush lock: {e}"))?;
-                Ok(Self { file })
+                if let Err(e) = file
+                    .set_len(0)
+                    .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
+                    .and_then(|()| file.write_all(owner.as_bytes()))
+                    .and_then(|()| file.flush())
+                {
+                    eprintln!("xtask: initialize worktree lock: {e}");
+                    return None;
+                }
+                Some(Self { file })
             }
             Err(TryLockError::WouldBlock) => {
                 let mut owner = String::new();
                 let _ = file.seek(SeekFrom::Start(0));
                 let _ = file.read_to_string(&mut owner);
-                Err(format!("worktree task already running: {}", owner.trim()))
+                eprintln!("xtask: worktree task already running: {}", owner.trim());
+                None
             }
-            Err(TryLockError::Error(e)) => Err(format!("acquire worktree lock: {e}")),
+            Err(TryLockError::Error(e)) => {
+                eprintln!("xtask: acquire worktree lock: {e}");
+                None
+            }
         }
     }
 }
@@ -231,19 +247,9 @@ fn main() -> ExitCode {
 }
 
 fn run_check(jobs: usize) -> ExitCode {
-    let root = match workspace_root() {
-        Ok(root) => root,
-        Err(e) => {
-            eprintln!("xtask: {e}");
-            return ExitCode::FAILURE;
-        }
-    };
-    let _lock = match WorktreeLock::acquire(&root) {
-        Ok(lock) => lock,
-        Err(e) => {
-            eprintln!("xtask: {e}");
-            return ExitCode::FAILURE;
-        }
+    let root = workspace_root();
+    let Some(_lock) = WorktreeLock::acquire(&root) else {
+        return ExitCode::FAILURE;
     };
     let canonical = root.canonicalize().unwrap_or_else(|_| root.clone());
     let token = format!("{}-{}", std::process::id(), monotonic_token());
@@ -328,7 +334,7 @@ fn run_check(jobs: usize) -> ExitCode {
                 eprintln!("xtask: FAIL {name}");
             }
         }
-        if ready_is_empty(&pending, &running, &passed, &failed) && !running.is_empty() {
+        if !running.is_empty() {
             std::thread::sleep(Duration::from_millis(50));
         }
     }
@@ -345,22 +351,6 @@ fn run_check(jobs: usize) -> ExitCode {
     }
 }
 
-fn ready_is_empty(
-    pending: &BTreeSet<&str>,
-    running: &BTreeMap<&str, Child>,
-    passed: &BTreeSet<&str>,
-    failed: &BTreeSet<&str>,
-) -> bool {
-    !running.is_empty()
-        && !pending.iter().any(|name| {
-            task(name)
-                .dependencies
-                .iter()
-                .all(|dependency| passed.contains(dependency))
-                && !failed.contains(name)
-        })
-}
-
 fn task(name: &str) -> &'static Task {
     CHECK_DAG
         .iter()
@@ -368,13 +358,13 @@ fn task(name: &str) -> &'static Task {
         .expect("DAG task exists")
 }
 
-fn workspace_root() -> Result<PathBuf, String> {
+fn workspace_root() -> PathBuf {
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
     manifest
         .parent()
         .and_then(Path::parent)
         .map(Path::to_path_buf)
-        .ok_or_else(|| "xtask is not under <workspace>/crates/xtask".to_string())
+        .expect("xtask is compiled under <workspace>/crates/xtask")
 }
 
 fn monotonic_token() -> u128 {

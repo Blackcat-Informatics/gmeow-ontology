@@ -208,13 +208,15 @@ pub const GENERATORS: &[GeneratorInfo] = &[
 
 /// The canonical top-level committed artifact paths derived from the registry.
 ///
-/// This is the path list `make commit` stages. It collapses overlapping
-/// directory outputs into the smallest set of top-level paths:
-/// `generated/`, `ontology-docs/`, and the explicit `generated/dist/gmeow.gts`
-/// narrow-waist artifact (the latter is already inside `generated/` but is
-/// called out separately because it is `merge=ours` and the terminal sink).
-pub const COMMITTED_GENERATED_PATHS: &[&str] =
-    &["generated/", "generated/dist/gmeow.gts", "ontology-docs/"];
+/// This is the path list `make commit` stages. It contains every committed output
+/// root owned by sync: the carrier/fanout tree, the root OASIS catalog, and the
+/// generated Python model package. External documentation (`ontology-docs/` and
+/// `dist/gmeow-docs/`) is intentionally ephemeral and therefore absent.
+pub const COMMITTED_GENERATED_PATHS: &[&str] = &[
+    "catalog-v001.xml",
+    "generated/",
+    "packages/python/gmeow_models/",
+];
 
 /// Return every generator name, sorted.
 pub fn generator_names() -> Vec<&'static str> {
@@ -275,7 +277,7 @@ pub fn source_hash(root: &Path, generator: &GeneratorInfo) -> gmeow_errors::Resu
     Ok(content_digest(&fields))
 }
 
-/// Metadata record emitted by `gmeow-dev regenerate --metadata`.
+/// Metadata record emitted by `gmeow-dev sync --mode update --outputs generated --metadata`.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct GeneratorMetadata {
     pub name: String,
@@ -431,7 +433,11 @@ mod tests {
     fn committed_paths_are_stable() {
         assert_eq!(
             committed_generated_paths(),
-            vec!["generated/", "generated/dist/gmeow.gts", "ontology-docs/"]
+            vec![
+                "catalog-v001.xml",
+                "generated/",
+                "packages/python/gmeow_models/"
+            ]
         );
     }
 
