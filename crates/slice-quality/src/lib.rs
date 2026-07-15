@@ -444,7 +444,7 @@ pub fn measure_repo_residues(
         let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
         let ds = dataset_from_paths(&path_refs)?;
         for vocab in vocabularies {
-            let residue = counting::residue(&ds, vocab);
+            let residue = counting::residue_for_surface(&ds, vocab, &slice_iri);
             if residue > 0 {
                 out.insert((slice_iri.clone(), vocab.prefix.clone()), residue);
             }
@@ -458,7 +458,7 @@ pub fn measure_repo_residues(
         let dsl_refs: Vec<&Path> = dsl_paths.iter().map(PathBuf::as_path).collect();
         let dsl_ds = dataset_from_paths(&dsl_refs)?;
         for vocab in vocabularies {
-            let residue = counting::residue(&dsl_ds, vocab);
+            let residue = counting::residue_for_surface(&dsl_ds, vocab, DSL_MAPPING_SURFACE_IRI);
             if residue > 0 {
                 out.insert(
                     (DSL_MAPPING_SURFACE_IRI.to_owned(), vocab.prefix.clone()),
@@ -497,6 +497,7 @@ pub fn slice_iri_of_dir(slice_dir: &Path) -> gmeow_errors::Result<String> {
 pub fn residue_over_texts(
     texts: &[String],
     vocab: &ProjectionVocabulary,
+    surface_iri: &str,
 ) -> gmeow_errors::Result<u64> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for text in texts {
@@ -512,7 +513,7 @@ pub fn residue_over_texts(
             detail: format!("residue_over_texts: dataset freeze failed: {e}"),
         })
     })?;
-    Ok(counting::residue(&ds, vocab))
+    Ok(counting::residue_for_surface(&ds, vocab, surface_iri))
 }
 
 // -----------------------------------------------------------------------------
