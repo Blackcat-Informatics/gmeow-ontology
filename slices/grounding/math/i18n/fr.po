@@ -252,6 +252,14 @@ msgctxt "https://blackcatinformatics.ca/math/ExperimentalDesign|skos:definition"
 msgid "An experimental design: the first-class record of how a study's units were structured and assigned — a completely randomized, block, factorial, crossover, or split-plot design. A subclass of math:MathematicalObject; together with the math:RandomizationScheme it names, it records how units were assigned to conditions, so the design is queryable structure rather than a phrase in a methods section. Naming the design as an object is what lets an analysis's validity conditions be checked against the assignment that actually produced the data."
 msgstr "Un plan expérimental : l'enregistrement de première classe de la manière dont les unités d'une étude ont été structurées et affectées — un plan complètement randomisé, en blocs, factoriel, croisé ou en parcelles divisées. Une sous-classe de math:MathematicalObject ; conjointement au math:RandomizationScheme qu'il nomme, il enregistre comment les unités ont été affectées aux modalités, de sorte que le plan soit une structure interrogeable plutôt qu'une phrase dans une section de méthodes. Nommer le plan comme objet est ce qui permet de vérifier les conditions de validité d'une analyse au regard de l'affectation qui a réellement produit les données."
 
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|rdfs:label"
+msgid "extended real line (ℝ̄)"
+msgstr "droite réelle achevée (ℝ̄)"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|skos:definition"
+msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. A math:NumberSystem individual, sibling to math:realNumbers and math:complexNumbers, not a class — it reuses the number-system machinery rather than a parallel one, relating the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoining the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). Because math:NumberSystem is a subclass of math:Set, the system IS the set of its points, so it can be the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
+msgstr "La droite réelle achevée signée ℝ̄ = ℝ ∪ {−∞, +∞} : le système des nombres réels auquel ses deux pôles sont adjoints. Un individu math:NumberSystem, frère de math:realNumbers et math:complexNumbers, et non une classe — elle réutilise la machinerie des systèmes de nombres plutôt qu'une machinerie parallèle, reliant les réels comme un sous-système (math:realNumbers math:subsystemOf math:ExtendedRealLine) et adjoignant les deux points réels étendus math:PositiveInfinity et math:NegativeInfinity comme ses membres (chacun math:inNumberSystem math:ExtendedRealLine). Comme math:NumberSystem est une sous-classe de math:Set, le système EST l'ensemble de ses points, elle peut donc être le codomaine que parcourt un champ divergent signé — une fonction à valeurs réelles étendues dont la valeur peut filer vers l'un ou l'autre pôle. Distincte de ℂ : ℝ̄ compactifie la droite ordonnée au moyen de deux extrémités signées, elle ne la clôt pas algébriquement ; une valeur dans un emplacement réel étendu signé est un réel fini, +∞ ou −∞ (math:MalformedExtendedReal sinon)."
+
 msgctxt "https://blackcatinformatics.ca/math/FrequentistResult|rdfs:label"
 msgid "Frequentist Result"
 msgstr "Résultat fréquentiste"
@@ -372,6 +380,158 @@ msgctxt "https://blackcatinformatics.ca/math/lessAlternative|skos:definition"
 msgid "A one-sided 'less' alternative: the extremity is measured in the lower tail (the parameter falls below its null value)."
 msgstr "Une alternative unilatérale « inférieure » : l'extrémité est mesurée dans la queue inférieure (le paramètre tombe sous sa valeur nulle)."
 
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|rdfs:label"
+msgid "Limit Result"
+msgstr "Résultat de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|skos:definition"
+msgid "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."
+msgstr "Le résultat structuré d'une math:Limit — ce vers quoi la limite s'évalue : son issue via math:limitOutcome (l'une de math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity ou math:divergesWithoutLimit) et, pour une limite convergente finie, sa valeur via math:limitResultValue. Ce n'est PAS l'expression de limite elle-même (la math:Limit liant lim_{x→a} f(x), qui nomme math:limitOf et math:limitPoint) — c'est le résultat évalué vers lequel cette limite tend. Un résultat convergent porte une valeur finie ; un résultat divergeant vers un pôle nomme ce pôle (math:PositiveInfinity ou math:NegativeInfinity) comme valeur ; un résultat divergeant sans limite (une limite oscillante ou autrement inexistante) ne porte aucune valeur. Un résultat sans son issue est mal formé (math:UnderspecifiedLimitResult), tout comme un résultat dont la valeur contredit l'issue déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|rdfs:label"
+msgid "Limit Outcome"
+msgstr "Issue de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|skos:definition"
+msgid "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."
+msgstr "L'issue vers laquelle une math:Limit tend, portée par une math:LimitResult via math:limitOutcome : l'une de math:convergesFinitely (la limite existe et est finie), math:divergesToPositiveInfinity (x → a pousse f vers +∞), math:divergesToNegativeInfinity (vers −∞) ou math:divergesWithoutLimit (aucune limite n'existe — la valeur oscille ou ne se stabilise pas). L'issue est ce qui distingue une limite convergente d'une divergence vers l'un ou l'autre pôle ou d'une limite absente, et elle est requise sur chaque math:LimitResult."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|rdfs:label"
+msgid "converges finitely"
+msgstr "converge finiment"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|skos:definition"
+msgid "The convergent outcome: the limit exists and is a finite value, carried by the math:LimitResult through math:limitResultValue as a finite numeric literal. The case lim_{x→a} f(x) = L for a finite L."
+msgstr "L'issue convergente : la limite existe et est une valeur finie, portée par la math:LimitResult via math:limitResultValue sous la forme d'un littéral numérique fini. Le cas lim_{x→a} f(x) = L pour un L fini."
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|rdfs:label"
+msgid "diverges to +∞"
+msgstr "diverge vers +∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|skos:definition"
+msgid "The outcome of a limit that grows without bound: f runs off to the positive pole, so the math:LimitResult carries math:PositiveInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = +∞ — a definite point on the extended real line ℝ̄, never a finite literal."
+msgstr "L'issue d'une limite qui croît sans borne : f s'échappe vers le pôle positif, de sorte que la math:LimitResult porte math:PositiveInfinity comme math:limitResultValue. Le cas lim_{x→a} f(x) = +∞ — un point défini sur la droite réelle achevée ℝ̄, jamais un littéral fini."
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|rdfs:label"
+msgid "diverges to −∞"
+msgstr "diverge vers −∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|skos:definition"
+msgid "The outcome of a limit that decreases without bound: f runs off to the negative pole, so the math:LimitResult carries math:NegativeInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = −∞ — the dual of math:divergesToPositiveInfinity, a definite point on ℝ̄."
+msgstr "L'issue d'une limite qui décroît sans borne : f s'échappe vers le pôle négatif, de sorte que la math:LimitResult porte math:NegativeInfinity comme math:limitResultValue. Le cas lim_{x→a} f(x) = −∞ — le dual de math:divergesToPositiveInfinity, un point défini sur ℝ̄."
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|rdfs:label"
+msgid "diverges without a limit"
+msgstr "diverge sans limite"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|skos:definition"
+msgid "The outcome of a limit that does not exist: f neither settles to a finite value nor runs to a single pole — it oscillates (as sin(1/x) at 0) or otherwise fails to converge. The math:LimitResult carries NO math:limitResultValue, because there is no point of ℝ̄ to name; asserting a value here is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "L'issue d'une limite qui n'existe pas : f ne se stabilise ni vers une valeur finie ni vers un pôle unique — elle oscille (comme sin(1/x) en 0) ou ne converge pas autrement. La math:LimitResult ne porte AUCUNE math:limitResultValue, car il n'y a aucun point de ℝ̄ à nommer ; y affirmer une valeur est mal formé (math:UnderspecifiedLimitResult)."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|rdfs:label"
+msgid "has limit result"
+msgstr "a pour résultat de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|skos:definition"
+msgid "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."
+msgstr "Relie une math:Limit à la math:LimitResult consignant ce vers quoi elle s'évalue — son issue et, pour une limite convergente finie, sa valeur. Domaine math:Limit, portée math:LimitResult (précisé en prose). Facultatif : une math:Limit peut ne nommer que son expression, son point et son mode et laisser le résultat évalué non déclaré ; lorsque le résultat est déclaré, c'est une math:LimitResult, jamais un simple littéral, de sorte que l'issue soit explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|rdfs:label"
+msgid "limit outcome"
+msgstr "issue de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|skos:definition"
+msgid "Relates a math:LimitResult to its math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit. Domain math:LimitResult, range math:LimitOutcome (stated in prose). The outcome is required; a result without a declared outcome is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "Relie une math:LimitResult à son math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity ou math:divergesWithoutLimit. Domaine math:LimitResult, portée math:LimitOutcome (précisé en prose). L'issue est requise ; un résultat sans issue déclarée est mal formé (math:UnderspecifiedLimitResult)."
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|rdfs:label"
+msgid "limit result value"
+msgstr "valeur du résultat de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|skos:definition"
+msgid "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."
+msgstr "La valeur vers laquelle s'évalue une math:LimitResult convergente ou divergeant vers un pôle — un littéral numérique fini pour une issue math:convergesFinitely, ou le pôle réel étendu math:PositiveInfinity / math:NegativeInfinity pour une issue math:divergesToPositiveInfinity / math:divergesToNegativeInfinity. Domaine math:LimitResult, portée un littéral numérique fini ou un individu pôle (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (la valeur finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Facultative et absente sur un résultat math:divergesWithoutLimit, qui n'a aucun point de ℝ̄ à nommer ; présente et en accord avec l'issue sinon (math:UnderspecifiedLimitResult)."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|rdfs:label"
+msgid "Underspecified Limit Result"
+msgstr "Résultat de limite sous-spécifié"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|skos:definition"
+msgid "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."
+msgstr "L'échec levé lorsqu'une math:LimitResult ne nomme pas son math:limitOutcome, ou porte une math:limitResultValue qui contredit l'issue déclarée — une valeur finie (non-pôle) est attendue pour math:convergesFinitely, math:PositiveInfinity pour math:divergesToPositiveInfinity, math:NegativeInfinity pour math:divergesToNegativeInfinity, et AUCUNE valeur pour math:divergesWithoutLimit. Un résultat de limite structuré doit dire lequel, de la convergence ou des trois modes de divergence, il est, et sa valeur doit s'accorder avec cette issue ; tout le reste est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|rdfs:label"
+msgid "Interval"
+msgstr "Intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|skos:definition"
+msgid "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."
+msgstr "Un intervalle réel ordonné : l'ensemble intensionnel { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } des points de la droite réelle achevée compris entre deux extrémités ordonnées. Il nomme SES DEUX extrémités — l'inférieure via math:lowerEndpoint et la supérieure via math:upperEndpoint — et SES DEUX inclusions d'extrémité — selon que chaque bout est inclus (une extrémité fermée, crochet droit) ou exclu (une extrémité ouverte, parenthèse ronde) — via math:lowerInclusion et math:upperInclusion. Un bout borné nomme un littéral numérique fini ; un bout non borné nomme un pôle (math:PositiveInfinity ou math:NegativeInfinity) comme extrémité, et un tel bout infini est toujours ouvert (∞ est un point limite de ℝ̄, jamais un membre). L'inclusion n'est JAMAIS omise en silence : [0, 1) est l'intervalle unité semi-ouvert et (0, 1) est l'ouvert, et lequel est visé est une donnée, non une convention — un intervalle auquel manque une extrémité ou une inclusion est mal formé (math:UnderspecifiedInterval). Ce n'est PAS le math:ConfidenceInterval des statistiques, qui est un estimateur fréquentiste portant un niveau de couverture et une estimation ponctuelle, non un sous-ensemble ordonné de la droite ; un math:Interval est l'ensemble purement ordinal, l'ancre externe étant le dictionnaire de contenu OpenMath interval1."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|rdfs:label"
+msgid "Endpoint Inclusion"
+msgstr "Inclusion d'extrémité"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|skos:definition"
+msgid "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."
+msgstr "Le fait qu'une extrémité d'un math:Interval soit incluse dans l'intervalle ou en soit exclue, porté par chaque bout via math:lowerInclusion et math:upperInclusion : l'une de math:closedEndpoint (l'extrémité est un membre — le crochet droit de [a, …) ou (…, b]) ou math:openEndpoint (l'extrémité est exclue — la parenthèse ronde de (a, …) ou (…, b)). L'inclusion est ce qui distingue [0, 1] de [0, 1) de (0, 1), et elle est requise sur les deux bouts de tout math:Interval."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|rdfs:label"
+msgid "closed (included)"
+msgstr "fermée (incluse)"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|skos:definition"
+msgid "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."
+msgstr "Une extrémité fermée : l'extrémité est un membre de l'intervalle — le crochet droit de [a, …) ou (…, b]. Le cas où lower ≤ x (ou x ≤ upper) admet l'égalité ; seule une extrémité finie peut être fermée, car un pôle infini n'est jamais un membre de ℝ̄."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|rdfs:label"
+msgid "open (excluded)"
+msgstr "ouverte (exclue)"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|skos:definition"
+msgid "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."
+msgstr "Une extrémité ouverte : l'extrémité est exclue de l'intervalle — la parenthèse ronde de (a, …) ou (…, b). Le cas où lower < x (ou x < upper) est strict. Un bout non borné à un pôle (math:PositiveInfinity ou math:NegativeInfinity) est toujours ouvert, car le pôle est un point limite de la droite réelle achevée, jamais un membre."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|rdfs:label"
+msgid "lower endpoint"
+msgstr "extrémité inférieure"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|skos:definition"
+msgid "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "L'extrémité inférieure d'un math:Interval — le bout gauche de { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domaine math:Interval, portée un littéral numérique fini (un bout inférieur borné) ou le pôle math:NegativeInfinity (un bout non borné inférieurement) (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (l'extrémité finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Chaque math:Interval en nomme exactement une ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|rdfs:label"
+msgid "upper endpoint"
+msgstr "extrémité supérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|skos:definition"
+msgid "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "L'extrémité supérieure d'un math:Interval — le bout droit de { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domaine math:Interval, portée un littéral numérique fini (un bout supérieur borné) ou le pôle math:PositiveInfinity (un bout non borné supérieurement) (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (l'extrémité finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Chaque math:Interval en nomme exactement une ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|rdfs:label"
+msgid "lower inclusion"
+msgstr "inclusion inférieure"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "Relie un math:Interval à la math:EndpointInclusion de son bout inférieur — math:closedEndpoint (l'extrémité inférieure est un membre, le crochet droit de [a, …) ou math:openEndpoint (l'extrémité inférieure est exclue, la parenthèse ronde de (a, …). Domaine math:Interval, portée math:EndpointInclusion (précisé en prose). L'inclusion inférieure est requise et jamais omise en silence ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|rdfs:label"
+msgid "upper inclusion"
+msgstr "inclusion supérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "Relie un math:Interval à la math:EndpointInclusion de son bout supérieur — math:closedEndpoint (l'extrémité supérieure est un membre, le crochet droit de …, b]) ou math:openEndpoint (l'extrémité supérieure est exclue, la parenthèse ronde de …, b). Domaine math:Interval, portée math:EndpointInclusion (précisé en prose). L'inclusion supérieure est requise et jamais omise en silence ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|rdfs:label"
+msgid "Underspecified Interval"
+msgstr "Intervalle sous-spécifié"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|skos:definition"
+msgid "The failure raised when a math:Interval does not name both of its endpoints (math:lowerEndpoint and math:upperEndpoint) and both of its endpoint inclusions (math:lowerInclusion and math:upperInclusion). An ordered interval is { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; without both endpoints and both inclusions, whether [0, 1], [0, 1), or (0, 1) is meant is undetermined. Endpoint inclusion is never silently omitted, so an interval missing an endpoint or an inclusion is ill-formed."
+msgstr "L'échec levé lorsqu'un math:Interval ne nomme pas ses deux extrémités (math:lowerEndpoint et math:upperEndpoint) et ses deux inclusions d'extrémité (math:lowerInclusion et math:upperInclusion). Un intervalle ordonné est { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } ; sans les deux extrémités et les deux inclusions, lequel de [0, 1], [0, 1) ou (0, 1) est visé est indéterminé. L'inclusion d'extrémité n'est jamais omise en silence, de sorte qu'un intervalle auquel manque une extrémité ou une inclusion est mal formé."
+
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|rdfs:label"
 msgid "Measurement Scale"
 msgstr "Échelle de mesure"
@@ -467,6 +627,14 @@ msgstr "famille de comparaisons multiples"
 msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|skos:definition"
 msgid "Relates a math:PValue to the family of comparisons its multiplicity adjustment is taken over — the set of tests within which its error rate is controlled. Domain math:PValue, range the comparison-family object (stated in prose). The family scopes the adjustment: a correction is only meaningful relative to the family of comparisons it controls the error rate across."
 msgstr "Relie une math:PValue à la famille de comparaisons sur laquelle son ajustement pour la multiplicité est pris — l'ensemble de tests au sein duquel son taux d'erreur est contrôlé. Domaine math:PValue, portée l'objet famille de comparaisons (précisé en prose). La famille cadre l'ajustement : une correction n'a de sens que relativement à la famille de comparaisons sur laquelle elle contrôle le taux d'erreur."
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|rdfs:label"
+msgid "−∞"
+msgstr "−∞"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|skos:definition"
+msgid "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."
+msgstr "L'infini négatif comme valeur réelle étendue : le pôle négatif de la droite réelle achevée signée math:ExtendedRealLine, le dual de math:PositiveInfinity. C'est le point réel étendu qui permet de déclarer une quantité non bornée inférieurement — une limite divergeant vers le bas, la borne inférieure d'un ensemble sans minorant — sans littéral fini. Ce n'est PAS un nombre fini (il ne se trouve nulle part dans ℝ) ; PAS une erreur, une exception ou une valeur manquante ; et PAS le résultat indéfini/indéterminé que donnerait math:PositiveInfinity + math:NegativeInfinity ou 0 · ∞ — un réel étendu est un point défini sur ℝ̄, jamais un NaN. Un emplacement réel étendu signé (math:extendedRealValue) contient soit un nombre fini, soit math:PositiveInfinity, soit cet individu."
 
 msgctxt "https://blackcatinformatics.ca/math/nullDistribution|rdfs:label"
 msgid "null distribution"
@@ -835,3 +1003,461 @@ msgstr "Rôle de variable"
 msgctxt "https://blackcatinformatics.ca/math/VariableRole|skos:definition"
 msgid "A variable role: the analytical part a math:StatisticalVariable plays in a model — outcome, predictor, covariate, weight, stratum, cluster, or offset. A subclass of math:MathematicalObject naming the role a variable holds rather than an intrinsic property of the column, so the same measured variable can be an outcome in one model and a predictor in another without changing the data. A variable's role is a first-class object so a model's structure is queryable, never read off a naming convention."
 msgstr "Un rôle de variable : la part analytique qu'une math:StatisticalVariable joue dans un modèle — issue, prédicteur, covariable, poids, strate, grappe ou décalage. Une sous-classe de math:MathematicalObject nommant le rôle qu'une variable tient plutôt qu'une propriété intrinsèque de la colonne, de sorte que la même variable mesurée puisse être une issue dans un modèle et un prédicteur dans un autre sans changer les données. Le rôle d'une variable est un objet de première classe afin que la structure d'un modèle soit interrogeable, jamais lue sur une convention de nommage."
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|rdfs:label"
+msgid "Compactification"
+msgstr "Compactification"
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|skos:definition"
+msgid "A compactification: a structured record embedding an unbounded space in a bounded (compact) one as a dense subset, so the points the original space runs off toward are adjoined as a boundary at infinity. It names FOUR roles — the original unbounded space through math:originalSpace, the embedding/map through math:compactifyingMap, the resulting bounded space through math:compactifiedSpace, and the boundary added at infinity through math:boundaryAtInfinity. It is NOT any one construction — not the one-point (Alexandroff) versus Stone–Čech distinction per se — but the general structured record every such construction instantiates; a compactification missing any of the four roles is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Une compactification : un enregistrement structuré plongeant un espace non borné dans un espace borné (compact) comme sous-ensemble dense, de sorte que les points vers lesquels l'espace original s'échappe soient adjoints comme un bord à l'infini. Elle nomme QUATRE rôles — l'espace non borné original via math:originalSpace, le plongement/l'application via math:compactifyingMap, l'espace borné résultant via math:compactifiedSpace, et le bord ajouté à l'infini via math:boundaryAtInfinity. Ce n'est PAS une construction particulière — non la distinction en un point (Alexandroff) versus Stone–Čech en soi — mais l'enregistrement structuré général que toute telle construction instancie ; une compactification à laquelle manque l'un des quatre rôles est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|rdfs:label"
+msgid "Conformal Compactification"
+msgstr "Compactification conforme"
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|skos:definition"
+msgid "A conformal (Penrose-style) compactification: the specialization whose math:compactifyingMap is angle-preserving (conformal), carrying a math:conformalFactor Ω that rescales the metric so the points at infinity sit at a finite conformal boundary. A subclass of math:Compactification; it additionally names its math:conformalFactor — a conformal compactification missing it is ill-formed (math:UnderspecifiedCompactification). This is the correct general home for embedding a math:LorentzianManifold's radial chart's infinity as a finite boundary: the conformal factor sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle) structure the Lorentzian metric carries. The metric and its rescaling stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this math object."
+msgstr "Une compactification conforme (à la Penrose) : la spécialisation dont la math:compactifyingMap préserve les angles (conforme), portant un math:conformalFactor Ω qui remet à l'échelle la métrique de sorte que les points à l'infini se situent à un bord conforme fini. Une sous-classe de math:Compactification ; elle nomme en outre son math:conformalFactor — une compactification conforme à laquelle il manque est mal formée (math:UnderspecifiedCompactification). C'est le bon foyer général pour plonger l'infini de la carte radiale d'une math:LorentzianManifold comme un bord fini : le facteur conforme envoie la distance métrique non bornée vers une distance remise à l'échelle finie tout en préservant la structure causale (angulaire) que porte la métrique lorentzienne. La métrique et sa remise à l'échelle restent du côté mathématique ; le diagramme de Penrose d'un espace-temps est une lecture physique en aval de cet objet mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|rdfs:label"
+msgid "Boundary at Infinity"
+msgstr "Bord à l'infini"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|skos:definition"
+msgid "The boundary a compactification adjoins at infinity: the ideal points — the conformal boundary — the original unbounded space approaches but never reaches, made a first-class object rather than an informal edge. Named by a math:Compactification through math:boundaryAtInfinity. For a math:ConformalCompactification it is where the math:conformalFactor vanishes; for the radial half-line r ∈ [0, ∞) it is the single ideal point r = +∞."
+msgstr "Le bord qu'une compactification adjoint à l'infini : les points idéaux — le bord conforme — dont l'espace non borné original s'approche sans jamais les atteindre, fait un objet de première classe plutôt qu'un bord informel. Nommé par une math:Compactification via math:boundaryAtInfinity. Pour une math:ConformalCompactification, c'est là où le math:conformalFactor s'annule ; pour la demi-droite radiale r ∈ [0, ∞), c'est l'unique point idéal r = +∞."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|rdfs:label"
+msgid "Underspecified Compactification"
+msgstr "Compactification sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|skos:definition"
+msgid "The failure raised when a math:Compactification does not name all four of its roles — its original space (math:originalSpace), its compactifying map (math:compactifyingMap), its compactified space (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity) — or when a math:ConformalCompactification additionally omits its math:conformalFactor. A compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity is ill-formed. Mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."
+msgstr "L'échec levé lorsqu'une math:Compactification ne nomme pas la totalité de ses quatre rôles — son espace original (math:originalSpace), son application de compactification (math:compactifyingMap), son espace compactifié (math:compactifiedSpace) et son bord à l'infini (math:boundaryAtInfinity) — ou lorsqu'une math:ConformalCompactification omet en outre son math:conformalFactor. Une compactification qui ne dit pas ce qu'elle plonge, par quelle application, dans quoi, et avec quel bord à l'infini est mal formée. Reflète math:UnderspecifiedManifold et math:UnderspecifiedChart."
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|rdfs:label"
+msgid "original space"
+msgstr "espace original"
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|skos:definition"
+msgid "Relates a math:Compactification to the original unbounded space it embeds — the space whose points at infinity the compactification adjoins as a boundary. Domain math:Compactification, range a math:TopologicalSpace or math:Manifold (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification à l'espace non borné original qu'elle plonge — l'espace dont les points à l'infini la compactification adjoint comme un bord. Domaine math:Compactification, portée un math:TopologicalSpace ou math:Manifold (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|rdfs:label"
+msgid "compactifying map"
+msgstr "application de compactification"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|skos:definition"
+msgid "Relates a math:Compactification to the embedding taking its original space into the compactified one — a math:Function (a math:CoordinateMap when it coordinatizes), angle-preserving for a math:ConformalCompactification. Domain math:Compactification, range math:Function (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification au plongement portant son espace original dans l'espace compactifié — une math:Function (une math:CoordinateMap lorsqu'elle coordonne), préservant les angles pour une math:ConformalCompactification. Domaine math:Compactification, portée math:Function (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|rdfs:label"
+msgid "compactified space"
+msgstr "espace compactifié"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|skos:definition"
+msgid "Relates a math:Compactification to the resulting bounded (compact) space — the image the embedding lands in together with the adjoined boundary at infinity. Domain math:Compactification, range a math:TopologicalSpace (a math:Interval for a compactified half-line) (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification à l'espace borné (compact) résultant — l'image dans laquelle le plongement atterrit avec le bord à l'infini adjoint. Domaine math:Compactification, portée un math:TopologicalSpace (un math:Interval pour une demi-droite compactifiée) (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|rdfs:label"
+msgid "boundary at infinity"
+msgstr "bord à l'infini"
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|skos:definition"
+msgid "Relates a math:Compactification to the math:BoundaryAtInfinity it adjoins — the ideal points at infinity the original space approaches but never reaches. Domain math:Compactification, range math:BoundaryAtInfinity (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification au math:BoundaryAtInfinity qu'elle adjoint — les points idéaux à l'infini dont l'espace original s'approche sans jamais les atteindre. Domaine math:Compactification, portée math:BoundaryAtInfinity (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|rdfs:label"
+msgid "conformal factor"
+msgstr "facteur conforme"
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
+msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:ConformalCompactification à son facteur conforme de remise à l'échelle Ω — une fonction positive qui multiplie la métrique de sorte que la distance métrique non bornée devienne finie au bord tout en préservant les angles. Domaine math:ConformalCompactification, portée une math:Function ou math:Quantity positive (un individu, jamais un simple littéral — donc une owl:ObjectProperty, non une propriété de type de données) (précisé en prose). Toute compactification conforme en nomme exactement un ; une sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|rdfs:label"
+msgid "Measurable Set"
+msgstr "Ensemble mesurable"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
+msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
+msgstr "Un sous-ensemble mesurable : un élément de la math:SigmaAlgebra d'un math:MeasurableSpace — l'un des sous-ensembles clos par complémentation et union dénombrable que la σ-algèbre rassemble, et donc le genre de sous-ensemble auquel une math:Measure peut attribuer une masse. C'est l'argument individuel A d'une évaluation μ(A) : là où un math:MeasurableSpace est le sol entier (X, Σ) sur lequel une mesure agit, un ensemble mesurable en est un morceau mesurable, la bande ou la région dont une math:MeasureEvaluation lit la masse. Partagé avec la charte des probabilités, où un ensemble mesurable est un événement."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|rdfs:label"
+msgid "Measure Evaluation"
+msgstr "Évaluation de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|skos:definition"
+msgid "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "L'évaluation structurée μ(A) d'une mesure sur un sous-ensemble mesurable nommé, réifiée comme objet de première classe : elle nomme la mesure via math:evaluatedMeasure, le sous-ensemble via math:measuredSubset (un math:MeasurableSet) et la masse résultante via math:measureResult (un nombre fini non négatif ou math:PositiveInfinity, JAMAIS math:NegativeInfinity — une mesure est non négative). Ce n'est PAS la math:totalMass de l'espace entier, qui est la mesure de l'espace TOUT ENTIER μ(X) : une évaluation de mesure est la mesure d'un sous-ensemble NOMMÉ A ⊆ X, de sorte que des sous-ensembles distincts d'une même mesure peuvent être évalués et comparés côte à côte — la masse de Lebesgue d'une boule bidimensionnelle μ(B²) face à celle d'une boule tridimensionnelle μ(B³), ou la probabilité d'un événement face à un autre. Nommer les trois — la mesure, le sous-ensemble et le résultat — est ce qui fait de μ(A) une donnée interrogeable plutôt qu'une chaîne d'affichage ; une évaluation à laquelle manque l'un des trois est mal formée (math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|rdfs:label"
+msgid "evaluated measure"
+msgstr "mesure évaluée"
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|skos:definition"
+msgid "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "Nomme la math:Measure qu'une math:MeasureEvaluation lit — le μ dans μ(A). Domaine math:MeasureEvaluation, portée math:Measure (précisé en prose). Toute évaluation en nomme exactement une ; une évaluation sans la mesure qu'elle évalue ne dit pas de quelle masse elle rend compte et est mal formée (math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|rdfs:label"
+msgid "measured subset"
+msgstr "sous-ensemble mesuré"
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|skos:definition"
+msgid "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "Nomme le math:MeasurableSet auquel une math:MeasureEvaluation attribue une masse — le A dans μ(A). Domaine math:MeasureEvaluation, portée math:MeasurableSet (précisé en prose). Toute évaluation en nomme exactement un ; nommer le sous-ensemble est ce qui permet de comparer deux évaluations d'une même mesure sur des sous-ensembles différents, de sorte qu'une évaluation sans son sous-ensemble est mal formée (math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|rdfs:label"
+msgid "measure result"
+msgstr "résultat de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|skos:definition"
+msgid "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."
+msgstr "La masse qu'une math:MeasureEvaluation lit — la valeur de μ(A), un nombre fini non négatif ou le réel étendu math:PositiveInfinity, JAMAIS math:NegativeInfinity car une mesure est non négative. Domaine math:MeasureEvaluation, portée un littéral numérique non négatif ou math:PositiveInfinity (précisé en prose). Comme math:totalMass, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (la masse finie) et un individu (math:PositiveInfinity) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Toute évaluation en nomme exactement un ; une évaluation sans son résultat est mal formée (math:UnderspecifiedMeasureEvaluation), et un résultat de math:NegativeInfinity est une violation de non-négativité (math:MalformedExtendedReal ou math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|rdfs:label"
+msgid "Underspecified Measure Evaluation"
+msgstr "Évaluation de mesure sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|skos:definition"
+msgid "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."
+msgstr "L'échec levé lorsqu'une math:MeasureEvaluation ne nomme pas la totalité de ses trois éléments — la mesure qu'elle évalue (math:evaluatedMeasure), le sous-ensemble mesurable sur lequel elle l'évalue (math:measuredSubset) et la masse résultante (math:measureResult). Une évaluation μ(A) est la masse qu'une mesure nommée attribue à un sous-ensemble nommé ; sans la mesure, le sous-ensemble et le résultat, elle ne dit pas quelle mesure, de quel sous-ensemble, a donné quelle valeur, de sorte qu'elle ne peut être comparée à une autre évaluation et est mal formée."
+
+# --- Closed-form expression algebra (the closed-form function facility) ------ #
+
+msgctxt "https://blackcatinformatics.ca/math/NumberLiteral|rdfs:label"
+msgid "Number Literal"
+msgstr "Littéral numérique"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberLiteral|skos:definition"
+msgid "The numeric-literal leaf of an expression AST: the expression node denoting a specific math:Number — the 1 in (1 − x), the constant 2 in 2·x, the exponents in a closed form. It carries its value through math:literalValue, which points at a well-formed math:Number (situated in a number system through math:inNumberSystem). Distinct from a bare RDF literal: a math:NumberLiteral is an expression node (a subclass of math:MathematicalExpression), so it can fill a math:slotExpression, whereas a raw literal cannot. Distinct too from a math:MathematicalConstant such as π: a constant is a named exact number object, while a NumberLiteral is a syntactic leaf of a formula that names the number it denotes. See MATHEMATICS-NUMBERS-AND-SETS.md for the number-system grounding its math:literalValue rests on."
+msgstr "La feuille littérale-numérique d'un AST d'expression : le nœud d'expression désignant un math:Number précis — le 1 dans (1 − x), la constante 2 dans 2·x, les exposants d'une forme close. Il porte sa valeur via math:literalValue, qui pointe vers un math:Number bien formé (situé dans un système de nombres via math:inNumberSystem). Distinct d'un littéral RDF nu : un math:NumberLiteral est un nœud d'expression (une sous-classe de math:MathematicalExpression), il peut donc remplir un math:slotExpression, ce qu'un littéral brut ne peut pas. Distinct aussi d'une math:MathematicalConstant telle que π : une constante est un objet-nombre exact nommé, tandis qu'un NumberLiteral est une feuille syntaxique d'une formule qui nomme le nombre qu'elle désigne. Voir MATHEMATICS-NUMBERS-AND-SETS.md pour l'ancrage dans le système de nombres sur lequel repose son math:literalValue."
+
+msgctxt "https://blackcatinformatics.ca/math/literalValue|rdfs:label"
+msgid "literal value"
+msgstr "valeur littérale"
+
+msgctxt "https://blackcatinformatics.ca/math/literalValue|skos:definition"
+msgid "The number a math:NumberLiteral leaf denotes: relates a math:NumberLiteral expression node to the math:Number it stands for. Domain math:NumberLiteral, range math:Number (stated in prose). The value is a well-formed math:Number situated in a number system, not a bare RDF literal — this is the seam by which a syntactic literal leaf of a formula names an exact numeric object rather than carrying an opaque decimal."
+msgstr "Le nombre qu'une feuille math:NumberLiteral désigne : relie un nœud d'expression math:NumberLiteral au math:Number qu'il représente. Domaine math:NumberLiteral, image math:Number (énoncé en prose). La valeur est un math:Number bien formé situé dans un système de nombres, non un littéral RDF nu — c'est la couture par laquelle une feuille littérale syntaxique d'une formule nomme un objet numérique exact plutôt que de porter une décimale opaque."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|rdfs:label"
+msgid "negation"
+msgstr "négation"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|skos:definition"
+msgid "The unary additive-inverse operator (−x): the single-operand negation that flips a value's sign, so a term like x⁻ᵖ is math:Exponentiation applied to x and math:Negation applied to p. Distinct from binary math:Subtraction (which takes two operands); −x is math:Negation(x). Signature ℝ̄ → ℝ̄ over the signed extended real line: it carries the two poles, mapping math:PositiveInfinity to math:NegativeInfinity and back, so −(+∞) = −∞ is stated rather than undefined. OpenMath arith1 unary_minus."
+msgstr "L'opérateur unaire d'inverse additif (−x) : la négation à opérande unique qui inverse le signe d'une valeur, de sorte qu'un terme comme x⁻ᵖ est math:Exponentiation appliqué à x et math:Negation appliqué à p. Distinct de la math:Subtraction binaire (qui prend deux opérandes) ; −x est math:Negation(x). Signature ℝ̄ → ℝ̄ sur la droite réelle achevée signée : elle porte les deux pôles, envoyant math:PositiveInfinity sur math:NegativeInfinity et inversement, de sorte que −(+∞) = −∞ est énoncé plutôt qu'indéfini. OpenMath arith1 unary_minus."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|rdfs:label"
+msgid "operator domain"
+msgstr "domaine de l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|skos:definition"
+msgid "The number system an operator's operands are drawn from — the source of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its domain is unframed (math:UnframedOperator). Distinct from math:domain (a function's or relation's source set): math:operatorDomain frames the operator symbol itself, over the number-system tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and the signed extended real line ℝ̄)."
+msgstr "Le système de nombres d'où sont tirés les opérandes d'un opérateur — la source de sa signature. Domaine math:ArithmeticOperation, image math:NumberSystem (énoncé en prose). Chaque math:ArithmeticOperation en nomme exactement un ; un opérateur sans son domaine est non cadré (math:UnframedOperator). Distinct de math:domain (l'ensemble source d'une fonction ou d'une relation) : math:operatorDomain cadre le symbole d'opérateur lui-même, sur la tour des systèmes de nombres ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (et la droite réelle achevée signée ℝ̄)."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|rdfs:label"
+msgid "operator codomain"
+msgstr "codomaine de l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|skos:definition"
+msgid "The number system an operator's result lies in — the target of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its codomain is unframed (math:UnframedOperator). The declared target may be wider than the operator's domain — a real even root or a real logarithm lands in ℂ, so math:Root and math:Logarithm frame math:realNumbers → math:complexNumbers honestly rather than pretending the result stays real."
+msgstr "Le système de nombres où se trouve le résultat d'un opérateur — la cible de sa signature. Domaine math:ArithmeticOperation, image math:NumberSystem (énoncé en prose). Chaque math:ArithmeticOperation en nomme exactement un ; un opérateur sans son codomaine est non cadré (math:UnframedOperator). La cible déclarée peut être plus large que le domaine de l'opérateur — une racine réelle d'ordre pair ou un logarithme réel aboutit dans ℂ, si bien que math:Root et math:Logarithm cadrent math:realNumbers → math:complexNumbers honnêtement plutôt que de prétendre que le résultat reste réel."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedOperator|rdfs:label"
+msgid "Unframed Operator"
+msgstr "Opérateur non cadré"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedOperator|skos:definition"
+msgid "The failure raised when a math:ArithmeticOperation does not declare both its math:operatorDomain and its math:operatorCodomain — the number system its operands are drawn from and the system its result lies in. An operator is not a bare glyph; every arithmetic operator carries its signature over the number-system tower, so an operator missing either half of its signature is ill-formed."
+msgstr "L'échec levé lorsqu'une math:ArithmeticOperation ne déclare pas à la fois son math:operatorDomain et son math:operatorCodomain — le système de nombres d'où sont tirés ses opérandes et celui où se trouve son résultat. Un opérateur n'est pas un simple glyphe ; tout opérateur arithmétique porte sa signature sur la tour des systèmes de nombres, de sorte qu'un opérateur auquel manque l'une ou l'autre moitié de sa signature est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedFormFunction|rdfs:label"
+msgid "Closed-Form Function"
+msgstr "Fonction en forme close"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedFormFunction|skos:definition"
+msgid "A function given by an explicit closed-form expression in one formal argument over tunable parameters: the general facility for stating a parameterized curve — for example T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — natively as a math:MathematicalExpression AST rather than as an opaque string. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction). It additionally names its body through math:definingExpression (the expression AST) and its abstraction variable's declaration through math:formalArgument, and it distinguishes that formal argument from its fitted parameters, each declared through math:functionParameter — so in T(x) the argument x and the parameters A, B, C, p, q are separate declarations, not conflated. A closed form missing its body or its formal argument is ill-formed (math:UnboundClosedForm). It is a general facility supporting ANY curve, not a hardwired one; a concrete curve such as T(x) is an instance authored elsewhere."
+msgstr "Une fonction donnée par une expression en forme close explicite en un argument formel sur des paramètres réglables : la facilité générale pour énoncer une courbe paramétrée — par exemple T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — nativement comme un AST math:MathematicalExpression plutôt que comme une chaîne opaque. Une sous-classe de math:Function, elle hérite donc de l'obligation de déclarer son math:domain et son math:codomain (une fonction non cadrée est math:UnframedFunction). Elle nomme en outre son corps via math:definingExpression (l'AST d'expression) et la déclaration de sa variable d'abstraction via math:formalArgument, et elle distingue cet argument formel de ses paramètres ajustés, chacun déclaré via math:functionParameter — de sorte que dans T(x) l'argument x et les paramètres A, B, C, p, q sont des déclarations distinctes, non confondues. Une forme close à laquelle manque son corps ou son argument formel est mal formée (math:UnboundClosedForm). C'est une facilité générale prenant en charge N'IMPORTE QUELLE courbe, non une courbe figée ; une courbe concrète telle que T(x) est une instance rédigée ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/math/definingExpression|rdfs:label"
+msgid "defining expression"
+msgstr "expression définissante"
+
+msgctxt "https://blackcatinformatics.ca/math/definingExpression|skos:definition"
+msgid "The body AST of a function given in closed form: relates a math:Function to the math:MathematicalExpression that is its explicit closed-form body. Domain math:Function, range math:MathematicalExpression (stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a body does not say what it computes and is ill-formed (math:UnboundClosedForm). The body is a structured expression tree, never a display string — the argument and the parameters enter it as math:VariableExpression leaves resolving to the function's math:formalArgument and math:functionParameters."
+msgstr "L'AST du corps d'une fonction donnée en forme close : relie une math:Function à la math:MathematicalExpression qui est son corps en forme close explicite. Domaine math:Function, image math:MathematicalExpression (énoncé en prose). Chaque math:ClosedFormFunction en nomme exactement un ; une forme close sans corps ne dit pas ce qu'elle calcule et est mal formée (math:UnboundClosedForm). Le corps est un arbre d'expression structuré, jamais une chaîne d'affichage — l'argument et les paramètres y entrent comme des feuilles math:VariableExpression qui se résolvent vers le math:formalArgument et les math:functionParameter de la fonction."
+
+msgctxt "https://blackcatinformatics.ca/math/formalArgument|rdfs:label"
+msgid "formal argument"
+msgstr "argument formel"
+
+msgctxt "https://blackcatinformatics.ca/math/formalArgument|skos:definition"
+msgid "The abstraction variable of a closed-form function — the x in f(x): relates a math:ClosedFormFunction to the math:VariableDeclaration that is its formal argument. Domain math:ClosedFormFunction, range math:VariableDeclaration (typically a math:FreeVariableDeclaration, since the argument is free in the body; stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a formal argument does not say over which variable it abstracts and is ill-formed (math:UnboundClosedForm). It is the one declaration the function is a function OF, distinguished from the fitted math:functionParameters it is tuned by."
+msgstr "La variable d'abstraction d'une fonction en forme close — le x dans f(x) : relie une math:ClosedFormFunction à la math:VariableDeclaration qui est son argument formel. Domaine math:ClosedFormFunction, image math:VariableDeclaration (typiquement une math:FreeVariableDeclaration, puisque l'argument est libre dans le corps ; énoncé en prose). Chaque math:ClosedFormFunction en nomme exactement un ; une forme close sans argument formel ne dit pas sur quelle variable elle abstrait et est mal formée (math:UnboundClosedForm). C'est l'unique déclaration DONT la fonction est fonction, distinguée des math:functionParameter ajustés par lesquels elle est réglée."
+
+msgctxt "https://blackcatinformatics.ca/math/functionParameter|rdfs:label"
+msgid "function parameter"
+msgstr "paramètre de fonction"
+
+msgctxt "https://blackcatinformatics.ca/math/functionParameter|skos:definition"
+msgid "A tunable parameter of a closed-form function — one of the A, B, C, p, q that fix a particular curve within the family: relates a math:ClosedFormFunction to a math:VariableDeclaration that is a fitted parameter. Domain math:ClosedFormFunction, range math:VariableDeclaration (stated in prose). Unconstrained cardinality (0..n): a curve may have no parameters or many. A parameter is held fixed while the math:formalArgument varies, which is exactly what distinguishes the argument the function is OF from the parameters it is tuned BY; both enter the math:definingExpression as math:VariableExpression leaves."
+msgstr "Un paramètre réglable d'une fonction en forme close — l'un des A, B, C, p, q qui fixent une courbe particulière au sein de la famille : relie une math:ClosedFormFunction à une math:VariableDeclaration qui est un paramètre ajusté. Domaine math:ClosedFormFunction, image math:VariableDeclaration (énoncé en prose). Cardinalité non contrainte (0..n) : une courbe peut n'avoir aucun paramètre ou en avoir plusieurs. Un paramètre est maintenu fixe tandis que le math:formalArgument varie, ce qui est exactement ce qui distingue l'argument DONT la fonction est fonction des paramètres PAR lesquels elle est réglée ; les deux entrent dans la math:definingExpression comme des feuilles math:VariableExpression."
+
+msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|rdfs:label"
+msgid "Unbound Closed Form"
+msgstr "Forme close non liée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|skos:definition"
+msgid "The failure raised when a math:ClosedFormFunction does not declare both its math:definingExpression (the body AST) and its math:formalArgument (the abstraction variable's declaration). A closed-form function is an explicit expression in one formal argument; a closed form missing its body or its formal argument does not say what it computes or over which variable, and is ill-formed. Its tunable math:functionParameters are 0..n and unconstrained — only the body and the formal argument are required."
+msgstr "L'échec levé lorsqu'une math:ClosedFormFunction ne déclare pas à la fois sa math:definingExpression (l'AST du corps) et son math:formalArgument (la déclaration de la variable d'abstraction). Une fonction en forme close est une expression explicite en un argument formel ; une forme close à laquelle manque son corps ou son argument formel ne dit pas ce qu'elle calcule ni sur quelle variable, et est mal formée. Ses math:functionParameter réglables sont 0..n et non contraints — seuls le corps et l'argument formel sont requis."
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|rdfs:label"
+msgid "Piecewise Function"
+msgstr "Fonction définie par morceaux"
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|skos:definition"
+msgid "A function defined by pieces: a math:Function whose behaviour is given not by one closed form but by a family of math:FunctionPiece parts, each a sub-behaviour over its own domain restriction. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction); it additionally names one or more pieces through math:hasPiece. A piecewise function declaring NO piece says nothing about what it computes and is ill-formed (math:UnderspecifiedPiecewiseFunction). The pieces partition (or cover) the domain; each piece names the sub-domain it governs through math:pieceDomain and, where it has an explicit form, its behaviour through math:pieceExpression — so the classic split f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} is data (two pieces over two intervals), not prose. It is not a math:ClosedFormFunction (one expression in one formal argument); it is the case-split generalization, and a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) rather than a full expression."
+msgstr "Une fonction définie par morceaux : une math:Function dont le comportement est donné non par une forme close unique mais par une famille de parties math:FunctionPiece, chacune un sous-comportement sur sa propre restriction de domaine. Une sous-classe de math:Function, elle hérite donc de l'obligation de déclarer son math:domain et son math:codomain (une fonction sans cadre est math:UnframedFunction) ; elle nomme en outre un ou plusieurs morceaux via math:hasPiece. Une fonction définie par morceaux ne déclarant AUCUN morceau ne dit rien de ce qu'elle calcule et est mal formée (math:UnderspecifiedPiecewiseFunction). Les morceaux partitionnent (ou recouvrent) le domaine ; chaque morceau nomme le sous-domaine qu'il gouverne via math:pieceDomain et, lorsqu'il a une forme explicite, son comportement via math:pieceExpression — ainsi la partition classique f(x) = {x² pour x < 0 ; e⁻ˣ pour x ≥ 0} est une donnée (deux morceaux sur deux intervalles), non de la prose. Ce n'est pas une math:ClosedFormFunction (une expression en un argument formel) ; c'est la généralisation par cas, et un morceau peut porter un comportement analytique qualitatif (math:hasMonotonicity, math:hasBound) plutôt qu'une expression complète."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|rdfs:label"
+msgid "Function Piece"
+msgstr "Morceau de fonction"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|skos:definition"
+msgid "One piece of a math:PiecewiseFunction: a domain restriction paired with the sub-behaviour that holds on it. A subclass of math:MathematicalObject named by a piecewise function through math:hasPiece. It names EXACTLY ONE sub-domain through math:pieceDomain (a math:Interval — the sub-domain the piece governs), and, where the piece has an explicit closed form, its behaviour through math:pieceExpression (a math:MathematicalExpression); a piece whose behaviour is qualitative rather than symbolic carries instead a math:hasMonotonicity or a math:hasBound. A piece that names no math:pieceDomain does not say WHERE it applies and is ill-formed (the exactly-one math:pieceDomain gate). The piece is the case-split cell: the interval says over which points the cell holds, the expression or the qualitative marker says what the function does there."
+msgstr "Un morceau d'une math:PiecewiseFunction : une restriction de domaine appariée au sous-comportement qui y vaut. Une sous-classe de math:MathematicalObject nommée par une fonction définie par morceaux via math:hasPiece. Il nomme EXACTEMENT UN sous-domaine via math:pieceDomain (un math:Interval — le sous-domaine que le morceau gouverne) et, lorsque le morceau a une forme close explicite, son comportement via math:pieceExpression (une math:MathematicalExpression) ; un morceau dont le comportement est qualitatif plutôt que symbolique porte à la place un math:hasMonotonicity ou un math:hasBound. Un morceau ne nommant aucun math:pieceDomain ne dit pas OÙ il s'applique et est mal formé (l'obligation d'exactement un math:pieceDomain). Le morceau est la cellule de la partition par cas : l'intervalle dit sur quels points la cellule vaut, l'expression ou le marqueur qualitatif dit ce que la fonction y fait."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|rdfs:label"
+msgid "has piece"
+msgstr "possède le morceau"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|skos:definition"
+msgid "Relates a math:PiecewiseFunction to one of its math:FunctionPiece parts. Domain math:PiecewiseFunction, range math:FunctionPiece (stated in prose). A piecewise function names one or more pieces (≥ 1, unbounded — a function has at least one piece, and may have arbitrarily many); a piecewise function with no piece is ill-formed (math:UnderspecifiedPiecewiseFunction)."
+msgstr "Relie une math:PiecewiseFunction à l'une de ses parties math:FunctionPiece. Domaine math:PiecewiseFunction, portée math:FunctionPiece (précisé en prose). Une fonction définie par morceaux nomme un ou plusieurs morceaux (≥ 1, non borné — une fonction a au moins un morceau, et peut en avoir un nombre quelconque) ; une fonction définie par morceaux sans morceau est mal formée (math:UnderspecifiedPiecewiseFunction)."
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|rdfs:label"
+msgid "piece domain"
+msgstr "domaine du morceau"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:Interval it governs — the sub-domain over which the piece's behaviour holds. Domain math:FunctionPiece, range math:Interval (stated in prose). Each piece names exactly one piece-domain; a piece without it does not say where it applies and is ill-formed. The interval is a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed cell [0, 1]."
+msgstr "Relie un math:FunctionPiece au math:Interval qu'il gouverne — le sous-domaine sur lequel le comportement du morceau vaut. Domaine math:FunctionPiece, portée math:Interval (précisé en prose). Chaque morceau nomme exactement un domaine de morceau ; un morceau sans lui ne dit pas où il s'applique et est mal formé. L'intervalle est un math:Interval pleinement formé (les deux extrémités et les deux inclusions), de sorte qu'une cellule semi-ouverte [0, 1) se distingue de la cellule fermée [0, 1]."
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|rdfs:label"
+msgid "piece expression"
+msgstr "expression du morceau"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:MathematicalExpression giving its behaviour on its piece-domain — the closed form the function takes on that cell. Domain math:FunctionPiece, range math:MathematicalExpression (stated in prose). At most one; it is optional because a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) instead of an explicit expression, but a piece never carries two conflicting expressions."
+msgstr "Relie un math:FunctionPiece à la math:MathematicalExpression donnant son comportement sur son domaine de morceau — la forme close que la fonction prend sur cette cellule. Domaine math:FunctionPiece, portée math:MathematicalExpression (précisé en prose). Au plus une ; elle est optionnelle car un morceau peut porter un comportement analytique qualitatif (math:hasMonotonicity, math:hasBound) au lieu d'une expression explicite, mais un morceau ne porte jamais deux expressions contradictoires."
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|rdfs:label"
+msgid "Monotonicity Kind"
+msgstr "Genre de monotonie"
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|skos:definition"
+msgid "The kind of monotonic behaviour a function (or a math:FunctionPiece) exhibits over an ordered domain — one of math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, or math:constant. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), so a new monotonic sort joins by minting an individual. Each kind is NOT a bare token: it resolves through math:definingLaw to a real first-order logic:Formula stating what the kind MEANS as an ordering condition on the function's values — math:strictMonotonicityLaw for math:strictlyDecreasing, math:strictIncreaseLaw for math:strictlyIncreasing, and so on — so 'this piece is strictly decreasing' is a quantified statement over the reified real/value signature, not prose. A function names its monotonicity through math:hasMonotonicity."
+msgstr "Le genre de comportement monotone qu'une fonction (ou un math:FunctionPiece) présente sur un domaine ordonné — l'un de math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing ou math:constant. Un vocabulaire OUVERT de math:NamedIndividuals (jamais une énumération owl:oneOf), de sorte qu'un nouveau genre monotone rejoint en frappant un individu. Chaque genre n'est PAS un jeton nu : il se résout via math:definingLaw en une véritable logic:Formula du premier ordre énonçant ce que le genre SIGNIFIE comme condition d'ordre sur les valeurs de la fonction — math:strictMonotonicityLaw pour math:strictlyDecreasing, math:strictIncreaseLaw pour math:strictlyIncreasing, et ainsi de suite — de sorte que « ce morceau est strictement décroissant » est un énoncé quantifié sur la signature réels/valeurs réifiée, non de la prose. Une fonction nomme sa monotonie via math:hasMonotonicity."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|rdfs:label"
+msgid "has monotonicity"
+msgstr "possède la monotonie"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:MonotonicityKind classifying its monotonic behaviour over its ordered domain. Domain math:Function or math:FunctionPiece, range math:MonotonicityKind (stated in prose). The declared, checkable bearer of monotonicity: monotonicity is stated here, and the named kind carries the first-order defining law (math:definingLaw) that fixes its meaning, so a monotonicity claim is always backed by a real logic:Formula, never a flag."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) au math:MonotonicityKind classant son comportement monotone sur son domaine ordonné. Domaine math:Function ou math:FunctionPiece, portée math:MonotonicityKind (précisé en prose). Le porteur déclaré et vérifiable de la monotonie : la monotonie est énoncée ici, et le genre nommé porte la loi définitoire du premier ordre (math:definingLaw) fixant sa signification, de sorte qu'une revendication de monotonie est toujours étayée par une véritable logic:Formula, jamais par un drapeau."
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|rdfs:label"
+msgid "strictly decreasing"
+msgstr "strictement décroissant"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|skos:definition"
+msgid "Strictly decreasing monotonicity: x < y entails f(x) > f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictMonotonicityLaw (rdfs:seeAlso), so the kind is a real quantified ordering condition on the function's values, not a bare token."
+msgstr "Monotonie strictement décroissante : x < y entraîne f(x) > f(y) pour tous points x, y du domaine. Sa loi définitoire est la logic:Formula du premier ordre math:strictMonotonicityLaw (rdfs:seeAlso), de sorte que le genre est une véritable condition d'ordre quantifiée sur les valeurs de la fonction, non un jeton nu."
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|rdfs:label"
+msgid "strictly increasing"
+msgstr "strictement croissant"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|skos:definition"
+msgid "Strictly increasing monotonicity: x < y entails f(x) < f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictIncreaseLaw (rdfs:seeAlso), the order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "Monotonie strictement croissante : x < y entraîne f(x) < f(y) pour tous points x, y du domaine. Sa loi définitoire est la logic:Formula du premier ordre math:strictIncreaseLaw (rdfs:seeAlso), le miroir préservant l'ordre de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|rdfs:label"
+msgid "non-increasing"
+msgstr "non croissant"
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|skos:definition"
+msgid "Non-increasing (weakly decreasing) monotonicity: x < y entails f(x) ≥ f(y) for all points x, y of the domain — the function never rises. Its defining law is the first-order logic:Formula math:monotoneNonIncreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "Monotonie non croissante (faiblement décroissante) : x < y entraîne f(x) ≥ f(y) pour tous points x, y du domaine — la fonction ne monte jamais. Sa loi définitoire est la logic:Formula du premier ordre math:monotoneNonIncreaseLaw (rdfs:seeAlso), la contrepartie non stricte de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|rdfs:label"
+msgid "non-decreasing"
+msgstr "non décroissant"
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|skos:definition"
+msgid "Non-decreasing (weakly increasing) monotonicity: x < y entails f(x) ≤ f(y) for all points x, y of the domain — the function never falls. Its defining law is the first-order logic:Formula math:monotoneNonDecreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictIncreaseLaw."
+msgstr "Monotonie non décroissante (faiblement croissante) : x < y entraîne f(x) ≤ f(y) pour tous points x, y du domaine — la fonction ne descend jamais. Sa loi définitoire est la logic:Formula du premier ordre math:monotoneNonDecreaseLaw (rdfs:seeAlso), la contrepartie non stricte de math:strictIncreaseLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/constant|rdfs:label"
+msgid "constant"
+msgstr "constant"
+
+msgctxt "https://blackcatinformatics.ca/math/constant|skos:definition"
+msgid "Constant monotonicity: f(x) = f(y) for all points x, y of the domain — the function's value never changes. The degenerate limit of both weak sorts. Its defining law is the first-order logic:Formula math:constantMapLaw (rdfs:seeAlso), which requires any two of the function's values to be equal."
+msgstr "Monotonie constante : f(x) = f(y) pour tous points x, y du domaine — la valeur de la fonction ne change jamais. La limite dégénérée des deux genres faibles. Sa loi définitoire est la logic:Formula du premier ordre math:constantMapLaw (rdfs:seeAlso), qui exige que deux quelconques des valeurs de la fonction soient égales."
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|rdfs:label"
+msgid "Analytic Property"
+msgstr "Propriété analytique"
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|skos:definition"
+msgid "A qualitative analytic property a function may bear — non-affinity, convexity, boundedness, smoothness. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration); a function declares one through math:hasAnalyticProperty. Every analytic property MUST resolve through math:definingLaw to a real first-order logic:Formula (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OR — for a genuinely higher-order property — to an honest logic:expressivenessBoundary record (math:smoothness → math:smoothnessBoundary). A bare analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a quantified statement about the function's values, never a flag."
+msgstr "Une propriété analytique qualitative qu'une fonction peut porter — non-affinité, convexité, bornitude, régularité (lissité). Un vocabulaire OUVERT de math:NamedIndividuals (jamais une énumération owl:oneOf) ; une fonction en déclare une via math:hasAnalyticProperty. Toute propriété analytique DOIT se résoudre via math:definingLaw en une véritable logic:Formula du premier ordre (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OU — pour une propriété authentiquement d'ordre supérieur — en un enregistrement honnête de frontière logic:expressivenessBoundary (math:smoothness → math:smoothnessBoundary). Une revendication de propriété analytique nue, étayée par aucune loi ni frontière, est mal formée (math:UnbackedAnalyticProperty) : une propriété analytique est un énoncé quantifié sur les valeurs de la fonction, jamais un drapeau."
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|rdfs:label"
+msgid "has analytic property"
+msgstr "possède la propriété analytique"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to a math:AnalyticProperty it bears — its non-affinity, convexity, boundedness, or smoothness. Domain math:Function or math:FunctionPiece, range math:AnalyticProperty (stated in prose). The declared bearer of a qualitative analytic claim; because the named property carries its defining law or boundary (math:definingLaw), the claim is always backed by a real logic:Formula or an honest recorded boundary, never a bare flag."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) à une math:AnalyticProperty qu'elle porte — sa non-affinité, convexité, bornitude ou régularité. Domaine math:Function ou math:FunctionPiece, portée math:AnalyticProperty (précisé en prose). Le porteur déclaré d'une revendication analytique qualitative ; parce que la propriété nommée porte sa loi définitoire ou sa frontière (math:definingLaw), la revendication est toujours étayée par une véritable logic:Formula ou une frontière honnêtement enregistrée, jamais par un drapeau nu."
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|rdfs:label"
+msgid "non-affinity"
+msgstr "non-affinité"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|skos:definition"
+msgid "Non-affinity: the function is NOT an affine map — its graph is not a straight line, so there exist three domain points, one an affine combination of the other two, whose graph points fail to be collinear. Its defining law is the first-order logic:Formula math:nonAffinityLaw (rdfs:seeAlso), which witnesses the collinearity failure existentially, mirroring the existential/negation shape of math:connectednessLaw."
+msgstr "Non-affinité : la fonction n'est PAS une application affine — son graphe n'est pas une droite, de sorte qu'il existe trois points du domaine, l'un une combinaison affine des deux autres, dont les points du graphe échouent à être alignés. Sa loi définitoire est la logic:Formula du premier ordre math:nonAffinityLaw (rdfs:seeAlso), qui témoigne existentiellement de l'échec d'alignement, reflétant la forme existentielle/négation de math:connectednessLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|rdfs:label"
+msgid "convexity"
+msgstr "convexité"
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|skos:definition"
+msgid "Convexity: the function lies on or below its chords — the midpoint of the graph over any two points is at least as high as the graph at the midpoint of those points. Its defining law is the first-order logic:Formula math:convexityLaw (rdfs:seeAlso), authored in the honestly-expressible MIDPOINT-convexity form f((x+y)/2) ≤ (f(x)+f(y))/2: the full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of weights λ and needs scalar arithmetic on the values, so the midpoint form (reifying the midpoint as an uninterpreted relation, never an invented arithmetic function symbol) is the faithful first-order fragment; the λ-general residue is disclosed, not faked."
+msgstr "Convexité : la fonction se situe sur ou sous ses cordes — le milieu du graphe au-dessus de deux points quelconques est au moins aussi haut que le graphe au milieu de ces points. Sa loi définitoire est la logic:Formula du premier ordre math:convexityLaw (rdfs:seeAlso), rédigée dans la forme de convexité au POINT MILIEU honnêtement exprimable f((x+y)/2) ≤ (f(x)+f(y))/2 : l'inégalité de corde λ complète f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifie sur le continuum des poids λ et requiert de l'arithmétique scalaire sur les valeurs, de sorte que la forme du point milieu (réifiant le milieu comme une relation non interprétée, jamais un symbole de fonction arithmétique inventé) est le fragment fidèle du premier ordre ; le résidu λ général est divulgué, non falsifié."
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|rdfs:label"
+msgid "boundedness"
+msgstr "bornitude"
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|skos:definition"
+msgid "Boundedness on an interval: the function's absolute value stays within a declared bound ε over a declared interval — the near-zero plateau's defining VALUE property, |f(x)| ≤ ε for every x in the interval. Its defining law is the first-order logic:Formula math:boundednessLaw (rdfs:seeAlso). It is the VALUE property (a bound on the function's magnitude), distinct from measure dominance (a bound on an integral); the bound ε is named through math:hasBound and the interval it holds on through math:boundOnInterval."
+msgstr "Bornitude sur un intervalle : la valeur absolue de la fonction reste dans une borne déclarée ε sur un intervalle déclaré — la propriété de VALEUR définitoire du plateau proche de zéro, |f(x)| ≤ ε pour tout x dans l'intervalle. Sa loi définitoire est la logic:Formula du premier ordre math:boundednessLaw (rdfs:seeAlso). C'est la propriété de VALEUR (une borne sur la magnitude de la fonction), distincte de la domination de mesure (une borne sur une intégrale) ; la borne ε est nommée via math:hasBound et l'intervalle sur lequel elle vaut via math:boundOnInterval."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|rdfs:label"
+msgid "smoothness"
+msgstr "régularité (lissité)"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|skos:definition"
+msgid "Smoothness (C^∞ / real-analyticity): the function has derivatives of EVERY order. Unlike its siblings math:nonAffinity, math:convexity, and math:boundedness — each backed by a real first-order logic:Formula — smoothness is genuinely SECOND-ORDER: it quantifies over the infinite family of all derivatives, which is not first-order axiomatizable. So it is NOT faked as a first-order law but backed by the honest recorded boundary math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:definingLaw and rdfs:seeAlso. This exercises the explicit expressiveness-boundary arm: a real boundary carried in the loss ledger, never silent prose."
+msgstr "Régularité (lissité C^∞ / analyticité réelle) : la fonction a des dérivées de TOUT ordre. Contrairement à ses sœurs math:nonAffinity, math:convexity et math:boundedness — chacune étayée par une véritable logic:Formula du premier ordre — la régularité est authentiquement du SECOND ORDRE : elle quantifie sur la famille infinie de toutes les dérivées, ce qui n'est pas axiomatisable au premier ordre. Elle n'est donc PAS falsifiée en loi du premier ordre mais étayée par la frontière honnêtement enregistrée math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), référencée via math:definingLaw et rdfs:seeAlso. Cela exerce le bras explicite de frontière d'expressivité : une véritable frontière portée dans le registre des pertes, jamais de la prose silencieuse."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|rdfs:label"
+msgid "has bound"
+msgstr "possède la borne"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the bound ε on its magnitude — the value such that |f(x)| ≤ ε holds over the declared interval. Domain math:Function or math:FunctionPiece, range a finite non-negative numeric literal (stated in prose); an owl:DatatypeProperty, because a magnitude bound is always a finite number, never a pole. The bound is the ε of the boundedness law math:boundednessLaw; the interval over which it holds is named through math:boundOnInterval. A near-zero plateau declares a small ε here."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) à la borne ε sur sa magnitude — la valeur telle que |f(x)| ≤ ε vaut sur l'intervalle déclaré. Domaine math:Function ou math:FunctionPiece, portée un littéral numérique fini non négatif (précisé en prose) ; une owl:DatatypeProperty, car une borne de magnitude est toujours un nombre fini, jamais un pôle. La borne est le ε de la loi de bornitude math:boundednessLaw ; l'intervalle sur lequel elle vaut est nommé via math:boundOnInterval. Un plateau proche de zéro déclare ici un petit ε."
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|rdfs:label"
+msgid "bound on interval"
+msgstr "borne sur l'intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:Interval over which its math:hasBound ε holds. Domain math:Function or math:FunctionPiece, range math:Interval (stated in prose). Together with math:hasBound it grounds the boundedness law math:boundednessLaw: |f(x)| ≤ ε for every x in this interval. A bound stated without the interval it holds on is incomplete — the boundedness claim is scoped to a region, never global by default."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) au math:Interval sur lequel sa borne ε de math:hasBound vaut. Domaine math:Function ou math:FunctionPiece, portée math:Interval (précisé en prose). Avec math:hasBound elle fonde la loi de bornitude math:boundednessLaw : |f(x)| ≤ ε pour tout x dans cet intervalle. Une borne énoncée sans l'intervalle sur lequel elle vaut est incomplète — la revendication de bornitude est cadrée à une région, jamais globale par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|rdfs:label"
+msgid "strict monotonic decrease: x < y entails f(x) > f(y)"
+msgstr "décroissance monotone stricte : x < y entraîne f(x) > f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|skos:definition"
+msgid "The defining law of math:strictlyDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly decreasing, if x < y and f takes value u at x and v at y, then u > v. math: expresses the law; logic: owns reasoning over it. A sibling of math:continuityLaw in the same first-order style; the monotonicity a strictly-decreasing piece carries, backed by a real law rather than a bare token."
+msgstr "La loi définitoire de math:strictlyDecreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée strictement décroissante, si x < y et f prend la valeur u en x et v en y, alors u > v. math: exprime la loi ; logic: possède le raisonnement sur elle. Une sœur de math:continuityLaw dans le même style du premier ordre ; la monotonie qu'un morceau strictement décroissant porte, étayée par une véritable loi plutôt qu'un jeton nu."
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|rdfs:label"
+msgid "strict monotonic increase: x < y entails f(x) < f(y)"
+msgstr "croissance monotone stricte : x < y entraîne f(x) < f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|skos:definition"
+msgid "The defining law of math:strictlyIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly increasing, if x < y and f takes value u at x and v at y, then u < v. The order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "La loi définitoire de math:strictlyIncreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée strictement croissante, si x < y et f prend la valeur u en x et v en y, alors u < v. Le miroir préservant l'ordre de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|rdfs:label"
+msgid "non-increase: x < y entails f(x) ≥ f(y)"
+msgstr "non-croissance : x < y entraîne f(x) ≥ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|skos:definition"
+msgid "The defining law of math:nonIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-increasing, if x < y and f takes value u at x and v at y, then u ≥ v — the function never rises. The non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "La loi définitoire de math:nonIncreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée non croissante, si x < y et f prend la valeur u en x et v en y, alors u ≥ v — la fonction ne monte jamais. La contrepartie non stricte de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|rdfs:label"
+msgid "non-decrease: x < y entails f(x) ≤ f(y)"
+msgstr "non-décroissance : x < y entraîne f(x) ≤ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|skos:definition"
+msgid "The defining law of math:nonDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-decreasing, if x < y and f takes value u at x and v at y, then u ≤ v — the function never falls. The non-strict counterpart of math:strictIncreaseLaw."
+msgstr "La loi définitoire de math:nonDecreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée non décroissante, si x < y et f prend la valeur u en x et v en y, alors u ≤ v — la fonction ne descend jamais. La contrepartie non stricte de math:strictIncreaseLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|rdfs:label"
+msgid "constant: f(x) = f(y) for all x, y"
+msgstr "constante : f(x) = f(y) pour tous x, y"
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|skos:definition"
+msgid "The defining law of math:constant as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared constant, if f takes value u at x and v at y, then u = v — its value never changes, regardless of the order of x and y. The degenerate limit of both weak monotonicity sorts, so it carries no order atom."
+msgstr "La loi définitoire de math:constant comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée constante, si f prend la valeur u en x et v en y, alors u = v — sa valeur ne change jamais, quel que soit l'ordre de x et y. La limite dégénérée des deux genres de monotonie faible, elle ne porte donc aucun atome d'ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|rdfs:label"
+msgid "non-affinity: the graph has three non-collinear points over a chord"
+msgstr "non-affinité : le graphe a trois points non alignés au-dessus d'une corde"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|skos:definition"
+msgid "The defining law of math:nonAffinity as a first-order logic:Formula over the reified real/value signature: for a function f declared non-affine, there exist domain points x, y, z with z a proper affine combination of x and y, and graph values u = f(x), v = f(y), w = f(z), such that the three plane points (x,u), (y,v), (z,w) are NOT collinear. math: expresses the law; logic: owns reasoning over it. It uses logic:exists and logic:not exactly as math:connectednessLaw does; the midpoint/affine combination and collinearity are reified as uninterpreted relations, never invented arithmetic functions."
+msgstr "La loi définitoire de math:nonAffinity comme une logic:Formula du premier ordre sur la signature réels/valeurs réifiée : pour une fonction f déclarée non affine, il existe des points du domaine x, y, z avec z une combinaison affine propre de x et y, et des valeurs du graphe u = f(x), v = f(y), w = f(z), telles que les trois points du plan (x,u), (y,v), (z,w) ne sont PAS alignés. math: exprime la loi ; logic: possède le raisonnement sur elle. Elle utilise logic:exists et logic:not exactement comme le fait math:connectednessLaw ; le milieu / la combinaison affine et l'alignement sont réifiés comme des relations non interprétées, jamais des fonctions arithmétiques inventées."
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|rdfs:label"
+msgid "convexity (midpoint form): f((x+y)/2) ≤ (f(x)+f(y))/2"
+msgstr "convexité (forme au point milieu) : f((x+y)/2) ≤ (f(x)+f(y))/2"
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|skos:definition"
+msgid "The defining law of math:convexity as a first-order logic:Formula over the reified real/value signature, in the honestly-expressible MIDPOINT form: for a function f declared convex, for all x, y with domain midpoint m = (x+y)/2 and value midpoint z = (f(x)+f(y))/2, the value w = f(m) satisfies w ≤ z. math: expresses the law; logic: owns reasoning over it. The full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of λ and needs scalar arithmetic on values, exceeding the first-order fragment without inventing arithmetic function symbols; the midpoint form (reifying the midpoint as the uninterpreted relation math:midpointRel, as math:preimageRel reifies the preimage) is the faithful first-order law, and the λ-general residue is disclosed here, never silently faked."
+msgstr "La loi définitoire de math:convexity comme une logic:Formula du premier ordre sur la signature réels/valeurs réifiée, dans la forme au POINT MILIEU honnêtement exprimable : pour une fonction f déclarée convexe, pour tous x, y de milieu du domaine m = (x+y)/2 et milieu des valeurs z = (f(x)+f(y))/2, la valeur w = f(m) satisfait w ≤ z. math: exprime la loi ; logic: possède le raisonnement sur elle. L'inégalité de corde λ complète f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifie sur le continuum des λ et requiert de l'arithmétique scalaire sur les valeurs, dépassant le fragment du premier ordre sans inventer de symboles de fonction arithmétique ; la forme au point milieu (réifiant le milieu comme la relation non interprétée math:midpointRel, comme math:preimageRel réifie la préimage) est la loi fidèle du premier ordre, et le résidu λ général est divulgué ici, jamais falsifié silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|rdfs:label"
+msgid "boundedness: |f(x)| ≤ ε for every x in the interval"
+msgstr "bornitude : |f(x)| ≤ ε pour tout x dans l'intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|skos:definition"
+msgid "The defining law of math:boundedness as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declaring a magnitude bound ε (math:hasBound) that holds on an interval I (math:boundOnInterval), if x lies in I and f takes value v at x, then |v| ≤ ε. math: expresses the law; logic: owns reasoning over it. It is the near-zero plateau's defining VALUE property — a bound on the function's magnitude — distinct from measure dominance (a bound on an integral); the bound is scoped to a region, never global by default."
+msgstr "La loi définitoire de math:boundedness comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarant une borne de magnitude ε (math:hasBound) valant sur un intervalle I (math:boundOnInterval), si x est dans I et f prend la valeur v en x, alors |v| ≤ ε. math: exprime la loi ; logic: possède le raisonnement sur elle. C'est la propriété de VALEUR définitoire du plateau proche de zéro — une borne sur la magnitude de la fonction — distincte de la domination de mesure (une borne sur une intégrale) ; la borne est cadrée à une région, jamais globale par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|rdfs:label"
+msgid "smoothness: an honest recorded second-order boundary (no first-order formula)"
+msgstr "régularité : une frontière du second ordre honnêtement enregistrée (aucune formule du premier ordre)"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|skos:definition"
+msgid "The loss-ledger boundary record backing math:smoothness: smoothness (C^∞ / real-analyticity, 'the function has derivatives of every order') is genuinely second-order — it ∀-quantifies over the INFINITE FAMILY of all derivatives {f, f′, f″, …}, a quantification over an unbounded family of functions that is not first-order axiomatizable. HiLog reflection could reify a single derivative, but 'for all n, the n-th derivative exists' ranges over the whole family, so a first-order witness would be an unsound uninterpreted predicate. Hence smoothness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:nonAffinityLaw, math:convexityLaw, and math:boundednessLaw, which ARE first-order logic:Formula laws, exactly as math:compactnessBoundary contrasts with math:continuityLaw and math:connectednessLaw."
+msgstr "L'enregistrement de frontière du registre des pertes étayant math:smoothness : la régularité (lissité C^∞ / analyticité réelle, « la fonction a des dérivées de tout ordre ») est authentiquement du second ordre — elle quantifie universellement sur la FAMILLE INFINIE de toutes les dérivées {f, f′, f″, …}, une quantification sur une famille non bornée de fonctions qui n'est pas axiomatisable au premier ordre. La réflexion HiLog pourrait réifier une seule dérivée, mais « pour tout n, la n-ième dérivée existe » parcourt toute la famille, de sorte qu'un témoin du premier ordre serait un prédicat non interprété non fondé. La régularité est donc portée comme une frontière honnête (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), le résidu divulgué dans le registre et jamais de la prose silencieuse (Principe 17). Contraste avec ses sœurs math:nonAffinityLaw, math:convexityLaw et math:boundednessLaw, qui SONT des lois logic:Formula du premier ordre, exactement comme math:compactnessBoundary contraste avec math:continuityLaw et math:connectednessLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|rdfs:label"
+msgid "Underspecified Piecewise Function"
+msgstr "Fonction définie par morceaux sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|skos:definition"
+msgid "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."
+msgstr "L'échec levé lorsqu'une math:PiecewiseFunction ne déclare aucun math:hasPiece (min-count 1) — une fonction définie par morceaux est définie PAR ses morceaux, de sorte qu'une sans aucun ne dit rien de ce qu'elle calcule et est mal formée. Distinct de math:UnframedFunction (une fonction sans son domaine/codomaine, dont une fonction définie par morceaux hérite) : cet échec est la barrière du morceau manquant propre à l'échelle des morceaux."
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|rdfs:label"
+msgid "Unbacked Analytic Property"
+msgstr "Propriété analytique non étayée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
+msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
+msgstr "L'échec levé lorsqu'une math:AnalyticProperty ne se résout en aucune loi définitoire — elle ne porte aucun arc math:definingLaw vers une véritable logic:Formula du premier ordre (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) ni vers un enregistrement honnête de frontière logic:expressivenessBoundary (math:smoothnessBoundary). Une revendication de monotonie ou de propriété analytique DOIT être étayée par une véritable loi ou une frontière enregistrée, jamais un drapeau nu ; un jeton de propriété analytique nu est inauthorable par construction. Appliqué par la logic:Constraint d'existence gardée math:AnalyticPropertyBackedConstraint (toute math:AnalyticProperty requiert un math:definingLaw), abaissée en une contrainte SHACL sh:sparql."

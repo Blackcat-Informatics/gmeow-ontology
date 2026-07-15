@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:LimitResultShape: a math:LimitResult carrying no
+# math:limitOutcome (sh:minCount 1, derived from the exact-one math:limitOutcome
+# restriction). Validation MUST emit shacl.MinCountConstraintComponent
+# (math:UnderspecifiedLimitResult). It carries no math:limitResultValue either, so
+# the outcome↔value agreement constraint stays vacuously satisfied and the missing
+# required outcome is the single isolated violation. Bound by
+# ex:ecLimitResultMissingOutcome.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:outcomelessResult a math:LimitResult ;
+    rdfs:label "A limit result asserted without naming its outcome"@x-gmeow-english .

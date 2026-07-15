@@ -11,6 +11,7 @@
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:   <http://example.org/math/> .
 
 # --- A chart on a Lorentzian manifold (the charter's worked example) -------- #
@@ -78,6 +79,40 @@ ex:worldlineLimit a math:Limit ;
     math:limitPoint ex:originPoint ;
     math:limitMode math:limitTwoSided .
 
+# --- Structured limit results ----------------------------------------------- #
+# A limit that runs off to the positive pole: the result names the divergent
+# outcome and carries math:PositiveInfinity as its value (a point on ℝ̄, never a
+# finite literal). The Lorentz factor γ = 1/√(1 − v²/c²) → +∞ as v → c.
+ex:lorentzFactorLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:lorentzFactorExpr ;
+    math:limitPoint ex:lightSpeed ;
+    math:limitMode math:limitFromLeft ;
+    math:hasLimitResult ex:lorentzFactorResult .
+
+ex:lorentzFactorResult a math:LimitResult ;
+    math:limitOutcome math:divergesToPositiveInfinity ;
+    math:limitResultValue math:PositiveInfinity .
+
+ex:lorentzFactorExpr a math:MathematicalExpression .
+ex:lightSpeed a math:MathematicalObject .
+
+# A convergent limit: the result names math:convergesFinitely and carries a finite
+# numeric literal. The proper-time integrand → 1 as v → 0 (the Newtonian limit).
+ex:properTimeRateLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:properTimeRateExpr ;
+    math:limitPoint ex:restVelocity ;
+    math:limitMode math:limitTwoSided ;
+    math:hasLimitResult ex:properTimeRateResult .
+
+ex:properTimeRateResult a math:LimitResult ;
+    math:limitOutcome math:convergesFinitely ;
+    math:limitResultValue "1.0"^^xsd:double .
+
+ex:properTimeRateExpr a math:MathematicalExpression .
+ex:restVelocity a math:MathematicalObject .
+
 # --- An absolutely convergent series ---------------------------------------- #
 
 ex:properTimeSeries a math:Series ;
@@ -100,3 +135,173 @@ ex:causalComplement a math:Complement ;
     math:complementSemantics math:setTheoreticComplement .
 
 ex:lightcone a math:Set .
+
+# --- A conformal compactification of a radial half-line --------------------- #
+# The unbounded radial half-line r ∈ [0, ∞) conformally compactified to the
+# bounded coordinate interval ρ ∈ [0, 1] by the angle-preserving map ρ = r/(1+r),
+# whose conformal factor Ω = 1/(1+r) rescales the metric so the infinite metric
+# distance becomes finite. A single boundary point at ρ = 1 is adjoined — the
+# ideal point r = +∞ the half-line approaches but never reaches. All four roles
+# (original space, compactifying map, compactified space, boundary at infinity)
+# plus the conformal factor are named, so this conforms to the derived
+# math:CompactificationShape. Pure math: the geometry a Lorentzian-radial case
+# reuses downstream, authored here neutrally.
+ex:radialCompactification a math:ConformalCompactification ;
+    rdfs:label "Conformal compactification of the radial half-line [0, ∞)"@x-gmeow-english ;
+    math:originalSpace ex:radialHalfLine ;
+    math:compactifyingMap ex:radialCompactifyingMap ;
+    math:compactifiedSpace ex:compactifiedRadialInterval ;
+    math:boundaryAtInfinity ex:radialIdealBoundary ;
+    math:conformalFactor ex:radialConformalFactor .
+
+# The original unbounded space: the radial half-line as a topological space.
+ex:radialHalfLine a math:TopologicalSpace ;
+    rdfs:label "The unbounded radial half-line r ∈ [0, ∞)"@x-gmeow-english .
+
+# The compactifying map ρ = r/(1+r): a coordinate map from the half-line onto the
+# bounded interval, so it declares its domain and codomain.
+ex:radialCompactifyingMap a math:CoordinateMap ;
+    rdfs:label "The compactifying map ρ = r/(1+r)"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:compactifiedRadialInterval .
+
+# The resulting bounded space: the closed unit interval [0, 1], its upper endpoint
+# closed because the boundary point at infinity is adjoined as a member.
+ex:compactifiedRadialInterval a math:Interval ;
+    rdfs:label "The compactified radial interval [0, 1]"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+# The boundary at infinity: the single ideal point ρ = 1 (r = +∞).
+ex:radialIdealBoundary a math:BoundaryAtInfinity ;
+    rdfs:label "The ideal point at infinity ρ = 1 (r = +∞)"@x-gmeow-english .
+
+# The conformal factor Ω = 1/(1+r): a positive rescaling function on the half-line.
+ex:radialConformalFactor a math:Function ;
+    rdfs:label "The conformal factor Ω = 1/(1+r)"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:positiveReals .
+
+ex:positiveReals a math:Set .
+
+# --- A worked piecewise function — pieces, explicit forms, and a plateau bound #
+# f(r) = { (1 − r)² on [0, 1);  a near-zero plateau on [1, +∞) }.
+# The case-split is DATA: two math:FunctionPiece parts, each over a fully-formed
+# math:Interval, one carrying math:hasMonotonicity math:strictlyDecreasing and one
+# a small math:hasBound over its math:boundOnInterval. Each piece additionally names
+# WHAT it computes through math:pieceExpression — a structured expression AST over the
+# committed algebra (the per-piece explicit-form path): the core branch's exact form
+# (1 − r)² and the tail branch's constant plateau, authored below. Well-formed against
+# the piecewise gate (≥ 1 math:hasPiece, exactly-one math:pieceDomain, at-most-one
+# math:pieceExpression), the inherited function frame (math:domain/math:codomain), and
+# the interval endpoint gate.
+ex:radialDecayProfile a math:PiecewiseFunction ;
+    rdfs:label "A piecewise radial profile: a strictly-decreasing core and a near-zero plateau"@x-gmeow-english ;
+    math:domain ex:radialDecayDomain ;
+    math:codomain ex:positiveReals ;
+    math:hasPiece ex:coreDropPiece , ex:tailPlateauPiece .
+
+ex:coreDropPiece a math:FunctionPiece ;
+    rdfs:label "Core piece over [0, 1): strictly decreasing, f(r) = (1 − r)²"@x-gmeow-english ;
+    math:pieceDomain ex:coreDomain ;
+    math:pieceExpression ex:coreBranchExpr ;
+    math:hasMonotonicity math:strictlyDecreasing ;
+    math:hasAnalyticProperty math:convexity .
+
+ex:tailPlateauPiece a math:FunctionPiece ;
+    rdfs:label "Tail piece over [1, +∞): near-zero plateau, f(r) = 0.0001"@x-gmeow-english ;
+    math:pieceDomain ex:tailDomain ;
+    math:pieceExpression ex:tailBranchExpr ;
+    math:hasBound "0.0001"^^xsd:double ;
+    math:boundOnInterval ex:tailDomain ;
+    math:hasAnalyticProperty math:boundedness .
+
+ex:coreDomain a math:Interval ;
+    rdfs:label "The half-open core interval [0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:tailDomain a math:Interval ;
+    rdfs:label "The unbounded tail interval [1, +∞)"@x-gmeow-english ;
+    math:lowerEndpoint "1.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:radialDecayDomain a math:Set ;
+    rdfs:label "The non-negative real half-line [0, +∞) the profile is defined on"@x-gmeow-english .
+
+# --- The per-piece explicit forms carried through math:pieceExpression ------- #
+# Each math:FunctionPiece above now names not only WHERE it applies (math:pieceDomain)
+# but WHAT it computes there (math:pieceExpression), as a structured expression AST over
+# the committed algebra — nothing rebuilt (math:ApplicationExpression, math:operator,
+# indexed math:argumentSlot, math:VariableExpression, math:NumberLiteral). The radius r
+# is a single math:FreeVariableDeclaration the core branch's leaf resolves to.
+ex:radialArgument a math:FreeVariableDeclaration ;
+    rdfs:label "r — the radial argument of the piecewise profile"@x-gmeow-english .
+
+# Core branch (1 − r)² = Exponentiation( Subtraction(1, r), 2 ). Exponentiation and
+# Subtraction are non-commutative, so operand order is load-bearing: the base 1 − r is
+# slot 0 and the exponent 2 is slot 1; inside the base, the literal 1 is slot 0 (the
+# minuend) and r is slot 1 (giving 1 − r, not r − 1).
+ex:coreBranchExpr a math:ApplicationExpression ;
+    rdfs:label "(1 − r)²"@x-gmeow-english ;
+    math:operator math:Exponentiation ;
+    math:argumentSlot ex:corePowSlot0 , ex:corePowSlot1 .
+
+ex:corePowSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:coreOneMinusR .
+ex:corePowSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:coreExponentTwo .
+
+ex:coreOneMinusR a math:ApplicationExpression ;
+    rdfs:label "1 − r"@x-gmeow-english ;
+    math:operator math:Subtraction ;
+    math:argumentSlot ex:coreSubSlot0 , ex:coreSubSlot1 .
+
+ex:coreSubSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:coreOneLiteral .
+ex:coreSubSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:coreRadiusExpr .
+
+# The radius leaf r: an occurrence resolving to the radial-argument declaration.
+ex:coreRadiusExpr a math:VariableExpression ;
+    rdfs:label "r (in 1 − r)"@x-gmeow-english ;
+    math:variableOccurrence ex:coreRadiusOcc .
+ex:coreRadiusOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:radialArgument ;
+    math:occursInScope ex:coreOneMinusR .
+
+# The literal 1 (the minuend) and the exponent 2 — numeric-literal leaves, each denoting
+# an exact real number situated in ℝ.
+ex:coreOneLiteral a math:NumberLiteral ;
+    rdfs:label "1"@x-gmeow-english ;
+    math:literalValue ex:coreOneNumber .
+ex:coreOneNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+ex:coreExponentTwo a math:NumberLiteral ;
+    rdfs:label "2"@x-gmeow-english ;
+    math:literalValue ex:coreTwoNumber .
+ex:coreTwoNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+# Tail branch: the constant near-zero plateau f(r) = 0.0001 — a bare numeric-literal
+# leaf (a math:NumberLiteral IS a math:MathematicalExpression, so it can stand as a
+# math:pieceExpression on its own), the symbolic twin of the piece's math:hasBound.
+ex:tailBranchExpr a math:NumberLiteral ;
+    rdfs:label "0.0001"@x-gmeow-english ;
+    math:literalValue ex:tailPlateauNumber .
+ex:tailPlateauNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
