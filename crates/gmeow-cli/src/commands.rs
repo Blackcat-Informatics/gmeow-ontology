@@ -480,20 +480,22 @@ pub fn describe(
     // model-existence signal `build_card` gates a class's `python_model` link on
     // (a class with no `$defs` entry has no generated Pydantic model, so the link
     // must never be fabricated: issue "Pydantic model surface", finding F3).
-    let modeled_defs = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
-        .and_then(|bundle| bundle.modeled_def_keys())
+    let (modeled_defs, dataset) = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
+        .and_then(|bundle| Ok((bundle.modeled_def_keys()?, bundle.dataset()?)))
     {
-        Ok(defs) => defs,
+        Ok(parsed) => parsed,
         Err(e) => {
             return fail(
                 reporter,
                 "gmeow-cli.describe.modeled-defs",
-                format!("cannot read the bundled JSON Schema for the model-existence gate: {e}"),
+                format!(
+                    "cannot read the bundled RDF and JSON Schema for the describe surface: {e}"
+                ),
             );
         }
     };
     let (text, status) =
-        gmeow_docs::describe(term, &bytes, resolved.as_deref(), format, &modeled_defs);
+        gmeow_docs::describe_dataset(term, dataset, resolved.as_deref(), format, &modeled_defs);
     // Map each backend failure kind to its OWN typed diagnostic code — a resolution
     // miss, a cross-namespace ambiguity, an unknown language, and a bundle-load
     // failure are distinct, greppable codes (the old path lumped them all under

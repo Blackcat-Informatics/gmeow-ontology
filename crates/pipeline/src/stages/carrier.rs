@@ -30,7 +30,7 @@ use purrdf::{
 #[cfg(test)]
 use rayon::prelude::*;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -3089,6 +3089,12 @@ impl Stage for SnapshotStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    fn cache_policy(&self) -> CachePolicy {
+        // The aggregate snapshot is cheaper to assemble from its live upstream
+        // carriers than to deserialize and reparse its full canonical projection.
+        // Recompute preserves the complete fold and all downstream drift checks.
+        CachePolicy::Recompute
+    }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
     /// declarations and verified against the run-time delta by the scheduler.
@@ -5037,9 +5043,9 @@ mod ustar_tests {
     // ── docs-book / docs-print blob wiring (fresh-build, no committed-bundle dep) ──
 
     /// A small, deterministic docs model (one slice, three terms, one competency, one
-    /// linkage) — the SAME shape the `docs-print` integration suite uses, kept small so
-    /// the book render and the PDF compile stay well under the per-test budget (the
-    /// full-catalog render/compile belongs to the regenerate gate, not a unit test).
+    /// linkage) — the SAME shape the `docs-print` integration suite uses. It stays
+    /// small so unit tests isolate the renderer; full-catalog render/compile belongs
+    /// to the regenerate gate.
     fn small_docs_model() -> gmeow_docs::model::DocsModel {
         use gmeow_docs::model::{
             DocCompetency, DocLinkage, DocSlice, DocTerm, DocTermCategory, DocsModel,

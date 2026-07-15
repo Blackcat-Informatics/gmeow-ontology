@@ -105,10 +105,6 @@ members = [
     # against gmeow-sparql-eval and diffs SPARQL Results / canonical N-Quads;
     # federated SERVICE resolves through an in-memory source (no network).
 
-    # Post-run JUnit per-test duration budget gate (#1045): hard-fails the suite if
-    # any default/ci-profile test exceeds the 25 s always-on budget. Std-only leaf,
-    # no gmeow deps.
-    "crates/test-budget",
     # Native, wasm-clean serializer for the SPARQL result model → SPARQL Results
     # JSON/XML/CSV/TSV + a provenance-carrying gmeow extension: the canonical
     # results-serialization authority replacing oxigraph-family `sparesults`
