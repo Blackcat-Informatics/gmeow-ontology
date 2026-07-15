@@ -7,9 +7,9 @@
 //! test sink — over the real repo, binding every stage against the default
 //! registry. This exercises the scheduler and carrier assembly on production data
 //! (DAG validate → bind → level-parallel schedule → engine-resource serialization
-//! on reason → content-addressed cache → one Sink) while keeping the always-on
-//! test under the 25s per-test budget. The terminal sink has a focused unit test,
-//! and full sink-vs-committed fold parity stays with the heavy fold-parity lane.
+//! on reason → content-addressed cache → one Sink). It is an exhaustive
+//! `maint-heavy` proof; the terminal sink has focused default-lane tests and
+//! committed output remains protected by the generated-artifact drift gate.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
