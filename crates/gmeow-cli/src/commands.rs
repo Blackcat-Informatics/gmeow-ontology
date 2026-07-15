@@ -2108,6 +2108,74 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
     }
 }
 
+/// `gmeow slice projection-ceilings` — surface the committed projection-vocabulary
+/// ratchet (the guarded registry + the per-(slice, vocabulary) ceilings) straight from
+/// the embedded `gmeow.gts` bundle, dogfooding Principle 17 from the shippable
+/// deliverable. This is the COMMITMENTS view: the resident individuals, not the live
+/// measured residue (which needs a repo checkout to scan — that stays on `gmeow-dev`).
+pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
+    let floors = match gmeow_slice_quality::ceilings_from_gts(BUNDLE_GTS) {
+        Ok(f) => f,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.projection-ceilings.load",
+                format!("cannot load projection ceilings from bundle: {e}"),
+            );
+        }
+    };
+    let mut vocabs = floors.vocabularies;
+    vocabs.sort_by(|a, b| a.prefix.cmp(&b.prefix));
+    let mut ceilings = floors.ceilings;
+    ceilings.sort_by(|a, b| {
+        (a.slice.as_str(), a.vocab_prefix.as_str())
+            .cmp(&(b.slice.as_str(), b.vocab_prefix.as_str()))
+    });
+    match format {
+        "human" => {
+            println!("Guarded projection vocabularies ({}):", vocabs.len());
+            for v in &vocabs {
+                println!(
+                    "  {:<10} owner={:<66} {:<24} default-ceiling {}",
+                    v.prefix,
+                    v.owner,
+                    v.count_kind.as_local(),
+                    v.default_ceiling
+                );
+            }
+            println!("\nCommitted projection ceilings ({}):", ceilings.len());
+            for c in &ceilings {
+                println!(
+                    "  {:<70} {:<10} ceiling {}",
+                    c.slice, c.vocab_prefix, c.count
+                );
+            }
+            0
+        }
+        "tsv" => {
+            for v in &vocabs {
+                println!(
+                    "{}\t{}\t{}\t{}\t{}",
+                    v.prefix,
+                    v.namespaces.join(","),
+                    v.count_kind.as_local(),
+                    v.default_ceiling,
+                    v.owner
+                );
+            }
+            for c in &ceilings {
+                println!("{}\t{}\t{}", c.slice, c.vocab_prefix, c.count);
+            }
+            0
+        }
+        other => fail(
+            reporter,
+            "gmeow-cli.slice.projection-ceilings.unknown-format",
+            format!("unknown --format {other:?}: expected human or tsv"),
+        ),
+    }
+}
+
 #[cfg(test)]
 mod explain_tests {
     use gmeow_cli_core::{ConsoleMode, reporter_for};

@@ -65,7 +65,72 @@ gmeow:TermEquivalenceShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "justification must be a single IRI"
+    ] ;
+    sh:property [
+        sh:path logic:morphismClass ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
+            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ;
+        sh:severity sh:Violation ;
+        sh:message "morphismClass must be one declared logic:MorphismClass rung"
+    ] ;
+    sh:property [
+        sh:path logic:morphismKind ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ;
+        sh:severity sh:Violation ;
+        sh:message "morphismKind must be logic:InstitutionMorphism or logic:CommitmentShiftingBridge"
+    ] ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:ExactPreservation logic:SoundUnderApproximation
+            logic:CompleteOverApproximation logic:InconsistencyPreserving
+            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ;
+        sh:severity sh:Violation ;
+        sh:message "preservationKind must be one declared logic:PreservationKind value"
     ] .
+
+# A grounding correspondence is deliberately stronger authoring data than an ordinary
+# mapping row: its law-spine, morphism kind, and preservation boundary are all explicit
+# because the compiled node is shipped in graph/correspondence-laws.
+logic:GroundingCorrespondenceShape
+    a sh:NodeShape ;
+    rdfs:label "GroundingCorrespondence authoring shape"@en ;
+    sh:targetClass logic:GroundingCorrespondence ;
+    sh:class gmeow:TermEquivalence ;
+    sh:property [
+        sh:path logic:morphismClass ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one logic:morphismClass"
+    ] ;
+    sh:property [
+        sh:path logic:morphismKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one logic:morphismKind"
+    ] ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one logic:preservationKind"
+    ] ;
+    sh:or (
+        [ sh:and (
+            [ sh:property [ sh:path logic:morphismClass ; sh:hasValue logic:BridgeView ] ]
+            [ sh:property [ sh:path logic:morphismKind ; sh:hasValue logic:CommitmentShiftingBridge ] ]
+        ) ]
+        [ sh:and (
+            [ sh:not [ sh:property [ sh:path logic:morphismClass ; sh:hasValue logic:BridgeView ] ] ]
+            [ sh:property [ sh:path logic:morphismKind ; sh:hasValue logic:InstitutionMorphism ] ]
+        ) ]
+    ) ;
+    sh:message "GroundingCorrespondence must pair BridgeView with CommitmentShiftingBridge; every other rung is an InstitutionMorphism" .
 
 # --------------------------------------------------------------------------- #
 # DeclinedCorrespondence — the machine-reviewable "won't-bridge" record
