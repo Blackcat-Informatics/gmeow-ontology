@@ -4,8 +4,8 @@
 # Rust Optimization Doctrine
 
 This document is the project-level guide for Rust performance and language-feature
-work in GMEOW. It complements the always-on gate policy in
-[`docs/rust-test-budget.md`](./rust-test-budget.md), the Rust/GTS toolchain policy
+work in GMEOW. It complements the test-performance policy in
+[`docs/rust-test-performance.md`](./rust-test-performance.md), the Rust/GTS toolchain policy
 in [`docs/rust-gts-integration.md`](./rust-gts-integration.md), and the core
 workflow rules in [`AGENTS.md`](../AGENTS.md).
 
@@ -50,7 +50,7 @@ Useful lanes:
 ```bash
 make bench           # criterion hot-path benchmark suite, report-only
 make bench-compare   # live criterion run compared to bench/baseline.json
-make rust-test       # always-on Rust gate, including duration budget
+make rust-test       # always-on Rust correctness gate
 make check           # full Docker-free, Java-free local gate
 ```
 

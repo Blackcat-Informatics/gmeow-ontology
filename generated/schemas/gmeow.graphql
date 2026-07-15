@@ -6886,6 +6886,12 @@ type InterpersonalRelationship {
   relationshipParty: [Agent!]
 }
 
+type InventedWitness {
+  id: String
+  iri: String
+  existentialOrdinal: Int
+}
+
 type InvitationStatus {
   id: String
   iri: String

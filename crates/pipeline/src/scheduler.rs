@@ -24,7 +24,7 @@ use rayon::prelude::*;
 use crate::bundle::set_bundle_provenance;
 use crate::cache::{PipelineCache, content_digest, stage_key};
 use crate::graph::StageGraph;
-use crate::node::{Stage, StageInput, StageProduct, StageRunTiming};
+use crate::node::{CachePolicy, Stage, StageInput, StageProduct, StageRunTiming};
 use crate::provenance::register_stage_unit;
 
 /// The process-wide registry of per-resource mutexes. A stage that declares a
@@ -292,12 +292,12 @@ pub fn run(
         let mut level_max: u128 = 0;
         let mut level_max_id = String::new();
         for mut r in runs {
-            if !r.cached {
+            let stage = by_id[r.id.as_str()];
+            if !r.cached && stage.cache_policy() == CachePolicy::Persistent {
                 ctx.cache.put(&r.key, &r.product)?;
             }
             // Fold this stage's forward diagnostic nodes into the run-wide ledger.
             run_ledger.replay(std::mem::take(&mut r.diags));
-            let stage = by_id[r.id.as_str()];
             // Register this stage as a provenance unit in the run-wide sidecar
             // (capability-derived origin: sourceOrigin → Source, else → Generated).
             register_stage_unit(&mut ctx.provenance, &r.id, stage.capabilities());
@@ -464,7 +464,9 @@ fn exec_stage(
 
     let started = std::time::Instant::now();
 
-    if let Some(product) = cache.get(&key)? {
+    if stage.cache_policy() == CachePolicy::Persistent
+        && let Some(product) = cache.get(&key)?
+    {
         // A cache hit re-serves the identical product, so its `diagnostics:nodes` blob
         // (empty for a non-producer) recovers this stage's run-ledger contribution
         // WITHOUT re-running it — byte-identical to the fresh `out.diags`.
@@ -665,7 +667,7 @@ fn check_lane(
 /// folds each file's repo-relative logical path AND its bytes (sorted by path, so
 /// it is order-independent); a declared file that cannot be read HARD-fails — a
 /// missing required input is never silently treated as "unchanged" (no-optionality).
-fn input_files_digest(
+pub(crate) fn input_files_digest(
     stage: &dyn Stage,
     root: &Path,
 ) -> Result<Option<String>, gmeow_errors::Diag> {

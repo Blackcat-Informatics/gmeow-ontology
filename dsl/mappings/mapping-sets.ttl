@@ -162,12 +162,6 @@ gmeow:mapsetLexvo a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by-sa/3.0/" ;
     gmeow:setComment "GMEOW sign-system and script → Lexvo alignments — the ISO 639 language-code and ISO 15924 script-code hub (which also anchors the BCP-47 primary subtags; by reference, curl-validated). A Lexvo ISO-code IRI is a code-scoped identifier, a related resource rather than identity (skos:relatedMatch)." .
 
-gmeow:mapsetFoundational a gmeow:MappingSet ;
-    gmeow:sssomFile "gmeow-foundational.sssom.tsv" ;
-    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/foundational" ;
-    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "gUFO↔BFO foundational-spine alignments (by reference; closeMatch — UFO and BFO build their categories on different bases). BFO IRIs verified against the vendored snapshot." .
-
 gmeow:mapsetCommonLogic a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/common-logic" ;

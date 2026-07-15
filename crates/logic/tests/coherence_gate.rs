@@ -10,8 +10,7 @@
 //!
 //! - `dl_consistency_gate_catches_injected_disjoint_clash` — the primary, deterministic
 //!   proof over a minimal dataset. It exercises the SAME engine the whole-ontology gate
-//!   uses, is trivially within the per-test budget, and therefore always runs on the
-//!   `make check` lane (never carved out by `default-filter`).
+//!   uses and always runs on the `make check` lane.
 //! - `whole_bundle_coherence_gate_catches_injected_clash` — injects ONLY the two type
 //!   assertions (an individual typed both `gmeow:Agent` and `gmeow:SocialObject`, with NO
 //!   `owl:disjointWith` of its own) on top of the WHOLE committed `gmeow.gts`, so the
@@ -24,12 +23,11 @@
 //!   (the DL rule set
 //!   applied over the whole ~720k-quad bundle, dominated by the merged-in top-sortal
 //!   disjointness axioms; the SHACL/ShEx validation-shape projection is a
-//!   reasoner-invisible sidecar), well over the 25 s per-test budget, so it stays carved
-//!   out of the budget-gated `ci`/`default` nextest profile by `default-filter` — that
-//!   exclusion is budget-exempt, not gate-exempt:
+//!   reasoner-invisible sidecar), so it stays in the exhaustive architectural lane
+//!   selected outside the default nextest profile. That separation is not gate exemption:
 //!   `coherence-gate-teeth` invokes it explicitly with `--ignore-default-filter` and an
-//!   `-E` selector, without feeding the JUnit report into the 25 s budget gate, and is
-//!   wired into `make check` via `CHECK_TARGETS`. The minimal test above remains a fast,
+//!   `-E` selector and is wired into `make check` via `CHECK_TARGETS`. The minimal
+//!   test above remains a fast,
 //!   deterministic companion.
 
 use gmeow_logic::foundation::{
@@ -266,9 +264,9 @@ fn relcomp_offenders(nquads: &str) -> Vec<String> {
 /// violations. A degenerate relator injected on top (a single functional role) must fire,
 /// proving the gate has teeth.
 ///
-/// Named `whole_bundle_..._gate` and matched by the `coherence-gate-teeth` selector; the
-/// whole-bundle chase is over the 25 s budget, so it is carved out of the budget-gated
-/// nextest profile by `default-filter` (budget-exempt, not gate-exempt).
+/// Named `whole_bundle_..._gate` and matched by the `coherence-gate-teeth` selector;
+/// the whole-bundle chase is an exhaustive architectural proof selected explicitly
+/// outside the default nextest profile.
 #[test]
 fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
     let gts_path = repo_root().join("generated/dist/gmeow.gts");

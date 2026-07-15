@@ -7,9 +7,9 @@
 //! test sink — over the real repo, binding every stage against the default
 //! registry. This exercises the scheduler and carrier assembly on production data
 //! (DAG validate → bind → level-parallel schedule → engine-resource serialization
-//! on reason → content-addressed cache → one Sink) while keeping the always-on
-//! test under the 25s per-test budget. The terminal sink has a focused unit test,
-//! and full sink-vs-committed fold parity stays with the heavy fold-parity lane.
+//! on reason → content-addressed cache → one Sink). It is an exhaustive
+//! `maint-heavy` proof; the terminal sink has focused default-lane tests and
+//! committed output remains protected by the generated-artifact drift gate.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -32,15 +32,13 @@ fn repo_root() -> PathBuf {
 /// from the stage `id` so each mirrors the real Rust impl and bind's agreement holds:
 /// `stage-source-load` holds [`SOURCE_ORIGIN`], the sink stage holds
 /// [`SINK_CAPABILITY`], `stage-reason` requires the exclusive engine resource, and
-/// both `stage-reason` and `stage-validate` narrow their compile-logic dependency
-/// to the three object-level EDB graphs.
+/// `stage-reason` narrows its compile-logic dependency to the two object-level EDB
+/// graphs, while `stage-validate` sees the complete three-graph compiled carrier.
 fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
-    use gmeow_pipeline::stages::compile_logic::{
-        GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
-    };
     let is_reason = id == "stage-reason";
-    // Both the reasoner and the validator narrow their compile-logic dependency to
-    // the object-level graphs; mirror consumed_entities() for bind.
+    // Both stages narrow their compile-logic dependency; the reasoner sees only the
+    // object-level graphs and the validator sees the full compiled carrier. Mirror
+    // consumed_entities() for bind.
     let narrows_compile_logic = is_reason || id == "stage-validate";
     StageSpec {
         id: id.to_string(),
@@ -58,14 +56,15 @@ fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
         } else {
             Vec::new()
         },
-        dataflow_entities: if narrows_compile_logic {
+        dataflow_entities: if is_reason {
             vec![(
                 "stage-compile-logic".to_string(),
-                vec![
-                    GRAPH_CORRESPONDENCE.to_string(),
-                    GRAPH_LOGIC.to_string(),
-                    GRAPH_RELATIONAL_CORE.to_string(),
-                ],
+                gmeow_pipeline::stages::compile_logic::object_level_entity_list(),
+            )]
+        } else if narrows_compile_logic {
+            vec![(
+                "stage-compile-logic".to_string(),
+                gmeow_pipeline::stages::compile_logic::carrier_entity_list(),
             )]
         } else {
             Vec::new()

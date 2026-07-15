@@ -259,6 +259,22 @@ impl StageOutput {
     }
 }
 
+/// Whether a stage product should use the persistent structural cache.
+///
+/// This is a performance policy only: both variants execute the same stage body and
+/// the scheduler applies the same attach-drift, provenance, and diagnostics gates.
+/// [`Self::Recompute`] is for very large aggregate products whose canonical-byte
+/// reparse and typed-handle reconstruction costs more than rebuilding them from their
+/// already-live upstream products.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CachePolicy {
+    /// Read an unchanged product from the persistent cache, or compute and persist it
+    /// on a miss.
+    Persistent,
+    /// Always compute the product and do not persist it.
+    Recompute,
+}
+
 /// A pipeline stage: one node in the build DAG. The Rust impl is the executable
 /// twin of a `gmeow:PipelineStage` individual; the loader binds them by
 /// `gmeow:stageImpl` and HARD-fails if their `capabilities` / `consumes` /
@@ -286,6 +302,13 @@ pub trait Stage: Send + Sync {
     /// with the RDF `gmeow:requiresResource` declaration.
     fn resources(&self) -> &[String] {
         &[]
+    }
+    /// The persistent-cache policy for this stage's product. Most stages are cheap to
+    /// hydrate and use [`CachePolicy::Persistent`]. A stage may opt into
+    /// [`CachePolicy::Recompute`] when reconstructing its whole aggregate carrier is
+    /// measurably slower than recomputing it from live upstream products.
+    fn cache_policy(&self) -> CachePolicy {
+        CachePolicy::Persistent
     }
     /// The typed dataflow (`gmeow:DataFlow` reified edges): for each upstream producer
     /// the stage reads only SPECIFIC named-graph entities from, a
