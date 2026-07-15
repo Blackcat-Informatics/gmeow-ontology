@@ -466,6 +466,82 @@ pub fn projection_ceiling_monotonicity(
     out
 }
 
+/// Registry meta-ratchet (base∩working) — the guarded-vocabulary REGISTRY itself is
+/// lower-only in gate strength: a change that lets more ungrounded authoring through
+/// WITHOUT raising a per-cell ceiling is a hard violation. For every vocabulary
+/// present in BOTH base and working (keyed by prefix), a violation is recorded when
+/// the working registry is WEAKER than base along any axis:
+/// - the vocabulary is DELETED (base-only) — a guard silently dropped;
+/// - a `gmeow:vocabularyNamespace` was REMOVED (the match surface narrowed);
+/// - the `count_kind` was WEAKENED to the non-counting `NonRdfSurface`;
+/// - a `StructuralAxiom` `counted_predicate` was REMOVED (fewer axioms counted);
+/// - the `default_ceiling` was RAISED (more free headroom for unlisted slices);
+/// - the `alignment_predicate` exemption set was EXPANDED (more bridges waved through).
+///
+/// New vocabularies and any STRENGTHENING (wider namespaces, more counted predicates,
+/// lower default ceiling, fewer exemptions) are allowed with no violation.
+#[must_use]
+pub fn registry_ratchet_monotonicity(
+    file_label: &str,
+    base: &[crate::model::ProjectionVocabulary],
+    working: &[crate::model::ProjectionVocabulary],
+) -> Vec<String> {
+    use crate::model::CountKind;
+    let by_prefix = |vs: &[crate::model::ProjectionVocabulary]| {
+        vs.iter()
+            .map(|v| (v.prefix.clone(), v.clone()))
+            .collect::<BTreeMap<_, _>>()
+    };
+    let working_map = by_prefix(working);
+    let mut violations = Vec::new();
+    for b in base {
+        let Some(w) = working_map.get(&b.prefix) else {
+            violations.push(format!(
+                "{file_label}: guarded vocabulary {} DELETED from the registry — dropping a guard weakens the gate; retire it only by an out-of-band maintainer decision, never silently",
+                b.prefix
+            ));
+            continue;
+        };
+        for ns in &b.namespaces {
+            if !w.namespaces.contains(ns) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} namespace NARROWED — {ns} removed; the match surface may only widen",
+                    b.prefix
+                ));
+            }
+        }
+        if b.count_kind != CountKind::NonRdfSurface && w.count_kind == CountKind::NonRdfSurface {
+            violations.push(format!(
+                "{file_label}: guarded vocabulary {} count-kind WEAKENED to countKindNonRdfSurface — it now counts nothing",
+                b.prefix
+            ));
+        }
+        for cp in &b.counted_predicates {
+            if !w.counted_predicates.contains(cp) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} counted-predicate allowlist NARROWED — {cp} removed; fewer structural axioms are now counted",
+                    b.prefix
+                ));
+            }
+        }
+        if w.default_ceiling > b.default_ceiling {
+            violations.push(format!(
+                "{file_label}: guarded vocabulary {} default-ceiling RAISED {} → {} — grants free headroom to every unlisted slice",
+                b.prefix, b.default_ceiling, w.default_ceiling
+            ));
+        }
+        for ap in &w.alignment_predicates {
+            if !b.alignment_predicates.contains(ap) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} alignment-predicate set EXPANDED — {ap} added; a new exemption waves more bridges through",
+                    b.prefix
+                ));
+            }
+        }
+    }
+    violations
+}
+
 /// The `gmeow:sliceQualityTier` a slice's `manifest.ttl` declares, resolved against
 /// the rubric's ladder — `None` when the slice has not opted in.
 ///
@@ -1203,6 +1279,54 @@ mod tests {
         assert!(
             out.violations.is_empty(),
             "hold, lower, delete, and add are all clean here: {out:#?}"
+        );
+    }
+
+    fn vocab(prefix: &str, ns: &[&str], dc: u64) -> crate::model::ProjectionVocabulary {
+        crate::model::ProjectionVocabulary {
+            prefix: prefix.to_owned(),
+            namespaces: ns.iter().map(|s| (*s).to_owned()).collect(),
+            subsumed_by: "s".to_owned(),
+            owner: "s".to_owned(),
+            count_kind: crate::model::CountKind::TypedAxiom,
+            default_ceiling: dc,
+            preservation: "p".to_owned(),
+            alignment_predicates: Vec::new(),
+            counted_predicates: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn registry_ratchet_reds_on_weakening_and_silent_on_strengthening() {
+        let base = vec![vocab("bfo", &["obo/BFO_"], 0), vocab("gufo", &["g#"], 0)];
+        // gufo deleted; bfo namespace narrowed AND default-ceiling raised.
+        let weaker = vec![vocab("bfo", &[], 1)];
+        let v = registry_ratchet_monotonicity("module.ttl", &base, &weaker);
+        assert!(
+            v.iter()
+                .any(|m| m.contains("gufo") && m.contains("DELETED")),
+            "{v:#?}"
+        );
+        assert!(
+            v.iter()
+                .any(|m| m.contains("bfo") && m.contains("NARROWED")),
+            "{v:#?}"
+        );
+        assert!(
+            v.iter()
+                .any(|m| m.contains("bfo") && m.contains("default-ceiling RAISED")),
+            "{v:#?}"
+        );
+
+        // A new vocab + a WIDER namespace on bfo is pure strengthening — clean.
+        let stronger = vec![
+            vocab("bfo", &["obo/BFO_", "obo/BFO2_"], 0),
+            vocab("gufo", &["g#"], 0),
+            vocab("sumo", &["sumo#"], 0),
+        ];
+        assert!(
+            registry_ratchet_monotonicity("module.ttl", &base, &stronger).is_empty(),
+            "strengthening must not red"
         );
     }
 }
