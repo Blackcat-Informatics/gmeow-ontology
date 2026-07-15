@@ -27293,6 +27293,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:ExistentialChaseDemonstrand"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:ExistentialChaseDemonstrand"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:ExistentialChaseDemonstrand"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:FormalizationCandidate"
                     },
                     {
@@ -43916,6 +43941,61 @@
               {
                 "items": {
                   "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "logic:ExistentialChaseDemonstrand": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:demonstratesChaseWitness": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ChaseWitnessLeaf",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/ChaseWitnessLeaf",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
