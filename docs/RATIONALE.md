@@ -4,7 +4,7 @@
 # Why GMEOW exists
 
 > GMEOW — the Global Metadata and Entity Ontology for the Web — is a
-> reasoning-centric, OWL 2 DL, gUFO-grounded **super-vocabulary** for modelling a
+> reasoning-centric, RDF 1.2-native, grounding-slice-founded **super-vocabulary** for modelling a
 > person's or organization's *digital existence*.
 
 This document explains the **problems** GMEOW answers; [`CONSTITUTION.md`](../CONSTITUTION.md)
@@ -66,9 +66,12 @@ GMEOW answers each challenge with a deliberate architectural choice:
   `rdfs:subClassOf` / `owl:equivalentProperty`. Data already published in FOAF,
   schema.org, GEDCOM, vCard, DOAP, … is **covered by reference** — you never rewrite
   it. *(Addresses fragmentation and breadth.)*
-- **A foundational (gUFO) spine.** Every GMEOW class is grounded under a gUFO
-  category (Endurant, Event, Relator, Object, Role). This is what lets a 20-vocabulary
-  union stay *coherent and reasonable* rather than collapse into contradiction.
+- **A co-foundational grounding spine.** `logic:` owns the foundational sorts and
+  relations, `lang:` owns meaning and form, and `math:` owns formal and quantitative
+  structure. Domain slices consume that triad rather than grounding themselves in an
+  external vocabulary. gUFO and OWL are generated target views; BFO, OBO, and SUMO are
+  by-reference commitment-shifting bridges, never competing sources of meaning. This is
+  what lets a 20-vocabulary union stay *coherent and reasonable* rather than collapse into contradiction.
   *(Addresses reasoning over the union.)*
 - **Coreference by alignment.** Canonical IRIs plus `skos:exactMatch`/`owl:sameAs`
   links to external authorities make coreference a first-class, queryable seam.

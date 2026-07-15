@@ -1,5 +1,6 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:    <https://blackcatinformatics.ca/lang/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -37,7 +38,7 @@
 
 gmeow:TermEquivalence a owl:Class ;
     rdfs:label "term equivalence"@x-gmeow-english ;
-    skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It is a logical correspondence only — it compiles to a single SSSOM row (and through that to the OWL/SKOS alignment axioms) and has no executable projection branch."@x-gmeow-english .
+    skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It compiles both to a single SSSOM row and to a first-class logic:Correspondence in the shipped graph/correspondence-laws carrier, with logic:sourceEndpoint and logic:targetEndpoint retained; it has no executable projection branch. Ordinary cells may derive their law-spine defaults from the SSSOM predicate. A cell additionally typed logic:GroundingCorrespondence is a co-foundational commitment rather than an ordinary consumer alignment and must explicitly author logic:morphismClass, logic:morphismKind, and logic:preservationKind."@x-gmeow-english .
 
 gmeow:ProjectionMapping a owl:Class ;
     rdfs:label "projection mapping"@x-gmeow-english ;

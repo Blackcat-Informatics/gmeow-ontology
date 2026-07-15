@@ -451,7 +451,7 @@ fn discharge_correspondence_laws(
         }
         let mut merged = corr.law_claims.clone();
         merged.extend(claims);
-        let law_bearing = Correspondence::new(
+        let mut law_bearing = Correspondence::new(
             corr.iri.clone(),
             corr.relation,
             corr.morphism_class,
@@ -470,6 +470,19 @@ fn discharge_correspondence_laws(
             corr.preservation,
         )
         .map_err(|e| stage_err(format!("law-bearing correspondence <{}>: {e}", corr.iri)))?;
+        if let (Some(source), Some(target)) = (&corr.source_endpoint, &corr.target_endpoint) {
+            law_bearing = law_bearing
+                .with_endpoints(source.clone(), target.clone())
+                .map_err(|e| {
+                    stage_err(format!(
+                        "law-bearing correspondence <{}> endpoints: {e}",
+                        corr.iri
+                    ))
+                })?;
+        }
+        if corr.grounding {
+            law_bearing = law_bearing.as_grounding();
+        }
         rebuilt.push(law_bearing);
     }
 

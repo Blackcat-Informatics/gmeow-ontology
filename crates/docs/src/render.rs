@@ -6415,7 +6415,7 @@ fn term_note(term: &DocTerm) -> String {
 /// ([`llms::LLMS_NOTE_CAP`]); the complete inlined form is [`llms_full_txt`].
 pub fn llms_txt(model: &DocsModel) -> String {
     let prose = vec![format!(
-        "Vocabulary {}. Namespace: {GMEOW_NS}. The OWL source is canonical; this index links into the published documentation.",
+        "Vocabulary {}. Namespace: {GMEOW_NS}. The RDF 1.2 grounding slices are canonical; this index links into the published documentation.",
         model.version
     )];
     let mut sections: Vec<LlmsSection> = Vec::new();

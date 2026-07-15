@@ -38,7 +38,9 @@ and the no-debug-symbol policy intact.
 
 ## Canonical sources & forward direction
 
-* The `logic:` core is the canonical reasoning language; OWL, Datalog, SHACL, Prolog, gUFO, SSSOM, EDOAL, and FnO are **generated lossy projections** of it (Principle 17), each carrying a preservation judgment in the loss ledger.
+* All semantic grounding to external formalisms is owned by one of the three grounding slices: linguistic/serialization surfaces in `lang:`, mathematical surfaces in `math:`, and upper ontologies/logics/rule/validation dialects in `logic:`. The grounding namespace is always the source and the external vocabulary is the target. Never author a competing grounding in a domain slice.
+* The `logic:` core is the canonical reasoning language. OWL/RDFS, Datalog, SHACL, Prolog, and gUFO are typed generated views; BFO, OBO/RO, and SUMO are commitment-shifting `BridgeView`s; SSSOM, EDOAL, and FnO are generated correspondence lowerings. Every row carries an explicit preservation judgment (Principle 17).
+* Grounding correspondences are shipped ontology content in the meta-level `graph/correspondence-laws` graph of `gmeow.gts`, outside object-level closure. SSSOM is not the authority. Read [`docs/GROUNDING.md`](./docs/GROUNDING.md) and [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) before editing this surface.
 * The design sets [`slices/grounding/logic/design/*.md`](./slices/grounding/logic/design/), [`slices/core/inhabitation/design/*.md`](./slices/core/inhabitation/design/), and [`docs/APPLIED_CATEGORY_THEORY/*.md`](./docs/APPLIED_CATEGORY_THEORY/) are **canonical** — read the relevant ones in full before working in those areas.
 
 ## Build and Validation Commands

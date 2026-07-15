@@ -1,13 +1,13 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Kernel — the gUFO-grounded core and the universal axes
+# Kernel — the logic-grounded core and the universal axes
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/kernel` · **tier: core**
 > The foundation every slice stands on: the sortal spine, the part/whole and link spines, and the domain-free facet axes.
 
-Every GMEOW class subclasses a gUFO foundational category, and the kernel supplies the top
-of that spine plus everything that must exist *before* any domain slice can be honest:
+Every GMEOW class is grounded through the canonical `logic:` foundation, and the kernel
+supplies the top of that spine plus everything that must exist *before* any domain slice can be honest:
 universal mereology and connectivity, the domain-free epistemic facets (Principle 9), the
 withhold-or-coarsen disclosure mechanism (Principle 10), and the compliance-by-construction
 annotations that turn Constitution principles into generated lints. Kernel properties omit
@@ -19,7 +19,7 @@ geomasking, k-anonymity — is solver work (Principle 12).
 ### gmeow:Entity · gmeow:Agent · gmeow:InformationObject
 
 `Entity` is the universe of discourse: anything persisting in time that can bear
-properties (`gufo:Endurant`) — what makes the domain-free facets below attachable
+properties (`logic:Endurant`) — what makes the domain-free facets below attachable
 anywhere. `Agent` acts, bears responsibility, and enters agreements. `InformationObject`
 carries content — the shared parent of the document, software, account, and tag layers.
 

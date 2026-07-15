@@ -157,13 +157,19 @@ fn adapt_owl_characteristics() {
         "ex:p a owl:TransitiveProperty .
          ex:q a owl:SymmetricProperty .
          ex:r a owl:FunctionalProperty .
-         ex:s a owl:InverseFunctionalProperty .",
+         ex:s a owl:InverseFunctionalProperty .
+         ex:t a owl:ReflexiveProperty .
+         ex:u a owl:AsymmetricProperty .
+         ex:v a owl:IrreflexiveProperty .",
     );
     for c in [
         "transitiveProperty",
         "symmetricProperty",
         "functionalProperty",
         "inverseFunctionalProperty",
+        "reflexiveProperty",
+        "asymmetricProperty",
+        "irreflexiveProperty",
     ] {
         assert!(
             prog.axioms.iter().any(|a| a.obj == logic(c)),
