@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/enrichment_golden.rs
+assertion_line: 136
 expression: head
 ---
 <svg xmlns="http://www.w3.org/2000/svg" width="1138" height="992" viewBox="0 0 1138 992" role="img" aria-label="Build pipeline DAG">

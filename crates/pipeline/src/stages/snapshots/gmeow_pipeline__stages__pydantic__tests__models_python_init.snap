@@ -1,5 +1,6 @@
 ---
 source: crates/pipeline/src/stages/pydantic.rs
+assertion_line: 2139
 expression: "utf8(a, \"gmeow_models/__init__.py\")"
 ---
 """GMEOW Pydantic v2 model package — a functional documentation surface.
@@ -480,6 +481,7 @@ __all__ = [
     "Logic_CounterfactualAcceptanceWitness",
     "Logic_Endurant",
     "Logic_Event",
+    "Logic_ExistentialChaseDemonstrand",
     "Logic_FormalizationCandidate",
     "Logic_Formula",
     "Logic_FreshnessGuard",
