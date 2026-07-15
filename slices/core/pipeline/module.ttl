@@ -538,12 +538,13 @@ gmeow:stage-mappings
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "mappings"@x-gmeow-english ;
-    skos:definition "Compile the mapping-DSL into SSSOM, EDOAL, FnO, and SPARQL alignment artifacts, and assemble the FINAL projection-report loss ledger over the union of the logic projection rows (consumed from the compile-logic stage) and the per-correspondence residue ledger the four alignment lowerings produce."@x-gmeow-english ;
+    skos:definition "Compile the mapping-DSL into SSSOM, EDOAL, FnO, and SPARQL alignment artifacts, assemble the FINAL projection-report loss ledger over the union of the logic projection rows (consumed from the compile-logic stage) and the per-correspondence residue ledger the four alignment lowerings produce, and project the shape-grounding certificate ledger: every logic:formalizes record on the projected constraint surfaces (the procedural-constraint surface off the compile-logic product, the FOL-constraint surface off the constraint-shapes export leaf) has its preservation judgment re-derived by the certify/oracle machinery each regenerate and committed as generated/logic/shape-grounding-ledger.ttl."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "mappings" ;
-    gmeow:dataflowConsumes gmeow:stage-compile-logic .
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes .
 
 gmeow:stage-math-producers
     a gmeow:PipelineStage ;
@@ -1082,6 +1083,7 @@ gmeow:stage-snapshot
         <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.correspondence.nt> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.relational-core.nt> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/projection-report.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/shape-grounding-ledger.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/agent-runtime.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/claims.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/dreaming.ttl> ,
@@ -1167,6 +1169,7 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-logic-correspondence ,
     gmeow:fanout-logic-relational-core ,
     gmeow:fanout-logic-projection-report ,
+    gmeow:fanout-logic-shape-grounding-ledger ,
     gmeow:fanout-projections-core-prefixes ,
     gmeow:fanout-projections-functions-fno ,
     gmeow:fanout-projections-list-functions-fno ,
@@ -1253,6 +1256,14 @@ gmeow:fanout-logic-projection-report a gmeow:FanoutExtraction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/logic/projection-report.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-logic-shape-grounding-ledger a gmeow:FanoutExtraction ;
+    rdfs:label "fanout logic shape grounding ledger"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/logic/shape-grounding-ledger.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/logic/shape-grounding-ledger.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-core-prefixes a gmeow:FanoutExtraction ;

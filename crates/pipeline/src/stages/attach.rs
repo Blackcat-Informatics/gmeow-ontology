@@ -202,6 +202,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.correspondence.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.relational-core.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/projection-report.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/shape-grounding-ledger.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/agent-runtime.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/claims.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/dreaming.ttl",

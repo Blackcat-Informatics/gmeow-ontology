@@ -82,6 +82,17 @@ fn compiler_products_are_first_class_dag_artifacts() {
     );
     let mut mappings_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     mappings_upstream.insert("stage-compile-logic".to_string(), product);
+    let constraint_shapes = gmeow_pipeline::stages::constraint_shapes::ConstraintShapesStage
+        .run(StageInput {
+            root: &root,
+            upstream: &BTreeMap::new(),
+        })
+        .expect("constraint-shapes stage")
+        .product;
+    mappings_upstream.insert(
+        "stage-export-constraint-shapes".to_string(),
+        constraint_shapes,
+    );
     let mappings = MappingsStage::new()
         .run(StageInput {
             root: &root,

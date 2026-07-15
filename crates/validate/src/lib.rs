@@ -100,6 +100,8 @@ pub mod repo_static;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod self_desc;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod shape_grounding;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod shape_oracle;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod signature;

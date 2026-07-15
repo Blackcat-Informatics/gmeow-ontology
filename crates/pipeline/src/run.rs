@@ -172,7 +172,15 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
-        st("stage-mappings", "mappings", &["stage-compile-logic"]),
+        // mappings additionally consumes the constraint-shapes export leaf: the
+        // shape-grounding certificate ledger re-derives every logic:formalizes record's
+        // preservation judgment over THIS run's projected constraint surfaces (the
+        // procedural surface rides the compile-logic product, the FOL surface this leaf).
+        st(
+            "stage-mappings",
+            "mappings",
+            &["stage-compile-logic", "stage-export-constraint-shapes"],
+        ),
         st_reason(
             "stage-reason",
             "reason",

@@ -6832,6 +6832,17 @@ mod term_entailments_tests {
             .expect("real compile-logic");
         upstream.insert("stage-compile-logic".to_string(), compile.product);
 
+        let constraint_shapes = crate::stages::constraint_shapes::ConstraintShapesStage
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real constraint-shapes");
+        upstream.insert(
+            "stage-export-constraint-shapes".to_string(),
+            constraint_shapes.product,
+        );
+
         let mappings = crate::stages::mappings::MappingsStage::new()
             .run(StageInput {
                 root: &root,
