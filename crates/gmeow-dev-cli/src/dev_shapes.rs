@@ -34,6 +34,7 @@ use gmeow_logic_compile::ir::{
     ShapeValue, ValidationShapeIr,
 };
 use gmeow_logic_compile::projections::lift::{certify, lift};
+use gmeow_logic_compile::projections::subsumption::{enforcement_key, subsumes};
 use gmeow_validate::shape_oracle::{
     OracleVerdict, RAW_SPARQL_TARGET_RESIDUE, ShapeRead, TARGETLESS_SELECT, oracle,
     read_shacl_shape, semantic_cross_check, semantic_witness_plan, shape_subgraph_ttl,
@@ -927,6 +928,12 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
 /// canon, not a lift, is the authoring ground — Principle 4). The `residue` names the components no
 /// OWL antecedent can carry (a genuine ValidationOnly obligation to author in the `logic:` canon).
 ///
+/// After the per-shape lift output it prints the block-classification + subsumption-lattice
+/// pre-analysis over the same scope ([`lattice_report`]): the CLASSIFICATION census by target
+/// mechanism, the CONTRADICTIONS between blocks over overlapping focus sets, the REDUNDANCIES
+/// (`A ⊑ B` entailments under the authored `rdfs:subClassOf` hierarchy), and the HOIST
+/// candidates (identical constraints on sibling classes). Report-only: nothing is written.
+///
 /// Exits non-zero when any proposal fails to certify (a lift that does not re-derive its own shape
 /// would be an unsound migration suggestion) or a shape cannot be read.
 pub fn shape_lift(path: Option<&Path>) -> i32 {
@@ -942,6 +949,7 @@ pub fn shape_lift(path: Option<&Path>) -> i32 {
     let mut total = 0usize;
     let mut uncertified = 0usize;
     let mut had_error = false;
+    let mut all_blocks: Vec<(String, ShapeRead)> = Vec::new();
     for file in &legacy_files {
         let ds = match parse_ttl_file(file) {
             Ok(ds) => ds,
@@ -977,17 +985,541 @@ pub fn shape_lift(path: Option<&Path>) -> i32 {
                 );
             }
             if let Err(e) = certify(&read.ir) {
+                // The certify detail embeds enforcement keys whose fields are joined by
+                // control-character separators (NUL / U+001F); a raw control byte makes
+                // downstream text tooling (grep, pagers) treat the whole report stream as
+                // binary, so render each as a plain space for the console.
+                let detail: String = e
+                    .to_string()
+                    .chars()
+                    .map(|c| {
+                        if c.is_control() && c != '\n' && c != '\t' {
+                            ' '
+                        } else {
+                            c
+                        }
+                    })
+                    .collect();
                 eprintln!(
-                    "shape-lift: {iri}: the lifted proposal does not re-derive the shape: {e}"
+                    "shape-lift: {iri}: the lifted proposal does not re-derive the shape: {detail}"
                 );
                 uncertified += 1;
             }
         }
+        all_blocks.extend(legacy);
     }
+    let hier = ClassHierarchy::load(&root);
+    print!("{}", lattice_report(&all_blocks, &hier));
     println!(
         "shape-lift: proposed OWL for {total} legacy shape(s); {uncertified} failed to certify."
     );
     if had_error || uncertified > 0 { 1 } else { 0 }
+}
+
+// ─── Block classification + subsumption-lattice pre-analysis (the shape-lift report tail) ───
+
+const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+/// The merged authored `rdfs:subClassOf` hierarchy: the DIRECT named-class superclass edges
+/// read from the root ontology plus every slice `module.ttl` (the same authored surfaces the
+/// sibling loaders [`class_owner_modules`] / [`object_property_iris`] parse), and its
+/// transitive closure. Blank-node class expressions (restrictions) are never hierarchy edges.
+struct ClassHierarchy {
+    /// class IRI → its DIRECT named superclasses.
+    direct: BTreeMap<String, std::collections::BTreeSet<String>>,
+    /// class IRI → ALL its named superclasses (transitive).
+    closure: BTreeMap<String, std::collections::BTreeSet<String>>,
+}
+
+impl ClassHierarchy {
+    /// Build the hierarchy from direct edges, saturating the transitive closure.
+    fn from_direct(direct: BTreeMap<String, std::collections::BTreeSet<String>>) -> Self {
+        let mut closure = direct.clone();
+        loop {
+            let mut grew = false;
+            let subs: Vec<String> = closure.keys().cloned().collect();
+            for sub in &subs {
+                let supers: Vec<String> = closure[sub].iter().cloned().collect();
+                let mut add = std::collections::BTreeSet::new();
+                for sup in &supers {
+                    if let Some(grands) = closure.get(sup) {
+                        add.extend(
+                            grands
+                                .iter()
+                                .filter(|g| !closure[sub].contains(*g))
+                                .cloned(),
+                        );
+                    }
+                }
+                if !add.is_empty() {
+                    closure.get_mut(sub).expect("key exists").extend(add);
+                    grew = true;
+                }
+            }
+            if !grew {
+                break;
+            }
+        }
+        Self { direct, closure }
+    }
+
+    /// Load the hierarchy from the authored dataset: the root ontology and every slice
+    /// `module.ttl` — the same file universe the other dev-shape loaders parse.
+    fn load(root: &Path) -> Self {
+        let mut modules = Vec::new();
+        collect_module_files(&root.join("slices"), &mut modules);
+        let ont = root.join("ontology/gmeow.ttl");
+        if ont.is_file() {
+            modules.push(ont);
+        }
+        let mut direct: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+        for m in modules {
+            let Ok(ds) = parse_ttl_file(&m) else { continue };
+            let Some(sco) = ds.term_id_by_value(&TermValue::iri(RDFS_SUBCLASSOF)) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(sco), None, GraphMatch::Any) {
+                if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                    direct.entry(s.to_owned()).or_default().insert(o.to_owned());
+                }
+            }
+        }
+        Self::from_direct(direct)
+    }
+
+    /// Whether every instance of class `sub` is an instance of class `sup`: the same class, or
+    /// `sup` a (transitive) authored superclass of `sub`.
+    fn class_covers(&self, sup: &str, sub: &str) -> bool {
+        sup == sub || self.closure.get(sub).is_some_and(|s| s.contains(sup))
+    }
+}
+
+/// The target-mechanism tag of one focus selector, for the CLASSIFICATION census. A
+/// value-keyed target IS an `sh:target [ a sh:SPARQLTarget … ]` in the legacy surface, so it
+/// tags `sparql-target`; the [`TARGETLESS_SELECT`] sentinel (a truly targetless block) tags
+/// `no-target`.
+fn target_mechanism(t: &ShapeTarget) -> &'static str {
+    match t {
+        ShapeTarget::Class(_) | ShapeTarget::DirectClass(_) => "targetClass",
+        ShapeTarget::SubjectsOf(_) => "targetSubjectsOf",
+        ShapeTarget::ObjectsOf(_) => "targetObjectsOf",
+        ShapeTarget::Sparql(s) if s == TARGETLESS_SELECT => "no-target",
+        ShapeTarget::ValueKeyed { .. } | ShapeTarget::Sparql(_) => "sparql-target",
+    }
+}
+
+/// ALL of a block's focus selectors: the primary target plus the multi-target extras.
+fn block_targets(read: &ShapeRead) -> Vec<ShapeTarget> {
+    let mut ts = vec![read.ir.target.clone()];
+    ts.extend(read.extra_targets.iter().cloned());
+    ts
+}
+
+/// The empty-focus sentinel (a truly targetless documentation-only block).
+fn is_targetless(t: &ShapeTarget) -> bool {
+    matches!(t, ShapeTarget::Sparql(s) if s == TARGETLESS_SELECT)
+}
+
+/// A zero-enforcement block: its parsed IR carries no properties, no node-level components,
+/// no typed failure class, and no residue — it flags nothing on any graph.
+fn is_noop(read: &ShapeRead) -> bool {
+    read.ir.properties.is_empty()
+        && read.ir.node_components.is_empty()
+        && read.ir.failure_class.is_none()
+        && read.unsupported.is_empty()
+}
+
+/// Whether the focus sets of two selectors can share a node: the same non-targetless selector,
+/// or two class targets related by the authored subclass hierarchy (a `Sub` instance is also a
+/// `Super` instance, so the two shapes validate it jointly).
+fn focus_overlaps(a: &ShapeTarget, b: &ShapeTarget, hier: &ClassHierarchy) -> bool {
+    if is_targetless(a) || is_targetless(b) {
+        return false;
+    }
+    if a == b {
+        return true;
+    }
+    match (a, b) {
+        (ShapeTarget::Class(x), ShapeTarget::Class(y)) => {
+            hier.class_covers(x, y) || hier.class_covers(y, x)
+        }
+        _ => false,
+    }
+}
+
+/// Whether selector `sup` selects AT LEAST every node `sub` selects: the same non-targetless
+/// selector, or a class target that is a (transitive) superclass of `sub`'s class.
+fn target_covers(sup: &ShapeTarget, sub: &ShapeTarget, hier: &ClassHierarchy) -> bool {
+    if is_targetless(sup) || is_targetless(sub) {
+        return false;
+    }
+    if sup == sub {
+        return true;
+    }
+    match (sup, sub) {
+        (ShapeTarget::Class(s), ShapeTarget::Class(c)) => hier.class_covers(s, c),
+        _ => false,
+    }
+}
+
+/// A compact single-line rendering of a [`ShapeValue`].
+fn value_desc(v: &ShapeValue) -> String {
+    match v {
+        ShapeValue::Iri(i) => format!("<{i}>"),
+        ShapeValue::Literal {
+            lexical,
+            datatype,
+            lang,
+        } => match (datatype, lang) {
+            (Some(dt), _) => format!("\"{lexical}\"^^<{dt}>"),
+            (None, Some(l)) => format!("\"{lexical}\"@{l}"),
+            (None, None) => format!("\"{lexical}\""),
+        },
+    }
+}
+
+/// A compact single-line rendering of a constraint component (SHACL vocabulary where one
+/// exists; the IR debug form for the exotic ADL/OPT components).
+fn component_desc(c: &ConstraintComponent) -> String {
+    match c {
+        ConstraintComponent::Class(k) => format!("sh:class <{k}>"),
+        ConstraintComponent::Datatype(d) => format!("sh:datatype <{d}>"),
+        ConstraintComponent::NodeKindShacl(k) => format!("sh:nodeKind sh:{}", k.as_str()),
+        ConstraintComponent::HasValue(v) => format!("sh:hasValue {}", value_desc(v)),
+        ConstraintComponent::In(vs) => format!(
+            "sh:in ({})",
+            vs.iter().map(value_desc).collect::<Vec<_>>().join(" ")
+        ),
+        ConstraintComponent::Pattern { regex, flags } => match flags {
+            Some(f) => format!("sh:pattern {regex:?} flags {f:?}"),
+            None => format!("sh:pattern {regex:?}"),
+        },
+        ConstraintComponent::MinLength(n) => format!("sh:minLength {n}"),
+        ConstraintComponent::MaxLength(n) => format!("sh:maxLength {n}"),
+        other => format!("{other:?}"),
+    }
+}
+
+/// A compact single-line rendering of one property constraint (path, cardinality, components).
+fn property_desc(pc: &PropertyConstraintIr) -> String {
+    let mut parts = vec![format!("sh:path <{}>", pc.path)];
+    if pc.inverse {
+        parts.push("inverse".to_owned());
+    }
+    if let Some(m) = pc.min_count {
+        parts.push(format!("sh:minCount {m}"));
+    }
+    if let Some(m) = pc.max_count {
+        parts.push(format!("sh:maxCount {m}"));
+    }
+    parts.extend(pc.components.iter().map(component_desc));
+    parts.join(" ; ")
+}
+
+/// The enforcement key of ONE property constraint, via a fixed-target probe shape so
+/// presentation/provenance never perturbs constraint identity (the hoist grouping key).
+fn property_enforcement_key(pc: &PropertyConstraintIr) -> String {
+    let probe = ValidationShapeIr::new(
+        "https://blackcatinformatics.ca/gmeow/lattice-probe-shape",
+        ShapeTarget::Class("https://blackcatinformatics.ca/gmeow/lattice-probe-class".to_owned()),
+        vec![pc.clone()],
+        None,
+    )
+    .expect("the single-property probe shape always builds");
+    enforcement_key(&probe)
+}
+
+/// The `sh:hasValue` members of a property constraint.
+fn has_values(pc: &PropertyConstraintIr) -> Vec<&ShapeValue> {
+    pc.components
+        .iter()
+        .filter_map(|c| match c {
+            ConstraintComponent::HasValue(v) => Some(v),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The `sh:in` value sets of a property constraint.
+fn in_sets(pc: &PropertyConstraintIr) -> Vec<&Vec<ShapeValue>> {
+    pc.components
+        .iter()
+        .filter_map(|c| match c {
+            ConstraintComponent::In(vs) => Some(vs),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The `sh:datatype` IRIs of a property constraint.
+fn datatypes(pc: &PropertyConstraintIr) -> Vec<&String> {
+    pc.components
+        .iter()
+        .filter_map(|c| match c {
+            ConstraintComponent::Datatype(d) => Some(d),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The joint-unsatisfiability findings between two SAME-PATH property constraints from two
+/// blocks whose focus sets overlap: cross-pair `min > max` cardinality, an `sh:hasValue`
+/// excluded by the other block's `sh:in` set, a required value under two disjoint `sh:in`
+/// sets or two distinct `sh:datatype`s, and two distinct required values under a `maxCount 1`
+/// cap. Empty when the pair is jointly satisfiable (as far as these decidable checks reach).
+fn property_contradictions(pa: &PropertyConstraintIr, pb: &PropertyConstraintIr) -> Vec<String> {
+    let mut out = Vec::new();
+    if pa.path != pb.path || pa.inverse != pb.inverse {
+        return out;
+    }
+    let p = &pa.path;
+    // Cross-pair cardinality: one block's floor above the other's ceiling.
+    for (lo, hi) in [(pa, pb), (pb, pa)] {
+        if let (Some(min), Some(max)) = (lo.min_count, hi.max_count)
+            && min > max
+        {
+            out.push(format!(
+                "path <{p}>: sh:minCount {min} vs sh:maxCount {max} (min > max across the pair)"
+            ));
+        }
+        // A required fixed value under the other block's zero ceiling.
+        if !has_values(lo).is_empty() && hi.max_count == Some(0) {
+            out.push(format!(
+                "path <{p}>: sh:hasValue requires a value but the peer caps sh:maxCount 0"
+            ));
+        }
+    }
+    // A required fixed value excluded by the other block's closed value set.
+    for (has_side, in_side) in [(pa, pb), (pb, pa)] {
+        for v in has_values(has_side) {
+            for set in in_sets(in_side) {
+                if !set.contains(v) {
+                    out.push(format!(
+                        "path <{p}>: sh:hasValue {} excluded by sh:in ({})",
+                        value_desc(v),
+                        set.iter().map(value_desc).collect::<Vec<_>>().join(" ")
+                    ));
+                }
+            }
+        }
+    }
+    // Two distinct required values under a one-value ceiling.
+    let cap = pa.max_count.into_iter().chain(pb.max_count).min();
+    if cap.is_some_and(|m| m <= 1) {
+        for x in has_values(pa) {
+            for y in has_values(pb) {
+                if x != y {
+                    out.push(format!(
+                        "path <{p}>: sh:hasValue {} vs sh:hasValue {} under sh:maxCount {} (two required values, at most one allowed)",
+                        value_desc(x),
+                        value_desc(y),
+                        cap.expect("cap is Some inside is_some_and"),
+                    ));
+                }
+            }
+        }
+    }
+    // Checks below bite only when SOME value must exist on the path.
+    let value_forced = pa.min_count.unwrap_or(0) >= 1
+        || pb.min_count.unwrap_or(0) >= 1
+        || !has_values(pa).is_empty()
+        || !has_values(pb).is_empty();
+    if value_forced {
+        // Disjoint closed value sets: every value violates one side.
+        for sa in in_sets(pa) {
+            for sb in in_sets(pb) {
+                if sa.iter().all(|v| !sb.contains(v)) {
+                    out.push(format!(
+                        "path <{p}>: disjoint sh:in sets ({}) vs ({}) with a required value",
+                        sa.iter().map(value_desc).collect::<Vec<_>>().join(" "),
+                        sb.iter().map(value_desc).collect::<Vec<_>>().join(" ")
+                    ));
+                }
+            }
+        }
+        // Two distinct datatypes: no literal carries both.
+        for da in datatypes(pa) {
+            for db in datatypes(pb) {
+                if da != db {
+                    out.push(format!(
+                        "path <{p}>: sh:datatype <{da}> vs sh:datatype <{db}> (no value can carry both)"
+                    ));
+                }
+            }
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// The block-classification + subsumption-lattice pre-analysis over the scanned legacy blocks:
+/// the CLASSIFICATION census (per-block target-mechanism tags + no-op flag, per-tag tally, and
+/// the block TOTAL), the CONTRADICTIONS between blocks over overlapping focus sets, the
+/// REDUNDANCIES (`A ⊑ B` covered-fragment entailments under the authored subclass hierarchy,
+/// via [`subsumes`]), and the HOIST candidates (an identical covered constraint on ≥2 sibling
+/// classes, grouped under their shared direct superclass — the LUB). Pure over its inputs so
+/// the tests drive it with fixture blocks and a hand-built hierarchy; every section sorts by
+/// IRI for stable output.
+fn lattice_report(blocks: &[(String, ShapeRead)], hier: &ClassHierarchy) -> String {
+    use std::fmt::Write as _;
+    let mut sorted: Vec<(&String, &ShapeRead)> = blocks.iter().map(|(i, r)| (i, r)).collect();
+    sorted.sort_by(|a, b| a.0.cmp(b.0));
+    let mut out = String::new();
+
+    // ── CLASSIFICATION ──
+    out.push_str("CLASSIFICATION\n");
+    let mut tally: BTreeMap<&'static str, usize> = BTreeMap::new();
+    for (iri, read) in &sorted {
+        let tags: std::collections::BTreeSet<&'static str> =
+            block_targets(read).iter().map(target_mechanism).collect();
+        for t in &tags {
+            *tally.entry(t).or_insert(0) += 1;
+        }
+        let noop = is_noop(read);
+        if noop {
+            *tally.entry("no-op").or_insert(0) += 1;
+        }
+        writeln!(
+            out,
+            "  block <{iri}> tags={}{}",
+            tags.iter().copied().collect::<Vec<_>>().join(","),
+            if noop { " no-op" } else { "" }
+        )
+        .expect("String write is infallible");
+    }
+    for (tag, n) in &tally {
+        writeln!(out, "  tally {tag}={n}").expect("String write is infallible");
+    }
+    writeln!(out, "  TOTAL blocks={}", sorted.len()).expect("String write is infallible");
+
+    // ── CONTRADICTIONS ──
+    out.push_str("CONTRADICTIONS\n");
+    let mut lines = Vec::new();
+    for (i, (ia, ra)) in sorted.iter().enumerate() {
+        for (ib, rb) in sorted.iter().skip(i + 1) {
+            let ta = block_targets(ra);
+            let tb = block_targets(rb);
+            if !ta
+                .iter()
+                .any(|x| tb.iter().any(|y| focus_overlaps(x, y, hier)))
+            {
+                continue;
+            }
+            let mut details = Vec::new();
+            for pa in &ra.ir.properties {
+                for pb in &rb.ir.properties {
+                    details.extend(property_contradictions(pa, pb));
+                }
+            }
+            details.sort();
+            details.dedup();
+            for d in details {
+                lines.push(format!("  <{ia}> ⊗ <{ib}> — {d}\n"));
+            }
+        }
+    }
+    if lines.is_empty() {
+        out.push_str("  none\n");
+    } else {
+        lines.iter().for_each(|l| out.push_str(l));
+    }
+
+    // ── REDUNDANCIES ──
+    out.push_str("REDUNDANCIES\n");
+    let mut lines = Vec::new();
+    for (ia, ra) in &sorted {
+        // A block with an empty covered fragment entails nothing — listing it as "redundant"
+        // would be vacuous (the no-op census already names it).
+        if ra.ir.properties.is_empty() && ra.ir.node_components.is_empty() {
+            continue;
+        }
+        let a_targets = block_targets(ra);
+        // A block whose every focus set is empty enforces nothing.
+        if a_targets.iter().all(is_targetless) {
+            continue;
+        }
+        for (ib, rb) in &sorted {
+            if ia == ib {
+                continue;
+            }
+            let b_targets = block_targets(rb);
+            // B must select every node A selects: each of A's (non-empty) focus selectors is
+            // covered by some selector of B.
+            let covered = a_targets.iter().all(|ta| {
+                is_targetless(ta) || b_targets.iter().any(|tb| target_covers(tb, ta, hier))
+            });
+            if !covered {
+                continue;
+            }
+            // Payload entailment on the shared focus: retarget both covered IRs to one probe
+            // selector so [`subsumes`] compares exactly the constraint payloads.
+            let probe =
+                ShapeTarget::Class("https://blackcatinformatics.ca/gmeow/lattice-probe".to_owned());
+            let mut weak = ra.ir.clone();
+            weak.target = probe.clone();
+            let mut strong = rb.ir.clone();
+            strong.target = probe;
+            if subsumes(&strong, &weak) {
+                let residue_note = if ra.unsupported.is_empty() {
+                    ""
+                } else {
+                    " (covered fragment only — the subsumed block carries residue)"
+                };
+                lines.push(format!("  <{ia}> ⊑ <{ib}>{residue_note}\n"));
+            }
+        }
+    }
+    if lines.is_empty() {
+        out.push_str("  none\n");
+    } else {
+        lines.iter().for_each(|l| out.push_str(l));
+    }
+
+    // ── HOISTS ──
+    out.push_str("HOISTS\n");
+    // (direct superclass = LUB, constraint enforcement key) → (rendering, sibling classes).
+    let mut hoists: BTreeMap<(String, String), (String, std::collections::BTreeSet<String>)> =
+        BTreeMap::new();
+    for (_, read) in &sorted {
+        for t in block_targets(read) {
+            let ShapeTarget::Class(c) = t else { continue };
+            let Some(parents) = hier.direct.get(&c) else {
+                continue;
+            };
+            for pc in &read.ir.properties {
+                let key = property_enforcement_key(pc);
+                let desc = property_desc(pc);
+                for parent in parents {
+                    hoists
+                        .entry((parent.clone(), key.clone()))
+                        .or_insert_with(|| (desc.clone(), std::collections::BTreeSet::new()))
+                        .1
+                        .insert(c.clone());
+                }
+            }
+        }
+    }
+    let mut lines = Vec::new();
+    for ((parent, _), (desc, classes)) in &hoists {
+        if classes.len() >= 2 {
+            lines.push(format!(
+                "  lub=<{parent}> constraint=[{desc}] siblings={}\n",
+                classes
+                    .iter()
+                    .map(|c| format!("<{c}>"))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ));
+        }
+    }
+    lines.sort();
+    if lines.is_empty() {
+        out.push_str("  none\n");
+    } else {
+        lines.iter().for_each(|l| out.push_str(l));
+    }
+    out
 }
 
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
@@ -2656,6 +3188,214 @@ mod tests {
             );
             assert!(!remaining.contains(iri), "{iri} must be the removed block");
         }
+    }
+
+    // ── Block classification + subsumption-lattice pre-analysis ────────────────
+
+    /// Fixture blocks read through the real comparison-only reader.
+    fn lattice_blocks(ttl: &str) -> Vec<(String, ShapeRead)> {
+        let ds = parse_ttl(ttl);
+        let mut errors = Vec::new();
+        let blocks = read_shapes(&ds, &mut errors);
+        assert!(errors.is_empty(), "fixture blocks must read: {errors:?}");
+        blocks
+    }
+
+    /// A hierarchy from literal direct edges.
+    fn lattice_hier(edges: &[(&str, &str)]) -> ClassHierarchy {
+        let mut direct: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+        for (sub, sup) in edges {
+            direct
+                .entry((*sub).to_owned())
+                .or_default()
+                .insert((*sup).to_owned());
+        }
+        ClassHierarchy::from_direct(direct)
+    }
+
+    #[test]
+    fn classification_partitions_by_block_with_all_tags() {
+        let blocks = lattice_blocks(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <https://ex/ClassBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ] .\n\
+             <https://ex/SubjectsBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetSubjectsOf <https://ex/p> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:maxCount 1 ] .\n\
+             <https://ex/SparqlBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE { ?this <https://ex/q> ?v . }\"\"\" ] ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ] .\n\
+             <https://ex/MultiBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20sh:targetSubjectsOf <https://ex/q> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ] .\n\
+             <https://ex/NoOpBlock> a sh:NodeShape ;\n\
+             \x20\x20rdfs:label \"documentation-only marker\" .\n",
+        );
+        assert_eq!(blocks.len(), 5, "the census is by-block");
+        let report = lattice_report(&blocks, &lattice_hier(&[]));
+        assert!(report.contains("  block <https://ex/ClassBlock> tags=targetClass\n"));
+        assert!(report.contains("  block <https://ex/SubjectsBlock> tags=targetSubjectsOf\n"));
+        assert!(
+            report.contains("  block <https://ex/SparqlBlock> tags=sparql-target\n"),
+            "{report}"
+        );
+        assert!(
+            report.contains("  block <https://ex/MultiBlock> tags=targetClass,targetSubjectsOf\n"),
+            "a multi-target block lists ALL its tags: {report}"
+        );
+        assert!(
+            report.contains("  block <https://ex/NoOpBlock> tags=no-target no-op\n"),
+            "a zero-enforcement block carries the no-op flag: {report}"
+        );
+        assert!(report.contains("  tally targetClass=2\n"), "{report}");
+        assert!(report.contains("  tally targetSubjectsOf=2\n"), "{report}");
+        assert!(report.contains("  tally sparql-target=1\n"), "{report}");
+        assert!(report.contains("  tally no-target=1\n"), "{report}");
+        assert!(report.contains("  tally no-op=1\n"), "{report}");
+        assert!(report.contains("  TOTAL blocks=5\n"), "{report}");
+    }
+
+    #[test]
+    fn contradiction_hasvalue_excluded_by_in_is_reported() {
+        let blocks = lattice_blocks(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/HasBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:hasValue <https://ex/X> ] .\n\
+             <https://ex/InBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:in ( <https://ex/Y> <https://ex/Z> ) ] .\n",
+        );
+        let report = lattice_report(&blocks, &lattice_hier(&[]));
+        assert!(
+            report.contains(
+                "  <https://ex/HasBlock> ⊗ <https://ex/InBlock> — path <https://ex/p>: \
+                 sh:hasValue <https://ex/X> excluded by sh:in (<https://ex/Y> <https://ex/Z>)"
+            ),
+            "{report}"
+        );
+    }
+
+    #[test]
+    fn contradiction_min_over_max_across_subclass_related_targets() {
+        // The overlap rides the hierarchy: Sub ⊑ Super, so a Sub instance is validated by both.
+        let blocks = lattice_blocks(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/MinBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Sub> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/q> ; sh:minCount 2 ] .\n\
+             <https://ex/MaxBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Super> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/q> ; sh:maxCount 1 ] .\n",
+        );
+        let hier = lattice_hier(&[("https://ex/Sub", "https://ex/Super")]);
+        let report = lattice_report(&blocks, &hier);
+        assert!(
+            report.contains(
+                "  <https://ex/MaxBlock> ⊗ <https://ex/MinBlock> — path <https://ex/q>: \
+                 sh:minCount 2 vs sh:maxCount 1 (min > max across the pair)"
+            ),
+            "{report}"
+        );
+        // Without the hierarchy the focus sets never meet — no contradiction.
+        let report = lattice_report(&blocks, &lattice_hier(&[]));
+        assert!(report.contains("CONTRADICTIONS\n  none\n"), "{report}");
+    }
+
+    #[test]
+    fn contradiction_incompatible_datatypes_on_a_required_path() {
+        let blocks = lattice_blocks(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+             <https://ex/DecBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ; sh:datatype xsd:decimal ] .\n\
+             <https://ex/StrBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:datatype xsd:string ] .\n",
+        );
+        let report = lattice_report(&blocks, &lattice_hier(&[]));
+        assert!(
+            report.contains("sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> vs sh:datatype <http://www.w3.org/2001/XMLSchema#string> (no value can carry both)"),
+            "{report}"
+        );
+    }
+
+    #[test]
+    fn redundancy_superclass_block_subsumes_subclass_block() {
+        let blocks = lattice_blocks(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/SubBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Sub> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ] .\n\
+             <https://ex/SuperBlock> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Super> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ; sh:maxCount 1 ] .\n",
+        );
+        let hier = lattice_hier(&[("https://ex/Sub", "https://ex/Super")]);
+        let report = lattice_report(&blocks, &hier);
+        assert!(
+            report.contains("  <https://ex/SubBlock> ⊑ <https://ex/SuperBlock>\n"),
+            "the superclass block's stricter payload entails the subclass block: {report}"
+        );
+        assert!(
+            !report.contains("  <https://ex/SuperBlock> ⊑ <https://ex/SubBlock>"),
+            "the reverse never holds (the subclass block covers fewer focus nodes): {report}"
+        );
+        // Without the hierarchy the coverage leg fails — no redundancy.
+        let report = lattice_report(&blocks, &lattice_hier(&[]));
+        assert!(report.contains("REDUNDANCIES\n  none\n"), "{report}");
+    }
+
+    #[test]
+    fn hoist_identical_constraint_on_two_siblings_reports_the_lub() {
+        let blocks = lattice_blocks(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/C1Block> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C1> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ; sh:maxCount 1 ] .\n\
+             <https://ex/C2Block> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C2> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ; sh:maxCount 1 ] .\n",
+        );
+        let hier = lattice_hier(&[
+            ("https://ex/C1", "https://ex/P0"),
+            ("https://ex/C2", "https://ex/P0"),
+        ]);
+        let report = lattice_report(&blocks, &hier);
+        assert!(
+            report.contains(
+                "  lub=<https://ex/P0> constraint=[sh:path <https://ex/p> ; sh:minCount 1 ; \
+                 sh:maxCount 1] siblings=<https://ex/C1>,<https://ex/C2>\n"
+            ),
+            "{report}"
+        );
+        // Siblings under DIFFERENT parents never hoist.
+        let hier = lattice_hier(&[
+            ("https://ex/C1", "https://ex/P0"),
+            ("https://ex/C2", "https://ex/P1"),
+        ]);
+        let report = lattice_report(&blocks, &hier);
+        assert!(report.contains("HOISTS\n  none\n"), "{report}");
+    }
+
+    #[test]
+    fn classification_over_the_real_gmeow_shapes_totals_173() {
+        let (text, _) = real_gmeow_shapes();
+        let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
+            .expect("the committed shapes file must parse");
+        let mut errors = Vec::new();
+        let blocks = read_shapes(&ds, &mut errors);
+        assert!(errors.is_empty(), "every committed block reads: {errors:?}");
+        let report = lattice_report(&blocks, &lattice_hier(&[]));
+        assert!(
+            report.contains("  TOTAL blocks=173\n"),
+            "the by-block census of the committed file is exactly 173: {}",
+            report.lines().rev().take(12).collect::<Vec<_>>().join("\n")
+        );
     }
 
     #[test]
