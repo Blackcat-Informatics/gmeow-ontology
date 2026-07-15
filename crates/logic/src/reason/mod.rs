@@ -117,6 +117,8 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   when the rule text is unchanged;
 /// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
 ///   existential chase, and relation store that execute those rules;
+/// * the canonical-program lowering, selected-view materializer, and native
+///   non-monotone evaluators exposed as the forward runtime materialization surface;
 /// * the source of this file (`mod.rs`), which owns the production reasoning
 ///   orchestration and typed-result fold.
 ///
@@ -130,6 +132,12 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/dl.rs", include_str!("dl.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
+    ("certify.rs", include_str!("../certify.rs")),
+    ("lower.rs", include_str!("../lower.rs")),
+    ("materialize.rs", include_str!("../materialize.rs")),
+    ("relational_core.rs", include_str!("../relational_core.rs")),
+    ("stablemodel.rs", include_str!("../stablemodel.rs")),
+    ("wellfounded.rs", include_str!("../wellfounded.rs")),
     ("rule_ir.rs", include_str!("../rule_ir.rs")),
     ("physical/plan.rs", include_str!("../physical/plan.rs")),
     (
@@ -1222,6 +1230,12 @@ mod tests {
                 "reason/dl.rs",
                 "reason/mod.rs",
                 "oracle.rs",
+                "certify.rs",
+                "lower.rs",
+                "materialize.rs",
+                "relational_core.rs",
+                "stablemodel.rs",
+                "wellfounded.rs",
                 "rule_ir.rs",
                 "physical/plan.rs",
                 "physical/seminaive.rs",
