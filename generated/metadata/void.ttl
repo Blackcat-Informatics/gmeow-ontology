@@ -16,9 +16,9 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://purl.org/dc/terms/hasVersion> "0.1.0" .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#uriSpace> "https://blackcatinformatics.ca/gmeow/" .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#exampleResource> <https://blackcatinformatics.ca/gmeow/Person> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#triples> "81546"^^<http://www.w3.org/2001/XMLSchema#integer> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#classes> "1510"^^<http://www.w3.org/2001/XMLSchema#integer> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#properties> "2598"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#triples> "82028"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#classes> "1516"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#properties> "2626"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#entities> "6020"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#feature> <http://www.w3.org/ns/formats/Turtle> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#feature> <http://www.w3.org/ns/formats/RDF_XML> .
@@ -165,6 +165,7 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-797dee-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-797dee-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-bibo-e60670-owl_equivalentClass> .
@@ -237,9 +238,13 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-movingfeatures-6146af-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sf-363e11-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-nmo-5f3142-skos_closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gedcom-80a5fc-owl_equivalentClass> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gedcom-80a5fc-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-test-manifest-c53746-skos_closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-wgs84_pos-ed16f2-skos_closeMatch> .
@@ -280,6 +285,8 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_exactMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_relatedMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sosa-bffc25-skos_broadMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sosa-bffc25-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sosa-bffc25-skos_relatedMatch> .
@@ -373,6 +380,7 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-assignments-2c9796-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-concept-16c530-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.onetcenter.org-49e491-skos_relatedMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-062289-skos_closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> <http://rdfs.org/ns/void#subset> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-data-model-54b9af-skos_closeMatch> .
@@ -598,11 +606,11 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_broadMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#broadMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_broadMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:broadMatch links to http://purl.obolibrary.org/obo/ (1)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://rdfs.org/ns/void#triples> "34"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://rdfs.org/ns/void#triples> "41"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <http://purl.obolibrary.org/obo/> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://purl.obolibrary.org/obo/ (34)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://purl.obolibrary.org/obo/ (41)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_exactMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_exactMatch> <http://rdfs.org/ns/void#triples> "6"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_exactMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
@@ -610,11 +618,11 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_exactMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#exactMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_exactMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:exactMatch links to http://purl.obolibrary.org/obo/ (6)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "7"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "12"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <http://purl.obolibrary.org/obo/> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://purl.obolibrary.org/obo/ (7)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://purl.obolibrary.org/obo/ (12)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_closeMatch> <http://rdfs.org/ns/void#triples> "8"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
@@ -676,11 +684,17 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-797dee-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-797dee-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://purl.org/linked-data/cube# (1)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://rdfs.org/ns/void#triples> "6"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://rdfs.org/ns/void#triples> "51"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <http://purl.org/nemo/gufo#> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://purl.org/nemo/gufo# (6)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://purl.org/nemo/gufo# (51)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <http://purl.org/nemo/gufo#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gufo-cbf1a2-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://purl.org/nemo/gufo# (5)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_closeMatch> <http://rdfs.org/ns/void#triples> "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
@@ -1113,6 +1127,18 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-nmo-5f3142-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-nmo-5f3142-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-nmo-5f3142-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://www.semanticdesktop.org/ontologies/2007/03/22/nmo# (15)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> <http://rdfs.org/ns/void#triples> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/2000/01/rdf-schema#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://www.w3.org/2000/01/rdf-schema# (1)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> <http://rdfs.org/ns/void#triples> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/2000/01/rdf-schema#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#exactMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-rdf-schema-b282ff-skos_exactMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:exactMatch links to http://www.w3.org/2000/01/rdf-schema# (4)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gedcom-80a5fc-owl_equivalentClass> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gedcom-80a5fc-owl_equivalentClass> <http://rdfs.org/ns/void#triples> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gedcom-80a5fc-owl_equivalentClass> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
@@ -1131,6 +1157,18 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-test-manifest-c53746-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-test-manifest-c53746-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-test-manifest-c53746-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://www.w3.org/2001/sw/DataAccess/tests/test-manifest# (2)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> <http://rdfs.org/ns/void#triples> "27"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/2002/07/owl#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#exactMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_exactMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:exactMatch links to http://www.w3.org/2002/07/owl# (27)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/2002/07/owl#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-owl-21f31b-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://www.w3.org/2002/07/owl# (1)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_closeMatch> <http://rdfs.org/ns/void#triples> "18"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
@@ -1371,6 +1409,18 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/ns/prov#> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://www.w3.org/ns/prov# (13)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> <http://rdfs.org/ns/void#triples> "14"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/ns/shacl#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to http://www.w3.org/ns/shacl# (14)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <http://www.w3.org/ns/shacl#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-shacl-ed609b-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to http://www.w3.org/ns/shacl# (1)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sosa-bffc25-skos_broadMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sosa-bffc25-skos_broadMatch> <http://rdfs.org/ns/void#triples> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sosa-bffc25-skos_broadMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
@@ -1929,12 +1979,18 @@
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.onetcenter.org-49e491-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <https://www.onetcenter.org/> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.onetcenter.org-49e491-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.onetcenter.org-49e491-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to https://www.onetcenter.org/ (1)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> <http://rdfs.org/ns/void#triples> "21"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> <http://rdfs.org/ns/void#objectsTarget> <https://www.ontologyportal.org/SUMO.owl#> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#closeMatch> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_closeMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:closeMatch links to https://www.ontologyportal.org/SUMO.owl# (21)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://rdfs.org/ns/void#triples> "7"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://rdfs.org/ns/void#objectsTarget> <https://www.ontologyportal.org/SUMO.owl#> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://rdfs.org/ns/void#linkPredicate> <http://www.w3.org/2004/02/skos/core#relatedMatch> .
-<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to https://www.ontologyportal.org/SUMO.owl# (4)"@en .
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW skos:relatedMatch links to https://www.ontologyportal.org/SUMO.owl# (7)"@en .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-062289-skos_closeMatch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Linkset> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-062289-skos_closeMatch> <http://rdfs.org/ns/void#triples> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-062289-skos_closeMatch> <http://rdfs.org/ns/void#subjectsTarget> <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> .

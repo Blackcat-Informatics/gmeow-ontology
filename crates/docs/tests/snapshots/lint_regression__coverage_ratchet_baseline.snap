@@ -7,13 +7,13 @@ expression: coverage
   "docs/missing-competency-rationale": 4482,
   "docs/missing-definition": 1,
   "docs/missing-example": 3098,
-  "docs/missing-fixture-pair": 4530,
+  "docs/missing-fixture-pair": 4528,
   "docs/missing-label": 1,
   "docs/missing-prose-quality": 4660,
   "docs/missing-realized-state": 78,
   "docs/missing-scope-note": 4582,
-  "docs/missing-test-reach": 4205,
+  "docs/missing-test-reach": 4203,
   "docs/missing-translation-coverage": 4651,
   "docs/missing-usage-advice": 3089,
-  "docs/missing-worked-instance": 4150
+  "docs/missing-worked-instance": 4148
 }

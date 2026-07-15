@@ -50,6 +50,39 @@ Two hard rules govern the kernel:
    quantity math-owned and the observations spine its consumer, collapsing
    the duplicate value property.
 
+## External grounding ownership
+
+All semantic grounding to an external formalism is authored in the grounding
+kernel, never in a downstream domain slice. The owner is selected by the kind
+of meaning being grounded:
+
+| External surface | Owning slice | Canonical direction |
+|---|---|---|
+| Linguistic, lexical, semiotic, and serialization formalisms | `lang:` | `lang:` → external view |
+| Mathematical structures, quantities, and mathematical interchange languages | `math:` | `math:` → external view |
+| Upper ontologies, logical formalisms, rule languages, and validation dialects | `logic:` | `logic:` → external view |
+
+The external term is a **target endpoint**, not a term from which a domain
+slice derives its semantics. Non-grounding slices consume the grounding term
+and its correspondence; they do not author a second alignment. RDF/OWL
+declaration syntax and generated validation syntax are serialization/compiler
+boundaries, not exceptions that grant external vocabularies semantic ownership.
+
+Grounding correspondences are different from presentation-only projections.
+They compile to content-addressed `logic:Correspondence` records and ship in
+the `graph/correspondence-laws` named graph of `gmeow.gts`, while remaining
+meta-level and outside object-level closure. SSSOM and other alignment formats
+are generated views of those records.
+
+The first pinned `logic:` catalog is
+[`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl):
+141 explicit correspondences covering gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and
+SHACL Core/AF. Every row is oriented from `logic:` and states its morphism
+class, morphism kind, and preservation kind. BFO/OBO/SUMO are
+commitment-shifting `BridgeView`s; they are never promoted to equivalence.
+The complete policy and coverage ledger is
+[`foundational-bridging.md`](./foundational-bridging.md).
+
 ## The seam registry
 
 The closed set of sanctioned seams among the grounding slices. Directions are

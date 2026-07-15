@@ -11872,7 +11872,13 @@
    <http://www.w3.org/2000/01/rdf-schema#comment> "the independent purrdf entailment cross-check validates the native result; native gaps fail"@en .
 
 # --- native DL coverage defects ---
+<https://blackcatinformatics.ca/gmeow/dl-gap-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DlGap> ;
+   <https://blackcatinformatics.ca/gmeow/gapCode> "reason.dl-gap.inverseFunctionalProperty"@en ;
+   <http://www.w3.org/2000/01/rdf-schema#comment> "inverseFunctionalProperty is present in the bundle but was not decided by the native DL path"@en .
+<https://blackcatinformatics.ca/gmeow/dl-gap-1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DlGap> ;
+   <https://blackcatinformatics.ca/gmeow/gapCode> "reason.dl-gap.maxCardinality"@en ;
+   <http://www.w3.org/2000/01/rdf-schema#comment> "maxCardinality is present in the bundle but was not decided by the native DL path"@en .
 
 # --- counts ---
 <https://blackcatinformatics.ca/gmeow/dl-el-crosscheck> <https://blackcatinformatics.ca/gmeow/entailmentCount> 2371 ;
-   <https://blackcatinformatics.ca/gmeow/gapCount> 0 .
+   <https://blackcatinformatics.ca/gmeow/gapCount> 2 .
