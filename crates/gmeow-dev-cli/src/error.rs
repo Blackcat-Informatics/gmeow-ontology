@@ -5,8 +5,8 @@
 //!
 //! `gmeow-dev` drives the regeneration pipeline over the working-tree snapshot:
 //! the shared `purrdf` RDF pipeline, bundle-blob reads, source ingestion, native
-//! reasoning / logic-query resolution, the feedback-bundle fold, and the
-//! engine-crosscheck gate. Each failure surface is a HARD fail (no-optionality)
+//! reasoning / logic-query resolution, and the feedback-bundle fold. Each
+//! failure surface is a HARD fail (no-optionality)
 //! minted as a [`DiagKind`](gmeow_errors::DiagKind) by
 //! [`define_diag_kind!`](gmeow_errors::define_diag_kind). The underlying
 //! pipeline/validate helpers still report `String`/`Display` errors, whose text
@@ -76,14 +76,6 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// The engine-crosscheck gate could not assemble the committed-query corpus.
-    pub struct CrosscheckFailed { detail: String }
-    code = "gmeow-dev-cli.gates.crosscheck-failed";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "{}", detail;
-}
-
-define_diag_kind! {
     /// Refreshing a generated target artifact failed.
     pub struct TargetRefreshFailed { detail: String }
     code = "gmeow-dev-cli.project.target-refresh-failed";
@@ -129,7 +121,6 @@ ctor!(encoding, OutputEncodingFailed);
 ctor!(reasoning, ReasoningFailed);
 ctor!(logic, LogicQueryFailed);
 ctor!(feedback, FeedbackBundleFailed);
-ctor!(crosscheck, CrosscheckFailed);
 ctor!(refresh, TargetRefreshFailed);
 ctor!(vendored_corpus, VendoredCorpusDescriptorInvalid);
 ctor!(sync, SyncFailed);
@@ -145,7 +136,6 @@ pub const GMEOW_DEV_CLI_DIAG_CODES: &[&str] = &[
     ReasoningFailed::CODE,
     LogicQueryFailed::CODE,
     FeedbackBundleFailed::CODE,
-    CrosscheckFailed::CODE,
     TargetRefreshFailed::CODE,
     VendoredCorpusDescriptorInvalid::CODE,
     SyncFailed::CODE,
@@ -163,7 +153,6 @@ pub fn register_all() -> Vec<Code> {
         ReasoningFailed::register(),
         LogicQueryFailed::register(),
         FeedbackBundleFailed::register(),
-        CrosscheckFailed::register(),
         TargetRefreshFailed::register(),
         VendoredCorpusDescriptorInvalid::register(),
         SyncFailed::register(),

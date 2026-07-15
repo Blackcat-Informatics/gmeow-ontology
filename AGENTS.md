@@ -220,6 +220,13 @@ make rust-build      # Compile Rust workspace test binaries without running them
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
 
+Generic RDF 1.2 / RDF\* and SPARQL compliance belongs to PurRDF's own test
+suite. GMEOW does not duplicate that authority with queries that merely prove
+an upstream engine can execute. Repository query tests must assert expected
+GMEOW product behaviour. The separate `make reason-crosscheck` lane remains:
+it compares GMEOW's native reasoning calculus with the independent
+`purrdf-entail` oracle (Principles 4, 7, 18).
+
 ### Maintainer Tasks
 
 All maintainer-only work is prefixed with `maint-`. These targets may use
@@ -228,7 +235,6 @@ are intentionally outside the normal local `make check` path unless a workflow
 calls them explicitly.
 
 ```bash
-make maint-crosscheck               # Native purrdf query-answer cross-check
 make maint-extract TARGET=foaf      # Import/extract policy for one target
 make maint-refresh-target-axioms    # Re-vendor minimal target-axiom snapshots
 make maint-wikidata-live            # Network existence checks for Wikidata IDs
