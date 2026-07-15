@@ -880,8 +880,7 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
 
     /// Build every contract in the swept cross-product, invoking `body` on each.
     /// 5 × 3 × 3 × 3 × 5 (singletons) × 2 (probabilistic measure) × 2 (per-key
-    /// closed-world entry) = 8100 contracts; each `check` is µs-scale, so the whole
-    /// sweep is well inside the 25 s/test budget.
+    /// closed-world entry) = 8100 contracts; each `check` is µs-scale.
     fn for_each_swept_contract(mut body: impl FnMut(&ReasoningContract)) {
         for &model in SWEEP_MODEL_SEMANTICS {
             for &algebra in SWEEP_TRUTH_ALGEBRA {

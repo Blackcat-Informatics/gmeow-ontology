@@ -108,8 +108,8 @@ Core work is Rust, per the standing constraints; Python appears nowhere in this 
   the bridge is a function into an existing IR, not a parallel one.
 - Pipeline integration follows the carrier doctrine: lifted forms travel as named graphs in the
   in-memory `PipelineBundle`, and every generated artifact is a projection of `gmeow.gts`. New
-  stages wire through the standard three lockstep sites, and heavy corpus tests respect the
-  per-test budget with off-gate `maint-` lanes for the big sweeps.
+  stages wire through the standard three lockstep sites, and exhaustive corpus sweeps use
+  explicit `maint-` lanes while focused contracts stay on the default lane.
 
 ## Acceptance gates
 

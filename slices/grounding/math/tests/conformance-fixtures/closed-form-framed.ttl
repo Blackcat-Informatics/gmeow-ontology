@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a closed-form function f(x) = 2·x + 1 given by an explicit expression
+# AST — Addition( Multiplication( NumberLiteral 2, x ), NumberLiteral 1 ) — over one
+# formal argument x, with declared math:domain and math:codomain (ℝ → ℝ) and a body
+# through math:definingExpression. Conforms to the closed-form gate (the exact-one
+# math:definingExpression and math:formalArgument restrictions) and the inherited
+# function-framing gate. Bound by ex:ecClosedFormFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:doublePlusOne a math:ClosedFormFunction ;
+    rdfs:label "f(x) = 2·x + 1"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    math:formalArgument ex:xDecl ;
+    math:definingExpression ex:body .
+
+ex:xDecl a math:FreeVariableDeclaration .
+
+# Addition( Multiplication(2, x), 1 )
+ex:body a math:ApplicationExpression ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:bodyS0 , ex:bodyS1 .
+
+ex:bodyS0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:prod .
+ex:bodyS1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:oneLit .
+
+ex:prod a math:ApplicationExpression ;
+    math:operator math:Multiplication ;
+    math:argumentSlot ex:prodS0 , ex:prodS1 .
+
+ex:prodS0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:twoLit .
+ex:prodS1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:xVar .
+
+ex:xVar a math:VariableExpression ; math:variableOccurrence ex:xOcc .
+ex:xOcc a math:VariableOccurrence ; math:declaredVariable ex:xDecl ; math:occursInScope ex:prod .
+
+ex:twoLit a math:NumberLiteral ; math:literalValue ex:twoNumber .
+ex:oneLit a math:NumberLiteral ; math:literalValue ex:oneNumber .
+
+ex:twoNumber a math:RealNumber ; math:inNumberSystem math:realNumbers ; math:isExact true .
+ex:oneNumber a math:RealNumber ; math:inNumberSystem math:realNumbers ; math:isExact true .

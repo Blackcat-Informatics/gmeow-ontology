@@ -1,0 +1,23 @@
+# Competency question: "For a compactification, what are its original space, its
+# compactifying map, its compactified space, its boundary at infinity, and — if it
+# is conformal — its conformal factor?"  This exercises the discipline that a
+# math:Compactification names all FOUR roles (math:originalSpace,
+# math:compactifyingMap, math:compactifiedSpace, math:boundaryAtInfinity) and a
+# math:ConformalCompactification additionally names its math:conformalFactor, so a
+# compactification is a structured record, never an informal "edge at infinity".
+# Scoped to the fixture namespace; over the fixture the answer is exactly the one
+# conformal compactification {radialCompactification -> radialHalfLine,
+# radialCompactifyingMap, compactifiedRadialInterval, radialIdealBoundary,
+# radialConformalFactor}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?compactification ?originalSpace ?compactifyingMap ?compactifiedSpace ?boundary ?conformalFactor WHERE {
+    ?compactification a math:ConformalCompactification ;
+              math:originalSpace ?originalSpace ;
+              math:compactifyingMap ?compactifyingMap ;
+              math:compactifiedSpace ?compactifiedSpace ;
+              math:boundaryAtInfinity ?boundary ;
+              math:conformalFactor ?conformalFactor .
+    FILTER(STRSTARTS(STR(?compactification), "http://example.org/math/"))
+}
+ORDER BY ?compactification

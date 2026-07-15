@@ -10,11 +10,10 @@
 //! `conformance_{finance,agentic,ai_claims,music_analysis,math_producers}` binaries
 //! carry: a deterministic cost-partition bench measured the per-twin scan at
 //! ~35 GB / 54M allocations of churn -- ~63x the one-time corpus setup and
-//! ~25,000x the fixture-only path -- so it is genuinely irreducible per-twin work
-//! (no setup cache or single-`#[test]` fold can bring it under the 25 s per-test
-//! budget: folding raises the per-test maximum to setup + 8x the scan, and a cache
-//! can only amortise the ~2% setup, never the per-twin scan). This binary is
-//! therefore carved out of the per-commit gate (`default-filter` in
+//! ~25,000x the fixture-only path -- so it is genuinely irreducible per-twin work.
+//! Folding raises the critical path to setup + 8x the scan, and a cache can only
+//! amortise the ~2% setup, never the per-twin scan. This exhaustive binary is
+//! therefore separated from the default lane (`default-filter` in
 //! `.config/nextest.toml`) and runs on `maint-heavy`, exactly like its cost-class
 //! siblings; the cheap fixture-only + pure-Rust producer tests stay on the
 //! per-commit gate in `conformance_affect_producer.rs`.

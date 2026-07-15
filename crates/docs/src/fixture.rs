@@ -21,11 +21,12 @@
 //! per-process loaders, which also build-and-cache on a genuine miss so a plain
 //! `cargo test` (no prime step) still works.
 //!
-//! The cache key is salted with the crate version and the model schema version
-//! and folds the bytes of every input `discover()` reads, so a slice edit (or a
-//! code change that bumps the crate version) invalidates it — a stale model is
-//! never served. This is the same content-addressed, atomic-temp-then-rename
-//! pattern the validate and slice caches use.
+//! The cache key is salted with the crate version and the model schema version,
+//! then folds both every input `discover()` reads and the implementation sources
+//! that build/serialize/render the fixture. Data, renderer, schema, and local
+//! dependency changes therefore invalidate it without relying on a manual version
+//! bump. This is the same content-addressed, atomic-temp-then-rename pattern the
+//! validate and slice caches use.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -265,9 +266,9 @@ impl CachedSite {
 
 /// Content-address the inputs `discover()` reads. The key folds (in order): a
 /// salt of the crate version + model schema version, then the sorted
-/// `(relative-path, bytes)` of every file under the discovery roots. Any slice /
-/// shape / i18n / metadata edit changes the key; a crate-version bump (a
-/// `discover`/`render` logic change) changes the salt.
+/// `(relative-path, bytes)` of every file under the discovery and implementation
+/// roots. Any slice / shape / i18n / metadata edit changes the key, as does a
+/// renderer, model schema, or local model dependency edit.
 fn cache_key(root: &Path) -> String {
     let mut hasher = Sha1::new();
     hasher.update(b"gmeow-docs-fixture\x1f");
@@ -277,11 +278,24 @@ fn cache_key(root: &Path) -> String {
     hasher.update(b"\x1e");
 
     let mut files: Vec<PathBuf> = Vec::new();
-    // Directory roots discover() walks recursively. `queries` is the shared
-    // repo-root SPARQL tree a `gmeow:cqQueryFile` may resolve into (T2:
-    // `apply_competency_query_text`) alongside the per-slice `.rq` files
-    // already covered by the `slices` walk.
-    for dir in ["slices", "shapes", "i18n", "queries"] {
+    // Data roots discover() walks recursively. `queries` is the shared repo-root
+    // SPARQL tree a `gmeow:cqQueryFile` may resolve into (T2:
+    // `apply_competency_query_text`) alongside the per-slice `.rq` files already
+    // covered by the `slices` walk. The implementation roots close the stale-cache
+    // hole left by the old crate-version-only salt: normal source edits do not bump
+    // Cargo's package version on every commit.
+    for dir in [
+        "slices",
+        "shapes",
+        "i18n",
+        "queries",
+        "crates/docs/src",
+        "crates/docs/templates",
+        "crates/docs/assets",
+        "crates/errors/src",
+        "crates/logic-compile/src",
+        "crates/validate/src",
+    ] {
         collect_files(&root.join(dir), &mut files);
     }
     // Individual files discover() reads directly.
@@ -291,6 +305,11 @@ fn cache_key(root: &Path) -> String {
         "dsl/mappings/mapping-sets.ttl",
         "generated/catalog/constraint-catalog.nq",
         "generated/catalog/term-content-manifest.nq",
+        "Cargo.lock",
+        "crates/docs/Cargo.toml",
+        "crates/errors/Cargo.toml",
+        "crates/logic-compile/Cargo.toml",
+        "crates/validate/Cargo.toml",
     ] {
         let p = root.join(file);
         if p.is_file() {
@@ -436,6 +455,15 @@ mod tests {
             k1,
             cache_key(&root),
             "key must change when an input byte changes"
+        );
+
+        let input_key = cache_key(&root);
+        fs::create_dir_all(root.join("crates/docs/src")).unwrap();
+        fs::write(root.join("crates/docs/src/render.rs"), b"implementation v1").unwrap();
+        assert_ne!(
+            input_key,
+            cache_key(&root),
+            "key must change when fixture implementation bytes change"
         );
     }
 

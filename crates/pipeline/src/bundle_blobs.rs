@@ -26,6 +26,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::Path;
+use std::sync::Arc;
 
 use purrdf::gts::reader::read;
 use purrdf::gts_view::GtsFoldView;
@@ -179,6 +180,20 @@ impl Bundle {
         }
         Ok(Self {
             view: GtsFoldView::new(graph),
+        })
+    }
+
+    /// Materialize the already-folded snapshot as the native RDF dataset.
+    ///
+    /// This is the parse-once bridge for consumers that need both bundle blobs
+    /// and RDF queries. It deliberately reuses this bundle's folded GTS graph;
+    /// reparsing `snapshot` (or round-tripping through N-Quads) would duplicate
+    /// the dominant consumer startup cost.
+    pub fn dataset(&self) -> Result<Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+        purrdf::gts::dataset_from_gts_graph(self.view.graph()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleParse {
+                message: format!("cannot materialize folded snapshot as RDF: {e}"),
+            })
         })
     }
 

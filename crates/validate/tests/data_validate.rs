@@ -210,9 +210,9 @@ fn any_deep_code(report: &gmeow_errors::Report) -> bool {
 
 /// AC1, off-gated (`heavy_offgate`): the consumer `--deep` pass reasons over the
 /// user data merged with the WHOLE bundled TBox via the native chase — an
-/// irreducibly engine-heavy full-fold run (~29 s), like `ontology_entailments`. It
-/// is carved off the per-commit budget gate and runs on `maint-heavy`; the fast
-/// per-commit coverage of the same merge→inconsistency path is the gmeow-logic unit
+/// engine-heavy full-fold run, like `ontology_entailments`. It remains an exhaustive
+/// `maint-heavy` proof; focused default-lane coverage of the same
+/// merge→inconsistency path is the gmeow-logic unit
 /// test `reason_all_with_data_merges_user_abox_into_bundle_tbox` (tiny TBox) plus the
 /// on-gate `deep_pass_failure_*` / `deep_false_*` tests.
 #[test]

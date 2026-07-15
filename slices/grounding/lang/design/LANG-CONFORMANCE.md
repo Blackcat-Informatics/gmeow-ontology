@@ -185,5 +185,5 @@ scenarios of the manifesto:
   export envelope is structurally inseparable from the envelope-field contract and so trips the
   irreducible two-class set {`lang:GmnUnringedExportCrossing`, `lang:GmnMissingEnvelopeField`} that
   the harness asserts for that row.
-- **Budget**: fixtures respect the per-test budget; corpus-scale sweeps (full treebank lifts,
-  whole-docs-tree typing) live in off-gate `maint-` lanes.
+- **Cost shape**: focused fixtures stay on the default lane; exhaustive corpus-scale sweeps
+  (full treebank lifts, whole-docs-tree typing) live in explicit `maint-` lanes.

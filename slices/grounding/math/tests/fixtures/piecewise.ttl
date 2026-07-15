@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Shared competency fixture for the piecewise ladder. The piecewise-pieces.rq query
+# runs over the mathematics module unioned with this fixture and pins its rows exactly
+# (logic:RowsExact). Every individual is in the http://example.org/math/ namespace so
+# the query scopes to the fixture, and the piecewise function is well-formed against the
+# slice shapes (domain/codomain, ≥ 1 math:hasPiece, exactly-one math:pieceDomain, and
+# fully-formed intervals).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exf:  <http://example.org/math/> .
+
+exf:stepProfile a math:PiecewiseFunction ;
+    rdfs:label "A two-piece step profile"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    math:hasPiece exf:leftPiece , exf:rightPiece .
+
+exf:leftPiece a math:FunctionPiece ;
+    math:pieceDomain exf:leftInterval ;
+    math:hasMonotonicity math:strictlyDecreasing .
+
+exf:rightPiece a math:FunctionPiece ;
+    math:pieceDomain exf:rightInterval ;
+    math:hasBound "0.001"^^xsd:double ;
+    math:boundOnInterval exf:rightInterval .
+
+exf:leftInterval a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+exf:rightInterval a math:Interval ;
+    math:lowerEndpoint "1.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .

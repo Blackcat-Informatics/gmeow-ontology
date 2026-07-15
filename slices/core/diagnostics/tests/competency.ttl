@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the diagnostics slice (crates/slicetest).
+# TBox subset over the asserted merged ontology (contains-check).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+# ── The chase-invented existential-null vocabulary ────────────────────────────
+# "What queryable vocabulary does GMEOW provide to decompose a chase-invented
+# existential null?" — the InventedWitness type minted onto the Skolem object
+# of a reasoned head quad p(x, null), and the existentialOrdinal property that
+# records which existential head variable of the firing rule the null fills.
+ex:cqInventedWitness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/diagnostics-invented-witness.rq" ;
+    gmeow:cqRationale "GMEOW must provide the queryable vocabulary to decompose a chase-invented existential null: the gmeow:InventedWitness type recognizing the Skolem object of a reasoned head quad p(x, null), and gmeow:existentialOrdinal recording WHICH existential head variable of the firing rule the witness discharges. Without both terms a consumer sees only an opaque null, never the structured proof that the native existential chase fired." ;
+    gmeow:cqResultShape ex:cqInventedWitnessShape ;
+    gmeow:cqExpectRow ex:iwInventedWitness, ex:iwExistentialOrdinal .
+
+ex:cqInventedWitnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:iwInventedWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:InventedWitness ] .
+ex:iwExistentialOrdinal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:existentialOrdinal ] .
