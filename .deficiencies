@@ -522,9 +522,21 @@ Recorded deviations (honest):
   124 grandfathered ceiling cells (vs 33), including cross-slice external-reference debt (e.g.
   correspondence cells in non-owner core slices). This is intended debt, seeded at current
   measured and lower-only; migration ratchets it down.
-- `projection-debt` REPORT CLI HOST: the debt report is on `gmeow-dev slice-quality-projection-debt`;
-  a shippable `gmeow` surface for the committed-ceiling view over the bundle is the one remaining
-  ask not yet landed at this writing (tracked as gap G4 in the stage-2 pass).
+- `projection-debt` REPORT CLI HOST: the live-measured debt report remains on
+  `gmeow-dev slice-quality-projection-debt` (it needs a repo checkout to scan). The shippable
+  `gmeow slice projection-ceilings` (landed) surfaces the COMMITMENTS view — the registry +
+  124 committed ceilings from the bundle — but not the live measured/headroom, which stays on
+  `gmeow-dev`. A shippable live-measured surface would require shipping a repo scan and is not
+  provided.
+- CONFORMANCE-FIXTURE COUNTER-EXAMPLES RUN OFF-GATE: the `tests/structural.ttl`
+  `gmeow:StructuralAssertion` cells (incl. the `saProjectionCeilingNotDoubleSliced` MUST-NOT
+  counter-example) are effective when run, but the slice-quality-rubric structural file is
+  excluded from the on-gate nextest `default-filter` (`.config/nextest.toml`) because it is the
+  repo's largest module (~19-42s) — it runs only in the off-gate `maint-rust-heavy` lane. This
+  is a PRE-EXISTING exclusion affecting ALL of the rubric's structural cells equally (not
+  introduced here); a regression violating a ratchet-cell well-formedness invariant would be
+  caught by `maint-rust-heavy`, not per-commit `make check`. The AC#6 competency query DOES
+  gate on-commit (`crosscheck-queries`).
 - DOCS COVERAGE RATCHET DRIFTED UPWARD (recorded, not concealed): adding the ratchet
   registry (2 new gmeow: properties + ~154 vocab/ceiling individuals) increased the
   docs burn-down baseline `docs/missing-annotation-coat` +1 and
