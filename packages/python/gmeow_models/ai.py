@@ -89,7 +89,7 @@ class Chunk(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    chunkOf: str = Field(description="The source information object this chunk segments. Functional: a chunk is cut from exactly one source; re-chunking produces new Chunk individuals, never a re-pointed one.", alias="gmeow:chunkOf")
+    chunkOf: str = Field(description="Within gmeow:Chunk, values are node references constrained to gmeow:InformationObject. The source information object this chunk segments. Functional: a chunk is cut from exactly one source; re-chunking produces new Chunk individuals, never a re-pointed one.", alias="gmeow:chunkOf")
     spanEnd: str = Field(description="The ending character offset (unicode code points, zero-based, exclusive) of a span. Pairs with gmeow:spanStart.", alias="gmeow:spanEnd")
     spanStart: str = Field(description="The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an EvidenceSpan within a chunk. Domain-free: one span idiom for the retrieval substrate and the evidence layer. The TYPED sharpening of the citations slice's gmeow:selectorTextPosition (which remains the home of non-numeric position locators); mechanical AIS checking (EvidenceSpan audit machinery) needs integers, not prose.", alias="gmeow:spanStart")
 
@@ -246,5 +246,5 @@ class ModelCard(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    describesModelArtifact: list[str] | None = Field(default=None, description="Relates a gmeow:ModelCard to the gmeow:ModelArtifact it documents — architecture, version, training cutoff, parameter count, context window, where those are artifact properties. Splits gmeow:describesModel (functional → gmeow:SoftwareAgent) so a documented artifact is not inferred to be a SoftwareAgent.", alias="gmeow:describesModelArtifact")
+    describesModelArtifact: list[str] | None = Field(default=None, description="Within gmeow:ModelCard, values are node references constrained to gmeow:ModelArtifact. Relates a gmeow:ModelCard to the gmeow:ModelArtifact it documents — architecture, version, training cutoff, parameter count, context window, where those are artifact properties. Splits gmeow:describesModel (functional → gmeow:SoftwareAgent) so a documented artifact is not inferred to be a SoftwareAgent.", alias="gmeow:describesModelArtifact")
     describesModelService: list[ModelDeployment] | None = Field(default=None, description="Relates a gmeow:ModelCard to the served gmeow:ModelDeployment it documents — provider, endpoint, rate limits, geographic placement, where those are deployment properties. The deployment-facing half of the ModelCard split.", alias="gmeow:describesModelService")

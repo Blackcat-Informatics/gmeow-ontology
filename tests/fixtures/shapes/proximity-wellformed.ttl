@@ -1,6 +1,6 @@
 # Well-formed proximity measurement fixture (#95).
-# A ProximityMeasurement with exactly one proximityTo and one observationResult
-# pointing to a ScalarQuantity with value and unit. Must pass SHACL.
+# A ProximityMeasurement with one proximityTo and at least one observationResult
+# pointing to a math:Quantity with value and unit. Must pass SHACL.
 #
 # As a gmeow:Measurement it also carries the inherited gmeow:observationMethod
 # (min 1, onClass gmeow:ObservationMethod) — a proximity value is solver-computed,
@@ -8,6 +8,7 @@
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:office a gmeow:Place .
@@ -18,7 +19,9 @@ ex:commute a gmeow:ProximityMeasurement ;
     gmeow:proximityTo ex:home ;
     gmeow:observationMethod gmeow:methodComputationalModel ;
     gmeow:observationResult [
-        a gmeow:ScalarQuantity ;
-        gmeow:quantityValue "12.4"^^xsd:decimal ;
-        gmeow:unit <http://qudt.org/vocab/unit/KM>
+        a math:Quantity ;
+        math:hasDimension math:lengthDimension ;
+        math:quantityValue "12.4"^^xsd:decimal ;
+        gmeow:unit <http://qudt.org/vocab/unit/KM> ;
+        gmeow:hasReferenceFrame gmeow:referenceFrameSI
     ] .

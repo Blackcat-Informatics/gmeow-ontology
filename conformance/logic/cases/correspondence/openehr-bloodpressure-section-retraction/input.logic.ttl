@@ -19,6 +19,7 @@
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix qudt:  <http://qudt.org/vocab/unit/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://gmeow.example/openehr/bp/> .
@@ -47,15 +48,22 @@ ex:obsSys1 a gmeow:Observation ;
     gmeow:observationOf     ex:sysBP ;
     gmeow:observationResult ex:measSys1 ;
     gmeow:observedAt        "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
-    logic:accordingTo       ex:clinicStandpointDE ;
+    gmeow:accordingTo       ex:clinicStandpointDE ;
     logic:confidence        "0.98"^^xsd:decimal ;    # device-calibration confidence
     logic:evidenceStrength  "device-measured" ;      # provenance warrant (≠ confidence)
     logic:determinacy       logic:Crisp .            # the relationship is crisp (≠ how sure)
 
-ex:measSys1 a gmeow:Quantity ;
+ex:measSys1 a math:Quantity ;
     gmeow:trueQuantity  ex:bpMagnitude ;             # the frame-independent magnitude (P11)
-    gmeow:quantityValue "1.0"^^xsd:decimal ;
+    math:hasDimension   ex:pressureDimension ;
+    math:quantityValue "1.0"^^xsd:decimal ;
     gmeow:unit          qudt:MilliM_HG .
+
+ex:pressureDimension a math:DerivedDimension ;
+    math:baseDimensionExponent
+        [ a math:DimensionExponent ; math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ; math:exponentNumerator -1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ] .
 
 ex:bpMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
 
@@ -67,7 +75,7 @@ ex:bpSection a logic:Correspondence ;
     logic:morphismClass logic:SectionRetraction ;
     logic:morphismKind  logic:InstitutionMorphism ;
     logic:mnemomorphic  "true"^^xsd:boolean ;
-    logic:accordingTo   ex:clinicStandpointDE ;
+    gmeow:accordingTo   ex:clinicStandpointDE ;
     logic:hasDeterminacy logic:Crisp ;
     logic:getLeg        ex:bpGet .
 

@@ -32,7 +32,7 @@
     gmeow:observationOf    <urn:gmeow:quality:sysBP> ;
     gmeow:rmPathResult     "…/items[at0004]/value" ;
     gmeow:observedAt       "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
-    logic:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;
+    gmeow:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;
     logic:confidence       "0.98"^^xsd:decimal ;     # device-calibration confidence
     logic:evidenceStrength "device-measured" ;       # provenance warrant (≠ confidence)
     logic:determinacy      logic:Crisp ;             # the relationship is crisp (≠ how sure)
@@ -42,7 +42,7 @@
     gmeow:observationOf    <urn:gmeow:quality:diaBP> ;
     gmeow:rmPathResult     "…/items[at0005]/value" ;
     gmeow:observedAt       "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
-    logic:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;
+    gmeow:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;
     logic:confidence       "0.98"^^xsd:decimal ;
     logic:evidenceStrength "device-measured" ;
     logic:determinacy      logic:Crisp .
@@ -50,7 +50,7 @@
 # --- RDF-1.2 reifier identity for the systolic value statement (citable; not in the RM) ---
 <urn:gmeow:reifier:sys1-value> logic:reifies
     <<( <urn:gmeow:quality:sysBP> gmeow:measuredValue "1.0 mm[Hg]" )>> ;
-    logic:accordingTo <urn:gmeow:standpoint:clinic-DE> .
+    gmeow:accordingTo <urn:gmeow:standpoint:clinic-DE> .
 
 # --- The standpoint itself (unindexed ≠ universal: this is the DE clinic vantage) ---
 <urn:gmeow:standpoint:clinic-DE> a logic:Standpoint ;

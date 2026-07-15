@@ -6,9 +6,10 @@
 # bundle as any other measurement: gmeow:assessedEntity (the feature, a sub-
 # property of observedFeature), a gmeow:qualityDimension naming WHICH quality, a
 # gmeow:observationMethod, a gmeow:vantage (who assessed), and an entity-valued
-# gmeow:ScalarQuantity result (98.5% with its unit) rather than a bare number.
+# math:Quantity result (0.985 as a dimensionless ratio) rather than a bare number.
 # Quality is not a special boolean flag — it is an observation like temperature.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/quality/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -23,7 +24,7 @@ ex:assessment a gmeow:QualityAssessment ;
     gmeow:vantage           ex:auditor ;
     gmeow:observationResult ex:completeness .
 
-# --- The result: a scalar percentage, unit-bundled like any measurement.
-ex:completeness a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "98.5"^^xsd:decimal ;
-    gmeow:unit       <http://qudt.org/vocab/unit/PERCENT> .
+# --- The result: a normalized dimensionless completeness ratio.
+ex:completeness a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.985"^^xsd:decimal .

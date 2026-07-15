@@ -276,7 +276,7 @@ class Copyright(ConfiguredBaseModel):
     copyrightHolder: list[Agent] | None = Field(default=None, description="The agent that holds a copyright (schema:copyrightHolder; dcterms:rightsHolder). A specialisation of gmeow:wasAttributedTo — the canonical rights-holder attribution. Non-functional: joint copyright has several co-equal holders.", alias="gmeow:copyrightHolder")
     copyrightNotice: list[str] | None = Field(default=None, description="The human-readable copyright notice (schema:copyrightNotice), e.g. \"© 2026 Blackcat Informatics® Inc.\"", alias="gmeow:copyrightNotice")
     copyrightStatus: list[CopyrightStatusEnum] | None = Field(default=None, description="The copyright status of a work — one of the gmeow:CopyrightStatus values (in-copyright / public-domain / no-known-copyright / not-evaluated), aligned to RightsStatements.org and PREMIS. Functional.", alias="gmeow:copyrightStatus")
-    copyrightWork: list[str] | None = Field(default=None, description="The work a copyright protects. Functional: one copyright relator is about one work.", alias="gmeow:copyrightWork")
+    copyrightWork: list[str] | None = Field(default=None, description="Within gmeow:Copyright, values are node references constrained to gmeow:InformationObject. The work a copyright protects. Functional: one copyright relator is about one work.", alias="gmeow:copyrightWork")
     copyrightYear: list[str] | None = Field(default=None, description="The year copyright was asserted (schema:copyrightYear). Typed rdfs:Literal in the TBox to stay OWL 2 DL (xsd:gYear is not an OWL 2 datatype); data carries an xsd:gYear value.", alias="gmeow:copyrightYear")
 
 
@@ -424,7 +424,7 @@ class License(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     licenseFamily: list[LicenseFamilyEnum] | None = Field(default=None, description="The family a licence belongs to — one of the gmeow:LicenseFamily values. Functional.", alias="gmeow:licenseFamily")
-    licensedWork: list[str] | None = Field(default=None, description="The work a licence grants rights in. Functional.", alias="gmeow:licensedWork")
+    licensedWork: list[str] | None = Field(default=None, description="Within gmeow:License, values are node references constrained to gmeow:InformationObject. The work a licence grants rights in. Functional.", alias="gmeow:licensedWork")
     licensee: list[Agent] | None = Field(default=None, description="The party receiving a licence (odrl:assignee). A specialisation of gmeow:hasParty. Absent on an open / public licence offered to everyone.", alias="gmeow:licensee")
     licensor: list[Agent] = Field(min_length=1, description="The party granting a licence (odrl:assigner). A specialisation of gmeow:hasParty. Non-functional: a licence may be granted jointly.", alias="gmeow:licensor")
     spdxLicenseId: list[str] | None = Field(default=None, description="The SPDX License List short identifier of a licence — the canonical machine-readable licence id (e.g. \"MIT\", \"Apache-2.0\", \"CC-BY-4.0\", \"GPL-3.0-only\"). The bridge to the SPDX / SBOM world (spdx:licenseId); the SPDX List also assigns each id a stable IRI under http://spdx.org/licenses/. Functional: a licence has one canonical SPDX id (a compound choice is an SPDX licence expression in the same literal).", alias="gmeow:spdxLicenseId")
@@ -477,7 +477,7 @@ class LogicalConstraint(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     constraintLogic: list[ConstraintLogicEnum] | None = Field(default=None, description="The boolean operator combining a logical constraint's members — one of the gmeow:ConstraintLogic values (odrl:and / or / xone / andSequence). Functional.", alias="gmeow:constraintLogic")
-    logicConstraintMember: list[str] | None = Field(default=None, description="A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.", alias="gmeow:logicConstraintMember")
+    logicConstraintMember: list[str] | None = Field(default=None, description="Within gmeow:LogicalConstraint, values are node references constrained to gmeow:Constraint. A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.", alias="gmeow:logicConstraintMember")
 
 
 class Mark(ConfiguredBaseModel):

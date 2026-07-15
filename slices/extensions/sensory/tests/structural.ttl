@@ -31,6 +31,7 @@
 #
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory/tests/> .
 
 # --- 1. Core sensory TBox classes exist (MUST) --------------------------------
@@ -83,16 +84,28 @@ ASK {
 }""" ;
     gmeow:saRationale "All eleven ObservableProperty seed individuals MUST be present as gmeow:ObservableProperty instances." .
 
-# --- 4. SensoryQuantity is equivalent to ScalarQuantity (MUST) ---------------
-ex:saSensoryQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
+# --- 4. SensoryQuantity specializes the math-owned quantity (MUST) -----------
+ex:saSensoryQuantitySpecializesMathQuantity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SensoryQuantity rdfs:subClassOf math:Quantity .
+}""" ;
+    gmeow:saRationale "gmeow:SensoryQuantity MUST specialize math:Quantity so sensory semantics remain domain-specific without creating a second quantity authority." .
+
+ex:saSensoryQuantityNotLegacyEquivalent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:SensoryQuantity owl:equivalentClass gmeow:ScalarQuantity .
+    { gmeow:SensoryQuantity owl:equivalentClass gmeow:ScalarQuantity }
+    UNION { gmeow:ScalarQuantity owl:equivalentClass gmeow:SensoryQuantity }
 }""" ;
-    gmeow:saRationale "gmeow:SensoryQuantity MUST be owl:equivalentClass gmeow:ScalarQuantity -- the domain-specific alias for the scalar quantity stack." .
+    gmeow:saRationale "gmeow:SensoryQuantity MUST NOT be equivalent to the retired gmeow:ScalarQuantity alias; math:Quantity is the sole quantity authority." .
 
 # --- 5. sensoryResult is a subproperty of observationResult (MUST) -----------
 ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
