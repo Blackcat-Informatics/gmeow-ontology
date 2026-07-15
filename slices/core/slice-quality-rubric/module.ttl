@@ -449,7 +449,7 @@ gmeow:ProjectionVocabulary
     rdfs:label "Projection Vocabulary"@x-gmeow-english ;
     skos:definition "A guarded, logic:-subsumable lossy-projection surface the projection-vocabulary ratchet caps. Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack (SSSOM, EDOAL, FnO) are generated lossy projections of logic:; each such surface is named here once, ontology-resident and data-driven, rather than hardcoded in Rust. It carries the vocabulary's namespace(s), the logic: core it is subsumed by, how its hand-authored constructs are recognized (gmeow:vocabularyCountKind), the default ceiling a slice with no explicit commitment is held to, its loss-ledger preservation judgment, and the by-reference alignment predicates the ratchet exempts. It is NOT a gmeow:ProjectionCeilingCommitment (that is the per-(slice,vocabulary) ratchet cell) and NOT a gmeow:Slice: it is the guarded vocab itself, the dogfooded guard list the gate's shared counter iterates."@x-gmeow-english ;
     skos:example "gmeow:projVocab-sh a gmeow:ProjectionVocabulary ; gmeow:vocabularyPrefix \"sh\" ; gmeow:vocabularyNamespace \"http://www.w3.org/ns/shacl#\"^^xsd:anyURI ; gmeow:vocabularyCountKind \"countKindShape\" ; gmeow:vocabularyDefaultCeiling 0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid hardcoding the guarded vocab set in Rust (mint an individual instead — the gate is dogfooded, not a hidden list), avoid a vocabulary with an empty gmeow:vocabularyNamespace, and avoid guarding a derive-source vocabulary (owl:/rdfs: are the authoring surface logic: is derived FROM, never a projection of it — a deliberate absence, not an oversight)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hardcoding the guarded vocab set in Rust (mint an individual instead — the gate is dogfooded, not a hidden list), avoid a vocabulary with an empty gmeow:vocabularyNamespace, and avoid omitting a gmeow:vocabularyOwner — every guarded vocabulary is owned by exactly one grounding slice (logic:, math:, or lang:), the sole boundary at which its external terms may be authored. owl:/rdfs: are NOT exempt: they are now guarded as transitional debt (hand-authored declarative OWL/RDFS is a projection of logic: that should be re-authored as logic: and projected, per Principle 17), owned by logic: — a guarded surface, no longer a permanent deliberate absence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one gmeow:ProjectionVocabulary per logic:-subsumable projection surface the ratchet guards, giving it a gmeow:vocabularyPrefix, one or more gmeow:vocabularyNamespace values, a gmeow:vocabularySubsumedBy back to the logic: core, a gmeow:vocabularyCountKind, a gmeow:vocabularyDefaultCeiling, a gmeow:vocabularyPreservation, and any gmeow:vocabularyAlignmentPredicate the by-reference carve-out exempts; the gate's shared counter reads it to decide what to count and what to exempt."@x-gmeow-english ;
     gmeow:useWhen "Use to register, as data, a hand-authored projection vocabulary whose ungrounded residue the ratchet gate measures — never to hardcode a vocab list in Rust."@x-gmeow-english .
@@ -507,6 +507,20 @@ gmeow:vocabularySubsumedBy
     gmeow:howToUse "Assert one gmeow:vocabularySubsumedBy from the gmeow:ProjectionVocabulary to the logic: slice it is a generated lossy projection of."@x-gmeow-english ;
     gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the logic: core it is subsumed by."@x-gmeow-english .
 
+gmeow:vocabularyOwner
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:ProjectionVocabulary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabulary owner"@x-gmeow-english ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The single grounding slice — logic:, math:, or lang: — that OWNS a guarded projection vocabulary: the one boundary-authority slice at whose mapping/projection boundary this vocabulary's external terms may be hand-authored. Every OTHER slice must reference the grounding-vocabulary term the owner already authored rather than mint the external term afresh, so the external surface has exactly one authoring home and the ratchet can locate ungrounded second-source authoring by whether it sits outside the owner. It is DISTINCT from gmeow:vocabularySubsumedBy, which names the logic: core the vocabulary is a Principle-17 lossy projection OF (the preservation witness): a vocabulary is always subsumed by logic:, but may be OWNED by whichever grounding slice — logic: (foundational alignment), math: (quantity/unit/formula surfaces), or lang: (lexical/linguistic surfaces) — carries its external boundary. It is NOT gmeow:vocabularyPrefix or gmeow:vocabularyNamespace (those identify the vocabulary) and NOT gmeow:ceilingSlice (that is a per-ceiling subject slice): it is the one grounding slice that holds the vocabulary's authoring authority."@x-gmeow-english ;
+    skos:example "gmeow:projVocab-qudt gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one owner per vocabulary (it is functional and singular) and avoid pointing it at a non-grounding slice — only the logic:, math:, and lang: grounding slices may own a projection vocabulary; a domain slice authoring an owned vocabulary's external term directly is the very second-source authoring the ratchet exists to catch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:vocabularyOwner from the gmeow:ProjectionVocabulary to the single grounding slice (logic:, math:, or lang:) at whose projection boundary the vocabulary's external terms are authored; other slices reference the owner's grounding-vocabulary term instead of re-authoring the external term."@x-gmeow-english ;
+    gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the one grounding slice that owns its external authoring boundary — the boundary-authority owner, distinct from the Principle-17 logic: subsumer."@x-gmeow-english .
+
 gmeow:vocabularyCountKind
     a owl:DatatypeProperty ,
         owl:FunctionalProperty ;
@@ -562,6 +576,19 @@ gmeow:vocabularyAlignmentPredicate
     gmeow:howToUse "Assert one gmeow:vocabularyAlignmentPredicate per by-reference bridge predicate the vocabulary exempts; the shared counter subtracts a matched triple from the residue only when its predicate is listed here AND its object IRI is outside gmeow:."@x-gmeow-english ;
     gmeow:useWhen "Use on an RDF-surface guarded vocabulary to declare, as data, which alignment/bridge predicates carry legitimate by-reference foundational linkage rather than ungrounded second-source authoring."@x-gmeow-english .
 
+gmeow:vocabularyCountPredicate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ProjectionVocabulary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabulary count predicate"@x-gmeow-english ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "One predicate IRI in the counted allowlist a gmeow:vocabularyCountKind \"countKindStructuralAxiom\" vocabulary recognizes — NON-functional, since the minimum useful structural set has several members (RDFS uses rdfs:subClassOf, rdfs:subPropertyOf, rdfs:domain, rdfs:range). Under this count kind a triple counts toward the residue ONLY when its predicate is one of these allowlisted IRIs, so pure-annotation predicates (rdfs:label, rdfs:comment, rdfs:isDefinedBy, rdfs:seeAlso) are never counted and OWL is not guarded at all — the ratchet caps only the structural taxonomy/typing axioms that are genuine reasoning content and should be authored as logic: and projected. It is NOT gmeow:vocabularyNamespace (which the typed-axiom kind matches on) and NOT gmeow:vocabularyAlignmentPredicate (which subtracts external bridges): it is the positive allowlist the structural-axiom counter matches a triple's predicate against. It is meaningful ONLY for countKindStructuralAxiom; on any other count kind it is a hard fail (it would never take effect)."@x-gmeow-english ;
+    skos:example "gmeow:projVocab-rdfs gmeow:vocabularyCountPredicate \"http://www.w3.org/2000/01/rdf-schema#subClassOf\"^^xsd:anyURI ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid listing a pure-annotation predicate (rdfs:label/comment/isDefinedBy/seeAlso) here — the ratchet caps reasoning axioms, not metadata — and avoid declaring it on any vocabulary that is not countKindStructuralAxiom (the allowlist would never take effect, a hard fail)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:vocabularyCountPredicate per structural predicate the countKindStructuralAxiom vocabulary counts; the shared counter treats a triple as a construct only when its predicate is one of these."@x-gmeow-english ;
+    gmeow:useWhen "Use on a countKindStructuralAxiom guarded vocabulary (RDFS) to declare, as data, the minimum useful structural predicate set the ratchet counts, excluding annotations."@x-gmeow-english .
+
 gmeow:ceilingSlice
     a owl:ObjectProperty ,
         owl:FunctionalProperty ;
@@ -607,24 +634,52 @@ gmeow:ceilingCount
 #################################################################
 # The guarded projection-vocabulary registry (ontology-resident ABox)
 #
-# Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment
-# stack (SSSOM, EDOAL, FnO) are generated lossy projections of
-# logic:. Each is registered here exactly once as a
-# gmeow:ProjectionVocabulary the ratchet gate guards — the
-# dogfooded, data-driven guard list the shared residue counter
-# iterates, never a hardcoded Rust list. owl:/rdfs: are
-# DELIBERATELY ABSENT: they are the declarative derive-source
-# authoring surface logic: is derived FROM (LOGIC-VALIDATION.md
-# "Deriving the fragment from slice axioms"), never a projection of
-# it, so no guarding morphism logic:->owl/rdfs exists.
+# Per Principle 17, OWL, RDFS, SHACL, gUFO, BFO and the OBO
+# families, DOLCE, SUMO, the alignment stack (SSSOM, EDOAL, FnO),
+# and the math (QUDT, OpenMath, MathML, OM-2, UCUM) and lang
+# (OntoLex, LexInfo, WordNet, UD, Lexvo, Glottolog) external
+# families are ALL generated lossy projections of logic:. Each is
+# registered here exactly once as a gmeow:ProjectionVocabulary the
+# ratchet gate guards — the dogfooded, data-driven guard list the
+# shared residue counter iterates, never a hardcoded Rust list.
 #
-# RDF-surface vocabularies (sh, gufo, bfo, dul, fno, edoal, sssom)
-# are enforced: their hand-authored constructs are counted by the
-# shared counter and ceilinged. Non-RDF-surface vocabularies
-# (datalog, prolog, n3) are documentary-only registry rows: they
-# can never appear as a real triple predicate or object in a TTL
-# slice, so their residue is structurally 0 by construction and no
-# counter-example fixture ever reds them.
+# Every vocabulary carries a gmeow:vocabularyOwner: the ONE
+# grounding slice (logic:, math:, or lang:) at whose
+# mapping/projection boundary its external terms may be authored;
+# every other slice must reference the owner's grounding-vocabulary
+# term instead of re-authoring the external term. This is DISTINCT
+# from gmeow:vocabularySubsumedBy — the Principle-17 witness that
+# the surface is a projection OF logic: — which stays pointed at the
+# logic: core for every vocabulary. Ownership is boundary authority;
+# subsumption is the projection direction.
+#
+# The permanent owl:/rdfs: derive-source carve-out is REMOVED, but
+# only the MINIMUM USEFUL STRUCTURAL SET is guarded, and only for
+# RDFS: projVocab-rdfs is countKindStructuralAxiom over exactly
+# rdfs:subClassOf/subPropertyOf/domain/range (its
+# gmeow:vocabularyCountPredicate allowlist) — the structural
+# taxonomy/typing axioms that are genuine reasoning content and
+# should be authored as logic: and projected forward. Pure RDFS
+# annotations (rdfs:label/comment/isDefinedBy/seeAlso) are NOT
+# counted, and OWL is NOT guarded at all (owl: procedural cardinality
+# is already gated at reason-verify per LOGIC-VALIDATION.md; the
+# remaining declarative OWL is left untouched by this ratchet). This
+# reds the gate until the structural debt is re-seeded; that
+# re-seeding is a follow-on step, not an exemption.
+#
+# The OBO namespace is SPLIT: projVocab-bfo now matches only the
+# BFO-core stem (obo/BFO_), and the other OBO families (RO, IAO,
+# PATO, SO, MFOEM under logic:; STATO, OBCS under math:) each carry
+# their own obo/<PREFIX>_ stem so the ratchet no longer over-captures
+# every OBO term under one bfo row.
+#
+# RDF-surface vocabularies are enforced: their hand-authored
+# constructs are counted by the shared counter and ceilinged.
+# Non-RDF-surface vocabularies (datalog, prolog, n3) are
+# documentary-only registry rows: they can never appear as a real
+# triple predicate or object in a TTL slice, so their residue is
+# structurally 0 by construction and no counter-example fixture
+# ever reds them.
 #################################################################
 
 gmeow:projVocab-sh
@@ -636,6 +691,7 @@ gmeow:projVocab-sh
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindShape" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation .
@@ -649,6 +705,7 @@ gmeow:projVocab-gufo
     gmeow:vocabularyPrefix "gufo" ;
     gmeow:vocabularyNamespace "http://purl.org/nemo/gufo#"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
@@ -669,8 +726,9 @@ gmeow:projVocab-bfo
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:vocabularyPrefix "bfo" ;
-    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/"^^xsd:anyURI ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/BFO_"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
@@ -693,6 +751,7 @@ gmeow:projVocab-dul
     gmeow:vocabularyPrefix "dul" ;
     gmeow:vocabularyNamespace "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
@@ -715,6 +774,7 @@ gmeow:projVocab-fno
     gmeow:vocabularyPrefix "fno" ;
     gmeow:vocabularyNamespace "https://w3id.org/function/ontology#"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
@@ -737,6 +797,7 @@ gmeow:projVocab-edoal
     gmeow:vocabularyPrefix "edoal" ;
     gmeow:vocabularyNamespace "http://ns.inria.org/edoal/1.0/#"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
@@ -759,6 +820,7 @@ gmeow:projVocab-sssom
     gmeow:vocabularyPrefix "sssom" ;
     gmeow:vocabularyNamespace "https://w3id.org/sssom/"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
@@ -781,6 +843,7 @@ gmeow:projVocab-datalog
     gmeow:vocabularyPrefix "datalog" ;
     gmeow:vocabularyNamespace "https://blackcatinformatics.ca/gmeow/projection-surface/datalog"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindNonRdfSurface" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation .
@@ -794,6 +857,7 @@ gmeow:projVocab-prolog
     gmeow:vocabularyPrefix "prolog" ;
     gmeow:vocabularyNamespace "https://blackcatinformatics.ca/gmeow/projection-surface/prolog"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindNonRdfSurface" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation .
@@ -807,9 +871,480 @@ gmeow:projVocab-n3
     gmeow:vocabularyPrefix "n3" ;
     gmeow:vocabularyNamespace "https://blackcatinformatics.ca/gmeow/projection-surface/n3"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindNonRdfSurface" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:SoundUnderApproximation .
+
+# --- RDFS structural axioms (minimum useful structural set) -----------------
+
+gmeow:projVocab-rdfs
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — RDFS structural axioms"@x-gmeow-english ;
+    skos:definition "The RDFS structural-axiom surface (rdfs:) guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17). Counted by STRUCTURAL AXIOM (gmeow:vocabularyCountKind \"countKindStructuralAxiom\"): only triples whose predicate is in the gmeow:vocabularyCountPredicate allowlist — the minimum useful structural set rdfs:subClassOf/subPropertyOf/domain/range — count, so pure annotations (rdfs:label/comment/isDefinedBy/seeAlso) are never counted and OWL is not guarded at all. A hand-authored structural axiom is ungrounded second-source residue unless it carries a resolvable logic: back-reference; the taxonomy/typing it encodes should be authored as logic: and projected. It is owned by the logic: core."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "rdfs" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindStructuralAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyCountPredicate "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#domain"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#range"^^xsd:anyURI .
+
+# --- OBO families (split out of the former broad obo/ bfo guard) ------------
+
+gmeow:projVocab-ro
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Relation Ontology (RO)"@x-gmeow-english ;
+    skos:definition "The OBO Relation Ontology (obo/RO_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the logic: core as a relational upper surface. Counted by TYPED AXIOM over the obo/RO_ stem, split out of the former broad obo/ bfo guard so RO relations are no longer conflated with BFO-core. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL RO object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "ro" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/RO_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-iao
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Information Artifact Ontology (IAO)"@x-gmeow-english ;
+    skos:definition "The OBO Information Artifact Ontology (obo/IAO_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the logic: core. Counted by TYPED AXIOM over the obo/IAO_ stem, split out of the former broad obo/ bfo guard. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL IAO object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "iao" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/IAO_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-pato
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Phenotype And Trait Ontology (PATO)"@x-gmeow-english ;
+    skos:definition "The OBO Phenotype And Trait Ontology (obo/PATO_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the logic: core as a quality surface. Counted by TYPED AXIOM over the obo/PATO_ stem, split out of the former broad obo/ bfo guard. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL PATO object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "pato" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/PATO_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-so
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Sequence Ontology (SO)"@x-gmeow-english ;
+    skos:definition "The OBO Sequence Ontology (obo/SO_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the logic: core. Counted by TYPED AXIOM over the obo/SO_ stem, split out of the former broad obo/ bfo guard. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL SO object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "so" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/SO_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-mfoem
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Emotion Ontology (MFOEM)"@x-gmeow-english ;
+    skos:definition "The OBO Emotion Ontology (obo/MFOEM_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the logic: core. Counted by TYPED AXIOM over the obo/MFOEM_ stem, split out of the former broad obo/ bfo guard. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL MFOEM object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "mfoem" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/MFOEM_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-stato
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Statistics Ontology (STATO)"@x-gmeow-english ;
+    skos:definition "The OBO Statistics Ontology (obo/STATO_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the math: grounding slice as a statistical surface. Counted by TYPED AXIOM over the obo/STATO_ stem, split out of the former broad obo/ bfo guard. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL STATO object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "stato" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/STATO_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-obcs
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OBO Biological/Clinical Statistics (OBCS)"@x-gmeow-english ;
+    skos:definition "The OBO Ontology of Biological and Clinical Statistics (obo/OBCS_) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the math: grounding slice as a statistical surface. Counted by TYPED AXIOM over the obo/OBCS_ stem, split out of the former broad obo/ bfo guard. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL OBCS object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "obcs" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/OBCS_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+# --- SUMO upper ontology (logic-owned) -------------------------------------
+
+gmeow:projVocab-sumo
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — SUMO"@x-gmeow-english ;
+    skos:definition "The Suggested Upper Merged Ontology (sumo:) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), owned by the logic: core as an upper-ontology alignment target. Counted by TYPED AXIOM over sumo:'s namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL SUMO object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "sumo" ;
+    gmeow:vocabularyNamespace "https://www.ontologyportal.org/SUMO.owl#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+# --- Math projection families (math-owned) ---------------------------------
+
+gmeow:projVocab-qudt
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — QUDT"@x-gmeow-english ;
+    skos:definition "The QUDT quantity/unit/dimension vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/math: (Principle 17), owned by the math: grounding slice. Counted by TYPED AXIOM over QUDT's schema, unit, and quantitykind namespaces. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL QUDT object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "qudt" ;
+    gmeow:vocabularyNamespace "http://qudt.org/schema/qudt/"^^xsd:anyURI ,
+        "http://qudt.org/vocab/unit/"^^xsd:anyURI ,
+        "http://qudt.org/vocab/quantitykind/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-openmath
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OpenMath"@x-gmeow-english ;
+    skos:definition "The OpenMath content-dictionary vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/math: (Principle 17), owned by the math: grounding slice. Counted by TYPED AXIOM over the OpenMath CD namespaces. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL OpenMath object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "openmath" ;
+    gmeow:vocabularyNamespace "http://www.openmath.org/cd/"^^xsd:anyURI ,
+        "https://openmath.org/cd/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-mathml
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — MathML"@x-gmeow-english ;
+    skos:definition "The MathML vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/math: (Principle 17), owned by the math: grounding slice. Counted by TYPED AXIOM over the MathML namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL MathML object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "mathml" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/1998/Math/MathML"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-om2
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OM-2 (Ontology of units of Measure)"@x-gmeow-english ;
+    skos:definition "The OM-2 Ontology of units of Measure vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/math: (Principle 17), owned by the math: grounding slice. Counted by TYPED AXIOM over the om-2 resource namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL OM-2 object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "om2" ;
+    gmeow:vocabularyNamespace "http://www.ontology-of-units-of-measure.org/resource/om-2/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-ucum
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — UCUM"@x-gmeow-english ;
+    skos:definition "The Unified Code for Units of Measure (UCUM) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/math: (Principle 17), owned by the math: grounding slice. Counted by TYPED AXIOM over the UCUM namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL UCUM object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "ucum" ;
+    gmeow:vocabularyNamespace "https://ucum.org/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+# --- Lang projection families (lang-owned) ---------------------------------
+
+gmeow:projVocab-ontolex
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OntoLex-Lemon"@x-gmeow-english ;
+    skos:definition "The OntoLex-Lemon lexical vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/lang: (Principle 17), owned by the lang: grounding slice. Counted by TYPED AXIOM over the ontolex namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL OntoLex object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "ontolex" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/ns/lemon/ontolex#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-lexinfo
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — LexInfo"@x-gmeow-english ;
+    skos:definition "The LexInfo linguistic-category vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/lang: (Principle 17), owned by the lang: grounding slice. Counted by TYPED AXIOM over the lexinfo namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL LexInfo object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "lexinfo" ;
+    gmeow:vocabularyNamespace "http://www.lexinfo.net/ontology/3.0/lexinfo#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-wordnet
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — WordNet"@x-gmeow-english ;
+    skos:definition "The WordNet (Global WordNet + Princeton RDF) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/lang: (Principle 17), owned by the lang: grounding slice. Counted by TYPED AXIOM over the WordNet schema namespaces. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL WordNet object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "wordnet" ;
+    gmeow:vocabularyNamespace "https://globalwordnet.github.io/schemas/wn#"^^xsd:anyURI ,
+        "http://wordnet-rdf.princeton.edu/ontology#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-ud
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Universal Dependencies"@x-gmeow-english ;
+    skos:definition "The Universal Dependencies (UD) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/lang: (Principle 17), owned by the lang: grounding slice. Counted by TYPED AXIOM over the UD namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL UD object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "ud" ;
+    gmeow:vocabularyNamespace "http://universaldependencies.org/u/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-lexvo
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Lexvo"@x-gmeow-english ;
+    skos:definition "The Lexvo language/script vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/lang: (Principle 17), owned by the lang: grounding slice. Counted by TYPED AXIOM over the Lexvo ontology and id namespaces. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL Lexvo object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "lexvo" ;
+    gmeow:vocabularyNamespace "http://lexvo.org/ontology#"^^xsd:anyURI ,
+        "http://lexvo.org/id/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-glottolog
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Glottolog"@x-gmeow-english ;
+    skos:definition "The Glottolog languoid vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/lang: (Principle 17), owned by the lang: grounding slice. Counted by TYPED AXIOM over the Glottolog resource namespace. Its alignment predicates exempt genuine by-reference bridging to an EXTERNAL Glottolog object; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "glottolog" ;
+    gmeow:vocabularyNamespace "http://glottolog.org/resource/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
 
 #################################################################
 # Committed projection-ceiling commitments (ontology-resident,

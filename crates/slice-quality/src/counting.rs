@@ -176,8 +176,64 @@ pub(crate) fn enumerate(
     match vocab.count_kind {
         CountKind::Shape => enumerate_shape(ds, mode),
         CountKind::TypedAxiom => enumerate_typed_axiom(ds, vocab, mode),
+        CountKind::StructuralAxiom => enumerate_structural_axiom(ds, vocab, mode),
         CountKind::NonRdfSurface => Vec::new(),
     }
+}
+
+/// `CountKind::StructuralAxiom` enumeration — RDFS's minimum useful structural set.
+/// Counts distinct triples whose PREDICATE IRI is in `vocab.counted_predicates` (e.g.
+/// `rdfs:subClassOf`/`subPropertyOf`/`domain`/`range`), so annotation predicates
+/// (`rdfs:label`/`comment`/`isDefinedBy`/`seeAlso`) never count and OWL is untouched.
+/// Only meaningful under [`CountMode::FullResidue`]; [`CountMode::Historical`] returns
+/// empty (the legacy axis never scored structural-axiom vocabs).
+fn enumerate_structural_axiom(
+    ds: &RdfDataset,
+    vocab: &ProjectionVocabulary,
+    mode: CountMode,
+) -> Vec<Construct> {
+    if mode == CountMode::Historical {
+        return Vec::new();
+    }
+    let mut seen: BTreeSet<(TermId, TermId, TermId)> = BTreeSet::new();
+    let mut out = Vec::new();
+    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        let TermRef::Iri(p_iri) = ds.resolve(q.p) else {
+            continue;
+        };
+        if !vocab.counted_predicates.iter().any(|cp| cp == p_iri) {
+            continue;
+        }
+        if !seen.insert((q.s, q.p, q.o)) {
+            continue;
+        }
+        let o_iri = match ds.resolve(q.o) {
+            TermRef::Iri(iri) => Some(iri),
+            _ => None,
+        };
+        let key = format!(
+            "{}|{}|{}",
+            term_key(ds, q.s),
+            term_key(ds, q.p),
+            term_key(ds, q.o)
+        );
+        let grounded = resolvable_grounding(ds, q.s);
+        // A structural axiom is exempt as a by-reference bridge only under the same
+        // rule as a typed axiom: its predicate is one of the vocab's declared alignment
+        // predicates AND the object is EXTERNAL. RDFS carries no alignment predicates,
+        // so an rdfs:subClassOf to an external object stays in the residue — under the
+        // strict owner-boundary doctrine such an alignment belongs in the owner's
+        // mapping cell, not a raw structural triple.
+        let is_bridge = vocab.alignment_predicates.iter().any(|ap| ap == p_iri)
+            && o_iri.is_some_and(|o| !o.starts_with(GMEOW));
+        out.push(Construct {
+            key,
+            grounded,
+            is_bridge,
+        });
+    }
+    out.sort_by(|a, b| a.key.cmp(&b.key));
+    out
 }
 
 /// `CountKind::Shape` enumeration.
@@ -341,10 +397,12 @@ pub fn shacl_vocab() -> ProjectionVocabulary {
         prefix: "sh".to_owned(),
         namespaces: vec!["http://www.w3.org/ns/shacl#".to_owned()],
         subsumed_by: LOGIC_NS.to_owned(),
+        owner: LOGIC_NS.to_owned(),
         count_kind: CountKind::Shape,
         default_ceiling: 0,
         preservation: "SoundUnderApproximation".to_owned(),
         alignment_predicates: Vec::new(),
+        counted_predicates: Vec::new(),
     }
 }
 
@@ -372,6 +430,7 @@ mod tests {
             prefix: prefix.to_owned(),
             namespaces: vec![ns.to_owned()],
             subsumed_by: LOGIC_NS.to_owned(),
+            owner: LOGIC_NS.to_owned(),
             count_kind: CountKind::TypedAxiom,
             default_ceiling: 0,
             preservation: "SoundUnderApproximation".to_owned(),
@@ -379,6 +438,7 @@ mod tests {
                 "http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned(),
                 "http://www.w3.org/2002/07/owl#equivalentClass".to_owned(),
             ],
+            counted_predicates: Vec::new(),
         }
     }
 
@@ -504,10 +564,12 @@ mod tests {
                 "http://gufo.example.org/aliased#".to_owned(),
             ],
             subsumed_by: LOGIC_NS.to_owned(),
+            owner: LOGIC_NS.to_owned(),
             count_kind: CountKind::TypedAxiom,
             default_ceiling: 0,
             preservation: "SoundUnderApproximation".to_owned(),
             alignment_predicates: Vec::new(),
+            counted_predicates: Vec::new(),
         };
         assert_eq!(residue(&ds, &vocab), 1);
     }
@@ -523,10 +585,12 @@ mod tests {
             prefix: "datalog".to_owned(),
             namespaces: vec!["https://blackcatinformatics.ca/datalog/".to_owned()],
             subsumed_by: LOGIC_NS.to_owned(),
+            owner: LOGIC_NS.to_owned(),
             count_kind: CountKind::NonRdfSurface,
             default_ceiling: 0,
             preservation: "SoundUnderApproximation".to_owned(),
             alignment_predicates: Vec::new(),
+            counted_predicates: Vec::new(),
         };
         assert_eq!(residue(&ds, &vocab), 0);
     }
