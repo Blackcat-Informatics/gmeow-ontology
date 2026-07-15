@@ -289,28 +289,50 @@ pub(crate) fn selected_materialization_contract_hash(
 fn selected_materialization_patterns(
     program: &gmeow_logic_compile::ir::LogicProgram,
 ) -> Result<Vec<WorldFactPattern>, MaterializeError> {
+    fn source_term(term: &crate::rule_ir::EvalTerm) -> Option<TermValue> {
+        match term {
+            crate::rule_ir::EvalTerm::Var(_) => None,
+            crate::rule_ir::EvalTerm::ConstNamed(iri) => Some(TermValue::iri(iri)),
+            crate::rule_ir::EvalTerm::ConstLit(value) => Some(value.clone()),
+        }
+    }
+
+    fn insert_pattern(patterns: &mut Vec<WorldFactPattern>, atom: &crate::rule_ir::EvalAtom) {
+        let pattern = WorldFactPattern::new(
+            source_term(&atom.subject),
+            Some(atom.predicate.clone()),
+            source_term(&atom.object),
+        );
+        if patterns.iter().any(|existing| existing.subsumes(&pattern)) {
+            return;
+        }
+        patterns.retain(|existing| !pattern.subsumes(existing));
+        patterns.push(pattern);
+    }
+
     let lowering = crate::relational_core::lower_formulas(program);
     let rules = crate::lower::lower_eval_rules(program)
         .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-    let mut predicates = std::collections::BTreeSet::new();
+    let mut patterns = Vec::new();
     for rule in rules.iter().chain(lowering.rules.iter()) {
-        predicates.insert(rule.head.predicate.clone());
-        predicates.extend(rule.body.iter().map(|atom| atom.predicate.clone()));
+        insert_pattern(&mut patterns, &rule.head);
+        for atom in &rule.body {
+            insert_pattern(&mut patterns, atom);
+        }
     }
     for rule in &lowering.nary_head_rules {
-        predicates.extend(rule.head.iter().map(|atom| atom.predicate.clone()));
-        predicates.extend(rule.body.iter().map(|atom| atom.predicate.clone()));
+        for atom in rule.head.iter().chain(rule.body.iter()) {
+            insert_pattern(&mut patterns, atom);
+        }
     }
-    if predicates.is_empty() {
+    if patterns.is_empty() {
         return Err(MaterializeError::Chase(
             "selected view materialization has no program predicate to push into the RDF source; use the existing whole-dataset materializer when the complete input echo is the intended output"
                 .to_owned(),
         ));
     }
-    Ok(predicates
-        .into_iter()
-        .map(|predicate| WorldFactPattern::new(None, Some(predicate), None))
-        .collect())
+    patterns.sort();
+    Ok(patterns)
 }
 
 /// Materialize the program-relevant slice of explicit named worlds from a fact source.

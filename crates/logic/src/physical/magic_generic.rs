@@ -43,7 +43,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::TermValue;
 
 use super::generic::{GenericAtom, GenericRule, materialize_generic_budgeted};
-use super::magic::{magic_pred_iri, term_of};
+use super::magic::{magic_pred_iri, source_term, term_of};
 use crate::annotation::{
     AnnotatedAnswer, AnnotatedAnswerSet, AnnotatedTupleKey, AnnotationDerivation,
     AnnotationFactRef, AnnotationLineageContract, AnnotationQueryClass, AnnotationRequest,
@@ -327,14 +327,60 @@ fn magic_transform_generic(
 // ── The n-ary generic-triple EDB ─────────────────────────────────────────────────
 
 /// Build the arity-4 generic-triple EDB `triple(subject, predicate, object, world)` by
-/// scanning the world — the REAL n-ary data (the predicate carried as a DATA term) the
-/// binary store cannot represent.
+/// visiting the minimized source patterns consumed by the generic program — the REAL
+/// n-ary data (the predicate carried as a DATA term) the binary store cannot represent.
+fn generic_source_patterns(
+    rules: &[GenericRule],
+    goal: &GenericAtom,
+    world: &str,
+) -> Vec<WorldFactPattern> {
+    fn source_pattern(atom: &GenericAtom, world: &str) -> Option<WorldFactPattern> {
+        if atom.relation != GENERIC_TRIPLE_RELATION || atom.args.len() != 4 {
+            return None;
+        }
+        match &atom.args[3] {
+            EvalTerm::Var(_) => {}
+            EvalTerm::ConstNamed(iri) if iri == world => {}
+            EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(_) => return None,
+        }
+        let predicate = match &atom.args[1] {
+            EvalTerm::Var(_) => None,
+            EvalTerm::ConstNamed(iri) => Some(iri.clone()),
+            EvalTerm::ConstLit(_) => return None,
+        };
+        Some(WorldFactPattern::new(
+            source_term(&atom.args[0]),
+            predicate,
+            source_term(&atom.args[2]),
+        ))
+    }
+
+    let mut patterns = Vec::new();
+    let atoms = std::iter::once(goal).chain(rules.iter().flat_map(|rule| rule.body.iter()));
+    for atom in atoms {
+        let Some(pattern) = source_pattern(atom, world) else {
+            continue;
+        };
+        if patterns
+            .iter()
+            .any(|existing: &WorldFactPattern| existing.subsumes(&pattern))
+        {
+            continue;
+        }
+        patterns.retain(|existing| !pattern.subsumes(existing));
+        patterns.push(pattern);
+    }
+    patterns.sort();
+    patterns
+}
+
 fn build_generic_edb(
     foreign: &dyn WorldFactSource,
     world: &str,
+    patterns: &[WorldFactPattern],
 ) -> gmeow_errors::Result<TypedFactSet> {
     let mut facts = TypedFactSet::new();
-    foreign.visit_world(world, &WorldFactPattern::ANY, &mut |quad| {
+    super::visit_edb_patterns(foreign, world, patterns, &mut |quad| {
         let s = facts.intern(&quad.subject);
         let p = facts.intern(&TermValue::iri(quad.predicate.as_str()));
         let o = facts.intern(&quad.object);
@@ -529,11 +575,12 @@ pub(super) fn resolve_native_generic(
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
 
+    let source_patterns = generic_source_patterns(&rules, &goal_atom, world);
     let transformed = magic_transform_generic(&rules, &goal_atom, pattern)?;
 
     // (3) Build the generic-triple EDB, insert the seed demand fact, and run the
     //     arity-generic positive-Datalog fixpoint.
-    let mut facts = build_generic_edb(foreign, world)?;
+    let mut facts = build_generic_edb(foreign, world, &source_patterns)?;
     for (relation, args) in &transformed.seeds {
         let ids: Vec<_> = args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(relation, ids);
@@ -764,8 +811,9 @@ where
         generic_annotation_class(&rules),
         AnnotationLineageContract::AllPhysicalDerivations,
     )?;
+    let source_patterns = generic_source_patterns(&rules, &goal_atom, world);
     let transformed = magic_transform_generic(&rules, &goal_atom, goal_pattern(goal))?;
-    let mut facts = build_generic_edb(foreign, world)?;
+    let mut facts = build_generic_edb(foreign, world, &source_patterns)?;
     let mut control_relations = transformed
         .rules
         .iter()
@@ -1263,7 +1311,8 @@ mod tests {
         );
         assert_eq!(term_display(&seed_args[0]), format!("<{P2}>"));
 
-        let mut facts = build_generic_edb(&foreign, &world).unwrap();
+        let source_patterns = generic_source_patterns(&rules, &goal_atom, &world);
+        let mut facts = build_generic_edb(&foreign, &world, &source_patterns).unwrap();
         let ids: Vec<_> = seed_args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(&seed_rel, ids);
         let (result, _status) =

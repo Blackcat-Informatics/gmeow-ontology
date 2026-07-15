@@ -211,7 +211,7 @@ fn atom_of(atom: &QAtom) -> Result<EvalAtom, UnsupportedKind> {
     })
 }
 
-fn source_term(term: &EvalTerm) -> Option<TermValue> {
+pub(super) fn source_term(term: &EvalTerm) -> Option<TermValue> {
     match term {
         EvalTerm::Var(_) => None,
         EvalTerm::ConstNamed(iri) => Some(TermValue::iri(iri)),

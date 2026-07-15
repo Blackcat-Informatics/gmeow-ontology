@@ -68,6 +68,26 @@ fn graph_pages() -> Vec<Arc<RdfDataset>> {
     ]
 }
 
+fn ground_selective_pages() -> Vec<Arc<RdfDataset>> {
+    vec![
+        page(&[(
+            "https://example.org/a",
+            "https://example.org/edge",
+            "https://example.org/b",
+        )]),
+        page(&[(
+            "https://example.org/unrelated-s",
+            "https://example.org/edge",
+            "https://example.org/unrelated-o",
+        )]),
+        page(&[(
+            "https://example.org/noise-s",
+            "https://example.org/noise",
+            "https://example.org/noise-o",
+        )]),
+    ]
+}
+
 fn reachability_program() -> gmeow_logic::query_ir::QProgram {
     parse_query_program(
         ":- prefix(ex, 'https://example.org/').\n\
@@ -264,6 +284,96 @@ fn forward_program() -> LogicProgram {
         vec![],
         None,
     )
+}
+
+fn ground_forward_program() -> LogicProgram {
+    let head = LogicAxiom::new(
+        format!("{EX}a"),
+        format!("{EX}reach"),
+        format!("{EX}b"),
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .expect("valid ground head");
+    let body = LogicAxiom::new(
+        format!("{EX}a"),
+        format!("{EX}edge"),
+        format!("{EX}b"),
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .expect("valid ground body");
+    LogicProgram::new(
+        vec![],
+        vec![LogicRule::new(
+            head,
+            vec![body],
+            vec![],
+            ContextualScope {
+                provenance: Some(format!("{EX}rule/ground-reach")),
+                ..ContextualScope::default()
+            },
+        )],
+        vec![],
+        None,
+    )
+}
+
+#[test]
+fn selected_materialization_pushes_ground_subject_and_object_into_one_page() {
+    let paged = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
+        ground_selective_pages(),
+        PageGeneration(24),
+    )))
+    .expect("seal pages");
+    let view = paged.query_view(PagedQueryLimits::new(1, u64::MAX));
+    let selected = materialize_program_fallible_view(
+        &ground_forward_program(),
+        &view,
+        identity(24),
+        &[WORLD.to_owned()],
+        MaterializationLimits::default(),
+        None,
+    )
+    .expect("ground source pattern must stay within one page");
+
+    assert_eq!(selected.evidence.backend.requested_pages, vec![PageId(0)]);
+    assert_eq!(selected.evidence.backend.consumed_pages, 1);
+    assert_eq!(selected.evidence.source.delivered_quads(), 1);
+    assert!(selected.materialization.quads.iter().any(|quad| {
+        quad.predicate == format!("{EX}reach")
+            && gmeow_logic::provenance::term_display(&quad.subject) == format!("<{EX}a>")
+            && gmeow_logic::provenance::term_display(&quad.object) == format!("<{EX}b>")
+    }));
+}
+
+#[test]
+fn generic_triple_dispatch_pushes_predicate_as_data_and_bound_terms() {
+    let paged = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
+        ground_selective_pages(),
+        PageGeneration(25),
+    )))
+    .expect("seal pages");
+    let view = paged.query_view(PagedQueryLimits::new(1, u64::MAX));
+    let program = parse_query_program(&format!("?- triple(<{EX}a>, <{EX}edge>, O, <{WORLD}>).\n"))
+        .expect("valid generic triple query");
+    let result = dispatch_query_fallible_view(
+        &view,
+        identity(25),
+        WORLD,
+        &program,
+        PROFILE,
+        &Budget::default(),
+    )
+    .expect("generic source pattern must stay within one page");
+
+    assert_eq!(result.answer.bindings.len(), 1);
+    assert_eq!(result.answer.bindings[0]["O"], format!("<{EX}b>"));
+    assert_eq!(result.evidence.backend.requested_pages, vec![PageId(0)]);
+    assert_eq!(result.evidence.backend.consumed_pages, 1);
+    assert_eq!(result.evidence.source.delivered_quads(), 1);
 }
 
 #[test]
