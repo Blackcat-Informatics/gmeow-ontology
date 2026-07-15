@@ -47,7 +47,7 @@
 //! [`render_models_python_from_shapes`] over the FRESH shape union
 //! ([`crate::stages::shape_union_fresh`] — the generated members are THIS run's
 //! consumed product bytes, never a stale disk read); the standalone
-//! `gmeow-dev export-docs --format pydantic` entry ([`render_models_python`]) reads
+//! `gmeow-dev sync --mode update --outputs docs` entry ([`render_models_python`]) reads
 //! the committed union. The carrier folds the stage output into the `models-python`
 //! blob and writes the package tree to [`PACKAGE_DISK_PREFIX`] on disk.
 
@@ -359,7 +359,7 @@ fn is_pep440_public_version(raw: &str) -> bool {
 
 /// Render the `gmeow_models` package as a `{package-relative-path: bytes}` map
 /// (keys `gmeow_models/...`), the public entry point for
-/// `gmeow-dev export-docs --format pydantic` (writes the tree to disk) — the same
+/// `gmeow-dev sync --mode update --outputs docs` (writes the tree to disk) — the same
 /// bytes the pipeline stage folds into the `models-python` blob.
 pub fn render_models_python_package(
     root: &Path,
@@ -368,7 +368,7 @@ pub fn render_models_python_package(
 }
 
 /// Render the Pydantic package from the COMMITTED (on-disk) shape union — the
-/// standalone `make docs` / `export-docs` entry, which runs post-pipeline against
+/// standalone `make sync SYNC_OUTPUTS=docs` entry, which runs post-pipeline against
 /// the fanout-refreshed committed files. The in-DAG [`PydanticStage`] must NOT use
 /// this: it routes through [`crate::stages::shape_union_fresh::load_shapes_fresh`]
 /// so the union's generated members are THIS run's product bytes (the
@@ -1740,7 +1740,7 @@ fn render_base() -> Vec<u8> {
 ///
 /// # Bump policy
 ///
-/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make regenerate` — never
+/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make sync` — never
 /// hand-edit this file or set `version` in `pyproject.toml` directly.
 fn render_about(version: &str) -> Vec<u8> {
     let mut out = String::new();
@@ -1750,7 +1750,7 @@ fn render_about(version: &str) -> Vec<u8> {
             "This is the ontology's owl:versionInfo (ontology/gmeow.ttl), verbatim.".to_owned(),
             "pyproject.toml's [tool.hatch.version] reads __version__ from here. To".to_owned(),
             "release a new wheel version, bump owl:versionInfo in ontology/gmeow.ttl".to_owned(),
-            "and run `make regenerate` — never hand-edit this file or set `version`".to_owned(),
+            "and run `make sync` — never hand-edit this file or set `version`".to_owned(),
             "in pyproject.toml directly.".to_owned(),
         ],
     ));
@@ -1867,7 +1867,7 @@ fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
         "The wheel version ({version}) is the ontology's `owl:versionInfo`\n\
          (`ontology/gmeow.ttl`), stamped verbatim into `gmeow_models/__about__.py` and\n\
          read by `pyproject.toml`'s `[tool.hatch.version]`. To release a new version,\n\
-         bump `owl:versionInfo` and `make regenerate` — never hand-edit `__about__.py`\n\
+         bump `owl:versionInfo` and `make sync` — never hand-edit `__about__.py`\n\
          or set `version` in `pyproject.toml` directly.\n\n",
     ));
     out.push_str("## Usage\n\n");

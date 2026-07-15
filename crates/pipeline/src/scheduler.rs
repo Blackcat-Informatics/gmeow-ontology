@@ -8,8 +8,8 @@
 //! shared resource (`gmeow:requiresResource`, e.g. the reasoning stage's
 //! [`crate::node::ENGINE_RESOURCE`]) holds it exclusively while it runs, so two
 //! stages competing for the same resource serialize — the declarative
-//! replacement for a hardcoded engine mutex. Each stage's product is
-//! content-addressed and memoized in the [`PipelineCache`]; the final result is
+//! replacement for a hardcoded engine mutex. A context may opt focused stages into
+//! the content-addressed [`PipelineCache`]; the final result is
 //! keyed by stage id (a `BTreeMap`) and folded into one order-independent
 //! `combined_digest`, so a run is byte-identical regardless of completion order
 //! — the determinism the P2 tests pin.
@@ -17,7 +17,9 @@
 use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
+use std::time::Duration;
 
+use gmeow_cli_core::Reporter;
 use purrdf::provenance::DatasetProvenance;
 use rayon::prelude::*;
 
@@ -51,7 +53,8 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
 }
 
 /// The shared state of one pipeline run: the repo root, the parallelism budget,
-/// the content-addressed cache, and the provenance sidecar stages stamp into.
+/// the optional content-addressed cache, live progress sink, and the provenance
+/// sidecar stages stamp into.
 pub struct RunContext {
     /// The repository root the build operates over.
     pub root: PathBuf,
@@ -59,13 +62,18 @@ pub struct RunContext {
     pub jobs: usize,
     /// The persistent, self-verifying per-stage cache.
     pub cache: PipelineCache,
+    /// Whether stage cache reads and writes are enabled for this run.
+    pub stage_cache_enabled: bool,
+    /// Optional live stage-progress sink. Absent by default; `sync --verbose`
+    /// supplies one explicitly.
+    pub progress: Option<Arc<dyn Reporter>>,
     /// The provenance sidecar: one unit per stage (capability-derived origin).
     pub provenance: DatasetProvenance,
 }
 
 impl RunContext {
     /// Construct a run context rooted at `root` with `jobs` parallelism, opening the
-    /// persistent cache under `generated/.pipeline-cache/<build-fingerprint>/`.
+    /// persistent cache under `.cache/gmeow-sync/pipeline/<build-fingerprint>/`.
     ///
     /// The cache is namespaced by [`crate::cache::BUILD_FINGERPRINT`] and any SIBLING
     /// fingerprint directory is garbage-collected on open. Because every cache key also
@@ -89,19 +97,19 @@ impl RunContext {
             root,
             jobs: jobs.max(1),
             cache,
+            stage_cache_enabled: true,
+            progress: None,
             provenance: DatasetProvenance::new(),
         })
     }
 
     /// Construct a run context whose cache lives in a FRESH, process-unique temp
-    /// directory rather than the persistent `generated/.pipeline-cache/`.
+    /// directory rather than the persistent `.cache/gmeow-sync/pipeline/`.
     ///
-    /// Used by TESTS that want a clean, isolated cache per run (no cross-test or
-    /// cross-invocation reuse). The full build ([`crate::run::run_full`]) instead uses
-    /// the persistent [`Self::open`] cache: that is safe because every `stage_key`
-    /// folds [`crate::cache::BUILD_FINGERPRINT`], so a changed Rust impl (here or in
-    /// any workspace crate) yields a fresh key and recomputes — the stale-serve hazard
-    /// that once forced an ephemeral full build no longer exists.
+    /// Used by tests that want a clean, isolated cache per run (no cross-test or
+    /// cross-invocation reuse). The full build ([`crate::run::run_full`]) uses
+    /// [`Self::open_uncached`] because cumulative carrier snapshots are the wrong
+    /// persistence boundary; unified sync owns whole-run reuse instead.
     pub fn open_ephemeral(
         root: impl Into<PathBuf>,
         jobs: usize,
@@ -123,8 +131,32 @@ impl RunContext {
             root,
             jobs: jobs.max(1),
             cache,
+            stage_cache_enabled: true,
+            progress: None,
             provenance: DatasetProvenance::new(),
         })
+    }
+
+    /// Construct a context with no per-stage cache I/O.
+    ///
+    /// Full repository synchronization uses this boundary because its stage
+    /// products are cumulative carrier snapshots. Persisting them multiplies disk
+    /// and hydration work; a whole-run clean manifest is the profitable cache.
+    pub fn open_uncached(root: impl Into<PathBuf>, jobs: usize) -> Self {
+        Self {
+            root: root.into(),
+            jobs: jobs.max(1),
+            cache: PipelineCache::inert(),
+            stage_cache_enabled: false,
+            progress: None,
+            provenance: DatasetProvenance::new(),
+        }
+    }
+
+    /// Attach a live stage-progress reporter to this run.
+    pub fn with_progress(mut self, progress: Arc<dyn Reporter>) -> Self {
+        self.progress = Some(progress);
+        self
     }
 }
 
@@ -272,6 +304,8 @@ pub fn run(
         // depend on each other, so no stage can hit another's same-level cache write.
         let root: &Path = &ctx.root;
         let cache = &ctx.cache;
+        let stage_cache_enabled = ctx.stage_cache_enabled;
+        let progress = ctx.progress.as_deref();
         let runs: Vec<StageRun> = pool.install(|| {
             level
                 .par_iter()
@@ -282,7 +316,20 @@ pub fn run(
                             message: "stage in graph was not bound".to_string(),
                         })
                     })?;
-                    exec_stage(stage.as_ref(), root, &products, cache)
+                    if let Some(progress) = progress {
+                        progress.stage_start(stage.id());
+                    }
+                    let result =
+                        exec_stage(stage.as_ref(), root, &products, cache, stage_cache_enabled);
+                    if let (Some(progress), Ok(run)) = (progress, &result) {
+                        progress.stage_end(
+                            stage.id(),
+                            Duration::from_millis(
+                                u64::try_from(run.elapsed_ms).unwrap_or(u64::MAX),
+                            ),
+                        );
+                    }
+                    result
                 })
                 .collect::<Result<Vec<_>, _>>()
         })?;
@@ -293,7 +340,10 @@ pub fn run(
         let mut level_max_id = String::new();
         for mut r in runs {
             let stage = by_id[r.id.as_str()];
-            if !r.cached && stage.cache_policy() == CachePolicy::Persistent {
+            if ctx.stage_cache_enabled
+                && !r.cached
+                && stage.cache_policy() == CachePolicy::Persistent
+            {
                 ctx.cache.put(&r.key, &r.product)?;
             }
             // Fold this stage's forward diagnostic nodes into the run-wide ledger.
@@ -410,6 +460,7 @@ fn exec_stage(
     root: &Path,
     products: &BTreeMap<String, StageProduct>,
     cache: &PipelineCache,
+    stage_cache_enabled: bool,
 ) -> Result<StageRun, gmeow_errors::Diag> {
     // Assemble exactly the upstream products this stage declared.
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
@@ -464,7 +515,8 @@ fn exec_stage(
 
     let started = std::time::Instant::now();
 
-    if stage.cache_policy() == CachePolicy::Persistent
+    if stage_cache_enabled
+        && stage.cache_policy() == CachePolicy::Persistent
         && let Some(product) = cache.get(&key)?
     {
         // A cache hit re-serves the identical product, so its `diagnostics:nodes` blob

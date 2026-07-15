@@ -1,7 +1,7 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/cognition
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: "Cognition alignments \u2014 the knowledge spectrum and its reified tier. schema.org offers a single flat knowsAbout; GMEOW's four-level spectrum down-collapses to it (lossy), and a bare schema:knowsAbout lifts to the eponymous gmeow:knowsAbout level (its honest floor \u2014 depth is never inferred from a flat edge). The reified gmeow:KnowledgeProficiency reads its depth on a gmeow:ProficiencyScale: the native gmeow:scaleKnowledgeDepth (the four gmeow:KnowledgeLevel ordinals) is the default, while Bloom's revised taxonomy (gmeow:scaleBloomRevised), SOLO (gmeow:scaleSOLO), and Dreyfus (gmeow:scaleDreyfus, expertise) are reusable alternates \u2014 NO canonical framework is enforced (Principle 6). The cross-framework band correspondence is the documented alignment ledger in docs.md, never an OWL axiom (cognition \u22a5 expertise; the knows-axis and the can-do axis are never silently bridged, Principle 9). Additional relatedMatch anchors: FOAF interest/focus for motivational/attentional relations; Wikidata QIDs for knowledge, attention, curiosity and mastery; SUMO knows and OpenCyc knowsAbout for objectual knowing concepts; ESCO, CTDL/ASN and O*NET competency-framework namespaces for the knowledge-depth axis."

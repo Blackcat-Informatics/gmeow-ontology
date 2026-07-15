@@ -50,7 +50,7 @@ distributions + checksums, the DCAT catalog leg; see
 [research-objects.md](./research-objects.md)), and the five standpoint
 projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
-`generated/queries/*.rq` by `make regenerate`. A
+`generated/queries/*.rq` by `make sync`. A
 target-by-target summary with spec links is in the
 [README projection-targets table](../README.md#projection-targets).
 
@@ -137,8 +137,8 @@ algebra** (`CONCAT`/`COALESCE`/`IF`/`STR`/`IRI`/`STRDT`/`regex` +
 alt/seq/zero-or-more property paths) — **no raw SPARQL** appears in the source.
 
 ```sh
-make regenerate        # render registered generated artifacts from canonical sources
-make check-generated   # CI gate: fail if a committed artifact is stale
+make sync        # render registered generated artifacts from canonical sources
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated   # CI gate: fail if a committed artifact is stale
 ```
 
 Two properties hold **by construction**, eliminating the bug classes review used
@@ -152,7 +152,7 @@ to catch:
 The native `gmeow_slice.lint_projection` trio runs the three cross-layer
 invariants over the committed projection tree and surfaces any problem as a
 `mapping-compile.{fno-type,fno-ref,spec-drift}` finding (folded into the dev-gate
-report). `gmeow-dev check-generated mappings` is wired into CI as the standing
+report). `gmeow-dev sync --mode check --outputs generated` is wired into CI as the standing
 no-drift regression. Adding a new projection is now a **single DSL cell**, not four
 edits.
 
@@ -249,7 +249,7 @@ Key authoring choices, each a single field on the pattern or binding:
   traversal; otherwise `gmeow:edoalSource` names the salient term; otherwise the
   projection is structural / SSSOM-backed (no EDOAL cell).
 
-After any change, run `make regenerate` or the registered generator in check mode; the
+After any change, run `make sync` or the registered generator in check mode; the
 compiler runs the cross-layer invariants on its own output and refuses to emit on
 violation. Never hand-edit generated mapping artifacts under `generated/mappings/`,
-`generated/projections/`, or `generated/queries/` — `make check-generated` fails on drift.
+`generated/projections/`, or `generated/queries/` — `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` fails on drift.

@@ -911,7 +911,7 @@ fn slash_path(path: &Path) -> String {
 /// file has exactly one producing stage, so a consumer must add a `dataflowConsumes` edge
 /// and read the producer's IN-MEMORY product; a disk read at `run()` time carries the
 /// last-committed bytes forever (the post-pipeline fanout rewrites those files from the
-/// bundle), so `make regenerate` reports "unchanged" while `check-generated` reds
+/// bundle), so update mode reports "unchanged" while strict sync reds
 /// permanently — the stale-disk-fold bug class. This gate scans every Rust source
 /// under `crates/pipeline/src/` (recursively — no produce helper outside `stages/`
 /// can silently escape the gate) and flags any DISK-PATH construction under
@@ -928,7 +928,7 @@ fn slash_path(path: &Path) -> String {
 /// itself) — reserved for any read whose result NEVER folds into `gmeow.gts`: dev-CLI audit
 /// lanes (lint committed output), verification oracles, the monotonic-changelog prior-state
 /// read, and the gitignored `.pipeline-cache` scratch dir. The textual gate catches literal +
-/// traceable const-indirected reads; the pipeline's regenerate→check-generated fixed-point test
+/// traceable const-indirected reads; the pipeline's update→strict-check fixed-point test
 /// is the semantic backstop for the rest.
 fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStaticReport) {
     let src = root.join("crates").join("pipeline").join("src");
