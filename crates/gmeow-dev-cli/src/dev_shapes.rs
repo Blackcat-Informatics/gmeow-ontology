@@ -534,15 +534,25 @@ impl OracleCtx {
         // record whose lowered constraint does not reproduce the residue semantics NEVER clears.
         let structural = |p: &str| p == SH_NODE || p == SH_XONE || p == RAW_SPARQL_TARGET_RESIDUE;
         let semantic_residue_grounded = |unsupported: &[String], include_covered: bool| {
-            !unsupported.is_empty()
+            let eligible = !unsupported.is_empty()
                 && unsupported
                     .iter()
                     .all(|p| p == SH_SPARQL || p == SH_OR || structural(p))
                 && unsupported.iter().any(|p| structural(p))
-                && self.formalized_shapes.contains(iri)
-                && self
-                    .semantic_agreement(iri, read, legacy_ds, include_covered)
-                    .is_ok()
+                && self.formalized_shapes.contains(iri);
+            if !eligible {
+                return false;
+            }
+            match self.semantic_agreement(iri, read, legacy_ds, include_covered) {
+                Ok(()) => true,
+                Err(e) => {
+                    // A record exists but did NOT reproduce the residue semantics: the shape
+                    // stays ungrounded, and the refusal's detail must reach the operator — a
+                    // silently-dropped clearance failure is undiagnosable at wave scale.
+                    eprintln!("shape-oracle: semantic clearance for <{iri}> not granted: {e}");
+                    false
+                }
+            }
         };
         let formalized_failure_matches = || match &read.ir.failure_class {
             None => true,
