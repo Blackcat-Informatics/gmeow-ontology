@@ -1,0 +1,18 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/lang-wordnet-schema
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Bridges onto the Global WordNet RDF schema, distinct from individual lexical-item pivots through Wikidata."
+# curie_map:
+#   lang: https://blackcatinformatics.ca/lang/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+lang:PartOfSpeech	skos:closeMatch	https://globalwordnet.github.io/schemas/wn#PartOfSpeech	semapv:ManualMappingCuration	0.9	
+lang:SenseRelationKind	skos:closeMatch	https://globalwordnet.github.io/schemas/wn#SenseRelType	semapv:ManualMappingCuration	0.85	
+lang:hypernymy	skos:relatedMatch	https://globalwordnet.github.io/schemas/wn#hypernym	semapv:ManualMappingCuration	0.8	The WordNet schema term is a synset-relation kind while lang:hypernymy belongs to the broader native sense-relation inventory.
+lang:hyponymy	skos:relatedMatch	https://globalwordnet.github.io/schemas/wn#hyponym	semapv:ManualMappingCuration	0.8	The WordNet schema term is a synset-relation kind while lang:hyponymy belongs to the broader native sense-relation inventory.
+lang:noun	skos:closeMatch	https://globalwordnet.github.io/schemas/wn#noun	semapv:ManualMappingCuration	0.95	
+lang:verb	skos:closeMatch	https://globalwordnet.github.io/schemas/wn#verb	semapv:ManualMappingCuration	0.95	

@@ -636,8 +636,9 @@ gmeow:ceilingCount
 #
 # Per Principle 17, OWL, RDFS, SHACL, gUFO, BFO and the OBO
 # families, DOLCE, SUMO, the alignment stack (SSSOM, EDOAL, FnO),
-# and the math (QUDT, OpenMath, MathML, OM-2, UCUM) and lang
-# (OntoLex, LexInfo, WordNet, UD, Lexvo, Glottolog) external
+# YAMATO, OpenCyc, and the math (QUDT, OpenMath, MathML, OM-2,
+# UCUM, Data Cube, SIO, OBI) and lang (OntoLex, LexInfo,
+# WordNet, NIF, Web Annotation, UD, Lexvo, Glottolog) external
 # families are ALL generated lossy projections of logic:. Each is
 # registered here exactly once as a gmeow:ProjectionVocabulary the
 # ratchet gate guards — the dogfooded, data-driven guard list the
@@ -1083,7 +1084,76 @@ gmeow:projVocab-sumo
         "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
         "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
 
+gmeow:projVocab-yamato
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — YAMATO 2021-08-08"@x-gmeow-english ;
+    skos:definition "The version-pinned YAMATO top-level ontology vocabulary guarded by the projection-vocabulary ratchet — a commitment-shifting view owned by the logic: grounding slice. Counted by TYPED AXIOM over the YAMATO 2021-08-08 namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL YAMATO object; other authored use remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "yamato" ;
+    gmeow:vocabularyNamespace "http://www.hozo.jp/owl/YAMATO20210808.miz.owl#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-opencyc
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — OpenCyc permanent identifiers"@x-gmeow-english ;
+    skos:definition "The OpenCyc permanent-concept namespace guarded by the projection-vocabulary ratchet — a commitment-shifting view owned by the logic: grounding slice. Counted by TYPED AXIOM over sw.opencyc.org/concept. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL OpenCyc object; other authored use remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "opencyc" ;
+    gmeow:vocabularyNamespace "http://sw.opencyc.org/concept/"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
 # --- Math projection families (math-owned) ---------------------------------
+
+gmeow:projVocab-qb
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — RDF Data Cube"@x-gmeow-english ;
+    skos:definition "The W3C RDF Data Cube (qb:) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic:/math: (Principle 17), owned by the math: grounding slice. Counted by TYPED AXIOM over the Data Cube namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL qb object; ordinary in-slice cube authoring remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "qb" ;
+    gmeow:vocabularyNamespace "http://purl.org/linked-data/cube#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
 
 gmeow:projVocab-qudt
     a gmeow:ProjectionVocabulary ;
@@ -1203,6 +1273,52 @@ gmeow:projVocab-ucum
         "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
         "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
 
+gmeow:projVocab-sio
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Semanticscience Integrated Ontology"@x-gmeow-english ;
+    skos:definition "The SIO vocabulary guarded by the projection-vocabulary ratchet — its data/statistics-facing surface is owned by the math: grounding slice. Counted by TYPED AXIOM over the SIO resource stem. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL SIO object; other authored use remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "sio" ;
+    gmeow:vocabularyNamespace "http://semanticscience.org/resource/SIO_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-obi
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — Ontology for Biomedical Investigations"@x-gmeow-english ;
+    skos:definition "The OBI vocabulary guarded by the projection-vocabulary ratchet — its data-transformation surface is owned by the math: grounding slice. Counted by TYPED AXIOM over the OBI OBO stem. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL OBI object; other authored use remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "obi" ;
+    gmeow:vocabularyNamespace "http://purl.obolibrary.org/obo/OBI_"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
 # --- Lang projection families (lang-owned) ---------------------------------
 
 gmeow:projVocab-ontolex
@@ -1260,6 +1376,52 @@ gmeow:projVocab-wordnet
     gmeow:vocabularyPrefix "wordnet" ;
     gmeow:vocabularyNamespace "https://globalwordnet.github.io/schemas/wn#"^^xsd:anyURI ,
         "http://wordnet-rdf.princeton.edu/ontology#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-nif
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — NLP Interchange Format"@x-gmeow-english ;
+    skos:definition "The NIF Core vocabulary guarded by the projection-vocabulary ratchet — an anchoring view owned by the lang: grounding slice. Counted by TYPED AXIOM over the NIF Core namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL NIF object; other authored use remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "nif" ;
+    gmeow:vocabularyNamespace "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:SoundUnderApproximation ;
+    gmeow:vocabularyAlignmentPredicate "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf"^^xsd:anyURI ,
+        "http://www.w3.org/2002/07/owl#equivalentClass"^^xsd:anyURI ,
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#exactMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#closeMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#broadMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#narrowMatch"^^xsd:anyURI ,
+        "http://www.w3.org/2004/02/skos/core#relatedMatch"^^xsd:anyURI .
+
+gmeow:projVocab-oa
+    a gmeow:ProjectionVocabulary ;
+    rdfs:label "projection vocabulary — W3C Web Annotation"@x-gmeow-english ;
+    skos:definition "The W3C Web Annotation vocabulary guarded by the projection-vocabulary ratchet — an anchoring view owned by the lang: grounding slice. Counted by TYPED AXIOM over the oa namespace. Its alignment predicates exempt only complete by-reference grounding correspondences to an EXTERNAL Web Annotation object; other authored use remains residue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:vocabularyPrefix "oa" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/ns/oa#"^^xsd:anyURI ;
     gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
@@ -1356,7 +1518,7 @@ gmeow:projVocab-glottolog
 # gmeow:ProjectionCeilingCommitment pins one (slice, vocabulary)
 # residue ceiling. Values are the grandfathered residue measured by
 # `gmeow-dev slice-quality-seed-ceilings` at seed time — never
-# hand-typed, never tuned. Sorted by IRI.
+# hand-typed, never tuned. The generated projection sorts them by IRI.
 #################################################################
 
 gmeow:pcc-accessibility-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — accessibility / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the accessibility slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/accessibility> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 6 .
@@ -1365,6 +1527,7 @@ gmeow:pcc-affect-mfoem a gmeow:ProjectionCeilingCommitment ; rdfs:label "project
 gmeow:pcc-affect-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — affect / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the affect slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 49 .
 gmeow:pcc-agentic-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — agentic / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the agentic slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/agentic> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 10 .
 gmeow:pcc-agentic-sh a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — agentic / sh"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the agentic slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/agentic> ; gmeow:ceilingVocabulary gmeow:projVocab-sh ; gmeow:ceilingCount 5 .
+gmeow:pcc-aggregation-qb a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — aggregation / qb"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the qb projection vocabulary on the aggregation slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/aggregation> ; gmeow:ceilingVocabulary gmeow:projVocab-qb ; gmeow:ceilingCount 3 .
 gmeow:pcc-aggregation-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — aggregation / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the aggregation slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/aggregation> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 3 .
 gmeow:pcc-agreements-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — agreements / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the agreements slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/agreements> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 3 .
 gmeow:pcc-ai-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — ai / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the ai slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/ai> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 26 .
@@ -1431,6 +1594,7 @@ gmeow:pcc-lifecycle-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "proje
 gmeow:pcc-logic-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — logic / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the logic slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 68 .
 gmeow:pcc-mappings-fno a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — mappings / fno"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the fno projection vocabulary on the mappings slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/dsl/mappings> ; gmeow:ceilingVocabulary gmeow:projVocab-fno ; gmeow:ceilingCount 214 .
 gmeow:pcc-mappings-ontolex a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — mappings / ontolex"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the ontolex projection vocabulary on the mappings slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/dsl/mappings> ; gmeow:ceilingVocabulary gmeow:projVocab-ontolex ; gmeow:ceilingCount 12 .
+gmeow:pcc-mappings-qb a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — mappings / qb"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the qb projection vocabulary on the mappings slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/dsl/mappings> ; gmeow:ceilingVocabulary gmeow:projVocab-qb ; gmeow:ceilingCount 21 .
 gmeow:pcc-math-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — math / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the math slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 686 .
 gmeow:pcc-mentation-bfo a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — mentation / bfo"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the mentation slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/mentation> ; gmeow:ceilingVocabulary gmeow:projVocab-bfo ; gmeow:ceilingCount 1 .
 gmeow:pcc-mentation-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — mentation / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the mentation slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/mentation> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 3 .
@@ -1449,6 +1613,7 @@ gmeow:pcc-notation-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projec
 gmeow:pcc-notation-sh a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — notation / sh"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the notation slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/notation> ; gmeow:ceilingVocabulary gmeow:projVocab-sh ; gmeow:ceilingCount 8 .
 gmeow:pcc-notes-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — notes / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the notes slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/notes> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 10 .
 gmeow:pcc-observations-pato a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — observations / pato"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the pato projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:ceilingVocabulary gmeow:projVocab-pato ; gmeow:ceilingCount 1 .
+gmeow:pcc-observations-qb a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — observations / qb"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the qb projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:ceilingVocabulary gmeow:projVocab-qb ; gmeow:ceilingCount 2 .
 gmeow:pcc-observations-qudt a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — observations / qudt"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the qudt projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:ceilingVocabulary gmeow:projVocab-qudt ; gmeow:ceilingCount 4 .
 gmeow:pcc-observations-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — observations / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 42 .
 gmeow:pcc-organization-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — organization / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the organization slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/organization> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 18 .
@@ -1483,6 +1648,22 @@ gmeow:pcc-temporal-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projec
 gmeow:pcc-temporal-sh a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — temporal / sh"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the temporal slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/temporal> ; gmeow:ceilingVocabulary gmeow:projVocab-sh ; gmeow:ceilingCount 11 .
 gmeow:pcc-trust-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — trust / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the trust slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/trust> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 12 .
 gmeow:pcc-versions-rdfs a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — versions / rdfs"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the rdfs projection vocabulary on the versions slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/versions> ; gmeow:ceilingVocabulary gmeow:projVocab-rdfs ; gmeow:ceilingCount 10 .
+
+# Additive ceilings measured when the YAMATO/OpenCyc/SIO/OBI/NIF/OA guard
+# families entered the registry. Zero-residue families need no individual.
+gmeow:pcc-affect-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — affect / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the affect slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 2 .
+gmeow:pcc-ai-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — ai / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the ai slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/ai> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 4 .
+gmeow:pcc-archaeological-evidence-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — archaeological-evidence / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the archaeological-evidence slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 3 .
+gmeow:pcc-citations-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — citations / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the citations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/citations> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 1 .
+gmeow:pcc-images-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — images / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the images slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/images> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 4 .
+gmeow:pcc-mappings-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — mappings / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the mappings slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/dsl/mappings> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 47 .
+gmeow:pcc-notes-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — notes / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the notes slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/notes> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 4 .
+gmeow:pcc-observations-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — observations / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 1 .
+gmeow:pcc-observations-obi a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — observations / obi"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the obi projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:ceilingVocabulary gmeow:projVocab-obi ; gmeow:ceilingCount 3 .
+gmeow:pcc-procedures-obi a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — procedures / obi"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the obi projection vocabulary on the procedures slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/procedures> ; gmeow:ceilingVocabulary gmeow:projVocab-obi ; gmeow:ceilingCount 2 .
+gmeow:pcc-quality-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — quality / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the quality slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/quality> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 1 .
+gmeow:pcc-standpoint-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — standpoint / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the standpoint slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/standpoint> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 4 .
+gmeow:pcc-tags-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-ceiling commitment — tags / oa"@x-gmeow-english ; skos:definition "The committed lower-only ungrounded-residue ceiling for the oa projection vocabulary on the tags slice; the gate reds if the slice's measured residue rises above it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/tags> ; gmeow:ceilingVocabulary gmeow:projVocab-oa ; gmeow:ceilingCount 3 .
 
 #################################################################
 # The owned partition of the ISO 19157 quality vocabulary
@@ -2281,11 +2462,13 @@ gmeow:afc-documentation-axisGmn1Coverage a gmeow:AxisFloorCommitment ; rdfs:labe
 
 # --- Per-slice roll-up tier floors (gmeow:SliceTierFloor) ---
 gmeow:afc-logic-axisMaximalGrounding a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — logic / axisMaximalGrounding"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalGrounding quality axis on the logic slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorAxis gmeow:axisMaximalGrounding ; gmeow:floorValue 1.0 .
-gmeow:afc-math-axisMaximalGrounding a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — math / axisMaximalGrounding"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalGrounding quality axis on the math slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisMaximalGrounding ; gmeow:floorValue 0.0 .
+gmeow:afc-math-axisMaximalGrounding a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — math / axisMaximalGrounding"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalGrounding quality axis on the math slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisMaximalGrounding ; gmeow:floorValue 1.0 .
+gmeow:afc-lang-axisMaximalGrounding a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — lang / axisMaximalGrounding"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalGrounding quality axis on the lang slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ; gmeow:floorAxis gmeow:axisMaximalGrounding ; gmeow:floorValue 1.0 .
 gmeow:afc-logic-axisReasonerDerived a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — logic / axisReasonerDerived"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisReasonerDerived quality axis on the logic slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorAxis gmeow:axisReasonerDerived ; gmeow:floorValue 1.0 .
 gmeow:afc-math-axisReasonerDerived a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — math / axisReasonerDerived"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisReasonerDerived quality axis on the math slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisReasonerDerived ; gmeow:floorValue 1.0 .
 gmeow:afc-logic-axisMaximalLinkage a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — logic / axisMaximalLinkage"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalLinkage quality axis on the logic slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorAxis gmeow:axisMaximalLinkage ; gmeow:floorValue 1.0 .
-gmeow:afc-math-axisMaximalLinkage a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — math / axisMaximalLinkage"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalLinkage quality axis on the math slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisMaximalLinkage ; gmeow:floorValue 0.0 .
+gmeow:afc-math-axisMaximalLinkage a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — math / axisMaximalLinkage"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalLinkage quality axis on the math slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisMaximalLinkage ; gmeow:floorValue 1.0 .
+gmeow:afc-lang-axisMaximalLinkage a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — lang / axisMaximalLinkage"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalLinkage quality axis on the lang slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ; gmeow:floorAxis gmeow:axisMaximalLinkage ; gmeow:floorValue 1.0 .
 gmeow:afc-logic-axisMaximalProjection a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — logic / axisMaximalProjection"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalProjection quality axis on the logic slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorAxis gmeow:axisMaximalProjection ; gmeow:floorValue 1.0 .
 gmeow:afc-math-axisMaximalProjection a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — math / axisMaximalProjection"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisMaximalProjection quality axis on the math slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisMaximalProjection ; gmeow:floorValue 1.0 .
 gmeow:afc-logic-axisProvenanceHonesty a gmeow:AxisFloorCommitment ; rdfs:label "axis-floor commitment — logic / axisProvenanceHonesty"@x-gmeow-english ; skos:definition "The committed raise-only measured-score floor for the axisProvenanceHonesty quality axis on the logic slice; the gate reds if the slice's measured score falls below it."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorAxis gmeow:axisProvenanceHonesty ; gmeow:floorValue 1.0 .

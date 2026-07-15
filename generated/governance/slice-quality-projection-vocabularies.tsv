@@ -18,16 +18,22 @@ lexvo	http://lexvo.org/id/,http://lexvo.org/ontology#	countKindTypedAxiom	0	Soun
 mathml	http://www.w3.org/1998/Math/MathML	countKindTypedAxiom	0	SoundUnderApproximation
 mfoem	http://purl.obolibrary.org/obo/MFOEM_	countKindTypedAxiom	0	SoundUnderApproximation
 n3	https://blackcatinformatics.ca/gmeow/projection-surface/n3	countKindNonRdfSurface	0	SoundUnderApproximation
+nif	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#	countKindTypedAxiom	0	SoundUnderApproximation
+oa	http://www.w3.org/ns/oa#	countKindTypedAxiom	0	SoundUnderApproximation
 obcs	http://purl.obolibrary.org/obo/OBCS_	countKindTypedAxiom	0	SoundUnderApproximation
+obi	http://purl.obolibrary.org/obo/OBI_	countKindTypedAxiom	0	SoundUnderApproximation
 om2	http://www.ontology-of-units-of-measure.org/resource/om-2/	countKindTypedAxiom	0	SoundUnderApproximation
 ontolex	http://www.w3.org/ns/lemon/ontolex#	countKindTypedAxiom	0	SoundUnderApproximation
+opencyc	http://sw.opencyc.org/concept/	countKindTypedAxiom	0	SoundUnderApproximation
 openmath	http://www.openmath.org/cd/,https://openmath.org/cd/	countKindTypedAxiom	0	SoundUnderApproximation
 pato	http://purl.obolibrary.org/obo/PATO_	countKindTypedAxiom	0	SoundUnderApproximation
 prolog	https://blackcatinformatics.ca/gmeow/projection-surface/prolog	countKindNonRdfSurface	0	SoundUnderApproximation
+qb	http://purl.org/linked-data/cube#	countKindTypedAxiom	0	SoundUnderApproximation
 qudt	http://qudt.org/schema/qudt/,http://qudt.org/vocab/quantitykind/,http://qudt.org/vocab/unit/	countKindTypedAxiom	0	SoundUnderApproximation
 rdfs	http://www.w3.org/2000/01/rdf-schema#	countKindStructuralAxiom	0	SoundUnderApproximation
 ro	http://purl.obolibrary.org/obo/RO_	countKindTypedAxiom	0	SoundUnderApproximation
 sh	http://www.w3.org/ns/shacl#	countKindShape	0	SoundUnderApproximation
+sio	http://semanticscience.org/resource/SIO_	countKindTypedAxiom	0	SoundUnderApproximation
 so	http://purl.obolibrary.org/obo/SO_	countKindTypedAxiom	0	SoundUnderApproximation
 sssom	https://w3id.org/sssom/	countKindTypedAxiom	0	SoundUnderApproximation
 stato	http://purl.obolibrary.org/obo/STATO_	countKindTypedAxiom	0	SoundUnderApproximation
@@ -35,3 +41,4 @@ sumo	https://www.ontologyportal.org/SUMO.owl#	countKindTypedAxiom	0	SoundUnderAp
 ucum	https://ucum.org/	countKindTypedAxiom	0	SoundUnderApproximation
 ud	http://universaldependencies.org/u/	countKindTypedAxiom	0	SoundUnderApproximation
 wordnet	http://wordnet-rdf.princeton.edu/ontology#,https://globalwordnet.github.io/schemas/wn#	countKindTypedAxiom	0	SoundUnderApproximation
+yamato	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#	countKindTypedAxiom	0	SoundUnderApproximation

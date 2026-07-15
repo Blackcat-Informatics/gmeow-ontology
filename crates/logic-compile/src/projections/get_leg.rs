@@ -78,9 +78,17 @@ pub const PROFILES: &[&str] = &[
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 const GM_PROJECTION_MAPPING: &str = "https://blackcatinformatics.ca/gmeow/ProjectionMapping";
+const LOGIC_GROUNDING_CORRESPONDENCE: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
 const GM_HAS_MAPPING_PATTERN: &str = "https://blackcatinformatics.ca/gmeow/hasMappingPattern";
 const GM_HAS_BINDING: &str = "https://blackcatinformatics.ca/gmeow/hasBinding";
+const GM_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const LOGIC_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
+const LOGIC_MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
+const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+const LOGIC_SOURCE_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
+const LOGIC_TARGET_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
 
 const GM_ANCHOR: &str = "https://blackcatinformatics.ca/gmeow/anchor";
 const GM_VALUE: &str = "https://blackcatinformatics.ca/gmeow/value";
@@ -342,11 +350,26 @@ pub fn relation_lattice(relation: &str) -> (CorrespondenceRelation, MorphismClas
 
 /// A projection mapping: a pattern + its per-profile bindings.
 #[derive(Debug, Clone)]
+pub struct GroundingAuthoring {
+    pub justification: Option<String>,
+    pub morphism_class: Option<String>,
+    pub morphism_kind: Option<String>,
+    pub preservation: Option<String>,
+    pub source_endpoint: Option<String>,
+    pub target_endpoint: Option<String>,
+}
+
+/// A projection mapping: a pattern + its per-profile bindings.
+#[derive(Debug, Clone)]
 pub struct ProjectionCell {
     pub iri: String,
     pub label: String,
     pub pattern: MappingPattern,
     pub bindings: Vec<ProfileBinding>,
+    /// Whether this executable mapping is also an explicitly authored shipped grounding
+    /// correspondence. Grounding projection cells are deliberately restricted to one
+    /// binding so their target endpoint is unambiguous.
+    pub grounding: Option<GroundingAuthoring>,
 }
 
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
@@ -354,6 +377,10 @@ pub struct ProjectionCell {
 /// Parse every `gmeow:ProjectionMapping` into the shared get-leg model.
 pub fn projections(view: &DslView) -> gmeow_errors::Result<Vec<ProjectionCell>> {
     let mut cells = Vec::new();
+    let grounding = view
+        .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
     for cell_iri in view.subjects_of_type(GM_PROJECTION_MAPPING) {
         let Some(pattern_node) = view.first_object(&cell_iri, GM_HAS_MAPPING_PATTERN) else {
             return Err(Diag::of_kind(crate::error::GetLeg {
@@ -374,6 +401,14 @@ pub fn projections(view: &DslView) -> gmeow_errors::Result<Vec<ProjectionCell>> 
             .object_literal(&cell_iri, RDFS_LABEL)
             .unwrap_or_default();
         cells.push(ProjectionCell {
+            grounding: grounding.contains(&cell_iri).then(|| GroundingAuthoring {
+                justification: view.object_iri(&cell_iri, GM_JUSTIFICATION),
+                morphism_class: view.object_iri(&cell_iri, LOGIC_MORPHISM_CLASS),
+                morphism_kind: view.object_iri(&cell_iri, LOGIC_MORPHISM_KIND),
+                preservation: view.object_iri(&cell_iri, LOGIC_PRESERVATION_KIND),
+                source_endpoint: view.object_iri(&cell_iri, LOGIC_SOURCE_ENDPOINT),
+                target_endpoint: view.object_iri(&cell_iri, LOGIC_TARGET_ENDPOINT),
+            }),
             iri: cell_iri,
             label,
             pattern,

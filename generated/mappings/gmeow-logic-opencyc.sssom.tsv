@@ -1,0 +1,19 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/logic-opencyc-20120510
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Bridge views onto permanent OpenCyc identifiers from the 2012-05-10 OWL export. OpenCyc's collection and microtheory commitments remain external and validation-only."
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   logic: https://blackcatinformatics.ca/logic/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:InformationObject	skos:relatedMatch	http://sw.opencyc.org/concept/Mx4rvkNufpwpEbGdrcN5Y29ycA	OpenCyc InformationBearingThing	semapv:ManualMappingCuration	0.7	Information-bearing thing emphasizes the carrier; the kernel term individuates an information object, so only relatedMatch is warranted.
+logic:Collection	skos:closeMatch	http://sw.opencyc.org/concept/Mx4rvViAzJwpEbGdrcN5Y29ycA	OpenCyc Collection	semapv:ManualMappingCuration	0.8	OpenCyc Collection is a type-of-thing/metamodel category, so the shared collection reading does not license equivalence.
+logic:Event	skos:closeMatch	http://sw.opencyc.org/concept/Mx4rvViADZwpEbGdrcN5Y29ycA	OpenCyc Event	semapv:ManualMappingCuration	0.85	
+logic:Individual	skos:closeMatch	http://sw.opencyc.org/concept/Mx4rvVjaApwpEbGdrcN5Y29ycA	OpenCyc Individual	semapv:ManualMappingCuration	0.85	
+logic:Module	skos:relatedMatch	http://sw.opencyc.org/concept/Mx4rvViA1ZwpEbGdrcN5Y29ycA	OpenCyc Microtheory	semapv:ManualMappingCuration	0.7	A microtheory is prior art for context-indexed modules, but its inheritance and truth-context commitments are not the logic:Module semantics.
+logic:Role	skos:closeMatch	http://sw.opencyc.org/concept/Mx4rvViAA5wpEbGdrcN5Y29ycA	OpenCyc Role	semapv:ManualMappingCuration	0.8	

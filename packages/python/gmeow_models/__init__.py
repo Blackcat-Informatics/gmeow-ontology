@@ -432,7 +432,6 @@ __all__ = [
     "Lang_ComposedForm",
     "Lang_Denotation",
     "Lang_FeatureValue",
-    "Lang_FlagshipScenario",
     "Lang_Form",
     "Lang_FormSlot",
     "Lang_GmnImportedPlane",

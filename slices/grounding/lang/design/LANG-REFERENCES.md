@@ -28,6 +28,23 @@ set:
 | **Unicode / UAX #15 / UTS #10** | character identity, scripts, normalization, collation | reference (properties referenced, never re-modeled) | Unicode License v3 |
 | **Wikidata (lexemes + QIDs)** | authority ids for languages, lexemes, senses, concepts | link | CC0 |
 
+### Realized grounding disposition
+
+Every surveyed family has a concrete treatment; absence from the live bridge
+catalog is not a vague deferral.
+
+| Treatment | Families |
+|---|---|
+| Shipped grounding correspondences | OntoLex-Lemon, LexInfo 3.0, Global WordNet schema, NIF Core, and W3C Web Annotation in `mappings/lexical-bridges.ttl`, plus the existing Wikidata/identifier catalog in `mappings/equivalences.ttl` |
+| Identifier or metadata linkage / generated view | LIME, OLiA, ILI, Universal Dependencies, UniMorph, Lexvo, Glottolog, BCP-47, ISO 639, and ISO 15924; use identifiers or inventories without importing them as the `lang:` canon |
+| Codec or annotation projection | CoNLL-U, ISO 24617 SemAF, AMR, TEI, EBNF, ABNF, and GMN; these are serialized or annotation views with explicit loss/round-trip judgments, not fake term equivalences |
+| Citation only | Unicode algorithms, restricted lexical resources, and theory/specification sources whose data cannot or should not be folded |
+| Native authorship | Vantage-bearing denotation, co-resident ambiguity, audited translation, and the unified rendering theory where no adequate external ontology exists |
+
+The live rows are oriented from `lang:` and ship in the meta-level
+`graph/correspondence-laws` graph. Downstream slices consume the `lang:` terms;
+they do not repeat OntoLex, NIF, or other target vocabulary terms.
+
 ## Lexical and sense resources
 
 | Resource | Contributes | Relation | License / posture |

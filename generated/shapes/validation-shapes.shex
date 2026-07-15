@@ -545,13 +545,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/GmnEnvelope> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/GmnEnvelope-shape> {
-  <https://blackcatinformatics.ca/gmeow/accordingTo> NONLITERAL + ;
-  <https://blackcatinformatics.ca/gmeow/contentDigest> NONLITERAL + ;
-  <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/accordingTo> . + ;
+  <https://blackcatinformatics.ca/gmeow/contentDigest> . + ;
+  <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> . + ;
   <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> IRI ;
-  <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> NONLITERAL + ;
-  <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> NONLITERAL + ;
-  <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> . + ;
+  <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> . + ;
+  <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> . + ;
   <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> IRI ;
 }
 

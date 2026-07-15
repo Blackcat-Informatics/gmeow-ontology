@@ -11,6 +11,8 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+lang:Lexeme	skos:closeMatch	ontolex:LexicalEntry		semapv:ManualMappingCuration	0.9	OntoLex LexicalEntry is the exchange-facing peer of the native lexeme construct; their realization commitments differ.
 lang:LexicalConcept	skos:closeMatch	ontolex:LexicalConcept	ontolex:LexicalConcept	semapv:ManualMappingCuration	0.9	lang:LexicalConcept is the synset a set of synonymous senses evoke — the OntoLex ontolex:LexicalConcept peer. closeMatch, not identity.
 lang:Sense	skos:closeMatch	ontolex:LexicalSense	ontolex:LexicalSense	semapv:ManualMappingCuration	0.9	lang:Sense is what an OntoLex ontolex:LexicalSense approximates — a lexical unit's meaning as a reified sense. GMEOW senses attach through lang:senseOf and bottom out in logic:; OntoLex is the lexicon-interchange projection. closeMatch, not identity.
+lang:WordForm	skos:closeMatch	ontolex:Form		semapv:ManualMappingCuration	0.9	OntoLex Form is broader than the word-form specialization, so this is a close bridge rather than identity.
 lang:evokes	skos:closeMatch	ontolex:evokes	ontolex:evokes	semapv:ManualMappingCuration	0.9	lang:evokes relates a sense to the lexical concept it evokes — the OntoLex ontolex:evokes peer. closeMatch.

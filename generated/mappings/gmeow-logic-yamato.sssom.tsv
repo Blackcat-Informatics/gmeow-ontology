@@ -1,0 +1,19 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/logic-yamato-20210808
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Version-pinned bridge views onto the YAMATO 2021-08-08 OWL export. Its process/event and role commitments remain distinct, so no identity-strength axiom is emitted."
+# curie_map:
+#   logic: https://blackcatinformatics.ca/logic/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+logic:Endurant	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#independent_entity	semapv:ManualMappingCuration	0.75	YAMATO independent_entity is the nearest endurant-facing bridge but carries a role-participation commitment absent from the source category.
+logic:Event	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#event	semapv:ManualMappingCuration	0.85	YAMATO distinguishes event from stative process; the bridge preserves that distinction rather than collapsing both to one identity.
+logic:Individual	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#particular	semapv:ManualMappingCuration	0.85	
+logic:Object	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#object	semapv:ManualMappingCuration	0.8	
+logic:Process	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#process	semapv:ManualMappingCuration	0.85	YAMATO process is stative and therefore a commitment-shifting view, not an equivalent class.
+logic:Quality	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#quality	semapv:ManualMappingCuration	0.85	
+logic:Role	skos:closeMatch	http://www.hozo.jp/owl/YAMATO20210808.miz.owl#role	semapv:ManualMappingCuration	0.8	YAMATO separates role concepts and holders through its Hozo role model; this row names only the nearest role-class bridge.

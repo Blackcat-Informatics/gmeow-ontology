@@ -17215,6 +17215,12 @@ enums:
       afc-lang-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisGmn1Coverage
         title: axis-floor commitment — lang / axisGmn1Coverage
+      afc-lang-axisMaximalGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisMaximalGrounding
+        title: axis-floor commitment — lang / axisMaximalGrounding
+      afc-lang-axisMaximalLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisMaximalLinkage
+        title: axis-floor commitment — lang / axisMaximalLinkage
       afc-lang-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisProseQuality
         title: axis-floor commitment — lang / axisProseQuality
@@ -23743,6 +23749,9 @@ enums:
       pcc-affect-mfoem:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-mfoem
         title: projection-ceiling commitment — affect / mfoem
+      pcc-affect-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-oa
+        title: projection-ceiling commitment — affect / oa
       pcc-affect-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-rdfs
         title: projection-ceiling commitment — affect / rdfs
@@ -23752,18 +23761,27 @@ enums:
       pcc-agentic-sh:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-agentic-sh
         title: projection-ceiling commitment — agentic / sh
+      pcc-aggregation-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-aggregation-qb
+        title: projection-ceiling commitment — aggregation / qb
       pcc-aggregation-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-aggregation-rdfs
         title: projection-ceiling commitment — aggregation / rdfs
       pcc-agreements-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-agreements-rdfs
         title: projection-ceiling commitment — agreements / rdfs
+      pcc-ai-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-oa
+        title: projection-ceiling commitment — ai / oa
       pcc-ai-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-rdfs
         title: projection-ceiling commitment — ai / rdfs
       pcc-ai-sh:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-sh
         title: projection-ceiling commitment — ai / sh
+      pcc-archaeological-evidence-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-archaeological-evidence-oa
+        title: projection-ceiling commitment — archaeological-evidence / oa
       pcc-archaeological-evidence-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-archaeological-evidence-rdfs
         title: projection-ceiling commitment — archaeological-evidence / rdfs
@@ -23776,6 +23794,9 @@ enums:
       pcc-calendar-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-calendar-rdfs
         title: projection-ceiling commitment — calendar / rdfs
+      pcc-citations-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-citations-oa
+        title: projection-ceiling commitment — citations / oa
       pcc-citations-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-citations-rdfs
         title: projection-ceiling commitment — citations / rdfs
@@ -23878,6 +23899,9 @@ enums:
       pcc-guides-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-guides-rdfs
         title: projection-ceiling commitment — guides / rdfs
+      pcc-images-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-images-oa
+        title: projection-ceiling commitment — images / oa
       pcc-images-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-images-rdfs
         title: projection-ceiling commitment — images / rdfs
@@ -23947,9 +23971,15 @@ enums:
       pcc-mappings-fno:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-fno
         title: projection-ceiling commitment — mappings / fno
+      pcc-mappings-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-oa
+        title: projection-ceiling commitment — mappings / oa
       pcc-mappings-ontolex:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-ontolex
         title: projection-ceiling commitment — mappings / ontolex
+      pcc-mappings-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-qb
+        title: projection-ceiling commitment — mappings / qb
       pcc-math-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-math-rdfs
         title: projection-ceiling commitment — math / rdfs
@@ -23998,12 +24028,24 @@ enums:
       pcc-notation-sh:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-sh
         title: projection-ceiling commitment — notation / sh
+      pcc-notes-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notes-oa
+        title: projection-ceiling commitment — notes / oa
       pcc-notes-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-notes-rdfs
         title: projection-ceiling commitment — notes / rdfs
+      pcc-observations-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-oa
+        title: projection-ceiling commitment — observations / oa
+      pcc-observations-obi:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-obi
+        title: projection-ceiling commitment — observations / obi
       pcc-observations-pato:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-pato
         title: projection-ceiling commitment — observations / pato
+      pcc-observations-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-qb
+        title: projection-ceiling commitment — observations / qb
       pcc-observations-qudt:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-qudt
         title: projection-ceiling commitment — observations / qudt
@@ -24031,6 +24073,9 @@ enums:
       pcc-places-so:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-places-so
         title: projection-ceiling commitment — places / so
+      pcc-procedures-obi:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-procedures-obi
+        title: projection-ceiling commitment — procedures / obi
       pcc-procedures-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-procedures-rdfs
         title: projection-ceiling commitment — procedures / rdfs
@@ -24040,6 +24085,9 @@ enums:
       pcc-provenance-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-provenance-rdfs
         title: projection-ceiling commitment — provenance / rdfs
+      pcc-quality-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-quality-oa
+        title: projection-ceiling commitment — quality / oa
       pcc-quality-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-quality-rdfs
         title: projection-ceiling commitment — quality / rdfs
@@ -24079,12 +24127,18 @@ enums:
       pcc-standpoint-iao:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-iao
         title: projection-ceiling commitment — standpoint / iao
+      pcc-standpoint-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-oa
+        title: projection-ceiling commitment — standpoint / oa
       pcc-standpoint-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-rdfs
         title: projection-ceiling commitment — standpoint / rdfs
       pcc-standpoint-sh:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-sh
         title: projection-ceiling commitment — standpoint / sh
+      pcc-tags-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-tags-oa
+        title: projection-ceiling commitment — tags / oa
       pcc-tags-rdfs:
         meaning: https://blackcatinformatics.ca/gmeow/pcc-tags-rdfs
         title: projection-ceiling commitment — tags / rdfs
@@ -24220,15 +24274,27 @@ enums:
       projVocab-n3:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-n3
         title: projection vocabulary — Notation3 (documentary-only)
+      projVocab-nif:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-nif
+        title: projection vocabulary — NLP Interchange Format
+      projVocab-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-oa
+        title: projection vocabulary — W3C Web Annotation
       projVocab-obcs:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-obcs
         title: projection vocabulary — OBO Biological/Clinical Statistics (OBCS)
+      projVocab-obi:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-obi
+        title: projection vocabulary — Ontology for Biomedical Investigations
       projVocab-om2:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-om2
         title: projection vocabulary — OM-2 (Ontology of units of Measure)
       projVocab-ontolex:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-ontolex
         title: projection vocabulary — OntoLex-Lemon
+      projVocab-opencyc:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-opencyc
+        title: projection vocabulary — OpenCyc permanent identifiers
       projVocab-openmath:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-openmath
         title: projection vocabulary — OpenMath
@@ -24238,6 +24304,9 @@ enums:
       projVocab-prolog:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-prolog
         title: projection vocabulary — Prolog (documentary-only)
+      projVocab-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-qb
+        title: projection vocabulary — RDF Data Cube
       projVocab-qudt:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-qudt
         title: projection vocabulary — QUDT
@@ -24250,6 +24319,9 @@ enums:
       projVocab-sh:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-sh
         title: projection vocabulary — SHACL (sh)
+      projVocab-sio:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sio
+        title: projection vocabulary — Semanticscience Integrated Ontology
       projVocab-so:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-so
         title: projection vocabulary — OBO Sequence Ontology (SO)
@@ -24271,6 +24343,9 @@ enums:
       projVocab-wordnet:
         meaning: https://blackcatinformatics.ca/gmeow/projVocab-wordnet
         title: projection vocabulary — WordNet
+      projVocab-yamato:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-yamato
+        title: projection vocabulary — YAMATO 2021-08-08
   PromptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PromptRole
     permissible_values:

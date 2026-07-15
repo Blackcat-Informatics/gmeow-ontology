@@ -11171,29 +11171,9 @@
           },
           "gmeow:accordingTo": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -11201,29 +11181,9 @@
           },
           "gmeow:contentDigest": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -11231,29 +11191,9 @@
           },
           "gmeow:gmnDictionaryVersion": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -11261,60 +11201,18 @@
           },
           "gmeow:gmnEnvelopeCorrespondence": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "gmeow:gmnGlyphTableVersion": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -11322,29 +11220,9 @@
           },
           "gmeow:gmnSchemaVersion": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -11352,72 +11230,18 @@
           },
           "gmeow:gmnSecurityRing": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/GmnSecurityRing"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/GmnSecurityRing"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "gmeow:wasGeneratedBy": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -26685,31 +26509,6 @@
             },
             "then": {
               "$ref": "#/$defs/lang:FeatureValue"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "lang:FlagshipScenario"
-                    },
-                    {
-                      "contains": {
-                        "const": "lang:FlagshipScenario"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/lang:FlagshipScenario"
             }
           },
           {
@@ -42332,31 +42131,6 @@
         "type": "object"
       },
       "lang:FeatureValue": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "type": "object"
-      },
-      "lang:FlagshipScenario": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {

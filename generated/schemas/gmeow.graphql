@@ -610,6 +610,8 @@ enum AxisFloorCommitmentEnum {
   afc_lang_axisDocMaturity
   afc_lang_axisDocumentation
   afc_lang_axisGmn1Coverage
+  afc_lang_axisMaximalGrounding
+  afc_lang_axisMaximalLinkage
   afc_lang_axisProseQuality
   afc_lang_axisShapeMigration
   afc_lang_axisTranslationCoverage
@@ -3222,17 +3224,22 @@ enum ProjectionCeilingCommitmentEnum {
   pcc_accessibility_rdfs
   pcc_accounts_rdfs
   pcc_affect_mfoem
+  pcc_affect_oa
   pcc_affect_rdfs
   pcc_agentic_rdfs
   pcc_agentic_sh
+  pcc_aggregation_qb
   pcc_aggregation_rdfs
   pcc_agreements_rdfs
+  pcc_ai_oa
   pcc_ai_rdfs
   pcc_ai_sh
+  pcc_archaeological_evidence_oa
   pcc_archaeological_evidence_rdfs
   pcc_attestation_rdfs
   pcc_awareness_rdfs
   pcc_calendar_rdfs
+  pcc_citations_oa
   pcc_citations_rdfs
   pcc_cognition_rdfs
   pcc_cognition_sumo
@@ -3267,6 +3274,7 @@ enum ProjectionCeilingCommitmentEnum {
   pcc_gts_rdfs
   pcc_gts_sh
   pcc_guides_rdfs
+  pcc_images_oa
   pcc_images_rdfs
   pcc_imagination_rdfs
   pcc_inference_rdfs
@@ -3290,7 +3298,9 @@ enum ProjectionCeilingCommitmentEnum {
   pcc_lifecycle_rdfs
   pcc_logic_rdfs
   pcc_mappings_fno
+  pcc_mappings_oa
   pcc_mappings_ontolex
+  pcc_mappings_qb
   pcc_math_rdfs
   pcc_mentation_bfo
   pcc_mentation_rdfs
@@ -3307,8 +3317,12 @@ enum ProjectionCeilingCommitmentEnum {
   pcc_notation_fno
   pcc_notation_rdfs
   pcc_notation_sh
+  pcc_notes_oa
   pcc_notes_rdfs
+  pcc_observations_oa
+  pcc_observations_obi
   pcc_observations_pato
+  pcc_observations_qb
   pcc_observations_qudt
   pcc_observations_rdfs
   pcc_organization_rdfs
@@ -3318,9 +3332,11 @@ enum ProjectionCeilingCommitmentEnum {
   pcc_places_qudt
   pcc_places_rdfs
   pcc_places_so
+  pcc_procedures_obi
   pcc_procedures_rdfs
   pcc_profiles_rdfs
   pcc_provenance_rdfs
+  pcc_quality_oa
   pcc_quality_rdfs
   pcc_rights_rdfs
   pcc_rights_sh
@@ -3334,8 +3350,10 @@ enum ProjectionCeilingCommitmentEnum {
   pcc_standpoint_dul
   pcc_standpoint_fno
   pcc_standpoint_iao
+  pcc_standpoint_oa
   pcc_standpoint_rdfs
   pcc_standpoint_sh
+  pcc_tags_oa
   pcc_tags_rdfs
   pcc_teleology_rdfs
   pcc_temporal_qudt
@@ -3387,16 +3405,22 @@ enum ProjectionVocabularyEnum {
   projVocab_mathml
   projVocab_mfoem
   projVocab_n3
+  projVocab_nif
+  projVocab_oa
   projVocab_obcs
+  projVocab_obi
   projVocab_om2
   projVocab_ontolex
+  projVocab_opencyc
   projVocab_openmath
   projVocab_pato
   projVocab_prolog
+  projVocab_qb
   projVocab_qudt
   projVocab_rdfs
   projVocab_ro
   projVocab_sh
+  projVocab_sio
   projVocab_so
   projVocab_sssom
   projVocab_stato
@@ -3404,6 +3428,7 @@ enum ProjectionVocabularyEnum {
   projVocab_ucum
   projVocab_ud
   projVocab_wordnet
+  projVocab_yamato
 }
 
 enum PromptRoleEnum {

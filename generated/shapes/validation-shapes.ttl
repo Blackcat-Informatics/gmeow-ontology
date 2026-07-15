@@ -508,20 +508,22 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/processRuleText> ; sh:minCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/GmnCompaction-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/GmnCompactionWithoutProvenance> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/GmnCompaction> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnCompacts> ; sh:minCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/GmnEnvelope-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/GmnMissingEnvelopeField> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/GmnEnvelope> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/accordingTo> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ; sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> ; sh:class <https://blackcatinformatics.ca/logic/Correspondence> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/Correspondence> ] ; sh:qualifiedMinCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/accordingTo> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] ; sh:qualifiedMinCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/Correspondence> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/GrooveProfile-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/GrooveProfile> ;
@@ -4510,6 +4512,7 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/what3words> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/Denotation-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnderspecifiedDenotation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/lang/Form> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/lang/Sense> ] ;
@@ -4519,16 +4522,19 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/denotationContext> ; sh:minCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/Form-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnsituatedForm> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Form> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/lang/Sense> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/lang/Denotation> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/inSignSystem> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/SignSystem> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/SignSystem> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/FormSlot-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/NonContiguousSlots> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/FormSlot> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/slotIndex> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
 
 <https://blackcatinformatics.ca/lang/GmnImportedPlane-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/GmnUnattributedPlane> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/GmnImportedPlane> ;
     sh:property [ sh:path <http://purl.org/dc/terms/hasVersion> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/cites> ; sh:minCount 1 ] .
@@ -4538,24 +4544,29 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/inScript> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/Script> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/Script> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/InterpretationAct-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/ActObservationConflation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/InterpretationAct> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
 
 <https://blackcatinformatics.ca/lang/MorphFeature-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UntypedMorphology> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/MorphFeature> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/featureKey> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/FeatureKey> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/FeatureKey> ] ; sh:qualifiedMinCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/featureValue> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/FeatureValue> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/Paraphrase-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UndeclaredParaphraseKind> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Paraphrase> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/paraphraseSamenessKind> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/ParaphraseSamenessKind> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/ParaphraseSamenessKind> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/ProjectionEmission-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/MissingPreservationKind> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/ProjectionEmission> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/preservationKind> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/projectionTargetName> ; sh:minCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/Rendering-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnderspecifiedRendering> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Rendering> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/renderingKind> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/RenderingKind> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/RenderingKind> ] ; sh:qualifiedMinCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/renderedContent> ; sh:minCount 1 ] ;
@@ -4568,6 +4579,7 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/lang/Denotation> ] .
 
 <https://blackcatinformatics.ca/lang/SurfaceAnchor-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnanchoredOffset> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/SurfaceAnchor> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/anchorEnd> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/anchorStart> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ;
@@ -4575,6 +4587,7 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/anchorSource> ; sh:minCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/SurfaceForm-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnhashableSurface> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/SurfaceForm> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/inScript> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/Script> ] ; sh:qualifiedMinCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/analysisLevel> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/AnalysisLevel> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/AnalysisLevel> ] ; sh:qualifiedMinCount 1 ] ;
@@ -4582,6 +4595,7 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/unicodeNormalization> ; sh:minCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/TranslationUnit-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnderspecifiedTranslationUnit> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/translationMethod> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/lang/TranslationMethod> ] ; sh:qualifiedMinCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/translationSource> ; sh:minCount 1 ] ;
@@ -4589,6 +4603,7 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/translationCorrespondence> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/Correspondence> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/Correspondence> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/lang/TransliterationMap-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnanchoredTransliteration> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TransliterationMap> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/transliterationScheme> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/transliterationSourceOrthography> ; sh:minCount 1 ] ;

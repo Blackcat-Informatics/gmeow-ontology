@@ -1,0 +1,17 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/lang-web-annotation
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Text-position anchor bridges onto the W3C Web Annotation vocabulary."
+# curie_map:
+#   lang: https://blackcatinformatics.ca/lang/
+#   oa: http://www.w3.org/ns/oa#
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+lang:SurfaceAnchor	skos:closeMatch	oa:TextPositionSelector	semapv:ManualMappingCuration	0.85	The selector is an exchange representation of the native anchor; source attachment is modeled at a different node in Web Annotation.
+lang:anchorEnd	skos:closeMatch	oa:end	semapv:ManualMappingCuration	0.9	
+lang:anchorSource	skos:relatedMatch	oa:hasSource	semapv:ManualMappingCuration	0.7	Web Annotation places hasSource on the SpecificResource rather than directly on the TextPositionSelector, so this is relatedMatch only.
+lang:anchorStart	skos:closeMatch	oa:start	semapv:ManualMappingCuration	0.9	

@@ -1,0 +1,18 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/lang-nif
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Offset-anchor and surface-string bridges onto NIF Core."
+# curie_map:
+#   lang: https://blackcatinformatics.ca/lang/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+lang:SurfaceAnchor	skos:closeMatch	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#OffsetBasedString	semapv:ManualMappingCuration	0.85	A native anchor can be projected as a NIF offset-based string, subject to the selected offset unit and source text.
+lang:SurfaceForm	skos:closeMatch	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#String	semapv:ManualMappingCuration	0.8	
+lang:anchorEnd	skos:closeMatch	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#endIndex	semapv:ManualMappingCuration	0.9	
+lang:anchorSource	skos:closeMatch	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#referenceContext	semapv:ManualMappingCuration	0.85	
+lang:anchorStart	skos:closeMatch	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#beginIndex	semapv:ManualMappingCuration	0.9	
+lang:surfaceText	skos:closeMatch	http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#anchorOf	semapv:ManualMappingCuration	0.9	

@@ -1007,6 +1007,7 @@ mod tests {
                 sssom_predicate: None,
                 sssom_file: None,
             }],
+            grounding: None,
         };
         let tag_map = BTreeMap::new();
         // The materialized correspondence for this binding: the relation `=` lattices to
@@ -1098,6 +1099,7 @@ mod tests {
                 sssom_predicate: None,
                 sssom_file: None,
             }],
+            grounding: None,
         }
     }
 
@@ -1345,6 +1347,7 @@ mod tests {
                 sssom_predicate: None,
                 sssom_file: None,
             }],
+            grounding: None,
         };
         (cell, onto_ds)
     }

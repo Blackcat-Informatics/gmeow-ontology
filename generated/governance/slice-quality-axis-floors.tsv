@@ -265,6 +265,8 @@ https://blackcatinformatics.ca/gmeow/slices/kernel	axisTranslationCoverage	0.333
 https://blackcatinformatics.ca/gmeow/slices/lang	axisDocMaturity	0.6667
 https://blackcatinformatics.ca/gmeow/slices/lang	axisDocumentation	1.0
 https://blackcatinformatics.ca/gmeow/slices/lang	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/lang	axisMaximalGrounding	1.0
+https://blackcatinformatics.ca/gmeow/slices/lang	axisMaximalLinkage	1.0
 https://blackcatinformatics.ca/gmeow/slices/lang	axisProseQuality	0.5935251798561151
 https://blackcatinformatics.ca/gmeow/slices/lang	axisShapeMigration	0.0
 https://blackcatinformatics.ca/gmeow/slices/lang	axisTranslationCoverage	0.3333333333333333
@@ -316,9 +318,9 @@ https://blackcatinformatics.ca/gmeow/slices/math	axisDocMaturity	0.75
 https://blackcatinformatics.ca/gmeow/slices/math	axisDocumentation	1.0
 https://blackcatinformatics.ca/gmeow/slices/math	axisFlagshipCounterExampleDepth	0.0
 https://blackcatinformatics.ca/gmeow/slices/math	axisGmn1Coverage	1.0
-https://blackcatinformatics.ca/gmeow/slices/math	axisMaximalGrounding	0.0
+https://blackcatinformatics.ca/gmeow/slices/math	axisMaximalGrounding	1.0
 https://blackcatinformatics.ca/gmeow/slices/math	axisMaximalInformation	0.5994141971054445
-https://blackcatinformatics.ca/gmeow/slices/math	axisMaximalLinkage	0.0
+https://blackcatinformatics.ca/gmeow/slices/math	axisMaximalLinkage	1.0
 https://blackcatinformatics.ca/gmeow/slices/math	axisMaximalProjection	1.0
 https://blackcatinformatics.ca/gmeow/slices/math	axisOptimalTesting	0.728287841191067
 https://blackcatinformatics.ca/gmeow/slices/math	axisProseQuality	0.5775
