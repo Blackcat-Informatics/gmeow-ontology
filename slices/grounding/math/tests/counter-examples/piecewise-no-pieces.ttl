@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the piecewise gate: a math:PiecewiseFunction that declares its
+# math:domain and math:codomain (so the inherited function frame is satisfied and does
+# NOT fire) but names NO math:hasPiece (sh:minCount 1). A piecewise function is defined
+# BY its pieces; one with none says nothing about what it computes and is ill-formed.
+# Every other role is present, so ONLY the missing-piece violation fires. Validation
+# MUST emit shacl.MinCountConstraintComponent and NO other finding
+# (math:UnderspecifiedPiecewiseFunction). Bound by ex:ecPiecewiseNoPieces.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:emptyPiecewise a math:PiecewiseFunction ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers .

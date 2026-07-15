@@ -321,6 +321,14 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // Blob-free (a pure structural judgment), folded exactly like the docs-format corpus.
     crate::stages::governance_floors::fold_governance_floors_loss(&mut ledger, &mut loss);
 
+    // Projection-ceilings projection loss (P17): the two projection-vocabulary ratchet
+    // TSVs are a sound under-approximation of the ontology-resident
+    // gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary individuals — every
+    // emitted row is entailed, and the dropped reifier identity + annotation coat are
+    // recorded as residue, never silently dropped. Blob-free, folded exactly like the
+    // governance-floors corpus.
+    crate::stages::projection_ceilings::fold_projection_ceilings_loss(&mut ledger, &mut loss);
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (template-coded;
     // no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {
@@ -451,7 +459,7 @@ fn discharge_correspondence_laws(
         }
         let mut merged = corr.law_claims.clone();
         merged.extend(claims);
-        let law_bearing = Correspondence::new(
+        let mut law_bearing = Correspondence::new(
             corr.iri.clone(),
             corr.relation,
             corr.morphism_class,
@@ -470,6 +478,19 @@ fn discharge_correspondence_laws(
             corr.preservation,
         )
         .map_err(|e| stage_err(format!("law-bearing correspondence <{}>: {e}", corr.iri)))?;
+        if let (Some(source), Some(target)) = (&corr.source_endpoint, &corr.target_endpoint) {
+            law_bearing = law_bearing
+                .with_endpoints(source.clone(), target.clone())
+                .map_err(|e| {
+                    stage_err(format!(
+                        "law-bearing correspondence <{}> endpoints: {e}",
+                        corr.iri
+                    ))
+                })?;
+        }
+        if corr.grounding {
+            law_bearing = law_bearing.as_grounding();
+        }
         rebuilt.push(law_bearing);
     }
 
@@ -973,11 +994,11 @@ impl Stage for MappingsStage {
         )?;
         // graph/alignments — the SSSOM alignment axioms (one triple per data row, CURIEs
         // expanded), built from THIS run's freshly-compiled `generated/mappings/*.sssom.tsv`
-        // product artifacts and carried as a named graph so the presenter and the reasoning
-        // EDB read it via `producer_graph` (PIPELINE_SPINE §4) instead of source-load
-        // re-reading the stale committed SSSOM off disk (the stale-disk-fold class).
-        // `gts_compose` folds only the default graph, so this named graph never pollutes
-        // the composed EDB (identical to the projection-ledger graph's treatment).
+        // product artifacts and carried as a named graph so the presenter reads it via
+        // `producer_graph` (PIPELINE_SPINE §4) instead of source-load re-reading the stale
+        // committed SSSOM off disk (the stale-disk-fold class). It stays OUT of the
+        // reasoned EDB: SSSOM is a generated view of meta-level correspondence, not an
+        // object-level axiom source.
         let alignments_graph = crate::stages::carrier::parse_into_graph(
             &crate::stages::carrier::alignment_nquads_from_artifacts(&artifacts)?,
             "application/n-quads",

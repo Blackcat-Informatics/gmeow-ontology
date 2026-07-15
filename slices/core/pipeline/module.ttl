@@ -390,28 +390,27 @@ gmeow:stageExecutorCapability
 # Gathered on the plan through logic:planFlowEdge.                             #
 # =========================================================================== #
 
-# stage-reason reads ONLY the logic / relational-core / correspondence named graphs
-# of stage-compile-logic's product (the object-level EDB), never its diagnostics or
-# the eight projection serializations — so a change to those alone skips the
-# (expensive) reasoner.
+# stage-reason reads ONLY the logic / relational-core named graphs of
+# stage-compile-logic's product (the object-level EDB), never its meta-level
+# correspondence graph, diagnostics, or projection serializations — so a change to
+# those alone skips the (expensive) reasoner.
 gmeow:pipeline-dataflow-reason-compile-logic
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: compile-logic → reason"@x-gmeow-english ;
-    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-reason: the reasoner reads only the logic, relational-core, and correspondence named graphs of the compile-logic product. Records the artifact-level dependency so the reasoner's cache key folds those three graphs' digests rather than the whole compile-logic product."@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-reason: the reasoner reads only the logic and relational-core named graphs of the compile-logic product. The shipped correspondence graph is a meta-formula envelope and stays outside object-level closure. Records the artifact-level dependency so the reasoner's cache key folds those two graphs' digests rather than the whole compile-logic product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-compile-logic ;
     gmeow:buildFlowTo gmeow:stage-reason ;
     gmeow:flowEntity
-        <https://blackcatinformatics.ca/gmeow/graph/correspondence> ,
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
 # stage-validate reads the validation-shape byte artifacts of stage-compile-logic's
 # product (generated/shapes/validation-shapes.ttl + procedural-constraints.ttl —
-# fresh union members, never a stale disk read). The edge is narrowed to the SAME
-# object-level graphs as the reasoner's: the program-level digest standing in for
-# those projected artifacts, which keeps the validator's graph/diagnostics
+# fresh union members, never a stale disk read). The edge is narrowed to the complete
+# compiled carrier graph set: the program-level digest standing in for those projected
+# artifacts, which keeps the validator's graph/diagnostics
 # attachment a genuine delta (the compile-logic product carries a graph of the same
 # name); the OPT constraint sources are declared as the validator's raw input files
 # for byte-level cache soundness.
@@ -419,7 +418,7 @@ gmeow:pipeline-dataflow-validate-compile-logic
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: compile-logic → validate"@x-gmeow-english ;
-    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-validate: the validator reads the compile-logic product's projected validation-shape byte artifacts (the fresh generated/shapes union members), keyed by the same object-level logic, relational-core, and correspondence named graphs the reasoner's edge names — the program-level digest those projections are functions of. The narrowing keeps the validator's graph/diagnostics attachment a genuine delta over its inputs."@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-validate: the validator reads the compile-logic product's projected validation-shape byte artifacts (the fresh generated/shapes union members), keyed by the complete logic, relational-core, and correspondence carrier graph set — the program-level digest those projections are functions of. The narrowing keeps the validator's graph/diagnostics attachment a genuine delta over its inputs while validation still covers the meta-level correspondence program."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-compile-logic ;
     gmeow:buildFlowTo gmeow:stage-validate ;
@@ -486,6 +485,7 @@ gmeow:pipeline-build
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
+        gmeow:stage-export-projection-ceilings ,
         gmeow:stage-export-result-shapes ,
         gmeow:stage-validate-result-shape-composition ,
         gmeow:stage-export-json-schema ,
@@ -570,14 +570,13 @@ gmeow:stage-reason
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reason"@x-gmeow-english ;
-    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The run's content-addressed native contract is always projected as a gmeow:Finding into graph/diagnostics and the diagnostics:nodes cache lane, keeping that declared attachment total even when the EDB contains no existential obligation; every production existential program's world-scoped termination certificate joins it from the same reasoning run. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
+    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (authored ontology + imports + statements + logic/relational-core, in the bundle's graph layout but WITHOUT mapping, correspondence, or report graphs). Mapping and correspondence are shipped meta-level ontology content, not object-level axiom sources. The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The run's content-addressed native contract is always projected as a gmeow:Finding into graph/diagnostics and the diagnostics:nodes cache lane, keeping that declared attachment total even when the EDB contains no existential obligation; every production existential program's world-scoped termination certificate joins it from the same reasoning run. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
-        gmeow:stage-mappings ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ;
     gmeow:producesFormat "rdf12-turtle" ;
@@ -843,6 +842,17 @@ gmeow:stage-export-governance-floors
     gmeow:stageImpl "governance_floors" ;
     gmeow:producesFormat "governance-floors-tsv" .
 
+gmeow:stage-export-projection-ceilings
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: projection ceilings"@x-gmeow-english ;
+    skos:definition "Project the ontology-resident projection-vocabulary ratchet (gmeow:ProjectionCeilingCommitment per committed (slice, vocabulary) ungrounded-residue ceiling, gmeow:ProjectionVocabulary per guarded logic:-subsumable projection surface) to their two lossy TSVs under generated/governance/ — the P4/P17 projection of the ceiling ratchet otherwise hand-authored as governance/*.tsv. The ontology is canonical; a human LOWERS a ceiling by editing the commitment individual, never the generated TSV."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "projection_ceilings" ;
+    gmeow:producesFormat "projection-ceilings-tsv" .
+
 gmeow:stage-export-result-shapes
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -1010,6 +1020,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-result-shapes ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
+        gmeow:stage-export-projection-ceilings ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,

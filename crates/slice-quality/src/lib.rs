@@ -14,6 +14,7 @@
 //! ([`lattice`]). This crate is bound by both the dev CLI and the pipeline MCP.
 
 pub mod axes;
+pub mod counting;
 pub mod doc_maturity;
 pub mod error;
 pub mod gate;
@@ -34,8 +35,9 @@ use purrdf::RdfDataset;
 use rayon::prelude::*;
 
 pub use model::{
-    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, GovernanceFloors,
-    MeasurementStandard, Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, ContextScope, CountKind, Exemption, GovernanceFloors,
+    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
+    SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
 pub use score::ScoringEnv;
 
@@ -117,6 +119,40 @@ fn repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
 /// incomplete (the same hard-fail conditions as loading the whole rubric).
 pub fn load_repo_floors(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloors> {
     Ok(repo_rubric(repo_root)?.floors)
+}
+
+/// Load the governance data the PROJECTION-VOCABULARY RATCHET reads — the guarded
+/// [`GovernanceFloors::vocabularies`] registry and the committed
+/// [`GovernanceFloors::ceilings`] — from the canonical rubric slice under `repo_root`.
+/// This is the ceiling ratchet's counterpart to [`load_repo_floors`]; both project the
+/// same segregated [`GovernanceFloors`] the gate reads, named for their consumer so a
+/// call site declares which half of the ratchet it drives. Scoring never reads these.
+///
+/// # Errors
+/// Returns a message if the rubric module cannot be read or is structurally
+/// incomplete (the same hard-fail conditions as loading the whole rubric).
+pub fn load_repo_ceilings(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloors> {
+    Ok(repo_rubric(repo_root)?.floors)
+}
+
+/// Load the projection-vocabulary ratchet's COMMITTED governance — the guarded
+/// registry and the committed ceilings — straight from a shipped `gmeow.gts` bundle,
+/// reusing the exact same [`rubric::load_rubric`] the repo path uses. This is the
+/// shippable-`gmeow`-CLI counterpart to [`load_repo_ceilings`]: it surfaces the
+/// resident `gmeow:ProjectionCeilingCommitment` / `gmeow:ProjectionVocabulary`
+/// individuals (the commitments — never the live measured residue, which needs a repo
+/// checkout to scan) from the bundle, dogfooding Principle 17 from the deliverable.
+///
+/// # Errors
+/// HARD FAILS on a corrupt bundle that cannot be flattened, or a structurally
+/// incomplete rubric — the shipped inputs are required, never papered over.
+pub fn ceilings_from_gts(bundle_gts: &[u8]) -> gmeow_errors::Result<GovernanceFloors> {
+    let ds = purrdf::gts::flattened_dataset_from_bytes(bundle_gts).map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("cannot flatten gmeow.gts bundle: {e}"),
+        })
+    })?;
+    Ok(rubric::load_rubric(&ds)?.floors)
 }
 
 /// Load ONLY the floor-free measurement standard (tier ladder + axes) from the
@@ -331,6 +367,173 @@ fn score_slices_with_rubric_timed(
 /// slice cannot be scored.
 pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
     Ok(assessment_artifacts(repo_root)?.nquads)
+}
+
+// -----------------------------------------------------------------------------
+// The projection-vocabulary ratchet's shared residue-measurement helpers.
+// -----------------------------------------------------------------------------
+
+/// The ratchet-counted AUTHORING surface for one slice — the exact `.ttl` set
+/// [`counting::residue`] measures a slice's guarded projection-vocabulary constructs
+/// over: `module.ttl`, `shapes.ttl`, and every existing `mappings/*.ttl`, sorted.
+///
+/// This is DELIBERATELY NARROWER than [`report::slice_ttl_paths`] (which also walks
+/// `examples/` and `tests/`): a demonstrator under `examples/` or a fixture under
+/// `tests/` is not a second source of truth for hand-authored projection constructs
+/// (the same "projection universe excludes conformance fixtures" doctrine the slice
+/// producers already honor) — it is authored TO demonstrate or exercise a construct,
+/// not TO author a new one. Counting them would let editing a fixture silently move
+/// the ratchet (either inflating a slice's committed residue with non-authoring
+/// artifacts, or letting a fixture's removal shrink a ceiling nobody actually paid
+/// down), so only the slice's real authoring surface is scanned.
+#[must_use]
+pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
+    let mut paths = vec![slice_dir.join("module.ttl"), slice_dir.join("shapes.ttl")];
+    // RECURSIVE over the whole mappings/ subtree, not just its immediate children —
+    // the base-side scanner (`is_ratchet_surface`) already matches any `/mappings/`
+    // path at any depth, so the working-tree scanner must too or the two diverge on a
+    // nested mapping file (correction: one recursive scanner for base and working).
+    collect_ttls_recursive(&slice_dir.join("mappings"), &mut paths);
+    paths.retain(|p| p.is_file());
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+/// The repo-level DSL mapping surface IRI a `dsl/mappings/` residue is attributed to
+/// — a non-slice authoring surface (the hand-authored FnO carve-out
+/// `dsl/mappings/transforms.fno.ttl` lives here) that the ratchet still guards.
+pub const DSL_MAPPING_SURFACE_IRI: &str = "https://blackcatinformatics.ca/gmeow/dsl/mappings";
+
+/// The repo-level `dsl/mappings/` authoring surface — every `.ttl` under it, sorted.
+/// Scanned once (attributed to [`DSL_MAPPING_SURFACE_IRI`]), because it is a real
+/// hand-authored projection surface (`transforms.fno.ttl`, the FnO carve-out) that
+/// is NOT under any slice's `mappings/` directory and would otherwise be missed.
+#[must_use]
+pub fn ratchet_dsl_surface_paths(repo_root: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    collect_ttls_recursive(&repo_root.join("dsl").join("mappings"), &mut paths);
+    paths.retain(|p| p.is_file());
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+/// Recursively collect every `.ttl` file under `dir` into `out` (no-op if `dir` does
+/// not exist).
+fn collect_ttls_recursive(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p.is_dir() {
+            collect_ttls_recursive(&p, out);
+        } else if p.extension().is_some_and(|x| x == "ttl") {
+            out.push(p);
+        }
+    }
+}
+
+/// Measure the ungrounded [`counting::residue`] of every guarded `vocab` for every
+/// discovered slice, over each slice's [`ratchet_surface_paths`] merged into one
+/// dataset. This is the SINGLE measurement authority the projection-ceiling seed
+/// (`gmeow-dev slice-quality-seed-ceilings`) and the ratchet gate both call — seed
+/// and gate can never diverge on what "measured" means, because both count through
+/// this one function over the one shared [`counting::residue`] primitive.
+///
+/// Keyed `(slice IRI, vocab prefix)`; a ZERO residue is DELIBERATELY OMITTED — the
+/// gate treats a missing key as that vocab's `default_ceiling` (0), so the returned
+/// map holds only the non-trivial ratchet cells worth seeding or gating. Iterating
+/// [`discover_slice_dirs`] in its already-sorted order and returning a `BTreeMap`
+/// makes the result fully deterministic.
+///
+/// # Errors
+/// HARD-FAILS (propagates, never a silent fallback to residue 0) if a slice's
+/// `manifest.ttl` cannot be resolved to a `gmeow:Slice` IRI, or if any of its
+/// ratchet surfaces is unreadable or fails to parse — this is the gate path, so a
+/// broken slice must stop the sweep, never silently score as clean.
+pub fn measure_repo_residues(
+    repo_root: &Path,
+    vocabularies: &[ProjectionVocabulary],
+) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
+    let mut out = std::collections::BTreeMap::new();
+    for dir in discover_slice_dirs(&repo_root.join("slices")) {
+        let slice_iri = report::slice_iri_of(&dir)?;
+        let paths = ratchet_surface_paths(&dir);
+        let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
+        let ds = dataset_from_paths(&path_refs)?;
+        for vocab in vocabularies {
+            let residue = counting::residue_for_surface(&ds, vocab, &slice_iri);
+            if residue > 0 {
+                out.insert((slice_iri.clone(), vocab.prefix.clone()), residue);
+            }
+        }
+    }
+    // The repo-level dsl/mappings/ surface (the hand-authored FnO carve-out) is not
+    // under any slice — measure it once, attributed to the DSL surface IRI, so it is
+    // guarded rather than silently missed.
+    let dsl_paths = ratchet_dsl_surface_paths(repo_root);
+    if !dsl_paths.is_empty() {
+        let dsl_refs: Vec<&Path> = dsl_paths.iter().map(PathBuf::as_path).collect();
+        let dsl_ds = dataset_from_paths(&dsl_refs)?;
+        for vocab in vocabularies {
+            let residue = counting::residue_for_surface(&dsl_ds, vocab, DSL_MAPPING_SURFACE_IRI);
+            if residue > 0 {
+                out.insert(
+                    (DSL_MAPPING_SURFACE_IRI.to_owned(), vocab.prefix.clone()),
+                    residue,
+                );
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// Resolve `slice_dir`'s `gmeow:Slice` IRI from its `manifest.ttl` — a thin `pub`
+/// wrapper over [`report::slice_iri_of`] so a consumer crate (the `gmeow-dev` CLI's
+/// ratchet-gate driver, reconstructing which discovered slice a merge-base surface
+/// set belongs to) can resolve the same slice IRI [`measure_repo_residues`] does,
+/// without a second re-implementation of manifest resolution.
+///
+/// # Errors
+/// As [`report::slice_iri_of`]: a message if the manifest cannot be read or
+/// declares no `gmeow:Slice`.
+pub fn slice_iri_of_dir(slice_dir: &Path) -> gmeow_errors::Result<String> {
+    report::slice_iri_of(slice_dir)
+}
+
+/// Measure `vocab`'s ungrounded [`counting::residue`] over an ALREADY-READ set of
+/// TTL texts, merged into one dataset — the base-reconstruction counterpart to
+/// [`measure_repo_residues`] (which reads surfaces off disk). This is the SAME
+/// counter ([`counting::residue`]) fed base-commit bytes instead of working-tree
+/// files, so the gate's grandfather check (ratchet invariant 3) can never diverge
+/// from what "measured" means on the working tree.
+///
+/// # Errors
+/// HARD-FAILS (never falls back to residue 0) if any text fails to parse as
+/// Turtle, or if merging the parsed datasets fails — this is the gate path, so a
+/// broken base surface must stop the sweep, never silently score as clean.
+pub fn residue_over_texts(
+    texts: &[String],
+    vocab: &ProjectionVocabulary,
+    surface_iri: &str,
+) -> gmeow_errors::Result<u64> {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for text in texts {
+        let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("residue_over_texts: Turtle parse failed: {e}"),
+            })
+        })?;
+        builder.push_dataset(&ds);
+    }
+    let ds = builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("residue_over_texts: dataset freeze failed: {e}"),
+        })
+    })?;
+    Ok(counting::residue_for_surface(&ds, vocab, surface_iri))
 }
 
 // -----------------------------------------------------------------------------

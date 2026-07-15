@@ -27,20 +27,36 @@ mis-dimensioned parameter is caught, not silently propagated.
 ## Measurable spaces, measures, and integration
 
 Core classes: `math:MeasurableSpace`, `math:SigmaAlgebra` (shared with the probability layer),
-`math:Measure`, `math:LebesgueMeasure`, `math:CountingMeasure`, `math:MeasurableFunction`,
-`math:Integral`, and `math:IntegrationOperator`.
+`math:MeasurableSet`, `math:Measure`, `math:LebesgueMeasure`, `math:CountingMeasure`,
+`math:MeasureEvaluation`, `math:MeasurableFunction`, `math:Integral`, and `math:IntegrationOperator`.
 
-Core properties: `math:measurableSpaceOf`, `math:measureOn`, `math:totalMass`, `math:integrand`,
-`math:integrationDomain`, `math:integrationMeasure`, and `math:withRespectTo`.
+Core properties: `math:measurableSpaceOf`, `math:measureOn`, `math:totalMass`, `math:evaluatedMeasure`,
+`math:measuredSubset`, `math:measureResult`, `math:integrand`, `math:integrationDomain`,
+`math:integrationMeasure`, and `math:withRespectTo`.
 
 A `math:MeasurableSpace` is a set with a σ-algebra; a `math:Measure` assigns non-negative extended-
-real mass to its measurable sets (`math:measureOn`, `math:totalMass`). An `math:Integral` is a
-first-class object — an application of an `math:IntegrationOperator` (a binder over the integration
-variable, so `∫` is a `math:BindingExpression`, [`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md))
+real mass to its measurable sets (`math:measureOn`, `math:totalMass`). A `math:MeasurableSet` is one
+element of that σ-algebra — a single measurable subset, the kind of subset a measure can weigh. An
+`math:Integral` is a first-class object — an application of an `math:IntegrationOperator` (a binder over
+the integration variable, so `∫` is a `math:BindingExpression`, [`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md))
 naming its integrand, domain, and the measure it integrates against (`math:withRespectTo`). Lebesgue
 and counting measures unify continuous and discrete cases; expectation
 ([`MATHEMATICS-PROBABILITY.md`](MATHEMATICS-PROBABILITY.md)) is an integral against a probability
 measure.
+
+> **μ(A) as a reified evaluation.** `math:totalMass` is the measure of the *whole* space, μ(X) — a
+> single edge on the `math:Measure`. To speak of the mass of a *named* subset A ⊆ X, GMEOW reifies the
+> evaluation μ(A) as a `math:MeasureEvaluation`: it names the measure (`math:evaluatedMeasure`), the
+> subset (`math:measuredSubset`, a `math:MeasurableSet`), and the resulting mass (`math:measureResult`,
+> a finite non-negative number or `math:PositiveInfinity`, **never** `math:NegativeInfinity` — a measure
+> is non-negative). Because each evaluation is a first-class object rather than a value dangling off the
+> measure, distinct subsets of one measure can be compared side by side — the Lebesgue mass of a two-ball
+> μ(B²) against that of a three-ball μ(B³), or one event's probability against another's. An evaluation
+> that omits any of the three roles is ill-formed (`math:UnderspecifiedMeasureEvaluation`); a result of
+> `math:NegativeInfinity` is a non-negativity violation caught by the `logic:` gate
+> `math:MeasureResultNonNegativeConstraint`.
+
+<!-- -->
 
 > **The probability bridge.** A `math:ProbabilityMeasure` **is** a `math:Measure` with
 > `math:totalMass` 1 over a probability space; the probability layer specializes this charter, it

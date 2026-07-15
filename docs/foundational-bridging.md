@@ -1,271 +1,172 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Foundational bridging — gUFO ↔ BFO (and the upper-ontology spine)
+# Grounding correspondences — gUFO, BFO, OBO, SUMO, OWL, and SHACL
 
-> **Status.** BFO 2020 (ISO/IEC 21838-2) is bridged and verified. DOLCE/DUL and SUMO
-> are planned next (see [Extending to a new upper ontology](#extending-to-a-new-upper-ontology)).
-> Authoring source: [`mapping-dsl/foundational/`](../mapping-dsl/foundational/).
+> **Status: realized and shipped.** The canonical source is
+> [`slices/grounding/logic/mappings/grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl).
+> It compiles to content-addressed `logic:Correspondence` records in the
+> `graph/correspondence-laws` named graph of `generated/dist/gmeow.gts`.
+> The six SSSOM tables under `generated/mappings/` are generated review views,
+> not alignment authorities.
 
-GMEOW grounds every class in **gUFO** ([`docs/reasoning.md`](./reasoning.md) — the
-meta-grounding pun). But gUFO itself was an **island**: it grounded GMEOW
-without being aligned to any *other* top-level ontology, so a GMEOW graph could not
-interoperate with the OBO-Foundry / ISO/IEC 21838 world (BFO) or the descriptive
-DOLCE/SUMO lineage. This module bridges that spine.
+This is the concrete grounding instance of the correspondence calculus in
+[`LOGIC-CORRESPONDENCE.md`](../slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md)
+and its applied-category-theory rationale in
+[`take1.md`](./APPLIED_CATEGORY_THEORY/take1.md). It applies four constitutional
+rules together:
 
-It is [Principle 5](../CONSTITUTION.md) (*maximal bridging — by reference*) applied
-**recursively**: the same discipline that links GMEOW's surface terms to FOAF / schema.org /
-PROV-O is applied to GMEOW's *foundational* terms. And it costs nothing in the reasoned core,
-because it is **link-only** — we assert `skos:closeMatch` triples and import nothing.
+- **Principle 4:** one canonical source; SSSOM and other interchange dialects are
+  projections of it.
+- **Principle 5:** external ontologies are bridged by reference; their
+  commitments do not silently become GMEOW truth.
+- **Principle 7:** catalog size, target validity, orientation, policy, generated
+  views, and shipped-bundle presence are executable gates.
+- **Principle 17:** `logic:` is the rich source; prior logical and upper-ontology
+  formalisms are typed views of it.
 
----
+## Ownership and orientation
 
-## The one thing to get right: bridge gUFO's *nature*, not its *stereotypes*
+All formal and upper-ontology grounding is owned by the `logic:` grounding
+slice. Every catalog row is oriented the same way:
 
-GMEOW puns each class with a gUFO **stereotype meta-class** — `gufo:Kind`, `gufo:SubKind`,
-`gufo:Category`, `gufo:Relator`, `gufo:EventType`, … (the OntoUML stereotype system).
-**BFO has no meta-level.** It is a flat realist taxonomy of *ground categories* — `entity`,
-`continuant`, `occurrent`, `material entity`, `quality`, … There is no BFO term that corresponds
-to "Kind" or "Role"; those are *modes of classification*, not *categories of being*.
-
-So the bridge aligns gUFO's **nature / category classes** (`gufo:Endurant`, `gufo:Object`,
-`gufo:Event`, `gufo:Relator`, `gufo:Quality`, …) — the classes that say *what kind of thing an
-individual is* — to BFO's ground categories. Mapping a stereotype (`gufo:Kind`) to a BFO class
-would be a **category error**. This is why the cells live on `gufo:` subjects, never on the
-GMEOW classes or the stereotypes.
-
-Every cell is `skos:closeMatch`, never `owl:equivalentClass`: UFO and BFO reconstruct their
-categories on **different philosophical bases** (UFO is cognitively/linguistically motivated;
-BFO is a realist 3+1D ontology), so no pair is exactly equivalent. `closeMatch` is the honest
-predicate and — being SKOS, not OWL — keeps the bridge out of the DL TBox entirely.
-
----
-
-## The bridge (gUFO → BFO 2020)
-
-Authored in [`mapping-dsl/foundational/gufo-bfo.ttl`](../mapping-dsl/foundational/gufo-bfo.ttl),
-compiled to [`mappings/gmeow-foundational.sssom.tsv`](../mappings/gmeow-foundational.sssom.tsv).
-
-| gUFO (nature) | → | BFO class | conf | rationale |
-|---|---|---|---|---|
-| `gufo:Endurant` | closeMatch | `BFO_0000002` *continuant* | 0.9 | endures through time, keeps identity |
-| `gufo:Object` | closeMatch | `BFO_0000040` *material entity* | 0.8 | independent endurant with matter; its subclasses are material |
-| `gufo:FunctionalComplex` | closeMatch | `BFO_0000030` *object* | 0.85 | a maximal, causally-unified material whole |
-| `gufo:Collection` | closeMatch | `BFO_0000027` *object aggregate* | 0.85 | a mereological sum of objects |
-| `gufo:Relator` | closeMatch | `BFO_0000020` *specifically dependent continuant* | 0.8 | a reified relationship dependent on its relata |
-| `gufo:Quality` | closeMatch | `BFO_0000019` *quality* | 0.85 | an intrinsic aspect measurable in a value space |
-| `gufo:Event` | closeMatch | `BFO_0000003` *occurrent* | 0.85 | occurs/happens in time |
-
-**Two cells deliberately diverge from the initial sketch**, because Principle 1 (*SOTA by
-being SOTA*) says model it correctly rather than inherit a weak mapping:
-
-- **`gufo:Object` → `material entity` (`BFO_0000040`), not `object` (`BFO_0000030`).** `gufo:Object`
-  is *any* independent endurant; its gUFO subclasses `FunctionalComplex` / `Collection` / `Quantity`
-  span BFO's *object* / *object aggregate* / *fiat object part* — i.e. exactly `material entity`,
-  the union of those three. `BFO_0000030` *object* is the narrower causally-unified case, which is
-  why `gufo:FunctionalComplex` (a structured whole) is the cell that maps there.
-- **`gufo:Event` → `occurrent` (`BFO_0000003`), not `process` (`BFO_0000015`).** A `gufo:Event`
-  *may be instantaneous*; BFO classes instantaneous happenings as *process boundaries*, not
-  *processes*. `occurrent` is the correct superclass that covers both.
-
-### Recorded gaps (categories with no BFO counterpart)
-
-Honesty over coverage — these are **not** forced into a cell:
-
-| gUFO | why no BFO cell |
-|---|---|
-| `gufo:Situation` | BFO has no reified *state of affairs / configuration*. (DOLCE **does** — `dul:Situation` — so this gap closes when DOLCE lands.) |
-| `gufo:AbstractIndividual`, `gufo:QualityValue` | BFO is a **realist** ontology with no abstracta — quality *values* (a value space) have no home in BFO. |
-| all gUFO **stereotypes** (`Kind`, `SubKind`, `Category`, `RoleMixin`, `EventType`, `SituationType`, `AbstractIndividualType`) | BFO has no meta-level (see above). |
-
-Coverage is therefore **7 of the ~9 bridgeable nature categories GMEOW uses**; the remainder are
-genuine ontological gaps, documented rather than papered over (the "no silent caps" rule).
-
----
-
-## How it is verified (and why you can trust it offline)
-
-The bridge has a two-rail verification, so a mistyped or invented BFO IRI fails the gate:
-
-1. **Offline, deterministic (always runs).** `gmeow-dev refresh-target-axioms --target bfo` vendors a
-   minimal snapshot of BFO's **class facts** to [`imports/targets/bfo.ttl`](../imports/targets/)
-   (every `owl:Class`, its in-namespace `rdfs:subClassOf` parents, and its `rdfs:label`).
-   [`tests/test_foundational_bridging.py`](../tests/test_foundational_bridging.py) asserts that
-   **every emitted `bfo:` IRI is a declared `owl:Class` in that snapshot, with an `object_label`
-   matching BFO's own label**. CI needs no network.
-2. **Online, freshness (network-marked).** `test_vendored_snapshot_matches_live_bfo`
-   (`@pytest.mark.network`) re-fetches live BFO and re-checks the same IRIs + labels, so the
-   offline snapshot cannot silently rot. Run it with
-   `uv run pytest tests/test_foundational_bridging.py -m network`.
-
-The snapshot lives in `imports/targets/` — a **subdirectory** of `imports/` that
-`graph.iter_import_files()` does **not** glob (it globs `imports/*.ttl` non-recursively). So no
-BFO axiom ever enters the reasoned import closure or the published CC BY 4.0 artifact. The
-`test_bridge_is_link_only_no_import` test asserts exactly this: zero BFO classes in the merged
-reasoned graph.
-
-> **Why a *class*-shaped snapshot?** The same `imports/targets/` machinery vendors
-> *property*-axiom snapshots (domain/range/inverse) for the alignment-direction linter. Upper
-> ontologies are bridged at the **class** level, so `fetch_target_axioms()` switches snapshot
-> *shape* on the target's `kind` (`AlignmentTarget.kind == "upper"` → class facts; `schema` /
-> `concept_scheme` → property axioms). See [`src/gmeow_tools/target_axioms.py`](../src/gmeow_tools/target_axioms.py).
-
----
-
-## Maintaining this bridge
-
-### Refreshing the BFO snapshot
-
-BFO 2020 is stable (ISO standard), so the snapshot rarely changes. To refresh after a BFO
-release — or if the network freshness test ever fails:
-
-```bash
-cargo run -p gmeow-dev-cli -- refresh-target-axioms --target bfo   # re-vendors imports/targets/bfo.ttl
-cargo run -p gmeow-dev-cli -- check-generated mappings             # confirm no mapping drift
-uv run pytest tests/test_foundational_bridging.py # offline cell + IRI verification
-uv run pytest tests/test_foundational_bridging.py -m network  # vs live BFO
-git add imports/targets/bfo.ttl                   # commit the refreshed snapshot
+```text
+canonical logic: source  --get / projection-->  external target view
 ```
 
-If the freshness test fails because BFO **renamed or removed** a class you reference, fix the
-cell in `mapping-dsl/foundational/gufo-bfo.ttl` (the snapshot is the source of truth for *what
-exists*; the DSL is the source of truth for *what we claim*) and recompile.
+The external vocabulary is never the source from which GMEOW derives its
+meaning. Inverse ingestion is the correspondence's `put` direction; it does not
+reverse semantic ownership.
 
-### Editing or adding a cell
+Each authored row is both an ergonomic `gmeow:TermEquivalence` frontend cell and
+an explicit `logic:GroundingCorrespondence`. A grounding row must state all
+three judgments:
 
-1. Edit [`mapping-dsl/foundational/gufo-bfo.ttl`](../mapping-dsl/foundational/gufo-bfo.ttl).
-   Copy an existing `gmeow:TermEquivalence` block; set `alignSubject` to a `gufo:` **nature**
-   class, `alignObject` to a `bfo:` class, keep `alignPredicate skos:closeMatch`, set a
-   calibrated `confidence` and the BFO `objectLabel`, and explain non-obvious choices in
-   `gmeow:comment`. **Verify the BFO IRI first** — `grep BFO_00000NN imports/targets/bfo.ttl`,
-   or look it up at <https://ontobee.org/ontology/BFO>.
-2. Recompile and verify: `cargo run -p gmeow-dev-cli -- regenerate mappings && cargo run -p gmeow-dev-cli -- check-generated mappings`.
-3. If the cell is one a reader would expect to see asserted, add it to `EXPECTED_CELLS` in
-   [`tests/test_foundational_bridging.py`](../tests/test_foundational_bridging.py) — the IRI +
-   label are then verified automatically.
-4. Run the full alignment gate: `make check-generated && make lint-alignment && uv run pytest`.
+- `logic:morphismClass` — its position on the law spine;
+- `logic:morphismKind` — an institution morphism or a commitment-shifting bridge;
+- `logic:preservationKind` — what the target view preserves.
 
-Do **not** hand-edit `mappings/gmeow-foundational.sssom.tsv` — it is generated; the no-drift gate
-(`gmeow-dev check-generated mappings`) will reject hand edits.
+The compiler rejects incomplete combinations. In particular,
+`logic:CommitmentShiftingBridge` requires `logic:BridgeView`; it cannot emit an
+equivalence claim.
 
-### Extending to a new upper ontology
+## The six catalogs
 
-The infrastructure already generalises to any upper ontology (DOLCE/DUL, SUMO, UMBEL). To add one
-— e.g. **DOLCE/DUL**, which would close the `gufo:Situation` gap via `dul:Situation`:
+| Target | Rows | Morphism policy | Preservation policy | Coverage contract |
+|---|---:|---|---|---|
+| **gUFO** | 50 | `AffineCorrespondence` + `InstitutionMorphism` | `ValidationOnly`; six explicit `Unsupported` replacements | Every class in the vendored gUFO surface has a row; nothing disappears silently |
+| **BFO 2020** | 13 | `BridgeView` + `CommitmentShiftingBridge` | `ValidationOnly` | The category spine from entity/continuant/occurrent through material entity, disposition, quality, role, and process boundary |
+| **OBO / RO** | 6 | `BridgeView` + `CommitmentShiftingBridge` | `ValidationOnly` | BFO `part of`/`precedes` and RO overlap, causal, disjointness, and membership relations |
+| **SUMO** | 24 | `BridgeView` + `CommitmentShiftingBridge` | `ValidationOnly` | Foundational categories and structural relations used by the logic foundation |
+| **OWL / RDFS** | 33 | `WellBehavedLens` + `InstitutionMorphism` | `SoundUnderApproximation` | The complete adapter, restriction, property-characteristic, and projector construct surface |
+| **SHACL Core / AF** | 15 | `AffineCorrespondence` + `InstitutionMorphism` | `ValidationOnly` | Validation shapes, property paths, constraints, rules, targets, and logical constraint operators |
 
-1. **Register the target** in [`src/gmeow_tools/config.py`](../src/gmeow_tools/config.py): a
-   `PREFIXES` entry and an `ALIGNMENT_TARGETS` entry with `kind="upper"`. *Mind the license.*
-   `policy_for_license` classifies DOLCE/DUL (LGPL) as **REFERENCE_ONLY** — so its axioms may be
-   *linked* but never *vendored*. (BFO is CC-BY-4.0 → IMPORT_OK, which is why we can vendor its
-   snapshot.) `dolce` and `umbel` are already registered.
-2. **Pick the snapshot strategy by policy:**
-   - *IMPORT_OK* (e.g. a CC-BY upper ontology): add a `TARGET_SOURCES` entry in
-     [`target_axioms.py`](../src/gmeow_tools/target_axioms.py) and
-     `gmeow-dev refresh-target-axioms --target <prefix>` — you get an offline class snapshot for free,
-     and the verification test works exactly as BFO's does.
-   - *REFERENCE_ONLY* (DOLCE/DUL): `refresh_snapshot` **refuses** to vendor it. Verify its IRIs
-     with a **network-only** test (`@pytest.mark.network`) that fetches the live ontology, plus a
-     tiny hand-authored fixture under `tests/fixtures/target_axioms/` for the handful of classes
-     you reference offline — the same pattern schema.org uses.
-3. **Author** `mapping-dsl/foundational/gufo-<name>.ttl` (one mapping set, `skos:closeMatch`
-   cells). Recompile; the recursive `rglob` in `load_dsl()` discovers the new file automatically —
-   no compiler change needed.
-4. **Document** the new bridge and its gaps in this file, and tick it off below.
+The counts are pinned deliberately. Extending an adapter or target surface
+requires extending the catalog and its coverage test in the same change.
 
-> **SUMO** is lowest-payoff and not yet registered in `config.py`; it is the natural third target
-> after DOLCE. Deferred to a later follow-up.
+### gUFO is a projection floor, not the canon
 
----
+The gUFO catalog covers the complete vendored class surface from `logic:`. Most
+rows are validation-only affine correspondences. Six rows are explicitly
+unsupported rather than silently flattened:
 
-## YAMATO (Mizoguchi 2010) — a bridge view *and* a refinement source
+- `logic:Disposition` against gUFO's coarser `gufo:IntrinsicMode`; and
+- the five temporary-situation reifiers, represented canonically by
+  `logic:Fluent` plus RDF 1.2 statement metadata.
 
-YAMATO ("Yet Another More Advanced Top-level Ontology", Mizoguchi 2010) is bridged like the
-others — **by reference, never imported** (Principle 5), a **bridge view** in the sense of
-[`docs/APPLIED_CATEGORY_THEORY/take1.md`](./APPLIED_CATEGORY_THEORY/take1.md) §5: useful
-conceptual alignment, *not* a truth-preserving morphism. But it occupies a different role from
-BFO/DOLCE/SUMO, and it is worth naming the difference.
+The vendored gUFO source remains an interoperability and conformance input
+during the transition away from external terms in domain slices. It does not
+outrank `logic:` as the grounding authority.
 
-For BFO we bridge gUFO's **nature classes → BFO's ground categories**. YAMATO is the inverse
-situation: GMEOW already **out-engineers** YAMATO where the two overlap — explicit anti-rigid
-`logic:Role`/`RoleMixin` vs YAMATO's Hozo-buried roles, and `gmeow:Determinacy` / `confidence` /
-frame-relativity (P11) / standpoint-indexing (P9) that YAMATO lacks. So YAMATO is consumed
-primarily as a **source of selected foundational refinements adopted canonically into `logic:`**
-(Principle 17), with YAMATO's own terms bridged `skos:closeMatch` by reference. This is the
-*bridge-view-as-refinement-source* case.
+### BFO, OBO, and SUMO are bridge views
 
-The adopted refinements — both the **process / event** and the **quality / quantity** sets are now
-formalized canonically in `logic:` (Principle 17), grounded at the domain level:
+BFO, OBO/RO, and SUMO make ontological commitments that do not coincide with
+the GMEOW foundation. Their rows therefore carry
+`logic:BridgeView`, `logic:CommitmentShiftingBridge`, and
+`logic:ValidationOnly`. The SSSOM predicate may express a curated close or
+related match, but the compiler never upgrades those rows to
+`owl:equivalentClass` or an equivalent preservation claim.
 
-- **Quality / quantity** (now formalized canonically in `logic:`, Principle 17, grounded in the
-  observation spine):
-  - **persistent `Quality` identity** — one enduring quality whose dated values change. The
-    foundational `logic:Quality` is grounded as the domain `gmeow:Quality`, inhering in its
-    `gmeow:bearer` (by-reference inherence, Principle 5 — never raw `gufo:inheresIn`), with dated
-    `gmeow:Observation`s attached via `gmeow:observationOf` + `gmeow:observedAt`, so a quality's
-    value-history is a first-class series (the openEHR `OBSERVATION/HISTORY`).
-  - **generic-quality → quality-role ladder** (`length` playing a `height` role — Principle 11
-    stated in role terms) — `logic:genericQuality` and `logic:qualityRole` over the existing
-    anti-rigid `logic:Role`; a quality bearing a role with no generic is the
-    `logic:QualityRoleWithoutGeneric` violation, entailed by the native foundation rule.
-  - **unit-independent true quantity** (the unit belongs to the *measurement*, not the quantity,
-    Principle 11) — `logic:trueQuantity` carries the frame-independent magnitude (grounded as
-    `gmeow:Magnitude`), while `logic:measuredValue` + `logic:unit` + `logic:referenceFrame` carry
-    the frame-relative value; a value expressed in a unit with no frame is the
-    `logic:MeasurementFrameMissing` violation, keyed on the IRI-valued `logic:unit` witness since
-    the foundation chase is all-IRI. The domain `gmeow:unit` / `gmeow:hasReferenceFrame` /
-    `gmeow:quantityValue` ground onto the `logic:` seam by sub-property; the legacy `hasUnit`
-    property is fully retired in favour of `gmeow:unit`.
-- **Process / event** (now formalized canonically in `logic:`, Principle 17, grounded at the
-  domain level):
-  - **process ≠ event** — the change-asymmetry, enforced by the native foundation rule
-    `logic:OccurrentChangeAsymmetry`: a `logic:Closed` occurrent (a completed unitary event) must
-    bear no time-varying `logic:Fluent`, whereas a process may.
-  - **action(open, on-going) vs event(closed, unitary)** (*arrive* vs *arrival*) — typed as a
-    **value, not a subclass** (Principle 9) via `logic:occurrentBoundary` over the closed value
-    vocabulary `logic:OccurrentBoundary` { `logic:Open` (the on-going action), `logic:Closed`
-    (the completed unitary event) }; an occurrent that is both is the
-    `logic:OccurrentBoundaryMismatch` violation.
-  - **causal vs temporal parts** (causal ⊆ temporal) — `logic:causalPartOf` is a transitive
-    specialization of `logic:temporalPartOf`, surfaced at the domain level as
-    `gmeow:causalPartOf` / `gmeow:hasCausalPart` (⊑ `gmeow:subEventOf` + `logic:causalPartOf`).
-  - **events made of processes** — `logic:occurrentConstituent` (range `logic:Process`), the
-    constitutive relation deliberately kept distinct from both temporal and causal parthood.
-  - The research-grade **object-as-interface-of-internal/external-processes** remains a
-    *documented bridge note, adopted only where a consumer earns it* — it is **not** minted, since
-    no consumer yet earns it. Canonical illustration: a river or a waterfall — an endurant identity
-    that is the interface of a constitutive internal process (the flowing water), persisting while
-    its process churns beneath it.
+BFO target classes and labels are checked against the offline snapshot at
+`imports/targets/bfo.ttl`. BFO/OBO/SUMO target axioms remain outside the
+object-level reasoned closure.
 
-**Bridge mechanics — reference-only.** YAMATO ships as a Hozo model / PDF, with no clean,
-vendorable OWL namespace, so it is **REFERENCE_ONLY** (like DOLCE/DUL above): its terms are
-*cited*, never vendored into `imports/targets/`, and any `closeMatch` cells carry the Mizoguchi
-citation rather than a vendored-IRI verification. We adopt YAMATO's *insights*, not its
-*commitments* — exactly the institution-morphism-vs-bridge-view distinction (take1 §5).
+### OWL and SHACL are dialect boundaries
 
-**Grounding.** These refinements are concretely consumed by the correspondence-calculus openEHR
-use cases — the quality ladder grounds the data axis
-([`usecase_openehr_bloodpressure.md`](./APPLIED_CATEGORY_THEORY/usecase_openehr_bloodpressure.md):
-persistent `Quality` = the openEHR `OBSERVATION/HISTORY`; generic→role = the OPT `property` →
-`at0004`/Systolisch; unit-independent quantity = the `DV_QUANTITY` decomposition), and the
-process refinements ground the process axis
-([`usecase_openehr_taskplan_rchops21.md`](./APPLIED_CATEGORY_THEORY/usecase_openehr_taskplan_rchops21.md):
-action/event open-closed = the prescriptive↔descriptive seam). Folded into
-[`take1.md`](./APPLIED_CATEGORY_THEORY/take1.md) §13.
+OWL/RDFS is a sound-under down-projection of the richer `logic:` source. Its 33
+rows cover the named constructs actually handled by the adapter, restriction
+frontend, and OWL projector; adding compiler support without a catalog row is a
+test failure.
 
----
+SHACL Core and SHACL-AF validate rather than entail. Their 15 rows are therefore
+institution morphisms marked `ValidationOnly`, including the deliberate
+`logic:onClass` split between OWL qualified restrictions and SHACL class
+targets.
+
+## What ships
+
+The correspondence compiler emits a content-addressed record for every row.
+Every shipped grounding record has:
+
+- `rdf:type logic:Correspondence` and
+  `rdf:type logic:GroundingCorrespondence`;
+- exactly one `logic:sourceEndpoint` and `logic:targetEndpoint`;
+- exactly one morphism class, morphism kind, and preservation kind; and
+- a link to the authoring cell through the correspondence frontend.
+
+These records ride the `graph/correspondence-laws` named graph in
+`generated/dist/gmeow.gts`. That graph is meta-level correspondence data: it is
+part of the shipped ontology, but it is not injected into object-level closure.
+This is the intended distinction from ordinary documentation-only projections.
+
+The generated SSSOM views are:
+
+```text
+generated/mappings/gmeow-logic-gufo.sssom.tsv
+generated/mappings/gmeow-logic-bfo.sssom.tsv
+generated/mappings/gmeow-logic-obo.sssom.tsv
+generated/mappings/gmeow-logic-sumo.sssom.tsv
+generated/mappings/gmeow-logic-owl.sssom.tsv
+generated/mappings/gmeow-logic-shacl.sssom.tsv
+```
+
+The retired `gmeow-foundational.sssom.tsv` is an orphan and must not return.
+
+## Extending the grounding surface
+
+1. Add or update the `logic:` source term in
+   `slices/grounding/logic/module.ttl` with the required annotations.
+2. Add the correspondence cell to
+   `slices/grounding/logic/mappings/grounding-bridges.ttl`, oriented
+   `logic:` → external target.
+3. Declare morphism class, morphism kind, and preservation kind explicitly.
+4. Extend the pinned target-surface test. For a by-reference ontology, add only
+   the smallest legal validation snapshot needed to verify target IRIs.
+5. Regenerate from canonical sources; never edit a generated SSSOM table or the
+   GTS bundle by hand.
+
+```bash
+make validate
+make regenerate
+make check-generated
+cargo nextest run -p gmeow-validate --test conformance_foundational_bridging
+cargo nextest run -p gmeow-pipeline --test correspondence_laws_bundle
+```
+
+## Related bridge-view lineage
+
+DOLCE/DUL and YAMATO remain useful by-reference refinement sources. Their
+quality, quantity, process, and event distinctions inform the canonical
+`logic:` foundation, but they do not yet have a pinned shipped catalog in this
+six-target surface. Any future catalog must use the same orientation and must
+enter as a commitment-shifting `BridgeView` unless a stronger preservation law
+is actually discharged.
 
 ## References
 
-- gUFO — NEMO/UFES lightweight OWL 2 DL UFO: <http://purl.org/nemo/gufo#>; Almeida et al.,
-  *gUFO: A Lightweight Implementation of the Unified Foundational Ontology (UFO)*.
-- BFO 2020 = ISO/IEC 21838-2:2021; OBO-Foundry top-level: <https://github.com/BFO-ontology/BFO-2020>;
-  class IRIs browsable at <https://ontobee.org/ontology/BFO>.
-- UFO ↔ BFO ↔ DOLCE correspondences: Guizzardi et al., *UFO* (Applied Ontology 17(1), 2022);
-  Trojahn et al., *Foundational ontologies meet ontology matching: a survey* (SWJ 2022).
-- CONSTITUTION Principles **1** (SOTA by being SOTA), **5** (maximal bridging — by reference),
-  **7** (verified by construction), **8** (FAIR).
-- YAMATO — Mizoguchi, R. (2010), *YAMATO: Yet Another More Advanced Top-level Ontology*; Hozo
-  ontology library: <https://www.hozo.jp/onto_library/YAMATO101216.pdf>. Adopted by reference as a
-  bridge view + refinement source.
-- The single-source alignment stack: [`docs/projections.md`](./projections.md); the gUFO
-  meta-grounding it bridges from: [`docs/reasoning.md`](./reasoning.md).
+- gUFO — Almeida et al., *gUFO: A Lightweight Implementation of the Unified
+  Foundational Ontology (UFO)*.
+- BFO 2020 — ISO/IEC 21838-2:2021 and the OBO Foundry BFO release.
+- SUMO — Suggested Upper Merged Ontology, published OWL translation namespace.
+- W3C OWL 2, RDF Schema, SHACL Core, and SHACL Advanced Features.
+- Trojahn et al., *Foundational ontologies meet ontology matching: a survey*.

@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: an analytic-property individual that resolves through math:definingLaw
+# to a real first-order logic:Formula (math:convexityLaw). A math:AnalyticProperty is a
+# quantified statement about a function's values, so it MUST be backed by a law or an
+# honest boundary; this one is, so math:AnalyticPropertyBackedConstraint is satisfied and
+# validation reports no findings. A function bears the property through
+# math:hasAnalyticProperty. Bound by ex:ecAnalyticPropertyBacked.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:customConvexity a math:AnalyticProperty ;
+    rdfs:label "A convexity claim backed by the midpoint-convexity law"@x-gmeow-english ;
+    rdfs:seeAlso math:convexityLaw ;
+    math:definingLaw math:convexityLaw .
+
+ex:bowlFunction a math:Function ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    math:hasAnalyticProperty ex:customConvexity .

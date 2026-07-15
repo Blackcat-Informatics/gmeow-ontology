@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: two math:MeasureEvaluation objects of ONE measure over two different
+# measurable subsets, each naming all THREE required roles — the measure it evaluates
+# (math:evaluatedMeasure), the subset it weighs (math:measuredSubset, a
+# math:MeasurableSet), and the resulting non-negative mass (math:measureResult). The
+# volume measure's whole-space mass is math:PositiveInfinity, but μ(regionA) = 2 and
+# μ(regionB) = 5 are finite and comparable side by side. Each satisfies the exact-one
+# cardinality on all three roles and the non-negativity gate, so this conforms to the
+# derived math:MeasureEvaluationShape and validates with no findings. Bound by
+# ex:ecMeasureEvaluationFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:volumeMeasure a math:LebesgueMeasure , math:Measure ;
+    math:measureOn ex:space ;
+    math:totalMass math:PositiveInfinity .
+
+ex:space a math:MeasurableSpace .
+
+ex:regionA a math:MeasurableSet .
+ex:regionB a math:MeasurableSet .
+
+ex:muRegionA a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:volumeMeasure ;
+    math:measuredSubset ex:regionA ;
+    math:measureResult "2.0"^^xsd:double .
+
+ex:muRegionB a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:volumeMeasure ;
+    math:measuredSubset ex:regionB ;
+    math:measureResult "5.0"^^xsd:double .

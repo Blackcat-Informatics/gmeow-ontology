@@ -1269,8 +1269,7 @@ mod tests {
     /// Byte-fixed-point is strictly stronger than the RDFC-1.0 canonical
     /// isomorphism this test used to assert (identical bytes re-parse to the
     /// identical dataset), and it keeps the test to one parse + one serialize —
-    /// no second parse and no double canonicalization — which is what keeps it
-    /// on the 25 s per-test budget gate at full bundle scale. The canonical-
+    /// no second parse and no double canonicalization. The canonical-
     /// isomorphism law itself stays covered by
     /// `committed_rdf12_statements_roundtrip_through_jsonld_star` and the
     /// `roundtrip_isomorphic_accepts_emitted_*` fixtures in this module.

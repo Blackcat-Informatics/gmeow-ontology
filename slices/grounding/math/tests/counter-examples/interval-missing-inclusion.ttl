@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IntervalShape: a math:Interval that names both endpoints
+# and its lower inclusion but OMITS its math:upperInclusion (sh:minCount 1, derived
+# from the exact-one math:upperInclusion restriction). Validation MUST emit
+# shacl.MinCountConstraintComponent (math:UnderspecifiedInterval). Both endpoints and
+# the lower inclusion are present, so the missing upper inclusion is the single
+# isolated violation — endpoint inclusion cannot be silently omitted. Bound by
+# ex:ecIntervalMissingInclusion.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:inclusionlessInterval a math:Interval ;
+    rdfs:label "An interval asserted without naming its upper inclusion"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint .

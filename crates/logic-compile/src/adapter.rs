@@ -107,6 +107,9 @@ const OWL_CHARACTERISTIC_TO_LOGIC: &[(&str, &str)] = &[
     ("SymmetricProperty", "symmetricProperty"),
     ("FunctionalProperty", "functionalProperty"),
     ("InverseFunctionalProperty", "inverseFunctionalProperty"),
+    ("ReflexiveProperty", "reflexiveProperty"),
+    ("AsymmetricProperty", "asymmetricProperty"),
+    ("IrreflexiveProperty", "irreflexiveProperty"),
 ];
 
 /// OWL/RDFS meta-annotation predicates that carry no structural logic payload.

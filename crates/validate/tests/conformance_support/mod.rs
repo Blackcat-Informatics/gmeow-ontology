@@ -293,11 +293,10 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
 /// The whole-ontology-union tests validate an ~80k-quad graph against the entire
 /// shape corpus (hundreds of node shapes, including every `sh:sparql` constraint —
 /// each a per-focus whole-graph query), and the engine's shape/focus loops are
-/// serial, so one validation run is tens of seconds of single-core work — past
-/// the CI per-test budget on a few-core runner. The unit of independent work is
-/// the (shape, focus) pair, and one hot shape can own most of the wall time
-/// (measured: `gmeow:InternalLanguageTagShape` alone is ~14 s of a ~22 s
-/// per-shape total over this corpus), so sharding must split WITHIN a shape:
+/// serial, so one validation run is substantial single-core work. The unit of
+/// independent work is the (shape, focus) pair, and one hot shape can own most
+/// of the wall time (measured: `gmeow:InternalLanguageTagShape` alone is ~14 s
+/// of a ~22 s per-shape total over this corpus), so sharding must split WITHIN a shape:
 /// every worker runs the SAME full corpus over the SAME projected dataset but
 /// keeps only its round-robin residue of the focus stream via the engine's
 /// focus filter. The partition is exact and deterministic — the engine resolves
