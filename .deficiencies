@@ -492,3 +492,36 @@ HONEST NOTES (resolved by different means than the literal ask, or consciously s
   0.5775, a conservative truncation of the measured 0.577598, not the exact measured
   value — the report surfaces only rounded scores and an exact-value pin would risk a
   hairline EPSILON red; the truncation is provably ≤ measured and raise-only.
+
+## 2026-07-14 — Issue #1546 (projection-vocabulary ratchet)
+
+The ratchet was substantially re-architected mid-review under maintainer direction (8
+corrections). Most stage-1 deviations were RESOLVED and are NOT deficiencies:
+- Conformance fixtures: now authored in the slice's consumed convention
+  (`tests/structural.ttl` gmeow:StructuralAssertion invariants + a MUST-NOT counter-example),
+  red/green-probed — not docs prose.
+- Competency query: wired per convention (`queries/qc/`, registered as
+  `ex:cqProjectionCeilingsHold` in `tests/competency.ttl`).
+- Regenerate + generated `generated/governance/slice-quality-projection-{ceilings,vocabularies}.tsv`
+  + `gmeow.gts` fold: produced (make regenerate run); the ratchet gate passes GREEN
+  (`gmeow-dev slice-quality-gate` exit 0, 124 committed cells).
+
+Recorded deviations (honest):
+- WEAKER-THAN-PROPOSED RDFS COUNTED SET: `countKindStructuralAxiom` for `rdfs:` counts only
+  `rdfs:subClassOf`/`rdfs:subPropertyOf` (the subsumption taxonomy), NOT the `rdfs:domain`/
+  `rdfs:range` I originally proposed under "minimum useful structural set." Reason: counting
+  property signatures made the projection-vocab schema's OWN new `rdfs:domain`/`range` (60
+  lines) net-new debt that the grandfather gate correctly refused to grandfather (a
+  self-referential bootstrap). Narrowing to the subsumption taxonomy is a faithful reading of
+  "minimum useful structural set" and resolves the bootstrap; property signatures are RBox
+  declarations, not migration debt. Domain/range are simply not guarded by this ratchet.
+- OWL NOT GUARDED AT ALL (maintainer decision "definitely no OWL"): the permanent OWL/RDFS
+  carve-out doctrine was removed, but only RDFS-subsumption is guarded; declarative OWL is left
+  to the existing `reason-verify` gate.
+- LARGE GRANDFATHERED SEED: the strict owner-boundary + rdfs + SHACL-obligation counting produce
+  124 grandfathered ceiling cells (vs 33), including cross-slice external-reference debt (e.g.
+  correspondence cells in non-owner core slices). This is intended debt, seeded at current
+  measured and lower-only; migration ratchets it down.
+- `projection-debt` REPORT CLI HOST: the debt report is on `gmeow-dev slice-quality-projection-debt`;
+  a shippable `gmeow` surface for the committed-ceiling view over the bundle is the one remaining
+  ask not yet landed at this writing (tracked as gap G4 in the stage-2 pass).
