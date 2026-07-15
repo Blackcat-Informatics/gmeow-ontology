@@ -9,6 +9,7 @@
 @prefix wn: <https://globalwordnet.github.io/schemas/wn#> .
 @prefix nif: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#> .
 @prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
@@ -16,24 +17,36 @@
 # OntoLex, LexInfo, WordNet, NIF, and Web Annotation are interoperable views.
 
 gmeow:mapsetLangLexinfo a gmeow:MappingSet ;
+    rdfs:label "Language LexInfo mapping set"@x-gmeow-english ;
+    skos:definition "The mapping set for language grounding correspondences from native part-of-speech terms to LexInfo 3.0 targets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:sssomFile "gmeow-lang-lexinfo.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-lexinfo" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Part-of-speech bridges onto LexInfo 3.0." .
 
 gmeow:mapsetLangWordnet a gmeow:MappingSet ;
+    rdfs:label "Language WordNet mapping set"@x-gmeow-english ;
+    skos:definition "The mapping set for language grounding correspondences from native lexical categories and relation kinds to the Global WordNet RDF schema."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-wordnet-schema" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Bridges onto the Global WordNet RDF schema, distinct from individual lexical-item pivots through Wikidata." .
 
 gmeow:mapsetLangNif a gmeow:MappingSet ;
+    rdfs:label "Language NIF mapping set"@x-gmeow-english ;
+    skos:definition "The mapping set for language grounding correspondences from native surface and offset-anchor terms to NIF Core targets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-nif" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Offset-anchor and surface-string bridges onto NIF Core." .
 
 gmeow:mapsetLangWebAnnotation a gmeow:MappingSet ;
+    rdfs:label "Language Web Annotation mapping set"@x-gmeow-english ;
+    skos:definition "The mapping set for language grounding correspondences from native text-position anchor terms to W3C Web Annotation targets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:sssomFile "gmeow-lang-web-annotation.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-web-annotation" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
@@ -42,6 +55,9 @@ gmeow:mapsetLangWebAnnotation a gmeow:MappingSet ;
 # OntoLex-Lemon --------------------------------------------------------------
 
 gmeow:eqLangLexemeOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Lexeme to OntoLex LexicalEntry bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:Lexeme class to the exchange-facing ontolex:LexicalEntry class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:Lexeme ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject ontolex:LexicalEntry ;
     logic:sourceEndpoint lang:Lexeme ; logic:targetEndpoint ontolex:LexicalEntry ;
@@ -52,6 +68,9 @@ gmeow:eqLangLexemeOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangWordFormOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Word Form to OntoLex Form bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:WordForm specialization to the broader ontolex:Form class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:WordForm ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject ontolex:Form ;
     logic:sourceEndpoint lang:WordForm ; logic:targetEndpoint ontolex:Form ;
@@ -64,6 +83,9 @@ gmeow:eqLangWordFormOntolex a gmeow:TermEquivalence, logic:GroundingCorresponden
 # LexInfo and Global WordNet -------------------------------------------------
 
 gmeow:eqLangPosLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Part of Speech to LexInfo bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:PartOfSpeech category to lexinfo:PartOfSpeech."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:PartOfSpeech ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject lexinfo:PartOfSpeech ;
     logic:sourceEndpoint lang:PartOfSpeech ; logic:targetEndpoint lexinfo:PartOfSpeech ;
@@ -73,6 +95,9 @@ gmeow:eqLangPosLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangNounLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Noun to LexInfo noun bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:noun part-of-speech value to lexinfo:noun."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:noun ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject lexinfo:noun ;
     logic:sourceEndpoint lang:noun ; logic:targetEndpoint lexinfo:noun ;
@@ -82,6 +107,9 @@ gmeow:eqLangNounLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangVerbLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Verb to LexInfo verb bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:verb part-of-speech value to lexinfo:verb."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:verb ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject lexinfo:verb ;
     logic:sourceEndpoint lang:verb ; logic:targetEndpoint lexinfo:verb ;
@@ -91,6 +119,9 @@ gmeow:eqLangVerbLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangPosWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Part of Speech to WordNet bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:PartOfSpeech category to the Global WordNet wn:PartOfSpeech schema class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:PartOfSpeech ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wn:PartOfSpeech ;
     logic:sourceEndpoint lang:PartOfSpeech ; logic:targetEndpoint wn:PartOfSpeech ;
@@ -100,6 +131,9 @@ gmeow:eqLangPosWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangNounWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Noun to WordNet noun bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:noun part-of-speech value to the Global WordNet wn:noun value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:noun ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wn:noun ;
     logic:sourceEndpoint lang:noun ; logic:targetEndpoint wn:noun ;
@@ -109,6 +143,9 @@ gmeow:eqLangNounWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangVerbWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Verb to WordNet verb bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:verb part-of-speech value to the Global WordNet wn:verb value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:verb ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wn:verb ;
     logic:sourceEndpoint lang:verb ; logic:targetEndpoint wn:verb ;
@@ -118,6 +155,9 @@ gmeow:eqLangVerbWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangSenseRelationWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Sense Relation Kind to WordNet bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:SenseRelationKind category to the Global WordNet wn:SenseRelType schema class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:SenseRelationKind ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wn:SenseRelType ;
     logic:sourceEndpoint lang:SenseRelationKind ; logic:targetEndpoint wn:SenseRelType ;
@@ -127,6 +167,9 @@ gmeow:eqLangSenseRelationWordnet a gmeow:TermEquivalence, logic:GroundingCorresp
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangHypernymyWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Hypernymy to WordNet hypernym bridge"@x-gmeow-english ;
+    skos:definition "A validation-only related correspondence from the broader native lang:hypernymy relation kind to the Global WordNet wn:hypernym synset-relation kind."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:hypernymy ; gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wn:hypernym ;
     logic:sourceEndpoint lang:hypernymy ; logic:targetEndpoint wn:hypernym ;
@@ -137,6 +180,9 @@ gmeow:eqLangHypernymyWordnet a gmeow:TermEquivalence, logic:GroundingCorresponde
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangHyponymyWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Hyponymy to WordNet hyponym bridge"@x-gmeow-english ;
+    skos:definition "A validation-only related correspondence from the broader native lang:hyponymy relation kind to the Global WordNet wn:hyponym synset-relation kind."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:hyponymy ; gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wn:hyponym ;
     logic:sourceEndpoint lang:hyponymy ; logic:targetEndpoint wn:hyponym ;
@@ -149,6 +195,9 @@ gmeow:eqLangHyponymyWordnet a gmeow:TermEquivalence, logic:GroundingCorresponden
 # NIF and Web Annotation anchors --------------------------------------------
 
 gmeow:eqLangAnchorNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Surface Anchor to NIF OffsetBasedString bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from native lang:SurfaceAnchor records to NIF offset-based strings, qualified by the selected offset unit and source text."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:SurfaceAnchor ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject nif:OffsetBasedString ;
     logic:sourceEndpoint lang:SurfaceAnchor ; logic:targetEndpoint nif:OffsetBasedString ;
@@ -159,6 +208,9 @@ gmeow:eqLangAnchorNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangSurfaceFormNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Surface Form to NIF String bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from native lang:SurfaceForm instances to the NIF nif:String class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:SurfaceForm ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject nif:String ;
     logic:sourceEndpoint lang:SurfaceForm ; logic:targetEndpoint nif:String ;
@@ -168,6 +220,9 @@ gmeow:eqLangSurfaceFormNif a gmeow:TermEquivalence, logic:GroundingCorrespondenc
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangSurfaceTextNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Surface Text to NIF anchorOf bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:surfaceText property to nif:anchorOf for carrying the anchored string surface."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:surfaceText ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject nif:anchorOf ;
     logic:sourceEndpoint lang:surfaceText ; logic:targetEndpoint nif:anchorOf ;
@@ -177,6 +232,9 @@ gmeow:eqLangSurfaceTextNif a gmeow:TermEquivalence, logic:GroundingCorrespondenc
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorStartNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Anchor Start to NIF beginIndex bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:anchorStart offset property to nif:beginIndex."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:anchorStart ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject nif:beginIndex ;
     logic:sourceEndpoint lang:anchorStart ; logic:targetEndpoint nif:beginIndex ;
@@ -186,6 +244,9 @@ gmeow:eqLangAnchorStartNif a gmeow:TermEquivalence, logic:GroundingCorrespondenc
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorEndNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Anchor End to NIF endIndex bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:anchorEnd offset property to nif:endIndex."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:anchorEnd ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject nif:endIndex ;
     logic:sourceEndpoint lang:anchorEnd ; logic:targetEndpoint nif:endIndex ;
@@ -195,6 +256,9 @@ gmeow:eqLangAnchorEndNif a gmeow:TermEquivalence, logic:GroundingCorrespondence 
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorSourceNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Anchor Source to NIF referenceContext bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:anchorSource property to nif:referenceContext."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:anchorSource ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject nif:referenceContext ;
     logic:sourceEndpoint lang:anchorSource ; logic:targetEndpoint nif:referenceContext ;
@@ -204,6 +268,9 @@ gmeow:eqLangAnchorSourceNif a gmeow:TermEquivalence, logic:GroundingCorresponden
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Surface Anchor to Web Annotation TextPositionSelector bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from native lang:SurfaceAnchor records to W3C Web Annotation text-position selectors."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:SurfaceAnchor ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject oa:TextPositionSelector ;
     logic:sourceEndpoint lang:SurfaceAnchor ; logic:targetEndpoint oa:TextPositionSelector ;
@@ -214,6 +281,9 @@ gmeow:eqLangAnchorOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorStartOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Anchor Start to Web Annotation start bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:anchorStart offset property to the W3C Web Annotation oa:start property."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:anchorStart ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject oa:start ;
     logic:sourceEndpoint lang:anchorStart ; logic:targetEndpoint oa:start ;
@@ -223,6 +293,9 @@ gmeow:eqLangAnchorStartOa a gmeow:TermEquivalence, logic:GroundingCorrespondence
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorEndOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Anchor End to Web Annotation end bridge"@x-gmeow-english ;
+    skos:definition "A validation-only close correspondence from the native lang:anchorEnd offset property to the W3C Web Annotation oa:end property."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:anchorEnd ; gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject oa:end ;
     logic:sourceEndpoint lang:anchorEnd ; logic:targetEndpoint oa:end ;
@@ -232,6 +305,9 @@ gmeow:eqLangAnchorEndOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqLangAnchorSourceOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    rdfs:label "Anchor Source to Web Annotation hasSource bridge"@x-gmeow-english ;
+    skos:definition "A validation-only related correspondence from the native lang:anchorSource property to oa:hasSource, whose Web Annotation subject is a SpecificResource rather than the selector itself."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:alignSubject lang:anchorSource ; gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject oa:hasSource ;
     logic:sourceEndpoint lang:anchorSource ; logic:targetEndpoint oa:hasSource ;

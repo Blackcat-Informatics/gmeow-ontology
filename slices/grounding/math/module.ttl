@@ -7649,6 +7649,29 @@ math:OddsValue
             a logic:Restriction ;
             logic:onProperty math:hasDimension ;
             logic:hasValue math:dimensionless ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:minQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:allValuesFrom math:Dimension ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass math:Dimension ;
         ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Odds Value"@x-gmeow-english ;
@@ -7662,6 +7685,29 @@ math:LogOddsValue
             a logic:Restriction ;
             logic:onProperty math:hasDimension ;
             logic:hasValue math:dimensionless ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:minQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:allValuesFrom math:Dimension ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass math:Dimension ;
         ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Log-Odds Value"@x-gmeow-english ;

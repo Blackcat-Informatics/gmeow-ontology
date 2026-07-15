@@ -51,6 +51,7 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.linkage.no-correspondence-surface",
     "slice-quality.linkage.no-calculus-eligible-correspondence",
     "slice-quality.linkage.uncalculated-correspondence",
+    "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
     "slice-quality.gmn-glyph-optimality.unaudited-executable-target",
     "slice-quality.projection.hand-authored-shapes",
     "slice-quality.projection.no-mappings",

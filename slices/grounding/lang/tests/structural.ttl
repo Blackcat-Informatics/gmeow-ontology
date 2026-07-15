@@ -334,6 +334,7 @@ ex:saGmnSignsAreNonLexicalForms a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     FILTER NOT EXISTS {
         ?denotation a lang:Denotation ;
@@ -345,7 +346,8 @@ ASK {
         ?denotation a lang:Denotation ;
             gmeow:gmnDenotationGrapheme ?grapheme ;
             lang:denotedForm ?form .
-        ?form a lang:WordForm .
+        ?form a ?formKind .
+        ?formKind rdfs:subClassOf* lang:WordForm .
     }
 }""" ;
     gmeow:saRationale "Every graph-derived GMN glyph denotation MUST attach to a generic lang:Form in the notation sign system, never a lang:WordForm. A WordForm is an inflection of a lexeme and therefore requires lang:lexemeOf; logical, mathematical, IPA, gloss, and boundary signs are notation forms rather than fabricated lexical inflections." .

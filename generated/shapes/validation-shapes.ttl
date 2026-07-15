@@ -5239,7 +5239,7 @@
 <https://blackcatinformatics.ca/math/LogOddsValue-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/LogOddsValue> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/math/ProbabilityValue> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/hasDimension> ; sh:hasValue <https://blackcatinformatics.ca/math/dimensionless> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/hasDimension> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/math/Dimension> ; sh:hasValue <https://blackcatinformatics.ca/math/dimensionless> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/Dimension> ] ; sh:qualifiedMaxCount 1 ] .
 
 <https://blackcatinformatics.ca/math/Manifold-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/UnderspecifiedManifold> ;
@@ -5289,7 +5289,7 @@
 <https://blackcatinformatics.ca/math/OddsValue-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/OddsValue> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/math/ProbabilityValue> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/hasDimension> ; sh:hasValue <https://blackcatinformatics.ca/math/dimensionless> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/hasDimension> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/math/Dimension> ; sh:hasValue <https://blackcatinformatics.ca/math/dimensionless> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/Dimension> ] ; sh:qualifiedMaxCount 1 ] .
 
 <https://blackcatinformatics.ca/math/OrthogonalComplement-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/UnqualifiedOrthogonalComplement> ;

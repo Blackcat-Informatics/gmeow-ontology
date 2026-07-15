@@ -27,7 +27,7 @@ pub(crate) use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bcp47::Bcp47Target;
-use crate::bridge::IngestDiagnostic;
+use crate::bridge::{IngestDiagnostic, LangFailure};
 use crate::conllu::ConlluTarget;
 use crate::emit::digest16;
 use crate::gmn1_codec::{Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write};
@@ -365,7 +365,7 @@ impl LangProjectionTarget for AbnfTarget {
 /// [`gmn1_write`], and MEASURES the round-trip via [`gmn1_read`] +
 /// [`gmn0_canonically_equal`] — never declares it.
 ///
-/// This target's `emit` NEVER hard-fails on an uncovered construct (unlike a `Bridge`):
+/// This target's `emit` NEVER hard-fails on an uncovered source construct (unlike a `Bridge`):
 /// `lang_models` here spans EVERY slice's `examples/*.ttl` referencing `lang:` (the
 /// registry's input aBox carries no slice-scoping metadata to filter on), while the
 /// GMN-1 codec's TOTAL-coverage claim (Task 6) is scoped to the grounding slices only —
@@ -378,6 +378,9 @@ impl LangProjectionTarget for AbnfTarget {
 /// claim is the dedicated, grounding-scoped round-trip gate wired into
 /// `crates/pipeline/src/stages/gmn1_gate.rs` — this target's job is registration on the
 /// seam and an honest per-source preservation record, not that gate's total-coverage bar.
+/// The selected target's version-pinned dictionary is different: it is a mandatory codec
+/// capability, so a source-driven emission with no dictionary hard-fails before any source
+/// is examined rather than degrading to an artifact-free lossy result.
 struct Gmn1Target;
 
 const GMN1_CORR_BASE: &str = "https://blackcatinformatics.ca/lang/gmn1-correspondence/";
@@ -389,6 +392,17 @@ impl LangProjectionTarget for Gmn1Target {
     }
 
     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+        if input.lang_models.is_empty() {
+            return Ok(Vec::new());
+        }
+        let dict = input
+            .gmn_dictionary
+            .as_ref()
+            .ok_or_else(|| IngestDiagnostic {
+                failure_class: LangFailure::SilentIngestDrop,
+                construct: "current GMN codebook dictionary is absent; version-pinned resolution cannot default"
+                    .to_owned(),
+            })?;
         let mut emissions = Vec::new();
         for source in &input.lang_models {
             let Ok(ds) = purrdf::parse_dataset(&source.bytes, "text/turtle", None) else {
@@ -399,29 +413,19 @@ impl LangProjectionTarget for Gmn1Target {
                 continue;
             };
             let model = Gmn0Model::from_dataset(&ds);
-            let (exact, artifact_text, unsupported) = match input.gmn_dictionary.as_ref() {
-                Some(dict) => match gmn1_write(&model, dict) {
-                    Ok(doc) => match gmn1_read(&doc, dict) {
-                        Ok(back) if gmn0_canonically_equal(&model, &back) => {
-                            (true, doc.text, Vec::new())
-                        }
-                        Ok(_) => (
-                            false,
-                            String::new(),
-                            vec!["round-trip canonical mismatch".to_owned()],
-                        ),
-                        Err(e) => (false, String::new(), vec![e.to_string()]),
-                    },
+            let (exact, artifact_text, unsupported) = match gmn1_write(&model, dict) {
+                Ok(doc) => match gmn1_read(&doc, dict) {
+                    Ok(back) if gmn0_canonically_equal(&model, &back) => {
+                        (true, doc.text, Vec::new())
+                    }
+                    Ok(_) => (
+                        false,
+                        String::new(),
+                        vec!["round-trip canonical mismatch".to_owned()],
+                    ),
                     Err(e) => (false, String::new(), vec![e.to_string()]),
                 },
-                None => (
-                    false,
-                    String::new(),
-                    vec![
-                        "current GMN codebook dictionary is absent; version-pinned resolution cannot default"
-                            .to_owned(),
-                    ],
-                ),
+                Err(e) => (false, String::new(), vec![e.to_string()]),
             };
 
             let source_iri = format!(

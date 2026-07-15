@@ -376,9 +376,9 @@ ex:pRainFromOdds a math:Quantity , math:ProbabilityValue ;
 # (math:probabilityOfEvent) — a second, scale-transformed estimate of P(rain), not an
 # unanchored bare quantity.
 ex:forecastRainEvent math:probabilityOfEvent ex:pRainFromOdds .
-<https://blackcatinformatics.ca/gmeow/examples/math/muQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/muQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/lengthDimension> .
 <https://blackcatinformatics.ca/gmeow/examples/math/pRainFromOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
 <https://blackcatinformatics.ca/gmeow/examples/math/pRainTomorrow> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
 <https://blackcatinformatics.ca/gmeow/examples/math/rainLogOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
 <https://blackcatinformatics.ca/gmeow/examples/math/rainOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
-<https://blackcatinformatics.ca/gmeow/examples/math/sigmaQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/sigmaQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/lengthDimension> .

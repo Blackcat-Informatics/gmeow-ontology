@@ -11,4 +11,4 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-gmeow:InformationObject	skos:closeMatch	iao:IAO_0000030	semapv:ManualMappingCuration	0.85	IAO information content entity is a close bridge, not an identity assertion over the kernel information-object sort.
+gmeow:InformationObject	skos:closeMatch	iao:0000030	semapv:ManualMappingCuration	0.85	IAO information content entity is a close bridge, not an identity assertion over the kernel information-object sort.

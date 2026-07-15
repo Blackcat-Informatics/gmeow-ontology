@@ -57,7 +57,7 @@ pub use engine::{
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn1_codec::{
     ConstructCoverageTally, CoverageReport, Gmn0Model, Gmn1ConstructCategory, Gmn1Document,
-    Gmn1Error, GmnDictionary, GmnGlyphRegistry, QuadCoverage, classify_quad,
+    Gmn1Error, GmnDictionary, GmnGlyphRegistry, QuadCoverage, classify_model,
     gmn0_canonically_equal, gmn1_read, gmn1_write, gmn1_write_tabular, measure_coverage,
     round_trip_check,
 };

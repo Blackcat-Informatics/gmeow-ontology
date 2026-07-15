@@ -541,11 +541,17 @@ impl GmnGlyphRegistry {
                             "grapheme {grapheme} names sigil scope {scope} outside the current codebook"
                         )));
                     }
-                    role_sigils.get(scope).cloned().ok_or_else(|| {
+                    let sigil = role_sigils.get(scope).cloned().ok_or_else(|| {
                         GlyphRegistryError(format!(
                             "grapheme {grapheme} names unknown sigil scope {scope}"
                         ))
-                    })?
+                    })?;
+                    if !KNOWN_SIGILS.contains(&sigil.as_str()) {
+                        return Err(GlyphRegistryError(format!(
+                            "grapheme {grapheme} names unsupported GMN sigil {sigil:?}"
+                        )));
+                    }
+                    sigil
                 }
                 None => String::new(),
             };
@@ -1470,7 +1476,7 @@ fn non_decodable(detail: String) -> Gmn1Error {
 /// [`classify_literal`], [`classify_reference`], and [`classify_value`] are the SAME
 /// dispatch [`encode_reference`]/[`encode_value`] call (each is a one-line wrapper
 /// around its classifier), so a category label can never drift from what [`gmn1_write`] really
-/// does to the same term. [`classify_quad`] and [`ConstructCoverageTally`] compose these
+/// does to the same term. [`classify_model`] and [`ConstructCoverageTally`] compose these
 /// into the per-quad, corpus-wide audit `crates/pipeline/src/stages/gmn1_gate.rs`'s
 /// `check_gmn1_construct_coverage` runs over the real grounding slices.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -1668,7 +1674,7 @@ fn encode_value(
 /// `prefix__local` if `iri` starts with a registered namespace and the local part is
 /// GMN-1 identifier-safe; the dictionary alias takes precedence when present (shorter,
 /// and the charter's witness-carried bijection). Also tags WHICH construct category the
-/// resolution took, for [`classify_reference`]/[`classify_quad`]'s audit use — the
+/// resolution took, for [`classify_reference`]/[`classify_model`]'s audit use — the
 /// classification is computed inline (never a second, drift-prone re-derivation of the
 /// same branches).
 fn classify_iri(
@@ -2063,6 +2069,42 @@ impl Record {
     }
 }
 
+type QuadGroup<'a> = (Option<RdfTerm>, RdfTerm, Vec<&'a RdfQuad>);
+
+/// Group a canonically ordered quad slice by `(graph, subject)`. The writer and
+/// coverage audit share this helper so record context cannot drift between them.
+fn group_quads(quads: &[RdfQuad]) -> Vec<QuadGroup<'_>> {
+    let mut groups = Vec::<QuadGroup<'_>>::new();
+    for quad in quads {
+        if let Some((graph, subject, bucket)) = groups.last_mut()
+            && *graph == quad.graph_name
+            && *subject == quad.subject
+        {
+            bucket.push(quad);
+            continue;
+        }
+        groups.push((quad.graph_name.clone(), quad.subject.clone(), vec![quad]));
+    }
+    groups
+}
+
+/// Return the one safe folded-record host and its selected sigil. A group with
+/// zero or multiple primary quads has no fold context and must use flat records.
+fn folded_record_context<'a>(bucket: &[&'a RdfQuad]) -> Option<(&'a RdfQuad, &'static str)> {
+    let mut primary = bucket
+        .iter()
+        .copied()
+        .filter(|quad| annotation_slot(&quad.predicate).is_none());
+    let host = primary.next()?;
+    if primary.next().is_some() {
+        return None;
+    }
+    let has_process_annotations = bucket
+        .iter()
+        .any(|quad| matches!(annotation_slot(&quad.predicate), Some("bd" | "it")));
+    Some((host, sigil_for_quad(host, has_process_annotations)))
+}
+
 /// Group a subject's quads into records, folding the recognized annotation predicates
 /// into the ONE primary triple's record when — and only when — exactly one candidate
 /// primary triple exists for that subject (the safe-fold guard: with zero or ≥2 primary
@@ -2075,21 +2117,8 @@ fn quads_to_records(
     ns_to_prefix: &[(String, String)],
     refs: &mut BTreeMap<String, RefPayload>,
 ) -> Result<Vec<Record>, UncoveredTerm> {
-    // Group by (graph, subject) preserving the model's already-sorted order.
-    let mut groups: Vec<(Option<RdfTerm>, RdfTerm, Vec<&RdfQuad>)> = Vec::new();
-    for q in quads {
-        if let Some((g, s, bucket)) = groups.last_mut()
-            && *g == q.graph_name
-            && *s == q.subject
-        {
-            bucket.push(q);
-            continue;
-        }
-        groups.push((q.graph_name.clone(), q.subject.clone(), vec![q]));
-    }
-
     let mut records = Vec::new();
-    for (graph, _subject, bucket) in groups {
+    for (graph, _subject, bucket) in group_quads(quads) {
         if graph.is_some() {
             return Err(UncoveredTerm(
                 "named-graph-scoped quads are outside this codec's covered record model \
@@ -2097,16 +2126,7 @@ fn quads_to_records(
                     .to_owned(),
             ));
         }
-        let (primary, annotation): (Vec<&&RdfQuad>, Vec<&&RdfQuad>) = bucket
-            .iter()
-            .partition(|q| annotation_slot(&q.predicate).is_none());
-
-        if primary.len() == 1 {
-            let host = primary[0];
-            let has_process_annotations = annotation
-                .iter()
-                .any(|q| matches!(annotation_slot(&q.predicate), Some("bd" | "it")));
-            let sigil = sigil_for_quad(host, has_process_annotations);
+        if let Some((host, sigil)) = folded_record_context(&bucket) {
             let mut fields = BTreeMap::new();
             fields.insert(
                 "s",
@@ -2124,7 +2144,11 @@ fn quads_to_records(
             let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs, sigil)?;
             fields.insert(obj_key, obj_tok);
 
-            for q in &annotation {
+            for q in bucket
+                .iter()
+                .copied()
+                .filter(|quad| annotation_slot(&quad.predicate).is_some())
+            {
                 let slot = annotation_slot(&q.predicate).expect("partitioned as annotation");
                 let tok = if slot == "q" {
                     encode_value(&q.object, refs)?
@@ -2717,16 +2741,14 @@ impl CoverageReport {
 }
 
 /// Measure [`CoverageReport`] over every quad in `model` against `dict`, reusing the
-/// SAME [`classify_quad`] dispatch [`gmn1_write`] calls — never a second, duplicated
+/// SAME grouped record context [`gmn1_write`] uses — never a second, duplicated
 /// notion of "coverable".
 #[must_use]
 pub fn measure_coverage(model: &Gmn0Model, dict: &GmnDictionary) -> CoverageReport {
-    let mut covered = 0usize;
-    for q in &model.quads {
-        if matches!(classify_quad(q, dict), QuadCoverage::Covered { .. }) {
-            covered += 1;
-        }
-    }
+    let covered = classify_model(model, dict)
+        .into_iter()
+        .filter(|coverage| matches!(coverage, QuadCoverage::Covered { .. }))
+        .count();
     CoverageReport {
         covered,
         total: model.quads.len(),
@@ -2757,16 +2779,14 @@ pub enum QuadCoverage {
     Uncovered(UncoveredTerm),
 }
 
-/// Classify one quad exactly the way [`gmn1_write`]'s `quads_to_records`/
-/// [`encode_object`] dispatch would: a named-graph quad is uncovered (the same fragment
-/// boundary [`quads_to_records`] enforces for the writer, checked first here so it is
-/// never silently subsumed by a slot-level classification), then subject/predicate
-/// classify via [`classify_reference`] and the object classifies via [`classify_value`]
-/// (literal) or [`classify_reference`] (otherwise) — the o-vs-v split. This is the
-/// audit's sole classification entry point: `crates/pipeline/src/stages/gmn1_gate.rs`'s
-/// `check_gmn1_construct_coverage` and [`ConstructCoverageTally`] both call only this.
-#[must_use]
-pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
+/// Classify one quad under the sigil selected for its writer record.
+fn classify_quad_in_record(
+    quad: &RdfQuad,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> QuadCoverage {
     if quad.graph_name.is_some() {
         return QuadCoverage::Uncovered(UncoveredTerm(
             "named-graph-scoped quads are outside this codec's covered record model \
@@ -2774,26 +2794,23 @@ pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
                 .to_owned(),
         ));
     }
-    let ns_to_prefix = ns_to_prefix_table();
-    let mut refs = BTreeMap::new();
-    let sigil = sigil_for_quad(quad, false);
-    let subject = match classify_reference(&quad.subject, dict, &ns_to_prefix, sigil) {
+    let subject = match classify_reference(&quad.subject, dict, ns_to_prefix, sigil) {
         Ok((_, category)) => category,
         Err(e) => return QuadCoverage::Uncovered(e),
     };
     let predicate = match classify_reference(
         &RdfTerm::Iri(quad.predicate.clone()),
         dict,
-        &ns_to_prefix,
+        ns_to_prefix,
         sigil,
     ) {
         Ok((_, category)) => category,
         Err(e) => return QuadCoverage::Uncovered(e),
     };
     let object_result = if matches!(quad.object, RdfTerm::Literal(_)) {
-        classify_value(&quad.object, &mut refs)
+        classify_value(&quad.object, refs)
     } else {
-        classify_reference(&quad.object, dict, &ns_to_prefix, sigil)
+        classify_reference(&quad.object, dict, ns_to_prefix, sigil)
     };
     let object = match object_result {
         Ok((_, category)) => category,
@@ -2804,6 +2821,39 @@ pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
         predicate,
         object,
     }
+}
+
+/// Classify every quad with the same grouped record context and selected sigil as
+/// [`quads_to_records`]. The returned vector is in `model.quads` order and has the
+/// same length. Exactly-one-primary groups inherit their folded host's sigil,
+/// including `@p` selected by sibling `bd`/`it` annotations; ambiguous groups use
+/// the writer's flat per-quad fallback.
+#[must_use]
+pub fn classify_model(model: &Gmn0Model, dict: &GmnDictionary) -> Vec<QuadCoverage> {
+    let ns_to_prefix = ns_to_prefix_table();
+    let mut refs = BTreeMap::new();
+    let mut classifications = Vec::with_capacity(model.quads.len());
+
+    for (graph, _subject, bucket) in group_quads(&model.quads) {
+        if graph.is_some() {
+            classifications.extend(bucket.into_iter().map(|quad| {
+                classify_quad_in_record(quad, dict, &ns_to_prefix, &mut refs, SIGIL_CLAIM)
+            }));
+        } else if let Some((_host, sigil)) = folded_record_context(&bucket) {
+            classifications.extend(
+                bucket.into_iter().map(|quad| {
+                    classify_quad_in_record(quad, dict, &ns_to_prefix, &mut refs, sigil)
+                }),
+            );
+        } else {
+            classifications.extend(bucket.into_iter().map(|quad| {
+                let sigil = sigil_for_quad(quad, false);
+                classify_quad_in_record(quad, dict, &ns_to_prefix, &mut refs, sigil)
+            }));
+        }
+    }
+
+    classifications
 }
 
 /// Per-[`Gmn1ConstructCategory`] occurrence tally over a quad corpus — the
@@ -2827,10 +2877,10 @@ pub struct ConstructCoverageTally {
 }
 
 impl ConstructCoverageTally {
-    /// Fold every quad of `model` into this tally, via [`classify_quad`].
+    /// Fold every quad of `model` into this tally, via [`classify_model`].
     pub fn absorb(&mut self, model: &Gmn0Model, dict: &GmnDictionary) {
-        for q in &model.quads {
-            match classify_quad(q, dict) {
+        for coverage in classify_model(model, dict) {
+            match coverage {
                 QuadCoverage::Covered {
                     subject,
                     predicate,
@@ -3165,6 +3215,33 @@ ex:c a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d ; gmeow:gmnA
     }
 
     #[test]
+    fn glyph_registry_rejects_scope_outside_the_closed_sigil_set() {
+        let unsupported_scope = glyph_registry_fixture(
+            r#"
+gmeow:gmnCodebookCurrent gmeow:references ex:deadRole .
+ex:script lang:hasGrapheme ex:gDead .
+ex:deadRole gmeow:gmnSigilGlyph "@x" .
+ex:gDead gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:deadRole .
+ex:fDead gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:dDead a lang:Denotation ; lang:denotedForm ex:fDead ;
+    lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ;
+    gmeow:gmnDenotationGrapheme ex:gDead .
+ex:cDead a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:dDead ; gmeow:gmnAsciiFallback "add" ;
+    gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&unsupported_scope)
+            .expect_err("a role outside the reader/writer's closed sigil set must reject");
+        assert!(
+            error.0.contains("unsupported GMN sigil \"@x\""),
+            "{}",
+            error.0
+        );
+    }
+
+    #[test]
     fn glyph_registry_requires_typed_denotation_and_complete_operator_signature() {
         let untyped = glyph_registry_fixture(
             r#"
@@ -3446,6 +3523,58 @@ ex:fixtureDenotation a lang:Denotation ;
             ),
             "an adopted glyph's ASCII fallback must preserve the same sigil scope"
         );
+    }
+
+    #[test]
+    fn coverage_uses_grouped_process_record_context() {
+        let mut builder = RdfDatasetBuilder::new();
+        let subject = builder.intern_iri(&format!("{GMEOW_NS}processCoverageProbe"));
+        let predicate = builder.intern_iri(&format!("{GMEOW_NS}hasState"));
+        let addition = builder.intern_iri(&format!("{MATH_NS}Addition"));
+        builder.push_quad(subject, predicate, addition, None);
+
+        let boundary = builder.intern_iri(PRED_OCCURRENT_BOUNDARY);
+        let open = builder.intern_iri(&format!("{LOGIC_NS}Open"));
+        builder.push_quad(subject, boundary, open, None);
+
+        let model = Gmn0Model::from_dataset(&builder.freeze().expect("freeze"));
+        let dictionary = real_dict();
+        let document = gmn1_write(&model, &dictionary).expect("process record writes");
+        assert!(document.text.contains("@p{"), "{}", document.text);
+        assert!(
+            document.text.contains("o: math__Addition"),
+            "the @p record must not use math:Addition's @mu-only glyph:\n{}",
+            document.text
+        );
+        assert!(!document.text.contains("o: +"), "{}", document.text);
+
+        let classifications = classify_model(&model, &dictionary);
+        let primary = model
+            .quads
+            .iter()
+            .zip(&classifications)
+            .find(|(quad, _)| quad.predicate == format!("{GMEOW_NS}hasState"))
+            .map(|(_, coverage)| coverage)
+            .expect("primary quad is classified");
+        assert!(
+            matches!(
+                primary,
+                QuadCoverage::Covered {
+                    object: Gmn1ConstructCategory::IriPrefixMangled,
+                    ..
+                }
+            ),
+            "coverage must use the writer's @p sigil, not classify the object as an @mu glyph: {primary:?}"
+        );
+
+        let mut tally = ConstructCoverageTally::default();
+        tally.absorb(&model, &dictionary);
+        assert_eq!(
+            tally.count(Gmn1ConstructCategory::IriGlyph),
+            0,
+            "the tally must not claim an @mu glyph the grouped @p writer did not emit"
+        );
+        round_trip_check(&model, &dictionary).expect("process record round-trips");
     }
 
     #[test]

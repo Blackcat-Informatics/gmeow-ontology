@@ -25,17 +25,7 @@ const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SH: &str = "http://www.w3.org/ns/shacl#";
 const SKOS: &str = "http://www.w3.org/2004/02/skos/core#";
 
-const TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
-const GROUNDING_CORRESPONDENCE: &str =
-    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
-const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
 const ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
-const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
-const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
-const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
-const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
-const MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
-const PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 
@@ -105,15 +95,6 @@ fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
         "the negative fixture must fail for its missing preservation judgment: {:?}",
         negative_report.results
     );
-}
-
-fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String {
-    assert_eq!(
-        values.len(),
-        1,
-        "{cell} must carry exactly one {field}, found {values:?}"
-    );
-    values.into_iter().next().unwrap()
 }
 
 fn records() -> Vec<BridgeRecord> {

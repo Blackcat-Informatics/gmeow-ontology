@@ -374,6 +374,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "ProbLog-style weighted-inference evaluator for logic:ProbabilisticProfile — a separate execution path with no reference from dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance",
     ),
     (
+        "reasoning_graphs.rs",
+        "shared constants and membership predicate for the forward object-level named-graph boundary — consumed by pipeline assembly and coherence gates, not backward dispatch",
+    ),
+    (
         "relational_core.rs",
         "FOL-to-Horn relational-core lowering adapter, consumed by conjecture.rs and reason/mod.rs — forward reasoning surface, not backward dispatch",
     ),

@@ -1466,22 +1466,41 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
     // merged-closure scope in repo mode by composing that authority with the scored
     // slice graph. Without this join, logic/math would falsely report "no candidates"
     // despite their audited dispositions living exactly where the grounding contract
-    // requires them to live. A bundle scorer may already hand us a wide graph; if no
-    // surrounding checkout is available, retain that supplied graph.
-    let audit_graph = match &ctx.env {
-        ScoringEnv::Repo => repo_root_of(&ctx.slice_dir).and_then(|root| {
+    // requires them to live. Repo scoring MUST fail closed when that authority cannot
+    // be assembled: falling back to the slice-local graph would turn a missing/invalid
+    // lang authority into a false "fully audited" score. Bundle scoring is different:
+    // its supplied graph already carries the assembled audit closure.
+    let repo_graph;
+    let ds = match &ctx.env {
+        ScoringEnv::Repo => {
+            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+                return gmn_audit_graph_unavailable(
+                    "the slice directory has no resolvable slices/ path prefix",
+                );
+            };
             let lang_module = root.join("slices/grounding/lang/module.ttl");
+            if !lang_module.is_file() {
+                return gmn_audit_graph_unavailable(format!(
+                    "the shared symbol-audit authority {} is missing",
+                    lang_module.display()
+                ));
+            }
             let mut paths = crate::report::slice_ttl_paths(&ctx.slice_dir);
-            if lang_module.is_file() && !paths.contains(&lang_module) {
+            if !paths.contains(&lang_module) {
                 paths.push(lang_module);
             }
             paths.sort();
             let refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
-            crate::dataset_from_paths(&refs).ok()
-        }),
-        ScoringEnv::Bundle(_) => None,
+            let Ok(graph) = crate::dataset_from_paths(&refs) else {
+                return gmn_audit_graph_unavailable(
+                    "the slice plus shared lang symbol-audit authority could not be parsed",
+                );
+            };
+            repo_graph = graph;
+            repo_graph.as_ref()
+        }
+        ScoringEnv::Bundle(_) => ctx.graph,
     };
-    let ds = audit_graph.as_deref().unwrap_or(ctx.graph);
     let candidates = instances_of(ds, &g("GmnSymbolCandidate"));
     let target_p = id(ds, &g("gmnCandidateTarget"));
 
@@ -1489,12 +1508,18 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
     // owned terms. The candidate records themselves live in the lang-owned gmeow: plane,
     // so merged-closure scope is required and the target join is the ownership seam.
     let mut relevant = Vec::new();
+    let is_lang_authority = ctx.slice_iri == "https://blackcatinformatics.ca/gmeow/slices/lang";
     for candidate in candidates {
         let Some(cid) = id(ds, &candidate) else {
             continue;
         };
         let targets = target_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
-        if targets.iter().any(|target| ctx.terms.contains(target)) {
+        // A targetless row cannot be attributed through the ownership join. Retain
+        // it while scoring the lang authority itself so the cardinality check below
+        // reports the malformed row instead of filtering it into silence.
+        if (targets.is_empty() && is_lang_authority)
+            || targets.iter().any(|target| ctx.terms.contains(target))
+        {
             relevant.push((candidate, targets));
         }
     }
@@ -1731,6 +1756,18 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
     let denominator = relevant.len() + missing_executable_targets.len();
     let score = complete as f64 / denominator as f64;
     AxisScore { score, findings }
+}
+
+fn gmn_audit_graph_unavailable(detail: impl std::fmt::Display) -> AxisScore {
+    AxisScore {
+        score: 0.0,
+        findings: vec![advisory(
+            "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
+            format!(
+                "GMN glyph optimality cannot be audited because {detail}; scoring fails closed at 0.0 until the canonical grounding authority is available"
+            ),
+        )],
+    }
 }
 
 fn no_gmn_candidates(ctx: &ScoreContext) -> AxisScore {

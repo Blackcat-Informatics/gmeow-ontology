@@ -48876,23 +48876,24 @@
             ]
           },
           "math:hasDimension": {
-            "anyOf": [
-              {
-                "const": {
-                  "@id": "math:dimensionless"
-                }
-              },
-              {
-                "items": {
-                  "const": {
-                    "@id": "math:dimensionless"
-                  }
-                },
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
+            "const": {
+              "@id": "math:dimensionless"
+            },
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
+        "required": [
+          "math:hasDimension"
+        ],
         "type": "object"
       },
       "math:Manifold": {
@@ -49465,23 +49466,24 @@
             ]
           },
           "math:hasDimension": {
-            "anyOf": [
-              {
-                "const": {
-                  "@id": "math:dimensionless"
-                }
-              },
-              {
-                "items": {
-                  "const": {
-                    "@id": "math:dimensionless"
-                  }
-                },
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
+            "const": {
+              "@id": "math:dimensionless"
+            },
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
+        "required": [
+          "math:hasDimension"
+        ],
         "type": "object"
       },
       "math:OrthogonalComplement": {

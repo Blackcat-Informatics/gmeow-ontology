@@ -16,7 +16,8 @@
 # Conforms to math:EmbeddingShape, math:FiltrationShape, math:FiltrationStageShape,
 # math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape,
 # math:ResidualInterpretationClaimShape, math:AlgebraicStructureShape (the latent space and
-# the homology groups carry their algebra frame), and the gmeow: quantity shape.
+# the homology groups carry their algebra frame), and the canonical math:Quantity
+# dimension constraint.
 # Bound by ex:ecPersistenceCalibratedEmbedding.
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

@@ -11,4 +11,4 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-logic:Quality	skos:closeMatch	pato:PATO_0000001	semapv:ManualMappingCuration	0.85	PATO's quality root specializes a biomedical quality commitment; it is a validation bridge onto logic:Quality.
+logic:Quality	skos:closeMatch	pato:0000001	semapv:ManualMappingCuration	0.85	PATO's quality root specializes a biomedical quality commitment; it is a validation bridge onto logic:Quality.

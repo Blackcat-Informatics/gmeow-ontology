@@ -376,10 +376,13 @@ The mapping DSL has two main authoring units:
 
 `logic:GroundingCorrespondence` is the explicit grounding marker on either a
 `gmeow:TermEquivalence` frontend cell or a single-binding
-`gmeow:ProjectionMapping`. It requires authored
-`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`, and
-compiles to a shipped content-addressed `logic:Correspondence` with named
-source and target endpoints. All external grounding belongs to exactly one
+`gmeow:ProjectionMapping`. It requires `gmeow:justification`, named
+`logic:sourceEndpoint` and `logic:targetEndpoint` values, and explicit
+`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`
+judgments; the complete contract is specified in
+[`LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md).
+The cell compiles to a shipped content-addressed `logic:Correspondence`. All
+external grounding belongs to exactly one
 grounding slice: linguistic and serialization catalogs in
 [`slices/grounding/lang/mappings/`](./slices/grounding/lang/mappings/),
 mathematical catalogs in

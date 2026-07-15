@@ -11,5 +11,5 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-math:DataTransformation	skos:relatedMatch	obi:OBI_0200000	semapv:ManualMappingCuration	0.7	OBI_0200000 is a completely executed planned process producing output data from input data; math:DataTransformation is a mathematical transformation specification and need not denote an executed process. The concepts are usefully related but not close enough for interchange, so this is a validation-only commitment-shifting bridge.
+math:DataTransformation	skos:relatedMatch	obi:0200000	semapv:ManualMappingCuration	0.7	OBI_0200000 is a completely executed planned process producing output data from input data; math:DataTransformation is a mathematical transformation specification and need not denote an executed process. The concepts are usefully related but not close enough for interchange, so this is a validation-only commitment-shifting bridge.
 math:DatasetMatrix	skos:relatedMatch	http://semanticscience.org/resource/SIO_000089	semapv:ManualMappingCuration	0.7	SIO dataset is a carrier category broader than the native rectangular matrix construct.

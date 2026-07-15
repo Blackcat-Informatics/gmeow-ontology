@@ -8,14 +8,21 @@
 //! author forgot to add a `gmeow:GmnSymbolCandidate` row.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
+use gmeow_lang_bridge::GmnDictionary;
 use gmeow_slice_quality::axes;
 use gmeow_slice_quality::score::{ScoreContext, ScoringEnv};
 use purrdf::parse_dataset;
 
 const SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/test-glyphs";
+const LANG_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
 
 fn score(extra_candidate: &str) -> gmeow_slice_quality::score::AxisScore {
+    score_for(SLICE, extra_candidate)
+}
+
+fn score_for(slice_iri: &str, extra_candidate: &str) -> gmeow_slice_quality::score::AxisScore {
     let turtle = format!(
         r#"
 @prefix ex: <https://example.test/glyph/> .
@@ -36,7 +43,7 @@ gmeow:gmnScript a lang:Script ;
     lang:hasGrapheme ex:glyph .
 
 ex:target a owl:ObjectProperty ;
-    rdfs:isDefinedBy <{SLICE}> .
+    rdfs:isDefinedBy <{slice_iri}> .
 
 ex:glyph a lang:Grapheme ;
     gmeow:gmnCodepoints "U+002B" .
@@ -52,8 +59,61 @@ ex:form a lang:WordForm .
 "#
     );
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("fixture parses");
-    let context = ScoreContext::new(SLICE.to_owned(), PathBuf::new(), &dataset, ScoringEnv::Repo);
+    // Fixture-scale scoring supplies the complete audit graph directly, matching the
+    // embedded-bundle path. Repo mode is exercised separately below because it must
+    // assemble the canonical lang authority from a real checkout.
+    let context = ScoreContext::new(
+        slice_iri.to_owned(),
+        PathBuf::new(),
+        &dataset,
+        ScoringEnv::Bundle(Arc::new(GmnDictionary::default())),
+    );
     axes::resolve("gmn_glyph_optimality_axis").expect("axis is registered")(&context)
+}
+
+#[test]
+fn targetless_candidate_is_not_filtered_out_of_the_lang_authority_audit() {
+    let result = score_for(LANG_SLICE, "ex:targetless a gmeow:GmnSymbolCandidate .");
+
+    assert_eq!(result.score, 0.0);
+    assert!(result.findings.iter().any(|finding| {
+        finding.code == "slice-quality.gmn-glyph-optimality.incomplete"
+            && finding
+                .message
+                .contains("expected exactly one target, found 0")
+    }));
+}
+
+#[test]
+fn repo_scoring_fails_closed_when_symbol_audit_authority_is_unavailable() {
+    let dataset = parse_dataset(
+        format!(
+            r#"
+@prefix ex: <https://example.test/glyph/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:target a owl:ObjectProperty ; rdfs:isDefinedBy <{SLICE}> .
+"#
+        )
+        .as_bytes(),
+        "text/turtle",
+        None,
+    )
+    .expect("fixture parses");
+    let missing_root = std::env::temp_dir().join(format!(
+        "gmeow-missing-glyph-authority-{}/slices/test-glyphs",
+        std::process::id()
+    ));
+    let context = ScoreContext::new(SLICE.to_owned(), missing_root, &dataset, ScoringEnv::Repo);
+
+    let result = axes::resolve("gmn_glyph_optimality_axis").expect("axis is registered")(&context);
+
+    assert_eq!(result.score, 0.0);
+    assert_eq!(result.findings.len(), 1);
+    assert_eq!(
+        result.findings[0].code,
+        "slice-quality.gmn-glyph-optimality.audit-graph-unavailable"
+    );
 }
 
 #[test]

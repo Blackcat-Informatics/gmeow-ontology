@@ -15,27 +15,8 @@ use std::collections::BTreeSet;
 
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 
-const TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
-const GROUNDING_CORRESPONDENCE: &str =
-    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
-const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
-const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
-const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
-const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const SOURCE_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
 const TARGET_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
-const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
-const MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
-const PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
-
-fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String {
-    assert_eq!(
-        values.len(),
-        1,
-        "{cell} must carry exactly one {field}, found {values:?}"
-    );
-    values.into_iter().next().unwrap()
-}
 
 #[test]
 fn quantity_bridge_catalog_conforms_to_the_mapping_dsl() {
