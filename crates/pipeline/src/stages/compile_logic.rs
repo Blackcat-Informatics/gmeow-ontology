@@ -275,6 +275,38 @@ pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
 /// via `parse_correspondence`. Test-only helper so every pipeline test exercises the SAME
 /// canonical authored source the stage does (the fidelity oracle in `gmeow-logic-compile`
 /// proves this equals the `affine_triangle_worked_example` Rust literal byte-for-byte).
+/// Build the `stage-source-load` upstream a test needs to run [`CompileLogicStage`]. Rather
+/// than run the full (heavy) source-load stage — quality sweep, span index, self-description
+/// fold — this builds a MINIMAL product carrying ONLY the one named graph compile-logic
+/// reads: the denylist narrowing of `load_authored_dataset` rooted into
+/// [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`], EXACTLY as the real stage
+/// publishes it. compile-logic's `project_named_graph(GRAPH_LOGIC_COMPILE_INPUTS)` reads it
+/// identically, so the tests exercise the real consumer path at the old (single corpus
+/// parse) cost.
+#[cfg(test)]
+pub(crate) fn source_load_upstream(root: &Path) -> BTreeMap<String, StageProduct> {
+    let base = crate::stages::source_load::load_authored_dataset(root)
+        .expect("load authored corpus for compile-logic upstream");
+    let narrowed = crate::stages::source_load::logic_compile_input_subgraph(base.as_ref())
+        .expect("narrow the logic-compile-inputs corpus for compile-logic upstream");
+    let dataset = crate::stages::carrier::rooted_in_graph(
+        narrowed.as_ref(),
+        crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS,
+    )
+    .expect("root the logic-compile-inputs test graph");
+    let bundle = bundle_from_artifacts_over(
+        dataset,
+        BTreeMap::new(),
+        purrdf::provenance::DatasetProvenance::new(),
+    );
+    let mut upstream = BTreeMap::new();
+    upstream.insert(
+        "stage-source-load".to_string(),
+        StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+    );
+    upstream
+}
+
 #[cfg(test)]
 pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -288,13 +320,33 @@ pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
 }
 
 /// The `stage-compile-logic` pipeline stage.
-pub struct CompileLogicStage;
+pub struct CompileLogicStage {
+    /// The upstream products this stage consumes — `stage-source-load`, off which it reads
+    /// the narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
+    /// merged authored corpus its five augmentation readers walk).
+    consumes: Vec<String>,
+    /// The typed dataflow entities: it reads ONLY the `graph/logic-compile-inputs` named
+    /// graph of the `stage-source-load` product (a SOUND denylist narrowing of the whole
+    /// corpus), so a documentation-only edit that touches no read predicate leaves that
+    /// graph's digest unchanged and this (compiler) stage's cache key stable.
+    entities: Vec<(String, Vec<String>)>,
+}
 
 impl CompileLogicStage {
-    /// Construct the stage. It consumes no upstream product; it reads the canonical
-    /// logic source directly from disk (declared via [`Stage::input_files`]).
+    /// Construct the stage. It consumes `stage-source-load`, reading ONLY that product's
+    /// narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
+    /// five augmentation readers (validation shapes, constraints, correspondences, leg
+    /// programs, the diagnostic meta-fold); the canonical `logic:` source and the vendored
+    /// OPTs / worked examples it still reads directly from disk (declared via
+    /// [`Stage::input_files`]).
     pub fn new() -> Self {
-        Self
+        Self {
+            consumes: vec!["stage-source-load".to_string()],
+            entities: vec![(
+                "stage-source-load".to_string(),
+                vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
+            )],
+        }
     }
 }
 
@@ -331,7 +383,16 @@ impl Stage for CompileLogicStage {
         "stage-compile-logic"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
+    }
+    /// Typed dataflow (artifact-level): from `stage-source-load` it reads ONLY the
+    /// `graph/logic-compile-inputs` named graph (the SOUND denylist narrowing of the whole
+    /// authored corpus). Declaring that single entity folds only that graph's digest into
+    /// the compiler's cache key, so a documentation-only edit — one touching only the
+    /// stripped SKOS/Dublin-Core/PROV/VANN predicates — leaves the graph unchanged and this
+    /// (compiler) stage skips re-running.
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
@@ -353,21 +414,29 @@ impl Stage for CompileLogicStage {
         // (authored `logic:` TTL) via `parse_correspondence`, not a hardcoded Rust literal.
         // v7: the correspondence/uplift BASE rides the channel's `base_*` fields; the report
         // header's count fields ship as 0, and mappings is the single owner of the final counts.
-        "compile-logic.v7"
+        // v8: the five augmentation readers consume the narrowed source-load
+        // `graph/logic-compile-inputs` graph (a SOUND denylist narrowing of the whole
+        // authored corpus) instead of re-parsing the corpus from disk; the whole-corpus file
+        // list is dropped from `input_files` and freshness rides the typed `consumed_entities`
+        // edge.
+        "compile-logic.v8"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
-        // The compiler parses the logic: source and the vendored OPT, and derives validation
-        // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
-        // must bust this stage's cache.
-        let mut files = vec![
+        // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
+        // two worked-example cells directly from disk, so those are declared as raw input
+        // files for byte-level cache soundness. The WHOLE authored corpus is NO LONGER
+        // declared here: the five augmentation readers now read the narrowed
+        // `graph/logic-compile-inputs` entity off the `stage-source-load` product
+        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge — a
+        // documentation-only edit that leaves the narrowed graph's digest unchanged no
+        // longer busts the (expensive) compiler's cache.
+        Ok(vec![
             root.join(SOURCE_PATH),
             root.join(OPT_SOURCE_PATH),
             root.join(OPT_TEST_DATATYPES_PATH),
             root.join(PATH_SHAPES_EXAMPLE_PATH),
             root.join(CORRESPONDENCE_EXAMPLE_PATH),
-        ];
-        files.extend(crate::stages::source_load::authored_files(root)?);
-        Ok(files)
+        ])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
@@ -405,7 +474,31 @@ impl Stage for CompileLogicStage {
         // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.
-        let ontology = crate::stages::source_load::load_authored_dataset(input.root)?;
+        //
+        // Read the merged authored corpus as the NARROWED `graph/logic-compile-inputs`
+        // entity off the `stage-source-load` product — a SOUND (denylist) narrowing of
+        // `load_authored_dataset` with only pure-documentation predicates stripped, proved
+        // reader-identical by the `logic_compile_input_subgraph_preserves_reader_output`
+        // guard. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
+        // default graph, so the five augmentation readers (all graph-position-agnostic over
+        // the default graph) consume it directly. A missing product or an empty projection
+        // is a corrupt build — HARD-fail (no-optionality), never a silently-empty corpus.
+        let source_load = input.upstream.get("stage-source-load").ok_or_else(|| {
+            stage_err("missing stage-source-load product for the graph/logic-compile-inputs corpus")
+        })?;
+        let ontology = Arc::new(
+            source_load
+                .bundle()
+                .dataset()
+                .project_named_graph(crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS),
+        );
+        if ontology.quad_count() == 0 {
+            return Err(stage_err(format!(
+                "stage-source-load product carries an empty <{}> graph — the narrowed \
+                 compile-logic input corpus is missing (corrupt upstream product)",
+                crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS
+            )));
+        }
         validation_shapes.extend(
             gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
                 .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
@@ -910,7 +1003,7 @@ mod tests {
     #[test]
     fn compile_logic_stage_emits_every_product() {
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1036,6 +1129,125 @@ mod tests {
         );
     }
 
+    /// Seam 3 soundness guard: the denylist narrowing published as
+    /// `graph/logic-compile-inputs` is READER-IDENTICAL to the full authored corpus. Over the
+    /// REAL repo it runs EACH of the five compile-logic augmentation readers on BOTH the full
+    /// authored base (`load_authored_dataset`) and the denylisted subgraph
+    /// (`logic_compile_input_subgraph`) and asserts the IR output is identical — so the
+    /// stripped SKOS/Dublin-Core/PROV/VANN documentation predicates are provably never read.
+    /// If the denylist ever strips a read predicate, a reader's output diverges and this test
+    /// REDS. Non-vacuity is asserted FIRST (full validation-shape + constraint counts > 0) so
+    /// the test cannot pass on an empty corpus.
+    ///
+    /// On-gate: running the five readers over the whole corpus twice measures ~2.3s, well
+    /// under the 25s budget, so it stays on the default gate (no `#[ignore]`).
+    #[test]
+    fn logic_compile_input_subgraph_preserves_reader_output() {
+        use gmeow_errors::render::to_gmeow_rdf;
+        use gmeow_logic_compile::loss_ledger::LossLedger;
+
+        let root = repo_root();
+        let full = crate::stages::source_load::load_authored_dataset(&root)
+            .expect("load the full authored corpus");
+        let narrow = crate::stages::source_load::logic_compile_input_subgraph(full.as_ref())
+            .expect("build the denylisted logic-compile-inputs subgraph");
+
+        // The narrowing must have actually REMOVED documentation triples (else it proves
+        // nothing about the denylist) yet KEPT the vast majority of the corpus.
+        assert!(
+            narrow.quad_count() < full.quad_count(),
+            "the denylist must strip at least some documentation triples: full {} == narrow {}",
+            full.quad_count(),
+            narrow.quad_count()
+        );
+
+        // Reader 1: closed-world validation shapes. Non-vacuity FIRST.
+        let vs_full = gmeow_logic_compile::frontend::derive_validation_shapes(full.as_ref())
+            .expect("derive validation shapes over the full corpus");
+        let vs_narrow = gmeow_logic_compile::frontend::derive_validation_shapes(narrow.as_ref())
+            .expect("derive validation shapes over the narrowed corpus");
+        assert!(
+            !vs_full.is_empty(),
+            "non-vacuity: the full corpus must derive at least one validation shape"
+        );
+        assert_eq!(
+            vs_full, vs_narrow,
+            "derive_validation_shapes must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 2: procedural constraints. Non-vacuity FIRST.
+        let (c_full, _c_full_diags) =
+            gmeow_logic_compile::frontend::extract_all_constraints(full.as_ref());
+        let (c_narrow, _c_narrow_diags) =
+            gmeow_logic_compile::frontend::extract_all_constraints(narrow.as_ref());
+        assert!(
+            !c_full.is_empty(),
+            "non-vacuity: the full corpus must extract at least one constraint"
+        );
+        assert_eq!(
+            c_full, c_narrow,
+            "extract_all_constraints must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 3: authored correspondences.
+        let (corr_full, corr_full_errs) = extract_correspondences(full.as_ref());
+        let (corr_narrow, corr_narrow_errs) = extract_correspondences(narrow.as_ref());
+        assert_eq!(
+            corr_full, corr_narrow,
+            "extract_correspondences must be reader-identical across the denylist narrowing"
+        );
+        assert_eq!(
+            corr_full_errs, corr_narrow_errs,
+            "extract_correspondences malformed-cell errors must match across the narrowing"
+        );
+
+        // Reader 4: the correspondence leg programs (over the SAME correspondences).
+        let legs_full = extract_leg_programs(full.as_ref(), &corr_full);
+        let legs_narrow = extract_leg_programs(narrow.as_ref(), &corr_narrow);
+        assert_eq!(
+            legs_full, legs_narrow,
+            "extract_leg_programs must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 5: the diagnostic meta-fold. `MetaProgram` has no `PartialEq`, so compare
+        // the two programs BEHAVIORALLY — run each over the SAME real projected finding graph
+        // and assert identical (and non-empty) `MetaDerivation` (which IS `Eq`).
+        let meta_full = crate::stages::meta_findings::MetaProgram::from_source_dataset(&full)
+            .expect("meta-fold parses over the full corpus")
+            .expect("the full corpus carries gmeow:DiagnosticMetaRule rules");
+        let meta_narrow = crate::stages::meta_findings::MetaProgram::from_source_dataset(&narrow)
+            .expect("meta-fold parses over the narrowed corpus")
+            .expect("the narrowed corpus carries gmeow:DiagnosticMetaRule rules");
+        let mut loss = LossLedger::new();
+        loss.record_projection_drops(
+            "owl-dl",
+            PreservationKind::SoundUnder,
+            &["OWL-DL cannot carry full first-order formulas".to_owned()],
+            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
+        );
+        loss.record_projection_drops(
+            "datalog",
+            PreservationKind::SoundUnder,
+            &["Datalog cannot carry existential heads".to_owned()],
+            &["logic:Formula #7 dropped as unsupported residue".to_owned()],
+        );
+        let projected = to_gmeow_rdf(&loss.project_report(TOOL));
+        let deriv_full = meta_full
+            .derive(&projected)
+            .expect("meta chase over the full corpus program");
+        let deriv_narrow = meta_narrow
+            .derive(&projected)
+            .expect("meta chase over the narrowed corpus program");
+        assert!(
+            !deriv_full.root_cause.is_empty(),
+            "non-vacuity: the authored meta rules must derive a root cause on the full corpus"
+        );
+        assert_eq!(
+            deriv_full, deriv_narrow,
+            "MetaProgram::from_source_dataset must be reader-identical across the denylist narrowing"
+        );
+    }
+
     /// The CaboLabs "Test all datatypes" OPT is wired as a second constraint source, so its
     /// `C_DV_ORDINAL` and `C_DATE_TIME` families reach the generated shape surface (the axis is
     /// delivered into gmeow.gts, not merely proven in a unit test). The datetime validity pattern
@@ -1043,7 +1255,7 @@ mod tests {
     #[test]
     fn test_datatypes_opt_ordinal_and_datetime_flow_into_shape_surface() {
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1160,7 +1372,7 @@ mod tests {
     fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
         use crate::bundle::PipelineHandle;
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1237,7 +1449,7 @@ mod tests {
     fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
         use gmeow_logic_compile::relational_core::parse_relational_core;
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1316,7 +1528,7 @@ mod tests {
     #[test]
     fn downstream_consumer_reads_the_handle_without_re_lowering() {
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1371,7 +1583,7 @@ mod tests {
     fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
         use gmeow_logic_compile::projections::correspondence::parse_correspondence;
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1434,7 +1646,7 @@ mod tests {
     fn stage_correspondence_overclaim_gate_rejects_equivalence() {
         use gmeow_logic_compile::projections::correspondence::assert_no_overclaim_correspondence;
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
