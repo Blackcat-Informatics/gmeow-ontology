@@ -4,57 +4,57 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> "GMEOW"@en .
-<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> "GMEOW is an ontology engine for machine and human minds that treats every mental act as an attributed, revisable claim rather than a stored truth — a place to record not just what an agent (or a person) believes, but who held it, from what vantage, with what confidence, on what evidence, by which kind of reasoning, in what state of awareness, and whether it has since been defeated. Its flagship use is grounded agent memory — store, recall, revise — that can tell a recalled fact from a confabulated one and surfaces disagreement as coexisting standpoints rather than overwriting the loser. Truth is never a bit on a triple: belief, knowledge, inference, calibration, and reality-monitoring are all first-class, vantage-indexed claims, revision is suppression rather than deletion, and a full model of mind — endurant states and occurrent processes over content typed by direction of fit — gives every faculty both a human and a machine face. Every fact is authored once across GMEOW's self-contained slices, generated outward as lossy projections (OWL, SHACL, JSON-LD, schema.org, citation and deposit forms) and maximally linked to 86 external vocabularies and authority identifiers, so a GMEOW graph is a first-class node in the linked-data and persistent-identifier web."@en .
-<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/license> <https://creativecommons.org/licenses/by/4.0/> .
-<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/publisher> <https://blackcatinformatics.ca/#bii> .
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow> .
-<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/hasVersion> "0.1.0" .
-<https://blackcatinformatics.ca/gmeow> <https://blackcatinformatics.ca/gmeow/authorityLink> <http://www.wikidata.org/entity/Q140287679> .
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2004/02/skos/core#exactMatch> <http://www.wikidata.org/entity/Q140287679> .
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-ttl> .
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-rdf> .
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-nt> .
-<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-jsonld> .
-<https://blackcatinformatics.ca/gmeow#dist-ttl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
-<https://blackcatinformatics.ca/gmeow#dist-ttl> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.ttl> .
-<https://blackcatinformatics.ca/gmeow#dist-ttl> <http://www.w3.org/ns/dcat#mediaType> "text/turtle" .
-<https://blackcatinformatics.ca/gmeow#dist-rdf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
-<https://blackcatinformatics.ca/gmeow#dist-rdf> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.rdf> .
-<https://blackcatinformatics.ca/gmeow#dist-rdf> <http://www.w3.org/ns/dcat#mediaType> "application/rdf+xml" .
-<https://blackcatinformatics.ca/gmeow#dist-nt> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
-<https://blackcatinformatics.ca/gmeow#dist-nt> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.nt> .
-<https://blackcatinformatics.ca/gmeow#dist-nt> <http://www.w3.org/ns/dcat#mediaType> "application/n-triples" .
 <https://blackcatinformatics.ca/gmeow#dist-jsonld> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
 <https://blackcatinformatics.ca/gmeow#dist-jsonld> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.jsonld> .
 <https://blackcatinformatics.ca/gmeow#dist-jsonld> <http://www.w3.org/ns/dcat#mediaType> "application/ld+json" .
-<https://blackcatinformatics.ca/gmeow/full> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow/full> <http://purl.org/dc/terms/title> "GMEOW — full profile"@en .
-<https://blackcatinformatics.ca/gmeow/full> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/full> .
+<https://blackcatinformatics.ca/gmeow#dist-nt> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+<https://blackcatinformatics.ca/gmeow#dist-nt> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.nt> .
+<https://blackcatinformatics.ca/gmeow#dist-nt> <http://www.w3.org/ns/dcat#mediaType> "application/n-triples" .
+<https://blackcatinformatics.ca/gmeow#dist-rdf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+<https://blackcatinformatics.ca/gmeow#dist-rdf> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.rdf> .
+<https://blackcatinformatics.ca/gmeow#dist-rdf> <http://www.w3.org/ns/dcat#mediaType> "application/rdf+xml" .
+<https://blackcatinformatics.ca/gmeow#dist-ttl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+<https://blackcatinformatics.ca/gmeow#dist-ttl> <http://www.w3.org/ns/dcat#downloadURL> <https://blackcatinformatics.ca/gmeow.ttl> .
+<https://blackcatinformatics.ca/gmeow#dist-ttl> <http://www.w3.org/ns/dcat#mediaType> "text/turtle" .
 <https://blackcatinformatics.ca/gmeow/full> <http://purl.org/dc/terms/hasPart> <https://blackcatinformatics.ca/gmeow> .
-<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/title> "GMEOW — claims profile"@en .
+<https://blackcatinformatics.ca/gmeow/full> <http://purl.org/dc/terms/title> "GMEOW — full profile"@en .
+<https://blackcatinformatics.ca/gmeow/full> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow/full> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/full> .
 <https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 13 declared slice(s), 37 in the import closure."@en .
-<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/claims> .
 <https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
-<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/title> "GMEOW — dreaming profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://purl.org/dc/terms/title> "GMEOW — claims profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow/profiles/claims> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/claims> .
 <https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 1 declared slice(s), 36 in the import closure."@en .
-<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/dreaming> .
 <https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
-<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/title> "GMEOW — memory profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://purl.org/dc/terms/title> "GMEOW — dreaming profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow/profiles/dreaming> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/dreaming> .
 <https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 18 declared slice(s), 38 in the import closure."@en .
-<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/memory> .
 <https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
-<https://blackcatinformatics.ca/gmeow/profiles/music> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/title> "GMEOW — music profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://purl.org/dc/terms/title> "GMEOW — memory profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow/profiles/memory> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/memory> .
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 1 declared slice(s), 29 in the import closure."@en .
-<https://blackcatinformatics.ca/gmeow/profiles/music> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/music> .
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
-<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
-<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/title> "GMEOW — narrative profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/title> "GMEOW — music profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/music> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow/profiles/music> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/music> .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 4 declared slice(s), 32 in the import closure."@en .
-<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/narrative> .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
+<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/title> "GMEOW — narrative profile"@en .
+<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/narrative> .
+<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> "GMEOW is an ontology engine for machine and human minds that treats every mental act as an attributed, revisable claim rather than a stored truth — a place to record not just what an agent (or a person) believes, but who held it, from what vantage, with what confidence, on what evidence, by which kind of reasoning, in what state of awareness, and whether it has since been defeated. Its flagship use is grounded agent memory — store, recall, revise — that can tell a recalled fact from a confabulated one and surfaces disagreement as coexisting standpoints rather than overwriting the loser. Truth is never a bit on a triple: belief, knowledge, inference, calibration, and reality-monitoring are all first-class, vantage-indexed claims, revision is suppression rather than deletion, and a full model of mind — endurant states and occurrent processes over content typed by direction of fit — gives every faculty both a human and a machine face. Every fact is authored once across GMEOW's self-contained slices, generated outward as lossy projections (OWL, SHACL, JSON-LD, schema.org, citation and deposit forms) and maximally linked to 86 external vocabularies and authority identifiers, so a GMEOW graph is a first-class node in the linked-data and persistent-identifier web."@en .
+<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/hasVersion> "0.1.0" .
+<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/license> <https://creativecommons.org/licenses/by/4.0/> .
+<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/publisher> <https://blackcatinformatics.ca/#bii> .
+<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> "GMEOW"@en .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2004/02/skos/core#exactMatch> <http://www.wikidata.org/entity/Q140287679> .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-jsonld> .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-nt> .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-rdf> .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#distribution> <https://blackcatinformatics.ca/gmeow#dist-ttl> .
+<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow> .
+<https://blackcatinformatics.ca/gmeow> <https://blackcatinformatics.ca/gmeow/authorityLink> <http://www.wikidata.org/entity/Q140287679> .

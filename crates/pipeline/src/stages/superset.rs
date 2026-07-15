@@ -735,7 +735,7 @@ fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), gmeow_erro
         let entry = entry.map_err(|e| stage_err(&format!("dir entry in {dir:?}: {e}")))?;
         let path = entry.path();
         // Skip hidden (dot) directories: they are runtime, never committed — e.g.
-        // `generated/.pipeline-cache/` (gitignored persistent stage cache). The gate
+        // `.cache/gmeow-sync/pipeline/` (gitignored opt-in stage cache). The gate
         // reconstructs only committed artifacts.
         if entry.file_name().to_string_lossy().starts_with('.') {
             continue;

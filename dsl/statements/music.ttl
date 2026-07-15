@@ -8,7 +8,7 @@
 # Music analysis statement-metadata cells — issue #315.
 #
 # Canonical RDF 1.2 / RDF* source for contested analytical claims.
-# Compiled by the `gmeow regenerate` statements generator to:
+# Compiled by the `gmeow-dev sync --mode update --outputs generated` statements generator to:
 #   * generated/statements/gmeow.rdf12.ttl
 #   * generated/statements/gmeow-statements.owl.ttl
 # =============================================================================

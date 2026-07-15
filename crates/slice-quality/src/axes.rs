@@ -611,6 +611,38 @@ fn mnemomorphic_projection_cells(ds: &RdfDataset) -> BTreeSet<String> {
     out
 }
 
+/// Identity-strength `logic:GroundingCorrespondence` frontend cells already routed
+/// through the correspondence calculus. The mappings compiler transpiles these
+/// dual-typed `gmeow:TermEquivalence` rows into typed `logic:Correspondence` IR;
+/// scoring the authored surface must credit that frontend marker rather than wait
+/// for the generated post-transpile graph.
+///
+/// The three mandatory grounding judgments are required here as well. A marker
+/// without its class/kind/preservation contract remains legacy debt (and the
+/// compiler hard-fails it), never a free score.
+fn identity_grounding_correspondence_cells(ds: &RdfDataset) -> BTreeSet<String> {
+    let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
+    instances_of(ds, &format!("{LOGIC_NS}GroundingCorrespondence"))
+        .into_iter()
+        .filter(|record| {
+            let Some(sid) = id(ds, record) else {
+                return false;
+            };
+            let identity_strength = id(ds, &g("alignPredicate"))
+                .and_then(|p| one_iri(ds, sid, p))
+                .is_some_and(|predicate| identity.contains(predicate.as_str()));
+            let has_required_judgments = ["morphismClass", "morphismKind", "preservationKind"]
+                .into_iter()
+                .all(|local| {
+                    id(ds, &format!("{LOGIC_NS}{local}"))
+                        .and_then(|p| one_iri(ds, sid, p))
+                        .is_some()
+                });
+            identity_strength && has_required_judgments
+        })
+        .collect()
+}
+
 /// One legacy (hand-authored, identity-strength) alignment record the slice owns: the
 /// `gmeow:TermEquivalence` / mapping IRI plus the human detail naming its migration target.
 struct LegacyRecord {
@@ -722,9 +754,10 @@ fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
 ///   adoption = |calculus-routed| / |calculus-routed ∪ hand-authored identity records|
 ///
 /// * **Calculus-routed** (numerator): the `logic:Correspondence` lens individuals
-///   ([`extract_correspondences`]) plus the `gmeow:ProjectionMapping` cells whose binding is a
-///   lawful FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
-///   `logic:SectionLaw`).
+///   ([`extract_correspondences`]); authored `logic:GroundingCorrespondence` frontend cells
+///   carrying their required class/kind/preservation judgments; plus the
+///   `gmeow:ProjectionMapping` cells whose binding is a lawful FACT rename (mnemomorphic `=` —
+///   the cells the mappings stage lifts to a discharged `logic:SectionLaw`).
 /// * **Hand-authored** (the migration targets): identity-strength `gmeow:TermEquivalence` rows
 ///   and `dc:` alignments the dumb-down calculus should derive ([`lint_dc_refinement`]).
 ///
@@ -754,6 +787,7 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
         .map(|c| c.iri)
         .collect();
     calculus.extend(mnemomorphic_projection_cells(ds));
+    calculus.extend(identity_grounding_correspondence_cells(ds));
 
     // Legacy: the hand-authored identity-strength records — the migration targets.
     let mut legacy: BTreeMap<String, String> = BTreeMap::new();

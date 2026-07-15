@@ -3,12 +3,12 @@
 
 [package]
 name = "gmeow-dev-cli"
-description = "The repo-maintenance `gmeow-dev` command surface (regenerate, fanout, reason, verify, mappings, i18n, and the developer toolchain)."
+description = "The repo-maintenance `gmeow-dev` command surface (sync, fanout, reason, verify, mappings, i18n, and the developer toolchain)."
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords = ["cli", "gmeow", "regenerate", "pipeline", "developer"]
+keywords = ["cli", "gmeow", "sync", "pipeline", "developer"]
 
 [lib]
 path = "src/lib.rs"

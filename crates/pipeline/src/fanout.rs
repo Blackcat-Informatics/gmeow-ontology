@@ -23,7 +23,8 @@
 //! The write set is a pure function of the bundle, so the produced tree and the
 //! `FanoutReport` counters are identical regardless of `jobs`.
 
-use std::path::Path;
+use std::collections::BTreeSet;
+use std::path::{Path, PathBuf};
 
 use rayon::prelude::*;
 
@@ -40,6 +41,8 @@ pub struct FanoutReport {
     pub written: usize,
     /// Files already byte-identical on disk (no rewrite needed).
     pub skipped: usize,
+    /// Stale files removed from the generator-owned `generated/` tree.
+    pub removed: usize,
 }
 
 /// Reconstruct every committed `generated/` file from `<root>/generated/dist/gmeow.gts`
@@ -90,9 +93,101 @@ pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Di
     })?;
 
     let written = rewritten.iter().filter(|&&b| b).count();
+    let mut expected = projection.files.keys().cloned().collect::<BTreeSet<_>>();
+    // The terminal bundle is fanout's source rather than one of its projections.
+    // The optional full release bundle is likewise outside the flat projection.
+    expected.extend(crate::stages::superset::EXCLUDED.map(str::to_string));
+    let removed = remove_stale_generated(root, &expected)?;
     Ok(FanoutReport {
         produced: projection.files.len(),
         written,
         skipped: projection.files.len() - written,
+        removed,
     })
+}
+
+/// Remove files no longer represented by the carrier, then prune empty
+/// directories. Hidden runtime directories are not part of the committed tree and
+/// are never traversed. Byte-identical live files remain untouched.
+fn remove_stale_generated(
+    root: &Path,
+    expected: &BTreeSet<String>,
+) -> Result<usize, gmeow_errors::Diag> {
+    // GENERATED-READ-OK: post-pipeline fanout enumerates the projection-owned tree only to
+    // remove stale leaves; these disk bytes never feed the carrier or any produced artifact.
+    let base = root.join("generated");
+    let mut files = Vec::new();
+    let mut dirs = Vec::new();
+    collect_generated_members(&base, root, &mut files, &mut dirs)?;
+    let mut removed = 0;
+    for (rel, path) in files {
+        if !expected.contains(&rel) {
+            std::fs::remove_file(&path).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "fanout".to_string(),
+                    message: format!("remove stale generated artifact {}: {e}", path.display()),
+                })
+            })?;
+            removed += 1;
+        }
+    }
+    dirs.sort_by_key(|path| std::cmp::Reverse(path.components().count()));
+    for path in dirs {
+        match std::fs::remove_dir(&path) {
+            Ok(()) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::DirectoryNotEmpty => {}
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "fanout".to_string(),
+                    message: format!("prune empty generated directory {}: {e}", path.display()),
+                }));
+            }
+        }
+    }
+    Ok(removed)
+}
+
+fn collect_generated_members(
+    dir: &Path,
+    root: &Path,
+    files: &mut Vec<(String, PathBuf)>,
+    dirs: &mut Vec<PathBuf>,
+) -> Result<(), gmeow_errors::Diag> {
+    let entries = std::fs::read_dir(dir).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "fanout".to_string(),
+            message: format!("read generated directory {}: {e}", dir.display()),
+        })
+    })?;
+    for entry in entries {
+        let entry = entry.map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "fanout".to_string(),
+                message: format!("read generated directory entry: {e}"),
+            })
+        })?;
+        if entry.file_name().to_string_lossy().starts_with('.') {
+            continue;
+        }
+        let path = entry.path();
+        let kind = entry.file_type().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "fanout".to_string(),
+                message: format!("read file type for {}: {e}", path.display()),
+            })
+        })?;
+        if kind.is_dir() {
+            collect_generated_members(&path, root, files, dirs)?;
+            dirs.push(path);
+        } else {
+            let rel = path
+                .strip_prefix(root)
+                .unwrap_or(&path)
+                .to_string_lossy()
+                .replace('\\', "/");
+            files.push((rel, path));
+        }
+    }
+    Ok(())
 }

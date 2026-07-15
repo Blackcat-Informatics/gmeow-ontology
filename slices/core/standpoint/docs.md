@@ -151,7 +151,7 @@ preserved*. This is loss without winner-picking — every standpoint still appea
 
 ## Verified by construction
 
-- `make check-generated` — no drift between `mapping-dsl/` and the generated
+- `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` — no drift between `mapping-dsl/` and the generated
   artifacts (the Standpoint-OWL 2 executor included).
 - `make lint-alignment` — alignment-direction soundness over the SSSOM rows.
 - `tests/test_standpoint.py` — no frame-selecting executor exists; the Standpoint-OWL 2

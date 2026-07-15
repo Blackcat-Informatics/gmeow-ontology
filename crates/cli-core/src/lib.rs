@@ -30,7 +30,9 @@ use serde::Serialize;
 
 pub mod error;
 
-use error::{EmptyArtifactSelection, UnknownArtifactKind, UnknownConsoleMode};
+use error::{
+    DocsProjectionFailed, EmptyArtifactSelection, UnknownArtifactKind, UnknownConsoleMode,
+};
 
 /// The output surface a CLI run presents on, resolved once at startup.
 ///
@@ -303,6 +305,24 @@ pub enum ExportFormat {
     All,
 }
 
+/// Filesystem reconciliation accounting for one rendered documentation tree.
+///
+/// `unchanged` means the existing bytes matched exactly, so the file was not
+/// opened for writing and its inode/mtime stayed untouched. `removed` counts
+/// stale files formerly owned by the projection; empty-directory pruning is not
+/// counted separately.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct DocsProjectionReport {
+    /// Files in the canonical rendered tree.
+    pub produced: usize,
+    /// Missing or byte-different files written to disk.
+    pub written: usize,
+    /// Byte-identical files deliberately left untouched.
+    pub unchanged: usize,
+    /// Stale projection-owned files removed from disk.
+    pub removed: usize,
+}
+
 /// Write one docs projection tree into `dir`, reporting the confirmations error on
 /// a fold/selection failure and any I/O error on write. Returns the process exit
 /// code: `0` on success, `1` on a handled failure.
@@ -329,6 +349,28 @@ pub fn write_docs_projection(
 /// ownership. This lets one canonical site render feed multiple destinations
 /// without cloning its byte payloads or rendering twice.
 pub fn write_docs_projection_tree(dir: &Path, tree: &BTreeMap<String, Vec<u8>>) -> i32 {
+    match reconcile_docs_projection_tree(dir, tree) {
+        Ok(_) => {
+            println!("docs -> {}", dir.display());
+            0
+        }
+        Err(diag) => fail(diag.to_string()),
+    }
+}
+
+/// Reconcile an already-rendered documentation tree and return exact filesystem
+/// accounting. Unlike [`write_docs_projection_tree`], this result-bearing form
+/// lets a larger synchronization command include docs in its aggregate
+/// idempotency report.
+pub fn reconcile_docs_projection_tree(
+    dir: &Path,
+    tree: &BTreeMap<String, Vec<u8>>,
+) -> Result<DocsProjectionReport, Diag> {
+    let mut expected = BTreeSet::new();
+    let mut report = DocsProjectionReport {
+        produced: tree.len(),
+        ..DocsProjectionReport::default()
+    };
     for (rel, data) in tree {
         let rel_path = Path::new(rel);
         if rel_path.is_absolute()
@@ -336,31 +378,120 @@ pub fn write_docs_projection_tree(dir: &Path, tree: &BTreeMap<String, Vec<u8>>) 
                 .components()
                 .any(|c| matches!(c, Component::ParentDir))
         {
-            return fail(format!(
+            return Err(docs_projection_diag(format!(
                 "refusing to write docs member outside the export directory: {rel:?}"
-            ));
+            )));
         }
+        expected.insert(rel_path.to_path_buf());
         let target = dir.join(rel_path);
+        // Never follow a pre-existing symlink while reconciling an untrusted
+        // projection path. Replace the link itself with the projected regular file.
+        if std::fs::symlink_metadata(&target).is_ok_and(|meta| meta.file_type().is_symlink())
+            && let Err(e) = std::fs::remove_file(&target)
+        {
+            return Err(docs_projection_diag(format!(
+                "cannot replace symlink {}: {e}",
+                target.display()
+            )));
+        }
         // Idempotency policy: an equal projection is already synchronized. Do not
         // rewrite it (or touch its mtime/inode), which keeps warm docs runs cheap
         // and prevents downstream rebuilds triggered only by filesystem churn.
         match std::fs::read(&target) {
-            Ok(existing) if existing == *data => continue,
+            Ok(existing) if existing == *data => {
+                report.unchanged += 1;
+                continue;
+            }
             Ok(_) => {}
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
-            Err(e) => return fail(format!("cannot read {}: {e}", target.display())),
+            Err(e) => {
+                return Err(docs_projection_diag(format!(
+                    "cannot read {}: {e}",
+                    target.display()
+                )));
+            }
         }
         if let Some(parent) = target.parent()
             && let Err(e) = std::fs::create_dir_all(parent)
         {
-            return fail(format!("cannot create {}: {e}", parent.display()));
+            return Err(docs_projection_diag(format!(
+                "cannot create {}: {e}",
+                parent.display()
+            )));
         }
         if let Err(e) = std::fs::write(&target, data) {
-            return fail(format!("cannot write {}: {e}", target.display()));
+            return Err(docs_projection_diag(format!(
+                "cannot write {}: {e}",
+                target.display()
+            )));
+        }
+        report.written += 1;
+    }
+
+    // A projection tree owns its destination. Remove stale members so update mode
+    // reaches a fixed point even when a canonical page disappears. This runs after
+    // all writes, never follows directory symlinks, and leaves byte-identical files
+    // untouched.
+    let mut existing_files = Vec::new();
+    let mut existing_dirs = Vec::new();
+    if let Err(e) = collect_projection_members(dir, dir, &mut existing_files, &mut existing_dirs) {
+        return Err(docs_projection_diag(format!(
+            "cannot inspect {}: {e}",
+            dir.display()
+        )));
+    }
+    for (rel, path) in existing_files {
+        if !expected.contains(&rel) {
+            if let Err(e) = std::fs::remove_file(&path) {
+                return Err(docs_projection_diag(format!(
+                    "cannot remove stale docs member {}: {e}",
+                    path.display()
+                )));
+            }
+            report.removed += 1;
         }
     }
-    println!("docs -> {}", dir.display());
-    0
+    existing_dirs.sort_by_key(|path| std::cmp::Reverse(path.components().count()));
+    for path in existing_dirs {
+        match std::fs::remove_dir(&path) {
+            Ok(()) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::DirectoryNotEmpty => {}
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => {
+                return Err(docs_projection_diag(format!(
+                    "cannot prune {}: {e}",
+                    path.display()
+                )));
+            }
+        }
+    }
+    Ok(report)
+}
+
+fn collect_projection_members(
+    root: &Path,
+    dir: &Path,
+    files: &mut Vec<(PathBuf, PathBuf)>,
+    dirs: &mut Vec<PathBuf>,
+) -> std::io::Result<()> {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(e),
+    };
+    for entry in entries {
+        let entry = entry?;
+        let path = entry.path();
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            collect_projection_members(root, &path, files, dirs)?;
+            dirs.push(path);
+        } else {
+            let rel = path.strip_prefix(root).unwrap_or(&path).to_path_buf();
+            files.push((rel, path));
+        }
+    }
+    Ok(())
 }
 
 /// Emit an Error-grade diagnostic through the console sink and yield the failure
@@ -372,17 +503,15 @@ pub fn write_docs_projection_tree(dir: &Path, tree: &BTreeMap<String, Vec<u8>>) 
 /// environment (honouring `GMEOW_CONSOLE` and the stderr TTY) so the docs-export
 /// error surfaces as the same graded witness every other diagnostic does — human
 /// text on a TTY, an NDJSON `finding` line for agents — never a bare stderr write.
+fn docs_projection_diag(message: impl Into<String>) -> Diag {
+    Diag::of_kind(DocsProjectionFailed {
+        detail: message.into(),
+    })
+}
+
 fn fail(message: impl AsRef<str>) -> i32 {
     use std::io::IsTerminal;
-    let diag = Diag::new(
-        gmeow_errors::code::register_code("gmeow-cli-core.docs-export.io"),
-        gmeow_errors::Grade::new(
-            gmeow_errors::Severity::Error,
-            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
-            gmeow_errors::Standpoint::Binding,
-        ),
-        message.as_ref().to_owned(),
-    );
+    let diag = docs_projection_diag(message.as_ref());
     let mode = ConsoleMode::resolve(
         None,
         std::env::var("GMEOW_CONSOLE").ok().as_deref(),
@@ -398,7 +527,7 @@ fn fail(message: impl AsRef<str>) -> i32 {
 /// threading a generic through every command. Product results (the actual
 /// answer a command computes) go to stdout by the command itself; a `Reporter`
 /// owns the *diagnostic* channel (stderr for humans, stdout NDJSON for agents).
-pub trait Reporter {
+pub trait Reporter: Send + Sync {
     /// Surface a completed diagnostics report.
     fn report(&self, report: &Report);
 
@@ -730,6 +859,62 @@ mod tests {
             std::fs::read(tmp.join("a/b.md")).unwrap(),
             b"hello".to_vec()
         );
+    }
+
+    #[test]
+    fn write_docs_projection_removes_stale_members() {
+        let tmp = tempdir();
+        std::fs::create_dir_all(tmp.join("stale/nested")).unwrap();
+        std::fs::write(tmp.join("stale/nested/old.md"), b"old").unwrap();
+        let tree = BTreeMap::from([("live.md".to_owned(), b"live".to_vec())]);
+        assert_eq!(write_docs_projection(&tmp, Ok(tree)), 0);
+        assert_eq!(std::fs::read(tmp.join("live.md")).unwrap(), b"live");
+        assert!(!tmp.join("stale/nested/old.md").exists());
+        assert!(!tmp.join("stale").exists());
+    }
+
+    #[test]
+    fn docs_projection_report_accounts_for_write_skip_and_removal() {
+        let tmp = tempdir();
+        std::fs::write(tmp.join("same.md"), b"same").unwrap();
+        std::fs::write(tmp.join("changed.md"), b"old").unwrap();
+        std::fs::write(tmp.join("stale.md"), b"stale").unwrap();
+        let tree = BTreeMap::from([
+            ("changed.md".to_owned(), b"new".to_vec()),
+            ("same.md".to_owned(), b"same".to_vec()),
+        ]);
+
+        let report = reconcile_docs_projection_tree(&tmp, &tree).unwrap();
+
+        assert_eq!(
+            report,
+            DocsProjectionReport {
+                produced: 2,
+                written: 1,
+                unchanged: 1,
+                removed: 1,
+            }
+        );
+        assert_eq!(std::fs::read(tmp.join("changed.md")).unwrap(), b"new");
+        assert!(!tmp.join("stale.md").exists());
+    }
+
+    #[test]
+    fn write_docs_projection_does_not_touch_equal_files() {
+        let tmp = tempdir();
+        let tree = BTreeMap::from([("same.md".to_owned(), b"same".to_vec())]);
+        assert_eq!(write_docs_projection(&tmp, Ok(tree.clone())), 0);
+        let before = std::fs::metadata(tmp.join("same.md"))
+            .unwrap()
+            .modified()
+            .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        assert_eq!(write_docs_projection(&tmp, Ok(tree)), 0);
+        let after = std::fs::metadata(tmp.join("same.md"))
+            .unwrap()
+            .modified()
+            .unwrap();
+        assert_eq!(before, after, "equal docs output had its mtime touched");
     }
 
     #[test]

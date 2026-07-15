@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The per-stage content-addressed cache (C4-cache).
+//! The opt-in per-stage content-addressed cache (C4-cache).
 //!
 //! The cache key folds `stage.id ++ impl_version ++ sorted(upstream output
 //! digests) ++ source_file_digest[SourceLoad only]` into a [`content_digest`],
@@ -9,6 +9,13 @@
 //! [`CachedBundle`], backed by the kernel `ContentStore`. It is self-verifying: a
 //! digest recheck on load HARD-fails on mismatch and never silently repairs
 //! (no-optionality).
+//!
+//! The full repository synchronization deliberately does **not** use this cache.
+//! Its stage products are cumulative carrier snapshots, so persisting or restoring
+//! them duplicates gigabytes of state and costs more than recomputation. The sync
+//! command instead caches the clean result at the whole-run boundary. This codec
+//! remains available to focused stages and tests whose products are genuinely
+//! bounded and independently reusable.
 //!
 //! # The C4-cache: a canonical-projection / structural-reconstitution cache
 //!
@@ -662,6 +669,17 @@ pub struct PipelineCache {
 }
 
 impl PipelineCache {
+    /// Construct an inert cache handle without touching the filesystem.
+    ///
+    /// [`crate::scheduler::RunContext::open_uncached`] uses this for a full sync:
+    /// scheduler cache probes and writes are disabled, so the path is never read.
+    pub fn inert() -> Self {
+        Self {
+            dir: PathBuf::new(),
+            index: BTreeMap::new(),
+        }
+    }
+
     /// The conventional cache base directory under a repo root. [`open`](Self::open)
     /// appends the version segment, so this is the un-segmented base.
     pub fn default_dir(root: &Path) -> PathBuf {
