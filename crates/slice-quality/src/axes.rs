@@ -597,8 +597,18 @@ fn binding_is_mnemomorphic(ds: &RdfDataset, binding: purrdf::TermId) -> bool {
 /// never enter the population. Sorted (cell IRI order).
 fn mnemomorphic_projection_cells(ds: &RdfDataset) -> BTreeSet<String> {
     let has_binding = id(ds, &g("hasBinding"));
+    let marked_grounding: BTreeSet<String> =
+        instances_of(ds, &format!("{LOGIC_NS}GroundingCorrespondence"))
+            .into_iter()
+            .collect();
+    let valid_grounding = crate::grounding::validated_grounding_cells(ds);
     let mut out = BTreeSet::new();
     for cell in instances_of(ds, &g("ProjectionMapping")) {
+        // A grounding marker strengthens the authoring contract. It cannot fall back to
+        // the permissive ordinary ProjectionMapping path when its envelope is malformed.
+        if marked_grounding.contains(&cell) && !valid_grounding.contains(&cell) {
+            continue;
+        }
         let Some(sid) = id(ds, &cell) else { continue };
         let routed = has_binding.is_some_and(|hb| {
             ds.quads_for_pattern(Some(sid), Some(hb), None, GraphMatch::Any)
@@ -618,12 +628,9 @@ struct LegacyRecord {
     detail: String,
 }
 
-/// The slice's hand-authored `gmeow:TermEquivalence` rows at identity strength — the
-/// records that assert a lawful rename (`skos:exactMatch` / `owl:equivalentClass` /
-/// `owl:equivalentProperty`) but were curated by hand rather than routed through the
-/// correspondence calculus. Each is a real migration target: lift it to a
-/// `gmeow:ProjectionMapping` mnemomorphic `=` cell so the section-law discharge proves the
-/// rename lawful. Sorted by record IRI.
+/// The slice's `gmeow:TermEquivalence` rows at identity strength. A complete
+/// `logic:GroundingCorrespondence` envelope is removed from this legacy set after it is
+/// credited to the calculus; an ordinary row remains a real migration target.
 fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
     let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
     let mut out = Vec::new();
@@ -644,7 +651,7 @@ fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
         out.push(LegacyRecord {
             record_iri: record.clone(),
             detail: format!(
-                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
+                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — either author a complete logic:GroundingCorrespondence envelope for a shipped grounding law or lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
             ),
         });
     }
@@ -722,9 +729,10 @@ fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
 ///   adoption = |calculus-routed| / |calculus-routed ∪ hand-authored identity records|
 ///
 /// * **Calculus-routed** (numerator): the `logic:Correspondence` lens individuals
-///   ([`extract_correspondences`]) plus the `gmeow:ProjectionMapping` cells whose binding is a
-///   lawful FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
-///   `logic:SectionLaw`).
+///   ([`extract_correspondences`]); complete identity-strength
+///   `logic:GroundingCorrespondence` frontend cells; and the `gmeow:ProjectionMapping`
+///   cells whose binding is a lawful FACT rename (mnemomorphic `=` — the cells the mappings
+///   stage lifts to a discharged `logic:SectionLaw`).
 /// * **Hand-authored** (the migration targets): identity-strength `gmeow:TermEquivalence` rows
 ///   and `dc:` alignments the dumb-down calculus should derive ([`lint_dc_refinement`]).
 ///
@@ -754,6 +762,20 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
         .map(|c| c.iri)
         .collect();
     calculus.extend(mnemomorphic_projection_cells(ds));
+    let term_cells: BTreeSet<String> = instances_of(ds, &g("TermEquivalence"))
+        .into_iter()
+        .collect();
+    let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
+    calculus.extend(
+        crate::grounding::validated_grounding_cells(ds)
+            .into_iter()
+            .filter(|cell| term_cells.contains(cell))
+            .filter(|cell| {
+                id(ds, cell)
+                    .and_then(|sid| id(ds, &g("alignPredicate")).and_then(|p| one_iri(ds, sid, p)))
+                    .is_some_and(|predicate| identity.contains(predicate.as_str()))
+            }),
+    );
 
     // Legacy: the hand-authored identity-strength records — the migration targets.
     let mut legacy: BTreeMap<String, String> = BTreeMap::new();
@@ -763,7 +785,8 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
     for rec in dc_hand_authored(ds) {
         legacy.entry(rec.record_iri).or_insert(rec.detail);
     }
-    // A record cannot be both calculus-routed and legacy (disjoint types), but guard anyway.
+    // A valid identity GroundingCorrespondence deliberately appears in both frontend sets;
+    // calculus ownership wins, while an incomplete marker remains legacy debt.
     for iri in &calculus {
         legacy.remove(iri);
     }

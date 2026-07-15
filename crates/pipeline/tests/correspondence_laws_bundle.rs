@@ -18,6 +18,8 @@ use std::path::{Path, PathBuf};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const MATH: &str = "https://blackcatinformatics.ca/math/";
+const LANG: &str = "https://blackcatinformatics.ca/lang/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GUFO: &str = "http://purl.org/nemo/gufo#";
 const BFO: &str = "http://purl.obolibrary.org/obo/BFO_";
@@ -26,6 +28,22 @@ const SUMO: &str = "https://www.ontologyportal.org/SUMO.owl#";
 const OWL: &str = "http://www.w3.org/2002/07/owl#";
 const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SH: &str = "http://www.w3.org/ns/shacl#";
+const DUL: &str = "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#";
+const IAO: &str = "http://purl.obolibrary.org/obo/IAO_";
+const PATO: &str = "http://purl.obolibrary.org/obo/PATO_";
+const YAMATO: &str = "http://www.hozo.jp/owl/YAMATO20210808.miz.owl#";
+const OPENCYC: &str = "http://sw.opencyc.org/concept/";
+const ONTOUML: &str = "https://w3id.org/ontouml#";
+const QB: &str = "http://purl.org/linked-data/cube#";
+const STATO: &str = "http://purl.obolibrary.org/obo/STATO_";
+const OBCS: &str = "http://purl.obolibrary.org/obo/OBCS_";
+const SIO: &str = "http://semanticscience.org/resource/SIO_";
+const OBI: &str = "http://purl.obolibrary.org/obo/OBI_";
+const ONTOLEX: &str = "http://www.w3.org/ns/lemon/ontolex#";
+const LEXINFO: &str = "http://www.lexinfo.net/ontology/3.0/lexinfo#";
+const WORDNET: &str = "https://globalwordnet.github.io/schemas/wn#";
+const NIF: &str = "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#";
+const OA: &str = "http://www.w3.org/ns/oa#";
 const CORRESPONDENCE_LAWS_GRAPH: &str =
     "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
 
@@ -121,8 +139,8 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
         .collect();
     assert_eq!(
         grounding.len(),
-        141,
-        "the shipped correspondence graph must carry all six canonical grounding catalogs"
+        413,
+        "the shipped correspondence graph must carry every logic:, math:, and lang: grounding catalog"
     );
 
     let source_predicate = format!("{LOGIC}sourceEndpoint");
@@ -130,7 +148,33 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
     let class_predicate = format!("{LOGIC}morphismClass");
     let kind_predicate = format!("{LOGIC}morphismKind");
     let preservation_predicate = format!("{LOGIC}preservationKind");
+    let target_catalogs = [
+        ("gUFO", GUFO, 50),
+        ("BFO", BFO, 15),
+        ("RO", RO, 4),
+        ("SUMO", SUMO, 24),
+        ("OWL", OWL, 28),
+        ("RDFS", RDFS, 5),
+        ("SHACL", SH, 15),
+        ("DUL", DUL, 6),
+        ("IAO", IAO, 1),
+        ("PATO", PATO, 1),
+        ("YAMATO", YAMATO, 7),
+        ("OpenCyc", OPENCYC, 6),
+        ("OntoUML", ONTOUML, 9),
+        ("RDF Data Cube", QB, 1),
+        ("STATO", STATO, 5),
+        ("OBCS", OBCS, 5),
+        ("SIO", SIO, 1),
+        ("OBI", OBI, 1),
+        ("OntoLex", ONTOLEX, 2),
+        ("LexInfo", LEXINFO, 3),
+        ("Global WordNet", WORDNET, 6),
+        ("NIF", NIF, 6),
+        ("Web Annotation", OA, 4),
+    ];
     let mut target_families = std::collections::BTreeMap::<&str, usize>::new();
+    let mut source_namespaces = std::collections::BTreeMap::<&str, usize>::new();
     let mut endpoint_pairs = BTreeSet::new();
 
     for correspondence in &grounding {
@@ -146,11 +190,23 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
             1,
             "{correspondence}: exactly one target endpoint"
         );
-        assert!(
-            sources[0].starts_with(LOGIC),
-            "{correspondence}: grounding must be oriented from logic:, got {}",
-            sources[0]
-        );
+        let source_namespace = if sources[0].starts_with(LOGIC) {
+            "logic"
+        } else if sources[0].starts_with(MATH) {
+            "math"
+        } else if sources[0].starts_with(LANG) {
+            "lang"
+        } else if sources[0].starts_with(GMEOW) {
+            // The logic-owned DUL/IAO/OpenCyc bridge rows ground the shared
+            // gmeow:InformationObject rather than minting a duplicate logic: class.
+            "gmeow-shared"
+        } else {
+            panic!(
+                "{correspondence}: grounding source is outside logic:, math:, lang:, and shared gmeow:, got {}",
+                sources[0]
+            );
+        };
+        *source_namespaces.entry(source_namespace).or_default() += 1;
         for predicate in [&class_predicate, &kind_predicate, &preservation_predicate] {
             assert_eq!(
                 objects_of(&triples, correspondence, predicate).len(),
@@ -160,41 +216,29 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
         }
 
         endpoint_pairs.insert((sources[0].to_owned(), targets[0].to_owned()));
-        let family = if targets[0].starts_with(GUFO) {
-            "gUFO"
-        } else if targets[0].starts_with(BFO) {
-            "BFO"
-        } else if targets[0].starts_with(RO) {
-            "RO"
-        } else if targets[0].starts_with(SUMO) {
-            "SUMO"
-        } else if targets[0].starts_with(OWL) {
-            "OWL"
-        } else if targets[0].starts_with(RDFS) {
-            "RDFS"
-        } else if targets[0].starts_with(SH) {
-            "SHACL"
-        } else {
-            panic!(
-                "{correspondence}: target endpoint is outside the six catalogs: {}",
-                targets[0]
-            );
-        };
-        *target_families.entry(family).or_default() += 1;
+        for &(family, namespace, _) in &target_catalogs {
+            if targets[0].starts_with(namespace) {
+                *target_families.entry(family).or_default() += 1;
+            }
+        }
     }
 
     assert_eq!(
-        target_families,
+        source_namespaces,
         std::collections::BTreeMap::from([
-            ("BFO", 15),
-            ("OWL", 28),
-            ("RDFS", 5),
-            ("RO", 4),
-            ("SHACL", 15),
-            ("SUMO", 24),
-            ("gUFO", 50),
+            ("gmeow-shared", 3),
+            ("lang", 55),
+            ("logic", 174),
+            ("math", 181),
         ])
     );
+    for &(family, _, expected) in &target_catalogs {
+        assert_eq!(
+            target_families.get(family).copied().unwrap_or_default(),
+            expected,
+            "the shipped grounding surface has drifted for {family}"
+        );
+    }
     for (source, target) in [
         (format!("{LOGIC}partOf"), format!("{BFO}0000050")),
         (format!("{LOGIC}overlaps"), format!("{RO}0002131")),

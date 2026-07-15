@@ -101,7 +101,7 @@ class GmnCompaction(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnCompaction", "curie": "gmeow:GmnCompaction", "definitionDigest": "blake3:58ba4ac5ef119385f07c0866a19e29f14fe74319e68bd9b29fe8bbab859a0251", "iri": "https://blackcatinformatics.ca/gmeow/GmnCompaction"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnCompaction", "curie": "gmeow:GmnCompaction", "definitionDigest": "blake3:f2d3869e83cf1c865db7602cdfd8436afa3ed5fd797a71e6be52bdf10975b227", "iri": "https://blackcatinformatics.ca/gmeow/GmnCompaction"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -155,7 +155,7 @@ class GmnDictionary(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnDictionary", "curie": "gmeow:GmnDictionary", "definitionDigest": "blake3:207780ac88baaccd0e8e7c5ac3d9fc03c46114eb978bfdf6e33b11616593bcb1", "iri": "https://blackcatinformatics.ca/gmeow/GmnDictionary"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnDictionary", "curie": "gmeow:GmnDictionary", "definitionDigest": "blake3:e551c4f8310dd8ff8467e21ad8c57ec831af509ae7af2e60553f3bac5e2de66b", "iri": "https://blackcatinformatics.ca/gmeow/GmnDictionary"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -209,20 +209,20 @@ class GmnEnvelope(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnEnvelope", "curie": "gmeow:GmnEnvelope", "definitionDigest": "blake3:d9e30b597c7c95947587c32a873f8c450e07319642fcd043ef265e4c101c752a", "iri": "https://blackcatinformatics.ca/gmeow/GmnEnvelope"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnEnvelope", "curie": "gmeow:GmnEnvelope", "definitionDigest": "blake3:ef5b099a07d69af262445ab5fff411f6b9690eb021e53eeea8368a1b2bd8701a", "iri": "https://blackcatinformatics.ca/gmeow/GmnEnvelope"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    accordingTo: list[str] = Field(min_length=1, description="The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal.", alias="gmeow:accordingTo")
-    contentDigest: list[str] = Field(min_length=1, description="A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms.", alias="gmeow:contentDigest")
-    gmnDictionaryVersion: list[str] = Field(min_length=1, description="The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable.", alias="gmeow:gmnDictionaryVersion")
-    gmnEnvelopeCorrespondence: list[str] | None = Field(default=None, description="Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope, range logic:Correspondence (stated in prose). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing.", alias="gmeow:gmnEnvelopeCorrespondence")
-    gmnGlyphTableVersion: list[str] = Field(min_length=1, description="The glyph-table version an envelope or codebook was serialized against — the coordinate of the projected glyph/codepoint table (the gmeow:gmnGlyph / gmeow:gmnCodepoints projection state). Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose).", alias="gmeow:gmnGlyphTableVersion")
-    gmnSchemaVersion: list[str] = Field(min_length=1, description="The GMN dialect schema version an envelope was serialized under — the major grammar/record-shape coordinate. Domain gmeow:GmnEnvelope, range a string literal (stated in prose). A reader accepts the current major plus the majors inside the version set's gmeow:gmnAcceptWindow, via migration.", alias="gmeow:gmnSchemaVersion")
-    gmnSecurityRing: list[GmnSecurityRing] | None = Field(default=None, description="Names the serialization boundary ring of a GMN envelope. Domain gmeow:GmnEnvelope, range gmeow:GmnSecurityRing (stated in prose). Exactly one per envelope: the ring is the admission class the serializer checked the payload against.", alias="gmeow:gmnSecurityRing")
-    wasGeneratedBy: list[str] = Field(min_length=1, description="Relates an entity to the activity that produced it — the generation link from an enduring product back to its occurrent cause. The performing agent is reached transitively through the activity's gmeow:wasAssociatedWith, keeping who-did-it separable from what-happened.", alias="gmeow:wasGeneratedBy")
+    accordingTo: list[Any] = Field(min_length=1, description="The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal.", alias="gmeow:accordingTo")
+    contentDigest: list[Any] = Field(min_length=1, description="A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms.", alias="gmeow:contentDigest")
+    gmnDictionaryVersion: list[Any] = Field(min_length=1, description="The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable.", alias="gmeow:gmnDictionaryVersion")
+    gmnEnvelopeCorrespondence: list[Any] | None = Field(default=None, description="Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope, range logic:Correspondence (stated in prose). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing.", alias="gmeow:gmnEnvelopeCorrespondence")
+    gmnGlyphTableVersion: list[Any] = Field(min_length=1, description="The glyph-table version an envelope or codebook was serialized against — the coordinate of the projected glyph/codepoint table (the gmeow:gmnGlyph / gmeow:gmnCodepoints projection state). Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose).", alias="gmeow:gmnGlyphTableVersion")
+    gmnSchemaVersion: list[Any] = Field(min_length=1, description="The GMN dialect schema version an envelope was serialized under — the major grammar/record-shape coordinate. Domain gmeow:GmnEnvelope, range a string literal (stated in prose). A reader accepts the current major plus the majors inside the version set's gmeow:gmnAcceptWindow, via migration.", alias="gmeow:gmnSchemaVersion")
+    gmnSecurityRing: list[Any] | None = Field(default=None, description="Names the serialization boundary ring of a GMN envelope. Domain gmeow:GmnEnvelope, range gmeow:GmnSecurityRing (stated in prose). Exactly one per envelope: the ring is the admission class the serializer checked the payload against.", alias="gmeow:gmnSecurityRing")
+    wasGeneratedBy: list[Any] = Field(min_length=1, description="Relates an entity to the activity that produced it — the generation link from an enduring product back to its occurrent cause. The performing agent is reached transitively through the activity's gmeow:wasAssociatedWith, keeping who-did-it separable from what-happened.", alias="gmeow:wasGeneratedBy")
 
 
 class GmnSecurityRing(ConfiguredBaseModel):
@@ -286,7 +286,7 @@ class GmnSecurityRing(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing", "curie": "gmeow:GmnSecurityRing", "definitionDigest": "blake3:720d75660b03f5e82d3f6540dd1306fd17e09bc3c499b05c0717a40933821411", "iri": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing", "curie": "gmeow:GmnSecurityRing", "definitionDigest": "blake3:062b8863c9feed5991996e8f6ee797b2a8bcb436e7d2dfcb43cc0bfc55cde34a", "iri": "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -385,32 +385,6 @@ class Lang_FeatureValue(ConfiguredBaseModel):
     model_config = ConfigDict(
         extra="allow",
         json_schema_extra={"$id": "https://blackcatinformatics.ca/lang/FeatureValue", "curie": "lang:FeatureValue", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/lang/FeatureValue"},
-    )
-
-    annotation: Annotation | None = Field(default=None, alias="@annotation")
-    id: str | None = Field(default=None, alias="@id")
-    type_: str | list[str] | None = Field(default=None, alias="@type")
-
-
-class Lang_FlagshipScenario(ConfiguredBaseModel):
-    """Lang_FlagshipScenario.
-
-    Generated class projected from shapes; no authored definition (https://blackcatinformatics.ca/lang/FlagshipScenario).
-
-    Usage:
-        >>> from gmeow_models.lang import Lang_FlagshipScenario
-        >>> Lang_FlagshipScenario.model_config["json_schema_extra"]["curie"]
-        'lang:FlagshipScenario'
-
-    IRI:    https://blackcatinformatics.ca/lang/FlagshipScenario
-    CURIE:  lang:FlagshipScenario
-
-    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/lang/FlagshipScenario", "curie": "lang:FlagshipScenario", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/lang/FlagshipScenario"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

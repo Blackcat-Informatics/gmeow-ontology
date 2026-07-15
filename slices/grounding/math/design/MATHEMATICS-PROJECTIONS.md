@@ -25,6 +25,22 @@ that consumer, states what the projection loses, and binds the whole to the same
 discipline `logic:` applies to OWL, Datalog, SHACL, and the correspondence lowerings
 (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`).
 
+## Shipped grounding laws versus projections
+
+External term grounding is ontology content, not a disposable output view. The
+canonical `mappings/equivalences.ttl` catalog and the 13-row
+`mappings/statistical-bridges.ttl` catalog compile to content-addressed
+`logic:GroundingCorrespondence` records in the shipped
+`graph/correspondence-laws` graph. The latter covers RDF Data Cube, STATO,
+OBCS, SIO, and OBI terms and is validation-only; no target TBox enters the
+mathematical closure.
+
+By contrast, a cube document, MathML tree, OpenMath payload, D-SI certificate,
+or other consumer serialization is a generated codec/projection with an
+explicit loss judgment. A target may participate in both roles—one narrow
+term bridge and one lossy document projection—but the two records are never
+conflated.
+
 ## The canonical/consumer table
 
 | Consumer | GMEOW canonical source | Projection loss |
@@ -45,9 +61,10 @@ The rule that governs every row:
 
 External vocabularies are aligned by reference and projected to, never copied into the canon. The
 mechanism is the repository's established one, not a bespoke predicate: an external link is a
-`gmeow:TermEquivalence` record in the slice's `mappings/equivalences.ttl`
+`gmeow:TermEquivalence` record in a canonical file under the slice's `mappings/`
 (`gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`, a `semapv:` justification, and a
-confidence), lowered as a `logic:Correspondence` — the ninth `logic:` IR node kind. There is **no**
+confidence), marked `logic:GroundingCorrespondence`, and lowered as a shipped
+`logic:Correspondence` — the ninth `logic:` IR node kind. There is **no**
 free-standing `authorityLink` property in the mathematics slice; a Wikidata QID, a QUDT unit IRI, or
 an OpenMath symbol is a `skos:exactMatch`/`skos:closeMatch` alignment carrying its preservation
 judgment in the loss ledger. This keeps the mathematics slice consistent with how every other GMEOW

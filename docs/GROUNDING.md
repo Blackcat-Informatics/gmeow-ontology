@@ -74,13 +74,26 @@ the `graph/correspondence-laws` named graph of `gmeow.gts`, while remaining
 meta-level and outside object-level closure. SSSOM and other alignment formats
 are generated views of those records.
 
-The first pinned `logic:` catalog is
-[`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl):
-141 explicit correspondences covering gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and
-SHACL Core/AF. Every row is oriented from `logic:` and states its morphism
-class, morphism kind, and preservation kind. BFO/OBO/SUMO are
-commitment-shifting `BridgeView`s; they are never promoted to equivalence.
-The complete policy and coverage ledger is
+The shipped grounding surface is split by semantic owner:
+
+- `logic:` carries 141 core correspondences for gUFO, BFO, OBO/RO, SUMO,
+  OWL/RDFS, and SHACL Core/AF in
+  [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
+  plus 21 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
+  [`foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
+- `math:` carries its identity catalog plus 13 validation-only Data Cube,
+  STATO, OBCS, SIO, and OBI rows in
+  [`statistical-bridges.ttl`](../slices/grounding/math/mappings/statistical-bridges.ttl).
+- `lang:` carries its identity catalog plus 21 validation-only OntoLex-Lemon,
+  LexInfo, Global WordNet schema, NIF, and Web Annotation rows in
+  [`lexical-bridges.ttl`](../slices/grounding/lang/mappings/lexical-bridges.ttl).
+
+Every grounding row is oriented from its grounding namespace and states its
+morphism class, morphism kind, and preservation kind. Commitment-shifting
+views are never promoted to equivalence. This division is also the migration
+rule for domain slices: use the `logic:`, `math:`, or `lang:` term and its one
+owned correspondence instead of asserting an external vocabulary term again.
+The foundation policy and coverage ledger is
 [`foundational-bridging.md`](./foundational-bridging.md).
 
 ## The seam registry

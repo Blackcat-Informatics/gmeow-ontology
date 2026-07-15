@@ -4574,7 +4574,7 @@ lang:FormSlotIndexUniquenessConstraint
     logic:onClass lang:ComposedForm ;
     logic:siblingPredicate lang:formSlot ;
     logic:sharedPredicate lang:slotIndex ;
-    logic:formalizes lang:ComposedForm ;
+    logic:formalizes lang:SlotIndexUniqueShape ;
     logic:message "No two distinct lang:formSlot cells of one lang:ComposedForm may share the same lang:slotIndex." .
 
 # A lang:FeatureValue must be dispositioned in the symbology plane: it must be the
@@ -4584,7 +4584,7 @@ lang:FeatureValueDispositionConstraint
     logic:onClass lang:FeatureValue ;
     logic:inversePredicate lang:denotationTarget ;
     logic:subjectClass lang:Denotation ;
-    logic:formalizes lang:FeatureValue ;
+    logic:formalizes lang:GmnLangCoverageShape ;
     logic:message "A lang:FeatureValue must be the lang:denotationTarget of some lang:Denotation; an undispositioned feature value is ill-formed." .
 
 # A gmeow:gmnCodepoints value must be canonical: space-separated U+XXXX groups of 4-6 uppercase
@@ -4600,13 +4600,24 @@ lang:GmnCodepointCanonicalConstraint
 # A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf the
 # conformance-failure root (a transitive reachability constraint).
 lang:FlagshipScenarioFailureClassConstraint
-    a logic:TransitiveReachabilityConstraint ;
-    logic:onClass lang:FlagshipScenario ;
-    logic:viaPredicate lang:enforcesFailureClass ;
-    logic:pathPredicate rdfs:subClassOf ;
-    logic:reachTarget lang:LangConformanceFailure ;
-    logic:formalizes lang:FlagshipScenario ;
-    logic:message "A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+    a logic:Constraint ;
+    logic:integrity lang:fsrForall ;
+    logic:formalizes lang:FlagshipScenarioShape ;
+    gmeow:enforcesFailureClass lang:UnwiredFlagshipScenario ;
+    logic:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+lang:fsrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] ;
+    logic:forall lang:fsrImpl .
+lang:fsrImpl a logic:Formula ; logic:antecedent lang:fsrGuard ; logic:consequent lang:fsrReach .
+lang:fsrGuard a logic:Formula ; logic:and lang:fsrType , lang:fsrEdge , lang:fsrNs .
+lang:fsrType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FlagshipScenario ] .
+lang:fsrEdge a logic:Formula ; logic:relation gmeow:enforcesFailureClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
+lang:fsrNs a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/lang/" ] .
+lang:fsrReach a logic:Formula ; logic:relation logic:transitiveReach ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri rdfs:subClassOf ] , [ logic:termIndex 2 ; logic:termIri lang:LangConformanceFailure ] .
 
 # A lang:FormSlot may not depend (transitively) on itself along lang:dependsOn — a
 # dependency cycle is ill-formed (an acyclicity constraint).
@@ -4614,7 +4625,7 @@ lang:FormSlotAcyclicDependencyConstraint
     a logic:AcyclicConstraint ;
     logic:onClass lang:FormSlot ;
     logic:pathPredicate lang:dependsOn ;
-    logic:formalizes lang:FormSlot ;
+    logic:formalizes lang:DependencyIntegrityShape ;
     logic:message "A lang:FormSlot may not depend on itself transitively along lang:dependsOn; a dependency cycle is ill-formed." .
 
 # Every lang:Grapheme in the GMN script (lang:inScript gmeow:gmnScript) carries a
@@ -4628,7 +4639,7 @@ lang:GmnScriptGlyphCoverageConstraint
     logic:trigger lang:inScript ;
     logic:triggerValue gmeow:gmnScript ;
     logic:requires gmeow:gmnGlyphTokenCost ;
-    logic:formalizes lang:Grapheme ;
+    logic:formalizes lang:GmnScriptGlyphCoverageShape ;
     logic:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." .
 
 # =========================================================================== #
@@ -4646,7 +4657,7 @@ lang:GraphemeRepertoireConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a lang:Grapheme is in the repertoire of the lang:Script it declares (the script lists it through lang:hasGrapheme)."@x-gmeow-english ;
-    logic:formalizes lang:Grapheme ;
+    logic:formalizes lang:GraphemeGroundedShape ;
     logic:message "A grapheme is not in the repertoire of the script it declares." ;
     logic:integrity lang:grForall .
 lang:grForall a logic:Formula ;
@@ -4769,7 +4780,7 @@ lang:GmnCompactionOverclaimConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:GmnCompaction that links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation overclaims — compaction is get-leg-only (validation-only)."@x-gmeow-english ;
-    logic:formalizes gmeow:GmnCompaction ;
+    logic:formalizes lang:GmnCompactionOverclaimShape ;
     logic:severity "Violation" ;
     logic:message "A gmeow:GmnCompaction links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation; compaction is validation-only." ;
     logic:integrity lang:gmnCoForall .
@@ -5374,12 +5385,204 @@ lang:gcpHas a logic:Formula ;
 lang:gcpCp a logic:Formula ; logic:relation gmeow:gmnCodepoints ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .
 
-# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/accordingTo> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/contentDigest> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> ; owl:someValuesFrom <https://blackcatinformatics.ca/logic/Correspondence> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+# Typed failure identity is canonical constraint metadata.  The projected
+# procedural shapes preserve it beside logic:formalizes so a legacy SHACL block
+# can be removed without losing its queryable diagnostic class.
+lang:ReadingClaimVantageConstraint gmeow:enforcesFailureClass lang:UngroundedReadingClaim .
+lang:SlotFormNodeKindConstraint gmeow:enforcesFailureClass lang:StringOnlyForm .
+lang:FormSlotIndexUniquenessConstraint gmeow:enforcesFailureClass lang:DuplicateSlotIndex .
+lang:FeatureValueDispositionConstraint gmeow:enforcesFailureClass lang:GmnUndispositionedTerm .
+lang:GmnCodepointCanonicalConstraint gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint .
+lang:FlagshipScenarioFailureClassConstraint gmeow:enforcesFailureClass lang:UnwiredFlagshipScenario .
+lang:FormSlotAcyclicDependencyConstraint gmeow:enforcesFailureClass lang:DanglingDependency .
+lang:GmnScriptGlyphCoverageConstraint gmeow:enforcesFailureClass lang:GmnUncostedScriptGlyph .
+lang:GraphemeRepertoireConstraint gmeow:enforcesFailureClass lang:UngroundedGrapheme .
+lang:ConfidenceModelConstraint gmeow:enforcesFailureClass lang:ConfidenceAsProbability .
+lang:GmnConfusableGlyphConstraint gmeow:enforcesFailureClass lang:GmnConfusableGlyph .
+lang:GmnGlyphCollisionConstraint gmeow:enforcesFailureClass lang:GmnGlyphCollision .
+lang:GmnCompactionOverclaimConstraint gmeow:enforcesFailureClass lang:GmnCompactionOverclaim .
+lang:GmnVersionOverclaimConstraint gmeow:enforcesFailureClass lang:GmnVersionOverclaim .
+lang:UnmarkedSourceProseConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:UnmarkedSourceOverclaimConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:UnmarkedTargetProseConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:UnmarkedTargetOverclaimConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:SurfaceAnalysisStructureConstraint gmeow:enforcesFailureClass lang:MisdeclaredAnalysis .
+lang:DependencyLeavesAnalysisConstraint gmeow:enforcesFailureClass lang:DanglingDependency .
+lang:DenotationNonSurfaceConstraint gmeow:enforcesFailureClass lang:SurfaceLevelDenotation .
+lang:AmbiguousDenotationRoutingConstraint gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation .
+lang:DenotationKindMatchConstraint gmeow:enforcesFailureClass lang:DenotationKindMismatch .
+lang:IndexicalAnchoredConstraint gmeow:enforcesFailureClass lang:UnanchoredIndexical .
+lang:FregeDisjointSenseConstraint gmeow:enforcesFailureClass lang:FregeConflation .
+lang:FregeDisjointDenotationConstraint gmeow:enforcesFailureClass lang:FregeConflation .
+lang:RenderingNotIdentityConstraint gmeow:enforcesFailureClass lang:RenderingAsIdentity .
+lang:MachineTranslationProvenanceConstraint gmeow:enforcesFailureClass lang:UnattributedTranslation .
+lang:GmnScriptCodepointPresenceConstraint gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint .
+
+# Declarative shape failures ride the OWL class antecedent itself.  Where
+# several obligations share one target, the aggregate class shape carries one
+# representative diagnostic and each sibling obligation is record-anchored by
+# the exact logic:formalizes metadata above.
+lang:InterpretationAct gmeow:enforcesFailureClass lang:ActObservationConflation .
+lang:SurfaceAnchor gmeow:enforcesFailureClass lang:UnanchoredOffset .
+lang:Denotation gmeow:enforcesFailureClass lang:UnderspecifiedDenotation .
+lang:FormSlot gmeow:enforcesFailureClass lang:NonContiguousSlots .
+lang:Form gmeow:enforcesFailureClass lang:UnsituatedForm .
+gmeow:GmnCompaction gmeow:enforcesFailureClass lang:GmnCompactionWithoutProvenance .
+gmeow:GmnDictionary gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision .
+gmeow:GmnEnvelope gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField .
+lang:GmnImportedPlane gmeow:enforcesFailureClass lang:GmnUnattributedPlane .
+gmeow:GmnSecurityRing gmeow:enforcesFailureClass lang:GmnRingLatticeMalformed .
+lang:Paraphrase gmeow:enforcesFailureClass lang:UndeclaredParaphraseKind .
+lang:ProjectionEmission gmeow:enforcesFailureClass lang:MissingPreservationKind .
+lang:Rendering gmeow:enforcesFailureClass lang:UnderspecifiedRendering .
+lang:ComposedForm gmeow:enforcesFailureClass lang:NonContiguousSlots .
+lang:SurfaceForm gmeow:enforcesFailureClass lang:UnhashableSurface .
+lang:TranslationUnit gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit .
+lang:TransliterationMap gmeow:enforcesFailureClass lang:UnanchoredTransliteration .
+lang:MorphFeature gmeow:enforcesFailureClass lang:UntypedMorphology .
+
+# =========================================================================== #
+# Foundation stereotyping — identity-bearing language objects and forms are    #
+# kinds/subkinds; controlled value vocabularies are abstract-individual types; #
+# interpretation acts are events; reified crossings are relators; and typed    #
+# conformance failures are situations.                                         #
+# =========================================================================== #
+
+# Kind
+
+lang:Analysis a logic:Kind .
+lang:CompositionRule a logic:Kind .
+lang:DiscourseReferent a logic:Kind .
+lang:FeatureInventory a logic:Kind .
+lang:Form a logic:Kind .
+lang:FormSlot a logic:Kind .
+lang:GmnImportedPlane a logic:Kind .
+lang:Grammar a logic:Kind .
+lang:GrammarRule a logic:Kind .
+lang:Grapheme a logic:Kind .
+lang:IndexicalAnchor a logic:Kind .
+lang:Intension a logic:Kind .
+lang:LanguageVariety a logic:Kind .
+lang:LexicalConcept a logic:Kind .
+lang:MorphFeature a logic:Kind .
+lang:MorphemeBoundary a logic:Kind .
+lang:Orthography a logic:Kind .
+lang:Phone a logic:Kind .
+lang:ProjectionEmission a logic:Kind .
+lang:Reading a logic:Kind .
+lang:Script a logic:Kind .
+lang:Sense a logic:Kind .
+lang:SignSystem a logic:Category .
+lang:SurfaceAnchor a logic:Kind .
+lang:Translation a logic:Kind .
+lang:Ungrammaticality a logic:Kind .
+
+# SubKind
+
+lang:ComposedForm a logic:SubKind .
+lang:CovertForm a logic:SubKind .
+lang:Lexeme a logic:SubKind .
+lang:Morph a logic:SubKind .
+lang:Morpheme a logic:SubKind .
+lang:OrthographicWord a logic:SubKind .
+lang:SurfaceForm a logic:SubKind .
+lang:SyntacticWord a logic:SubKind .
+lang:UnanalyzedProse a logic:SubKind .
+lang:WordForm a logic:SubKind .
+
+# AbstractIndividualType
+
+lang:AnalysisLevel a logic:AbstractIndividualType .
+lang:CommunicativeForce a logic:AbstractIndividualType .
+lang:CompositionLevel a logic:AbstractIndividualType .
+lang:DenotationKind a logic:AbstractIndividualType .
+lang:FeatureKey a logic:AbstractIndividualType .
+lang:FeatureValue a logic:AbstractIndividualType .
+lang:FormRole a logic:AbstractIndividualType .
+lang:GrammarFormalism a logic:AbstractIndividualType .
+lang:IndexicalAnchorKind a logic:AbstractIndividualType .
+lang:Modality a logic:AbstractIndividualType .
+lang:OffsetSpace a logic:AbstractIndividualType .
+lang:ParaphraseSamenessKind a logic:AbstractIndividualType .
+lang:PartOfSpeech a logic:AbstractIndividualType .
+lang:RenderingKind a logic:AbstractIndividualType .
+lang:SenseRelationKind a logic:AbstractIndividualType .
+lang:SignSystemKind a logic:AbstractIndividualType .
+lang:TranslationMethod a logic:AbstractIndividualType .
+
+# Event
+
+lang:CommunicativeAct a logic:Event .
+lang:InterpretationAct a logic:Event .
+
+# Relator
+
+lang:Denotation a logic:Relator .
+lang:Paraphrase a logic:Relator .
+lang:Rendering a logic:Relator .
+lang:SenseRelation a logic:Relator .
+lang:TranslationUnit a logic:Relator .
+lang:TransliterationMap a logic:Relator .
+
+# Situation
+
+lang:ActObservationConflation a logic:Situation .
+lang:AssertedRollup a logic:Situation .
+lang:ConfidenceAsProbability a logic:Situation .
+lang:DanglingDependency a logic:Situation .
+lang:DenotationKindMismatch a logic:Situation .
+lang:DuplicateSlotIndex a logic:Situation .
+lang:ExactPreservationViolated a logic:Situation .
+lang:FabricatedEquivalence a logic:Situation .
+lang:FregeConflation a logic:Situation .
+lang:GmnCompactionOverclaim a logic:Situation .
+lang:GmnCompactionWithoutProvenance a logic:Situation .
+lang:GmnConfusableGlyph a logic:Situation .
+lang:GmnDictionaryAliasCollision a logic:Situation .
+lang:GmnGlyphCollision a logic:Situation .
+lang:GmnMalformedNumber a logic:Situation .
+lang:GmnMissingEnvelopeField a logic:Situation .
+lang:GmnNonCanonicalCodepoint a logic:Situation .
+lang:GmnNonCanonicalOrder a logic:Situation .
+lang:GmnNonDecodableGrammar a logic:Situation .
+lang:GmnRingLatticeMalformed a logic:Situation .
+lang:GmnUnattributedPlane a logic:Situation .
+lang:GmnUncostedScriptGlyph a logic:Situation .
+lang:GmnUncoveredTerm a logic:Situation .
+lang:GmnUndeclaredDialectVersion a logic:Situation .
+lang:GmnUndispositionedTerm a logic:Situation .
+lang:GmnUnringedExportCrossing a logic:Situation .
+lang:GmnVersionOverclaim a logic:Situation .
+lang:InlineBlobPayload a logic:Situation .
+lang:LangConformanceFailure a logic:Situation .
+lang:MisdeclaredAnalysis a logic:Situation .
+lang:MissingPreservationKind a logic:Situation .
+lang:NonContiguousSlots a logic:Situation .
+lang:ProjectionSilentDisambiguation a logic:Situation .
+lang:RenderingAsIdentity a logic:Situation .
+lang:SilentDisambiguation a logic:Situation .
+lang:SilentIngestDrop a logic:Situation .
+lang:SilentPromotion a logic:Situation .
+lang:StringOnlyForm a logic:Situation .
+lang:SurfaceLeakInContentKey a logic:Situation .
+lang:SurfaceLevelDenotation a logic:Situation .
+lang:UnanchoredIndexical a logic:Situation .
+lang:UnanchoredOffset a logic:Situation .
+lang:UnanchoredTransliteration a logic:Situation .
+lang:UnattributedEngineClaim a logic:Situation .
+lang:UnattributedTranslation a logic:Situation .
+lang:UndeclaredLoweringStage a logic:Situation .
+lang:UndeclaredParaphraseKind a logic:Situation .
+lang:UndeclaredUnsupportedConstruct a logic:Situation .
+lang:UnderspecifiedDenotation a logic:Situation .
+lang:UnderspecifiedRendering a logic:Situation .
+lang:UnderspecifiedTranslationUnit a logic:Situation .
+lang:UngroundedGrapheme a logic:Situation .
+lang:UngroundedReadingClaim a logic:Situation .
+lang:UnhashableSurface a logic:Situation .
+lang:UnmarkedSurfaceTranslation a logic:Situation .
+lang:UnrecordedEpistemicLoss a logic:Situation .
+lang:UnroutedAmbiguousDenotation a logic:Situation .
+lang:UnsituatedForm a logic:Situation .
+lang:UntypedMorphology a logic:Situation .
+lang:UnwiredFlagshipScenario a logic:Situation .

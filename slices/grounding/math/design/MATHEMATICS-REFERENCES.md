@@ -55,6 +55,22 @@ Three systems carry most of the load and should be treated as the spine of the r
   (LGPL-v3) + embedded **D-SI** (LGPL) for the calibration-certificate + traceability + unit-
   uncertainty structure. **P/L** for units, **P** for the metrology projection.
 
+### Realized grounding disposition
+
+The external survey is discharged by one of the following concrete treatments;
+there is no unqualified deferral bucket.
+
+| Treatment | Families |
+|---|---|
+| Shipped grounding correspondences | The existing `mappings/equivalences.ttl` identity/reference catalog (including Wikidata, mathlib, DLMF, OEIS, QUDT, D-SI, OM 2, and OpenMath) plus the Data Cube, STATO, OBCS, SIO, and OBI rows in `mappings/statistical-bridges.ttl` |
+| Generated codec or consumer projection | DCC/D-SI certificate surfaces, RDF Data Cube emission, MathML, OpenMath content, tabular/statistical interchange, and other formats whose structure is a lossy output rather than a term identity |
+| Citation, identifier, or registry linkage only | UCUM, UO, VIM/GUM, MSC, arXiv, zbMATH/MR, proprietary or restricted resources, and non-RDF prover libraries; identifiers may be carried, but their content is not imported |
+| Native authorship | Mathematical structures and preservation laws for which no adequate external ontology exists; these remain `math:` terms rather than receiving a fabricated alignment |
+
+The live rows are `logic:GroundingCorrespondence` records, oriented from
+`math:` and shipped in `graph/correspondence-laws`. A codec projection does not
+substitute for such a row, and a survey citation does not claim one exists.
+
 ## Cluster A — Units, quantities, dimensions
 
 - **QUDT** — P/L | CC-BY-4.0 | active (v3.1.4+) — primary units spine; encodes conversions as

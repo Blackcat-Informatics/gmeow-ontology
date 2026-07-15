@@ -1,0 +1,242 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lexinfo: <http://www.lexinfo.net/ontology/3.0/lexinfo#> .
+@prefix wn: <https://globalwordnet.github.io/schemas/wn#> .
+@prefix nif: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# Lexical and text-anchor bridges. These terms remain native lang: semantics;
+# OntoLex, LexInfo, WordNet, NIF, and Web Annotation are interoperable views.
+
+gmeow:mapsetLangLexinfo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-lang-lexinfo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-lexinfo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Part-of-speech bridges onto LexInfo 3.0." .
+
+gmeow:mapsetLangWordnet a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-wordnet-schema" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridges onto the Global WordNet RDF schema, distinct from individual lexical-item pivots through Wikidata." .
+
+gmeow:mapsetLangNif a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-nif" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Offset-anchor and surface-string bridges onto NIF Core." .
+
+gmeow:mapsetLangWebAnnotation a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-lang-web-annotation.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-web-annotation" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Text-position anchor bridges onto the W3C Web Annotation vocabulary." .
+
+# OntoLex-Lemon --------------------------------------------------------------
+
+gmeow:eqLangLexemeOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:Lexeme ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ontolex:LexicalEntry ;
+    logic:sourceEndpoint lang:Lexeme ; logic:targetEndpoint ontolex:LexicalEntry ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" ;
+    gmeow:comment "OntoLex LexicalEntry is the exchange-facing peer of the native lexeme construct; their realization commitments differ." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangWordFormOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:WordForm ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ontolex:Form ;
+    logic:sourceEndpoint lang:WordForm ; logic:targetEndpoint ontolex:Form ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" ;
+    gmeow:comment "OntoLex Form is broader than the word-form specialization, so this is a close bridge rather than identity." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+# LexInfo and Global WordNet -------------------------------------------------
+
+gmeow:eqLangPosLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:PartOfSpeech ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lexinfo:PartOfSpeech ;
+    logic:sourceEndpoint lang:PartOfSpeech ; logic:targetEndpoint lexinfo:PartOfSpeech ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-lexinfo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangNounLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:noun ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lexinfo:noun ;
+    logic:sourceEndpoint lang:noun ; logic:targetEndpoint lexinfo:noun ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-lang-lexinfo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangVerbLexinfo a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:verb ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lexinfo:verb ;
+    logic:sourceEndpoint lang:verb ; logic:targetEndpoint lexinfo:verb ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-lang-lexinfo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangPosWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:PartOfSpeech ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wn:PartOfSpeech ;
+    logic:sourceEndpoint lang:PartOfSpeech ; logic:targetEndpoint wn:PartOfSpeech ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangNounWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:noun ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wn:noun ;
+    logic:sourceEndpoint lang:noun ; logic:targetEndpoint wn:noun ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangVerbWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:verb ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wn:verb ;
+    logic:sourceEndpoint lang:verb ; logic:targetEndpoint wn:verb ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangSenseRelationWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:SenseRelationKind ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wn:SenseRelType ;
+    logic:sourceEndpoint lang:SenseRelationKind ; logic:targetEndpoint wn:SenseRelType ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangHypernymyWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:hypernymy ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wn:hypernym ;
+    logic:sourceEndpoint lang:hypernymy ; logic:targetEndpoint wn:hypernym ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    gmeow:comment "The WordNet schema term is a synset-relation kind while lang:hypernymy belongs to the broader native sense-relation inventory." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangHyponymyWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:hyponymy ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wn:hyponym ;
+    logic:sourceEndpoint lang:hyponymy ; logic:targetEndpoint wn:hyponym ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-lang-wordnet-schema.sssom.tsv" ;
+    gmeow:comment "The WordNet schema term is a synset-relation kind while lang:hyponymy belongs to the broader native sense-relation inventory." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+# NIF and Web Annotation anchors --------------------------------------------
+
+gmeow:eqLangAnchorNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:SurfaceAnchor ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nif:OffsetBasedString ;
+    logic:sourceEndpoint lang:SurfaceAnchor ; logic:targetEndpoint nif:OffsetBasedString ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    gmeow:comment "A native anchor can be projected as a NIF offset-based string, subject to the selected offset unit and source text." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangSurfaceFormNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:SurfaceForm ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nif:String ;
+    logic:sourceEndpoint lang:SurfaceForm ; logic:targetEndpoint nif:String ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangSurfaceTextNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:surfaceText ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nif:anchorOf ;
+    logic:sourceEndpoint lang:surfaceText ; logic:targetEndpoint nif:anchorOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorStartNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:anchorStart ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nif:beginIndex ;
+    logic:sourceEndpoint lang:anchorStart ; logic:targetEndpoint nif:beginIndex ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorEndNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:anchorEnd ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nif:endIndex ;
+    logic:sourceEndpoint lang:anchorEnd ; logic:targetEndpoint nif:endIndex ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorSourceNif a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:anchorSource ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nif:referenceContext ;
+    logic:sourceEndpoint lang:anchorSource ; logic:targetEndpoint nif:referenceContext ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-lang-nif.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:SurfaceAnchor ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject oa:TextPositionSelector ;
+    logic:sourceEndpoint lang:SurfaceAnchor ; logic:targetEndpoint oa:TextPositionSelector ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-lang-web-annotation.sssom.tsv" ;
+    gmeow:comment "The selector is an exchange representation of the native anchor; source attachment is modeled at a different node in Web Annotation." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorStartOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:anchorStart ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject oa:start ;
+    logic:sourceEndpoint lang:anchorStart ; logic:targetEndpoint oa:start ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-web-annotation.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorEndOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:anchorEnd ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject oa:end ;
+    logic:sourceEndpoint lang:anchorEnd ; logic:targetEndpoint oa:end ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-lang-web-annotation.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLangAnchorSourceOa a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject lang:anchorSource ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject oa:hasSource ;
+    logic:sourceEndpoint lang:anchorSource ; logic:targetEndpoint oa:hasSource ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-lang-web-annotation.sssom.tsv" ;
+    gmeow:comment "Web Annotation places hasSource on the SpecificResource rather than directly on the TextPositionSelector, so this is relatedMatch only." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

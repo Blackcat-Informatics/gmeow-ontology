@@ -1,13 +1,15 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Grounding correspondences — gUFO, BFO, OBO, SUMO, OWL, and SHACL
+# Foundation grounding correspondences
 
 > **Status: realized and shipped.** The canonical source is
-> [`slices/grounding/logic/mappings/grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl).
+> [`slices/grounding/logic/mappings/grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl)
+> and
+> [`slices/grounding/logic/mappings/foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
 > It compiles to content-addressed `logic:Correspondence` records in the
 > `graph/correspondence-laws` named graph of `generated/dist/gmeow.gts`.
-> The six SSSOM tables under `generated/mappings/` are generated review views,
+> The target-specific SSSOM tables under `generated/mappings/` are generated review views,
 > not alignment authorities.
 
 This is the concrete grounding instance of the correspondence calculus in
@@ -50,7 +52,7 @@ The compiler rejects incomplete combinations. In particular,
 `logic:CommitmentShiftingBridge` requires `logic:BridgeView`; it cannot emit an
 equivalence claim.
 
-## The six catalogs
+## The core six catalogs
 
 | Target | Rows | Morphism policy | Preservation policy | Coverage contract |
 |---|---:|---|---|---|
@@ -63,6 +65,27 @@ equivalence claim.
 
 The counts are pinned deliberately. Extending an adapter or target surface
 requires extending the catalog and its coverage test in the same change.
+
+## The additive foundation catalog
+
+`foundation-bridges.ttl` adds 21 curated, by-reference rows without importing
+any target TBox:
+
+| Target | Rows | Disposition |
+|---|---:|---|
+| **DOLCE+DnS Ultralite (DUL)** | 6 | Entity, Object, Event, Quality, Situation, and InformationObject as commitment-shifting `BridgeView`s |
+| **IAO** | 1 | Information content entity as a close, validation-only bridge |
+| **PATO** | 1 | Biomedical quality root as a close, validation-only bridge |
+| **YAMATO 2021-08-08** | 7 | Version-pinned particular, independent entity, object, event, process, quality, and role bridges |
+| **OpenCyc 2012-05-10** | 6 | Permanent identifiers for Individual, Collection, Event, Role, InformationBearingThing, and Microtheory |
+
+All 21 are `BridgeView` + `CommitmentShiftingBridge` + `ValidationOnly`.
+This is deliberate: shared labels do not erase differences in identity,
+participation, process/event, role, collection, or microtheory commitments.
+YAMATO uses the versioned
+`http://www.hozo.jp/owl/YAMATO20210808.miz.owl#` namespace. OpenCyc uses the
+permanent `http://sw.opencyc.org/concept/` identifiers published by the
+[OpenCyc KB repository](https://github.com/therohk/opencyc-kb).
 
 ### gUFO is a projection floor, not the canon
 
@@ -128,6 +151,11 @@ generated/mappings/gmeow-logic-obo.sssom.tsv
 generated/mappings/gmeow-logic-sumo.sssom.tsv
 generated/mappings/gmeow-logic-owl.sssom.tsv
 generated/mappings/gmeow-logic-shacl.sssom.tsv
+generated/mappings/gmeow-logic-dul.sssom.tsv
+generated/mappings/gmeow-logic-iao.sssom.tsv
+generated/mappings/gmeow-logic-pato.sssom.tsv
+generated/mappings/gmeow-logic-yamato.sssom.tsv
+generated/mappings/gmeow-logic-opencyc.sssom.tsv
 ```
 
 The retired `gmeow-foundational.sssom.tsv` is an orphan and must not return.
@@ -136,9 +164,8 @@ The retired `gmeow-foundational.sssom.tsv` is an orphan and must not return.
 
 1. Add or update the `logic:` source term in
    `slices/grounding/logic/module.ttl` with the required annotations.
-2. Add the correspondence cell to
-   `slices/grounding/logic/mappings/grounding-bridges.ttl`, oriented
-   `logic:` → external target.
+2. Add the correspondence cell to the appropriate canonical catalog under
+   `slices/grounding/logic/mappings/`, oriented `logic:` → external target.
 3. Declare morphism class, morphism kind, and preservation kind explicitly.
 4. Extend the pinned target-surface test. For a by-reference ontology, add only
    the smallest legal validation snapshot needed to verify target IRIs.
@@ -153,20 +180,28 @@ cargo nextest run -p gmeow-validate --test conformance_foundational_bridging
 cargo nextest run -p gmeow-pipeline --test correspondence_laws_bundle
 ```
 
-## Related bridge-view lineage
+## Explicit non-foundation dispositions
 
-DOLCE/DUL and YAMATO remain useful by-reference refinement sources. Their
-quality, quantity, process, and event distinctions inform the canonical
-`logic:` foundation, but they do not yet have a pinned shipped catalog in this
-six-target surface. Any future catalog must use the same orientation and must
-enter as a commitment-shifting `BridgeView` unless a stronger preservation law
-is actually discharged.
+The OBO Sequence Ontology (`SO_`) and Emotion Ontology (`MFOEM_`) remain cited
+lineage and domain-specific alignment targets, not foundation bridge rows.
+Neither supplies a trustworthy identity-strength counterpart for a `logic:`
+foundation term: SO describes biological sequence entities, while MFOEM
+describes emotion and mental-functioning phenomena. Fabricating a broad
+foundation correspondence merely to make the inventory look complete would
+be semantically false. Their eventual term-level use must be routed through an
+owned grounding term with a specific warrant; until then the disposition is
+**citation/reference only**, not an unspecified deferral.
 
 ## References
 
 - gUFO — Almeida et al., *gUFO: A Lightweight Implementation of the Unified
   Foundational Ontology (UFO)*.
 - BFO 2020 — ISO/IEC 21838-2:2021 and the OBO Foundry BFO release.
+- DOLCE+DnS Ultralite (DUL) — Ontology Design Patterns DUL release.
+- YAMATO — Mizoguchi, *Yet Another More Advanced Top-level Ontology* and the
+  version-pinned Hozo OWL export.
+- OpenCyc — the permanent-identifier OWL export in
+  <https://github.com/therohk/opencyc-kb>.
 - SUMO — Suggested Upper Merged Ontology, published OWL translation namespace.
 - W3C OWL 2, RDF Schema, SHACL Core, and SHACL Advanced Features.
 - Trojahn et al., *Foundational ontologies meet ontology matching: a survey*.
