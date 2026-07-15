@@ -1,0 +1,15 @@
+# Competency question: "What queryable vocabulary does GMEOW provide to
+# decompose a chase-invented existential null?"
+# Expected: gmeow:InventedWitness (the type minted onto the Skolem null) and
+# gmeow:existentialOrdinal (the datatype property recording which existential
+# head variable of the firing rule the null discharges).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT ?term WHERE {
+    { ?term a owl:Class . FILTER(?term = gmeow:InventedWitness) }
+    UNION
+    { ?term a owl:DatatypeProperty . FILTER(?term = gmeow:existentialOrdinal) }
+}
+ORDER BY ?term

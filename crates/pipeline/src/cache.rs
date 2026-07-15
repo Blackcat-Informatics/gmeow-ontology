@@ -54,9 +54,11 @@
 //! # On-disk layout
 //!
 //! `generated/.pipeline-cache/<version>/` holds an `index.json` mapping each stage
-//! key to a blob digest, and `blobs/<digest>` holds the serialized [`CachedBundle`].
-//! On load the blob is re-hashed and compared to the indexed digest — a mismatch is
-//! a HARD failure, never a silent repair (no-optionality).
+//! key to a blob digest, and `blobs/<digest>` holds the bincode-serialized
+//! [`CachedBundle`]. The binary encoding keeps the manifest's large `Vec<u8>` lanes
+//! byte-dense instead of expanding every byte into a JSON number. On load the blob
+//! is re-hashed and compared to the indexed digest — a mismatch is a HARD failure,
+//! never a silent repair (no-optionality).
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -79,7 +81,7 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 3;
+pub const CACHE_VERSION: u32 = 4;
 
 /// The media type of the dataset's canonical byte projection. N-Quads is
 /// star-capable (carries the full RDF-1.2 statement layer) and `serialize_dataset` /
@@ -675,9 +677,10 @@ type PipelineBundleAlias = purrdf::PipelineBundle<PipelineHandle>;
 /// (gitignored).
 ///
 /// `index.json` maps `stage_key → blob ContentDigest (hex)`; `blobs/<hex>` holds
-/// the serialized [`CachedBundle`]. Reads re-hash the blob and HARD-fail on a
-/// digest mismatch (self-verifying, no silent repair). The `<version>` segment makes
-/// a prior cache-shape revision a clean miss (greenfield, no migration).
+/// the bincode-serialized [`CachedBundle`]. Reads re-hash the blob and HARD-fail on
+/// a digest mismatch (self-verifying, no silent repair). The `<version>` segment
+/// makes a prior cache-shape or codec revision a clean miss (greenfield, no
+/// migration).
 pub struct PipelineCache {
     dir: PathBuf,
     index: BTreeMap<String, String>,
@@ -736,7 +739,7 @@ impl PipelineCache {
                 actual,
             }));
         }
-        let cached: CachedBundle = serde_json::from_slice(&bytes).map_err(|e| {
+        let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("corrupt cached bundle: {e}"),
             })
@@ -756,7 +759,7 @@ impl PipelineCache {
         product: &StageProduct,
     ) -> Result<(), gmeow_errors::Diag> {
         let manifest = CachedBundle::from_product(product)?;
-        let bytes = serde_json::to_vec(&manifest).map_err(|e| {
+        let bytes = bincode::serialize(&manifest).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("cannot serialize cached bundle: {e}"),
             })
@@ -1007,6 +1010,45 @@ mod tests {
     }
 
     #[test]
+    fn cached_bundle_binary_encoding_avoids_json_byte_array_expansion() {
+        let payload = vec![0xff; 4096];
+        let mut blobs = BTreeMap::new();
+        blobs.insert("blob-digest".to_owned(), payload.clone());
+        let manifest = CachedBundle {
+            version: CACHE_VERSION,
+            stage_id: "compact-cache-regression".to_owned(),
+            digest: "product-digest".to_owned(),
+            dataset_nquads: payload.clone(),
+            lookaside: CachedLookaside::default(),
+            blobs,
+            provenance: Vec::new(),
+            handles: vec![CachedHandle {
+                graph: "http://example.org/graph".to_owned(),
+                arm: "logic".to_owned(),
+                graph_nquads: payload,
+            }],
+        };
+
+        let binary = bincode::serialize(&manifest).expect("serialize compact cache manifest");
+        let json = serde_json::to_vec(&manifest).expect("serialize comparison manifest");
+        assert!(
+            binary.len() * 3 < json.len(),
+            "byte lanes must stay compact: binary={} JSON={}",
+            binary.len(),
+            json.len()
+        );
+
+        let decoded: CachedBundle =
+            bincode::deserialize(&binary).expect("deserialize compact cache manifest");
+        assert_eq!(decoded.dataset_nquads, manifest.dataset_nquads);
+        assert_eq!(decoded.blobs, manifest.blobs);
+        assert_eq!(
+            decoded.handles[0].graph_nquads,
+            manifest.handles[0].graph_nquads
+        );
+    }
+
+    #[test]
     fn tampered_handle_backing_graph_hard_fails_on_reload() {
         let dir = tempfile::tempdir().unwrap();
         let mut cache = PipelineCache::open(dir.path()).unwrap();
@@ -1025,7 +1067,7 @@ mod tests {
             .unwrap()
             .path();
         let bytes = std::fs::read(&blob_path).unwrap();
-        let mut manifest: CachedBundle = serde_json::from_slice(&bytes).unwrap();
+        let mut manifest: CachedBundle = bincode::deserialize(&bytes).unwrap();
         // Replace the handle's backing-graph bytes with a DIFFERENT graph's canon.
         let mut b = RdfDatasetBuilder::new();
         let (s, p, o) = (iri(&mut b, "x"), iri(&mut b, "y"), iri(&mut b, "z"));
@@ -1035,7 +1077,7 @@ mod tests {
             serialize_dataset(&other, DATASET_MEDIA_TYPE, SerializeGraph::Dataset).unwrap();
         // Re-serialize + re-file under the NEW content digest (and re-point the index),
         // so the blob still self-verifies and we exercise the handle re-pin path.
-        let new_bytes = serde_json::to_vec(&manifest).unwrap();
+        let new_bytes = bincode::serialize(&manifest).unwrap();
         std::fs::remove_file(&blob_path).unwrap();
         let new_hex = ContentDigest::of(&new_bytes).to_hex();
         std::fs::write(blobs_dir.join(&new_hex), &new_bytes).unwrap();

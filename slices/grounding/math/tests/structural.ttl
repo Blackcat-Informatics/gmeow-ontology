@@ -24,6 +24,34 @@ ASK {
 }""" ;
     gmeow:saRationale "The five nested number systems MUST form the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ as rdfs:subClassOf edges, so a value in an inner system is entailed to be a value of every outer one." .
 
+# --- 1b. math:NegativeInfinity is a bare NamedIndividual mirroring +∞ (MUST) ---
+ex:saNegativeInfinityBare a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    math:NegativeInfinity a owl:NamedIndividual .
+    FILTER NOT EXISTS { math:NegativeInfinity a owl:Class . }
+    FILTER NOT EXISTS { math:NegativeInfinity gmeow:graphBoxRole ?role . }
+}""" ;
+    gmeow:saRationale "math:NegativeInfinity MUST mirror math:PositiveInfinity's shape EXACTLY: a bare owl:NamedIndividual (never typed as an owl:Class) that carries no gmeow:graphBoxRole. Both poles are extended-real points, not T-Box terms, so they stay bare — the negative pole is minted the same way the positive one already is." .
+
+# --- 1c. math:ExtendedRealLine adjoins both poles and the reals (MUST) ---
+ex:saExtendedRealLineAdjoins a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:ExtendedRealLine a owl:NamedIndividual , math:NumberSystem .
+    math:PositiveInfinity math:inNumberSystem math:ExtendedRealLine .
+    math:NegativeInfinity math:inNumberSystem math:ExtendedRealLine .
+    math:realNumbers math:subsystemOf math:ExtendedRealLine .
+}""" ;
+    gmeow:saRationale "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞} MUST be grounded through the existing number-system machinery, not a parallel one: math:ExtendedRealLine is a math:NumberSystem individual (sibling to math:realNumbers and math:complexNumbers, not a punned class), it adjoins BOTH poles as members through math:inNumberSystem, and it relates the reals as a subsystem through math:subsystemOf. A pole adjoined to only one end, or grounded by an invented predicate, fails this assertion." .
+
 # --- 2. Every bedrock failure class subclasses math:MathConformanceFailure (MUST) ---
 ex:saFailureHierarchy a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -37,9 +65,22 @@ ASK {
     math:StringOnlyMemberCondition rdfs:subClassOf math:MathConformanceFailure .
     math:UnqualifiedComplement     rdfs:subClassOf math:MathConformanceFailure .
     math:AmbiguousSetExtent        rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedInterval    rdfs:subClassOf math:MathConformanceFailure .
     math:UnframedFunction          rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each of the seven bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+    gmeow:saRationale "Each of the eight bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 2a2. The closed-form-algebra failure classes are typed (MUST) ---
+ex:saClosedFormFailuresTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnframedOperator  rdfs:subClassOf math:MathConformanceFailure .
+    math:UnboundClosedForm rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The two closed-form-algebra failures — math:UnframedOperator (an arithmetic operator missing its signature) and math:UnboundClosedForm (a closed form missing its body or formal argument) — MUST each be a subclass of math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: hard-rule failure." .
 
 # --- 2b. The flagship-manifest failure class subclasses math:MathConformanceFailure (MUST) ---
 ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
@@ -76,7 +117,35 @@ ASK {
 }""" ;
     gmeow:saRationale "This layer's five flagship acceptance scenarios MUST each be present as a gmeow:FlagshipScenario binding its worked example, competency question, native producer, counter-example, and a real math:MathConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
 
-# --- 3. The seven arithmetic operators exist as math:ArithmeticOperation (MUST) ---
+# --- 2d. math:Interval requires both endpoints and both endpoint inclusions (MUST) --- #
+ex:saIntervalInclusionRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Interval rdfs:subClassOf [ owl:onProperty math:lowerEndpoint ; owl:minQualifiedCardinality 1 ] .
+    math:Interval rdfs:subClassOf [ owl:onProperty math:upperEndpoint ; owl:minQualifiedCardinality 1 ] .
+    math:Interval rdfs:subClassOf [ owl:onProperty math:lowerInclusion ; owl:minQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+    math:Interval rdfs:subClassOf [ owl:onProperty math:upperInclusion ; owl:minQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+}""" ;
+    gmeow:saRationale "A math:Interval MUST carry a required (min-qualified-one) owl:Restriction on EACH of math:lowerEndpoint, math:upperEndpoint, math:lowerInclusion, and math:upperInclusion, with the two inclusion restrictions pinned to owl:onClass math:EndpointInclusion — so endpoint inclusion is never silently omitted and which of [0, 1], [0, 1), or (0, 1) is meant is always data (a missing endpoint or inclusion is math:UnderspecifiedInterval). An interval that dropped an inclusion restriction, leaving the bracket a matter of convention, fails this assertion." .
+
+# --- 2e. The two endpoint inclusions are typed math:EndpointInclusion individuals (MUST) --- #
+ex:saEndpointInclusionVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:closedEndpoint a owl:NamedIndividual , math:EndpointInclusion .
+    math:openEndpoint   a owl:NamedIndividual , math:EndpointInclusion .
+    FILTER NOT EXISTS { math:EndpointInclusion owl:oneOf ?enum . }
+}""" ;
+    gmeow:saRationale "The endpoint-inclusion vocabulary MUST be the two open owl:NamedIndividuals math:closedEndpoint (included, square bracket) and math:openEndpoint (excluded, round bracket), each typed math:EndpointInclusion — an open value vocabulary mirroring math:ConvergenceMode and math:LimitOutcome, never sealed by an owl:oneOf enumeration (the FILTER NOT EXISTS forbids it). A missing inclusion individual, or an owl:oneOf that closes the class, fails this assertion." .
+
+# --- 3. The eight arithmetic operators exist as math:ArithmeticOperation (MUST) ---
 ex:saArithmeticOperators a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -89,8 +158,59 @@ ASK {
     math:Exponentiation a math:ArithmeticOperation .
     math:Root           a math:ArithmeticOperation .
     math:Logarithm      a math:ArithmeticOperation .
+    math:Negation       a math:ArithmeticOperation .
 }""" ;
-    gmeow:saRationale "Addition, multiplication, exponentiation, and their inverses MUST exist as math:ArithmeticOperation individuals." .
+    gmeow:saRationale "Addition, multiplication, exponentiation, and their inverses, together with the unary additive-inverse operator math:Negation, MUST exist as math:ArithmeticOperation individuals." .
+
+# --- 3b. Every math:ArithmeticOperation individual carries its signature (MUST) ---
+ex:saOperatorSignatures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    ?op a math:ArithmeticOperation .
+    FILTER( NOT EXISTS { ?op math:operatorDomain ?d ; math:operatorCodomain ?c } )
+}""" ;
+    gmeow:saRationale "No math:ArithmeticOperation individual may lack its signature: every one MUST carry both a math:operatorDomain and a math:operatorCodomain (each a math:NumberSystem), so an operator that fills a math:operator slot always says what number system it computes over. Because the required-exactly-one restriction targets the math:ArithmeticOperation CLASS, ALL eight operators are framed — an operator missing either half of its signature is math:UnframedOperator, and this MUST-NOT cell would find it." .
+
+# --- 3c. math:ClosedFormFunction is a math:Function (MUST) ---
+ex:saClosedFormIsFunction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ClosedFormFunction rdfs:subClassOf math:Function .
+}""" ;
+    gmeow:saRationale "A math:ClosedFormFunction MUST be a subclass of math:Function, so it inherits the domain/codomain framing obligation (an unframed one is math:UnframedFunction) and every consumer that reasons over functions sees a closed form as a function." .
+
+# --- 3d. math:ClosedFormFunction requires a body and a formal argument (MUST) ---
+ex:saClosedFormRequiredRoles a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ClosedFormFunction rdfs:subClassOf [ owl:onProperty math:definingExpression ; owl:minQualifiedCardinality 1 ] .
+    math:ClosedFormFunction rdfs:subClassOf [ owl:onProperty math:formalArgument ; owl:minQualifiedCardinality 1 ] .
+}""" ;
+    gmeow:saRationale "A math:ClosedFormFunction MUST carry a required (min-qualified-one) owl:Restriction on EACH of math:definingExpression and math:formalArgument, so a closed form always says what it computes (its body AST) and over which variable it abstracts (its formal argument); a closed form dropping either is math:UnboundClosedForm. Its math:functionParameter is deliberately unconstrained (0..n)." .
+
+# --- 3e. Every variable leaf of a closed form resolves to its argument or a parameter (MUST-NOT) ---
+ex:saClosedFormLeafLinkage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    ?cf a math:ClosedFormFunction ;
+        math:definingExpression/(math:argumentSlot/math:slotExpression)* ?leaf .
+    ?leaf a math:VariableExpression ;
+          math:variableOccurrence/math:declaredVariable ?decl .
+    FILTER NOT EXISTS { ?cf math:formalArgument ?decl }
+    FILTER NOT EXISTS { ?cf math:functionParameter ?decl }
+}""" ;
+    gmeow:saRationale "NO math:ClosedFormFunction may carry a defining-expression variable leaf that resolves to neither its formal argument nor a declared parameter. Universally over the fixture, for EVERY math:ClosedFormFunction and EVERY math:VariableExpression leaf reachable from its math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth), the leaf's declaration — resolved via math:variableOccurrence/math:declaredVariable — MUST be EITHER the function's math:formalArgument OR one of its math:functionParameters. This MUST-NOT cell matches any offending leaf directly, so a single broken closed form is caught even when other closed forms are clean. This is authored as a structural cell over the authored fixture because the general runtime gate is a transitive AST traversal that exceeds the guarded fragment (the runtime residue is recorded as structural-only)." .
 
 # --- 4. No math: property asserts an EL-forbidden OWL characteristic (MUST-NOT) ---
 ex:saNoForbiddenCharacteristics a gmeow:StructuralAssertion ;
@@ -323,13 +443,28 @@ ex:saMeasureDimensionFailures a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     math:IncompleteMeasure               rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedMeasureEvaluation rdfs:subClassOf math:MathConformanceFailure .
     math:ProbabilityMeasureMassViolation rdfs:subClassOf math:MathConformanceFailure .
     math:IncompleteIntegral              rdfs:subClassOf math:MathConformanceFailure .
     math:UndimensionedQuantity           rdfs:subClassOf math:MathConformanceFailure .
     math:MalformedDimension              rdfs:subClassOf math:MathConformanceFailure .
     math:DimensionalInhomogeneity        rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each measure-and-dimension hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — including the reasoned math:DimensionalInhomogeneity — is a typed, queryable object." .
+    gmeow:saRationale "Each measure-and-dimension hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — including the underspecified subset evaluation and the reasoned math:DimensionalInhomogeneity — is a typed, queryable object." .
+
+# --- 17b. math:MeasureEvaluation requires all three of its roles (MUST) ---
+ex:saMeasureEvaluationRolesRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:MeasureEvaluation rdfs:subClassOf [ owl:onProperty math:evaluatedMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass math:Measure ] .
+    math:MeasureEvaluation rdfs:subClassOf [ owl:onProperty math:measuredSubset ; owl:minQualifiedCardinality 1 ; owl:onClass math:MeasurableSet ] .
+    math:MeasureEvaluation rdfs:subClassOf [ owl:onProperty math:measureResult ; owl:minQualifiedCardinality 1 ] .
+}""" ;
+    gmeow:saRationale "A math:MeasureEvaluation MUST carry a required (min-qualified-one) owl:Restriction on EACH of its three roles — math:evaluatedMeasure (onClass math:Measure), math:measuredSubset (onClass math:MeasurableSet), and math:measureResult — so an evaluation μ(A) that does not say which measure, of which subset, gave which result is math:UnderspecifiedMeasureEvaluation. This reifies μ(A) as a comparable datum, distinct from the whole-space math:totalMass. An evaluation missing any role restriction fails this assertion." .
 
 # --- Analysis & geometry subsumption invariants (ANALYSIS-AND-GEOMETRY) ----- #
 
@@ -346,9 +481,10 @@ ASK {
     math:LorentzianManifold  rdfs:subClassOf math:SmoothManifold .
     math:SmoothManifold      rdfs:subClassOf math:Manifold .
     math:Manifold            rdfs:subClassOf math:TopologicalSpace .
+    math:ConformalCompactification rdfs:subClassOf math:Compactification .
     math:Integral            rdfs:subClassOf math:BindingExpression .
 }""" ;
-    gmeow:saRationale "The analysis-and-geometry hierarchy MUST hold as asserted rdfs:subClassOf edges: a homology group is an abelian group (so it inherits the algebra frame), a metric tensor is a tensor field, a continuous map is a morphism and a homeomorphism is a continuous map, the manifold tower Lorentzian ⊑ smooth ⊑ manifold ⊑ topological space, and the integral is a binding expression (∫ is a binder like d/dx, ∑, lim)." .
+    gmeow:saRationale "The analysis-and-geometry hierarchy MUST hold as asserted rdfs:subClassOf edges: a homology group is an abelian group (so it inherits the algebra frame), a metric tensor is a tensor field, a continuous map is a morphism and a homeomorphism is a continuous map, the manifold tower Lorentzian ⊑ smooth ⊑ manifold ⊑ topological space, a conformal compactification is a compactification (so it inherits the four-role frame), and the integral is a binding expression (∫ is a binder like d/dx, ∑, lim)." .
 
 ex:saAnalysisGeometryFailures a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -363,12 +499,30 @@ ASK {
     math:UnderspecifiedDerivative        rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedLimit             rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedConvergence       rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedLimitResult       rdfs:subClassOf math:MathConformanceFailure .
     math:UndeclaredTopologicalProperty   rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedManifold          rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedChart             rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedCompactification  rdfs:subClassOf math:MathConformanceFailure .
     math:DimensionMismatch               rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
+    gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/limit-result/convergence/manifold/chart/compactification, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
+
+# --- 19b. math:Compactification requires all four roles; the conformal factor is required on the conformal subclass (MUST) --- #
+ex:saCompactificationRolesRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Compactification rdfs:subClassOf [ owl:onProperty math:originalSpace ; owl:minQualifiedCardinality 1 ] .
+    math:Compactification rdfs:subClassOf [ owl:onProperty math:compactifyingMap ; owl:minQualifiedCardinality 1 ] .
+    math:Compactification rdfs:subClassOf [ owl:onProperty math:compactifiedSpace ; owl:minQualifiedCardinality 1 ] .
+    math:Compactification rdfs:subClassOf [ owl:onProperty math:boundaryAtInfinity ; owl:minQualifiedCardinality 1 ; owl:onClass math:BoundaryAtInfinity ] .
+    math:ConformalCompactification rdfs:subClassOf [ owl:onProperty math:conformalFactor ; owl:minQualifiedCardinality 1 ] .
+}""" ;
+    gmeow:saRationale "A math:Compactification MUST carry a required (min-qualified-one) owl:Restriction on EACH of its four roles — math:originalSpace, math:compactifyingMap, math:compactifiedSpace, and math:boundaryAtInfinity (the last pinned to owl:onClass math:BoundaryAtInfinity) — and math:ConformalCompactification MUST additionally require exactly one math:conformalFactor scoped to the conformal subclass, so a compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity (or a conformal one dropping its rescaling factor) is math:UnderspecifiedCompactification. A compactification missing any role restriction fails this assertion." .
 
 # --- 20. Every topological property's math:definingLaw resolves to a law or boundary (MUST) ---
 ex:saTopologicalLawBacking a gmeow:StructuralAssertion ;
@@ -384,6 +538,34 @@ ASK {
   }
 }""" ;
     gmeow:saRationale "Every concept carrying math:definingLaw MUST resolve to a real first-order logic:Formula (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw) or a recorded logic:expressivenessBoundary boundary (math:compactnessBoundary) — turning 'backed by a law' from prose into an open, machine-checked, type-checked invariant. The ASK is OPEN (it hand-enumerates no concept: it finds NO math:definingLaw edge whose target is neither a logic:Formula NOR carries logic:expressivenessBoundary) and TYPE-CHECKED (a dangling or mistyped backing edge — one pointing at a bare type — fails it). A new grounded property joins the audit simply by carrying math:definingLaw, with no list to maintain." .
+
+# --- 20b. math:hasLimitResult wires a limit to its structured result (MUST) --- #
+ex:saLimitResultWiring a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:hasLimitResult a owl:ObjectProperty .
+    math:Limit rdfs:subClassOf [ owl:onProperty math:hasLimitResult ; owl:onClass math:LimitResult ] .
+}""" ;
+    gmeow:saRationale "The evaluated result of a limit MUST be reachable as a structured object: math:hasLimitResult is an owl:ObjectProperty and math:Limit carries an owl:Restriction on it whose owl:onClass is math:LimitResult, so a limit's result is a first-class math:LimitResult (never a bare literal) and the max-one cardinality bites. A result modelled as a plain value, or a link that did not target math:LimitResult, fails this assertion." .
+
+# --- 20c. The four limit outcomes are typed math:LimitOutcome individuals (MUST) --- #
+ex:saLimitOutcomeVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:convergesFinitely         a owl:NamedIndividual , math:LimitOutcome .
+    math:divergesToPositiveInfinity a owl:NamedIndividual , math:LimitOutcome .
+    math:divergesToNegativeInfinity a owl:NamedIndividual , math:LimitOutcome .
+    math:divergesWithoutLimit       a owl:NamedIndividual , math:LimitOutcome .
+    FILTER NOT EXISTS { math:LimitOutcome owl:oneOf ?enum . }
+}""" ;
+    gmeow:saRationale "The limit-outcome vocabulary MUST be the four open owl:NamedIndividuals math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, and math:divergesWithoutLimit, each typed math:LimitOutcome — an open value vocabulary mirroring math:ConvergenceMode, never sealed by an owl:oneOf enumeration (the FILTER NOT EXISTS forbids it), so a finer outcome can be added without reclassifying a closed set. A missing outcome individual, or an owl:oneOf that closes the class, fails this assertion." .
 
 # --- Linear algebra & learning: subsumption and framing invariants (MUST) --- #
 ex:saLinearAlgebraSubsumption a gmeow:StructuralAssertion ;
@@ -870,3 +1052,139 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "Each of the statistics-layer hard-rule failures MUST be a subclass of math:MathConformanceFailure, so every violation — an estimate naming neither estimand/parameter nor estimator (math:UnderspecifiedEstimate), a p-value missing its test/null/distribution/tail frame (math:IllFramedPValue), an incomplete confidence interval (math:IncompleteConfidenceInterval), an incomplete credible interval (math:IncompleteCredibleInterval), a confidence/credible interval conflation (math:IntervalKindConflation), an unframed effect size (math:UnframedEffectSize), a diagnostic anchored to neither its fitted model nor its method (math:UnanchoredDiagnostic), a variable whose values encode absence with no declared missingness mechanism (math:ImplicitMissingness), and a node conflating the statistical and topological senses of calibration (math:CalibrationSenseConflation) — is a typed, queryable object. The first eight are the statistics CONFORMANCE rows; math:CalibrationSenseConflation is added because a calibration diagnostic is a statistical model diagnostic, so its sense-conflation is a statistics failure. The ASK is a for-all over a VALUES list (it finds NO enumerated failure that fails to subclass the parent), mirroring math:saProbabilityFailureHierarchy — a new statistics failure joins the audit by being added to the list." .
+
+# --- Task 7: piecewise ladder and analytic law-backing invariants ----------- #
+
+# --- Every MonotonicityKind and AnalyticProperty individual resolves via
+#     math:definingLaw to a logic:Formula or a boundary (never a bare type) (MUST) ---
+ex:saAnalyticLawBacking a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    FILTER NOT EXISTS {
+        ?ind a ?cls .
+        FILTER( ?cls IN (math:MonotonicityKind, math:AnalyticProperty) )
+        FILTER NOT EXISTS {
+            ?ind math:definingLaw ?law .
+            { ?law a logic:Formula } UNION { ?law logic:expressivenessBoundary ?bnd }
+        }
+    }
+}""" ;
+    gmeow:saRationale "Every math:MonotonicityKind individual (math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, math:constant) and every math:AnalyticProperty individual (math:nonAffinity, math:convexity, math:boundedness, math:smoothness) MUST resolve through math:definingLaw to a real first-order logic:Formula (math:strictMonotonicityLaw … math:constantMapLaw, math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) or an honest recorded logic:expressivenessBoundary (math:smoothnessBoundary) — never a bare type with no backing. The ASK is a for-all over the two vocabulary classes (it finds NO such individual that lacks a resolving math:definingLaw edge), so a monotonicity or analytic kind minted without a backing law fails it; a new kind joins the audit by carrying math:definingLaw. The complement of the open math:saTopologicalLawBacking edge-audit: this cell checks PRESENCE of the backing on the vocabulary individuals, that one checks every present edge resolves." .
+
+# --- math:smoothnessBoundary is an honest second-order boundary (MUST) ---
+ex:saSmoothnessBoundarySecondOrder a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:smoothnessBoundary logic:expressivenessBoundary logic:SecondOrder .
+    math:smoothnessBoundary logic:preservationKind logic:Unsupported .
+}""" ;
+    gmeow:saRationale "Smoothness (C^∞ / real-analyticity) quantifies over the infinite family of all derivatives and is not first-order axiomatizable, so it MUST be carried as an honest recorded boundary exactly like math:compactnessBoundary — math:smoothnessBoundary carries logic:expressivenessBoundary logic:SecondOrder and logic:preservationKind logic:Unsupported, reusing the loss-ledger vocabulary verbatim, never faked as a first-order logic:Formula. This pins the explicit-expressiveness-boundary arm as data." .
+
+# --- The piecewise ladder is grounded in math:Function (MUST) ---
+ex:saPiecewiseGrounded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:PiecewiseFunction rdfs:subClassOf math:Function .
+    math:FunctionPiece a owl:Class .
+    math:UnderspecifiedPiecewiseFunction rdfs:subClassOf math:MathConformanceFailure .
+    math:UnbackedAnalyticProperty rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function (rdfs:subClassOf), so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each subclass math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: failure." .
+
+# --- Task 8 — the two co-equal flagship signed-radial-field scenes ---------- #
+
+# The qualitative scene is well-framed AND carries ZERO closed-form apparatus (MUST).
+# The field is a framed math:PiecewiseFunction (domain, codomain math:ExtendedRealLine,
+# ≥ 1 piece), it is NOT a math:ClosedFormFunction, and NO subject anywhere in the
+# radial-qual scene carries a math:definingExpression or a math:ClosedFormFunction
+# typing — the equation-free path is genuinely equation-free. This executes the
+# qualitative-sufficiency claim as a query, scoped to the scene's namespace.
+ex:saRadialQualNoClosedForm a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rqf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/>
+ASK {
+    rqf:signedRadialFieldQual a math:PiecewiseFunction ;
+        math:domain ?d ;
+        math:codomain math:ExtendedRealLine ;
+        math:hasPiece ?p .
+    FILTER NOT EXISTS { rqf:signedRadialFieldQual a math:ClosedFormFunction }
+    FILTER NOT EXISTS {
+        ?s ?pp ?oo .
+        FILTER(STRSTARTS(STR(?s), "https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/"))
+        { ?s a math:ClosedFormFunction } UNION { ?s math:definingExpression ?e }
+    }
+}""" ;
+    gmeow:saRationale "The qualitative flagship scene MUST model the signed radial field WITHOUT any closed form: its field is a framed math:PiecewiseFunction declaring BOTH math:domain and math:codomain math:ExtendedRealLine and at least one math:hasPiece, it is NOT a math:ClosedFormFunction, and NO subject in the radial-qual namespace carries a math:ClosedFormFunction typing or a math:definingExpression. This runs the qualitative-sufficiency claim as an executable FILTER NOT EXISTS over the scene, proving the equation-free path is genuinely equation-free rather than merely described as such." .
+
+# Ring 2 strictly dominates the spatial measure in the qualitative scene (MUST).
+# The dominance is an executed numeric inequality: no other radial-qual measure
+# evaluation's math:measureResult is ≥ Ring 2's, so Ring 2 is strictly the largest.
+ex:saRadialQualRing2Dominates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rqf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/>
+ASK {
+    rqf:ring2Measure math:measureResult ?m2 .
+    FILTER NOT EXISTS {
+        ?other a math:MeasureEvaluation ;
+               math:measureResult ?mo .
+        FILTER(STRSTARTS(STR(?other), "https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/"))
+        FILTER(?other != rqf:ring2Measure)
+        FILTER(?mo >= ?m2)
+    }
+}""" ;
+    gmeow:saRationale "In the qualitative scene the near-zero plateau on Ring 2 is the volume-dominant band: its measure evaluation's math:measureResult MUST strictly exceed every other ring's. The cell EXECUTES the inequality — it fails if any other radial-qual math:MeasureEvaluation has a math:measureResult numerically ≥ Ring 2's — so the dominance is checked arithmetic, not prose. Over the scene the four masses are {0.1, 0.25, 0.55, 0.1} and 0.55 is strictly largest." .
+
+# In the closed-form scene, every defining-expression variable leaf resolves to the
+# formal argument or a declared parameter (MUST) — the Task-6 leaf-linkage pattern
+# scoped to this scene's field. Every math:VariableExpression reachable from the body
+# resolves, via math:variableOccurrence/math:declaredVariable, to ex:xDecl (the formal
+# argument) or one of A, B, C, p, q (the declared parameters); no leaf is unbound.
+ex:saRadialCFLeafLinkage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rcf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/>
+ASK {
+    rcf:signedRadialFieldCF a math:ClosedFormFunction .
+    FILTER NOT EXISTS {
+        rcf:signedRadialFieldCF math:definingExpression/(math:argumentSlot/math:slotExpression)* ?leaf .
+        ?leaf a math:VariableExpression ;
+              math:variableOccurrence/math:declaredVariable ?decl .
+        FILTER NOT EXISTS { rcf:signedRadialFieldCF math:formalArgument ?decl }
+        FILTER NOT EXISTS { rcf:signedRadialFieldCF math:functionParameter ?decl }
+    }
+}""" ;
+    gmeow:saRationale "Over the closed-form flagship scene, every math:VariableExpression leaf reachable from T(x)'s math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth) MUST resolve, via math:variableOccurrence/math:declaredVariable, to a declaration that is EITHER the field's math:formalArgument (x) OR one of its math:functionParameters (A, B, C, p, q) — no leaf refers to a variable the closed form does not abstract over or tune by. This is the Task-6 leaf-linkage gate scoped to the signed compactified curve, executed as a transitive FILTER NOT EXISTS over the scene." .
+
+# Ring 2 strictly dominates the spatial measure in the closed-form scene (MUST) —
+# the same executed inequality, so the dominant-plateau reading holds on BOTH paths.
+ex:saRadialCFRing2Dominates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rcf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/>
+ASK {
+    rcf:ring2Measure math:measureResult ?m2 .
+    FILTER NOT EXISTS {
+        ?other a math:MeasureEvaluation ;
+               math:measureResult ?mo .
+        FILTER(STRSTARTS(STR(?other), "https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/"))
+        FILTER(?other != rcf:ring2Measure)
+        FILTER(?mo >= ?m2)
+    }
+}""" ;
+    gmeow:saRationale "The closed-form scene carries the same four ring measure evaluations as its qualitative twin, so the same dominance MUST hold: Ring 2's math:measureResult strictly exceeds every other radial-cf ring's, executed as the numeric FILTER inequality. Pinning the dominance on BOTH paths proves the two co-equal demonstrators agree on the volume-dominant plateau — the equation entails what the qualitative markers assert." .

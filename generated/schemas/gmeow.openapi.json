@@ -27293,6 +27293,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:ExistentialChaseDemonstrand"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:ExistentialChaseDemonstrand"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:ExistentialChaseDemonstrand"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:FormalizationCandidate"
                     },
                     {
@@ -27618,6 +27643,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:AnalyticProperty"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:AnalyticProperty"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:AnalyticProperty"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:ApplicationExpression"
                     },
                     {
@@ -27685,6 +27735,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:ArgumentSlot"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ArithmeticOperation"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ArithmeticOperation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ArithmeticOperation"
             }
           },
           {
@@ -27818,6 +27893,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:ClosedFormFunction"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ClosedFormFunction"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ClosedFormFunction"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:CompactSpace"
                     },
                     {
@@ -27835,6 +27935,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:CompactSpace"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Compactification"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Compactification"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Compactification"
             }
           },
           {
@@ -27935,6 +28060,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:ConfidenceInterval"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ConformalCompactification"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ConformalCompactification"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ConformalCompactification"
             }
           },
           {
@@ -28418,6 +28568,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:FunctionPiece"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:FunctionPiece"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:FunctionPiece"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:GramMatrix"
                     },
                     {
@@ -28568,6 +28743,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Interval"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Interval"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Interval"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:LieGroup"
                     },
                     {
@@ -28610,6 +28810,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Limit"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:LimitResult"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:LimitResult"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:LimitResult"
             }
           },
           {
@@ -28710,6 +28935,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Measure"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:MeasureEvaluation"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:MeasureEvaluation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:MeasureEvaluation"
             }
           },
           {
@@ -28960,6 +29210,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:PersistenceLifetime"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:PiecewiseFunction"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:PiecewiseFunction"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:PiecewiseFunction"
             }
           },
           {
@@ -43674,6 +43949,61 @@
         },
         "type": "object"
       },
+      "logic:ExistentialChaseDemonstrand": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:demonstratesChaseWitness": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ChaseWitnessLeaf",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/ChaseWitnessLeaf",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "logic:FormalizationCandidate": {
         "properties": {
           "@annotation": {
@@ -45161,6 +45491,31 @@
         ],
         "type": "object"
       },
+      "math:AnalyticProperty": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:ApplicationExpression": {
         "properties": {
           "@annotation": {
@@ -45312,6 +45667,48 @@
           "math:slotExpression",
           "math:slotIndex"
         ],
+        "type": "object"
+      },
+      "math:ArithmeticOperation": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:operatorCodomain": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:operatorDomain": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:AutomorphismGroup": {
@@ -45598,6 +45995,48 @@
         ],
         "type": "object"
       },
+      "math:ClosedFormFunction": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:definingExpression": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:formalArgument": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:CompactSpace": {
         "properties": {
           "@annotation": {
@@ -45641,6 +46080,47 @@
         },
         "required": [
           "math:isCompact"
+        ],
+        "type": "object"
+      },
+      "math:Compactification": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:boundaryAtInfinity": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:compactifiedSpace": {},
+          "math:compactifyingMap": {},
+          "math:originalSpace": {}
+        },
+        "required": [
+          "math:compactifiedSpace",
+          "math:compactifyingMap",
+          "math:originalSpace"
         ],
         "type": "object"
       },
@@ -45903,6 +46383,34 @@
         "required": [
           "math:confidenceLevel",
           "math:hasIntervalBound"
+        ],
+        "type": "object"
+      },
+      "math:ConformalCompactification": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:conformalFactor": {}
+        },
+        "required": [
+          "math:conformalFactor"
         ],
         "type": "object"
       },
@@ -47385,6 +47893,48 @@
         ],
         "type": "object"
       },
+      "math:FunctionPiece": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:pieceDomain": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:pieceExpression": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:GramMatrix": {
         "properties": {
           "@annotation": {
@@ -47944,6 +48494,54 @@
         ],
         "type": "object"
       },
+      "math:Interval": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:lowerEndpoint": {},
+          "math:lowerInclusion": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:upperEndpoint": {},
+          "math:upperInclusion": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:lowerEndpoint",
+          "math:upperEndpoint"
+        ],
+        "type": "object"
+      },
       "math:LieGroup": {
         "properties": {
           "@annotation": {
@@ -48036,6 +48634,15 @@
               }
             ]
           },
+          "math:hasLimitResult": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
           "math:limitOf": {
             "properties": {
               "@id": {
@@ -48063,6 +48670,40 @@
           "math:limitOf",
           "math:limitPoint"
         ],
+        "type": "object"
+      },
+      "math:LimitResult": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:limitOutcome": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:limitResultValue": {}
+        },
         "type": "object"
       },
       "math:LogOddsValue": {
@@ -48302,6 +48943,52 @@
         "required": [
           "math:measureOn",
           "math:totalMass"
+        ],
+        "type": "object"
+      },
+      "math:MeasureEvaluation": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:evaluatedMeasure": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "math:measureResult": {},
+          "math:measuredSubset": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:measureResult"
         ],
         "type": "object"
       },
@@ -49069,6 +49756,39 @@
                 "items": {
                   "type": "string"
                 },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "math:PiecewiseFunction": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasPiece": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
                 "type": "array"
               }
             ]

@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a two-piece piecewise function declaring its domain and codomain
+# (ℝ → ℝ) and two math:FunctionPiece parts through math:hasPiece — a strictly-
+# decreasing inner piece over [0, 1) carrying math:hasMonotonicity
+# math:strictlyDecreasing, and a near-zero plateau piece over [1, +∞) carrying a
+# small math:hasBound over its math:boundOnInterval. Each piece names EXACTLY ONE
+# math:pieceDomain (a fully-formed math:Interval), so the piecewise gate (≥ 1
+# math:hasPiece, exactly-one math:pieceDomain), the inherited function frame, and
+# the interval endpoint/inclusion gate all pass with no findings. Bound by
+# ex:ecPiecewiseComplete.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:radialProfile a math:PiecewiseFunction ;
+    rdfs:label "A two-piece profile: a strictly-decreasing inner tail and a near-zero outer plateau"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    math:hasPiece ex:decreasingPiece , ex:plateauPiece .
+
+ex:decreasingPiece a math:FunctionPiece ;
+    rdfs:label "Inner piece over [0, 1): strictly decreasing"@x-gmeow-english ;
+    math:pieceDomain ex:innerInterval ;
+    math:hasMonotonicity math:strictlyDecreasing .
+
+ex:plateauPiece a math:FunctionPiece ;
+    rdfs:label "Outer piece over [1, +∞): near-zero plateau"@x-gmeow-english ;
+    math:pieceDomain ex:outerInterval ;
+    math:hasBound "0.001"^^xsd:double ;
+    math:boundOnInterval ex:outerInterval .
+
+ex:innerInterval a math:Interval ;
+    rdfs:label "The half-open inner interval [0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:outerInterval a math:Interval ;
+    rdfs:label "The unbounded outer interval [1, +∞)"@x-gmeow-english ;
+    math:lowerEndpoint "1.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .

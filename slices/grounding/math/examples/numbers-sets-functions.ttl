@@ -32,6 +32,15 @@ ex:goldenRatio a math:MathematicalConstant ;
     math:inNumberSystem math:realNumbers ;
     math:isExact true .
 
+# A signed-extended-real slot on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: a quantity that
+# diverges downward, declared with the negative pole math:NegativeInfinity rather than a
+# finite literal. math:ExtendedRealLine adjoins both poles to the reals through the same
+# number-system machinery the finite tower uses.
+ex:unboundedBelowReach a math:Quantity ;
+    rdfs:label "an unbounded-below reach (→ −∞)"@x-gmeow-english ;
+    math:hasDimension math:dimensionless ;
+    math:extendedRealValue math:NegativeInfinity .
+
 # A finite set given extensionally, with a cardinality.
 ex:smallPrimes a math:FiniteSet ;
     rdfs:label "{2, 3, 5, 7}"@x-gmeow-english ;
@@ -75,3 +84,24 @@ ex:negateThenSquare a math:Function ;
 ex:integerSet a math:Set ;
     rdfs:label "ℤ"@x-gmeow-english ;
     math:hasCardinality math:alephNull .
+
+# Two ordered real intervals, each naming both endpoints AND both endpoint
+# inclusions. The half-open unit interval [0, 1): its lower endpoint 0 is closed
+# (included, square bracket) and its upper endpoint 1 is open (excluded, round
+# bracket).
+ex:halfOpenUnit a math:Interval ;
+    rdfs:label "[0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+# The unbounded interval (0, +∞): its lower endpoint 0 is open (excluded) and its
+# upper end runs off to the positive pole math:PositiveInfinity, which — being a
+# limit point of ℝ̄, never a member — is always open.
+ex:positiveReals a math:Interval ;
+    rdfs:label "(0, +∞)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .

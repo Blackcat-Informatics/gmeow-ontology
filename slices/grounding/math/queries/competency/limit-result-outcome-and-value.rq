@@ -1,0 +1,18 @@
+# Competency question: "For a limit that carries a structured result, what outcome
+# does it declare and what value does that outcome run to?" This exercises the
+# discipline that a math:Limit's evaluated result is a first-class math:LimitResult
+# naming its math:limitOutcome and — for a pole-divergent outcome — its
+# math:limitResultValue as a signed extended-real point, never a silent overload of
+# a finite value. Scoped to the fixture namespace; over the fixture the answer is
+# exactly the two pole-divergent limits {gammaBlowupLimit → diverges to +∞,
+# math:PositiveInfinity; coolingLimit → diverges to −∞, math:NegativeInfinity}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?limit ?outcome ?value WHERE {
+    ?limit a math:Limit ;
+           math:hasLimitResult ?result .
+    ?result math:limitOutcome ?outcome ;
+            math:limitResultValue ?value .
+    FILTER(STRSTARTS(STR(?limit), "http://example.org/math/"))
+}
+ORDER BY ?limit

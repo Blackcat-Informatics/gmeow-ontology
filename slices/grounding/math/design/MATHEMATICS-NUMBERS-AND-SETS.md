@@ -30,8 +30,12 @@ Core classes: `math:Number`, `math:NaturalNumber`, `math:Integer`, `math:Rationa
 `math:RealNumber`, `math:ComplexNumber`, `math:AlgebraicNumber`, `math:TranscendentalNumber`,
 `math:MathematicalConstant`, and `math:ApproximateValue`.
 
+Core system individuals: the tower `math:naturalNumbers` ⊂ `math:integers` ⊂ `math:rationalNumbers`
+⊂ `math:realNumbers` ⊂ `math:complexNumbers`, and — the reals with two signed poles adjoined —
+`math:ExtendedRealLine`.
+
 Core properties: `math:inNumberSystem`, `math:isExact`, `math:approximates`,
-`math:approximationError`, and `math:numericDatatype`.
+`math:approximationError`, `math:numericDatatype`, and `math:extendedRealValue`.
 
 A `math:Number` declares its number system (`math:inNumberSystem`: ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, with the
 algebraic/transcendental distinction inside ℝ/ℂ) and whether it is **exact** or an
@@ -42,6 +46,18 @@ the canonical RDF datatypes `xsd:double`/`xsd:float` (IEEE-754), carried by `mat
 ([`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md) — the `xsd` FP datatypes are subsumed, not
 re-minted).
 
+**Signed extended reals.** Some quantities run off the finite line: a limit diverging downward, an
+infimum of a set with no lower bound, a σ-finite measure's infinite mass. The **signed extended real
+line** `math:ExtendedRealLine` names ℝ̄ = ℝ ∪ {−∞, +∞} and adjoins two poles — `math:PositiveInfinity`
+(already the codomain of `math:totalMass`) and its dual `math:NegativeInfinity` (the glyph "−∞") — to
+the reals. It is **grounded through the same number-system machinery**, not a parallel one:
+`math:realNumbers math:subsystemOf math:ExtendedRealLine`, and each pole is a member through
+`math:inNumberSystem math:ExtendedRealLine`. A pole is a *definite point* on ℝ̄, never a finite number,
+an error, or an undefined/NaN result (that ±∞ ∓ ±∞ or 0·∞ would give). A **signed-extended-real slot**
+carries `math:extendedRealValue` — an `rdf:Property` (like `math:totalMass`) whose range honestly spans
+both a finite numeric literal *and* a pole individual — and its value is a finite real of either sign,
+`math:PositiveInfinity`, or `math:NegativeInfinity`; anything else is a `math:MalformedExtendedReal`.
+
 > **Hard rules.**
 >
 > - A `math:Number` declares its number system; an unsituated number is ill-formed.
@@ -49,6 +65,9 @@ re-minted).
 >   what it approximates and its error, and is never conflated with the exact value.
 > - A named constant (π, e, γ) is an exact `math:MathematicalConstant` individual with a Wikidata
 >   QID and, where applicable, an OEIS/DLMF link — never a decimal literal.
+> - A signed-extended-real slot (`math:extendedRealValue`) holds a finite number of either sign,
+>   `math:PositiveInfinity`, or `math:NegativeInfinity`; a pole written as text or any other node is
+>   a `math:MalformedExtendedReal`.
 
 ## Arithmetic
 
@@ -67,11 +86,12 @@ associativity, identity, inverse), so `+` over ℤ knows it is the operation of 
 ## Sets and their construction
 
 Core classes: `math:Set` (from the object layer), `math:FiniteSet`, `math:SetBuilderExpression`,
-`math:Membership`, `math:SetOperation`, `math:PowerSet`, `math:CartesianProduct`, and
-`math:Cardinality`.
+`math:Membership`, `math:SetOperation`, `math:PowerSet`, `math:CartesianProduct`,
+`math:Cardinality`, `math:Interval`, and `math:EndpointInclusion`.
 
 Core properties: `math:hasElement`/`math:hasMember`, `math:memberCondition`, `math:subsetOf`,
-`math:setOperationOn`, and `math:hasCardinality`.
+`math:setOperationOn`, `math:hasCardinality`, `math:lowerEndpoint`, `math:upperEndpoint`,
+`math:lowerInclusion`, and `math:upperInclusion`.
 
 A set is either **extensional** (a `math:FiniteSet` enumerating its elements via `math:hasElement`)
 or **intensional** (a `math:SetBuilderExpression` whose `math:memberCondition` is a `logic:`
@@ -85,6 +105,31 @@ anchor is OpenMath `set1`.
 > denotation seam), never as an opaque string. A "complement" names its ambient set — an unqualified
 > complement is ill-formed (the same discipline the geometry charter applies to subspace
 > complements, [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md)).
+
+A distinguished intensional set is the **ordered interval** `math:Interval`: the set
+`{ x ∈ ℝ̄ | lower ⋚ x ⋚ upper }` of the points of the extended real line between two ordered
+endpoints. Where a `math:SetBuilderExpression` names an arbitrary `logic:` condition, an interval is
+the special case whose condition is fixed by its two endpoints and their order — so it names them
+directly rather than through a formula: the lower end through `math:lowerEndpoint`, the upper through
+`math:upperEndpoint`. Because an endpoint may be a finite real **or** an unbounded end, an endpoint is
+a signed extended-real slot — a finite numeric literal for a bounded end, or a pole
+(`math:PositiveInfinity`/`math:NegativeInfinity`) for an unbounded one — which is why `math:lowerEndpoint`
+and `math:upperEndpoint` are honest `rdf:Property`s spanning literal and pole, exactly as `math:totalMass`
+and `math:extendedRealValue` are.
+
+Crucially, an interval names **both** its endpoint inclusions — whether each end is closed (a member,
+the square bracket) or open (excluded, the round bracket) — through `math:lowerInclusion` and
+`math:upperInclusion`, each a `math:EndpointInclusion` (`math:closedEndpoint` or `math:openEndpoint`,
+an open value vocabulary, never sealed by `owl:oneOf`). The inclusion is what distinguishes `[0, 1]`
+from `[0, 1)` from `(0, 1)`, and an unbounded end at a pole is always open (a pole is a limit point of
+`ℝ̄`, never a member). This is `math:Interval` the pure order-theoretic set — **not** the statistics
+`math:ConfidenceInterval` estimator, which carries a coverage level and a point estimate, not an
+ordered subset of the line ([`MATHEMATICS-STATISTICS.md`](MATHEMATICS-STATISTICS.md)). The external
+anchor is OpenMath `interval1`.
+
+> **Hard rule.** An interval names both endpoints **and** both endpoint inclusions — inclusion is
+> never silently omitted, so which of `[0, 1]`, `[0, 1)`, or `(0, 1)` is meant is always data. An
+> interval missing an endpoint or an inclusion is ill-formed (`math:UnderspecifiedInterval`).
 
 ## Relations and functions
 
@@ -109,6 +154,20 @@ of functions between two objects, so higher-order constructions (an operator tak
 function — a derivative, [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md))
 have a referent. A relation is a subset of a Cartesian product; a function is a relation with the
 functional property declared. The external anchor is OpenMath `fns1`/`relation1`.
+
+A `math:PiecewiseFunction` is the case-split generalization of the single-form `math:ClosedFormFunction`:
+a `math:Function` given not by one expression but by a family of `math:FunctionPiece` parts, named through
+`math:hasPiece` (≥ 1 — a piecewise function with no piece says nothing about what it computes and is
+ill-formed, `math:UnderspecifiedPiecewiseFunction`). Each `math:FunctionPiece` names **exactly one**
+sub-domain through `math:pieceDomain` (a fully-formed `math:Interval`, so the half-open cell `[0, 1)` is
+distinguished from `[0, 1]`) and, where the piece has an explicit closed form, its behaviour through
+`math:pieceExpression`. A piece may instead carry **qualitative** analytic behaviour — a
+`math:hasMonotonicity` (one of the open `math:MonotonicityKind` vocabulary) or a `math:hasBound` over a
+`math:boundOnInterval` — so the classic split `f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0}` is data (two pieces
+over two intervals), never prose. Because a piecewise function is still a `math:Function`, it inherits the
+domain/codomain frame gate; the piece machinery adds only the missing-piece and exactly-one-piece-domain
+obligations. The qualitative analytic properties a piece carries are backed by real first-order laws in
+[`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md).
 
 ## A worked example — an exact rational and its approximation
 

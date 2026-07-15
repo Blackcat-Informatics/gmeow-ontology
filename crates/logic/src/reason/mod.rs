@@ -39,7 +39,9 @@ use crate::result::{
 };
 use crate::seam::BudgetStatus;
 use crate::store::WorldStore;
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermValue};
+use purrdf::{
+    RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermRef, TermValue,
+};
 
 /// One production existential-program admission certificate, scoped to the RDF
 /// world whose obligations were chased.
@@ -61,6 +63,26 @@ impl ChaseCertificate {
     }
 }
 
+/// The decomposable derivation of one chase-invented null, re-exported so a
+/// consumer of [`CertifiedReasoning`] can explain an invented individual without
+/// re-running the chase.
+pub use crate::physical::WitnessDerivation;
+
+/// The content-addressed standard-RDF-reification node IRI for a head quad
+/// `⟨subject predicate obj⟩`.
+///
+/// A thin `pub` shim over the crate-internal reifier recipe
+/// ([`crate::provenance::reifier_from_strings`]) so a downstream projector (the
+/// pipeline's chase-witness diagnostics fold) can address the SAME reifier node the
+/// explanation plane already mints — without widening the internal helper.
+/// `subject` and `predicate` are bare IRI strings (this wraps them in `<…>`);
+/// `obj_n3` is the object already in canonical N3 form (`<iri>` for an IRI object,
+/// `"lex"^^<dt>` for a literal) and is used verbatim.
+#[must_use]
+pub fn reifier_iri(subject: &str, predicate: &str, obj_n3: &str) -> String {
+    crate::provenance::reifier_from_strings(subject, predicate, obj_n3)
+}
+
 /// The single production reasoning run and the existential termination evidence
 /// generated while constructing its result.
 #[derive(Debug, Clone, PartialEq)]
@@ -69,6 +91,12 @@ pub struct CertifiedReasoning {
     pub result: ReasoningResult,
     /// Deterministic, deduplicated world-scoped chase certificates.
     pub chase_certificates: Vec<ChaseCertificate>,
+    /// The decomposable derivation of every invented null the chase minted,
+    /// sorted and deduplicated by content-addressed witness IRI. Empty when the
+    /// production program has no existential obligation. Each carries the firing
+    /// rule, existential ordinal, and frontier binding — the recipe an
+    /// `explain(witness)` consumer decomposes.
+    pub witness_derivations: Vec<WitnessDerivation>,
 }
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
@@ -205,12 +233,14 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
 /// failures as [`reason_all`].
 pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedReasoning> {
     let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
-    let chase_certificates = dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    let (chase_certificates, witness_derivations) =
+        dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(CertifiedReasoning {
         result: typed_result(inferred, &verdict),
         chase_certificates,
+        witness_derivations,
     })
 }
 
@@ -973,14 +1003,21 @@ pub(crate) fn run_reasoning_rules_budgeted(
 /// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single native
 /// fact-set construction the whole reasoning path shares.
 ///
-/// Loads `edb` into a fresh [`WorldStore`], then pushes every IRI-object quad of
-/// every world into the typed EDB. The IRI-object filter is a SEMANTIC EL/DL
+/// Walks the frozen dataset directly and pushes every IRI-object quad of every
+/// named-IRI world into the typed EDB. The IRI-object filter is a SEMANTIC EL/DL
 /// restriction: the fixed calculi only fire on axioms whose object is an IRI
 /// (subClassOf, type, disjointWith, equivalentClass, subPropertyOf), so a
 /// literal-object quad (an annotation such as rdfs:comment / dc:creator) can never
 /// participate in any rule, and skipping them is sound for the closure AND the
 /// verdict. It is no longer a transport necessity: the typed adapter carries
 /// literal objects — control characters included — losslessly through the chase.
+///
+/// This deliberately does not first copy the entire immutable `RdfDataset` into a
+/// mutable `WorldStore` and then query every world back out. The frozen IR already
+/// carries the same graph/term information; iterating it once avoids a redundant
+/// full-dataset intern/index pass on every reasoning call while preserving the
+/// world semantics exactly (default and blank-node graph names remain inaccessible
+/// to the named-world calculus, as they are through `WorldStore::worlds`).
 ///
 /// Factored out so benchmark seams drive the exact same fact set as the production
 /// reasoning path.
@@ -989,24 +1026,25 @@ pub(crate) fn run_reasoning_rules_budgeted(
 ///
 /// Returns `Err` if the source store cannot be loaded.
 pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFactSet> {
-    let store = WorldStore::new();
-    store.load_dataset(edb)?;
-
     let mut edb_facts = TypedFactSet::new();
-    for world in store.worlds() {
-        for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
-            if !quad.o.is_iri() {
-                continue;
-            }
-            // The predicate is always an IRI (RDF invariant); a non-IRI predicate
-            // cannot be a relation name, so skip it defensively.
-            let Some(predicate) = quad.p.as_iri() else {
-                continue;
-            };
-            // Blank subjects/objects are Skolemized inside `push_quad`; the
-            // world travels as a plain string literal.
-            edb_facts.push_quad(&quad.s, predicate, &quad.o, &world);
+    for quad in edb.quads() {
+        let Some(graph) = quad.g else { continue };
+        let TermRef::Iri(world) = edb.resolve(graph) else {
+            continue;
+        };
+        let TermRef::Iri(predicate) = edb.resolve(quad.p) else {
+            continue;
+        };
+        if !matches!(edb.resolve(quad.o), TermRef::Iri(_)) {
+            continue;
         }
+
+        // Resolve only the two fact arguments that survive the semantic filter.
+        // Blank subjects/objects are Skolemized inside `push_quad`; the world
+        // travels as a plain string literal exactly as before.
+        let subject = edb.term_value(quad.s);
+        let object = edb.term_value(quad.o);
+        edb_facts.push_quad(&subject, predicate, &object, world);
     }
     Ok(edb_facts)
 }
@@ -1094,6 +1132,77 @@ mod tests {
             builder.push_owned_quad(&quad);
         }
         builder.freeze().expect("valid test dataset")
+    }
+
+    fn fact_surfaces(facts: &TypedFactSet) -> Vec<(String, Vec<String>)> {
+        let mut rows = facts
+            .facts()
+            .map(|fact| {
+                (
+                    fact.predicate.clone(),
+                    fact.args
+                        .iter()
+                        .map(|&id| facts.interner().display_of(id).to_owned())
+                        .collect(),
+                )
+            })
+            .collect::<Vec<_>>();
+        rows.sort();
+        rows
+    }
+
+    #[test]
+    fn direct_edb_fold_is_fact_identical_to_the_world_store_adapter() {
+        let p = "http://gmeow.example/p";
+        let w2 = "urn:gmeow:test:world-2";
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in [
+            quad(A, p, B),
+            RdfQuad::new(RdfTerm::blank_node("subject"), p, RdfTerm::iri(C))
+                .in_graph(RdfTerm::iri(w2)),
+            // Literal objects are outside the fixed EL/DL relation fragment.
+            RdfQuad::new(
+                RdfTerm::iri(A),
+                p,
+                RdfTerm::literal(RdfLiteral::simple("annotation")),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            // Default and blank-node graph names are not named-IRI worlds.
+            RdfQuad::new(RdfTerm::iri(A), p, RdfTerm::iri(C)),
+            RdfQuad::new(RdfTerm::iri(B), p, RdfTerm::iri(C))
+                .in_graph(RdfTerm::blank_node("graph")),
+        ] {
+            builder.push_owned_quad(&quad);
+        }
+        let dataset = builder.freeze().expect("mixed-world fixture freezes");
+
+        let direct = build_edb_facts(dataset.as_ref()).expect("direct frozen-IR fold");
+
+        // The retired production shape is retained here as a semantic oracle: copy
+        // through WorldStore, enumerate its named worlds, and build the same typed
+        // facts. The optimized one-pass adapter must change cost, never membership.
+        let store = WorldStore::new();
+        store
+            .load_dataset(dataset.as_ref())
+            .expect("world-store oracle load");
+        let mut via_store = TypedFactSet::new();
+        for world in store.worlds() {
+            for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
+                if !quad.o.is_iri() {
+                    continue;
+                }
+                let Some(predicate) = quad.p.as_iri() else {
+                    continue;
+                };
+                via_store.push_quad(&quad.s, predicate, &quad.o, &world);
+            }
+        }
+
+        assert_eq!(
+            fact_surfaces(&direct),
+            fact_surfaces(&via_store),
+            "the direct frozen-IR fold preserves the exact named-world fact set"
+        );
     }
 
     #[test]

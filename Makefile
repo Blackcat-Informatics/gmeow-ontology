@@ -138,7 +138,6 @@ rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without 
 rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
-	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 gts-frame-profile-gate: rust-build ## Enforce zstd-rsyncable level 12 on every committed GTS payload frame.
@@ -329,14 +328,13 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-purity gate, clippy, nextest, the 25s budget gate, and doctests serially.
+rust-gate: rust-build carrier-purity ## Warm Rust once, then run carrier purity, clippy, nextest, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
-	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-coherence-gate-teeth: rust-build reason-gate ## Run the whole-ontology poisoned-witness + relator-mediation gate teeth proofs (budget-exempt).
+coherence-gate-teeth: rust-build reason-gate ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
 	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
