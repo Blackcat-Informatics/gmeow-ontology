@@ -986,11 +986,11 @@ impl Stage for MappingsStage {
         )?;
         // graph/alignments — the SSSOM alignment axioms (one triple per data row, CURIEs
         // expanded), built from THIS run's freshly-compiled `generated/mappings/*.sssom.tsv`
-        // product artifacts and carried as a named graph so the presenter and the reasoning
-        // EDB read it via `producer_graph` (PIPELINE_SPINE §4) instead of source-load
-        // re-reading the stale committed SSSOM off disk (the stale-disk-fold class).
-        // `gts_compose` folds only the default graph, so this named graph never pollutes
-        // the composed EDB (identical to the projection-ledger graph's treatment).
+        // product artifacts and carried as a named graph so the presenter reads it via
+        // `producer_graph` (PIPELINE_SPINE §4) instead of source-load re-reading the stale
+        // committed SSSOM off disk (the stale-disk-fold class). It stays OUT of the
+        // reasoned EDB: SSSOM is a generated view of meta-level correspondence, not an
+        // object-level axiom source.
         let alignments_graph = crate::stages::carrier::parse_into_graph(
             &crate::stages::carrier::alignment_nquads_from_artifacts(&artifacts)?,
             "application/n-quads",

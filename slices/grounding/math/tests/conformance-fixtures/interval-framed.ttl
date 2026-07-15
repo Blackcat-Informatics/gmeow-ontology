@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: two ordered intervals, each naming BOTH endpoints and BOTH endpoint
+# inclusions — a half-open bounded interval [0, 1) (lower closed, upper open) and an
+# unbounded interval (0, +∞) whose upper endpoint is the pole math:PositiveInfinity
+# (always open). Each satisfies the exact-one math:lowerEndpoint/math:upperEndpoint/
+# math:lowerInclusion/math:upperInclusion cardinality, so both conform to the derived
+# math:IntervalShape and validate with no findings. Bound by ex:ecIntervalFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:halfOpenUnit a math:Interval ;
+    rdfs:label "The half-open unit interval [0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:positiveReals a math:Interval ;
+    rdfs:label "The unbounded interval (0, +∞)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .

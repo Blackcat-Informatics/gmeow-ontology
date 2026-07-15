@@ -6634,7 +6634,7 @@ mod tests {
     /// A normal, well-under-ceiling overlay still succeeds through both the byte gate
     /// and the quad gate — the byte cap must never reject a legitimate small annex.
     #[test]
-    fn verify_graph_accepts_a_normal_small_overlay() {
+    fn verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -10189,8 +10189,8 @@ mod tests {
     /// own quads, built via `SnapshotBuilder`/`emit_gts`, NOT the real committed `gmeow.gts` —
     /// the same tiny-snapshot construction `verify_graph_inconsistent_but_conclusive_never_certifies`
     /// uses): on-gate, not `_heavy_offgate`. Measured at ~0.01-0.03 s standalone and under full
-    /// contention with the genuinely-heavy `*_heavy_offgate` siblings, nowhere near the 25 s
-    /// policy cliff, because — unlike those siblings — this test never touches the real
+    /// contention with the genuinely-heavy `*_heavy_offgate` siblings because — unlike
+    /// those siblings — this test never touches the real
     /// committed bundle.
     #[test]
     fn coherence_certificate_tool_reads_the_carried_bundle() {

@@ -94,3 +94,80 @@ exf:evenComplement a math:Complement ;
 
 exf:evensSet a math:Set .
 exf:naturalsSet a math:Set .
+
+# --- Q6: a limit carries a structured result naming its outcome and value
+# Two pole-divergent limits: the Lorentz factor γ = 1/√(1−v²/c²) → +∞ as v → c,
+# and a runaway cooling difference → −∞. Each math:LimitResult names its
+# math:limitOutcome and carries the matching signed extended-real pole as its
+# math:limitResultValue.
+exf:gammaBlowupLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf exf:gammaExpr ;
+    math:limitPoint exf:lightSpeed ;
+    math:limitMode math:limitFromLeft ;
+    math:boundVariable exf:vVar ;
+    math:argumentSlot exf:gammaBlowupSlot0 ;
+    math:hasLimitResult exf:gammaBlowupResult .
+
+exf:gammaBlowupSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression exf:gammaExpr .
+
+exf:gammaExpr a math:MathematicalExpression .
+exf:lightSpeed a math:MathematicalObject .
+exf:vVar a math:VariableDeclaration .
+
+exf:gammaBlowupResult a math:LimitResult ;
+    math:limitOutcome math:divergesToPositiveInfinity ;
+    math:limitResultValue math:PositiveInfinity .
+
+exf:coolingLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf exf:coolingExpr ;
+    math:limitPoint exf:runawayPoint ;
+    math:limitMode math:limitTwoSided ;
+    math:boundVariable exf:tempVar ;
+    math:argumentSlot exf:coolingSlot0 ;
+    math:hasLimitResult exf:coolingResult .
+
+exf:coolingSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression exf:coolingExpr .
+
+exf:coolingExpr a math:MathematicalExpression .
+exf:runawayPoint a math:MathematicalObject .
+exf:tempVar a math:VariableDeclaration .
+
+exf:coolingResult a math:LimitResult ;
+    math:limitOutcome math:divergesToNegativeInfinity ;
+    math:limitResultValue math:NegativeInfinity .
+
+# --- Q7: a conformal compactification names its four roles + conformal factor
+# The unbounded radial half-line r ∈ [0, ∞) conformally compactified to the bounded
+# interval ρ ∈ [0, 1] by ρ = r/(1+r) (Ω = 1/(1+r)), adjoining the ideal point r = +∞.
+exf:radialCompactification a math:ConformalCompactification ;
+    math:originalSpace exf:radialHalfLine ;
+    math:compactifyingMap exf:radialCompactifyingMap ;
+    math:compactifiedSpace exf:compactifiedRadialInterval ;
+    math:boundaryAtInfinity exf:radialIdealBoundary ;
+    math:conformalFactor exf:radialConformalFactor .
+
+exf:radialHalfLine a math:TopologicalSpace .
+
+exf:radialCompactifyingMap a math:CoordinateMap ;
+    math:domain exf:radialHalfLine ;
+    math:codomain exf:compactifiedRadialInterval .
+
+exf:compactifiedRadialInterval a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+exf:radialIdealBoundary a math:BoundaryAtInfinity .
+
+exf:radialConformalFactor a math:Function ;
+    math:domain exf:radialHalfLine ;
+    math:codomain exf:positiveReals .
+
+exf:positiveReals a math:Set .
