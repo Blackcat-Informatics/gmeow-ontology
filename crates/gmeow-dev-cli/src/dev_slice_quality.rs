@@ -1060,7 +1060,7 @@ fn measure_base_residues(
             continue; // the slice is new at base → contributes 0 to every vocab
         }
         for vocab in vocabularies {
-            let r = gmeow_slice_quality::residue_over_texts(&texts, vocab)?;
+            let r = gmeow_slice_quality::residue_over_texts(&texts, vocab, &slice_iri)?;
             if r > 0 {
                 out.insert((slice_iri.clone(), vocab.prefix.clone()), r);
             }
@@ -1082,7 +1082,11 @@ fn measure_base_residues(
         }
         if !texts.is_empty() {
             for vocab in vocabularies {
-                let r = gmeow_slice_quality::residue_over_texts(&texts, vocab)?;
+                let r = gmeow_slice_quality::residue_over_texts(
+                    &texts,
+                    vocab,
+                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
+                )?;
                 if r > 0 {
                     out.insert(
                         (

@@ -224,11 +224,12 @@ pub(crate) fn enumerate(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
+    surface_iri: &str,
 ) -> Vec<Construct> {
     match vocab.count_kind {
         CountKind::Shape => enumerate_shape(ds, mode),
-        CountKind::TypedAxiom => enumerate_typed_axiom(ds, vocab, mode),
-        CountKind::StructuralAxiom => enumerate_structural_axiom(ds, vocab, mode),
+        CountKind::TypedAxiom => enumerate_typed_axiom(ds, vocab, mode, surface_iri),
+        CountKind::StructuralAxiom => enumerate_structural_axiom(ds, vocab, mode, surface_iri),
         CountKind::NonRdfSurface => Vec::new(),
     }
 }
@@ -243,6 +244,7 @@ fn enumerate_structural_axiom(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
+    surface_iri: &str,
 ) -> Vec<Construct> {
     if mode == CountMode::Historical {
         return Vec::new();
@@ -275,7 +277,8 @@ fn enumerate_structural_axiom(
         // `gmeow:alignObject`, so a raw structural triple to an external object always
         // stays in the residue — under the strict owner boundary such an alignment
         // belongs in a correspondence cell at the owner's mapping surface.
-        let is_bridge = p_iri == GM_ALIGN_OBJECT
+        let is_bridge = surface_iri == vocab.owner
+            && p_iri == GM_ALIGN_OBJECT
             && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
             && is_validated_correspondence_cell(ds, q.s);
         out.push(Construct {
@@ -361,6 +364,7 @@ fn enumerate_typed_axiom(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
+    surface_iri: &str,
 ) -> Vec<Construct> {
     if mode == CountMode::Historical {
         return Vec::new();
@@ -406,7 +410,12 @@ fn enumerate_typed_axiom(
         // an external object — even inside module.ttl — is NOT a validated cell and
         // stays in the residue; under the strict owner boundary such an alignment
         // belongs in a correspondence cell at the owner's mapping surface.
-        let is_bridge = p_iri == Some(GM_ALIGN_OBJECT)
+        // C1e strict owner boundary: the validated-cell exemption applies ONLY on the
+        // vocabulary's OWNER surface. A correspondence cell (or any bridge) authored in
+        // a non-owner slice stays in the residue — external terms of a vocabulary may be
+        // authored only at their owner grounding slice's mapping boundary.
+        let is_bridge = surface_iri == vocab.owner
+            && p_iri == Some(GM_ALIGN_OBJECT)
             && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
             && is_validated_correspondence_cell(ds, q.s);
         out.push(Construct {
@@ -424,11 +433,24 @@ fn enumerate_typed_axiom(
 /// the quantity the ratchet gate and the seed both count — never diverging, because
 /// both call this function.
 #[must_use]
-pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
-    enumerate(ds, vocab, CountMode::FullResidue)
+pub fn residue_for_surface(
+    ds: &RdfDataset,
+    vocab: &ProjectionVocabulary,
+    surface_iri: &str,
+) -> u64 {
+    enumerate(ds, vocab, CountMode::FullResidue, surface_iri)
         .iter()
         .filter(|c| !c.grounded && !c.is_bridge)
         .count() as u64
+}
+
+/// The ungrounded residue measured AS IF on the vocabulary's own owner surface — the
+/// owner-agnostic view where a validated correspondence cell is exemptible. Callers
+/// that know the real surface (the gate/seed) use [`residue_for_surface`] so the
+/// strict owner boundary is enforced; this wrapper is for owner-neutral contexts.
+#[must_use]
+pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
+    residue_for_surface(ds, vocab, &vocab.owner)
 }
 
 /// The grounded fraction over [`CountMode::Historical`] enumeration — legacy
@@ -437,7 +459,7 @@ pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
 #[must_use]
 #[allow(clippy::cast_precision_loss)]
 pub fn grounded_fraction(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> f64 {
-    let constructs = enumerate(ds, vocab, CountMode::Historical);
+    let constructs = enumerate(ds, vocab, CountMode::Historical, &vocab.owner);
     if constructs.is_empty() {
         return 1.0;
     }
@@ -612,6 +634,29 @@ mod tests {
     }
 
     #[test]
+    fn validated_cell_on_non_owner_surface_still_counts() {
+        // The SAME validated cell that is exempt on the owner surface counts when
+        // measured on a non-owner surface — strict owner boundary (C1e).
+        let ds = ds_of(
+            r#"
+            gmeow:eqKind a gmeow:TermEquivalence ;
+                gmeow:alignObject gufo:Kind ;
+                gmeow:justification gmeow:ManualMappingCuration .
+            "#,
+        );
+        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#"); // owner = LOGIC_NS
+        assert_eq!(residue_for_surface(&ds, &vocab, LOGIC_NS), 0); // on owner: exempt
+        assert_eq!(
+            residue_for_surface(
+                &ds,
+                &vocab,
+                "https://blackcatinformatics.ca/gmeow/slices/kernel"
+            ),
+            1 // on a non-owner slice: counts
+        );
+    }
+
+    #[test]
     fn alignobject_without_justification_is_not_exempt() {
         let ds = ds_of(
             r#"
@@ -662,7 +707,7 @@ mod tests {
                 sh:property [ sh:path gmeow:p ; sh:minCount 1 ] .
             "#,
         );
-        let constructs = enumerate(&ds, &shacl_vocab(), CountMode::Historical);
+        let constructs = enumerate(&ds, &shacl_vocab(), CountMode::Historical, "");
         assert_eq!(constructs.len(), 1);
         assert_eq!(constructs[0].key, format!("{GMEOW}S"));
     }

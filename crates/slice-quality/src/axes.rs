@@ -899,6 +899,9 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
         &ds,
         &counting::shacl_vocab(),
         counting::CountMode::Historical,
+        // Historical (advisory) scope does no bridge/owner subtraction, so the surface
+        // IRI is unused here.
+        "",
     );
     if constructs.is_empty() {
         return AxisScore::clean(1.0);
