@@ -25,6 +25,7 @@ use std::collections::HashMap;
 use gmeow_errors::{Diag, Result};
 use purrdf::gts::model::{Graph, Term, TermKind};
 
+pub mod clifford;
 pub mod producers;
 
 mod error;
