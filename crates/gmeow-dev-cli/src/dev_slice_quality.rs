@@ -650,6 +650,17 @@ pub fn slice_quality_gate() -> i32 {
                     );
                     mono.extend(cmono.violations);
 
+                    // Registry meta-ratchet (C8): the guarded-vocabulary REGISTRY may
+                    // only get STRONGER — deleting a vocab, narrowing a namespace,
+                    // weakening a count-kind, dropping a counted predicate, raising a
+                    // default ceiling, or expanding an exemption set all red the gate,
+                    // so the gate cannot be quietly weakened without raising a cell.
+                    mono.extend(gmeow_slice_quality::gate::registry_ratchet_monotonicity(
+                        RUBRIC_MODULE,
+                        &base_rubric.floors.vocabularies,
+                        &rubric.floors.vocabularies,
+                    ));
+
                     // GRANDFATHER gate (ratchet invariant 3): a ceiling that is NEW
                     // in the working tree (absent at base) may only record residue
                     // that ALREADY EXISTED at the merge base — never freshly
