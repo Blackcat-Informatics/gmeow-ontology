@@ -4,6 +4,9 @@ Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech sta
 
 The regeneration pipeline is governed by [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout. It is canonical for any work touching `crates/pipeline` or any artifact under `generated/`: every such artifact must be a projection of `gmeow.gts`.
 
+"make regenerate" is VERY expensive - you make ONLY run it if required or as part of stage3.
+"make check" is VERY expensive - run it ONLY when you have to - ideally once in each stage.
+
 Rust optimization and advanced-language-feature work is governed by
 [`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
 preserve deterministic output, prefer Rust-native data/dispatch/ownership
@@ -35,7 +38,10 @@ and the no-debug-symbol policy intact.
 
 ## Canonical sources & forward direction
 
-* The `logic:` core is the canonical reasoning language; OWL, Datalog, SHACL, Prolog, gUFO, SSSOM, EDOAL, and FnO are **generated lossy projections** of it (Principle 17), each carrying a preservation judgment in the loss ledger.
+* All semantic grounding to external formalisms is owned by one of the three grounding slices: linguistic/serialization surfaces in `lang:`, mathematical surfaces in `math:`, and upper ontologies/logics/rule/validation dialects in `logic:`. The grounding namespace is always the source and the external vocabulary is the target. Never author a competing grounding in a domain slice.
+* The `logic:` core is the canonical reasoning language. OWL/RDFS, Datalog, SHACL, Prolog, and gUFO are typed generated views; BFO, OBO/RO, and SUMO are commitment-shifting `BridgeView`s; SSSOM, EDOAL, and FnO are generated correspondence lowerings. Every row carries an explicit preservation judgment (Principle 17).
+* Grounding correspondences are shipped ontology content in the meta-level `graph/correspondence-laws` graph of `gmeow.gts`, outside object-level closure. SSSOM is not the authority. Read [`docs/GROUNDING.md`](./docs/GROUNDING.md) and [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) before editing this surface.
+* **Author validation in `logic:`, never on a shape surface.** Do **not** hand-author `sh:NodeShape`/`sh:PropertyShape` in a slice's `shapes.ttl` — that is a forbidden second source of truth (projection-purity gate). Author **declarative** checks (cardinality, class, datatype, node-kind, value-set) as **EL-safe OWL/RDFS axioms in the slice `module.ttl`** (the pipeline *derives* the SHACL/ShEx), and **procedural/cross-node** checks as a **`logic:Constraint` + `logic:Formula`** in `module.ttl`; laws are `logic:Formula` ASTs, higher-order gaps honest `logic:expressivenessBoundary` records. OWL as a downstream *surface* is a code smell; OWL/RDFS declarative *axioms in `module.ttl`* are the canonical derive-source and are correct. Full doctrine: **AGENTS.md §"Critical Ontological Rules"**, [`slices/grounding/logic/design/LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md), [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md).
 * The design sets [`slices/grounding/logic/design/*.md`](./slices/grounding/logic/design/), [`slices/core/inhabitation/design/*.md`](./slices/core/inhabitation/design/), and [`docs/APPLIED_CATEGORY_THEORY/*.md`](./docs/APPLIED_CATEGORY_THEORY/) are **canonical** — read the relevant ones in full before working in those areas.
 
 ## Build and Validation Commands

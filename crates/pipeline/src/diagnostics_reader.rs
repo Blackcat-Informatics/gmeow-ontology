@@ -252,6 +252,24 @@ pub fn read_findings(dataset: &Arc<RdfDataset>) -> Result<FindingIndex, Diag> {
         }
     }
 
+    // Q3b — the SEPARATE reasoned-quad-reifier provenance edges
+    // (`gmeow:findingDerivedFromQuad`): the null-minting head-quad reifiers a
+    // chase certificate's verdict derives from. Kept DISTINCT from the
+    // `gmeow:findingAntecedent` finding-DAG edges (Q3) — this edge points at a
+    // reasoned quad's reifier, not at another finding — and rehydrated
+    // sorted+deduped so the index is byte-deterministic.
+    let derived = select(
+        &diag,
+        &format!("SELECT ?s ?q WHERE {{ ?s <{GMEOW_NS}findingDerivedFromQuad> ?q }}"),
+    )?;
+    for row in &derived.rows {
+        if let (Some(s), Some(q)) = (cell_iri(&derived, row, "s"), cell_iri(&derived, row, "q"))
+            && let Some(finding) = findings.get_mut(&s)
+        {
+            finding.derived_from_quads.push(q);
+        }
+    }
+
     // Q4 — advisory suggestion strings.
     let sugs = select(
         &diag,
@@ -341,6 +359,155 @@ pub fn explain_finding(
         |k: &String| index.findings.get(k).cloned(),
         |_k: &String, finding: &Finding| {
             let mut edges: Vec<String> = finding.antecedents.clone();
+            edges.sort();
+            edges.dedup();
+            edges
+        },
+    )
+}
+
+/// The decomposable derivation of one chase-invented null (Skolem witness),
+/// rehydrated from `graph/diagnostics`: the firing rule, the existential ordinal,
+/// the head-quad predicate, and the frontier binding(s) — the Skolem-function
+/// arguments. A frontier binding that is itself an invented null is the recursive
+/// descent edge (it appears as another `WitnessRecord` key).
+#[derive(Debug, Clone, Default)]
+pub struct WitnessRecord {
+    /// The invented-null IRI being explained.
+    pub witness: String,
+    /// The content-addressed firing rule IRI that minted the null.
+    pub rule_iri: String,
+    /// The 0-based existential head-variable ordinal the null fills.
+    pub ordinal: u64,
+    /// The head-quad predicate `p` in `p(x, null)`.
+    pub predicate: String,
+    /// The frontier binding(s) `x` — the head-quad subject(s), sorted+deduped.
+    pub frontier: Vec<String>,
+}
+
+/// The rehydrated invented-null graph: a `skolem_iri → WitnessRecord` index over the
+/// `gmeow:InventedWitness` typings and their minting head-quad reifiers projected
+/// into `graph/diagnostics`. The deterministic `BTreeMap` key defeats unstable
+/// binding order; a frontier binding that is itself a key is the recursive descent
+/// edge the shared [`walk`] engine follows.
+#[derive(Debug, Clone, Default)]
+pub struct WitnessIndex {
+    /// The invented nulls keyed by their content-addressed skolem IRI.
+    pub witnesses: BTreeMap<String, WitnessRecord>,
+}
+
+impl WitnessIndex {
+    /// Resolve an invented null by its skolem IRI.
+    pub fn get(&self, iri: &str) -> Option<&WitnessRecord> {
+        self.witnesses.get(iri)
+    }
+
+    /// The number of rehydrated invented nulls.
+    pub fn len(&self) -> usize {
+        self.witnesses.len()
+    }
+
+    /// Whether the index is empty (no existential obligation fired).
+    pub fn is_empty(&self) -> bool {
+        self.witnesses.is_empty()
+    }
+}
+
+/// Rehydrate the chase-invented nulls from a bundle dataset, scoped to the
+/// `graph/diagnostics` named graph — the offline right-inverse of the reason
+/// stage's witness projection. Each null carries its firing rule, existential
+/// ordinal, head-quad predicate, and frontier binding(s), reconstructed from the
+/// `gmeow:InventedWitness`/`gmeow:existentialOrdinal` typings and the standard-RDF-
+/// reification head-quad node (`rdf:subject`/`rdf:predicate`/`rdf:object` +
+/// `gmeow:viaRule`) whose `rdf:object` is the null. Empty when the shipped program
+/// had no existential obligation.
+pub fn read_invented_witnesses(dataset: &Arc<RdfDataset>) -> Result<WitnessIndex, Diag> {
+    const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    let diag = Arc::new(dataset.project_named_graph(GRAPH_DIAGNOSTICS));
+    let mut witnesses: BTreeMap<String, WitnessRecord> = BTreeMap::new();
+
+    // W1 — the invented nulls and their existential ordinal.
+    let cores = select(
+        &diag,
+        &format!(
+            "SELECT ?n ?ord WHERE {{\n\
+             \x20 ?n a <{GMEOW_NS}InventedWitness> .\n\
+             \x20 ?n <{GMEOW_NS}existentialOrdinal> ?ord .\n\
+             }}"
+        ),
+    )?;
+    for row in &cores.rows {
+        if let Some(n) = cell_iri(&cores, row, "n") {
+            let ordinal = cell_u64(&cores, row, "ord").unwrap_or(0);
+            witnesses.insert(
+                n.clone(),
+                WitnessRecord {
+                    witness: n,
+                    ordinal,
+                    ..Default::default()
+                },
+            );
+        }
+    }
+
+    // W2 — the minting head-quad reifier for each null: its subject (the frontier
+    // binding), predicate, and firing rule. Joined on the reifier's rdf:object being
+    // an already-known invented null, so non-witness reifiers (if any) are ignored.
+    let heads = select(
+        &diag,
+        &format!(
+            "SELECT ?s ?p ?n ?rule WHERE {{\n\
+             \x20 ?r <{RDF}subject> ?s .\n\
+             \x20 ?r <{RDF}predicate> ?p .\n\
+             \x20 ?r <{RDF}object> ?n .\n\
+             \x20 ?r <{GMEOW_NS}viaRule> ?rule .\n\
+             }}"
+        ),
+    )?;
+    for row in &heads.rows {
+        if let (Some(s), Some(p), Some(n), Some(rule)) = (
+            cell_iri(&heads, row, "s"),
+            cell_iri(&heads, row, "p"),
+            cell_iri(&heads, row, "n"),
+            cell_iri(&heads, row, "rule"),
+        ) && let Some(record) = witnesses.get_mut(&n)
+        {
+            record.predicate = p;
+            record.rule_iri = rule;
+            if !record.frontier.contains(&s) {
+                record.frontier.push(s);
+            }
+        }
+    }
+    for record in witnesses.values_mut() {
+        record.frontier.sort();
+        record.frontier.dedup();
+    }
+
+    Ok(WitnessIndex { witnesses })
+}
+
+/// The invented-null derivation walk, reconstructed via the ONE shared DAG engine
+/// ([`gmeow_errors::dag::walk`]) — the SAME machinery [`explain_finding`] uses,
+/// with a second entry point. Resolve each skolem IRI to its [`WitnessRecord`],
+/// descend along the frontier bindings that are THEMSELVES invented nulls
+/// (sorted+deduped for a deterministic order). A frontier binding with no record is
+/// a leaf (an EDB/asserted term, not a null); a cycle is [`DagError::Cycle`] and an
+/// unresolvable root is [`DagError::Unresolved`] — both hard fails the engine owns.
+pub fn explain_witness(
+    index: &WitnessIndex,
+    root_iri: &str,
+) -> Result<DagNode<String, WitnessRecord>, DagError<String>> {
+    walk(
+        root_iri.to_owned(),
+        |k: &String| index.witnesses.get(k).cloned(),
+        |_k: &String, record: &WitnessRecord| {
+            let mut edges: Vec<String> = record
+                .frontier
+                .iter()
+                .filter(|binding| index.witnesses.contains_key(*binding))
+                .cloned()
+                .collect();
             edges.sort();
             edges.dedup();
             edges
@@ -638,5 +805,29 @@ mod tests {
         assert!(index.is_empty());
         assert_eq!(verdict(&index), GateVerdict::Collected);
         assert!(minimal_fatal_cut(&index).is_empty());
+    }
+
+    #[test]
+    fn witness_explain_reuses_the_shared_dag_walk_engine() {
+        // One machinery over one plane: the invented-null explain descends via
+        // the ONE shared `gmeow_errors::dag::walk` engine — the same one `explain_finding`
+        // uses — a second entry point, never a hand-rolled parallel walker. Scope the
+        // check to the `explain_witness` body region (before the test module) so the
+        // assertion does not match its own source.
+        let src = include_str!("diagnostics_reader.rs");
+        let after = src
+            .split_once("pub fn explain_witness")
+            .expect("explain_witness present")
+            .1;
+        let body = after
+            .split_once("\npub fn ")
+            .map(|(head, _)| head)
+            .unwrap_or(after);
+        let walk_call = format!("{}(", "walk");
+        assert!(
+            body.contains(&walk_call),
+            "explain_witness must descend via the shared gmeow_errors::dag::walk engine, \
+             not a hand-rolled recursion"
+        );
     }
 }

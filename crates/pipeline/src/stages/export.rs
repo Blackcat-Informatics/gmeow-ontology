@@ -1517,7 +1517,7 @@ fn write_markdown(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
         format!("# {title} — term reference"),
         String::new(),
         format!(
-            "Generated from the GMEOW {version} vocabulary ({} classes, {} properties, {} individuals). The OWL source is canonical.",
+            "Generated from the GMEOW {version} vocabulary ({} classes, {} properties, {} individuals). The RDF 1.2 grounding slices are canonical.",
             classes.len(),
             properties.len(),
             individuals.len()
@@ -1745,7 +1745,7 @@ fn llms_prose(version: &str, suffix: &str) -> Vec<String> {
 fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     let prose = llms_prose(
         version,
-        "The OWL source is canonical; this is a self-contained vocabulary index.",
+        "The RDF 1.2 grounding slices are canonical; this is a self-contained vocabulary index.",
     );
     let mut sections = llms_sections(terms, None);
     sections.push(gmeow_docs::llms::standing_reference_section());
@@ -2034,7 +2034,7 @@ mod consumer {
     ) -> String {
         let prose = llms_prose(
             version,
-            "The OWL source is canonical; this index links into the published documentation.",
+            "The RDF 1.2 grounding slices are canonical; this index links into the published documentation.",
         );
         let mut sections = llms_sections(terms, Some(doc_urls));
         // The standing reference pages + offline-snippet-corpus note, built from
@@ -2489,7 +2489,7 @@ fn write_obographs(view: &FoldView, version: &str) -> Vec<u8> {
                         "basicPropertyValues".into(),
                         J::Arr(vec![J::Obj(vec![
                             ("pred".into(), J::Str("http://www.w3.org/2000/01/rdf-schema#comment".into())),
-                            ("val".into(), J::Str("LOSSY projection: GMEOW classes and IRI-only is_a edges; blank-node restrictions, properties, and individuals are dropped. The OWL source is canonical.".into())),
+                            ("val".into(), J::Str("LOSSY projection: GMEOW classes and IRI-only is_a edges; blank-node restrictions, properties, and individuals are dropped. The RDF 1.2 grounding slices are canonical.".into())),
                         ])]),
                     ),
                 ]),
@@ -2587,7 +2587,7 @@ fn write_shex(view: &FoldView) -> Vec<u8> {
         "# one shape per class that is the (named or union-expanded) domain of".into(),
         "# an object/datatype property; functional → '?', else '*'. OWL".into(),
         "# restrictions, pure blank-node domains, and annotation properties".into(),
-        "# are not translated. The OWL source is canonical.".into(),
+        "# are not translated. The RDF 1.2 grounding slices are canonical.".into(),
         format!("PREFIX gmeow: <{NAMESPACE}>"),
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>".into(),
         // A datatype property whose rdfs:range is `rdfs:Literal` projects to a

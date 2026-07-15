@@ -1,0 +1,952 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix ro: <http://purl.obolibrary.org/obo/RO_> .
+@prefix sumo: <https://www.ontologyportal.org/SUMO.owl#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# Co-foundational bridge catalogs. Each cell is BOTH the ergonomic mapping frontend
+# (`gmeow:TermEquivalence`) and an explicit grounding commitment
+# (`logic:GroundingCorrespondence`). The compiler materializes a content-addressed
+# logic:Correspondence with source/target endpoints in the shipped
+# graph/correspondence-laws carrier; the SSSOM files below are generated views.
+# External targets never become canonical grounding sources. BFO/OBO/SUMO TBoxes
+# remain by-reference and outside object-level closure; the vendored gUFO surface is
+# retained as a transition/conformance input, not as the semantic authority.
+
+gmeow:mapsetLogicGufo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-gufo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Complete gUFO-class coverage from canonical logic: terms. The five temporary-situation reifiers are explicitly related to the logic:Fluent replacement pattern and marked Unsupported; no target class disappears silently." ;
+    gmeow:setTrailer "# gUFO is a generated ValidationOnly projection. These links document its complete class surface; the vendored transition snapshot does not outrank logic: as canon." .
+
+gmeow:mapsetLogicBfo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-bfo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Logic-foundation bridge views onto the vendored BFO 2020 category spine. Every row is commitment-shifting and validation-only, never an equivalence." ;
+    gmeow:setTrailer "# BFO is linked by reference. BridgeView + CommitmentShiftingBridge forbids owl:equivalentClass." .
+
+gmeow:mapsetLogicObo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-obo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Canonical logic relation bridge views onto BFO and OBO Relation Ontology predicates. Spatial or causal specializations are relatedMatch rather than false equivalences." ;
+    gmeow:setTrailer "# OBO relations are linked by their persistent OBO IRIs and remain outside the imported closure." .
+
+gmeow:mapsetLogicSumo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-sumo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Foundational category and structural-relation bridge views onto SUMO's published OWL translation IRIs. SUMO and logic: make different commitments, so every row is a BridgeView." ;
+    gmeow:setTrailer "# SUMO links are by-reference validation aids; no SUMO axiom is imported and no equivalence is emitted." .
+
+gmeow:mapsetLogicOwl a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-owl" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "The complete compiler-recognized logic: to OWL/RDFS construct surface. OWL is a SoundUnder projection of the richer logic: canon, not a competing grounding source." ;
+    gmeow:setTrailer "# Coverage is pinned to the adapter, restriction frontend, and OWL projector tables by native tests." .
+
+gmeow:mapsetLogicShacl a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-shacl" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Logic validation and rule constructs projected onto SHACL Core and SHACL-AF. The target validates but does not entail, so every row is explicitly ValidationOnly." ;
+    gmeow:setTrailer "# SHACL and SHACL-AF are generated validation dialects of logic:, never canonical rule or constraint sources." .
+
+# ── gUFO: complete imported class surface ──────────────────────────────────────
+
+gmeow:eqLogicGufo001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Individual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Individual ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:ConcreteIndividual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:ConcreteIndividual ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:AbstractIndividual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:AbstractIndividual ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Endurant ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Endurant ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Event ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Situation ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Situation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo007 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Participation ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Participation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo008 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Object ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Object ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo009 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Aspect ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Aspect ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo010 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Aspect ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:IntrinsicAspect ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "logic:Aspect subsumes the gUFO intrinsic/extrinsic split; the narrower target class is retained without claiming identity." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo011 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Aspect ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:ExtrinsicAspect ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "logic:Aspect subsumes the gUFO intrinsic/extrinsic split; the narrower target class is retained without claiming identity." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo012 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Mode ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:IntrinsicMode ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo013 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Mode ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:ExtrinsicMode ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo014 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Quality ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo015 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:QualityValue ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:QualityValue ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo016 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Relator ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Relator ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo017 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Collection ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Collection ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo018 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:FixedCollection ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:FixedCollection ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo019 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:VariableCollection ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:VariableCollection ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo020 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quantity ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Quantity ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo021 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:FunctionalComplex ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:FunctionalComplex ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo022 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Type ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Type ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo023 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:EndurantType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:EndurantType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo024 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:RelationshipType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:RelationshipType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo025 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:MaterialRelationshipType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:MaterialRelationshipType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo026 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:ComparativeRelationshipType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:ComparativeRelationshipType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo027 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:AbstractIndividualType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:AbstractIndividualType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo028 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:ConcreteIndividualType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:ConcreteIndividualType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo029 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:EventType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "The canonical logic:Event sort is the compiler's type-level target for gUFO EventType; closeMatch records that projection convention without collapsing event individuals into their types." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo030 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Situation ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:SituationType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "The canonical logic:Situation sort is the compiler's type-level target for gUFO SituationType; closeMatch records the projection convention without an identity claim." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo031 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Sortal ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Sortal ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo032 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:NonSortal ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:NonSortal ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo033 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:RigidType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:RigidType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo034 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:AntiRigidType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:AntiRigidType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo035 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:SemiRigidType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:SemiRigidType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo036 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:NonRigidType ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:NonRigidType ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo037 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Kind ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Kind ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo038 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:SubKind ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:SubKind ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo039 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Phase ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Phase ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo040 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Role ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo041 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Category ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Category ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo042 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Mixin ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:Mixin ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo043 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:RoleMixin ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:RoleMixin ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicGufo044 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:PhaseMixin ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:PhaseMixin ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+# The five stock gUFO temporary-situation classes are covered explicitly, not omitted.
+# logic: replaces each reifier with logic:Fluent plus RDF 1.2 edge properties, and the
+# current gUFO lowering deliberately does not reconstruct the old node. The semantic
+# association is therefore relatedMatch while the executable preservation is Unsupported.
+
+gmeow:eqLogicGufo045 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Fluent ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject gufo:QualityValueAttributionSituation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Superseded by logic:Fluent plus RDF 1.2 statement metadata; the gUFO reifier is not re-emitted." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:Unsupported .
+
+gmeow:eqLogicGufo046 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Fluent ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject gufo:TemporaryConstitutionSituation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Superseded by logic:Fluent plus RDF 1.2 statement metadata; the gUFO reifier is not re-emitted." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:Unsupported .
+
+gmeow:eqLogicGufo047 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Fluent ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject gufo:TemporaryInstantiationSituation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Superseded by logic:Fluent plus RDF 1.2 statement metadata; the gUFO reifier is not re-emitted." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:Unsupported .
+
+gmeow:eqLogicGufo048 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Fluent ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject gufo:TemporaryParthoodSituation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Superseded by logic:Fluent plus RDF 1.2 statement metadata; the gUFO reifier is not re-emitted." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:Unsupported .
+
+gmeow:eqLogicGufo049 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Fluent ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject gufo:TemporaryRelationshipSituation ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "Superseded by logic:Fluent plus RDF 1.2 statement metadata; the gUFO reifier is not re-emitted." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:Unsupported .
+
+# logic:Disposition is richer than stock gUFO's IntrinsicMode and has no direct gUFO
+# class. The conceptual bridge is retained but the current projection is Unsupported.
+gmeow:eqLogicGufo050 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Disposition ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:IntrinsicMode ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:comment "gUFO models dispositions under IntrinsicMode; logic: carries Disposition first-class and does not flatten it in the generated gUFO view." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:Unsupported .
+
+# ── BFO 2020: commitment-shifting category bridge ────────────────────────────
+
+gmeow:eqLogicBfo001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Individual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000001 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "entity" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Endurant ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000002 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "continuant" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000003 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:objectLabel "occurrent" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Process ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000015 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "process" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Object ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000040 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:objectLabel "material entity" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:FunctionalComplex ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000030 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "object" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo007 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Collection ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000027 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:objectLabel "object aggregate" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo008 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Mode ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject bfo:BFO_0000020 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ; gmeow:objectLabel "specifically dependent continuant" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    gmeow:comment "BFO's dependent-continuant category is broader than the modal notion carried by logic:Mode." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo009 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Relator ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject bfo:BFO_0000020 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ; gmeow:objectLabel "specifically dependent continuant" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    gmeow:comment "BFO has no relator category; this points only to its nearest dependent-continuant region." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo010 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Disposition ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000016 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "disposition" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo011 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000019 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "quality" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo012 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000023 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ; gmeow:objectLabel "role" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicBfo013 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:OccurrentBoundary ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000035 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:objectLabel "process boundary" ; gmeow:sssomFile "gmeow-logic-bfo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+# ── OBO/BFO relations: persistent-IRI bridge views ───────────────────────────
+
+gmeow:eqLogicObo001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:partOf ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000050 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ; gmeow:objectLabel "part of" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicObo002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:precedes ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000063 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:objectLabel "precedes" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicObo003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:overlaps ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ro:0002131 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ; gmeow:objectLabel "overlaps" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    gmeow:comment "RO_0002131 is spatial overlap; logic:overlaps is profile-relative mereological overlap." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicObo004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:causalPartOf ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ro:0002418 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ; gmeow:objectLabel "causally upstream of or within" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicObo005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:disjoint ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ro:0002171 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ; gmeow:objectLabel "spatially disjoint with" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    gmeow:comment "RO_0002171 is spatially specialized; logic:disjoint is interpreted by the active mereology profile." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicObo006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:memberOf ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ro:0002350 ; gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ; gmeow:objectLabel "member of" ; gmeow:sssomFile "gmeow-logic-obo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+# ── SUMO: foundational and structural bridge views ───────────────────────────
+
+gmeow:eqLogicSumo001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Individual ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:ConcreteIndividual ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Physical ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:AbstractIndividual ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Abstract ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Endurant ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Object ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Process ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Process ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Process ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo007 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Object ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Object ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo008 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Collection ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Collection ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo009 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quantity ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Quantity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo010 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject sumo:Attribute ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo011 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Disposition ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject sumo:Attribute ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.65 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo012 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject sumo:Attribute ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.65 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo013 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Type ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Class ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo014 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:RelationshipType ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:Relation ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo015 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:instanceOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:instance ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo016 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:subClassOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:subclass ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo017 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:subPropertyOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:subrelation ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo018 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:domain ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:domain ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo019 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:range ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:range ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo020 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:inverseOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:inverse ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo021 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:partOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:part ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo022 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:properPartOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:properPart ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo023 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:memberOf ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:member ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicSumo024 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:disjoint ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sumo:disjoint ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ; gmeow:sssomFile "gmeow-logic-sumo.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ; logic:preservationKind logic:ValidationOnly .
+
+# ── OWL/RDFS: complete compiler-recognized construct surface ─────────────────
+# These are the named edges of the actual adapter/restriction/projector tables.
+# The target as a whole remains SoundUnder: OWL profiles cannot carry every logic:
+# construct, even where an individual construct name round-trips exactly.
+
+gmeow:eqLogicOwl001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:subClassOf ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject rdfs:subClassOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:equivalentClass ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:equivalentClass ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:disjointWith ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:disjointWith ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:subPropertyOf ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject rdfs:subPropertyOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:equivalentProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:equivalentProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:inverseOf ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:inverseOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl007 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:domain ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject rdfs:domain ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl008 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:range ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject rdfs:range ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl009 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:transitiveProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:TransitiveProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl010 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:symmetricProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:SymmetricProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl011 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:functionalProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:FunctionalProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl012 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:inverseFunctionalProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:InverseFunctionalProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl013 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:reflexiveProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:ReflexiveProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl014 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:asymmetricProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:AsymmetricProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl015 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:irreflexiveProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:IrreflexiveProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl016 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Restriction ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:Restriction ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl017 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:onProperty ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:onProperty ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl018 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:someValuesFrom ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:someValuesFrom ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl019 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:allValuesFrom ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:allValuesFrom ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl020 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:hasValue ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:hasValue ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl021 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:minCardinality ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:minCardinality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl022 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:maxCardinality ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:maxCardinality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl023 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:cardinality ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:cardinality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl024 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:qualifiedCardinality ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:qualifiedCardinality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl025 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:minQualifiedCardinality ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:minQualifiedCardinality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl026 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:maxQualifiedCardinality ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:maxQualifiedCardinality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl027 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:onClass ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:onClass ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    gmeow:comment "This exact construct band is the qualified-restriction use of logic:onClass; its constraint-target use lowers separately." ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl028 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:onDataRange ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:onDataRange ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl029 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Enumeration ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject owl:oneOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    gmeow:comment "logic:Enumeration names the construct; owl:oneOf is the list-valued edge that serializes it." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl030 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:oneOf ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:oneOf ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl031 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Datarange ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject rdfs:Datatype ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    gmeow:comment "A logic:Datarange is the restricted datatype construct; rdfs:Datatype is its emitted carrier class." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl032 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:onDatatype ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:onDatatype ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqLogicOwl033 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:withRestrictions ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject owl:withRestrictions ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:SoundUnderApproximation .
+
+# ── SHACL Core/AF: validation and rule dialect surface ───────────────────────
+
+gmeow:eqLogicShacl001 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:ValidationShape ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:NodeShape ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl002 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:PathShape ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:PropertyShape ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl003 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Constraint ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:SPARQLConstraint ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl004 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Rule ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:SPARQLRule ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl005 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:onClass ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:targetClass ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    gmeow:comment "This is the constraint-target use of logic:onClass; the qualified-restriction use lowers to owl:onClass." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl006 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:valueClass ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:class ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl007 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:severity ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:severity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl008 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:message ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:message ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl009 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:not ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:not ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    gmeow:comment "logic:not is strong formula negation; sh:not is its closed-world shape projection." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl010 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:or ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:or ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl011 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:termIn ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:in ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl012 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:termRegex ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:pattern ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    gmeow:comment "The regex dialect difference remains explicit residue; this is never an exact correspondence." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl013 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:directType ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject sh:SPARQLTarget ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    gmeow:comment "A direct-type guard is realized by a subclass-excluding sh:SPARQLTarget SELECT." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl014 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:sparqlTarget ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:SPARQLTarget ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicShacl015 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:integrity ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject sh:sparql ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-logic-shacl.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ; logic:preservationKind logic:ValidationOnly .

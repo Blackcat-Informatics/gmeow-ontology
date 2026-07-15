@@ -91,19 +91,35 @@ pub const GRAPH_RELATIONAL_CORE: &str =
 /// `skos:exactMatch` / `owl:equivalentClass`); the overclaim gate forbids over-alignment.
 pub const GRAPH_CORRESPONDENCE: &str = "https://blackcatinformatics.ca/gmeow/graph/correspondence";
 
-/// The object-level named graphs this stage contributes to the reasoned EDB and the
-/// carrier fold, in fold order. The SINGLE authority for the set: the carrier's two
-/// fold sites ([`crate::stages::carrier::assemble_object_level_edb`] and the snapshot
-/// assembly), [`crate::stages::reason::ReasonStage`]'s consumed entities, and the
-/// `run.rs` reason-stage dataflow spec all derive from this constant, and the slice
-/// DAG's `gmeow:flowEntity` mirror is bind-checked against the derived entity list.
-pub const OBJECT_LEVEL_GRAPHS: [&str; 3] =
-    [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE, GRAPH_CORRESPONDENCE];
+/// Every named graph this stage contributes to the shipped carrier, in fold order.
+/// `graph/correspondence` is deliberately carried here: correspondence is first-class
+/// shipped ontology content with a digest-pinned typed handle, even though its
+/// meta-formula envelope must not enter the object-level reasoning closure.
+pub const CARRIER_GRAPHS: [&str; 3] = [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE, GRAPH_CORRESPONDENCE];
+
+/// The object-level named graphs this stage contributes to the reasoned EDB, in fold
+/// order. Correspondence is intentionally absent: `logic:Correspondence` relates
+/// propositions and target vocabularies at the meta level, so treating endpoint IRIs as
+/// object-level axioms would both violate the IR stratification and make external target
+/// constructs appear to be authored ontology commitments.
+pub const OBJECT_LEVEL_GRAPHS: [&str; 2] = [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE];
 
 /// The object-level graph set as the sorted entity list the typed-dataflow machinery
 /// compares (the loader's Rust/RDF bind agreement and the slice-DAG mirror).
 pub fn object_level_entity_list() -> Vec<String> {
     let mut entities: Vec<String> = OBJECT_LEVEL_GRAPHS
+        .iter()
+        .map(|iri| (*iri).to_string())
+        .collect();
+    entities.sort_unstable();
+    entities
+}
+
+/// The complete compile-logic carrier graph set as a sorted entity list. Validation
+/// depends on the full compiled program, including correspondence, while reasoning uses
+/// [`object_level_entity_list`] and therefore cannot consume the meta-level graph.
+pub fn carrier_entity_list() -> Vec<String> {
+    let mut entities: Vec<String> = CARRIER_GRAPHS
         .iter()
         .map(|iri| (*iri).to_string())
         .collect();
@@ -680,7 +696,7 @@ fn build_logic_bundle(
     // `graph/diagnostics` named graph, so the presenter unions it with the SHACL
     // diagnostics as a pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte
     // artifact. It is object-level-inert (a Finding graph), so it never reaches the reason
-    // EDB (which projects only logic / relational-core / correspondence). The byte lane is
+    // EDB (which projects only logic / relational-core). The byte lane is
     // kept for the byte readers.
     let diag_rdf = artifacts.get(DIAG_RDF_PATH).ok_or_else(|| {
         stage_err(format!(
@@ -808,6 +824,12 @@ fn logic_graph_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::{OpenOptions, TryLockError};
+    use std::sync::OnceLock;
+    use std::time::{Duration, Instant};
+
+    use crate::cache::{BUILD_FINGERPRINT, PipelineCache, stage_key};
+    use crate::scheduler::input_files_digest;
 
     fn repo_root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -815,6 +837,159 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    /// Cross-process, content-addressed fixture for the assertion-only tests below.
+    ///
+    /// Nextest runs each test in a separate process, so an in-process `OnceLock`
+    /// alone cannot prevent every test from rebuilding the real repository's full
+    /// logic projection. Reuse the production cache codec and its fail-closed build
+    /// fingerprint/input digest instead. On a genuine miss, an atomic lock elects
+    /// one test process to build while its siblings wait for the persisted product;
+    /// no separate cargo prime invocation is needed. One sibling test deliberately
+    /// calls the stage directly, retaining uncached end-to-end teeth.
+    fn compile_logic_fixture() -> StageProduct {
+        static PRODUCT: OnceLock<StageProduct> = OnceLock::new();
+        PRODUCT
+            .get_or_init(|| {
+                let root = repo_root();
+                let stage = CompileLogicStage::new();
+                let source_digest =
+                    input_files_digest(&stage, &root).expect("digest compile-logic fixture inputs");
+                let key = stage_key(
+                    stage.id(),
+                    stage.impl_version(),
+                    &[],
+                    source_digest.as_deref(),
+                );
+
+                let cache_base = root.join(".cache/pipeline-test-fixtures");
+                let fingerprint = &BUILD_FINGERPRINT[..16];
+                let cache_dir = cache_base.join(fingerprint);
+                std::fs::create_dir_all(&cache_dir)
+                    .expect("create compile-logic fixture cache directory");
+                let cache =
+                    PipelineCache::open(&cache_dir).expect("open compile-logic fixture cache");
+                if let Some(product) = cache.get(&key).expect("read compile-logic fixture cache") {
+                    return product;
+                }
+
+                // Keep the election file outside the Actions-cached product tree:
+                // a cancelled job must not archive and restore a live-looking lock.
+                let lock_dir = root.join(".cache/pipeline-test-fixture-locks");
+                std::fs::create_dir_all(&lock_dir)
+                    .expect("create compile-logic fixture lock directory");
+                let lock_path = lock_dir.join(format!("{fingerprint}.lock"));
+                let lock_file = OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .truncate(false)
+                    .open(&lock_path)
+                    .expect("open compile-logic fixture lock");
+                let started = Instant::now();
+                let _lock = loop {
+                    match lock_file.try_lock() {
+                        Ok(()) => break FixtureBuildLock(lock_file),
+                        Err(TryLockError::WouldBlock) => {
+                            // The elected process publishes through PipelineCache's atomic
+                            // index/content writes. Check for that product before sleeping.
+                            let cache = PipelineCache::open(&cache_dir)
+                                .expect("reopen compile-logic fixture cache while waiting");
+                            if let Some(product) = cache
+                                .get(&key)
+                                .expect("read compile-logic fixture cache while waiting")
+                            {
+                                return product;
+                            }
+
+                            // File-lock ownership is tied to the live descriptor/process.
+                            // Normal close and process death both release it, so a slow live
+                            // builder cannot be evicted by elapsed time and a former owner's
+                            // Drop cannot remove a successor's election.
+                            assert!(
+                                started.elapsed() < Duration::from_secs(360),
+                                "timed out waiting for compile-logic fixture builder"
+                            );
+                            std::thread::sleep(Duration::from_millis(50));
+                        }
+                        Err(TryLockError::Error(error)) => {
+                            panic!("acquire compile-logic fixture lock: {error}")
+                        }
+                    }
+                };
+
+                // Another process may have published between our first miss and lock
+                // acquisition. Recheck before paying the stage cost.
+                let mut cache =
+                    PipelineCache::open(&cache_dir).expect("reopen elected fixture cache");
+                if let Some(product) = cache
+                    .get(&key)
+                    .expect("recheck elected compile-logic fixture cache")
+                {
+                    return product;
+                }
+
+                let upstream = BTreeMap::new();
+                let product = stage
+                    .run(StageInput {
+                        root: &root,
+                        upstream: &upstream,
+                    })
+                    .expect("build compile-logic fixture")
+                    .product;
+                cache
+                    .put(&key, &product)
+                    .expect("persist compile-logic fixture");
+                product
+            })
+            .clone()
+    }
+
+    struct FixtureBuildLock(std::fs::File);
+
+    impl Drop for FixtureBuildLock {
+        fn drop(&mut self) {
+            let _ = self.0.unlock();
+        }
+    }
+
+    #[test]
+    fn fixture_build_lock_is_owned_by_the_live_file_handle() {
+        let temp = tempfile::tempdir().expect("create fixture-lock tempdir");
+        let path = temp.path().join("fixture.lock");
+        let open = || {
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .truncate(false)
+                .open(&path)
+                .expect("open fixture lock")
+        };
+
+        let owner = open();
+        owner.try_lock().expect("first handle owns lock");
+        let guard = FixtureBuildLock(owner);
+        let successor = open();
+        assert!(matches!(
+            successor.try_lock(),
+            Err(TryLockError::WouldBlock)
+        ));
+
+        drop(guard);
+        successor
+            .try_lock()
+            .expect("closing the owner releases lock to successor");
+        successor.unlock().expect("release successor fixture lock");
+    }
+
+    /// Proves the content-addressed fixture itself remains readable; on a cold
+    /// nextest run this test may also be the process elected to populate it.
+    #[test]
+    fn compile_logic_fixture_is_primed() {
+        let product = compile_logic_fixture();
+        assert_eq!(product.stage_id, "stage-compile-logic");
     }
 
     /// The stage emits all nine projection artifacts plus the four diagnostics
@@ -955,15 +1130,8 @@ mod tests {
     /// must NOT leak into the shapes as an inverted regex — it is ledger-only.
     #[test]
     fn test_datatypes_opt_ordinal_and_datetime_flow_into_shape_surface() {
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let arts = out.product.artifacts();
+        let product = compile_logic_fixture();
+        let arts = product.artifacts();
         let ttl = std::str::from_utf8(&arts[VALIDATION_SHAPES_TTL_PATH]).expect("shapes ttl utf8");
         // The second OPT's shapes reached the surface (its distinct base IRI).
         assert!(
@@ -1072,15 +1240,8 @@ mod tests {
     #[test]
     fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
         use crate::bundle::PipelineHandle;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle
             .handle(GRAPH_LOGIC)
             .expect("the stage pins a Logic handle to graph/logic");
@@ -1095,8 +1256,7 @@ mod tests {
         };
 
         // Re-derive the program from the backing graph/logic exactly as the cache does.
-        let canonical_ttl = out
-            .product
+        let canonical_ttl = product
             .artifact(CANONICAL_RDF12_PATH)
             .expect("canonical rdf12 artifact");
         let ds = parse_dataset(canonical_ttl, "text/turtle", None).expect("parse backing graph");
@@ -1149,15 +1309,8 @@ mod tests {
     #[test]
     fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
         use gmeow_logic_compile::relational_core::parse_relational_core;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle
             .handle(GRAPH_RELATIONAL_CORE)
             .expect("the stage pins a RelationalCore handle to graph/relational-core");
@@ -1179,8 +1332,7 @@ mod tests {
 
         // Re-derive the dialect from the backing graph exactly as the cache does, off
         // the committed N-Triples projection artifact.
-        let nt = out
-            .product
+        let nt = product
             .artifact(RELATIONAL_CORE_PATH)
             .expect("relational-core artifact");
         let ds = parse_dataset(nt, "application/n-triples", None).expect("parse backing graph");
@@ -1228,15 +1380,8 @@ mod tests {
     /// the consumer side.
     #[test]
     fn downstream_consumer_reads_the_handle_without_re_lowering() {
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
 
         // The CONSUMER path: take the typed handle. This is the ONLY way the dialect is
         // obtained downstream — there is no second `lower_program` call here.
@@ -1255,8 +1400,7 @@ mod tests {
         );
         // And it is the SAME content as the committed projection the producer emitted —
         // i.e. the producer lowered once and that single result rides both faces.
-        let nt = out
-            .product
+        let nt = product
             .artifact(RELATIONAL_CORE_PATH)
             .expect("projection artifact");
         let re_derived = gmeow_logic_compile::relational_core::parse_relational_core(
@@ -1274,6 +1418,28 @@ mod tests {
 
     // ── C10: the correspondence carrier lane ──────────────────────────────
 
+    /// Correspondence is shipped and digest-pinned, but it is a meta-formula envelope:
+    /// target vocabulary IRIs must never be scanned as object-level OWL commitments.
+    #[test]
+    fn correspondence_is_carried_but_not_reasoned() {
+        assert!(
+            CARRIER_GRAPHS.contains(&GRAPH_CORRESPONDENCE),
+            "the shipped carrier must retain graph/correspondence"
+        );
+        assert!(
+            !OBJECT_LEVEL_GRAPHS.contains(&GRAPH_CORRESPONDENCE),
+            "the meta-level correspondence graph must stay outside object-level closure"
+        );
+        assert!(
+            carrier_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
+            "validation/cache dataflow must still see the complete compiled carrier"
+        );
+        assert!(
+            !object_level_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
+            "reasoning dataflow must not consume correspondence target IRIs"
+        );
+    }
+
     /// The compile-logic stage pins a REAL typed [`PipelineHandle::Correspondence`]
     /// handle to `graph/correspondence`, and that handle re-derives (via the SAME reverse
     /// parser the cache uses) from its backing graph to a content-key-EQUAL program. The
@@ -1283,15 +1449,8 @@ mod tests {
     #[test]
     fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
         use gmeow_logic_compile::projections::correspondence::parse_correspondence;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle
             .handle(GRAPH_CORRESPONDENCE)
             .expect("the stage pins a Correspondence handle to graph/correspondence");
@@ -1306,8 +1465,7 @@ mod tests {
         };
 
         // The committed projection artifact: the load-bearing alignment correctness point.
-        let nt = out
-            .product
+        let nt = product
             .artifact(CORRESPONDENCE_PATH)
             .expect("correspondence artifact");
         let nt_str = std::str::from_utf8(nt).expect("utf8");
@@ -1346,15 +1504,8 @@ mod tests {
     #[test]
     fn stage_correspondence_overclaim_gate_rejects_equivalence() {
         use gmeow_logic_compile::projections::correspondence::assert_no_overclaim_correspondence;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle.handle(GRAPH_CORRESPONDENCE).expect("handle present");
         let PipelineHandle::Correspondence(program) = &entry.payload else {
             panic!("Correspondence arm");

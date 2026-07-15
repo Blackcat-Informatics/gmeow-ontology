@@ -61,7 +61,7 @@ every decision below:
   source checkout, no repo-local query trees. `gmeow-dev` is repository maintenance and
   may read anything in the tree. This razor is enforced *structurally* (see
   [§4](#4-shared-core--cratescli-core-gmeow-cli-core)).
-- **Gate-latency budget culture** ([`docs/rust-test-budget.md`](./rust-test-budget.md)):
+- **Gate-latency optimization culture** ([`docs/rust-test-performance.md`](./rust-test-performance.md)):
   the tool is run thousands of times a session, so startup latency and per-invocation
   cost are first-class. Heavy dependencies (async runtimes, telemetry exporters) stay
   off the hot path — and, where they add no net value, are not linked at all.

@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "For the closed-form signed-radial-field scene, what operator
+# tree does the field's defining expression T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C recover?"
+# This exercises that the exact form is stored as a structured AST, not an opaque
+# string: following math:argumentSlot/math:slotExpression from the body to arbitrary
+# depth reaches every math:ApplicationExpression node, and each reports its
+# math:operator. Over examples/signed-radial-field-closed-form.ttl the answer is
+# exactly the nine operator nodes — the root Addition, the outer Subtraction, the two
+# Multiplications (A·x⁻ᵖ and B·(1−x)⁻q), the two Exponentiations (x⁻ᵖ and (1−x)⁻q),
+# the inner Subtraction (1−x), and the two Negations (−p and −q) — so the operand
+# structure of the signed compactified curve is recovered node by node.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/>
+
+SELECT ?node ?operator WHERE {
+    ex:signedRadialFieldCF math:definingExpression ?root .
+    ?root (math:argumentSlot/math:slotExpression)* ?node .
+    ?node a math:ApplicationExpression ;
+          math:operator ?operator .
+}
+ORDER BY ?node

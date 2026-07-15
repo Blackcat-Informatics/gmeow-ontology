@@ -1824,6 +1824,7 @@ dependencies = [
  "ahash",
  "arrow-array",
  "arrow-schema",
+ "bincode",
  "blake3",
  "bytes",
  "ciborium",
@@ -1885,14 +1886,6 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-validate",
  "purrdf",
-]
-
-[[package]]
-name = "gmeow-test-budget"
-version = "0.1.0"
-dependencies = [
- "gmeow-cli-core",
- "gmeow-errors",
 ]
 
 [[package]]

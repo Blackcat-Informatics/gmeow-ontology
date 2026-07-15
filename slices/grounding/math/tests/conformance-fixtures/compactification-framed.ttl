@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:ConformalCompactification naming all FOUR compactification
+# roles — its original unbounded space (math:originalSpace), its angle-preserving
+# embedding (math:compactifyingMap), its resulting bounded space
+# (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity)
+# — PLUS the conformal-only math:conformalFactor Ω. The unbounded radial half-line
+# r ∈ [0, ∞) conformally compactified to the bounded interval ρ ∈ [0, 1] by
+# ρ = r/(1+r), adjoining the ideal point ρ = 1 (r = +∞). Each of the five required
+# roles satisfies the exact-one cardinality, so this conforms to the derived
+# math:CompactificationShape and validates with no findings. Bound by
+# ex:ecCompactificationFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:radialCompactification a math:ConformalCompactification ;
+    rdfs:label "Conformal compactification of the radial half-line [0, ∞)"@x-gmeow-english ;
+    math:originalSpace ex:radialHalfLine ;
+    math:compactifyingMap ex:radialCompactifyingMap ;
+    math:compactifiedSpace ex:compactifiedRadialInterval ;
+    math:boundaryAtInfinity ex:radialIdealBoundary ;
+    math:conformalFactor ex:radialConformalFactor .
+
+ex:radialHalfLine a math:TopologicalSpace , math:Set .
+
+ex:radialCompactifyingMap a math:CoordinateMap ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:compactifiedRadialInterval .
+
+ex:compactifiedRadialInterval a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+ex:radialIdealBoundary a math:BoundaryAtInfinity .
+
+ex:radialConformalFactor a math:Function ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:positiveReals .
+
+ex:positiveReals a math:Set .

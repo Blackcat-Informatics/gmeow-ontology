@@ -120,8 +120,8 @@ load-bearing: the chase is superlinear in fact count, so a one-/few-module closu
 runs in ~1–90 s where the full-ontology chase takes minutes. This is the native
 twin of the old `gmeow_tools` `_materialize(module, *abox)` pytest pattern (the
 reasoning cluster the ~45-min `python` lane was dominated by, now migrated to native Rust).
-The harness runs under the `engine` nextest test-group (memory-capped, serialized)
-via `cargo nextest run -p gmeow-logic`.
+The harness runs at the natural nextest CPU width via
+`cargo nextest run -p gmeow-logic`; the suite has no fixed test-group cap.
 
 ### Why the default is safe
 
