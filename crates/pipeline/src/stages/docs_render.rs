@@ -1589,10 +1589,14 @@ mod tests {
             })
             .expect("real source-load");
 
+        // compile-logic reads the narrowed graph/logic-compile-inputs corpus off the
+        // source-load product, so its upstream must carry that product.
+        let mut compile_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        compile_upstream.insert("stage-source-load".to_string(), source_load.product.clone());
         let compile = crate::stages::compile_logic::CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &empty,
+                upstream: &compile_upstream,
             })
             .expect("real compile-logic");
 
@@ -1697,7 +1701,7 @@ mod tests {
     /// `slices/grounding/logic/examples/predicate-paths.ttl` and were never ingested, so
     /// `program.path_shapes` was empty and `paths::project_path_shapes` emitted zero rows
     /// — this is the hard-fail gate that catches a regression back to that vacuous state.
-    /// Runs the real `source_load`-free `compile_logic` → `mappings` stage chain directly
+    /// Runs the real `source_load` → `compile_logic` → `mappings` stage chain directly
     /// (each `Stage::run` call is pure in-memory — no disk write; the committed
     /// `generated/` tree is untouched), mirroring the B3 `term_entailments_are_non_vacuous_
     /// on_the_real_repo` chaining pattern in `carrier.rs`.
@@ -1710,10 +1714,20 @@ mod tests {
             .unwrap();
         let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
 
-        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+        // compile-logic reads the narrowed graph/logic-compile-inputs corpus off the
+        // source-load product, so run source-load first and carry it as its upstream.
+        let source_load = crate::stages::source_load::SourceLoadStage::new()
             .run(StageInput {
                 root: &root,
                 upstream: &empty,
+            })
+            .expect("real source-load");
+        let mut compile_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        compile_upstream.insert("stage-source-load".to_string(), source_load.product);
+        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &compile_upstream,
             })
             .expect("real compile-logic");
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
