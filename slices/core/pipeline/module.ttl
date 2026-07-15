@@ -638,6 +638,7 @@ gmeow:stage-docs-render
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
+        gmeow:stage-term-manifest ,
         gmeow:stage-validate .
 
 gmeow:stage-constraint-catalog
