@@ -182,7 +182,6 @@ pub fn full_spec() -> PipelineSpec {
             "reason",
             &[
                 "stage-compile-logic",
-                "stage-mappings",
                 "stage-source-load",
                 "stage-statements",
             ],
@@ -317,6 +316,10 @@ pub fn full_spec() -> PipelineSpec {
         // The two slice-quality floor TSVs projected from the ontology-resident
         // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals (P4/P17).
         ("stage-export-governance-floors", "governance_floors"),
+        // The two projection-vocabulary ratchet TSVs projected from the
+        // ontology-resident gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary
+        // individuals (P4/P17), the ceiling ratchet's counterpart to governance-floors.
+        ("stage-export-projection-ceilings", "projection_ceilings"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
@@ -405,9 +408,14 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",
+            // The two projection-vocabulary ratchet TSVs (P17 projection of the
+            // ontology-resident ceiling commitments) ride in as opaque REP_GENERATED
+            // fanout members, read off this leaf's product (sorted position:
+            // metadata < projection-ceilings < pydantic).
+            "stage-export-projection-ceilings",
             // THIS run's freshly-rendered Pydantic model package, folded into
             // REP_MODELS_PYTHON by build_archive_blobs (sorted position:
-            // metadata < pydantic < references).
+            // projection-ceilings < pydantic < references).
             "stage-export-pydantic",
             "stage-export-references",
             "stage-export-research-objects",
@@ -528,7 +536,7 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 }
 
 /// The SHACL validation stage: its `stage-compile-logic` dependency is narrowed to
-/// the object-level named graphs ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`])
+/// the complete compiled carrier graphs ([`crate::stages::compile_logic::CARRIER_GRAPHS`])
 /// — the program-level digest standing in for the validation-shape byte artifacts it
 /// reads off that product, and the narrowing that keeps its `graph/diagnostics`
 /// attachment a genuine delta (compile-logic's product carries a graph of the same
@@ -539,7 +547,7 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),
-        crate::stages::compile_logic::object_level_entity_list(),
+        crate::stages::compile_logic::carrier_entity_list(),
     )];
     s
 }

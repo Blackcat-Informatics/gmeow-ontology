@@ -5756,6 +5756,18 @@ logic:Lens
     skos:definition "The executable asymmetric core a logic:Correspondence wraps: a get / put leg pair between a rich source S and a derived view V, with get : S → V the down-projection and put : V × S → S the up-projection. GMEOW is always the source S and the external vocabulary the view V, so down-projection (GMEOW → external) is the get leg and up-projection (external → GMEOW) is the put leg. The view is the smaller, derived thing; put folds a possibly-fresh view back into the rich source, and the ingest-with-no-prior-state case (S empty) is exactly where a witness must travel in the view — the mnemomorphism a logic:Correspondence records with logic:mnemomorphic. Both legs are logic:TransactionProgram bodies over the path semantics of the transaction layer and logic:PathShape — no new pattern language is introduced. It is not the logic:Correspondence envelope, which separately carries the relation, quantitative axes, law claims, and standpoint (design/LOGIC-CORRESPONDENCE.md, the orientation-convention section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:GroundingCorrespondence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Grounding Correspondence"@x-gmeow-english ;
+    skos:definition "A logic:Correspondence owned by one of the three co-foundational grounding slices (logic:, math:, or lang:) and shipped as meta-level correspondence data in graph/correspondence-laws. Unlike an ordinary consumer mapping, every grounding correspondence explicitly declares its logic:morphismClass, logic:morphismKind, and logic:preservationKind, and names both related terms through logic:sourceEndpoint and logic:targetEndpoint. It remains outside object-level closure: external vocabularies are linked by reference and their TBoxes are never silently imported."@x-gmeow-english ;
+    skos:example "ex:bridge a logic:GroundingCorrespondence ; logic:sourceEndpoint logic:Restriction ; logic:targetEndpoint owl:Restriction ."@x-gmeow-english ;
+    skos:scopeNote "Grounding correspondences are shipped correspondence-law data; they do not import or canonize the external target vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reviewed cross-vocabulary bridge whose source is owned by lang:, math:, or logic:."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for an ordinary domain projection or for a row whose external term is presented as the canonical source."@x-gmeow-english ;
+    gmeow:howToUse "Name one grounding source and one external target, then declare the morphism class, morphism kind, and preservation kind explicitly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:CorrespondenceRelation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -5985,6 +5997,30 @@ logic:putLeg
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "put leg"@x-gmeow-english ;
     skos:definition "Relates a logic:Lens to the logic:TransactionProgram that realizes its put leg — the up-projection put : V × S → S folding a view back into the rich GMEOW source. A lawful put comes only from a logic:mnemomorphic witness or a co-authored put-with-claim; naive backward execution of the get leg is a candidate preimage, never a lawful put. Domain logic:Lens, range logic:TransactionProgram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:sourceEndpoint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "source endpoint"@x-gmeow-english ;
+    skos:definition "Names the canonical source term or pattern related by a logic:Correspondence. This is an endpoint, not an executable logic:getLeg: a term-level correspondence can name both endpoints while carrying no transaction program. Single-valued when present and paired with exactly one logic:targetEndpoint."@x-gmeow-english ;
+    skos:example "ex:bridge logic:sourceEndpoint logic:Restriction ."@x-gmeow-english ;
+    skos:scopeNote "For external grounding bridges the source endpoint is always in lang:, math:, or logic:."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the rich canonical endpoint of a compiled correspondence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not reverse this edge merely because an external vocabulary was encountered during ingest."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one source endpoint to the correspondence and pair it with one logic:targetEndpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:targetEndpoint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "target endpoint"@x-gmeow-english ;
+    skos:definition "Names the external view term or pattern related by a logic:Correspondence. This is an endpoint, not an executable logic:putLeg. Grounding correspondences use it to retain the exact gUFO, BFO, OBO, SUMO, OWL, or SHACL term in the shipped carrier without importing that target ontology."@x-gmeow-english ;
+    skos:example "ex:bridge logic:targetEndpoint owl:Restriction ."@x-gmeow-english ;
+    skos:scopeNote "The target endpoint identifies a view term by reference and confers no authority on its external TBox."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the external term or pattern produced by a grounding projection or bridge view."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an external target as a replacement source for canonical grounding content."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one target endpoint and record any loss or commitment shift on the same correspondence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:correspondenceRelation
@@ -7651,7 +7687,7 @@ logic:onClass
     rdfs:range owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "on class"@x-gmeow-english ;
-    skos:definition "The target class of a compact constraint-sugar record: the focus nodes the expanded logic:Constraint ranges over (rdf:type(this, C) becomes the range-restricting ∀ guard, from which the shape target is derived)."@x-gmeow-english ;
+    skos:definition "The class parameter of a canonical logic: construct. On compact constraint sugar it names the focus class whose instances the expanded logic:Constraint ranges over (rdf:type(this, C) becomes the range-restricting universal guard); on a qualified logic:Restriction it names the class whose values are counted. The latter use lowers to owl:onClass."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:choicePredicate
@@ -7812,6 +7848,54 @@ logic:termDistinct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term distinct"@x-gmeow-english ;
     skos:definition "A comparison relation the procedural-constraint SPARQL fragment lowers to a FILTER ( ?a != ?b ) over two already-bound terms (rather than a triple pattern). The inequality peer of logic:termEqual; it binds nothing, only tests inequality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termIn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term in value set"@x-gmeow-english ;
+    skos:definition "The variadic relation used inside a reified logic:Formula to test whether its first term is a member of the remaining finite value-set arguments. The SHACL lowering realizes it as an sh:in list and the procedural SPARQL lowering as FILTER IN; it binds no term and is never interpreted as an RDF membership assertion."@x-gmeow-english ;
+    skos:example "ex:membershipGuard logic:termIn ex:status, ex:active, ex:pending ."@x-gmeow-english ;
+    skos:scopeNote "Argument order is semantic: the tested term precedes the finite set of permitted values."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a reified validation formula for finite set membership."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as an RDF container-membership or mereological relation."@x-gmeow-english ;
+    gmeow:howToUse "Place the tested term first and the allowed constants in the remaining ordered argument carriers."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termRegex
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term regular expression"@x-gmeow-english ;
+    skos:definition "The relation used inside a reified logic:Formula to test a term's lexical form against a regular-expression argument. It lowers to SPARQL REGEX and, with an explicit regex-dialect residue, to sh:pattern; it is not an exact-preservation claim because the regex dialects differ."@x-gmeow-english ;
+    skos:example "ex:codeGuard logic:termRegex ex:code, \"^[A-Z]{2}$\" ."@x-gmeow-english ;
+    skos:scopeNote "Regex syntax and flags remain target-dialect-sensitive projection residue."@x-gmeow-english ;
+    gmeow:useWhen "Use when a validation formula tests the lexical form of a bound term."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not claim exact preservation across SPARQL and SHACL regex dialects without a dialect proof."@x-gmeow-english ;
+    gmeow:howToUse "Supply the tested term and explicit pattern argument, retaining dialect information in the loss ledger."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:directType
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "direct type guard"@x-gmeow-english ;
+    skos:definition "A guard-only relation inside a reified constraint formula selecting direct instances of a class while excluding instances reached only through subclasses. It is not a data-triple relation; the SHACL lowering consumes it to build a subclass-excluding sh:SPARQLTarget SELECT."@x-gmeow-english ;
+    skos:example "ex:focusGuard logic:directType ex:focus, ex:ReviewedClaim ."@x-gmeow-english ;
+    skos:scopeNote "Direct type means an asserted rdf:type at the focus node, excluding subclass-derived membership."@x-gmeow-english ;
+    gmeow:useWhen "Use when a constraint must target direct instances rather than the full subclass closure."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when ordinary entailment-aware class targeting is intended."@x-gmeow-english ;
+    gmeow:howToUse "Bind the focus term and class term in the guard so the SHACL projection can emit a SPARQL target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:sparqlTarget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SPARQL target guard"@x-gmeow-english ;
+    skos:definition "A guard-only relation inside a reified constraint formula whose second argument carries the SELECT text defining a focus set. It is not a data-triple relation; the SHACL lowering consumes it as a first-class sh:SPARQLTarget and removes the guard from the violation body."@x-gmeow-english ;
+    skos:example "ex:focusGuard logic:sparqlTarget ex:focus, \"SELECT ?this WHERE { ?this ex:reviewed true }\" ."@x-gmeow-english ;
+    skos:scopeNote "The SELECT text defines focus selection only and is removed from the projected violation condition."@x-gmeow-english ;
+    gmeow:useWhen "Use when a constraint's focus set requires a target query rather than a named target class."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not embed the violation test itself in this guard."@x-gmeow-english ;
+    gmeow:howToUse "Provide a focus variable and SELECT text whose result can be lowered to sh:SPARQLTarget."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:aggregateComparison
@@ -10379,6 +10463,341 @@ logic:carriesTerminationCertificate
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "carries termination certificate"@x-gmeow-english ;
     skos:definition "Relates a logic:ChaseAcceptanceWitness to the weak-acyclicity termination-certificate evidence (xsd:string, the ChaseAdmission::WeaklyAcyclic evidence summary) that admits its chase. Domain logic:ChaseAcceptanceWitness (stated in prose). A chase acceptance record with no certificate reports a closure that may never terminate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Canonical OWL/RDFS construct vocabulary ────────────────────────────────────
+# These are the logic:-native terms the frontend lifts OWL into and the projection
+# lowers back out of. They were historically implemented only as Rust string tables;
+# declaring them here makes logic: the usable authoring target rather than a hidden IR.
+
+logic:Restriction
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Restriction"@x-gmeow-english ;
+    skos:definition "A canonical logic: class-expression restriction: a constraint over one logic:onProperty together with one or more value or cardinality constraints. OWL's owl:Restriction is a generated dialect form of this construct, not the canonical authoring term."@x-gmeow-english ;
+    skos:example "ex:memberRestriction a logic:Restriction ; logic:onProperty ex:member ; logic:someValuesFrom ex:Person ."@x-gmeow-english ;
+    skos:scopeNote "A restriction is a class expression in the canonical logic graph, even when projected as an OWL blank node."@x-gmeow-english ;
+    gmeow:useWhen "Use to constrain the values or cardinality of one property in a class expression."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author owl:Restriction as a second canonical source."@x-gmeow-english ;
+    gmeow:howToUse "Name one logic:onProperty and add the applicable value, unqualified-cardinality, or qualified-cardinality predicate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Enumeration
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Enumeration"@x-gmeow-english ;
+    skos:definition "A finite class expression whose members are named by a logic:oneOf RDF list. It lowers to an OWL nominal (owl:oneOf) and remains first-class in logic: even when a weaker target profile cannot carry nominals."@x-gmeow-english ;
+    skos:example "ex:trafficLightState a logic:Enumeration ; logic:oneOf ( ex:red ex:amber ex:green ) ."@x-gmeow-english ;
+    skos:scopeNote "Enumeration denotes exactly the listed members; list order does not imply preference or rank."@x-gmeow-english ;
+    gmeow:useWhen "Use for a finite class or datarange whose complete extension is explicitly listed."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for an open code list that may gain unlisted members."@x-gmeow-english ;
+    gmeow:howToUse "Attach one logic:oneOf RDF list containing every admitted IRI or literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Datarange
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Datarange"@x-gmeow-english ;
+    skos:definition "A constrained datatype expression: one logic:onDatatype plus a logic:withRestrictions list of facet constraints. It is the canonical form lowered to OWL 2 datatype restrictions when the target can represent them, not a literal value or an unconstrained datatype name."@x-gmeow-english ;
+    skos:example "ex:adultAge a logic:Datarange ; logic:onDatatype xsd:integer ; logic:withRestrictions ( [ xsd:minInclusive 18 ] ) ."@x-gmeow-english ;
+    skos:scopeNote "Facet records retain their native datatype-facet predicates inside the ordered restriction list."@x-gmeow-english ;
+    gmeow:useWhen "Use for a datatype narrowed by one or more explicit facets."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a bare datatype that has no facet restrictions."@x-gmeow-english ;
+    gmeow:howToUse "Name the base with logic:onDatatype and supply the facet records through one logic:withRestrictions list."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:subClassOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subclass of"@x-gmeow-english ;
+    skos:definition "Canonical class subsumption: every instance of the subject type is an instance of the object type. It is not a lexical hierarchy hint; it lowers to rdfs:subClassOf on the OWL/RDFS projection surface."@x-gmeow-english ;
+    skos:example "ex:Cat logic:subClassOf ex:Animal ."@x-gmeow-english ;
+    skos:scopeNote "The edge carries extensional implication from subject class to object class."@x-gmeow-english ;
+    gmeow:useWhen "Use when membership in one class logically entails membership in another."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for topic grouping, navigation, or a merely approximate taxonomic relation."@x-gmeow-english ;
+    gmeow:howToUse "Place the narrower class expression as subject and the broader class expression as object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:equivalentClass
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "equivalent class"@x-gmeow-english ;
+    skos:definition "Canonical extensional equivalence between two class expressions. It is not similarity or close matching; it lowers to owl:equivalentClass only when the selected projection can preserve the claim."@x-gmeow-english ;
+    skos:example "ex:EveningStar logic:equivalentClass ex:MorningStarDescription ."@x-gmeow-english ;
+    skos:scopeNote "Equivalence entails both subsumption directions and therefore requires stronger evidence than a bridge relation."@x-gmeow-english ;
+    gmeow:useWhen "Use only when both class expressions have the same extension in the governing theory."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for commitment-shifting upper-ontology bridges or approximate matches."@x-gmeow-english ;
+    gmeow:howToUse "Connect the two class expressions and ensure the projection's preservation judgment licenses equivalence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:disjointWith
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "disjoint with"@x-gmeow-english ;
+    skos:definition "Canonical class disjointness: no individual may instantiate both class expressions. Distinct from logic:disjoint, the mereological relation between individuals; lowers to owl:disjointWith."@x-gmeow-english ;
+    skos:example "ex:Continuant logic:disjointWith ex:Occurrent ."@x-gmeow-english ;
+    skos:scopeNote "The assertion is symmetric at the class-extension level even when written in one direction."@x-gmeow-english ;
+    gmeow:useWhen "Use when the two class extensions are required not to overlap."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use merely because two labels contrast or current data has no shared instance."@x-gmeow-english ;
+    gmeow:howToUse "Connect two class expressions only after a negative competency case confirms that dual typing is inconsistent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:subPropertyOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subproperty of"@x-gmeow-english ;
+    skos:definition "Canonical relation subsumption: every pair related by the subject property is related by the object property. It is not a label hierarchy; it lowers to rdfs:subPropertyOf."@x-gmeow-english ;
+    skos:example "ex:biologicalParentOf logic:subPropertyOf ex:parentOf ."@x-gmeow-english ;
+    skos:scopeNote "Every subject-object pair in the narrower relation is entailed in the broader relation."@x-gmeow-english ;
+    gmeow:useWhen "Use when one relation extension is contained in another relation extension."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for two predicates that are only associated by subject matter."@x-gmeow-english ;
+    gmeow:howToUse "Place the narrower property as subject and the entailed broader property as object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:equivalentProperty
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "equivalent property"@x-gmeow-english ;
+    skos:definition "Canonical extensional equivalence between two properties. It is not a related-property hint; it lowers to owl:equivalentProperty only when the projection preserves the full relation."@x-gmeow-english ;
+    skos:example "ex:hasBiologicalMother logic:equivalentProperty ex:biologicalMotherRelation ."@x-gmeow-english ;
+    skos:scopeNote "Equivalent properties entail identical ordered subject-object pair extensions."@x-gmeow-english ;
+    gmeow:useWhen "Use when each property entails the other for every ordered pair."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for inverse, broader, narrower, or merely similar relations."@x-gmeow-english ;
+    gmeow:howToUse "Connect the two properties and retain an exact-enough preservation judgment for the target projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:inverseOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "inverse of"@x-gmeow-english ;
+    skos:definition "Canonical inverse-relation declaration: P(x,y) holds exactly when Q(y,x) holds. It is not property equivalence because the argument order reverses; it lowers to owl:inverseOf."@x-gmeow-english ;
+    skos:example "ex:parentOf logic:inverseOf ex:childOf ."@x-gmeow-english ;
+    skos:scopeNote "The declaration is symmetric between the two property names while reversing each related pair."@x-gmeow-english ;
+    gmeow:useWhen "Use when one binary relation holds exactly for the reversed pairs of another."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when the two relations merely tend to co-occur or differ in scope."@x-gmeow-english ;
+    gmeow:howToUse "Connect the forward property to its reverse and verify both implication directions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:domain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "domain"@x-gmeow-english ;
+    skos:definition "Canonical domain entailment for a property: using the property entails that its subject instantiates the named type. It is not a closed-world validation constraint; it lowers to rdfs:domain."@x-gmeow-english ;
+    skos:example "ex:memberOf logic:domain ex:Agent ."@x-gmeow-english ;
+    skos:scopeNote "Multiple domain axioms are conjunctive entailments, not alternative allowed subject types."@x-gmeow-english ;
+    gmeow:useWhen "Use when every subject using the property must be inferred to have the named type."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to reject untyped subjects or to express a disjunctive validation menu."@x-gmeow-english ;
+    gmeow:howToUse "Connect the property to the entailed subject type and use a validation constraint separately when rejection is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:range
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "range"@x-gmeow-english ;
+    skos:definition "Canonical range entailment for a property: using the property entails that its object instantiates the named type or datatype. It is not a closed-world validation constraint; it lowers to rdfs:range."@x-gmeow-english ;
+    skos:example "ex:memberOf logic:range ex:Organization ."@x-gmeow-english ;
+    skos:scopeNote "Multiple range axioms are conjunctive entailments, not alternative allowed object types."@x-gmeow-english ;
+    gmeow:useWhen "Use when every object reached through the property must be inferred to have the named type or datatype."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to reject an object or to express a disjunctive validation menu."@x-gmeow-english ;
+    gmeow:howToUse "Connect the property to the entailed object type and add a separate validation constraint when enforcement is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:inverseFunctionalProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "inverse-functional property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for inverse functionality: P(a,c) and P(b,c) entail a = b. It is not ordinary functionality, which constrains objects per subject; the OWL projection is owl:InverseFunctionalProperty."@x-gmeow-english ;
+    skos:example "ex:identifiedBy a logic:inverseFunctionalProperty ."@x-gmeow-english ;
+    skos:scopeNote "Inverse functionality identifies subjects that share one object and can trigger equality reasoning."@x-gmeow-english ;
+    gmeow:useWhen "Use when one object may identify at most one subject in the governing interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a property that merely has unique values in the current dataset."@x-gmeow-english ;
+    gmeow:howToUse "Type the property with this characteristic and provide an equality competency case for shared objects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:reflexiveProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reflexive property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for reflexivity: every individual in scope relates to itself through the property. It is not evidence that self-edges were explicitly asserted; the OWL projection is owl:ReflexiveProperty."@x-gmeow-english ;
+    skos:example "ex:connectedTo a logic:reflexiveProperty ."@x-gmeow-english ;
+    skos:scopeNote "Reflexivity is a global semantic characteristic of the property over the interpretation domain."@x-gmeow-english ;
+    gmeow:useWhen "Use when the relation must hold from every in-scope individual to itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a relation whose self-cases are merely permitted or commonly observed."@x-gmeow-english ;
+    gmeow:howToUse "Type the property with this characteristic and test that a representative self-edge is entailed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:onProperty
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "on property"@x-gmeow-english ;
+    skos:definition "Names the property constrained by a logic:Restriction. It is not an assertion using that property; it lowers to owl:onProperty."@x-gmeow-english ;
+    skos:example "ex:memberRestriction logic:onProperty ex:member ."@x-gmeow-english ;
+    skos:scopeNote "Each restriction selects one property before stating its value or cardinality condition."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the property whose fillers a logic:Restriction constrains."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as the constrained domain relation itself."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one constrained property to the restriction before adding its restriction predicate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:someValuesFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "some values from"@x-gmeow-english ;
+    skos:definition "Existential restriction value: at least one value reached through logic:onProperty belongs to the named class or datarange. It does not constrain every filler; it lowers to owl:someValuesFrom."@x-gmeow-english ;
+    skos:example "ex:parentRestriction logic:someValuesFrom ex:Person ."@x-gmeow-english ;
+    skos:scopeNote "The restriction entails the existence of at least one qualifying filler."@x-gmeow-english ;
+    gmeow:useWhen "Use when class membership requires at least one property value in a named class or datarange."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when all fillers must qualify or when no filler existence is intended."@x-gmeow-english ;
+    gmeow:howToUse "Pair it with logic:onProperty on the same restriction and name the required filler class or datarange."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:allValuesFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "all values from"@x-gmeow-english ;
+    skos:definition "Universal restriction value: every value reached through logic:onProperty belongs to the named class or datarange. It does not assert that any filler exists; it lowers to owl:allValuesFrom."@x-gmeow-english ;
+    skos:example "ex:teamRestriction logic:allValuesFrom ex:Person ."@x-gmeow-english ;
+    skos:scopeNote "The condition is vacuously satisfied when the constrained property has no values."@x-gmeow-english ;
+    gmeow:useWhen "Use when every existing filler of the selected property must belong to one class or datarange."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not rely on it to require at least one filler."@x-gmeow-english ;
+    gmeow:howToUse "Pair it with logic:onProperty and add an existential or minimum-cardinality condition separately when presence is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:hasValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has value"@x-gmeow-english ;
+    skos:definition "Value restriction requiring the logic:onProperty relation to contain one named IRI or literal. It is not a range declaration; it lowers to owl:hasValue."@x-gmeow-english ;
+    skos:example "ex:activeRestriction logic:hasValue ex:active ."@x-gmeow-english ;
+    skos:scopeNote "The required filler is one concrete RDF term rather than a class of possible fillers."@x-gmeow-english ;
+    gmeow:useWhen "Use when the constrained property must include a specific IRI or literal value."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to constrain fillers by class; use logic:someValuesFrom or logic:allValuesFrom instead."@x-gmeow-english ;
+    gmeow:howToUse "Pair the concrete required value with logic:onProperty on the same restriction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:minCardinality
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "minimum cardinality"@x-gmeow-english ;
+    skos:definition "The inclusive minimum number of logic:onProperty values required by an unqualified logic:Restriction. It does not filter fillers by class or datarange; it lowers to owl:minCardinality."@x-gmeow-english ;
+    skos:example "ex:teamRestriction logic:minCardinality 1 ."@x-gmeow-english ;
+    skos:scopeNote "The count ranges over all distinct fillers of the selected property."@x-gmeow-english ;
+    gmeow:useWhen "Use to require at least a non-negative number of property fillers regardless of their type."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when only fillers of a qualifying class or datarange should be counted."@x-gmeow-english ;
+    gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:minQualifiedCardinality for a qualified count."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:maxCardinality
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "maximum cardinality"@x-gmeow-english ;
+    skos:definition "The inclusive maximum number of logic:onProperty values permitted by an unqualified logic:Restriction. It does not filter fillers by class or datarange; it lowers to owl:maxCardinality."@x-gmeow-english ;
+    skos:example "ex:primaryContactRestriction logic:maxCardinality 1 ."@x-gmeow-english ;
+    skos:scopeNote "The count ranges over all distinct fillers of the selected property."@x-gmeow-english ;
+    gmeow:useWhen "Use to permit at most a non-negative number of property fillers regardless of their type."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when only fillers of a qualifying class or datarange should be counted."@x-gmeow-english ;
+    gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:maxQualifiedCardinality for a qualified count."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:cardinality
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cardinality"@x-gmeow-english ;
+    skos:definition "The exact number of logic:onProperty values required by an unqualified logic:Restriction. It does not filter fillers by class or datarange; it lowers to owl:cardinality."@x-gmeow-english ;
+    skos:example "ex:birthMotherRestriction logic:cardinality 1 ."@x-gmeow-english ;
+    skos:scopeNote "Exact cardinality combines the corresponding inclusive minimum and maximum over all fillers."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected property must have exactly a stated number of fillers."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when the count is a data-quality expectation rather than an ontological commitment."@x-gmeow-english ;
+    gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:qualifiedCardinality when filler type matters."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:qualifiedCardinality
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "qualified cardinality"@x-gmeow-english ;
+    skos:definition "The exact number of logic:onProperty values belonging to the qualifying logic:onClass or logic:onDataRange. It does not count fillers outside that qualifier; it lowers to owl:qualifiedCardinality."@x-gmeow-english ;
+    skos:example "ex:reviewRestriction logic:qualifiedCardinality 2 ; logic:onClass ex:Reviewer ."@x-gmeow-english ;
+    skos:scopeNote "Exactly one qualifier, logic:onClass or logic:onDataRange, determines which fillers are counted."@x-gmeow-english ;
+    gmeow:useWhen "Use when exactly a stated number of fillers must satisfy one class or datarange qualifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not omit the qualifier or attach both class and datarange qualifiers."@x-gmeow-english ;
+    gmeow:howToUse "Pair the count with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:minQualifiedCardinality
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "minimum qualified cardinality"@x-gmeow-english ;
+    skos:definition "The inclusive minimum number of logic:onProperty values belonging to the qualifying logic:onClass or logic:onDataRange. It does not count fillers outside that qualifier; it lowers to owl:minQualifiedCardinality."@x-gmeow-english ;
+    skos:example "ex:committeeRestriction logic:minQualifiedCardinality 2 ; logic:onClass ex:Member ."@x-gmeow-english ;
+    skos:scopeNote "The lower bound applies only to fillers satisfying the one declared qualifier."@x-gmeow-english ;
+    gmeow:useWhen "Use when at least a stated number of fillers must satisfy one class or datarange qualifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use without exactly one qualifier or when all fillers should be counted."@x-gmeow-english ;
+    gmeow:howToUse "Pair the lower bound with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:maxQualifiedCardinality
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "maximum qualified cardinality"@x-gmeow-english ;
+    skos:definition "The inclusive maximum number of logic:onProperty values belonging to the qualifying logic:onClass or logic:onDataRange. It does not count fillers outside that qualifier; it lowers to owl:maxQualifiedCardinality."@x-gmeow-english ;
+    skos:example "ex:leadRestriction logic:maxQualifiedCardinality 1 ; logic:onClass ex:Lead ."@x-gmeow-english ;
+    skos:scopeNote "The upper bound applies only to fillers satisfying the one declared qualifier."@x-gmeow-english ;
+    gmeow:useWhen "Use when at most a stated number of fillers may satisfy one class or datarange qualifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use without exactly one qualifier or when all fillers should be counted."@x-gmeow-english ;
+    gmeow:howToUse "Pair the upper bound with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:onDataRange
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "on data range"@x-gmeow-english ;
+    skos:definition "Names the datarange qualifying a cardinality restriction. It is not the base datatype of a logic:Datarange expression; it lowers to owl:onDataRange."@x-gmeow-english ;
+    skos:example "ex:scoreRestriction logic:onDataRange xsd:decimal ."@x-gmeow-english ;
+    skos:scopeNote "This qualifier selects datatype-valued fillers counted by a qualified cardinality predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use on a qualified restriction whose counted fillers are literals in a datarange."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use on an object-valued qualified restriction; use logic:onClass there."@x-gmeow-english ;
+    gmeow:howToUse "Attach one datarange beside a qualified-cardinality predicate and logic:onProperty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:oneOf
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "one of"@x-gmeow-english ;
+    skos:definition "Links a logic:Enumeration to the RDF list of its named members. It is not an open suggestion list; it lowers to owl:oneOf, and members may be IRIs or literals according to the enumerated expression."@x-gmeow-english ;
+    skos:example "ex:binaryState logic:oneOf ( ex:on ex:off ) ."@x-gmeow-english ;
+    skos:scopeNote "The RDF list is closed and exhaustive for the enumeration's extension."@x-gmeow-english ;
+    gmeow:useWhen "Use to provide every member of a finite logic:Enumeration."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when unlisted values remain permitted."@x-gmeow-english ;
+    gmeow:howToUse "Attach one well-formed RDF list whose member kind matches the class or datarange enumeration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:onDatatype
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "on datatype"@x-gmeow-english ;
+    skos:definition "Names the base datatype constrained by a logic:Datarange. It is not the qualifier of a cardinality restriction; it lowers to owl:onDatatype."@x-gmeow-english ;
+    skos:example "ex:adultAge logic:onDatatype xsd:integer ."@x-gmeow-english ;
+    skos:scopeNote "The base datatype supplies the lexical and value space before facet restrictions narrow it."@x-gmeow-english ;
+    gmeow:useWhen "Use to select the base datatype of a facet-constrained logic:Datarange."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as a qualified-cardinality filler constraint; use logic:onDataRange there."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one base datatype and pair it with a logic:withRestrictions facet list."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:withRestrictions
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "with restrictions"@x-gmeow-english ;
+    skos:definition "Links a logic:Datarange to the RDF list of datatype-facet restriction records it applies. It is not a list of class restrictions; it lowers to owl:withRestrictions."@x-gmeow-english ;
+    skos:example "ex:adultAge logic:withRestrictions ( [ xsd:minInclusive 18 ] ) ."@x-gmeow-english ;
+    skos:scopeNote "Each list member is a facet record interpreted against the base named by logic:onDatatype."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the ordered facet records that narrow a logic:Datarange."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for object-property restrictions or an unconstrained datatype."@x-gmeow-english ;
+    gmeow:howToUse "Attach one RDF list of datatype-facet records beside exactly one logic:onDatatype value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --------------------------------------------------------------------------- #

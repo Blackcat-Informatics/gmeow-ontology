@@ -295,3 +295,9 @@ the hand-authored shape (or back a genuine ValidationOnly residue with `logic:fo
 Never delete a shape whose check the projection does not yet reproduce — that drops live
 enforcement. Full procedure, idioms, and the reasoner-safety rules for cardinality:
 [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./MIGRATING-SHAPES-TO-LOGIC.md).
+
+`axisShapeMigration` is measure-only and advisory. Its hard-enforcement counterpart is
+the **projection-vocabulary ratchet**, a `make check` gate that caps hand-authored
+ungrounded growth in `shapes.ttl`/`module.ttl` SHACL *and* every other `logic:`-subsumed
+projection vocabulary (gUFO, BFO, DOLCE, FnO, EDOAL, SSSOM) per slice, and hard-fails on
+any net-new growth: [`docs/PROJECTION-VOCABULARY-RATCHET.md`](./PROJECTION-VOCABULARY-RATCHET.md).

@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 164
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # gts sink
@@ -73,6 +74,7 @@ This term is a stage of the [build pipeline](../../pipeline/index.md) — a type
 - [`gmeow:stage-export-json-schema`](../stage-export-json-schema/index.md)
 - [`gmeow:stage-export-matrix`](../stage-export-matrix/index.md)
 - [`gmeow:stage-export-metadata`](../stage-export-metadata/index.md)
+- [`gmeow:stage-export-projection-ceilings`](../stage-export-projection-ceilings/index.md)
 - [`gmeow:stage-export-pydantic`](../stage-export-pydantic/index.md)
 - [`gmeow:stage-export-references`](../stage-export-references/index.md)
 - [`gmeow:stage-export-research-objects`](../stage-export-research-objects/index.md)

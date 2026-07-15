@@ -59,6 +59,9 @@ fn class_program() -> String {
 fn class_correspondence() -> String {
     format!("{LOGIC_NAMESPACE}Correspondence")
 }
+fn class_grounding_correspondence() -> String {
+    format!("{LOGIC_NAMESPACE}GroundingCorrespondence")
+}
 fn class_caveat() -> String {
     format!("{LOGIC_NAMESPACE}CorrespondenceCaveat")
 }
@@ -97,6 +100,12 @@ fn p_get_leg() -> String {
 }
 fn p_put_leg() -> String {
     format!("{LOGIC_NAMESPACE}putLeg")
+}
+fn p_source_endpoint() -> String {
+    format!("{LOGIC_NAMESPACE}sourceEndpoint")
+}
+fn p_target_endpoint() -> String {
+    format!("{LOGIC_NAMESPACE}targetEndpoint")
 }
 fn p_confidence() -> String {
     format!("{LOGIC_NAMESPACE}confidence")
@@ -298,8 +307,16 @@ impl CorrespondenceProgram {
                     .preservation
                     .map(|p| format!("|pres={}", p.as_str()))
                     .unwrap_or_default();
+                let endpoints = match (&c.source_endpoint, &c.target_endpoint) {
+                    (Some(source), Some(target)) => {
+                        format!("|source={source}|target={target}")
+                    }
+                    (None, None) => String::new(),
+                    _ => unreachable!("Correspondence endpoints are constructed all-or-nothing"),
+                };
+                let grounding = if c.grounding { "|grounding=true" } else { "" };
                 format!(
-                    "{}|{}|{}|{}|{}|{}|{}|{}{preservation}",
+                    "{}|{}|{}|{}|{}|{}|{}|{}{preservation}{endpoints}{grounding}",
                     c.iri,
                     c.relation.as_str(),
                     c.morphism_class.as_str(),
@@ -467,6 +484,13 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
     for c in &program.correspondences {
         lines.push(triple_iri(&prog, &p_has_correspondence(), &c.iri));
         lines.push(triple_iri(&c.iri, RDF_TYPE, &class_correspondence()));
+        if c.grounding {
+            lines.push(triple_iri(
+                &c.iri,
+                RDF_TYPE,
+                &class_grounding_correspondence(),
+            ));
+        }
         lines.push(triple_iri(&c.iri, &p_relation(), &c.relation.iri()));
         lines.push(triple_iri(
             &c.iri,
@@ -489,6 +513,10 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
         }
         if let Some(leg) = &c.put_leg {
             lines.push(triple_iri(&c.iri, &p_put_leg(), leg));
+        }
+        if let (Some(source), Some(target)) = (&c.source_endpoint, &c.target_endpoint) {
+            lines.push(triple_iri(&c.iri, &p_source_endpoint(), source));
+            lines.push(triple_iri(&c.iri, &p_target_endpoint(), target));
         }
         if let Some(v) = c.confidence {
             lines.push(triple_decimal(&c.iri, &p_confidence(), v));
@@ -693,6 +721,19 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Co
         .and_then(|i| crate::ir::Determinacy::from_local(&strip_logic(&i)));
     let get_leg = idx.iri_obj(corr_iri, &p_get_leg());
     let put_leg = idx.iri_obj(corr_iri, &p_put_leg());
+    let source_endpoint = idx.iri_obj(corr_iri, &p_source_endpoint());
+    let target_endpoint = idx.iri_obj(corr_iri, &p_target_endpoint());
+    if source_endpoint.is_some() != target_endpoint.is_some() {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "correspondence <{corr_iri}> must carry both sourceEndpoint and targetEndpoint, \
+                 or neither"
+            ),
+        }));
+    }
+    let grounding = idx
+        .types_of(corr_iri)
+        .contains(&class_grounding_correspondence());
     let according_to = idx.iri_obj(corr_iri, &p_according_to());
     // The per-correspondence preservation judgment (`logic:preservationKind`), DISTINCT
     // from the program-level `hasPreservation`. Absent ⇒ the cell authors no rung (None).
@@ -731,7 +772,7 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Co
         });
     }
 
-    Correspondence::new(
+    let mut correspondence = Correspondence::new(
         corr_iri.to_owned(),
         relation,
         morphism_class,
@@ -747,7 +788,14 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Co
         idx.decimal_obj(corr_iri, &p_probability()),
         according_to,
         preservation,
-    )
+    )?;
+    if let (Some(source), Some(target)) = (source_endpoint, target_endpoint) {
+        correspondence = correspondence.with_endpoints(source, target)?;
+    }
+    if grounding {
+        correspondence = correspondence.as_grounding();
+    }
+    Ok(correspondence)
 }
 
 /// Read the caveats attached to one correspondence. Each `hasCaveat` object carries an
