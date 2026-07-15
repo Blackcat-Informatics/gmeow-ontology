@@ -597,3 +597,41 @@ HONEST NOTES (resolved by different means than the literal ask, or consciously s
   0.5775, a conservative truncation of the measured 0.577598, not the exact measured
   value — the report surfaces only rounded scores and an exact-value pin would risk a
   hairline EPSILON red; the truncation is provably ≤ measured and raise-only.
+
+================================================================================
+Issue #1544 — signed compactified radial field math grounding (MERGED, PR #1550)
+Date: 2026-07-15 (stage 3)
+
+Merged to main at squash 597f5a829. Completion-adversary PASS (stage 3, merge-into-
+main result): all 9 acceptance criteria IMPLEMENTED-IN-SOURCE. Deferral scan clean;
+no GitHub issue/PR numbers leaked into ontology/repo source.
+
+Accepted boundaries (human-signed-off; disclosed fragment limits, NOT omissions):
+- Extended-real gate (math:ExtendedRealValueConstraint) does not catch a NON-numeric
+  literal — the logic: guarded fragment has no numeric-datatype test; the
+  non-literal-must-be-a-pole case IS enforced.
+- Measure non-negativity (math:MeasureResultNonNegativeConstraint) forbids the
+  math:NegativeInfinity pole but not a finite-negative literal (main landed
+  logic:ValueRangeConstraint after; a follow-up could tighten this, but measureResult
+  spans literal-or-PositiveInfinity so sh:minInclusive is not straightforwardly safe).
+- math:convexityLaw is authored as midpoint-convexity, not the full λ-chord
+  inequality (the continuum of λ needs scalar arithmetic beyond the first-order
+  guarded fragment); disclosed in the law, not faked, not a boundary.
+- Closed-form leaf-linkage runtime enforcement is a tests/structural.ttl MUST cell
+  over authored instances (transitive AST traversal exceeds the guarded fragment),
+  not a live logic:Constraint. Its correctness bug (existential vs universal) was
+  fixed in stage 2 (gmeow:mustNot).
+- gmeow:FlagshipScenario not registered for the positive-capability radial scenes
+  (the facility needs a native Rust producer + a single enforceable hard-rule
+  failure); the scenes carry the full non-flagship test surface instead.
+- The three new examples (closed-form-functions, signed-radial-field-{qualitative,
+  closed-form}) are on the example_sweep NON_CONFORMANT allowlist for standalone
+  closed-world isolation — the same accepted pattern as ~14 sibling math examples;
+  they conform in the merged bundle (make validate / shacl.clean).
+
+Resolved by the stage-3 merge (NOT carried as deficiencies): the stage-1 slicetest
+paths.rs union hack (and its ~11 cross-slice conformance regressions) — origin/main
+independently landed the sh:/owl:-removal migration (retired math/shapes.ttl, grounded
+63 obligations in logic:), so the hack was reverted to main's version and the
+regressions are GONE. Follow-on issue #1551 (that migration) is thus effectively
+subsumed; #1546 (logic:-authoring ratchet gate) remains open as repo-wide infra.
