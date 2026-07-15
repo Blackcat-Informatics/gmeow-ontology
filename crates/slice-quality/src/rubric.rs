@@ -326,10 +326,12 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     let vocab_prefix_p = id(ds, &g("vocabularyPrefix"));
     let vocab_ns_p = id(ds, &g("vocabularyNamespace"));
     let vocab_subsumed_p = id(ds, &g("vocabularySubsumedBy"));
+    let vocab_owner_p = id(ds, &g("vocabularyOwner"));
     let vocab_countkind_p = id(ds, &g("vocabularyCountKind"));
     let vocab_default_p = id(ds, &g("vocabularyDefaultCeiling"));
     let vocab_preservation_p = id(ds, &g("vocabularyPreservation"));
     let vocab_align_p = id(ds, &g("vocabularyAlignmentPredicate"));
+    let vocab_countpred_p = id(ds, &g("vocabularyCountPredicate"));
     let mut vocabularies: Vec<(String, ProjectionVocabulary)> = Vec::new();
     // The vocab IRI → prefix map the ceiling loop validates gmeow:ceilingVocabulary
     // against; an unknown vocab reference is a hard fail there, never a silent skip.
@@ -372,6 +374,17 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
                     "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularySubsumedBy"
                 ))
             })?;
+        // Every guarded vocabulary is owned by exactly one grounding slice (logic:,
+        // math:, or lang:) — the only boundary at which its external terms may be
+        // authored. A missing owner cannot drive the owner-boundary enforcement, so it
+        // is a hard fail, never a silent default (.goals no-optionality).
+        let owner = vocab_owner_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularyOwner"
+                ))
+            })?;
         let count_kind_local = vocab_countkind_p
             .and_then(|p| one_lit(ds, sid, p))
             .ok_or_else(|| {
@@ -409,6 +422,28 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
             .unwrap_or_default();
         alignment_predicates.sort();
         alignment_predicates.dedup();
+        let mut counted_predicates = vocab_countpred_p
+            .map(|p| all_lits(ds, sid, p))
+            .unwrap_or_default();
+        counted_predicates.sort();
+        counted_predicates.dedup();
+        // countKindStructuralAxiom counts only triples whose predicate is in this
+        // allowlist; an empty allowlist would count nothing and silently disable the
+        // guard — hard fail. Other count kinds ignore the field, and carrying one is a
+        // hard fail (a typo that would never take effect).
+        if count_kind == CountKind::StructuralAxiom {
+            if counted_predicates.is_empty() {
+                return Err(rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) is countKindStructuralAxiom but has \
+                     no gmeow:vocabularyCountPredicate allowlist — it would count nothing"
+                )));
+            }
+        } else if !counted_predicates.is_empty() {
+            return Err(rubric_err(format!(
+                "projection vocabulary {iri} ({prefix}) declares gmeow:vocabularyCountPredicate \
+                 but is not countKindStructuralAxiom — the allowlist would never take effect"
+            )));
+        }
         vocab_iri_to_prefix.insert(iri.clone(), prefix.clone());
         vocabularies.push((
             iri,
@@ -416,10 +451,12 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
                 prefix,
                 namespaces,
                 subsumed_by,
+                owner,
                 count_kind,
                 default_ceiling,
                 preservation,
                 alignment_predicates,
+                counted_predicates,
             },
         ));
     }
@@ -872,6 +909,7 @@ gmeow:tierFloorFooB a gmeow:SliceTierFloor ;
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#" ;
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
+    gmeow:vocabularyOwner gmeow:sliceLogic ;
     gmeow:vocabularyCountKind "countKindShape" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
@@ -923,6 +961,7 @@ gmeow:pcc-foo-sh a gmeow:ProjectionCeilingCommitment ;\n\
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#" ;
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
+    gmeow:vocabularyOwner gmeow:sliceLogic ;
     gmeow:vocabularyCountKind "countKindBogus" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
@@ -939,6 +978,7 @@ gmeow:pcc-foo-sh a gmeow:ProjectionCeilingCommitment ;\n\
         let body = r#"gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
+    gmeow:vocabularyOwner gmeow:sliceLogic ;
     gmeow:vocabularyCountKind "countKindShape" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
@@ -957,6 +997,7 @@ gmeow:projVocab-sh2 a gmeow:ProjectionVocabulary ;\n\
     gmeow:vocabularyPrefix \"sh\" ;\n\
     gmeow:vocabularyNamespace \"http://example.org/other#\" ;\n\
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;\n\
+    gmeow:vocabularyOwner gmeow:sliceLogic ;\n\
     gmeow:vocabularyCountKind \"countKindShape\" ;\n\
     gmeow:vocabularyDefaultCeiling 0 ;\n\
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."

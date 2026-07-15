@@ -211,6 +211,13 @@ pub enum CountKind {
     /// counted by distinct triples whose predicate or object IRI falls in the vocab's
     /// namespace(s).
     TypedAxiom,
+    /// A structural-axiom vocabulary (RDFS): counted by distinct triples whose
+    /// PREDICATE IRI is in the vocab's declared `gmeow:vocabularyCountPredicate`
+    /// allowlist (e.g. `rdfs:subClassOf`/`subPropertyOf`/`domain`/`range`) — the
+    /// minimum useful structural set. Pure annotations (`rdfs:label`/`comment`/
+    /// `isDefinedBy`/`seeAlso`) are NOT in the allowlist and never count, and OWL is
+    /// not guarded at all.
+    StructuralAxiom,
     /// A non-RDF surface (Datalog, Prolog, N3): structurally 0 in TTL slices. These
     /// registry entries are documentary-only — never enforced, never counted.
     NonRdfSurface,
@@ -223,6 +230,7 @@ impl CountKind {
         match local {
             "countKindShape" => Some(Self::Shape),
             "countKindTypedAxiom" => Some(Self::TypedAxiom),
+            "countKindStructuralAxiom" => Some(Self::StructuralAxiom),
             "countKindNonRdfSurface" => Some(Self::NonRdfSurface),
             _ => None,
         }
@@ -235,6 +243,7 @@ impl CountKind {
         match self {
             Self::Shape => "countKindShape",
             Self::TypedAxiom => "countKindTypedAxiom",
+            Self::StructuralAxiom => "countKindStructuralAxiom",
             Self::NonRdfSurface => "countKindNonRdfSurface",
         }
     }
@@ -258,8 +267,20 @@ pub struct ProjectionVocabulary {
     /// The `logic:` core IRI this vocabulary is a generated lossy projection of
     /// (`gmeow:vocabularySubsumedBy`) — the Principle 17 subsumption witness.
     pub subsumed_by: String,
+    /// The single grounding-slice IRI (logic:, math:, or lang:) that OWNS this
+    /// vocabulary (`gmeow:vocabularyOwner`) — the one boundary at which its external
+    /// terms may be authored. Every other slice must reference the owner's
+    /// grounding-vocabulary term instead; authoring the external term outside the
+    /// owner's mapping boundary is ungrounded second-source residue. Distinct from
+    /// [`Self::subsumed_by`] (the projection-direction witness, always the logic: core).
+    pub owner: String,
     /// How authored constructs are recognized in this vocab's surface.
     pub count_kind: CountKind,
+    /// For [`CountKind::StructuralAxiom`], the predicate-IRI allowlist a triple's
+    /// predicate must be in to count (`gmeow:vocabularyCountPredicate`) — the minimum
+    /// useful structural set for RDFS, deliberately excluding annotation predicates.
+    /// Empty (and unused) for every other count kind.
+    pub counted_predicates: Vec<String>,
     /// The ceiling a slice with no explicit [`ProjectionCeilingCommitment`] for this
     /// vocab is held to (`gmeow:vocabularyDefaultCeiling`) — `0` for every guarded
     /// vocab, so a slice's first ungrounded use of a previously-absent vocab reds the
