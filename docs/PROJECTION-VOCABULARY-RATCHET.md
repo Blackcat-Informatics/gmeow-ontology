@@ -31,51 +31,61 @@ For every `(slice, vocabulary)` pair the gate guards:
 
 ```text
 residue(slice, vocab) = |hand-authored constructs in vocab's namespace(s)|
-                       − |constructs carrying a RESOLVABLE logic:formalizes/logic:grounds back-ref|
-                       − |Principle-5 by-reference alignment/bridge links|
+                       − |constructs carrying a RESOLVABLE logic:formalizes back-ref|
+                       − |validated correspondence cells at the vocab's OWNER boundary|
 ```
 
 - **Surfaces scanned:** every slice-owned `*.ttl` — `module.ttl`, `shapes.ttl`, and
-  any `.ttl` under a `mappings/` directory — not just `shapes.ttl` alone. This
-  includes the one intentional hand-authored FnO carve-out path,
-  `dsl/mappings/transforms.fno.ttl`.
-- **Grounding subtraction:** a construct is excluded from the residue only if its
-  `logic:formalizes` or `logic:grounds` back-reference **resolves to an existing
-  `logic:` axiom**. A *dangling* back-ref does NOT ground the construct — otherwise
-  migration debt could be faked with a rubber-stamped triple that points nowhere.
-- **By-reference alignment carve-out:** a triple is subtracted as a legitimate
-  bridge — never counted as a second source of truth — only when its predicate is
-  one of the vocabulary's declared `gmeow:vocabularyAlignmentPredicate` values
-  (e.g. `rdf:type`, `rdfs:subClassOf`, `owl:equivalentClass`, `rdfs:seeAlso`, SKOS
-  mapping predicates) **and** its object resolves to an **EXTERNAL** namespace
-  (never `gmeow:`). Per Principle 5 ("MORE is always BETTER"), foundational
-  alignment by reference must never be punished. An internal `gmeow:X
-  owl:equivalentClass gmeow:Y` triple is **not** exempted — it stays in the
-  residue as a genuine second source of truth.
+  every `.ttl` under a `mappings/` directory (scanned RECURSIVELY, matching the base
+  reconstruction so working and base never diverge) — plus the repo-level
+  `dsl/mappings/` surface (the one intentional hand-authored FnO carve-out path
+  `dsl/mappings/transforms.fno.ttl`), attributed to the DSL surface IRI.
+- **Grounding subtraction:** a construct is excluded only if its `logic:formalizes`
+  back-reference resolves to an **appropriately-typed grounding construct** — a
+  target whose `rdf:type` is a `logic:` axiom class (`logic:Formula`/`logic:Rule`/
+  `logic:*Assertion`) or a named `owl:AllDisjointClasses`. A dangling back-ref, or one
+  to an untyped/non-axiom target, does NOT ground (migration debt cannot be faked with
+  a rubber-stamp). (`logic:grounds` was a phantom predicate the ontology never defined;
+  it is gone.)
+- **By-reference alignment carve-out (owner-boundary, validated only):** a triple is
+  subtracted as a legitimate bridge ONLY when it is a **validated correspondence cell**
+  — subject typed `gmeow:TermEquivalence` carrying a `gmeow:justification`, predicate
+  `gmeow:alignObject`, object EXTERNAL (non-`gmeow:`) — AND it is measured on the
+  vocabulary's `gmeow:vocabularyOwner` (grounding-slice) surface. A raw
+  `rdfs:subClassOf`/`owl:equivalentClass` to an external object — even in `module.ttl`
+  — is NOT exempt, and a correspondence cell authored in a non-owner slice is NOT
+  exempt: external terms may be authored only at their owner grounding slice's mapping
+  boundary; every other slice references the grounding-vocabulary term instead.
 
 ### Per count-kind
 
 | `gmeow:vocabularyCountKind` | Applies to | What is counted |
 |---|---|---|
 | `countKindShape` | SHACL (`sh:`) | STRUCTURAL ROLE: typed `sh:NodeShape`/`sh:PropertyShape`, plus subjects of `sh:path`, objects of `sh:property`/`sh:node`, and subjects of `sh:sparql`/`sh:rule` — so an anonymous nested `sh:property [ sh:path … ]` block embedded in `module.ttl` is caught, not only a typed top-level shape in `shapes.ttl`. |
-| `countKindTypedAxiom` | gUFO, BFO, DOLCE, FnO, EDOAL, SSSOM | Distinct triples whose predicate or object IRI falls in the vocabulary's namespace(s). Prose (a literal object) never counts — it is not a real typed triple. |
-| `countKindNonRdfSurface` | Datalog, Prolog, N3 | Structurally **0** always. These surfaces are **documentary-only** registry entries: their rule/clause syntax is not RDF and cannot be hand-authored as triples inside a TTL slice, so the enumerator always returns empty. They are named in the guarded-vocabulary registry for completeness (Principle 17 lists them as `logic:` projections) but are never an enforceable gate; no counter-example ever claims one reds. |
+| `countKindTypedAxiom` | gUFO, BFO (BFO-core), the OBO families (RO, IAO, PATO, SO, MFOEM, STATO, OBCS), DOLCE, SUMO, FnO, EDOAL, SSSOM, and the math (QUDT, OpenMath, MathML, OM-2, UCUM) and lang (OntoLex, LexInfo, WordNet, UD, Lexvo, Glottolog) families | Distinct triples whose predicate or object IRI falls in the vocabulary's namespace(s). Prose (a literal object) never counts. |
+| `countKindStructuralAxiom` | RDFS (`rdfs:`) | Distinct triples whose PREDICATE is in the `gmeow:vocabularyCountPredicate` allowlist — the minimum useful structural set `rdfs:subClassOf`/`rdfs:subPropertyOf` (the subsumption taxonomy). Pure annotations (`rdfs:label`/`comment`/`isDefinedBy`/`seeAlso`) and property signatures (`rdfs:domain`/`range`) are NOT counted. |
+| `countKindNonRdfSurface` | Datalog, Prolog, N3 | Structurally **0** always — documentary-only registry entries; their rule/clause syntax is not RDF and cannot be hand-authored as TTL triples. Never an enforceable gate. |
 
-## 3. The declarative-OWL/RDFS carve-out
+## 3. OWL and RDFS
 
-`owl:` and `rdfs:` are **deliberately absent** from the guarded set. Per
-[`slices/grounding/logic/design/LOGIC-VALIDATION.md` §"Deriving the fragment from
-slice axioms"](../slices/grounding/logic/design/LOGIC-VALIDATION.md), declarative
-EL-safe OWL/RDFS axioms (`owl:Class`, `rdfs:subClassOf`, `owl:someValuesFrom`,
-qualified cardinality, `owl:disjointWith`, `owl:FunctionalProperty`, …) are the
-**canonical derive-source**: `logic:` validation shapes are *derived from* the
-authored OWL/RDFS TBox, not the other way around. There is no guarding morphism
-`logic: → owl/rdfs`; membership in the guarded set requires that `logic:`
-*totally covers* the vocabulary, which OWL/RDFS fail by construction because they
-are the authoring surface `logic:` is derived FROM. This carve-out is structural,
-not an oversight, and `owl:cardinality` (exact/unqualified procedural OWL) is
-already gated elsewhere — it reds `reason-verify` per `LOGIC-VALIDATION.md` — so
-re-counting it here would be redundant.
+The permanent OWL/RDFS derive-source carve-out is **removed** — treating OWL as a
+forever-exception contradicts Principle 17 (OWL is a projection of `logic:`). In its
+place the ratchet guards a **minimal, bounded** slice of it:
+
+- **RDFS** is guarded as `countKindStructuralAxiom` over exactly `rdfs:subClassOf` and
+  `rdfs:subPropertyOf` — the subsumption taxonomy, genuine reasoning content that
+  should be authored as `logic:` and projected. Annotations (`rdfs:label`/`comment`/
+  `isDefinedBy`/`seeAlso`) are never counted (they are metadata, not a second source of
+  reasoning truth), and property signatures (`rdfs:domain`/`range`) are RBox
+  declarations, not migration debt — also uncounted.
+- **OWL is not guarded at all.** `owl:cardinality` (exact/unqualified procedural OWL)
+  is already gated at `reason-verify` per `LOGIC-VALIDATION.md`, and the remaining
+  declarative OWL is left untouched by this ratchet. Guarding it would flood the seed
+  with annotation-like debt for no reasoning benefit.
+
+Each guarded vocabulary carries a `gmeow:vocabularyOwner` — the one grounding slice
+(`logic:`, `math:`, or `lang:`) at whose mapping boundary its external terms may be
+authored; every other slice must reference the owner's grounding-vocabulary term.
 
 ## 4. The three ratchet invariants
 
@@ -111,8 +121,8 @@ every guarded vocabulary).
    base** is a HARD-FAIL (stop-and-report) — the two cases are never conflated.
 
 **Back-ref integrity.** As stated in §2, a construct is excluded from the residue
-as "grounded" only if its `logic:formalizes`/`logic:grounds` back-reference
-*resolves* to an existing `logic:` axiom. A dangling back-ref does not ground.
+as "grounded" only if its `logic:formalizes` back-reference *resolves* to an
+appropriately-typed `logic:` axiom (§2). A dangling or non-axiom back-ref does not ground.
 Parse or read failure anywhere on the gate's path is itself a HARD-FAIL — the
 counter never falls back to a clean residue of `0` on error.
 
@@ -122,19 +132,21 @@ Ontology-resident as `gmeow:ProjectionVocabulary` individuals in
 `slices/core/slice-quality-rubric/module.ttl` — a dogfooded, data-driven guard
 list, never a hardcoded set in Rust.
 
-| Prefix | Vocabulary | Count-kind | Guard |
-|---|---|---|---|
-| `sh` | SHACL | `countKindShape` | Enforced |
-| `gufo` | gUFO | `countKindTypedAxiom` | Enforced |
-| `bfo` | Basic Formal Ontology | `countKindTypedAxiom` | Enforced |
-| `dul` | DOLCE Ultra-Lite | `countKindTypedAxiom` | Enforced |
-| `fno` | Function Ontology | `countKindTypedAxiom` | Enforced |
-| `edoal` | EDOAL | `countKindTypedAxiom` | Enforced |
-| `sssom` | SSSOM | `countKindTypedAxiom` | Enforced |
-| `datalog` | Datalog | `countKindNonRdfSurface` | Documentary-only |
-| `prolog` | Prolog | `countKindNonRdfSurface` | Documentary-only |
-| `n3` | Notation3 | `countKindNonRdfSurface` | Documentary-only |
-| `owl` / `rdfs` | OWL / RDFS | — | Deliberately absent (derive-source carve-out, §3) |
+| Prefix | Vocabulary | Owner | Count-kind | Guard |
+|---|---|---|---|---|
+| `sh` | SHACL | logic | `countKindShape` | Enforced |
+| `rdfs` | RDFS (subsumption taxonomy) | logic | `countKindStructuralAxiom` | Enforced |
+| `gufo` | gUFO | logic | `countKindTypedAxiom` | Enforced |
+| `bfo` | Basic Formal Ontology (`obo/BFO_`) | logic | `countKindTypedAxiom` | Enforced |
+| `ro`/`iao`/`pato`/`so`/`mfoem` | OBO families | logic | `countKindTypedAxiom` | Enforced |
+| `stato`/`obcs` | OBO statistics | math | `countKindTypedAxiom` | Enforced |
+| `dul` | DOLCE Ultra-Lite | logic | `countKindTypedAxiom` | Enforced |
+| `sumo` | SUMO | logic | `countKindTypedAxiom` | Enforced |
+| `fno`/`edoal`/`sssom` | alignment stack | logic | `countKindTypedAxiom` | Enforced |
+| `qudt`/`openmath`/`mathml`/`om2`/`ucum` | math families | math | `countKindTypedAxiom` | Enforced (airtight) |
+| `ontolex`/`lexinfo`/`wordnet`/`ud`/`lexvo`/`glottolog` | lang families | lang | `countKindTypedAxiom` | Enforced (airtight) |
+| `datalog`/`prolog`/`n3` | non-RDF surfaces | logic | `countKindNonRdfSurface` | Documentary-only |
+| `owl` | OWL | — | — | Not guarded (already gated at `reason-verify`, §3) |
 
 Every enforced vocabulary carries `gmeow:vocabularySubsumedBy` back to the
 `logic:` core (the Principle 17 witness) and a `gmeow:vocabularyPreservation`

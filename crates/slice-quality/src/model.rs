@@ -213,7 +213,7 @@ pub enum CountKind {
     TypedAxiom,
     /// A structural-axiom vocabulary (RDFS): counted by distinct triples whose
     /// PREDICATE IRI is in the vocab's declared `gmeow:vocabularyCountPredicate`
-    /// allowlist (e.g. `rdfs:subClassOf`/`subPropertyOf`/`domain`/`range`) — the
+    /// allowlist (e.g. `rdfs:subClassOf`/`subPropertyOf`, the subsumption taxonomy) — the
     /// minimum useful structural set. Pure annotations (`rdfs:label`/`comment`/
     /// `isDefinedBy`/`seeAlso`) are NOT in the allowlist and never count, and OWL is
     /// not guarded at all.
