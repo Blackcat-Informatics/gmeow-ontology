@@ -14,6 +14,9 @@ use std::cmp::Ordering;
 /// The GMEOW namespace prefix every rubric IRI shares.
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
+/// The canonical mathematics grounding namespace.
+pub const MATH: &str = "https://blackcatinformatics.ca/math/";
+
 /// One rung of the quality ladder — a `gmeow:QualityTier` individual.
 ///
 /// Tiers are totally ordered by [`Tier::rank`]; the ordering is what makes the

@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -66,11 +67,11 @@ gmeow:Capacity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Capacity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's gmeow:unit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@x-gmeow-english ;
+    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a dimensionless math:Quantity, while the entity kind being counted follows from the capacity claim and the location's place type rather than a pseudo-unit. A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@x-gmeow-english ;
     skos:example "ex:cap a gmeow:Capacity ; gmeow:capacityOf ex:hall ; gmeow:observationResult ex:scalar500 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing fire-code vs venue-claim capacities into one (Principle 9) and avoid deleting a post-renovation capacity — suppress with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a ScalarQuantity whose gmeow:unit fixes what is counted, and index competing claims with gmeow:accordingTo."@x-gmeow-english ;
+    gmeow:howToUse "Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a math:Quantity carrying math:dimensionless and its count value, and index competing claims with gmeow:accordingTo."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the maximum number of entities a location can hold, as a Measurement; contested capacities coexist as standpoint-indexed instances."@x-gmeow-english .
 
 gmeow:CelestialCoordinates
@@ -396,11 +397,11 @@ gmeow:Occupancy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Occupancy"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the current number of entities located at or within a location. The location is the observedFeature; the result is a ScalarQuantity. Typically computed by the solver layer from locatedAt relationships and active LocationState instances (P12), but may also be asserted directly from sensor readings or manual counts."@x-gmeow-english ;
+    skos:definition "A measurement of the current number of entities located at or within a location. The location is the observedFeature; the result is a math:Quantity. Typically computed by the solver layer from locatedAt relationships and active LocationState instances (P12), but may also be asserted directly from sensor readings or manual counts."@x-gmeow-english ;
     skos:example "ex:occ a gmeow:Occupancy ; gmeow:occupancyOf ex:hall ; gmeow:observationResult ex:scalar120 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it where the solver should derive it from locatedAt / active LocationStates (P12) unless you have a direct count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Occupancy, set gmeow:occupancyOf, and point gmeow:observationResult at a ScalarQuantity; pair with Capacity to derive Utilization."@x-gmeow-english ;
+    gmeow:howToUse "Mint Occupancy, set gmeow:occupancyOf, and point gmeow:observationResult at a math:Quantity; pair with Capacity to derive Utilization."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the current number of entities at a location, as a Measurement (sensor reading, manual count, or solver-derived)."@x-gmeow-english .
 
 gmeow:Orientation
@@ -469,7 +470,7 @@ gmeow:ProximityMeasurement
     skos:example "ex:dist a gmeow:ProximityMeasurement ; gmeow:observedFeature ex:a ; gmeow:proximityTo ex:b ; gmeow:observationResult ex:scalar ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting the computed distance as a plain triple — proximity is computed by the solver from the metric (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint ProximityMeasurement, set gmeow:observedFeature (the from-entity) and gmeow:proximityTo (the target), and point gmeow:observationResult at a ScalarQuantity in a frame with gmeow:hasMetricKind."@x-gmeow-english ;
+    gmeow:howToUse "Mint ProximityMeasurement, set gmeow:observedFeature (the from-entity) and gmeow:proximityTo (the target), and point gmeow:observationResult at a math:Quantity in a frame with gmeow:hasMetricKind."@x-gmeow-english ;
     gmeow:useWhen "Use to reify a measured distance, dissimilarity, or proximity between two entities in a frame that declares its metric kind."@x-gmeow-english .
 
 gmeow:ReferenceFrame
@@ -663,11 +664,11 @@ gmeow:Utilization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Utilization"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a ScalarQuantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core."@x-gmeow-english ;
+    skos:definition "A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a math:Quantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core."@x-gmeow-english ;
     skos:example "ex:util a gmeow:Utilization ; gmeow:utilizationOf ex:hall ; gmeow:observationResult ex:ratio024 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly in the canonical core — it is computed by the solver from capacity and occupancy (P12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Utilization, set gmeow:utilizationOf, and point gmeow:observationResult at a ratio/percentage ScalarQuantity."@x-gmeow-english ;
+    gmeow:howToUse "Mint Utilization, set gmeow:utilizationOf, and point gmeow:observationResult at a ratio/percentage math:Quantity."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the occupancy-to-capacity ratio at a location, as a Measurement."@x-gmeow-english .
 
 gmeow:VirtualLocation
@@ -1750,7 +1751,7 @@ gmeow:elevation
     rdfs:range xsd:decimal ;
     skos:definition "Elevation above sea level in metres."@x-gmeow-english ;
     skos:example "ex:pt gmeow:elevation 47.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a frame-relative vertical bound on an overlay (use gmeow:overlayLowerBound / gmeow:overlayUpperBound with a ScalarQuantity) and avoid for celestial epoch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a frame-relative vertical bound on an overlay (use gmeow:overlayLowerBound / gmeow:overlayUpperBound with a math:Quantity) and avoid for celestial epoch."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Add gmeow:elevation alongside gmeow:latitude / gmeow:longitude; for explicit vertical datums use the altitude/depth reference frames."@x-gmeow-english ;
     gmeow:useWhen "Use for elevation above sea level in metres on a GeoCoordinates point."@x-gmeow-english .
@@ -2956,13 +2957,13 @@ gmeow:overlayLowerBound
     rdfs:domain gmeow:RegulatoryOverlay ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "overlay lower bound"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
-    skos:definition "The lower bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11 (e.g. altitude above MSL, flight level, depth below sea level)."@x-gmeow-english ;
+    rdfs:range math:Quantity ;
+    skos:definition "The lower bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a math:Quantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11 (e.g. altitude above MSL, flight level, depth below sea level)."@x-gmeow-english ;
     skos:example "ex:ov gmeow:overlayLowerBound ex:fl100 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for purely 2D overlays (leave absent) and avoid a bare number without unit and vertical frame (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:overlayLowerBound at a ScalarQuantity with QUDT unit in an altitude/depth reference frame; pair with gmeow:overlayUpperBound."@x-gmeow-english ;
-    gmeow:useWhen "Use for the lower vertical bound of an overlay (altitude/depth/elevation) as a frame-relative ScalarQuantity."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:overlayLowerBound at a math:Quantity with QUDT unit in an altitude/depth reference frame; pair with gmeow:overlayUpperBound."@x-gmeow-english ;
+    gmeow:useWhen "Use for the lower vertical bound of an overlay (altitude/depth/elevation) as a frame-relative math:Quantity."@x-gmeow-english .
 
 gmeow:overlayPlace
     a owl:FunctionalProperty ,
@@ -3177,13 +3178,13 @@ gmeow:overlayUpperBound
     rdfs:domain gmeow:RegulatoryOverlay ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "overlay upper bound"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
-    skos:definition "The upper bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11."@x-gmeow-english ;
+    rdfs:range math:Quantity ;
+    skos:definition "The upper bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a math:Quantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11."@x-gmeow-english ;
     skos:example "ex:ov gmeow:overlayUpperBound ex:fl200 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for purely 2D overlays and avoid omitting the vertical frame (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:overlayUpperBound at a ScalarQuantity with QUDT unit in an explicit vertical frame; pair with gmeow:overlayLowerBound."@x-gmeow-english ;
-    gmeow:useWhen "Use for the upper vertical bound of an overlay as a frame-relative ScalarQuantity."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:overlayUpperBound at a math:Quantity with QUDT unit in an explicit vertical frame; pair with gmeow:overlayLowerBound."@x-gmeow-english ;
+    gmeow:useWhen "Use for the upper vertical bound of an overlay as a frame-relative math:Quantity."@x-gmeow-english .
 
 gmeow:parentFrame
     a owl:FunctionalProperty ,
@@ -3415,7 +3416,7 @@ gmeow:proximity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "proximity"@x-gmeow-english ;
     rdfs:range gmeow:ProximityMeasurement ;
-    skos:definition "Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → ScalarQuantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter."@x-gmeow-english ;
+    skos:definition "Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → math:Quantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter."@x-gmeow-english ;
     skos:example "ex:a gmeow:proximity ex:dist ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it when vantage, confidence, temporal scope, or standpoint matter — read the reified Measurement directly."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -4838,26 +4839,26 @@ gmeow:stateHasAngularVelocity
     rdfs:domain gmeow:LocationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "state has angular velocity"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:range math:Quantity ;
     skos:definition "The angular velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing readings coexist (Principle 9)."@x-gmeow-english ;
     skos:example "ex:s1 gmeow:stateHasAngularVelocity ex:omega ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for linear velocity (use gmeow:stateHasVelocity) and avoid a bare number without unit and frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:stateHasAngularVelocity at a ScalarQuantity expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
-    gmeow:useWhen "Use for the angular velocity at a location state, as a ScalarQuantity in the state's frame; non-functional."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:stateHasAngularVelocity at a math:Quantity expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
+    gmeow:useWhen "Use for the angular velocity at a location state, as a math:Quantity in the state's frame; non-functional."@x-gmeow-english .
 
 gmeow:stateHasVelocity
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LocationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "state has velocity"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:range math:Quantity ;
     skos:definition "The linear velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing velocity readings from different sensors coexist (Principle 9)."@x-gmeow-english ;
     skos:example "ex:s1 gmeow:stateHasVelocity ex:vel ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for angular velocity (use gmeow:stateHasAngularVelocity) and avoid a bare number without unit and frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:stateHasVelocity at a ScalarQuantity (value + unit) expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
-    gmeow:useWhen "Use for the linear velocity at a location state, as a ScalarQuantity in the state's frame; non-functional, so competing sensor readings coexist."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:stateHasVelocity at a math:Quantity (value + unit) expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
+    gmeow:useWhen "Use for the linear velocity at a location state, as a math:Quantity in the state's frame; non-functional, so competing sensor readings coexist."@x-gmeow-english .
 
 gmeow:stateOf
     a owl:FunctionalProperty ,
@@ -5323,7 +5324,7 @@ gmeow:yaw
 
 STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting standpoint facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
-REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
+REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D bounds (altitude/depth) are frame-relative math:Quantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
 
 VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (virtual-location design). Virtual locations (video conferences, chat spaces, websites, social media pages) are typed by an open value vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are solver-layer computations (Principle 12), never asserted as triples in the OWL core.
 
@@ -5345,11 +5346,11 @@ _:b0
     owl:members ( gmeow:rcc8dc gmeow:rcc8ec gmeow:rcc8po gmeow:rcc8tpp gmeow:rcc8ntpp gmeow:rcc8tppi gmeow:rcc8ntppi gmeow:rcc8eq ) .
 
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
-# well-formedness shapes.
+# well-formedness shapes. Observation results remain multi-valued so measurements
+# in distinct frames or from coexisting standpoints do not collapse.
 gmeow:ProximityMeasurement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.

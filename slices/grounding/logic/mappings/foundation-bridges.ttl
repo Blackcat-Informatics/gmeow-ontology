@@ -37,7 +37,7 @@ gmeow:mapsetLogicYamato a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-yamato-20210808" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Version-pinned bridge views onto the YAMATO 2021-08-08 OWL export. Its process/event and role commitments remain distinct, so no identity-strength axiom is emitted." .
+    gmeow:setComment "Version-pinned bridge views onto the YAMATO 2021-08-08 OWL export. Its process/event, role, material-quantity, and quality-value commitments remain distinct, so no identity-strength axiom is emitted." .
 
 gmeow:mapsetLogicOpenCyc a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
@@ -182,6 +182,26 @@ gmeow:eqLogicYamatoQuality a gmeow:TermEquivalence, logic:GroundingCorrespondenc
     logic:sourceEndpoint logic:Quality ; logic:targetEndpoint yamato:quality ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
     gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoQuantity a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quantity ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:amount_of_matter ;
+    logic:sourceEndpoint logic:Quantity ; logic:targetEndpoint yamato:amount_of_matter ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "YAMATO amount_of_matter is the material-portion category matching logic:Quantity; it is not YAMATO's numerical quantity or measurement-value hierarchy." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoQualityValue a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:QualityValue ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:quality_value ;
+    logic:sourceEndpoint logic:QualityValue ; logic:targetEndpoint yamato:quality_value ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "Both categories locate a quality in a value space; YAMATO additionally commits quality_value to a generically-dependent context with exactly one value dimension and bearer." ;
     logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .
 

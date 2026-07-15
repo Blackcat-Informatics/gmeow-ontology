@@ -1741,7 +1741,7 @@ pub struct Correspondence {
     pub weight: Option<f64>,
     /// `logic:probability` — only under a declared dependency model; in `[0, 1]`.
     pub probability: Option<f64>,
-    /// IRI of the standpoint (`logic:accordingTo`); `None` ⇒ unspecified standpoint
+    /// IRI of the standpoint (`gmeow:accordingTo`); `None` ⇒ unspecified standpoint
     /// (unspecified, not universal).
     pub according_to: Option<String>,
     /// The declared preservation judgment (`logic:preservationKind`) — the loss residue

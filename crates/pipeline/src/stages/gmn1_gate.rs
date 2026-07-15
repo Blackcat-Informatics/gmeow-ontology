@@ -98,9 +98,9 @@ impl Gmn1RoundTripReport {
     }
 }
 
-/// Load `gmeow:gmnDictV1` from the lang slice's authored `module.ttl` — the SAME
+/// Load `gmeow:gmnDictV2` from the lang slice's authored `module.ttl` — the SAME
 /// dictionary every grounding source is decoded/encoded against (one shipped
-/// `gmeow:gmnDictV1` version, per the carrier's own version-pinning discipline). Shared
+/// `gmeow:gmnDictV2` version, per the carrier's own version-pinning discipline). Shared
 /// by [`check_gmn1_roundtrip`] and [`check_gmn1_construct_coverage`] so both audits load
 /// the identical dictionary, never two independently-loaded copies.
 fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag> {
@@ -110,7 +110,7 @@ fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag
     let lang_ds = parse_dataset(&lang_bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("parse {}: {e}", lang_module_path.display())))?;
     GmnDictionary::from_dataset(&lang_ds)
-        .map_err(|e| stage_err(&format!("gmeow:gmnDictV1 failed to load: {}", e.0)))
+        .map_err(|e| stage_err(&format!("gmeow:gmnDictV2 failed to load: {}", e.0)))
 }
 
 /// Every grounding source path (`slices/grounding/<slice>/module.ttl` plus every
@@ -349,6 +349,7 @@ pub fn check_gmn1_shipped_projections(
             .map_err(|e| stage_err(&format!("discover slice catalog: {e}")))?;
     let sources: Vec<NamedSource> =
         crate::stages::lang_projection::lang_model_sources(Some(&catalog))?;
+    let dictionary = load_lang_dictionary(root)?;
     let by_name: BTreeMap<&str, &NamedSource> =
         sources.iter().map(|s| (s.name.as_str(), s)).collect();
 
@@ -367,9 +368,10 @@ pub fn check_gmn1_shipped_projections(
         let ds = parse_dataset(&source.bytes, "text/turtle", None)
             .map_err(|e| stage_err(&format!("parse lang-model source for {path}: {e}")))?;
         let model = Gmn0Model::from_dataset(&ds);
-        // The projection stage builds the per-source dictionary from the source dataset itself.
-        let source_dict = GmnDictionary::from_dataset(&ds).unwrap_or_default();
-        let doc = gmn1_write(&model, &source_dict).map_err(|e| {
+        // The projection stage and this lint both consume the one carrier-authored
+        // dictionary/glyph registry. A source-local fallback would silently suppress every
+        // executable glyph that is declared in grounding/lang rather than in the example.
+        let doc = gmn1_write(&model, &dictionary).map_err(|e| {
             stage_err(&format!(
                 "shipped GMN-1 projection {path} no longer writes from its source: {e}"
             ))
@@ -383,7 +385,7 @@ pub fn check_gmn1_shipped_projections(
         // The production classifier over the shipped artifact (its full document, whose text
         // we just proved equals the committed bytes; the reference table is the codec's
         // out-of-band store): clean ⇒ Ok.
-        match gmn1_read(&doc, &source_dict) {
+        match gmn1_read(&doc, &dictionary) {
             Ok(back) => {
                 if gmn0_canonically_equal(&model, &back) {
                     verified += 1;
@@ -454,11 +456,22 @@ mod tests {
         std::fs::create_dir_all(&logic_dir).unwrap();
         std::fs::create_dir_all(&math_dir).unwrap();
 
-        // A minimal but real lang module.ttl so the dictionary loads (an empty
-        // dictionary is a legal — if degenerate — GmnDictionary).
+        // A minimal but real current codebook. Its dictionary is deliberately empty (legal for
+        // this fixture), but the graph still pins the same typed dictionary/script references and
+        // dialect versions that production loading requires. That keeps this test focused on the
+        // deliberately uncovered math construct rather than failing at registry bootstrap.
         std::fs::write(
             lang_dir.join("module.ttl"),
-            b"@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n",
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+              gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;\n\
+                gmeow:references gmeow:fixtureDictionary, lang:fixtureScript ;\n\
+                gmeow:gmnDictionaryVersion \"2\" ;\n\
+                gmeow:gmnGlyphTableVersion \"2\" .\n\
+              gmeow:fixtureDictionary a gmeow:GmnDictionary ;\n\
+                gmeow:gmnDictionaryVersion \"2\" .\n\
+              lang:fixtureScript a lang:Script ;\n\
+                lang:hasGrapheme lang:fixtureGrapheme .\n",
         )
         .unwrap();
         std::fs::write(

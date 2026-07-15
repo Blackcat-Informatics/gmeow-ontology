@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: the application's unique slot indexes are exactly 0, 1, 2.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:contiguousApplication a math:ApplicationExpression ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:contiguousSlot0 , ex:contiguousSlot1 , ex:contiguousSlot2 .
+
+ex:contiguousSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:operand0 .
+ex:contiguousSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:operand1 .
+ex:contiguousSlot2 a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:operand2 .
+ex:operand0 a math:MathematicalExpression .
+ex:operand1 a math:MathematicalExpression .
+ex:operand2 a math:MathematicalExpression .

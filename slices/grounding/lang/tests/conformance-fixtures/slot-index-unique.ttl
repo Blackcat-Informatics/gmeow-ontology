@@ -10,5 +10,5 @@ ex:english a lang:SignSystem .
 ex:cf a lang:ComposedForm ; lang:inSignSystem ex:english ; lang:formSlot ex:s0 , ex:s1 .
 ex:s0 a lang:FormSlot ; lang:slotIndex 0 ; lang:slotForm ex:w0 .
 ex:s1 a lang:FormSlot ; lang:slotIndex 1 ; lang:slotForm ex:w1 .
-ex:w0 a lang:WordForm ; lang:inSignSystem ex:english .
-ex:w1 a lang:WordForm ; lang:inSignSystem ex:english .
+ex:w0 a lang:Form ; lang:inSignSystem ex:english .
+ex:w1 a lang:Form ; lang:inSignSystem ex:english .

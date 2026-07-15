@@ -11,7 +11,7 @@ This slice therefore adds almost nothing — and that is its doctrine. Every agg
 `gmeow:Measurement` in the universal observation stack, so vantage, observed feature,
 result, confidence, granularity, and temporal scope are inherited without duplication
 (Principle 4: one observation spine, reused everywhere). The aggregation region is the
-`observedFeature`; the result is a `gmeow:ScalarQuantity`. The actual arithmetic —
+`observedFeature`; the result is a `math:Quantity`. The actual arithmetic —
 counting, density, centroid, binning — is performed by the solver layer (Principle 12),
 never materialised as asserted triples in the OWL core. The slice realises the the design
 Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
@@ -30,7 +30,7 @@ time, never delete). The k-anonymity *check* itself is a solver computation.
 ### gmeow:SpatialAggregation
 
 A `Measurement` subkind whose `observedFeature` is a Place and whose `observationResult`
-is a `ScalarQuantity`. Because it *is* a measurement, a published census count and a rival
+is a `math:Quantity`. Because it *is* a measurement, a published census count and a rival
 survey estimate over the same region are two coexisting, vantage-bearing aggregations —
 no privileged figure (Principle 9). Pair with `gmeow:hasReferenceFrame` (the spatial
 frame, Principle 11) and `gmeow:hasGranularity` from the reused core spine.

@@ -11,13 +11,15 @@ mod conformance_support;
 use conformance_support::*;
 
 use gmeow_validate::store::{parse_file_dataset, shacl_validate_dataset};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const MATH: &str = "https://blackcatinformatics.ca/math/";
 const GUFO: &str = "http://purl.org/nemo/gufo#";
 const BFO: &str = "http://purl.obolibrary.org/obo/";
 const RO: &str = "http://purl.obolibrary.org/obo/RO_";
 const SUMO: &str = "https://www.ontologyportal.org/SUMO.owl#";
+const YAMATO: &str = "http://www.hozo.jp/owl/YAMATO20210808.miz.owl#";
 const OWL: &str = "http://www.w3.org/2002/07/owl#";
 const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SH: &str = "http://www.w3.org/ns/shacl#";
@@ -29,6 +31,7 @@ const GROUNDING_CORRESPONDENCE: &str =
 const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
 const ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
 const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
+const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
 const MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
@@ -43,13 +46,13 @@ const VALIDATION_ONLY: &str = "https://blackcatinformatics.ca/logic/ValidationOn
 const SOUND_UNDER: &str = "https://blackcatinformatics.ca/logic/SoundUnderApproximation";
 const UNSUPPORTED: &str = "https://blackcatinformatics.ca/logic/Unsupported";
 
-const CATALOGS: [(&str, usize); 6] = [
-    ("gmeow-logic-gufo.sssom.tsv", 50),
-    ("gmeow-logic-bfo.sssom.tsv", 13),
-    ("gmeow-logic-obo.sssom.tsv", 6),
-    ("gmeow-logic-sumo.sssom.tsv", 24),
-    ("gmeow-logic-owl.sssom.tsv", 33),
-    ("gmeow-logic-shacl.sssom.tsv", 15),
+const CATALOGS: [&str; 6] = [
+    "gmeow-logic-gufo.sssom.tsv",
+    "gmeow-logic-bfo.sssom.tsv",
+    "gmeow-logic-obo.sssom.tsv",
+    "gmeow-logic-sumo.sssom.tsv",
+    "gmeow-logic-owl.sssom.tsv",
+    "gmeow-logic-shacl.sssom.tsv",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -62,6 +65,7 @@ struct BridgeRecord {
     class: String,
     kind: String,
     preservation: String,
+    confidence: String,
 }
 
 fn catalog_path() -> std::path::PathBuf {
@@ -139,6 +143,7 @@ fn records() -> Vec<BridgeRecord> {
                     &cell,
                     "preservationKind",
                 ),
+                confidence: exactly_one(graph.objects_lex(&cell, CONFIDENCE), &cell, "confidence"),
             }
         })
         .collect()
@@ -146,6 +151,13 @@ fn records() -> Vec<BridgeRecord> {
 
 fn records_for(file: &str) -> Vec<BridgeRecord> {
     records().into_iter().filter(|r| r.file == file).collect()
+}
+
+fn record_for_source(file: &str, source: &str) -> BridgeRecord {
+    records_for(file)
+        .into_iter()
+        .find(|row| row.source == logic(source))
+        .unwrap_or_else(|| panic!("{file} must contain a row for logic:{source}"))
 }
 
 fn pairs_for(file: &str) -> BTreeSet<(String, String)> {
@@ -159,6 +171,10 @@ fn logic(local: &str) -> String {
     format!("{LOGIC}{local}")
 }
 
+fn math(local: &str) -> String {
+    format!("{MATH}{local}")
+}
+
 fn expected_pairs(entries: &[(&str, &str)]) -> BTreeSet<(String, String)> {
     entries
         .iter()
@@ -169,31 +185,45 @@ fn expected_pairs(entries: &[(&str, &str)]) -> BTreeSet<(String, String)> {
 #[test]
 fn grounding_catalog_is_single_owner_explicit_and_total() {
     let all = records();
-    assert_eq!(
-        all.len(),
-        CATALOGS.iter().map(|(_, count)| count).sum::<usize>(),
-        "the six grounding catalogs must contain the pinned complete surface"
-    );
+    assert!(!all.is_empty(), "the grounding catalog must not be empty");
 
-    let module = GraphStore::parse_ttl_file(&repo_root().join("slices/grounding/logic/module.ttl"));
-    let expected_files: BTreeMap<&str, usize> = CATALOGS.into_iter().collect();
-    let mut actual_files: BTreeMap<&str, usize> = BTreeMap::new();
+    let logic_module =
+        GraphStore::parse_ttl_file(&repo_root().join("slices/grounding/logic/module.ttl"));
+    let math_module =
+        GraphStore::parse_ttl_file(&repo_root().join("slices/grounding/math/module.ttl"));
+    let expected_files: BTreeSet<&str> = CATALOGS.into_iter().collect();
+    let mut actual_files = BTreeSet::new();
     for record in &all {
-        *actual_files.entry(record.file.as_str()).or_default() += 1;
+        actual_files.insert(record.file.as_str());
+        let owning_module = if record.source.starts_with(LOGIC) {
+            &logic_module
+        } else if record.source.starts_with(MATH) {
+            assert_eq!(
+                record.file, "gmeow-logic-sumo.sssom.tsv",
+                "{} may cross the source-slice boundary only through the logic-owned SUMO catalog",
+                record.iri
+            );
+            &math_module
+        } else {
+            panic!(
+                "{} reverses the take1 orientation: source must be canonical logic: or math:, got {}",
+                record.iri, record.source
+            );
+        };
         assert!(
-            record.source.starts_with(LOGIC),
-            "{} reverses the take1 orientation: source must be logic:, got {}",
-            record.iri,
-            record.source
-        );
-        assert!(
-            module.has(Some(&record.source), None, None),
+            owning_module.has(Some(&record.source), None, None),
             "{} uses undeclared grounding source {}",
             record.iri,
             record.source
         );
     }
     assert_eq!(actual_files, expected_files);
+    for file in CATALOGS {
+        assert!(
+            !records_for(file).is_empty(),
+            "{file} must retain a non-empty canonical correspondence surface"
+        );
+    }
 
     let kernel =
         std::fs::read_to_string(repo_root().join("slices/core/kernel/mappings/equivalences.ttl"))
@@ -214,9 +244,17 @@ fn gufo_catalog_covers_every_imported_class_without_silent_drop() {
         .collect();
     let rows = records_for("gmeow-logic-gufo.sssom.tsv");
     let targets: BTreeSet<String> = rows.iter().map(|r| r.target.clone()).collect();
+    let class_targets: BTreeSet<String> = targets.intersection(&imported).cloned().collect();
     assert_eq!(
-        targets, imported,
+        class_targets, imported,
         "every stock gUFO class must be represented in the grounding catalog"
+    );
+    let relation_targets: BTreeSet<String> = targets.difference(&imported).cloned().collect();
+    let expected_relation_targets =
+        BTreeSet::from([format!("{GUFO}isProperPartOf"), format!("{GUFO}mediates")]);
+    assert_eq!(
+        relation_targets, expected_relation_targets,
+        "the gUFO relation surface must contain only the two audited high-confidence bridges"
     );
 
     let unsupported_targets: BTreeSet<String> = rows
@@ -245,7 +283,7 @@ fn gufo_catalog_covers_every_imported_class_without_silent_drop() {
 
 #[test]
 fn bfo_bridge_targets_real_vendored_classes_and_labels() {
-    let expected: [(&str, &str, &str); 13] = [
+    let expected: [(&str, &str, &str); 12] = [
         ("Individual", "BFO_0000001", "entity"),
         ("Endurant", "BFO_0000002", "continuant"),
         ("Event", "BFO_0000003", "occurrent"),
@@ -262,7 +300,6 @@ fn bfo_bridge_targets_real_vendored_classes_and_labels() {
         ("Disposition", "BFO_0000016", "disposition"),
         ("Quality", "BFO_0000019", "quality"),
         ("Role", "BFO_0000023", "role"),
-        ("OccurrentBoundary", "BFO_0000035", "process boundary"),
     ];
     let snapshot = GraphStore::parse_ttl_file(&repo_root().join("imports/targets/bfo.ttl"));
     let pairs = pairs_for("gmeow-logic-bfo.sssom.tsv");
@@ -295,10 +332,6 @@ fn commitment_shifting_catalogs_can_never_emit_equivalence() {
             concat!("http://purl.obolibrary.org/obo/", "BFO_0000050"),
         ),
         (
-            "precedes",
-            concat!("http://purl.obolibrary.org/obo/", "BFO_0000063"),
-        ),
-        (
             "overlaps",
             concat!("http://purl.obolibrary.org/obo/RO_", "0002131"),
         ),
@@ -316,6 +349,116 @@ fn commitment_shifting_catalogs_can_never_emit_equivalence() {
         ),
     ]);
     assert_eq!(pairs_for("gmeow-logic-obo.sssom.tsv"), expected_obo);
+}
+
+#[test]
+fn audited_foundation_rows_use_only_warranted_relations() {
+    let event = record_for_source("gmeow-logic-bfo.sssom.tsv", "Event");
+    assert_eq!(event.predicate, format!("{SKOS}broadMatch"));
+    let role = record_for_source("gmeow-logic-bfo.sssom.tsv", "Role");
+    assert_eq!(role.predicate, format!("{SKOS}relatedMatch"));
+
+    let gufo_proper_part = record_for_source("gmeow-logic-gufo.sssom.tsv", "properPartOf");
+    assert_eq!(gufo_proper_part.target, format!("{GUFO}isProperPartOf"));
+    assert_eq!(gufo_proper_part.predicate, format!("{SKOS}closeMatch"));
+    assert_eq!(gufo_proper_part.preservation, VALIDATION_ONLY);
+    assert_eq!(gufo_proper_part.confidence, "0.95");
+
+    let gufo_mediates = record_for_source("gmeow-logic-gufo.sssom.tsv", "mediates");
+    assert_eq!(gufo_mediates.target, format!("{GUFO}mediates"));
+    assert_eq!(gufo_mediates.predicate, format!("{SKOS}closeMatch"));
+    assert_eq!(gufo_mediates.preservation, VALIDATION_ONLY);
+    assert_eq!(gufo_mediates.confidence, "0.9");
+
+    let quantity = records_for("gmeow-logic-sumo.sssom.tsv")
+        .into_iter()
+        .find(|row| row.source == math("Quantity"))
+        .expect("the logic-owned SUMO boundary must carry the math:Quantity bridge");
+    assert_eq!(quantity.target, format!("{SUMO}Quantity"));
+    assert_eq!(quantity.predicate, format!("{SKOS}broadMatch"));
+    assert_eq!(quantity.class, BRIDGE_VIEW);
+    assert_eq!(quantity.preservation, VALIDATION_ONLY);
+
+    let all = records();
+    for (source, target) in [
+        (logic("OccurrentBoundary"), format!("{BFO}BFO_0000035")),
+        (logic("precedes"), format!("{BFO}BFO_0000063")),
+        (logic("Quantity"), format!("{SUMO}Quantity")),
+    ] {
+        assert!(
+            all.iter()
+                .all(|row| row.source != source || row.target != target),
+            "the rejected grounding row {source} -> {target} must not survive"
+        );
+    }
+}
+
+#[test]
+fn yamato_catalog_pins_material_quantity_and_quality_value() {
+    let graph = GraphStore::parse_ttl_file(
+        &repo_root().join("slices/grounding/logic/mappings/foundation-bridges.ttl"),
+    );
+    let yamato_cells: Vec<String> = graph
+        .subjects_of_type(GROUNDING_CORRESPONDENCE)
+        .into_iter()
+        .filter(|cell| {
+            graph
+                .objects_lex(cell, SSSOM_FILE)
+                .contains("gmeow-logic-yamato.sssom.tsv")
+        })
+        .collect();
+    assert!(
+        !yamato_cells.is_empty(),
+        "the YAMATO grounding catalog must remain non-empty"
+    );
+
+    for (cell, source, target, confidence) in [
+        (
+            "https://blackcatinformatics.ca/gmeow/eqLogicYamatoQuantity",
+            logic("Quantity"),
+            format!("{YAMATO}amount_of_matter"),
+            "0.9",
+        ),
+        (
+            "https://blackcatinformatics.ca/gmeow/eqLogicYamatoQualityValue",
+            logic("QualityValue"),
+            format!("{YAMATO}quality_value"),
+            "0.85",
+        ),
+    ] {
+        assert_eq!(
+            exactly_one(graph.objects(cell, ALIGN_SUBJECT), cell, "alignSubject"),
+            source
+        );
+        assert_eq!(
+            exactly_one(graph.objects(cell, ALIGN_OBJECT), cell, "alignObject"),
+            target
+        );
+        assert_eq!(
+            exactly_one(graph.objects(cell, ALIGN_PREDICATE), cell, "alignPredicate"),
+            format!("{SKOS}closeMatch")
+        );
+        assert_eq!(
+            exactly_one(graph.objects(cell, MORPHISM_CLASS), cell, "morphismClass"),
+            BRIDGE_VIEW
+        );
+        assert_eq!(
+            exactly_one(graph.objects(cell, MORPHISM_KIND), cell, "morphismKind"),
+            COMMITMENT_SHIFTING
+        );
+        assert_eq!(
+            exactly_one(
+                graph.objects(cell, PRESERVATION_KIND),
+                cell,
+                "preservationKind"
+            ),
+            VALIDATION_ONLY
+        );
+        assert_eq!(
+            exactly_one(graph.objects_lex(cell, CONFIDENCE), cell, "confidence"),
+            confidence
+        );
+    }
 }
 
 #[test]
@@ -520,8 +663,8 @@ fn shacl_catalog_pins_the_validation_and_rule_surface() {
 }
 
 #[test]
-fn generated_sssom_views_match_the_six_canonical_catalogs() {
-    for (file, expected_count) in CATALOGS {
+fn generated_sssom_views_have_one_row_per_canonical_correspondence() {
+    for file in CATALOGS {
         let path = repo_root().join("generated/mappings").join(file);
         let text = std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("missing generated view {}: {e}", path.display()));
@@ -531,6 +674,7 @@ fn generated_sssom_views_match_the_six_canonical_catalogs() {
                 !line.is_empty() && !line.starts_with('#') && !line.starts_with("subject_id")
             })
             .count();
+        let expected_count = records_for(file).len();
         assert_eq!(rows, expected_count, "{} row count", path.display());
     }
     assert!(

@@ -201,6 +201,28 @@ fn ontolex_target_carries_soundunder_over_the_lang_lexicon() {
     assert!(ttl.contains("lemon/ontolex#LexicalSense"), "{ttl}");
 }
 
+#[test]
+fn gmn1_target_never_defaults_a_missing_current_codebook() {
+    let input = LangProjectionInput {
+        lang_models: vec![NamedSource {
+            name: "prefix-only".to_owned(),
+            bytes: b"@prefix lang: <https://blackcatinformatics.ca/lang/> .\nlang:Form lang:denotedForm lang:Form .\n"
+                .to_vec(),
+        }],
+        ..Default::default()
+    };
+    let emission = &target("gmn1").emit(&input).expect("emit")[0];
+    assert!(!emission.round_trip_holds);
+    assert!(emission.artifacts.is_empty());
+    assert!(
+        emission
+            .unsupported
+            .iter()
+            .any(|finding| finding.contains("version-pinned resolution cannot default")),
+        "a missing carrier dictionary must be an explicit unsupported finding"
+    );
+}
+
 // ── CoNLL-U: one artifact per co-resident reading (no silent winner) ────────────────
 
 #[test]

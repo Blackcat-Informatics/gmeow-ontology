@@ -15,14 +15,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::LazyLock;
 
-use gmeow_lang_bridge::{Gmn0Model, GmnDictionary, measure_coverage};
+use gmeow_lang_bridge::{
+    Gmn0Model, GmnDictionary, GmnGlyphRegistry, gmn_glyph_token_cost, measure_coverage,
+};
 use gmeow_logic_compile::projections::correspondence::extract_correspondences;
 use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_dc_refinement};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
 use crate::counting;
-use crate::graph::{self, all_lits, g, id, instances_of, one_iri, one_lit};
+use crate::graph::{self, all_iris, all_lits, g, id, instances_of, one_iri, one_lit};
 use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
@@ -46,6 +48,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
         "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
+        "gmn_glyph_optimality_axis" => Some(gmn_glyph_optimality_axis),
         "DocMaturity" => Some(crate::doc_maturity::DocMaturity::axis),
         _ => None,
     }
@@ -67,6 +70,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "reasoner_axis",
     "flagship_counterexample_depth_axis",
     "gmn1_coverage_axis",
+    "gmn_glyph_optimality_axis",
     "DocMaturity",
 ];
 
@@ -1332,7 +1336,7 @@ pub(crate) fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
     None
 }
 
-/// Load the shared `gmeow:gmnDictV1` dictionary from the canonical
+/// Load the shared `gmeow:gmnDictV2` dictionary from the canonical
 /// `slices/grounding/lang/module.ttl` — the SAME dictionary the Task-6 round-trip
 /// gate (`crates/pipeline/src/stages/gmn1_gate.rs`) loads, so this axis's coverage
 /// measurement never diverges against a second, locally-improvised dictionary.
@@ -1396,7 +1400,7 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
                     score: 1.0,
                     findings: vec![advisory(
                         "slice-quality.gmn1-coverage.no-dictionary",
-                        "the shared gmeow:gmnDictV1 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+                        "the shared gmeow:gmnDictV2 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
                     )],
                 };
             };
@@ -1438,6 +1442,309 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
         Vec::new()
     };
     AxisScore { score, findings }
+}
+
+// ── Axis: GMN glyph disposition / optimality (independent of round-trip coverage) ─
+
+const GROUNDING_SLICE_IRIS: &[&str] = &[
+    "https://blackcatinformatics.ca/gmeow/slices/lang",
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/math",
+];
+
+/// Measure whether every explicitly audited symbol candidate owned by this slice has a
+/// complete, evidence-backed disposition, whether every executable glyph target has such
+/// a candidate, and whether adopted/named-key decisions agree with the executable registry
+/// and pinned BPE cost. This axis is intentionally disjoint from [`gmn1_coverage_axis`]:
+/// semantic quad round-trip can remain 1.0 while a symbol candidate is missing its
+/// accessibility/fallback/evidence coat, chose a suboptimal rendering, or an executable
+/// denotation was added without entering the audit population, and this axis will fall.
+fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
+    // Candidate/Denotation authority is centralized in the lang grounding slice even
+    // when the audited target belongs to logic: or math:. Honour this axis's declared
+    // merged-closure scope in repo mode by composing that authority with the scored
+    // slice graph. Without this join, logic/math would falsely report "no candidates"
+    // despite their audited dispositions living exactly where the grounding contract
+    // requires them to live. A bundle scorer may already hand us a wide graph; if no
+    // surrounding checkout is available, retain that supplied graph.
+    let audit_graph = match &ctx.env {
+        ScoringEnv::Repo => repo_root_of(&ctx.slice_dir).and_then(|root| {
+            let lang_module = root.join("slices/grounding/lang/module.ttl");
+            let mut paths = crate::report::slice_ttl_paths(&ctx.slice_dir);
+            if lang_module.is_file() && !paths.contains(&lang_module) {
+                paths.push(lang_module);
+            }
+            paths.sort();
+            let refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
+            crate::dataset_from_paths(&refs).ok()
+        }),
+        ScoringEnv::Bundle(_) => None,
+    };
+    let ds = audit_graph.as_deref().unwrap_or(ctx.graph);
+    let candidates = instances_of(ds, &g("GmnSymbolCandidate"));
+    let target_p = id(ds, &g("gmnCandidateTarget"));
+
+    // A candidate belongs to the scored slice when its target is one of that slice's
+    // owned terms. The candidate records themselves live in the lang-owned gmeow: plane,
+    // so merged-closure scope is required and the target join is the ownership seam.
+    let mut relevant = Vec::new();
+    for candidate in candidates {
+        let Some(cid) = id(ds, &candidate) else {
+            continue;
+        };
+        let targets = target_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if targets.iter().any(|target| ctx.terms.contains(target)) {
+            relevant.push((candidate, targets));
+        }
+    }
+
+    let disposition_p = id(ds, &g("gmnSymbolDisposition"));
+    let basis_p = id(ds, &g("gmnDispositionBasis"));
+    let glyph_p = id(ds, &g("gmnCandidateGlyph"));
+    let fallback_p = id(ds, &g("gmnAsciiFallback"));
+    let spoken_p = id(ds, &g("gmnSpokenLabel"));
+    let rationale_p = id(ds, &g("gmnDispositionRationale"));
+    let denotation_p = id(ds, &g("gmnCandidateDenotation"));
+    let cites_p = id(ds, &g("cites"));
+    let den_target_p = id(ds, "https://blackcatinformatics.ca/lang/denotationTarget");
+    let den_grapheme_p = id(ds, &g("gmnDenotationGrapheme"));
+
+    let adopted = g("gmnDispositionAdoptedGlyph");
+    let named = g("gmnDispositionNamedKey");
+    let structured = g("gmnDispositionStructuredConstructor");
+    let rejected = g("gmnDispositionSemanticRejection");
+    let token_basis = g("gmnBasisTokenCost");
+    let ambiguity_basis = g("gmnBasisAmbiguity");
+    let confusable_basis = g("gmnBasisConfusability");
+    let mismatch_basis = g("gmnBasisSemanticMismatch");
+
+    let registry = GmnGlyphRegistry::from_dataset(ds);
+    let audited_targets: BTreeSet<&str> = relevant
+        .iter()
+        .flat_map(|(_, targets)| targets.iter().map(String::as_str))
+        .collect();
+    // The executable registry correctly refuses a Denotation -> Grapheme chain that lacks
+    // an adopted candidate, so asking only the *successful* registry for its targets would
+    // make that exact omission invisible. Derive the candidate obligations one step earlier:
+    // every denotation that names a grapheme in the current gmnScript repertoire and a target
+    // is intended executable inventory. This is a graph join, not a hand-listed glyph table.
+    let intended_executable_targets: BTreeSet<String> = match (
+        den_target_p,
+        den_grapheme_p,
+        id(ds, "https://blackcatinformatics.ca/lang/hasGrapheme"),
+        id(ds, &g("gmnScript")),
+    ) {
+        (Some(target_p), Some(grapheme_p), Some(has_grapheme_p), Some(script)) => {
+            let repertoire: BTreeSet<_> = ds
+                .quads_for_pattern(Some(script), Some(has_grapheme_p), None, GraphMatch::Any)
+                .map(|quad| quad.o)
+                .collect();
+            ds.quads_for_pattern(None, Some(grapheme_p), None, GraphMatch::Any)
+                .filter(|quad| repertoire.contains(&quad.o))
+                .flat_map(|quad| all_iris(ds, quad.s, target_p))
+                .filter(|target| ctx.terms.contains(target))
+                .collect()
+        }
+        _ => BTreeSet::new(),
+    };
+    let missing_executable_targets: Vec<&str> = intended_executable_targets
+        .iter()
+        .map(String::as_str)
+        .filter(|target| !audited_targets.contains(target))
+        .collect();
+    if relevant.is_empty() && missing_executable_targets.is_empty() {
+        return no_gmn_candidates(ctx);
+    }
+
+    let mut complete = 0usize;
+    let mut findings = Vec::new();
+
+    for target in &missing_executable_targets {
+        findings.push(advisory(
+            "slice-quality.gmn-glyph-optimality.unaudited-executable-target",
+            format!(
+                "{target} has an executable graph-derived GMN glyph binding but no \
+                 gmeow:GmnSymbolCandidate — add the evidence-backed disposition row so the \
+                 registry cannot grow outside the audited symbol inventory"
+            ),
+        ));
+    }
+
+    for (candidate, targets) in &relevant {
+        let cid = id(ds, candidate).expect("candidate came from the same graph");
+        let mut defects = Vec::<String>::new();
+        if targets.len() != 1 {
+            defects.push(format!(
+                "expected exactly one target, found {}",
+                targets.len()
+            ));
+        }
+        let target = targets.first().map(String::as_str).unwrap_or("");
+
+        let dispositions = disposition_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if dispositions.len() != 1 {
+            defects.push(format!(
+                "expected exactly one symbol disposition, found {}",
+                dispositions.len()
+            ));
+        }
+        let disposition = dispositions.first().map(String::as_str).unwrap_or("");
+        if ![
+            adopted.as_str(),
+            named.as_str(),
+            structured.as_str(),
+            rejected.as_str(),
+        ]
+        .contains(&disposition)
+        {
+            defects.push("disposition is outside the closed four-value vocabulary".to_owned());
+        }
+
+        let bases = basis_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if bases.len() != 1 {
+            defects.push(format!(
+                "expected exactly one decision basis, found {}",
+                bases.len()
+            ));
+        }
+        let basis = bases.first().map(String::as_str).unwrap_or("");
+        if ![
+            token_basis.as_str(),
+            ambiguity_basis.as_str(),
+            confusable_basis.as_str(),
+            mismatch_basis.as_str(),
+        ]
+        .contains(&basis)
+        {
+            defects.push("decision basis is outside the closed evidence vocabulary".to_owned());
+        }
+
+        let mut exact_literal = |pred: Option<purrdf::TermId>, name: &str| -> Option<String> {
+            let values = pred.map_or_else(Vec::new, |p| all_lits(ds, cid, p));
+            if values.len() != 1 || values[0].trim().is_empty() {
+                defects.push(format!("{name} must be exactly one non-empty literal"));
+                None
+            } else {
+                Some(values[0].clone())
+            }
+        };
+        let glyph = exact_literal(glyph_p, "candidate glyph");
+        let fallback = exact_literal(fallback_p, "ASCII fallback");
+        let _spoken = exact_literal(spoken_p, "spoken label");
+        let _rationale = exact_literal(rationale_p, "disposition rationale");
+        if cites_p.is_none_or(|p| all_iris(ds, cid, p).is_empty()) {
+            defects.push("candidate has no gmeow:cites evidence anchor".to_owned());
+        }
+        if fallback.as_deref().is_some_and(|value| !value.is_ascii()) {
+            defects.push("ASCII fallback contains a non-ASCII codepoint".to_owned());
+        }
+
+        let denotations = denotation_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if disposition == adopted || disposition == named {
+            if denotations.len() != 1 {
+                defects.push(format!(
+                    "adopted/named sign must point at exactly one denotation, found {}",
+                    denotations.len()
+                ));
+            } else if let Some(did) = id(ds, &denotations[0]) {
+                let den_targets = den_target_p.map_or_else(Vec::new, |p| all_iris(ds, did, p));
+                if den_targets.len() != 1 || den_targets[0] != target {
+                    defects.push(
+                        "candidate denotation does not resolve exactly to its target".to_owned(),
+                    );
+                }
+                let graphemes = den_grapheme_p.map_or_else(Vec::new, |p| all_iris(ds, did, p));
+                if disposition == adopted && graphemes.len() != 1 {
+                    defects.push(
+                        "adopted glyph denotation does not name exactly one grapheme".to_owned(),
+                    );
+                }
+                if disposition == named && !graphemes.is_empty() {
+                    defects.push(
+                        "named-key disposition unexpectedly enters the glyph registry".to_owned(),
+                    );
+                }
+            }
+        } else if !denotations.is_empty() {
+            defects.push(
+                "structured/rejected candidate unexpectedly carries a sign denotation".to_owned(),
+            );
+        }
+
+        match (disposition, basis, glyph.as_deref(), fallback.as_deref()) {
+            (d, b, Some(glyph), Some(fallback)) if d == adopted => {
+                if b != token_basis {
+                    defects.push("adopted glyph is not backed by the token-cost basis".to_owned());
+                }
+                if gmn_glyph_token_cost(glyph) > gmn_glyph_token_cost(fallback) {
+                    defects.push(format!(
+                        "adopted glyph {glyph:?} costs more than fallback {fallback:?}"
+                    ));
+                }
+                match &registry {
+                    Ok(registry)
+                        if registry
+                            .bindings_for_term(target)
+                            .iter()
+                            .any(|(_, registered)| *registered == glyph) => {}
+                    Ok(_) => defects.push(
+                        "adopted candidate has no matching executable scoped registry binding"
+                            .to_owned(),
+                    ),
+                    Err(error) => {
+                        defects.push(format!("executable glyph registry is invalid: {}", error.0))
+                    }
+                }
+            }
+            (d, b, Some(glyph), Some(fallback)) if d == named => {
+                let measured_win = b == token_basis
+                    && gmn_glyph_token_cost(glyph) > gmn_glyph_token_cost(fallback);
+                let safety_win = b == ambiguity_basis || b == confusable_basis;
+                if !measured_win && !safety_win {
+                    defects.push(
+                        "named-key disposition is backed by neither a measured token win nor a safety basis"
+                            .to_owned(),
+                    );
+                }
+            }
+            (d, b, _, _) if d == structured && b != ambiguity_basis => defects.push(
+                "structured-constructor disposition must be backed by ambiguity/arity evidence"
+                    .to_owned(),
+            ),
+            (d, b, _, _) if d == rejected && b != mismatch_basis => defects
+                .push("semantic rejection must be backed by semantic-mismatch evidence".to_owned()),
+            _ => {}
+        }
+
+        if defects.is_empty() {
+            complete += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.gmn-glyph-optimality.incomplete",
+                format!("{candidate}: {}", defects.join("; ")),
+            ));
+        }
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    let denominator = relevant.len() + missing_executable_targets.len();
+    let score = complete as f64 / denominator as f64;
+    AxisScore { score, findings }
+}
+
+fn no_gmn_candidates(ctx: &ScoreContext) -> AxisScore {
+    if GROUNDING_SLICE_IRIS.contains(&ctx.slice_iri.as_str()) {
+        AxisScore {
+            score: 0.0,
+            findings: vec![advisory(
+                "slice-quality.gmn-glyph-optimality.no-candidates",
+                "grounding slice has no explicit gmeow:GmnSymbolCandidate audit population"
+                    .to_owned(),
+            )],
+        }
+    } else {
+        AxisScore::clean(1.0)
+    }
 }
 
 #[cfg(test)]

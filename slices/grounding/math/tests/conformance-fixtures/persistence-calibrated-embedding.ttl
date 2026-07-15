@@ -6,7 +6,7 @@
 # math:FiltrationStages at increasing thresholds, each carrying a math:TopologicalSpace
 # structure nested under the EXISTING transitive math:subsetOf. Two math:PersistenceLifetimes
 # exercise both branches of the extended-real death range: an H1 loop that dies at a finite
-# threshold (a gmeow:Quantity) and an essential H0 component that never dies (math:diesAt
+# threshold (a math:Quantity) and an essential H0 component that never dies (math:diesAt
 # math:PositiveInfinity). A math:StabilityCalibrationRecord ties the persistence evidence,
 # math:persistenceDerivedCredence, and the math:bottleneckStabilityTheorem together, and the
 # produced credence lands as logic:confidence on a math:ResidualInterpretationClaim about a
@@ -77,15 +77,15 @@ ex:cx3 a math:TopologicalSpace ; math:subsetOf ex:cx4 .
 ex:cx4 a math:TopologicalSpace .
 
 # The thresholds ε₁ < ε₂ < ε₃ < ε₄ as dimensioned quantities (a latent-space scale).
-ex:eps1 a gmeow:Quantity ; gmeow:quantityValue "0.10"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
-ex:eps2 a gmeow:Quantity ; gmeow:quantityValue "0.25"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
-ex:eps3 a gmeow:Quantity ; gmeow:quantityValue "0.50"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
-ex:eps4 a gmeow:Quantity ; gmeow:quantityValue "0.90"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
+ex:eps1 a math:Quantity ; math:quantityValue "0.10"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit ; gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
+ex:eps2 a math:Quantity ; math:quantityValue "0.25"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit ; gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
+ex:eps3 a math:Quantity ; math:quantityValue "0.50"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit ; gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
+ex:eps4 a math:Quantity ; math:quantityValue "0.90"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit ; gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
 
 # --- Two persistence lifetimes — both branches of the extended-real death ---- #
 
 # A non-essential H1 loop born at ε₂ and dying at a finite threshold ε₄ (persistence
-# 0.65 — long-lived, so signal rather than noise): math:diesAt is a finite gmeow:Quantity.
+# 0.65 — long-lived, so signal rather than noise): math:diesAt is a finite math:Quantity.
 ex:loopLifetime a math:PersistenceLifetime ;
     math:overFiltration ex:persistenceFiltration ;
     math:persistenceFeature ex:h1Loop ;
@@ -136,3 +136,7 @@ ex:sentimentAxis a math:EmbeddingDimension ;
     math:latentDimensionOf ex:latent .
 ex:topologyAnalystFrame a gmeow:Standpoint , gmeow:Entity .
 ex:sentimentMeaningFormula a logic:MetaLevelFormula .
+<http://example.org/math/eps1> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/eps2> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/eps3> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/eps4> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

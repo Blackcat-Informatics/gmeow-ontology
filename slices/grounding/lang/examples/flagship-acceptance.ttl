@@ -42,6 +42,7 @@ exa:sentenceToFormula a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
     gmeow:enforcesFailureClass lang:UnderspecifiedDenotation ;
+    skos:note "Structural discharge is irreducible here: the guard omits a required denotation field, and open-world reasoning cannot infer that a value does not exist. The class-scoped closed-world validation projection is the authoritative executable negative."@x-gmeow-english ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 2 — GMEOW reading its own prose ------------------------------ #
@@ -53,6 +54,7 @@ exa:proseSelfReading a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_form::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/surface-unhashable.ttl" ;
     gmeow:enforcesFailureClass lang:UnhashableSurface ;
+    skos:note "Structural discharge is irreducible here: the guard omits material-identity fields, and their absence is a closed-world validation fact rather than a DL contradiction. The producer separately proves corpus-wide lift totality."@x-gmeow-english ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 3 — the multilingual docs trees as translation --------------- #
@@ -64,6 +66,7 @@ exa:docsAsTranslation a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_translation::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/translation-unit-underspecified.ttl" ;
     gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit ;
+    skos:note "Structural discharge is irreducible here: a missing source, target, or correspondence is observable only under the unit's declared closed-world validation contract; an open-world reasoner may not conclude absence."@x-gmeow-english ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 4 — GMEOW's serializations as grammars ----------------------- #
@@ -75,6 +78,7 @@ exa:serializationsAsGrammars a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/projection-exact-preservation-violated.ttl" ;
     gmeow:enforcesFailureClass lang:ExactPreservationViolated ;
+    skos:note "Structural discharge is irreducible here: exact round-trip failure is established by executing the serializer/parser section-retraction path over artifacts, not by a static DL entailment over the manifest."@x-gmeow-english ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 5 — ambiguity held honestly ---------------------------------- #
@@ -86,4 +90,5 @@ exa:ambiguityHeldHonestly a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/meaning-unrouted-ambiguous.ttl" ;
     gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation ;
+    skos:note "Structural discharge is irreducible here: the failure joins a data-dependent multiplicity of recorded senses with the absence of lang:viaSense, a closed-world guarded-existence check that OWL cannot prove from omission."@x-gmeow-english ;
     gmeow:counterExampleDischarge gmeow:structuralDischarge .

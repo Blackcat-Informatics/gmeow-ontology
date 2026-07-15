@@ -20,3 +20,4 @@ ex:inUnitProbability a math:ProbabilityValue , math:RationalValue ;
     gmeow:hasReferenceFrame ex:forecastFrame .
 
 ex:forecastFrame a gmeow:ReferenceFrame .
+<http://example.org/math/inUnitProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

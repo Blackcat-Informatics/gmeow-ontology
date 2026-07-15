@@ -40,6 +40,22 @@ ASK {
 }""" ;
     gmeow:saRationale "All seven core observation roles MUST be owl:ObjectProperty." .
 
+ex:saObservationResultBroadNonFunctionalCarrier a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:observationResult a owl:ObjectProperty ;
+        rdfs:domain gmeow:Observation ;
+        rdfs:range logic:Individual .
+    gmeow:isResultOf rdfs:domain logic:Individual .
+    FILTER NOT EXISTS { gmeow:observationResult a owl:FunctionalProperty }
+}""" ;
+    gmeow:saRationale "Observation results span concrete entities and abstract values, so the carrier ranges over logic:Individual and is non-functional: multiple frame- or standpoint-indexed results coexist." .
+
 # --- 3. The observation value-vocabulary classes exist (MUST) ----------------
 ex:saObservationValueVocabularies a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -49,10 +65,9 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:ObservationMethod a owl:Class . gmeow:ObservationType a owl:Class .
     gmeow:Measurement a owl:Class . gmeow:SensoryObservation a owl:Class .
-    gmeow:StandpointClaim a owl:Class . gmeow:ScalarQuantity a owl:Class .
-    gmeow:Quantity a owl:Class . gmeow:MeasuredValue a owl:Class .
+    gmeow:StandpointClaim a owl:Class .
 }""" ;
-    gmeow:saRationale "The observation-stack classes MUST exist as owl:Class." .
+    gmeow:saRationale "The observation-owned value-vocabulary classes MUST exist as owl:Class; the quantity authority is imported from math: rather than redeclared here." .
 
 # --- 4. The nine ObservationType seeds exist (MUST) --------------------------
 ex:saObservationTypeSeeds a gmeow:StructuralAssertion ;
@@ -80,14 +95,19 @@ ASK {
 }""" ;
     gmeow:saRationale "All six seeded ObservationMethod individuals MUST exist." .
 
-# --- 6. ScalarQuantity datatype properties exist (MUST) ---------------------
-ex:saScalarQuantityProperties a gmeow:StructuralAssertion ;
+# --- 6. Observation uncertainty qualifies the math-owned quantity (MUST) ----
+ex:saQuantityUncertaintyGrounding a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:quantityValue a owl:DatatypeProperty . gmeow:quantityUncertainty a owl:DatatypeProperty . }""" ;
-    gmeow:saRationale "The ScalarQuantity datatype properties MUST exist." .
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:quantityUncertainty a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain math:Quantity .
+}""" ;
+    gmeow:saRationale "Observations owns only the uncertainty qualifier; its domain is the sole math:Quantity authority." .
 
 # --- 7. The universal-claim-construct sub-property bridges fire (MUST) -------
 ex:saPropertyBridges a gmeow:StructuralAssertion ;
@@ -107,23 +127,16 @@ ASK {
 }""" ;
     gmeow:saRationale "The observations-module-local domain sub-property bridges expose NameUsage/RightsStatement/IdentityFacet/VersionMembership roles as observation roles." .
 
-# --- 8. Quantity ≡ ScalarQuantity (MUST) ------------------------------------
-ex:saQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
+# --- 8. Retired observation-local quantity aliases stay absent (MUST NOT) ---
+ex:saRetiredQuantityAliasesAbsent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:Quantity owl:equivalentClass gmeow:ScalarQuantity . }""" ;
-    gmeow:saRationale "gmeow:Quantity MUST be equivalentClass gmeow:ScalarQuantity." .
-
-# --- 9. MeasuredValue ≡ Quantity (MUST) -------------------------------------
-ex:saMeasuredValueEquivalentQuantity a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:MeasuredValue owl:equivalentClass gmeow:Quantity . }""" ;
-    gmeow:saRationale "gmeow:MeasuredValue MUST be equivalentClass gmeow:Quantity." .
+ASK {
+    VALUES ?legacy { gmeow:Quantity gmeow:ScalarQuantity gmeow:MeasuredValue gmeow:quantityValue }
+    ?legacy ?predicate ?object .
+}""" ;
+    gmeow:saRationale "The observation-local Quantity, ScalarQuantity, MeasuredValue, and quantityValue authorities are retired; consumers use math:Quantity and math:quantityValue." .
 
 # --- 10. isResultOf is the inverse of observationResult (MUST) --------------
 ex:saIsResultOfInverseObservationResult a gmeow:StructuralAssertion ;
@@ -264,6 +277,7 @@ ex:saQualityStratificationGrounding a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -278,7 +292,10 @@ ASK {
     gmeow:trueQuantity rdfs:subPropertyOf logic:trueQuantity .
     gmeow:unit rdfs:subPropertyOf logic:unit .
     gmeow:hasReferenceFrame rdfs:subPropertyOf logic:referenceFrame .
-    gmeow:quantityValue rdfs:subPropertyOf logic:measuredValue .
+    gmeow:UnitBearingQuantityValueConstraint a logic:GuardedImplicationConstraint ;
+        logic:onClass math:Quantity ;
+        logic:trigger gmeow:unit ;
+        logic:requires math:quantityValue .
     gmeow:pressure a gmeow:GenericQuality .
 }""" ;
-    gmeow:saRationale "The YAMATO quality stratification MUST be grounded in the observation spine: the persistent gmeow:Quality (subclass of logic:Quality) borne by gmeow:bearer, dated readings attached via gmeow:observationOf (a gmeow:observedFeature specialization) + gmeow:observedAt, the frame-independent gmeow:Magnitude with gmeow:dimension, and the measurement-seam lifts onto the logic: foundation (gmeow:trueQuantity / gmeow:unit / gmeow:hasReferenceFrame / gmeow:quantityValue) so a domain measurement fires logic:MeasurementFrameMissing when frameless (Principle 11). The legacy hasUnit property is fully retired in favour of gmeow:unit." .
+    gmeow:saRationale "The YAMATO quality stratification MUST be grounded in the observation spine: the persistent gmeow:Quality borne by its bearer, dated readings attached through observationOf, the frame-independent Magnitude, and the trueQuantity/unit/referenceFrame seams lifted into logic:. The guarded constraint requires a numeric value only when a math:Quantity bears a unit; the generic math:quantityValue remains usable for abstract values and declared rates without becoming globally measurement-relative." .

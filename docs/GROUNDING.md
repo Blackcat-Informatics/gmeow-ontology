@@ -41,14 +41,11 @@ Two hard rules govern the kernel:
    slice for a grounding concept. Where a grounding concept is found split
    across a grounding and a non-grounding slice, the reconciliation direction
    is fixed: the grounding slice owns the concept and the non-grounding slice
-   consumes it. The standing case is quantity: the observations slice's
-   `gmeow:Quantity` (≡ `gmeow:ScalarQuantity`, carrying `gmeow:quantityValue`
-   with unit, frame, determinacy, and provenance) and the math slice's
-   `math:Quantity` (carrying `math:quantityValue` and `math:hasDimension`)
-   coexist with **no declared relationship** — two value-carrying properties
-   for one concept. The scheduled reconciliation makes the dimensional
-   quantity math-owned and the observations spine its consumer, collapsing
-   the duplicate value property.
+   consumes it. Quantity is the standing applied example: `math:Quantity` and
+   `math:quantityValue` are the sole class/property authorities, carrying the
+   dimension and concrete magnitude. The observations slice consumes that
+   object and adds unit, frame, determinacy, uncertainty, and provenance
+   qualifiers without minting observation-local aliases.
 
 ## External grounding ownership
 
@@ -76,13 +73,15 @@ are generated views of those records.
 
 The shipped grounding surface is split by semantic owner:
 
-- `logic:` carries 141 core correspondences for gUFO, BFO, OBO/RO, SUMO,
+- `logic:` carries 140 core correspondences for gUFO, BFO, OBO/RO, SUMO,
   OWL/RDFS, and SHACL Core/AF in
   [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
-  plus 21 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
+  plus 23 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
   [`foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
-- `math:` carries its identity catalog plus 13 validation-only Data Cube,
-  STATO, OBCS, SIO, and OBI rows in
+- `math:` carries its identity catalog, six direct quantity/value bridges to
+  SOSA, OM 1.8, IVOA ObsCore, LOINC, and QUDT in
+  [`quantity-bridges.ttl`](../slices/grounding/math/mappings/quantity-bridges.ttl),
+  plus 13 validation-only Data Cube, STATO, OBCS, SIO, and OBI rows in
   [`statistical-bridges.ttl`](../slices/grounding/math/mappings/statistical-bridges.ttl).
 - `lang:` carries its identity catalog plus 21 validation-only OntoLex-Lemon,
   LexInfo, Global WordNet schema, NIF, and Web Annotation rows in

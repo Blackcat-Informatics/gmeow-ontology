@@ -50,7 +50,9 @@ use gmeow_lang_bridge::registry::{
     EMISSION_WORTHY_CLASSES, LangEmission, LangProjectionInput, NamedSource,
     assert_registry_covers, registry,
 };
-use gmeow_lang_bridge::{exact_round_trip_holds, is_exact_correspondence, ntriples_sorted};
+use gmeow_lang_bridge::{
+    GmnDictionary, exact_round_trip_holds, is_exact_correspondence, ntriples_sorted,
+};
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::{ProjectionResult, assert_no_overclaim};
@@ -336,6 +338,7 @@ fn collect_input(
     let mut grammars: Vec<NamedSource> = Vec::new();
     let mut lang_models: Vec<NamedSource> = Vec::new();
     let mut varieties: Vec<NamedSource> = Vec::new();
+    let mut gmn_dictionary: Option<GmnDictionary> = None;
     if let Some(catalog) = catalog {
         for record in catalog.records() {
             for artifact in &record.artifacts {
@@ -374,7 +377,34 @@ fn collect_input(
                         name: variety_module_stem(&record.slice_dir),
                         bytes: artifact.content.clone(),
                     });
+                    if record.slice_dir.file_name().and_then(|name| name.to_str()) == Some("lang") {
+                        let dataset = purrdf::parse_dataset(&artifact.content, "text/turtle", None)
+                            .map_err(|error| {
+                                stage_err(format!(
+                                    "parse grounding/lang module for the GMN codebook: {error}"
+                                ))
+                            })?;
+                        gmn_dictionary =
+                            Some(GmnDictionary::from_dataset(&dataset).map_err(|error| {
+                                stage_err(format!("load grounding/lang GMN codebook: {}", error.0))
+                            })?);
+                    }
                 }
+            }
+        }
+    }
+    if let Some(dictionary) = &gmn_dictionary {
+        for grammar in &mut grammars {
+            if grammar.name == "gmn" {
+                grammar.bytes = dictionary
+                    .glyph_registry()
+                    .render_grammar(&grammar.bytes)
+                    .map_err(|error| {
+                        stage_err(format!(
+                            "render GMN glyph grammar from the carrier registry: {}",
+                            error.0
+                        ))
+                    })?;
             }
         }
     }
@@ -387,6 +417,7 @@ fn collect_input(
         grammars,
         lang_models,
         varieties,
+        gmn_dictionary,
     })
 }
 
@@ -532,6 +563,50 @@ mod tests {
         // Exact grammar emissions round-trip: no lang:roundTripHolds "false" on an EBNF
         // projection subject (an Exact-with-false record would have hard-failed the build).
         assert!(nt.contains("\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"));
+    }
+
+    #[test]
+    fn gmn_projection_uses_carrier_glyphs_and_graph_derived_grammar() {
+        let catalog = repo_catalog();
+        let input = collect_input(Some(&catalog)).expect("collect projection input");
+        let dictionary = input
+            .gmn_dictionary
+            .as_ref()
+            .expect("grounding/lang supplies the one carrier GMN dictionary");
+        let expected_production = dictionary.glyph_registry().render_glyph_token_production();
+        let corpus = build_corpus(Some(&catalog)).expect("build projection corpus");
+
+        let grammar = corpus
+            .artifacts
+            .iter()
+            .find(|(path, _)| path == "generated/projections/lang/ebnf/gmn.ebnf")
+            .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+            .expect("the generated GMN EBNF artifact exists");
+        assert!(
+            grammar.lines().any(|line| line == expected_production),
+            "generated grammar does not carry the graph-derived closed production:\n{grammar}"
+        );
+
+        let surface = corpus
+            .artifacts
+            .iter()
+            .find(|(path, _)| path == "generated/projections/lang/gmn1/gmn-grounding-glyphs.gmn")
+            .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+            .expect("the grounding-glyph projection witness exists");
+        for glyph in ["+", "π", "¬", "*"] {
+            assert!(surface.contains(glyph), "missing {glyph:?} in:\n{surface}");
+        }
+        for fallback in [
+            "math__Addition",
+            "math__pi",
+            "logic__not",
+            "lang__Ungrammaticality",
+        ] {
+            assert!(
+                !surface.contains(fallback),
+                "writer leaked prefix fallback {fallback:?}:\n{surface}"
+            );
+        }
     }
 
     #[test]

@@ -181,7 +181,7 @@ gmeow:eqMathExtendedRealLine a gmeow:TermEquivalence, logic:GroundingCorresponde
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
 
-# --- Ordered intervals → Wikidata / OpenMath (concept identity) ------------- #
+# --- Ordered intervals → Wikidata / OpenMath ------------------------------- #
 
 gmeow:eqMathIntervalWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Interval ;
@@ -198,34 +198,34 @@ gmeow:eqMathIntervalWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 
 gmeow:eqMathIntervalOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Interval ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject <https://openmath.org/cd/interval1.xhtml> ;
     logic:sourceEndpoint math:Interval ; logic:targetEndpoint <https://openmath.org/cd/interval1.xhtml> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "OpenMath interval1 (ordered intervals)" ;
-    gmeow:comment "math:Interval aligns to the OpenMath interval1 content dictionary, whose symbols interval_cc, interval_oo, interval_oc, and interval_co carry exactly the four closed/open endpoint-inclusion combinations math:lowerInclusion and math:upperInclusion express. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200)." ;
+    gmeow:comment "The OpenMath interval1 content-dictionary page collects several distinct symbols — interval, interval_cc, interval_oo, interval_oc, and interval_co — while math:Interval represents their shared ordered-interval family with explicit endpoint inclusion. No one symbol uniquely denotes the class, so the page is only a related resource." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .
 
 # --- Arithmetic operators → OpenMath (content-dictionary symbols) ----------- #
 # Each arithmetic operator individual denotes the same operation as its OpenMath
 # content-dictionary symbol (arith1 for the algebraic operators, transc1 for the
-# logarithm). closeMatch, full IRI by reference to the CD page (curl-validated
-# HTTP 200 July 2026): the GMEOW individual carries a math: signature over number
+# logarithm). closeMatch to the canonical symbol IRI declared by the official
+# content dictionary: the GMEOW individual carries a math: signature over number
 # systems the bare CD symbol does not, so the correspondence is close, not
 # invertible identity. The slice previously anchored these in prose only.
 
 gmeow:eqMathAdditionOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Addition ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Addition ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#plus> ;
+    logic:sourceEndpoint math:Addition ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#plus> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 plus" ;
-    gmeow:comment "math:Addition is the binary addition operator (+); the OpenMath arith1 symbol plus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Addition is the binary addition operator (+); OpenMath arith1#plus is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -233,12 +233,12 @@ gmeow:eqMathAdditionOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 gmeow:eqMathSubtractionOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Subtraction ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Subtraction ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#minus> ;
+    logic:sourceEndpoint math:Subtraction ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#minus> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 minus" ;
-    gmeow:comment "math:Subtraction is the binary subtraction operator (−); the OpenMath arith1 symbol minus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Subtraction is the binary subtraction operator (−); OpenMath arith1#minus is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -246,12 +246,12 @@ gmeow:eqMathSubtractionOM a gmeow:TermEquivalence, logic:GroundingCorrespondence
 gmeow:eqMathMultiplicationOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Multiplication ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Multiplication ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#times> ;
+    logic:sourceEndpoint math:Multiplication ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#times> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 times" ;
-    gmeow:comment "math:Multiplication is the binary multiplication operator (×); the OpenMath arith1 symbol times is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Multiplication is the binary multiplication operator (×); OpenMath arith1#times is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -259,12 +259,12 @@ gmeow:eqMathMultiplicationOM a gmeow:TermEquivalence, logic:GroundingCorresponde
 gmeow:eqMathDivisionOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Division ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Division ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#divide> ;
+    logic:sourceEndpoint math:Division ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#divide> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 divide" ;
-    gmeow:comment "math:Division is the binary division operator (÷); the OpenMath arith1 symbol divide is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Division is the binary division operator (÷); OpenMath arith1#divide is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -272,12 +272,12 @@ gmeow:eqMathDivisionOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 gmeow:eqMathExponentiationOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Exponentiation ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Exponentiation ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#power> ;
+    logic:sourceEndpoint math:Exponentiation ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#power> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 power" ;
-    gmeow:comment "math:Exponentiation is the exponentiation operator (a^b); the OpenMath arith1 symbol power is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Exponentiation is the exponentiation operator (a^b); OpenMath arith1#power is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -285,12 +285,12 @@ gmeow:eqMathExponentiationOM a gmeow:TermEquivalence, logic:GroundingCorresponde
 gmeow:eqMathRootOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Root ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Root ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#root> ;
+    logic:sourceEndpoint math:Root ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#root> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 root" ;
-    gmeow:comment "math:Root is the root operator (the b-th root of a); the OpenMath arith1 symbol root is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Root is the root operator (the b-th root of a); OpenMath arith1#root is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -298,12 +298,12 @@ gmeow:eqMathRootOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 gmeow:eqMathLogarithmOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Logarithm ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/transc1.xhtml> ;
-    logic:sourceEndpoint math:Logarithm ; logic:targetEndpoint <https://openmath.org/cd/transc1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/transc1#log> ;
+    logic:sourceEndpoint math:Logarithm ; logic:targetEndpoint <http://www.openmath.org/cd/transc1#log> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath transc1 log" ;
-    gmeow:comment "math:Logarithm is the logarithm operator (log_b of a); the OpenMath transc1 symbol log is the same operation. closeMatch by reference to the transc1 CD page." ;
+    gmeow:comment "math:Logarithm is the logarithm operator (log_b of a); OpenMath transc1#log is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -311,12 +311,12 @@ gmeow:eqMathLogarithmOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 gmeow:eqMathNegationOM a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:Negation ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:Negation ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#unary_minus> ;
+    logic:sourceEndpoint math:Negation ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#unary_minus> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "OpenMath arith1 unary_minus" ;
-    gmeow:comment "math:Negation is the unary additive-inverse operator (−x); the OpenMath arith1 symbol unary_minus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:comment "math:Negation is the unary additive-inverse operator (−x); OpenMath arith1#unary_minus is its verified canonical content-dictionary symbol IRI. closeMatch because the GMEOW operator also carries an explicit mathematical signature." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -1732,19 +1732,19 @@ gmeow:eqMathErfWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
 # --- Calculus binders → OpenMath content dictionaries ---------------------- #
 #
 # The binder operators lower to OpenMath CD symbols (align, don't spine —
-# Principle 17). Full IRIs to the CD pages (calculus1, arith1) — all curl-
-# validated HTTP 200; the OpenMath tensor1 CD 404s, so tensor fields align to
-# Wikidata (above) rather than a dead OpenMath link.
+# Principle 17). Targets are the canonical symbol IRIs declared by the official
+# calculus1, limit1, and arith1 content dictionaries; tensor fields remain on
+# Wikidata because no audited OpenMath tensor symbol was available.
 
 gmeow:eqMathDiffBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:differentiationBinder ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/calculus1.xhtml> ;
-    logic:sourceEndpoint math:differentiationBinder ; logic:targetEndpoint <https://openmath.org/cd/calculus1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/calculus1#diff> ;
+    logic:sourceEndpoint math:differentiationBinder ; logic:targetEndpoint <http://www.openmath.org/cd/calculus1#diff> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "OpenMath calculus1#diff" ;
-    gmeow:comment "math:differentiationBinder aligns to the diff symbol of the OpenMath calculus1 content dictionary. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200)." ;
+    gmeow:comment "math:differentiationBinder aligns to the verified OpenMath calculus1#diff symbol IRI. closeMatch because the local binder carries explicit AST binding and scope commitments beyond the bare content-dictionary symbol." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -1752,12 +1752,12 @@ gmeow:eqMathDiffBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespondence 
 gmeow:eqMathPartialDiffBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:partialDifferentiationBinder ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/calculus1.xhtml> ;
-    logic:sourceEndpoint math:partialDifferentiationBinder ; logic:targetEndpoint <https://openmath.org/cd/calculus1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/calculus1#partialdiff> ;
+    logic:sourceEndpoint math:partialDifferentiationBinder ; logic:targetEndpoint <http://www.openmath.org/cd/calculus1#partialdiff> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "OpenMath calculus1#partialdiff" ;
-    gmeow:comment "math:partialDifferentiationBinder aligns to the partialdiff symbol of the OpenMath calculus1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:comment "math:partialDifferentiationBinder aligns to the verified OpenMath calculus1#partialdiff symbol IRI. closeMatch because the local binder carries explicit AST binding and scope commitments beyond the bare content-dictionary symbol." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -1765,12 +1765,12 @@ gmeow:eqMathPartialDiffBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespo
 gmeow:eqMathLimitBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:limitBinder ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/calculus1.xhtml> ;
-    logic:sourceEndpoint math:limitBinder ; logic:targetEndpoint <https://openmath.org/cd/calculus1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/limit1#limit> ;
+    logic:sourceEndpoint math:limitBinder ; logic:targetEndpoint <http://www.openmath.org/cd/limit1#limit> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "OpenMath calculus1#limit" ;
-    gmeow:comment "math:limitBinder aligns to the limit symbol of the OpenMath calculus1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:objectLabel "OpenMath limit1#limit" ;
+    gmeow:comment "math:limitBinder aligns to the verified OpenMath limit1#limit symbol IRI (the symbol is not in calculus1). closeMatch because the local binder carries explicit AST binding and scope commitments beyond the bare content-dictionary symbol." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
@@ -1778,27 +1778,27 @@ gmeow:eqMathLimitBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespondence
 gmeow:eqMathSumBinderOm a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:summationBinder ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
-    logic:sourceEndpoint math:summationBinder ; logic:targetEndpoint <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:alignObject <http://www.openmath.org/cd/arith1#sum> ;
+    logic:sourceEndpoint math:summationBinder ; logic:targetEndpoint <http://www.openmath.org/cd/arith1#sum> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "OpenMath arith1#sum" ;
-    gmeow:comment "math:summationBinder aligns to the sum symbol of the OpenMath arith1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:comment "math:summationBinder aligns to the verified OpenMath arith1#sum symbol IRI. closeMatch because the local binder carries explicit AST binding and scope commitments beyond the bare content-dictionary symbol." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:eqMathSpecialFunctionOm a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:SpecialFunction ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject <https://openmath.org/cd/transc1.xhtml> ;
     logic:sourceEndpoint math:SpecialFunction ; logic:targetEndpoint <https://openmath.org/cd/transc1.xhtml> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "OpenMath transc1 (transcendental functions)" ;
-    gmeow:comment "math:SpecialFunction aligns to the OpenMath transc1 transcendental-functions CD, the closest OpenMath home for named analysis functions. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:comment "The OpenMath transc1 page collects many distinct transcendental-function symbols, while math:SpecialFunction is a broad local superclass. No one symbol uniquely denotes that class, so the content-dictionary page is only a related resource." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" ;
-    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:preservationKind logic:ValidationOnly .
 
 # --- Special functions → DLMF (equation-ID locators, link-only) ------------ #

@@ -18,7 +18,7 @@
 #   P4  — canonical source in ontology/modules/quality.ttl; alignments here.
 #   P5  — maximal bridging by reference; no external axioms imported.
 #   P9  — quality dimensions are co-equal value individuals; none privileged.
-#   P11 — assessment results are ScalarQuantity bundles (frame+unit+determinacy).
+#   P11 — assessment results are math:Quantity bundles (frame+unit+determinacy).
 #   P12 — quality metrics are computed by external solvers, not in OWL.
 
 gmeow:mapsetQuality a gmeow:MappingSet ;
@@ -51,7 +51,7 @@ gmeow:eqQuality001 a gmeow:TermEquivalence ;
     gmeow:alignObject dqv:QualityMeasurement ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Both are reified quality assessments carrying a numeric or categorical result. GMEOW's result is a ScalarQuantity bundle (unit+frame+determinacy+provenance); DQV uses dqv:value with an expectedDataType on the Metric." ;
+    gmeow:comment "Both are reified quality assessments carrying a numeric or categorical result. GMEOW's result is a math:Quantity bundle (dimension plus any applicable unit/frame, determinacy, and provenance); DQV uses dqv:value with an expectedDataType on the Metric." ;
     gmeow:sssomFile "gmeow-quality.sssom.tsv" .
 
 gmeow:eqQuality002 a gmeow:TermEquivalence ;

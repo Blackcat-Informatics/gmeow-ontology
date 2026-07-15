@@ -842,7 +842,7 @@ class ProximityMeasurement(ConfiguredBaseModel):
 
     How to use:
         - Mint ProximityMeasurement, set gmeow:observedFeature (the from-entity) and
-          gmeow:proximityTo (the target), and point gmeow:observationResult at a ScalarQuantity in
+          gmeow:proximityTo (the target), and point gmeow:observationResult at a math:Quantity in
           a frame with gmeow:hasMetricKind.
 
     Examples:
@@ -862,13 +862,13 @@ class ProximityMeasurement(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement", "curie": "gmeow:ProximityMeasurement", "definitionDigest": "blake3:76c6db11f47ce26dcae4052fe99e6294fbae9bbabeacc07cc87064b245af7aef", "iri": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement", "curie": "gmeow:ProximityMeasurement", "definitionDigest": "blake3:43dc275c9a6840b7a8b4cbd5b3aae8b03e2add4b8c1c541a496f6bba15f0ebe9", "iri": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    observationResult: Any = Field(description="The entity-valued result of an observation — a coordinate set, an instant, a quality value, a quantity, or another entity. For literal scalar readings (e.g. 22.5°C), the observationResult entity carries the literal via a datatype property (e.g. qudt:quantityValue or a module-specific scalar property). Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse.", alias="gmeow:observationResult")
+    observationResult: list[Any] = Field(min_length=1, description="The individual-valued result of an observation — a concrete entity, coordinate set, instant, abstract quality value, math:Quantity, or another particular. A scalar reading such as 22.5°C is a math:Quantity carrying its literal through math:quantityValue and its dimension through math:hasDimension; observations adds unit/frame, determinacy, provenance, and uncertainty qualifiers. Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse.", alias="gmeow:observationResult")
     observedFeature: Any = Field(description="The individual whose property or state is being observed — the feature of interest. The range is intentionally open (owl:Thing) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind.", alias="gmeow:observedFeature")
     proximityTo: Any = Field(description="The target entity to which proximity is measured. Functional: a different target entity is a different proximity measurement (constitutive of the relator's identity).", alias="gmeow:proximityTo")
 

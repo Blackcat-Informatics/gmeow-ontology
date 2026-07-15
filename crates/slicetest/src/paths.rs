@@ -61,20 +61,22 @@ pub fn module_file(slice_dir: &Path) -> PathBuf {
     slice_dir.join("module.ttl")
 }
 
-/// The SHACL surfaces enforcing one slice. During migration this is the local
-/// `<slice>/shapes.ttl`; after equivalence-proven deletion it is the canonical generated
-/// validation plus declarative-constraint and procedural projections.
+/// The SHACL surfaces enforcing one slice. Canonical generated validation and
+/// constraint projections always participate; a residual local `<slice>/shapes.ttl`
+/// is added while equivalence-proven migration is incomplete. This makes partial
+/// migration compositional: deleting one proved-equivalent local shape cannot hide
+/// its generated replacement merely because another ValidationOnly residue remains.
 pub fn shapes_files(slice_dir: &Path) -> Vec<PathBuf> {
+    let mut files = vec![
+        repo_root().join("generated/shapes/validation-shapes.ttl"),
+        repo_root().join("generated/shapes/constraint-shapes.ttl"),
+        repo_root().join("generated/shapes/procedural-constraints.ttl"),
+    ];
     let local = slice_dir.join("shapes.ttl");
     if local.is_file() {
-        vec![local]
-    } else {
-        vec![
-            repo_root().join("generated/shapes/validation-shapes.ttl"),
-            repo_root().join("generated/shapes/constraint-shapes.ttl"),
-            repo_root().join("generated/shapes/procedural-constraints.ttl"),
-        ]
+        files.push(local);
     }
+    files
 }
 
 /// The slice's `examples/` directory.
@@ -120,6 +122,21 @@ mod tests {
         assert_eq!(
             examples_dir(slice),
             Path::new("/repo/slices/core/epistemics/examples")
+        );
+    }
+
+    #[test]
+    fn partially_migrated_slice_adds_local_residue_after_generated_authorities() {
+        let slice = repo_root().join("slices/grounding/lang");
+        assert!(slice.join("shapes.ttl").is_file());
+        assert_eq!(
+            shapes_files(&slice),
+            vec![
+                repo_root().join("generated/shapes/validation-shapes.ttl"),
+                repo_root().join("generated/shapes/constraint-shapes.ttl"),
+                repo_root().join("generated/shapes/procedural-constraints.ttl"),
+                slice.join("shapes.ttl"),
+            ]
         );
     }
 

@@ -387,7 +387,7 @@ pub fn transpile_correspondences_indexed(
             None,
             None,
             // Unindexed cells are scoped to the unspecified standpoint (unspecified, not
-            // universal): `accordingTo` stays unset.
+            // universal): `gmeow:accordingTo` stays unset.
             None,
             // Ordinary cells inherit the lane polarity; grounding cells author their own
             // preservation judgment explicitly.

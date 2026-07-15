@@ -344,8 +344,8 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
         compared += 1;
     }
     assert_eq!(
-        compared, 12,
-        "exactly the 12 env-agnostic axes are compared (14 total − gmn1 − DocMaturity)"
+        compared, 13,
+        "exactly the 13 env-agnostic axes are compared (15 total − gmn1 − DocMaturity)"
     );
 }
 

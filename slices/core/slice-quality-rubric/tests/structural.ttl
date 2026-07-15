@@ -86,6 +86,7 @@ ASK {
     gmeow:axisShapeMigration      gmeow:axisProducer ?p11 ; gmeow:axisDimension ?d11 ; gmeow:axisContextScope ?s11 ; gmeow:axisThreshold ?t11 .
     gmeow:axisFlagshipCounterExampleDepth gmeow:axisProducer ?p12 ; gmeow:axisDimension ?d12 ; gmeow:axisContextScope ?s12 ; gmeow:axisThreshold ?t12 .
     gmeow:axisGmn1Coverage        gmeow:axisProducer ?p13 ; gmeow:axisDimension ?d13 ; gmeow:axisContextScope ?s13 ; gmeow:axisThreshold ?t13 .
+    gmeow:axisGmnGlyphOptimality  gmeow:axisProducer ?p14 ; gmeow:axisDimension ?d14 ; gmeow:axisContextScope ?s14 ; gmeow:axisThreshold ?t14 .
 }""" ;
     gmeow:saRationale "Every axis must bind a measurement primitive, an emitted quality dimension, a read-scope coeffect, and at least one tier threshold, because an axis with no producer cannot be scored and an unknown producer is a hard fail rather than a silent skip." .
 

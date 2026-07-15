@@ -123,6 +123,13 @@
     {
       "severity": "info",
       "code": "slice-quality.grade",
+      "message": "axisGmnGlyphOptimality: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
       "message": "axisMaximalGrounding: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
