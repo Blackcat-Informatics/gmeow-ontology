@@ -72,6 +72,23 @@ class Math_AnalyticProperty(ConfiguredBaseModel):
     boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a
     quantified statement about the function's values, never a flag.
 
+    When to use:
+        - Reach for it to attach a qualitative analytic claim to a function — non-affinity,
+          convexity, boundedness, or smoothness — as a law-backed statement rather than a flag.
+
+    When to avoid:
+        - Do not mint a property backed by no law and no boundary (that is
+          math:UnbackedAnalyticProperty), and do not fake a genuinely higher-order property as a
+          first-order law — disclose it as a boundary instead.
+
+    How to use:
+        - Attach one of its members to a function or piece through math:hasAnalyticProperty; each
+          resolves through math:definingLaw to a first-order logic:Formula or, for smoothness, to
+          an honest logic:expressivenessBoundary.
+
+    Examples:
+        - exf:plateau math:hasAnalyticProperty math:boundedness .
+
     Usage:
         >>> from gmeow_models.math import Math_AnalyticProperty
         >>> Math_AnalyticProperty.model_config["json_schema_extra"]["curie"]
@@ -457,6 +474,25 @@ class Math_ClosedFormFunction(ConfiguredBaseModel):
     curve, not a hardwired one; a concrete curve such as T(x) is an instance authored
     elsewhere.
 
+    When to use:
+        - Reach for it to state a parameterized curve — such as T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C —
+          natively as an expression AST in one formal argument over tunable parameters, not an
+          opaque string.
+
+    When to avoid:
+        - Do not use it for a case-split (that is math:PiecewiseFunction), and do not conflate the
+          formal argument with the fitted parameters; a closed form missing its body or argument
+          is math:UnboundClosedForm.
+
+    How to use:
+        - Declare its math:domain and math:codomain, name its body through
+          math:definingExpression, its abstraction variable through math:formalArgument, and each
+          fitted parameter through math:functionParameter.
+
+    Examples:
+        - exf:tCurve a math:ClosedFormFunction ; math:formalArgument exf:xArg ;
+          math:definingExpression exf:tBody ; math:functionParameter exf:paramA .
+
     Usage:
         >>> from gmeow_models.math import Math_ClosedFormFunction
         >>> Math_ClosedFormFunction.model_config["json_schema_extra"]["curie"]
@@ -529,6 +565,26 @@ class Math_Compactification(ConfiguredBaseModel):
     one-point (Alexandroff) versus Stone–Čech distinction per se — but the general
     structured record every such construction instantiates; a compactification missing any
     of the four roles is ill-formed (math:UnderspecifiedCompactification).
+
+    When to use:
+        - Reach for it to record embedding an unbounded space into a bounded one with its points
+          at infinity adjoined as a boundary — the general four-role record any such construction
+          instantiates.
+
+    When to avoid:
+        - Do not use it to assert a particular construction kind (one-point versus Stone–Čech) by
+          name alone, and do not leave any of the four roles unnamed; a partial one is
+          math:UnderspecifiedCompactification.
+
+    How to use:
+        - Name all four roles — math:originalSpace, math:compactifyingMap, math:compactifiedSpace,
+          and math:boundaryAtInfinity; specialize to math:ConformalCompactification when the map
+          is angle-preserving.
+
+    Examples:
+        - exf:radialCompactification a math:Compactification ; math:originalSpace exf:halfLine ;
+          math:compactifyingMap exf:phi ; math:compactifiedSpace exf:closedUnit ;
+          math:boundaryAtInfinity exf:idealPoint .
 
     Usage:
         >>> from gmeow_models.math import Math_Compactification
@@ -721,6 +777,25 @@ class Math_ConformalCompactification(ConfiguredBaseModel):
     causal (angle) structure the Lorentzian metric carries. The metric and its rescaling
     stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this
     math object.
+
+    When to use:
+        - Reach for it when the embedding is angle-preserving and a conformal factor Ω rescales
+          the metric so infinity sits at a finite conformal boundary — the general home for a
+          radial chart's infinity.
+
+    When to avoid:
+        - Do not use it for a non-conformal compactification (use plain math:Compactification),
+          and do not omit math:conformalFactor; a conformal one missing Ω is
+          math:UnderspecifiedCompactification.
+
+    How to use:
+        - Name its four inherited compactification roles and additionally name
+          math:conformalFactor; keep the metric and Ω math-side, leaving any Penrose-diagram
+          reading downstream.
+
+    Examples:
+        - exf:penroseRadial a math:ConformalCompactification ; math:conformalFactor exf:omega ;
+          math:boundaryAtInfinity exf:scri .
 
     Usage:
         >>> from gmeow_models.math import Math_ConformalCompactification
@@ -1517,6 +1592,23 @@ class Math_FunctionPiece(ConfiguredBaseModel):
     points the cell holds, the expression or the qualitative marker says what the function
     does there.
 
+    When to use:
+        - Reach for it to model one cell of a case-split — a sub-domain paired with the behaviour
+          that holds on it, whether an explicit form or a qualitative marker.
+
+    When to avoid:
+        - Do not give a piece two conflicting expressions, and do not omit its math:pieceDomain; a
+          piece with no sub-domain does not say WHERE it applies and is ill-formed.
+
+    How to use:
+        - Name it from a math:PiecewiseFunction through math:hasPiece; give it exactly one
+          math:pieceDomain (an interval) and either a math:pieceExpression or a qualitative
+          math:hasMonotonicity / math:hasBound.
+
+    Examples:
+        - exf:negPiece a math:FunctionPiece ; math:pieceDomain exf:negReals ; math:pieceExpression
+          exf:xSquared .
+
     Usage:
         >>> from gmeow_models.math import Math_FunctionPiece
         >>> Math_FunctionPiece.model_config["json_schema_extra"]["curie"]
@@ -1793,6 +1885,25 @@ class Math_Interval(ConfiguredBaseModel):
     ordered subset of the line; a math:Interval is the pure order-theoretic set, the
     external anchor being the OpenMath interval1 content dictionary.
 
+    When to use:
+        - Reach for it to name a pure order-theoretic stretch of the extended real line between
+          two ordered endpoints — a domain restriction, a piece-domain, or the region a bound
+          holds on.
+
+    When to avoid:
+        - Do not use it for a statistics math:ConfidenceInterval (a frequentist estimator with a
+          coverage level and a point estimate), and never omit an endpoint or an inclusion; a
+          half-specified interval is math:UnderspecifiedInterval.
+
+    How to use:
+        - Name all four of math:lowerEndpoint, math:upperEndpoint, math:lowerInclusion, and
+          math:upperInclusion; a bounded end is a finite literal, an unbounded end is a pole with
+          an open inclusion.
+
+    Examples:
+        - exf:halfOpenUnit a math:Interval ; math:lowerEndpoint 0 ; math:lowerInclusion
+          math:closedEndpoint ; math:upperEndpoint 1 ; math:upperInclusion math:openEndpoint .
+
     Usage:
         >>> from gmeow_models.math import Math_Interval
         >>> Math_Interval.model_config["json_schema_extra"]["curie"]
@@ -1899,6 +2010,23 @@ class Math_LimitResult(ConfiguredBaseModel):
     without a limit (an oscillating or otherwise non-existent limit) carries no value at
     all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is
     one whose value disagrees with the declared outcome.
+
+    When to use:
+        - Reach for it to record what a math:Limit evaluates to — its outcome and, for a finite
+          limit, its value — as a structured object rather than a bare number.
+
+    When to avoid:
+        - Do not use it for the limit EXPRESSION lim_{x→a} f(x) (that is math:Limit, naming
+          math:limitOf and math:limitPoint); the result is what the limit runs to, not the
+          binding.
+
+    How to use:
+        - Attach it to its math:Limit through math:hasLimitResult, always name math:limitOutcome,
+          and add math:limitResultValue only when the outcome is finite or pole-divergent.
+
+    Examples:
+        - exf:res a math:LimitResult ; math:limitOutcome math:convergesFinitely ;
+          math:limitResultValue 0 .
 
     Usage:
         >>> from gmeow_models.math import Math_LimitResult
@@ -2070,6 +2198,23 @@ class Math_MeasureEvaluation(ConfiguredBaseModel):
     measure, subset, and result is what makes μ(A) a queryable datum rather than a display
     string; an evaluation missing any of the three is ill-formed
     (math:UnderspecifiedMeasureEvaluation).
+
+    When to use:
+        - Reach for it to reify μ(A) — the mass one named measure assigns one named subset — as a
+          queryable datum, so distinct subsets can be evaluated and compared side by side.
+
+    When to avoid:
+        - Do not use it for the whole-space math:totalMass μ(X); an evaluation is the mass of a
+          NAMED subset A ⊆ X, and it must name all three of measure, subset, and result or it is
+          math:UnderspecifiedMeasureEvaluation.
+
+    How to use:
+        - Name math:evaluatedMeasure, math:measuredSubset, and math:measureResult; the result is a
+          finite non-negative number or math:PositiveInfinity, never math:NegativeInfinity.
+
+    Examples:
+        - exf:evalB2 a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue ;
+          math:measuredSubset exf:ballB2 ; math:measureResult exf:massB2 .
 
     Usage:
         >>> from gmeow_models.math import Math_MeasureEvaluation
@@ -2487,6 +2632,23 @@ class Math_PiecewiseFunction(ConfiguredBaseModel):
     not a math:ClosedFormFunction (one expression in one formal argument); it is the
     case-split generalization, and a piece may carry qualitative analytic behaviour
     (math:hasMonotonicity, math:hasBound) rather than a full expression.
+
+    When to use:
+        - Reach for it when a function's behaviour is a case-split — a family of pieces each over
+          its own sub-domain, such as f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} — so the split is data
+          rather than prose.
+
+    When to avoid:
+        - Do not use it for a single closed form in one argument (that is
+          math:ClosedFormFunction), and do not leave it with zero pieces; a piece-less one is
+          math:UnderspecifiedPiecewiseFunction.
+
+    How to use:
+        - Declare its math:domain and math:codomain, then name one or more math:FunctionPiece
+          parts through math:hasPiece; each piece carries its own math:pieceDomain.
+
+    Examples:
+        - exf:split a math:PiecewiseFunction ; math:hasPiece exf:negPiece , exf:nonnegPiece .
 
     Usage:
         >>> from gmeow_models.math import Math_PiecewiseFunction
