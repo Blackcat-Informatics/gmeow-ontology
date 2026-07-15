@@ -39,8 +39,8 @@ use gmeow_logic_compile::ir::{LogicProgram, PreservationKind};
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
-    CorrespondenceProgram, affine_triangle_worked_example, extract_correspondences,
-    extract_leg_programs, project_correspondence,
+    CorrespondenceProgram, extract_correspondences, extract_leg_programs, parse_correspondence,
+    project_correspondence,
 };
 use gmeow_logic_compile::projections::correspondence_gates::{
     assert_gates, evaluate_gates, liftability,
@@ -165,6 +165,16 @@ pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/Te
 /// `paths::project_path_shapes` emits zero per-shape `property-path:<iri>` ledger rows,
 /// and the docs term-loss table (`TermLossDigest`) is vacuous on every term.
 pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/predicate-paths.ttl";
+/// The authored §14 affine-triangle worked example the correspondence lane reads.
+///
+/// A SCOPED worked-example source (the `PATH_SHAPES_EXAMPLE_PATH` precedent): parsed
+/// INDEPENDENTLY of the merged authored corpus and read back via
+/// [`gmeow_logic_compile::projections::correspondence::parse_correspondence`] into the
+/// one [`CorrespondenceProgram`] the lane projects onto `graph/correspondence`. This is
+/// the honest DOGFOODED replacement for the former hardcoded Rust worked example: the
+/// affine cell is authored `logic:` TTL, not a `CorrespondenceProgram` literal in code.
+pub const CORRESPONDENCE_EXAMPLE_PATH: &str =
+    "slices/grounding/logic/examples/affine-correspondence.ttl";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -237,6 +247,23 @@ pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
         .map_err(|e| stage_err(format!("canonicalize N-Triples projection: {e}")))
 }
 
+/// The §14 affine-triangle worked example as the PRODUCTION path derives it: read the
+/// authored `CORRESPONDENCE_EXAMPLE_PATH` cell and re-derive its [`CorrespondenceProgram`]
+/// via `parse_correspondence`. Test-only helper so every pipeline test exercises the SAME
+/// canonical authored source the stage does (the fidelity oracle in `gmeow-logic-compile`
+/// proves this equals the `affine_triangle_worked_example` Rust literal byte-for-byte).
+#[cfg(test)]
+pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(CORRESPONDENCE_EXAMPLE_PATH);
+    let source = std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read authored affine correspondence cell {path:?}: {e}"));
+    let dataset = parse_dataset(source.as_bytes(), "text/turtle", None)
+        .expect("parse authored affine correspondence cell");
+    parse_correspondence(&dataset).expect("re-derive authored affine correspondence program")
+}
+
 /// The `stage-compile-logic` pipeline stage.
 pub struct CompileLogicStage;
 
@@ -299,7 +326,9 @@ impl Stage for CompileLogicStage {
         // (`PATH_SHAPES_EXAMPLE_PATH`) are now folded into `program.path_shapes`, so
         // `project_path_shapes` emits real per-shape ledger rows (G1: the B2 per-term
         // projection-loss table is no longer vacuous).
-        "compile-logic.v5"
+        // v6: the affine worked example is now read from `CORRESPONDENCE_EXAMPLE_PATH`
+        // (authored `logic:` TTL) via `parse_correspondence`, not a hardcoded Rust literal.
+        "compile-logic.v6"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
@@ -310,6 +339,7 @@ impl Stage for CompileLogicStage {
             root.join(OPT_SOURCE_PATH),
             root.join(OPT_TEST_DATATYPES_PATH),
             root.join(PATH_SHAPES_EXAMPLE_PATH),
+            root.join(CORRESPONDENCE_EXAMPLE_PATH),
         ];
         files.extend(crate::stages::source_load::authored_files(root)?);
         Ok(files)
@@ -407,7 +437,24 @@ impl Stage for CompileLogicStage {
         // never enforced there — this is the one place they are thrown, AND the one place the
         // committed loss ledger learns its `correspondenceCount` / `lawfulUpliftCount` over
         // REAL gate verdicts (the honest replacement for the SSSOM "81% liftable" heuristic).
-        let correspondence = affine_triangle_worked_example();
+        // Read the affine cell from its authored `logic:` TTL (the honest dogfooded
+        // replacement for the former hardcoded Rust worked example) and re-derive the one
+        // `CorrespondenceProgram` via `parse_correspondence` — the EXACT inverse of the
+        // `project_correspondence` below, so `graph/correspondence` stays byte-identical.
+        // Read/parse failure is a HARD FAIL (no-optionality): a missing or malformed cell
+        // is a corrupt build, never a silently-empty lane.
+        let correspondence_source =
+            std::fs::read_to_string(input.root.join(CORRESPONDENCE_EXAMPLE_PATH))
+                .map_err(|e| stage_err(format!("read {CORRESPONDENCE_EXAMPLE_PATH}: {e}")))?;
+        let correspondence_dataset =
+            parse_dataset(correspondence_source.as_bytes(), "text/turtle", None)
+                .map_err(|e| stage_err(format!("parse {CORRESPONDENCE_EXAMPLE_PATH}: {e}")))?;
+        let correspondence = parse_correspondence(&correspondence_dataset).map_err(|e| {
+            stage_err(format!(
+                "re-derive correspondence from {CORRESPONDENCE_EXAMPLE_PATH}: {}",
+                e.message()
+            ))
+        })?;
         let (gated, _gate_outcomes) = correspondence
             .clone()
             .with_derived_puts()
@@ -1382,7 +1429,7 @@ mod tests {
 
         // The production affine triangle passes the five gates: the wiring will not spuriously
         // fail the build (and the full stage `run` succeeds in the sibling tests).
-        let (gated, _) = affine_triangle_worked_example()
+        let (gated, _) = affine_worked_example_program()
             .with_derived_puts()
             .expect("derive affine put legs");
         let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
@@ -1420,10 +1467,8 @@ mod tests {
     /// with its backing graph (no-optionality, fail-closed).
     #[test]
     fn pin_correspondence_handle_hard_fails_on_digest_mismatch() {
-        use gmeow_logic_compile::projections::correspondence::{
-            affine_triangle_worked_example, project_correspondence,
-        };
-        let program = affine_triangle_worked_example();
+        use gmeow_logic_compile::projections::correspondence::project_correspondence;
+        let program = affine_worked_example_program();
         let nt = project_correspondence(&program);
         let dataset = correspondence_graph_dataset(&nt).expect("graph/correspondence dataset");
         let mut bundle =

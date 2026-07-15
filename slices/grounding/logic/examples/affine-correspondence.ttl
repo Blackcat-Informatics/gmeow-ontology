@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the §14 affine-triangle correspondence (logic:Correspondence).
+#
+# foaf:Person (an agent) and schema:ContactPoint (a contact channel) co-project
+# onto the contact-bearing facet of gmeow:contact — not peers, not subsets, not
+# equivalent. The honest canonical object is a VAGUE AFFINE OVERLAP, so the
+# alignment surface is skos:relatedMatch, NEVER skos:exactMatch / owl:equivalentClass.
+#
+# This file authors the projected-program SHAPE of that one correspondence cell in
+# the canonical logic: vocabulary. The correspondence carrier lane parses it as a
+# second, INDEPENDENT source (the PATH_SHAPES_EXAMPLE_PATH precedent) and reads it
+# back with parse_correspondence — the honest dogfooded replacement for the former
+# hardcoded Rust worked example. The two legs are leg-IRI-only (no gm:path body):
+# the lawful put legs are derived by with_derived_puts() at compile time.
+#
+# The lane declares its SoundUnderApproximation preservation polarity in the loss
+# ledger — a caveated overlap under-approximates the forced-equality reading it refuses.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+logic:correspondence-program
+    rdf:type logic:CorrespondenceProgram ;
+    logic:hasPreservation logic:SoundUnderApproximation ;
+    logic:hasCorrespondence <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> .
+
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence>
+    rdf:type logic:Correspondence ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:getLeg <https://blackcatinformatics.ca/gmeow/example/foafPersonToGmeowContactFacet> ;
+    logic:putLeg <https://blackcatinformatics.ca/gmeow/example/schemaContactPointToGmeowContactFacet> ;
+    logic:confidence "0.72"^^xsd:decimal ;
+    logic:hasLawClaim <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> ;
+    logic:hasCaveat <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> .
+
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0>
+    rdf:type logic:LawClaim ;
+    logic:lawClaimed logic:GetPut ;
+    logic:lawDischargeVerdict logic:ObligationUnknown .
+
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat>
+    rdf:type logic:CorrespondenceCaveat ;
+    rdfs:comment "foaf:Person denotes an agent/person; schema:ContactPoint denotes a contact channel/role. Both project through the contact-bearing facet of gmeow:contact; they are not equivalent and neither subsumes the other." .
