@@ -23,7 +23,7 @@ use std::collections::HashMap;
 
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
-    QuadHandle, RdfDataset, RdfQuad, RdfTerm, RdfTriple, SerializeGraph,
+    QuadHandle, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple, SerializeGraph,
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
@@ -215,6 +215,109 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_error
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
     Ok(Arc::new(RdfDataset::union(&refs)))
+}
+
+/// Predicates carrying PURE DOCUMENTATION on a named subject — a label, a definition, a
+/// note, a bibliographic/provenance annotation — and NOTHING the `stage-compile-logic`
+/// augmentation readers key on. Removing every triple on one of these predicates from the
+/// corpus compile-logic consumes is therefore SOUND: the five readers
+/// (`derive_validation_shapes`, `extract_all_constraints`, `extract_correspondences`,
+/// `extract_leg_programs`, `MetaProgram::from_source_dataset`) read the OWL/RDFS/XSD
+/// restriction + facet vocabulary, the `logic:` Constraint/Formula/sugar/closure/
+/// Correspondence/leg vocabulary, the `gmeow:enforcesFailureClass`/`DiagnosticMetaRule`/
+/// `categoryPolarity` diagnostic-meta wiring, the `gm:` leg paths, and `rdfs:comment`
+/// (caveats) — none of these documentation predicates. The
+/// `logic_compile_input_subgraph_preserves_reader_output` guard proves reader-output
+/// identity over the REAL corpus, so this denylist can only ever be a strict subset of the
+/// never-read predicates.
+///
+/// `rdfs:comment` is DELIBERATELY absent — it IS read (`read_caveats`), so stripping it
+/// would silently drop authored caveats.
+///
+/// These are the EXACT-IRI members; namespace-prefix families (Dublin Core, PROV, VANN)
+/// are matched by prefix in [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`].
+pub const LOGIC_COMPILE_INPUT_DENYLIST: &[&str] = &[
+    // SKOS documentation/annotation vocabulary — labels, definitions, notes, examples. The
+    // readers select by rdf:type / OWL restriction / logic:+gmeow: structural predicates and
+    // rdfs:comment, never SKOS, so every SKOS documentation triple is inert to them.
+    "http://www.w3.org/2004/02/skos/core#definition",
+    "http://www.w3.org/2004/02/skos/core#example",
+    "http://www.w3.org/2004/02/skos/core#scopeNote",
+    "http://www.w3.org/2004/02/skos/core#note",
+    "http://www.w3.org/2004/02/skos/core#editorialNote",
+    "http://www.w3.org/2004/02/skos/core#historyNote",
+    "http://www.w3.org/2004/02/skos/core#changeNote",
+    "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "http://www.w3.org/2004/02/skos/core#altLabel",
+    "http://www.w3.org/2004/02/skos/core#hiddenLabel",
+    // RDFS documentation predicates. NOT rdfs:comment — that is read by `read_caveats` and
+    // MUST survive; only the presentational/navigational RDFS predicates are stripped.
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso",
+    "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
+];
+
+/// Predicate-IRI namespace PREFIXES whose EVERY predicate is pure metadata / bibliographic
+/// provenance never read by the compile-logic augmentation readers. Matched by
+/// predicate-IRI `starts_with`, so the whole family is denylisted without enumerating each
+/// term: Dublin Core Terms (`dcterms:`), legacy Dublin Core Elements (`dc:`), PROV-O
+/// (`prov:`), and VANN vocabulary-annotation (`vann:`).
+pub const LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES: &[&str] = &[
+    "http://purl.org/dc/terms/",
+    "http://purl.org/dc/elements/1.1/",
+    "http://www.w3.org/ns/prov#",
+    "http://purl.org/vocab/vann/",
+];
+
+/// Whether a quad's PREDICATE IRI is a pure-documentation predicate the compile-logic
+/// readers never consult — an exact [`LOGIC_COMPILE_INPUT_DENYLIST`] member or a
+/// [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`] namespace member.
+fn predicate_is_logic_compile_denylisted(predicate: &str) -> bool {
+    LOGIC_COMPILE_INPUT_DENYLIST.contains(&predicate)
+        || LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES
+            .iter()
+            .any(|ns| predicate.starts_with(ns))
+}
+
+/// The SOUND (denylist) narrowing of the corpus `stage-compile-logic` reads: `base` with
+/// every quad whose predicate is a pure-documentation predicate
+/// ([`predicate_is_logic_compile_denylisted`]) REMOVED, and every other quad — including
+/// the bnode-connected OWL restriction / `logic:` formula / correspondence structures —
+/// preserved verbatim. The denylist predicates only ever appear on named-subject
+/// documentation triples (a label/definition/note on a class or property), NEVER inside a
+/// restriction/formula/leg bnode tree, so filtering by predicate leaves every structure the
+/// readers walk intact. The RDF-1.2 statement layer (reifiers/annotations) is carried across
+/// verbatim (mirroring [`crate::stages::carrier::rooted_in_graph`]).
+///
+/// `stage-source-load` publishes this as its `graph/logic-compile-inputs` named graph so
+/// compile-logic reads a NARROWED, typed entity instead of re-parsing the whole corpus, and
+/// a documentation-only edit no longer busts the compiler's cache. Reader-output identity
+/// against the full corpus is proved by the
+/// `logic_compile_input_subgraph_preserves_reader_output` guard.
+pub fn logic_compile_input_subgraph(
+    base: &RdfDataset,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in base.owned_quads() {
+        if predicate_is_logic_compile_denylisted(&quad.predicate) {
+            continue;
+        }
+        builder.push_owned_quad(&quad);
+    }
+    // Carry the RDF-1.2 statement layer across verbatim — the denylist is a triple-level
+    // predicate filter, so the reifier/annotation side tables ride untouched.
+    for reifier in base.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in base.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-source-load".to_string(),
+            message: format!("freeze logic-compile-inputs subgraph: {e}"),
+        })
+    })
 }
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
@@ -442,7 +545,11 @@ impl Stage for SourceLoadStage {
         // v4: score slice quality once at the DAG root, emitting both the queryable
         // quality-assessment graph and the internal HTML report artifact consumed by the
         // terminal docs archive.
-        "source_load.v4-slice-quality-report"
+        // v5: attach the `graph/logic-compile-inputs` named graph — the SOUND (denylist)
+        // narrowing of the whole authored corpus compile-logic reads — so compile-logic
+        // consumes it as a typed entity and a documentation-only edit no longer busts the
+        // compiler's cache.
+        "source_load.v5-logic-compile-inputs"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -501,6 +608,7 @@ impl Stage for SourceLoadStage {
         let started = Instant::now();
         let self_desc = crate::stages::carrier::build_self_description_dataset_with_quality(
             input.root,
+            base.as_ref(),
             &quality.nquads,
         )?;
         timings.push(crate::node::StageRunTiming::new(
