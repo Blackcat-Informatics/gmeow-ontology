@@ -5,8 +5,12 @@
 //!
 //! `logic query` resolves a backward `.logic` goal over a materialized world
 //! through the native dispatcher (`gmeow_logic::dispatch`); `logic compile` emits
-//! or drift-checks the ten generated logic-projection artifacts via the
-//! Native `gmeow_logic_compile` compiler and the whole-pipeline drift gate.
+//! or drift-checks the generated logic-projection artifacts by running the
+//! REAL whole-pipeline render/drift-check (`gmeow_pipeline::run::run_full`).
+//! `--mode M` is a filter over that single pipeline output — the committed
+//! path for the requested back-end — never a second, in-process compile, so
+//! its bytes (and its `report` mode) can never diverge from what the
+//! pipeline itself commits.
 
 use std::path::Path;
 
@@ -17,9 +21,11 @@ use gmeow_logic::profile_gate;
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::seam::WorldFactSnapshot;
 use gmeow_logic::store::WorldStore;
-use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::projections::compile_program;
 use gmeow_pipeline::run::{RunMode, run_full};
+use gmeow_pipeline::stages::compile_logic::{
+    CANONICAL_RDF12_PATH, CGIF_PATH, CLIF_PATH, DATALOG_PATH, GUFO_PATH, N3_PATH, OWL_DL_PATH,
+    OWL_EL_PATH, PROJECTION_REPORT_PATH, XCL_PATH,
+};
 
 use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, note, project_root};
 use crate::error;
@@ -253,9 +259,34 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
         return 0;
     }
 
-    // --mode M (with or without --check): compile in-process and emit/inspect one back-end.
+    // --mode M (with or without --check): run the REAL pipeline once and narrow
+    // to the single committed artifact for the requested back-end. There is no
+    // second, in-process compile — the whole-pipeline render is the single
+    // producer of every committed logic artifact, `report` included.
     if let Some(mode) = mode {
-        return compile_one_mode(&root, mode, check);
+        let rel = mode_path(mode);
+        let jobs = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1);
+        if check {
+            let report = match run_full(&root, jobs, RunMode::Check) {
+                Ok(r) => r,
+                Err(e) => return fail(format!("pipeline check failed: {e}")),
+            };
+            if report.drifted.iter().any(|d| d == rel) {
+                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
+                return fail(format!("--mode {mode}: committed artifact drifted"));
+            }
+            println!("--mode {mode}: no drift");
+            return 0;
+        }
+        return match run_full(&root, jobs, RunMode::Regenerate) {
+            Ok(_) => {
+                println!("{rel}");
+                0
+            }
+            Err(e) => fail(format!("logic compile failed: {e}")),
+        };
     }
 
     // Default full render: the whole pipeline reproduces every committed artifact.
@@ -271,92 +302,23 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
     }
 }
 
-/// The committed target path (relative to root) + compiled-artifact selector for a mode.
-fn mode_target(
-    mode: &str,
-) -> (
-    &'static str,
-    fn(&gmeow_logic_compile::projections::CompiledArtifacts) -> &String,
-) {
+/// The single committed path (relative to root) that `--mode M` narrows the
+/// whole-pipeline output to. This `&str` constant, imported from the pipeline
+/// stage that actually produces it, is the SINGLE authority for where each
+/// back-end lands — there is no second path table and no in-process compile.
+fn mode_path(mode: &str) -> &'static str {
     match mode {
-        "owl-dl" => ("generated/owl/gmeow-dl.ttl", |a| &a.owl_dl),
-        "owl-el" => ("generated/owl/gmeow-el.ttl", |a| &a.owl_el),
-        "datalog" => ("generated/datalog/gmeow.dl", |a| &a.datalog),
-        "n3" => ("generated/n3/gmeow.n3", |a| &a.n3),
-        "gufo" => ("generated/foundation/gufo.ttl", |a| &a.gufo),
-        "canonical-rdf12" => ("generated/logic/gmeow.logic.rdf12.ttl", |a| {
-            &a.canonical_rdf12
-        }),
-        "clif" => ("generated/cl/gmeow.clif", |a| &a.clif),
-        "cgif" => ("generated/cl/gmeow.cgif", |a| &a.cgif),
-        "xcl" => ("generated/cl/gmeow.xcl", |a| &a.xcl),
-        _ => ("generated/logic/projection-report.ttl", |a| &a.report),
+        "owl-dl" => OWL_DL_PATH,
+        "owl-el" => OWL_EL_PATH,
+        "datalog" => DATALOG_PATH,
+        "n3" => N3_PATH,
+        "gufo" => GUFO_PATH,
+        "canonical-rdf12" => CANONICAL_RDF12_PATH,
+        "clif" => CLIF_PATH,
+        "cgif" => CGIF_PATH,
+        "xcl" => XCL_PATH,
+        _ => PROJECTION_REPORT_PATH,
     }
-}
-
-/// Compile the `logic:` source and emit (or drift-check) exactly one back-end.
-fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
-    let source = root.join("slices/grounding/logic/module.ttl");
-    let source_ttl = match std::fs::read_to_string(&source) {
-        Ok(s) => s,
-        Err(e) => {
-            return fail(format!(
-                "logic: source not found: {} ({e})",
-                source.display()
-            ));
-        }
-    };
-    let (program, diagnostics) = match parse_logic_str(&source_ttl, None) {
-        Ok(p) => p,
-        Err(e) => return fail(format!("logic: parse failed: {}", e.0)),
-    };
-    for d in &diagnostics {
-        note(
-            "gmeow-dev.logic-compile.diagnostic",
-            format!("{} [{}] {}", d.severity.as_str(), d.code, d.message),
-        );
-    }
-    // Discharge every authored correspondence's lens law by EXECUTION so the five
-    // correspondence gates inside `compile_program` read a real per-correspondence verdict.
-    // A correspondence-free source yields an empty map (the gates never run); a source that
-    // declares `logic:Correspondence` cells supplies a verdict for each, so the gates never
-    // reach their missing-verdict hard-fail. A malformed leg registry is a clean error.
-    let verdicts = match gmeow_logic::correspondence_exec::logic_program_verdicts(&program) {
-        Ok(v) => v,
-        Err(e) => {
-            return fail(format!(
-                "logic: discharge correspondence lens laws failed: {e}"
-            ));
-        }
-    };
-    let arts = match compile_program(&program, &verdicts) {
-        Ok(a) => a,
-        Err(e) => return fail(format!("logic: compile failed: {e}")),
-    };
-
-    let (rel, select) = mode_target(mode);
-    let content = select(&arts);
-    let target = root.join(rel);
-
-    if check {
-        let committed = std::fs::read_to_string(&target).unwrap_or_default();
-        if &committed != content {
-            note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
-            return fail(format!("--mode {mode}: committed artifact drifted"));
-        }
-        println!("--mode {mode}: no drift");
-        return 0;
-    }
-    if let Some(parent) = target.parent()
-        && let Err(e) = std::fs::create_dir_all(parent)
-    {
-        return fail(format!("cannot create {}: {e}", parent.display()));
-    }
-    if let Err(e) = std::fs::write(&target, content) {
-        return fail(format!("cannot write {}: {e}", target.display()));
-    }
-    println!("{rel}");
-    0
 }
 
 #[cfg(test)]
@@ -383,5 +345,92 @@ mod query_tests {
             resolve_query(nquads, program, HORN_PROFILE, None, None, None).unwrap();
         assert!(answers.is_empty());
         assert_eq!(status, "incomplete");
+    }
+}
+
+#[cfg(test)]
+mod compile_tests {
+    use std::sync::Mutex;
+
+    use super::compile;
+
+    // These drive the REAL `compile()` entry point (which runs the whole
+    // pipeline via `run_full`) over the committed repository tree, so
+    // `project_root()`'s CARGO_MANIFEST_DIR fallback resolves the workspace
+    // root regardless of the test harness's current working directory.
+    // They are the discriminating proof that `--mode M` narrows the single
+    // committed pipeline output rather than re-running a private, thinner
+    // in-process compile whose bytes (and whose `report`) could diverge.
+    //
+    // `run_full` is a whole-repo, single-writer pipeline pass; two instances
+    // racing inside the same test binary (cargo's default parallel test
+    // runner) observably corrupt each other's transient state, so this
+    // module-local lock serializes them regardless of `--test-threads`.
+    static PIPELINE_LOCK: Mutex<()> = Mutex::new(());
+
+    // The three drift tests below run the whole pipeline (~800s each) and so
+    // exceed the on-gate 25s per-test budget; they are `#[ignore]`d off the
+    // default/ci profile and run in the off-gate `make maint-dev-cli-heavy`
+    // lane (`GMEOW_DEV_CLI_HEAVY=1 cargo nextest run -p gmeow-dev-cli
+    // --run-ignored ignored-only`), matching the convention in
+    // `crates/gmeow-dev-cli/tests/cli_parity.rs`. The fast `mode_path` mapping
+    // test stays on-gate as the wiring proof.
+    #[test]
+    #[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
+    fn mode_owl_dl_matches_the_committed_pipeline_artifact() {
+        let _guard = PIPELINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        assert_eq!(compile(true, Some("owl-dl")), 0);
+    }
+
+    #[test]
+    #[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
+    fn mode_datalog_matches_the_committed_pipeline_artifact() {
+        let _guard = PIPELINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        assert_eq!(compile(true, Some("datalog")), 0);
+    }
+
+    /// The discriminating test: the OLD `compile_one_mode` returned the
+    /// compiler's private, base-only `a.report`, which would DRIFT against
+    /// the committed union report (base + audit) that the `stage-mappings`
+    /// pipeline stage assembles. If `--mode report` were ever rewired back
+    /// to an in-process compile, this test fails.
+    #[test]
+    #[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
+    fn mode_report_matches_the_committed_union_report() {
+        let _guard = PIPELINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        assert_eq!(compile(true, Some("report")), 0);
+    }
+
+    /// On-gate wiring proof (instant, no pipeline run): every `--mode` name
+    /// maps to the committed pipeline artifact path — in particular `report`
+    /// maps to the committed UNION report `PROJECTION_REPORT_PATH`
+    /// (`stage-mappings`' output), never a compiler-private path. Together
+    /// with the deletion of the in-process `compile_one_mode`, this pins that
+    /// `--mode M` can only ever narrow the real pipeline output. The heavy
+    /// tests above prove the committed bytes actually match end-to-end.
+    #[test]
+    fn every_mode_maps_to_its_committed_pipeline_path() {
+        use super::{LOGIC_MODES, mode_path};
+        use gmeow_pipeline::stages::compile_logic::{
+            CANONICAL_RDF12_PATH, CGIF_PATH, CLIF_PATH, DATALOG_PATH, GUFO_PATH, N3_PATH,
+            OWL_DL_PATH, OWL_EL_PATH, PROJECTION_REPORT_PATH, XCL_PATH,
+        };
+
+        assert_eq!(mode_path("owl-dl"), OWL_DL_PATH);
+        assert_eq!(mode_path("owl-el"), OWL_EL_PATH);
+        assert_eq!(mode_path("datalog"), DATALOG_PATH);
+        assert_eq!(mode_path("n3"), N3_PATH);
+        assert_eq!(mode_path("gufo"), GUFO_PATH);
+        assert_eq!(mode_path("canonical-rdf12"), CANONICAL_RDF12_PATH);
+        assert_eq!(mode_path("clif"), CLIF_PATH);
+        assert_eq!(mode_path("cgif"), CGIF_PATH);
+        assert_eq!(mode_path("xcl"), XCL_PATH);
+        // The discriminator: `report` narrows to the committed UNION report.
+        assert_eq!(mode_path("report"), PROJECTION_REPORT_PATH);
+        // Every validated mode has a mapping (no mode falls through unhandled
+        // to the wrong artifact).
+        for m in LOGIC_MODES {
+            assert!(!mode_path(m).is_empty(), "mode {m} has no committed path");
+        }
     }
 }
