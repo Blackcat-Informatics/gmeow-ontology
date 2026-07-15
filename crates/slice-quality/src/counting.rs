@@ -64,6 +64,17 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 /// `owl:AllDisjointClasses` — the one non-`logic:`-namespaced grounding-target type
 /// (a named disjointness axiom a shape may formalize).
 const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
+/// `gmeow:TermEquivalence` — a validated cross-ontology correspondence cell. Its
+/// `gmeow:alignObject` link to an external term is the ONLY by-reference bridge the
+/// ratchet exempts (Principle 5), and only when the cell is validated.
+const GM_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
+/// `gmeow:alignObject` — the object-side link of a correspondence cell naming the
+/// external term. A raw `rdfs:subClassOf`/`owl:equivalentClass` to an external object
+/// is NOT this and is no longer exempt (it counts as second-source residue).
+const GM_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
+/// `gmeow:justification` — the SSSOM mapping-justification a validated correspondence
+/// cell carries; its presence is the "validated" gate on the bridge exemption.
+const GM_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
 
 /// The enumeration scope [`enumerate`] runs at.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -176,6 +187,23 @@ fn resolvable_grounding(ds: &RdfDataset, subject: TermId) -> bool {
     false
 }
 
+/// A VALIDATED correspondence cell: `subject` is typed `gmeow:TermEquivalence` AND
+/// carries a `gmeow:justification` (the SSSOM mapping-justification). Only such a
+/// cell's `gmeow:alignObject` link to an external term is an exempt by-reference
+/// bridge — a raw `rdfs:subClassOf`/`owl:equivalentClass` to an external object, even
+/// to the same term, is NOT a validated cell and stays in the residue.
+fn is_validated_correspondence_cell(ds: &RdfDataset, subject: TermId) -> bool {
+    let typed_term_equivalence = id(ds, RDF_TYPE).is_some_and(|type_p| {
+        id(ds, GM_TERM_EQUIVALENCE).is_some_and(|te| {
+            ds.quads_for_pattern(Some(subject), Some(type_p), Some(te), GraphMatch::Any)
+                .next()
+                .is_some()
+        })
+    });
+    typed_term_equivalence
+        && id(ds, GM_JUSTIFICATION).is_some_and(|j| graph::has_any(ds, subject, j))
+}
+
 /// PRESENCE-ONLY grounding: `subject` merely carries a `logic:formalizes`
 /// back-reference, with no resolvability check. This is the legacy
 /// `shape_migration_axis` criterion (a dangling back-ref grounds exactly as it did
@@ -242,14 +270,14 @@ fn enumerate_structural_axiom(
             term_key(ds, q.o)
         );
         let grounded = resolvable_grounding(ds, q.s);
-        // A structural axiom is exempt as a by-reference bridge only under the same
-        // rule as a typed axiom: its predicate is one of the vocab's declared alignment
-        // predicates AND the object is EXTERNAL. RDFS carries no alignment predicates,
-        // so an rdfs:subClassOf to an external object stays in the residue — under the
-        // strict owner-boundary doctrine such an alignment belongs in the owner's
-        // mapping cell, not a raw structural triple.
-        let is_bridge = vocab.alignment_predicates.iter().any(|ap| ap == p_iri)
-            && o_iri.is_some_and(|o| !o.starts_with(GMEOW));
+        // A structural axiom is exempt only as a validated correspondence cell (same
+        // rule as a typed axiom). A structural predicate (rdfs:subClassOf/…) is never
+        // `gmeow:alignObject`, so a raw structural triple to an external object always
+        // stays in the residue — under the strict owner boundary such an alignment
+        // belongs in a correspondence cell at the owner's mapping surface.
+        let is_bridge = p_iri == GM_ALIGN_OBJECT
+            && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
+            && is_validated_correspondence_cell(ds, q.s);
         out.push(Construct {
             key,
             grounded,
@@ -371,14 +399,16 @@ fn enumerate_typed_axiom(
             term_key(ds, q.o)
         );
         let grounded = resolvable_grounding(ds, q.s);
-        // A by-reference bridge: the predicate is one of the vocab's declared
-        // alignment predicates AND the object is an IRI in an EXTERNAL namespace
-        // (never `gmeow:`). An internal gmeow↔gmeow object under the SAME predicate
-        // (e.g. `gmeow:X owl:equivalentClass gmeow:Y`) is a genuine second source of
-        // truth and stays in the residue — the external-object condition applies to
-        // EVERY carve-out predicate, no exceptions.
-        let is_bridge = p_iri.is_some_and(|p| vocab.alignment_predicates.iter().any(|ap| ap == p))
-            && o_iri.is_some_and(|o| !o.starts_with(GMEOW));
+        // A by-reference bridge is exempt ONLY when it is a VALIDATED correspondence
+        // cell: the subject is a `gmeow:TermEquivalence` carrying a
+        // `gmeow:justification`, the predicate is `gmeow:alignObject`, and the object
+        // is EXTERNAL (non-`gmeow:`). A raw `rdfs:subClassOf`/`owl:equivalentClass` to
+        // an external object — even inside module.ttl — is NOT a validated cell and
+        // stays in the residue; under the strict owner boundary such an alignment
+        // belongs in a correspondence cell at the owner's mapping surface.
+        let is_bridge = p_iri == Some(GM_ALIGN_OBJECT)
+            && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
+            && is_validated_correspondence_cell(ds, q.s);
         out.push(Construct {
             key,
             grounded,
@@ -550,7 +580,7 @@ mod tests {
     }
 
     #[test]
-    fn external_gufo_bridge_not_counted_but_internal_gufo_predicate_is() {
+    fn raw_external_bridge_now_counts_not_exempt() {
         let ds = ds_of(
             r#"
             gmeow:X rdfs:subClassOf gufo:Kind .
@@ -558,11 +588,39 @@ mod tests {
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
-        // gmeow:X rdfs:subClassOf gufo:Kind: predicate is an alignment predicate AND
-        // the object (gufo:Kind) is external → bridge, exempt.
-        // gmeow:X gufo:mediates gmeow:Y: predicate is in the gufo namespace itself
-        // (not merely an alignment predicate on an external object) and the object is
-        // internal (gmeow:Y) → stays in residue.
+        // A raw rdfs:subClassOf to an external gufo object is NO LONGER an exempt
+        // bridge (it is not a validated gmeow:TermEquivalence cell), so it counts; the
+        // gufo:mediates triple counts too → residue 2.
+        assert_eq!(residue(&ds, &vocab), 2);
+    }
+
+    #[test]
+    fn validated_correspondence_cell_is_exempt() {
+        let ds = ds_of(
+            r#"
+            gmeow:eqKind a gmeow:TermEquivalence ;
+                gmeow:alignSubject gmeow:MyKind ;
+                gmeow:alignObject gufo:Kind ;
+                gmeow:justification gmeow:ManualMappingCuration .
+            "#,
+        );
+        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+        // The only guarded-namespace triple is gmeow:eqKind gmeow:alignObject gufo:Kind:
+        // a validated TermEquivalence cell (typed + justification) with an external
+        // object → exempt by-reference bridge, residue 0.
+        assert_eq!(residue(&ds, &vocab), 0);
+    }
+
+    #[test]
+    fn alignobject_without_justification_is_not_exempt() {
+        let ds = ds_of(
+            r#"
+            gmeow:eqKind a gmeow:TermEquivalence ;
+                gmeow:alignObject gufo:Kind .
+            "#,
+        );
+        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+        // A TermEquivalence lacking gmeow:justification is not validated → counts.
         assert_eq!(residue(&ds, &vocab), 1);
     }
 

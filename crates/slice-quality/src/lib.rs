@@ -369,17 +369,50 @@ pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
 #[must_use]
 pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
     let mut paths = vec![slice_dir.join("module.ttl"), slice_dir.join("shapes.ttl")];
-    if let Ok(rd) = std::fs::read_dir(slice_dir.join("mappings")) {
-        for entry in rd.flatten() {
-            let p = entry.path();
-            if p.extension().is_some_and(|x| x == "ttl") {
-                paths.push(p);
-            }
-        }
-    }
+    // RECURSIVE over the whole mappings/ subtree, not just its immediate children —
+    // the base-side scanner (`is_ratchet_surface`) already matches any `/mappings/`
+    // path at any depth, so the working-tree scanner must too or the two diverge on a
+    // nested mapping file (correction: one recursive scanner for base and working).
+    collect_ttls_recursive(&slice_dir.join("mappings"), &mut paths);
     paths.retain(|p| p.is_file());
     paths.sort();
+    paths.dedup();
     paths
+}
+
+/// The repo-level DSL mapping surface IRI a `dsl/mappings/` residue is attributed to
+/// — a non-slice authoring surface (the hand-authored FnO carve-out
+/// `dsl/mappings/transforms.fno.ttl` lives here) that the ratchet still guards.
+pub const DSL_MAPPING_SURFACE_IRI: &str = "https://blackcatinformatics.ca/gmeow/dsl/mappings";
+
+/// The repo-level `dsl/mappings/` authoring surface — every `.ttl` under it, sorted.
+/// Scanned once (attributed to [`DSL_MAPPING_SURFACE_IRI`]), because it is a real
+/// hand-authored projection surface (`transforms.fno.ttl`, the FnO carve-out) that
+/// is NOT under any slice's `mappings/` directory and would otherwise be missed.
+#[must_use]
+pub fn ratchet_dsl_surface_paths(repo_root: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    collect_ttls_recursive(&repo_root.join("dsl").join("mappings"), &mut paths);
+    paths.retain(|p| p.is_file());
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+/// Recursively collect every `.ttl` file under `dir` into `out` (no-op if `dir` does
+/// not exist).
+fn collect_ttls_recursive(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p.is_dir() {
+            collect_ttls_recursive(&p, out);
+        } else if p.extension().is_some_and(|x| x == "ttl") {
+            out.push(p);
+        }
+    }
 }
 
 /// Measure the ungrounded [`counting::residue`] of every guarded `vocab` for every
@@ -414,6 +447,23 @@ pub fn measure_repo_residues(
             let residue = counting::residue(&ds, vocab);
             if residue > 0 {
                 out.insert((slice_iri.clone(), vocab.prefix.clone()), residue);
+            }
+        }
+    }
+    // The repo-level dsl/mappings/ surface (the hand-authored FnO carve-out) is not
+    // under any slice — measure it once, attributed to the DSL surface IRI, so it is
+    // guarded rather than silently missed.
+    let dsl_paths = ratchet_dsl_surface_paths(repo_root);
+    if !dsl_paths.is_empty() {
+        let dsl_refs: Vec<&Path> = dsl_paths.iter().map(PathBuf::as_path).collect();
+        let dsl_ds = dataset_from_paths(&dsl_refs)?;
+        for vocab in vocabularies {
+            let residue = counting::residue(&dsl_ds, vocab);
+            if residue > 0 {
+                out.insert(
+                    (DSL_MAPPING_SURFACE_IRI.to_owned(), vocab.prefix.clone()),
+                    residue,
+                );
             }
         }
     }

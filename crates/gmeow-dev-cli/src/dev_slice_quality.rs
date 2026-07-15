@@ -1066,6 +1066,35 @@ fn measure_base_residues(
             }
         }
     }
+    // The repo-level dsl/mappings/ surface (attributed to the DSL surface IRI) is not
+    // under any slice dir, so reconstruct its base residue separately — the same
+    // recursive `/mappings/` surfaces `is_ratchet_surface` matches, read at base — so a
+    // NEW dsl-surface ceiling can be grandfathered against real base residue.
+    if needed.contains(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI) {
+        let entries = git_ls_tree(root, base, "dsl/mappings")?;
+        let mut texts: Vec<String> = Vec::new();
+        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
+            match git_show_base(root, base, rel) {
+                BaseFile::Absent => {}
+                BaseFile::Error(e) => return Err(sqe(e)),
+                BaseFile::Contents(text) => texts.push(text),
+            }
+        }
+        if !texts.is_empty() {
+            for vocab in vocabularies {
+                let r = gmeow_slice_quality::residue_over_texts(&texts, vocab)?;
+                if r > 0 {
+                    out.insert(
+                        (
+                            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+                            vocab.prefix.clone(),
+                        ),
+                        r,
+                    );
+                }
+            }
+        }
+    }
     Ok(out)
 }
 
