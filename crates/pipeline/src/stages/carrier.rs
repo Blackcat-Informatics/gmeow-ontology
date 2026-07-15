@@ -1819,6 +1819,15 @@ fn build_fanout_opaque_blob(
         &mut members,
         producer_artifacts("stage-export-governance-floors", upstream)?,
     );
+    // The two projection-vocabulary ratchet TSVs (P17 projection of the ontology-resident
+    // gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary individuals):
+    // projected once in stage-export-projection-ceilings from the rubric slice; read off
+    // its product, never re-rendered from disk. Non-RDF, so they ride here as opaque
+    // byte members.
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-projection-ceilings", upstream)?,
+    );
 
     // evals + research-objects: the OPAQUE members only (their `.ttl`/`.dcat.ttl` ride
     // as named graphs). Read off the producing leaf's product — byte-identical.

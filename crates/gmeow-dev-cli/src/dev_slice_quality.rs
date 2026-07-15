@@ -545,6 +545,27 @@ pub fn slice_quality_gate() -> i32 {
         }
     }
 
+    // The projection-vocabulary RATCHET's shared inputs — computed here (BEFORE the
+    // merge-base match below) because the grandfather sub-check folded into that
+    // match's `BaseFile::Contents` arm needs `vocabularies`/`working_ceilings`/
+    // `working_residues` in scope. The COUNT-GATE evaluation loop over these same
+    // values runs later, after the FOURTH (coherence) check, so every diagnostic
+    // this gate can emit is grouped by check rather than by where its inputs happen
+    // to be computed.
+    let vocabularies = &rubric.floors.vocabularies;
+    let working_ceilings = ceilings_from_rubric(&rubric);
+    let working_residues = match gmeow_slice_quality::measure_repo_residues(&root, vocabularies) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
+    // The effective ceiling a (slice, vocab) cell with no explicit commitment is
+    // held to: that vocab's `gmeow:vocabularyDefaultCeiling` (0 for every guarded
+    // vocab today).
+    let default_ceiling: std::collections::BTreeMap<&str, u64> = vocabularies
+        .iter()
+        .map(|v| (v.prefix.as_str(), v.default_ceiling))
+        .collect();
+
     // THIRD check: committed-floor MONOTONICITY. The two passes above only compare
     // measured/declared value against the CURRENT committed floor — neither notices a
     // PR that silently LOWERS a floor. Both floor levels now live in the rubric
@@ -618,6 +639,59 @@ pub fn slice_quality_gate() -> i32 {
                         |slice, axis| live_slices.contains(slice) && live_axes.contains(axis),
                     );
                     mono.extend(axis_mono.violations);
+
+                    // Projection-ceiling MONOTONICITY (ratchet invariant 2): a
+                    // committed ceiling shared by base and working may never RISE.
+                    let base_ceilings = ceilings_from_rubric(&base_rubric);
+                    let cmono = gmeow_slice_quality::gate::projection_ceiling_monotonicity(
+                        RUBRIC_MODULE,
+                        &base_ceilings,
+                        &working_ceilings,
+                    );
+                    mono.extend(cmono.violations);
+
+                    // Registry meta-ratchet (C8): the guarded-vocabulary REGISTRY may
+                    // only get STRONGER — deleting a vocab, narrowing a namespace,
+                    // weakening a count-kind, dropping a counted predicate, raising a
+                    // default ceiling, or expanding an exemption set all red the gate,
+                    // so the gate cannot be quietly weakened without raising a cell.
+                    mono.extend(gmeow_slice_quality::gate::registry_ratchet_monotonicity(
+                        RUBRIC_MODULE,
+                        &base_rubric.floors.vocabularies,
+                        &rubric.floors.vocabularies,
+                    ));
+
+                    // GRANDFATHER gate (ratchet invariant 3): a ceiling that is NEW
+                    // in the working tree (absent at base) may only record residue
+                    // that ALREADY EXISTED at the merge base — never freshly
+                    // authored constructs. Base measured is reconstructed by
+                    // feeding the SAME counter the base bytes over the SAME
+                    // multi-surface authoring set (module.ttl + shapes.ttl +
+                    // mappings/*.ttl), never a singular `git show`.
+                    let new_keys: std::collections::BTreeSet<String> = working_ceilings
+                        .keys()
+                        .filter(|k| !base_ceilings.contains_key(*k))
+                        .map(|(slice, _)| slice.clone())
+                        .collect();
+                    if !new_keys.is_empty() {
+                        let base_res =
+                            match measure_base_residues(&root, &base, vocabularies, &new_keys) {
+                                Ok(r) => r,
+                                Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                            };
+                        for (key, committed) in &working_ceilings {
+                            if base_ceilings.contains_key(key) {
+                                continue; // not new — covered by the monotonicity check above
+                            }
+                            let (slice, vocab) = key;
+                            let bm = base_res.get(key).copied().unwrap_or(0);
+                            if *committed > bm {
+                                mono.push(format!(
+                                    "{RUBRIC_MODULE}: NEW projection ceiling slice {slice} vocab {vocab} count {committed} exceeds base measured residue {bm} — a new ceiling may only grandfather residue present at the merge base, never freshly-authored constructs"
+                                ));
+                            }
+                        }
+                    }
                 }
             }
             // Floors are raise-only: a LOWERING and a still-live DELETION are both hard
@@ -665,13 +739,48 @@ pub fn slice_quality_gate() -> i32 {
         })
         .count();
 
-    if failures > 0 || axis_failures > 0 || mono_failures > 0 || coherence_failures > 0 {
+    // FIFTH check: the projection-vocabulary RATCHET's COUNT GATE (invariant 1) —
+    // every (slice, vocab) cell with a nonzero measured ungrounded residue must not
+    // exceed its effective ceiling (the committed `gmeow:ceilingCount` if present,
+    // else the vocab's `gmeow:vocabularyDefaultCeiling`, 0 for every guarded vocab
+    // today). `working_residues`/`working_ceilings`/`default_ceiling` were computed
+    // above (before the merge-base match) so the grandfather sub-check could share
+    // them; this is where they are actually evaluated and reported.
+    let mut ceiling_checked = 0usize;
+    let mut ceiling_failures = 0usize;
+    for ((slice, vocab), measured) in &working_residues {
+        let effective = working_ceilings
+            .get(&(slice.clone(), vocab.clone()))
+            .copied()
+            .unwrap_or_else(|| default_ceiling.get(vocab.as_str()).copied().unwrap_or(0));
+        ceiling_checked += 1;
+        use gmeow_slice_quality::gate::CeilingVerdict;
+        match gmeow_slice_quality::gate::evaluate_projection_ceiling(*measured, effective) {
+            CeilingVerdict::Pass => {}
+            CeilingVerdict::MeasuredAboveCeiling => {
+                emit_error(
+                    "gmeow-dev.slice-quality.gate",
+                    format!(
+                        "FAIL {slice} vocab {vocab} measures ungrounded residue {measured} — above its committed projection ceiling {effective}; author the new logic as logic: and project it, do not hand-author {vocab}"
+                    ),
+                );
+                ceiling_failures += 1;
+            }
+        }
+    }
+
+    if failures > 0
+        || axis_failures > 0
+        || mono_failures > 0
+        || coherence_failures > 0
+        || ceiling_failures > 0
+    {
         return fail(format!(
-            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s); {coherence_failures} floor-coherence violation(s)"
+            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s); {coherence_failures} floor-coherence violation(s); {ceiling_failures} of {ceiling_checked} (slice,vocab) cell(s) above their committed projection ceiling"
         ));
     }
     println!(
-        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base; {coherence_checked} tier-floored slice(s) cohere with their axis floors (0 floor-coherence violation(s))"
+        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base; {coherence_checked} tier-floored slice(s) cohere with their axis floors (0 floor-coherence violation(s)); {ceiling_checked} (slice,vocab) cell(s) hold their projection ceiling"
     );
     0
 }
@@ -846,6 +955,163 @@ fn axis_floors_from_rubric(
 /// corpus — kept tight rather than a large tolerance so a genuine sub-1.0
 /// contradiction is never masked.
 const GROUNDING_FLOOR_EPS: f64 = 1e-9;
+
+// -----------------------------------------------------------------------------
+// The projection-vocabulary RATCHET driver helpers — the inverse-polarity twin
+// of the axis-floor helpers above. See `gmeow_slice_quality::gate`'s ratchet
+// doc-comment block for the three hard-fail invariants these back.
+// -----------------------------------------------------------------------------
+
+/// Project the ontology-resident `gmeow:ProjectionCeilingCommitment` set into the
+/// `(slice IRI, vocab prefix) -> count` map every ratchet pass (count gate,
+/// monotonicity, grandfather) reads. The rubric loader (Task 4) already enforces
+/// `(slice, vocab)` uniqueness across the loaded commitments, so this is a plain
+/// projection — no collision handling needed here.
+fn ceilings_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, String), u64> {
+    rubric
+        .floors
+        .ceilings
+        .iter()
+        .map(|c| ((c.slice.clone(), c.vocab_prefix.clone()), c.count))
+        .collect()
+}
+
+/// List every path `git ls-tree -r --name-only <base> -- <rel_dir>` reports —
+/// mirrors [`git_show_base`]'s `Command` style (local, no network,
+/// `current_dir(root)`, `LC_ALL=C`). `git ls-tree` does not error on a pathspec
+/// that matches nothing, so a `rel_dir` absent at `base` (a genuinely new slice)
+/// yields empty stdout with a SUCCESSFUL exit — `Ok(vec![])`, which the
+/// grandfather reconstruction ([`measure_base_residues`]) treats as "no surface
+/// texts at base," i.e. base measured 0. A non-zero exit means git itself could
+/// not answer the question and is a HARD-FAIL, never a silent "nothing there."
+fn git_ls_tree(root: &Path, base: &str, rel_dir: &str) -> gmeow_errors::Result<Vec<String>> {
+    let out = std::process::Command::new("git")
+        .current_dir(root)
+        .env("LC_ALL", "C")
+        .args(["ls-tree", "-r", "--name-only", base, "--", rel_dir])
+        .output()
+        .map_err(|e| {
+            sqe(format!(
+                "could not run `git ls-tree {base} -- {rel_dir}`: {e}"
+            ))
+        })?;
+    if !out.status.success() {
+        return Err(sqe(format!(
+            "`git ls-tree {base} -- {rel_dir}` failed ({}): {}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr).trim()
+        )));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(str::to_owned)
+        .collect())
+}
+
+/// Whether `rel_path` (a repo-relative path as `git ls-tree` reports it) belongs
+/// to the ratchet's authoring surface — the SAME surface set
+/// `gmeow_slice_quality::ratchet_surface_paths` scans on the working tree:
+/// basename `module.ttl` or `shapes.ttl`, or any `.ttl` under a `mappings/`
+/// directory.
+fn is_ratchet_surface(rel_path: &str) -> bool {
+    let basename = rel_path.rsplit('/').next().unwrap_or(rel_path);
+    basename == "module.ttl"
+        || basename == "shapes.ttl"
+        || (rel_path.contains("/mappings/") && rel_path.ends_with(".ttl"))
+}
+
+/// Reconstruct the ungrounded residue AT THE MERGE BASE for exactly the (slice,
+/// vocab) cells whose slice appears in `needed` — the slices whose committed
+/// projection ceiling is NEW in the working tree (ratchet invariant 3, the
+/// grandfather gate). For each discovered (working-tree) slice dir whose
+/// `gmeow_slice_quality::slice_iri_of_dir` is in `needed`: list its base fileset
+/// via [`git_ls_tree`], keep only [`is_ratchet_surface`] paths, and read each via
+/// [`git_show_base`] — a surface ABSENT at base is skipped (a genuinely new file,
+/// not an error); any OTHER git failure is a HARD-FAIL, never silently treated as
+/// absent. A slice with no surface texts at base (the whole slice directory is
+/// new) contributes NOTHING (base residue 0 for every vocab, via the caller's
+/// `unwrap_or(0)`). This feeds the SAME `gmeow_slice_quality::counting::residue`
+/// counter base bytes instead of working-tree files
+/// (`gmeow_slice_quality::residue_over_texts`), so "measured" can never diverge
+/// between the working-tree gate and this base reconstruction.
+///
+/// # Errors
+/// HARD-FAILS on any `git` failure other than a legitimately-absent path/dir
+/// (propagated from [`git_ls_tree`] / [`git_show_base`]), or on a Turtle
+/// parse/merge failure of a present base surface (propagated from
+/// `gmeow_slice_quality::residue_over_texts`).
+fn measure_base_residues(
+    root: &Path,
+    base: &str,
+    vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
+    needed: &std::collections::BTreeSet<String>,
+) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
+    let mut out = std::collections::BTreeMap::new();
+    for dir in gmeow_slice_quality::discover_slice_dirs(&root.join("slices")) {
+        let slice_iri = gmeow_slice_quality::slice_iri_of_dir(&dir)?;
+        if !needed.contains(&slice_iri) {
+            continue;
+        }
+        let rel_dir = dir
+            .strip_prefix(root)
+            .map_err(|e| sqe(format!("failed to strip prefix {root:?} from {dir:?}: {e}")))?
+            .to_string_lossy()
+            .replace('\\', "/");
+        let entries = git_ls_tree(root, base, &rel_dir)?;
+        let mut texts: Vec<String> = Vec::new();
+        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
+            match git_show_base(root, base, rel) {
+                BaseFile::Absent => {}
+                BaseFile::Error(e) => return Err(sqe(e)),
+                BaseFile::Contents(text) => texts.push(text),
+            }
+        }
+        if texts.is_empty() {
+            continue; // the slice is new at base → contributes 0 to every vocab
+        }
+        for vocab in vocabularies {
+            let r = gmeow_slice_quality::residue_over_texts(&texts, vocab, &slice_iri)?;
+            if r > 0 {
+                out.insert((slice_iri.clone(), vocab.prefix.clone()), r);
+            }
+        }
+    }
+    // The repo-level dsl/mappings/ surface (attributed to the DSL surface IRI) is not
+    // under any slice dir, so reconstruct its base residue separately — the same
+    // recursive `/mappings/` surfaces `is_ratchet_surface` matches, read at base — so a
+    // NEW dsl-surface ceiling can be grandfathered against real base residue.
+    if needed.contains(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI) {
+        let entries = git_ls_tree(root, base, "dsl/mappings")?;
+        let mut texts: Vec<String> = Vec::new();
+        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
+            match git_show_base(root, base, rel) {
+                BaseFile::Absent => {}
+                BaseFile::Error(e) => return Err(sqe(e)),
+                BaseFile::Contents(text) => texts.push(text),
+            }
+        }
+        if !texts.is_empty() {
+            for vocab in vocabularies {
+                let r = gmeow_slice_quality::residue_over_texts(
+                    &texts,
+                    vocab,
+                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
+                )?;
+                if r > 0 {
+                    out.insert(
+                        (
+                            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+                            vocab.prefix.clone(),
+                        ),
+                        r,
+                    );
+                }
+            }
+        }
+    }
+    Ok(out)
+}
 
 /// Resolve the committed floor for one `(slice, axis)` grade: the explicit
 /// `gmeow:AxisFloorCommitment` floor if one is recorded, else — ONLY for
@@ -1159,6 +1425,169 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     0
 }
 
+/// Render one `gmeow:ProjectionCeilingCommitment` TTL line in the exact on-disk
+/// format the gate reads and the human pastes into `module.ttl`: subject
+/// `gmeow:pcc-<sliceLocal>-<vocabPrefix>` (where `<sliceLocal>` is the last path
+/// segment of the slice IRI), the full slice IRI in angle brackets, the
+/// `gmeow:projVocab-<vocabPrefix>` vocabulary reference, and the measured residue —
+/// the inverse-polarity mirror of [`format_floor_line`].
+fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> String {
+    let slice_local = axis_local_name(slice_iri);
+    format!(
+        "gmeow:pcc-{slice_local}-{vocab_prefix} a gmeow:ProjectionCeilingCommitment ; rdfs:label \"projection-ceiling commitment — {slice_local} / {vocab_prefix}\"@x-gmeow-english ; skos:definition \"The committed lower-only ungrounded-residue ceiling for the {vocab_prefix} projection vocabulary on the {slice_local} slice; the gate reds if the slice's measured residue rises above it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <{slice_iri}> ; gmeow:ceilingVocabulary gmeow:projVocab-{vocab_prefix} ; gmeow:ceilingCount {count} ."
+    )
+}
+
+/// `gmeow-dev slice-quality-seed-ceilings` — emit `gmeow:ProjectionCeilingCommitment`
+/// TTL at the CURRENT measured ungrounded residue for every (slice, guarded
+/// projection-vocabulary) pair with nonzero residue, so a human can grandfather the
+/// existing residue and paste it into
+/// `slices/core/slice-quality-rubric/module.ttl`.
+///
+/// Reads the guarded vocabulary registry off the loaded rubric
+/// (`rubric.floors.vocabularies` — the ontology-resident set Task 2 seeded) and
+/// measures every discovered slice against it through
+/// `gmeow_slice_quality::measure_repo_residues`, the SAME shared counter the ratchet
+/// gate reads — seed and gate can never diverge on what "measured" means.
+///
+/// EMIT-ONLY, GRANDFATHER-ONCE: this seeds the ceiling ABox at whatever residue is
+/// live the moment it is run. Re-running it to "refresh" a ceiling whose measured
+/// residue has since RISEN is a banned auto-calibration — the correct response to a
+/// risen residue is the gate reading, never a re-seed that raises the ceiling to
+/// match. Lowering a ceiling later, after a genuine measured migration grounds
+/// constructs out of the residue, is always a deliberate hand-edit of the
+/// individual, never a seeder re-run. The command writes TTL to stdout only; the
+/// human commits it.
+pub fn slice_quality_seed_ceilings() -> i32 {
+    let root = project_root();
+    let rubric = match repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
+    };
+
+    // The guarded set must be loaded (Task 2's ontology-resident registry) — an
+    // empty set here means the registry failed to load, never a legitimate "guard
+    // nothing" state (.goals no-optionality).
+    let vocabularies = rubric.floors.vocabularies;
+    if vocabularies.is_empty() {
+        return fail(
+            "slice-quality-seed-ceilings: no gmeow:ProjectionVocabulary individuals loaded from the rubric — the guarded projection-vocabulary registry must be loaded before ceilings can be seeded",
+        );
+    }
+
+    // The SAME shared counter the ratchet gate reads — seed and gate can never
+    // diverge on what "measured" means.
+    let residues = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
+    };
+
+    // Sort deterministically by the emitted individual's IRI (not merely by the
+    // BTreeMap's (slice IRI, vocab prefix) key order, which can diverge from
+    // sorting by slice LOCAL name once two slices' full IRIs and local names order
+    // differently).
+    let mut entries: Vec<(String, String)> = residues
+        .into_iter()
+        .map(|((slice_iri, vocab_prefix), count)| {
+            let pcc_iri = format!("gmeow:pcc-{}-{vocab_prefix}", axis_local_name(&slice_iri));
+            (
+                pcc_iri,
+                format_ceiling_line(&slice_iri, &vocab_prefix, count),
+            )
+        })
+        .collect();
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+
+    // A short comment header (no issue/PR numbers) — then only the TTL lines.
+    println!("# seeded gmeow:ProjectionCeilingCommitment individuals — paste into {RUBRIC_MODULE}");
+    for (_, line) in &entries {
+        println!("{line}");
+    }
+    0
+}
+
+/// `gmeow-dev slice-quality-projection-debt` — a live migration dashboard over the
+/// projection-vocabulary ratchet: for every (slice, guarded vocab) with either a
+/// LIVE measured ungrounded residue or a committed ceiling, print the measured
+/// count, the effective ceiling, and the headroom between them.
+///
+/// `measured` is computed on every run through
+/// `gmeow_slice_quality::measure_repo_residues` — the SAME shared counter the
+/// ratchet gate reads — so this report can never diverge from what the gate would
+/// see. It is NEVER persisted as a `SoundUnder` projection: unlike the committed
+/// ceiling ABox, a live scan result is entailed by no resident individual, so
+/// folding it into the bundle as a projection would be a false loss judgment (the
+/// pipeline's `projection_ceilings` stage folds only the resident ceiling/
+/// vocabulary TSVs, never this scan). REPORT-ONLY: this command always exits 0 —
+/// it never gates `make check` (that is `slice-quality-gate`'s job) — and its
+/// output is never fed back into a ceiling; a ceiling is lowered only by a
+/// deliberate hand-edit of the committed individual after a genuine measured
+/// migration, never by tuning it toward this report's numbers.
+pub fn slice_quality_projection_debt() -> i32 {
+    let root = project_root();
+    let rubric = match repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
+    };
+
+    let vocabularies = rubric.floors.vocabularies;
+    if vocabularies.is_empty() {
+        return fail(
+            "slice-quality-projection-debt: no gmeow:ProjectionVocabulary individuals loaded from the rubric — the guarded projection-vocabulary registry must be loaded before residue can be measured",
+        );
+    }
+    let ceilings = rubric.floors.ceilings;
+
+    // The SAME shared counter the ratchet gate reads — this report can never
+    // diverge from what the gate would see.
+    let measured = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
+    };
+
+    // Every (slice, vocab) cell with EITHER a measured residue OR a committed
+    // ceiling — the union of the two key sets, sorted by (slice, vocab).
+    let mut cells: std::collections::BTreeSet<(String, String)> =
+        measured.keys().cloned().collect();
+    for ceiling in &ceilings {
+        cells.insert((ceiling.slice.clone(), ceiling.vocab_prefix.clone()));
+    }
+
+    println!("slice\tvocab\tmeasured\tceiling\theadroom");
+    let mut total_measured: u64 = 0;
+    let mut total_headroom: i64 = 0;
+    let mut at_ceiling: u64 = 0;
+    for (slice, vocab_prefix) in &cells {
+        let measured_count = measured
+            .get(&(slice.clone(), vocab_prefix.clone()))
+            .copied()
+            .unwrap_or(0);
+        let default_ceiling = vocabularies
+            .iter()
+            .find(|v| &v.prefix == vocab_prefix)
+            .map_or(0, |v| v.default_ceiling);
+        let ceiling_count = ceilings
+            .iter()
+            .find(|c| &c.slice == slice && &c.vocab_prefix == vocab_prefix)
+            .map_or(default_ceiling, |c| c.count);
+        let headroom = i64::try_from(ceiling_count).unwrap_or(i64::MAX)
+            - i64::try_from(measured_count).unwrap_or(i64::MAX);
+
+        println!("{slice}\t{vocab_prefix}\t{measured_count}\t{ceiling_count}\t{headroom}");
+
+        total_measured += measured_count;
+        total_headroom += headroom;
+        if headroom == 0 {
+            at_ceiling += 1;
+        }
+    }
+    println!(
+        "# total measured={total_measured} total headroom={total_headroom} at-ceiling={at_ceiling} cells={}",
+        cells.len()
+    );
+    0
+}
+
 #[cfg(test)]
 mod min_tier_tests {
     use super::*;
@@ -1412,6 +1841,7 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
                     slice: format!("{NS}sliceX"),
                     tier: format!("{NS}tierBogus"),
                 }],
+                ..Default::default()
             },
         };
         let err = tier_floors_from_rubric(&rubric).unwrap_err();
