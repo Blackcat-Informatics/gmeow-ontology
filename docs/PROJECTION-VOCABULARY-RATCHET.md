@@ -215,7 +215,11 @@ exercise each invariant directly against inline fixtures.
   are never projected here — they are empirical scan results entailed by no
   resident individual, computed only on the live CLI/gate path.
 - **Competency query:**
-  [`slices/core/slice-quality-rubric/queries/projection-ceilings.rq`](../slices/core/slice-quality-rubric/queries/projection-ceilings.rq)
-  — proves the ratchet's *commitments* (not the live measured/headroom) are
-  queryable straight out of the bundled ontology via SPARQL, dogfooding
-  Principle 17.
+  [`slices/core/slice-quality-rubric/queries/qc/projection-ceilings.rq`](../slices/core/slice-quality-rubric/queries/qc/projection-ceilings.rq)
+  — registered as `ex:cqProjectionCeilingsHold` in
+  [`slices/core/slice-quality-rubric/tests/competency.ttl`](../slices/core/slice-quality-rubric/tests/competency.ttl),
+  finds committed ceilings whose vocabulary lacks a complete descriptor
+  (default ceiling / `logic:` subsumer / preservation judgment) — a non-empty
+  result is a failure. It proves the ratchet's *commitments* (not the live
+  measured/headroom) are queryable straight out of the bundled ontology via
+  SPARQL, dogfooding Principle 17.
