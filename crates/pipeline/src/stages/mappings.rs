@@ -595,11 +595,19 @@ fn build_union_report(
     Ok(report.into_bytes())
 }
 
-/// Fold the gate-derived 591-term up-projection audit into the report header counts: the
-/// `correspondenceCount` becomes the curated production cell PLUS every audited external term;
-/// `lawfulUpliftCount` gains the proved tier (round-trip verified) and `claimedUpliftCount`
-/// the claimed tier (alignment-asserted, not proved). The audit headline thus becomes a
-/// gate-verdict ledger in the canonical loss ledger, not a heuristic bucket count.
+/// Compute the FINAL report header correspondence/uplift counts. This is the SINGLE owner
+/// of `correspondenceCount` / `lawfulUpliftCount` / `claimedUpliftCount`: it composes the
+/// curated affine-gate BASE compile-logic ships on the channel (`base_correspondence_count`
+/// / `base_lawful_uplift_count`) with the gate-derived 591-term up-projection audit. The
+/// `correspondenceCount` becomes the curated affine-gate cell PLUS every audited external
+/// term; `lawfulUpliftCount` the base lawful count PLUS the proved tier (round-trip
+/// verified); `claimedUpliftCount` the claimed tier (alignment-asserted, not proved; base 0).
+/// The audit headline thus becomes a gate-verdict ledger in the canonical loss ledger, not a
+/// heuristic bucket count.
+///
+/// The incoming `header`'s count fields ride the channel as 0 (compile-logic no longer writes
+/// them), so the composition is a clean assignment (`=`) that documents mappings owns the
+/// value; the base arrives explicitly via the two `base_*` parameters.
 ///
 /// Inputs are gathered the same way the `gmeow up-projection-audit` CLI does: the freshly
 /// generated SSSOM (in-memory), the authored projection cells under `root`, and the vendored
@@ -609,6 +617,8 @@ fn fold_up_projection_audit(
     root: &Path,
     artifacts: &BTreeMap<String, Vec<u8>>,
     mut header: ReportHeader,
+    base_correspondence_count: usize,
+    base_lawful_uplift_count: usize,
 ) -> Result<ReportHeader, gmeow_errors::Diag> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -665,9 +675,13 @@ fn fold_up_projection_audit(
         crate::up_projection_gates::gate_derived_audit(&sssom_texts, &projection_ttls, &corpus_nts)
             .map_err(|e| stage_err(format!("gate-derived up-projection audit: {e}")))?;
 
-    header.correspondence_count += ledger.total();
-    header.lawful_uplift_count += ledger.totals.proved;
-    header.claimed_uplift_count += ledger.totals.claimed;
+    // Single-owner composition: mappings COMPUTES the final counts as base + audit. The
+    // incoming header carries 0 in these fields (compile-logic ships only the axiom/rule/
+    // profile counts it owns), so `=` and `+=` are arithmetically identical here — `=`
+    // documents that mappings is the sole writer of the final value.
+    header.correspondence_count = base_correspondence_count + ledger.total();
+    header.lawful_uplift_count = base_lawful_uplift_count + ledger.totals.proved;
+    header.claimed_uplift_count = ledger.totals.claimed;
     Ok(header)
 }
 
@@ -940,7 +954,13 @@ impl Stage for MappingsStage {
         // counts, so the committed loss ledger carries the gate-verdict liftability statistic
         // . Then canonicalize the report TTL so `projection-report.ttl` is carried as
         // the fold of its named graph (superset gate), not an opaque byte lane.
-        let header = fold_up_projection_audit(input.root, &artifacts, channel.header)?;
+        let header = fold_up_projection_audit(
+            input.root,
+            &artifacts,
+            channel.header,
+            channel.base_correspondence_count,
+            channel.base_lawful_uplift_count,
+        )?;
         let report = build_union_report(header, &channel, &compiled.ledger, &compiled.loss)?;
         artifacts.insert(
             PROJECTION_REPORT_PATH.to_string(),
@@ -1518,6 +1538,102 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "the logic projection rows must be byte-identical between the freshly \
              assembled report and the committed report; only correspondence + lang: \
              projection rows differ"
+        );
+    }
+
+    /// Byte-parity oracle for Seam 1 (count-ownership consolidation): the committed
+    /// `generated/logic/projection-report.ttl` was produced by the PRE-change two-writer path
+    /// (compile-logic wrote a base, mappings `+=`-composed the audit). The new single-owner
+    /// path — compile-logic ships the affine-gate BASE on the channel, mappings'
+    /// `fold_up_projection_audit` COMPUTES the final counts as `base + audit` with `=` and is
+    /// the sole writer — MUST reproduce those exact committed `logic:correspondenceCount` /
+    /// `lawfulUpliftCount` / `claimedUpliftCount` values. Reproducing them proves the
+    /// arithmetic did not drift, i.e. the committed report count bytes are unchanged.
+    ///
+    /// Off-gate: this runs the real compile-logic affine gate PLUS the whole-corpus 591-term
+    /// up-projection audit (through `MappingsStage::run`), so it exceeds the 25 s per-test
+    /// budget and rides the maint-heavy lane — mirroring the sibling
+    /// `projection_report_unions_logic_and_correspondence_rows`.
+    #[test]
+    #[ignore = "off-gate: runs the whole-corpus up-projection audit; exceeds the 25s budget"]
+    fn projection_report_counts_reproduce_committed_after_single_owner_consolidation() {
+        use crate::node::StageInput;
+        use crate::stages::compile_logic::CompileLogicStage;
+
+        // Parse `logic:<local> <int> ;` out of a projection-report TTL body. The needle
+        // carries a trailing space so a prefix (e.g. `...Count`) can't match a longer local.
+        fn parse_count(ttl: &str, local: &str) -> Option<usize> {
+            let needle = format!("logic:{local} ");
+            ttl.lines().find_map(|line| {
+                let rest = line.trim_start().strip_prefix(&needle)?;
+                rest.trim_end_matches([';', ' '])
+                    .trim()
+                    .parse::<usize>()
+                    .ok()
+            })
+        }
+
+        let root = repo_root();
+        // The committed report is the PRE-change artifact; parse its pinned counts.
+        let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
+            .expect("committed projection report");
+        let committed_corr =
+            parse_count(&committed, "correspondenceCount").expect("committed correspondenceCount");
+        let committed_claimed =
+            parse_count(&committed, "claimedUpliftCount").expect("committed claimedUpliftCount");
+        // `lawfulUpliftCount` is legitimately 0 in the committed report (still emitted because
+        // `correspondenceCount` > 0), so it is a plain-equality pin, not a `> 0` guard.
+        let committed_lawful =
+            parse_count(&committed, "lawfulUpliftCount").expect("committed lawfulUpliftCount");
+        // Non-vacuity: the pinned counts must be real values, not a silent parse-to-default —
+        // so the equality below can't pass over an empty/absent report.
+        assert!(
+            committed_corr > 0,
+            "committed correspondenceCount must be > 0"
+        );
+        assert!(
+            committed_claimed > 0,
+            "committed claimedUpliftCount must be > 0"
+        );
+
+        // Reproduce the report through the REAL single-owner production path: the compile-logic
+        // affine gate → channel base, then mappings' `fold_up_projection_audit` over the real
+        // inputs.
+        let compile = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &BTreeMap::new(),
+            })
+            .expect("compile-logic");
+        let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
+        up.insert("stage-compile-logic".to_string(), compile.product);
+        let out = MappingsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &up,
+            })
+            .expect("mappings");
+        let fresh = std::str::from_utf8(
+            out.product
+                .artifact(PROJECTION_REPORT_PATH)
+                .expect("report"),
+        )
+        .expect("utf8 report");
+
+        assert_eq!(
+            parse_count(fresh, "correspondenceCount"),
+            Some(committed_corr),
+            "single-owner correspondenceCount must reproduce the committed {committed_corr}"
+        );
+        assert_eq!(
+            parse_count(fresh, "lawfulUpliftCount"),
+            Some(committed_lawful),
+            "single-owner lawfulUpliftCount must reproduce the committed {committed_lawful}"
+        );
+        assert_eq!(
+            parse_count(fresh, "claimedUpliftCount"),
+            Some(committed_claimed),
+            "single-owner claimedUpliftCount must reproduce the committed {committed_claimed}"
         );
     }
 
