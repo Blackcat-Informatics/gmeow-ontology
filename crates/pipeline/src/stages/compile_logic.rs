@@ -808,7 +808,7 @@ fn logic_graph_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::OpenOptions;
+    use std::fs::{OpenOptions, TryLockError};
     use std::sync::OnceLock;
     use std::time::{Duration, Instant};
 
@@ -864,15 +864,18 @@ mod tests {
                 std::fs::create_dir_all(&lock_dir)
                     .expect("create compile-logic fixture lock directory");
                 let lock_path = lock_dir.join(format!("{fingerprint}.lock"));
+                let lock_file = OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .truncate(false)
+                    .open(&lock_path)
+                    .expect("open compile-logic fixture lock");
                 let started = Instant::now();
                 let _lock = loop {
-                    match OpenOptions::new()
-                        .write(true)
-                        .create_new(true)
-                        .open(&lock_path)
-                    {
-                        Ok(_) => break FixtureBuildLock(lock_path.clone()),
-                        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                    match lock_file.try_lock() {
+                        Ok(()) => break FixtureBuildLock(lock_file),
+                        Err(TryLockError::WouldBlock) => {
                             // The elected process publishes through PipelineCache's atomic
                             // index/content writes. Check for that product before sleeping.
                             let cache = PipelineCache::open(&cache_dir)
@@ -884,26 +887,19 @@ mod tests {
                                 return product;
                             }
 
-                            // A killed test can leave only the empty election file behind.
-                            // The normal stage is a sub-25-second gate test; five minutes is
-                            // therefore safely stale without masking a live slow test.
-                            let stale = std::fs::metadata(&lock_path)
-                                .and_then(|meta| meta.modified())
-                                .and_then(|modified| {
-                                    modified.elapsed().map_err(std::io::Error::other)
-                                })
-                                .is_ok_and(|age| age > Duration::from_secs(300));
-                            if stale {
-                                let _ = std::fs::remove_file(&lock_path);
-                                continue;
-                            }
+                            // File-lock ownership is tied to the live descriptor/process.
+                            // Normal close and process death both release it, so a slow live
+                            // builder cannot be evicted by elapsed time and a former owner's
+                            // Drop cannot remove a successor's election.
                             assert!(
                                 started.elapsed() < Duration::from_secs(360),
                                 "timed out waiting for compile-logic fixture builder"
                             );
                             std::thread::sleep(Duration::from_millis(50));
                         }
-                        Err(error) => panic!("acquire compile-logic fixture lock: {error}"),
+                        Err(TryLockError::Error(error)) => {
+                            panic!("acquire compile-logic fixture lock: {error}")
+                        }
                     }
                 };
 
@@ -934,12 +930,42 @@ mod tests {
             .clone()
     }
 
-    struct FixtureBuildLock(PathBuf);
+    struct FixtureBuildLock(std::fs::File);
 
     impl Drop for FixtureBuildLock {
         fn drop(&mut self) {
-            let _ = std::fs::remove_file(&self.0);
+            let _ = self.0.unlock();
         }
+    }
+
+    #[test]
+    fn fixture_build_lock_is_owned_by_the_live_file_handle() {
+        let temp = tempfile::tempdir().expect("create fixture-lock tempdir");
+        let path = temp.path().join("fixture.lock");
+        let open = || {
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .truncate(false)
+                .open(&path)
+                .expect("open fixture lock")
+        };
+
+        let owner = open();
+        owner.try_lock().expect("first handle owns lock");
+        let guard = FixtureBuildLock(owner);
+        let successor = open();
+        assert!(matches!(
+            successor.try_lock(),
+            Err(TryLockError::WouldBlock)
+        ));
+
+        drop(guard);
+        successor
+            .try_lock()
+            .expect("closing the owner releases lock to successor");
+        successor.unlock().expect("release successor fixture lock");
     }
 
     /// Proves the content-addressed fixture itself remains readable; on a cold
