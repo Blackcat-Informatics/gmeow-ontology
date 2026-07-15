@@ -219,9 +219,6 @@ pub enum Commands {
         #[arg(long = "from-passing-check")]
         from_passing_check: bool,
     },
-    /// Cross-check competency queries across two engines.
-    #[command(name = "crosscheck-queries")]
-    CrosscheckQueries,
     /// Reason over the ontology (native EL/DL, Docker-free).
     Reason {
         #[arg(long = "mode", default_value = "native")]
@@ -840,7 +837,6 @@ pub fn run() -> i32 {
         Commands::ComplianceReport { from_passing_check } => {
             dev_project::compliance_report(from_passing_check)
         }
-        Commands::CrosscheckQueries => dev_gates::crosscheck_queries(),
         Commands::Reason {
             mode,
             fresh,

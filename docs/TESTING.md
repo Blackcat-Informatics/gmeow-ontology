@@ -10,6 +10,13 @@ live in its `tests/` directory **as ontology data** in the test-DSL vocabulary
 faster than per-test Python (oxigraph SPARQL, no interpreter per assertion) and
 keeps tests inspectable and projectable like every other GMEOW term.
 
+Generic RDF 1.2 / RDF\* and SPARQL engine compliance is owned by PurRDF's own
+test suite. GMEOW tests the ontology and its products: every repository query
+test pins an expected result instead of merely proving that an upstream engine
+can execute it. The independent `make reason-crosscheck` lane is intentionally
+different: it compares GMEOW's native reasoning calculus with the
+`purrdf-entail` oracle.
+
 This document describes the test-DSL, the native harness, and — in detail — the
 **competency-question reasoning model**, which is the one place the harness makes
 a deliberate cost/fidelity trade-off.
