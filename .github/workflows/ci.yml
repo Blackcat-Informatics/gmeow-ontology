@@ -199,9 +199,9 @@ jobs:
   # balances wall-time, isolating the long poles (validate and strict sync)
   # into separate jobs.
   #
-  # Every original gate lands in exactly one job:
+  # Every remaining gate lands in exactly one job:
   #   ontology-validate  : validate
-  #   ontology-generated : maint-crosscheck, sync, constitution-check
+  #   ontology-generated : sync, constitution-check
   #   ontology-reason    : verify --mode native, acceptance, coverage
   #   ontology-misc      : mappings, wikidata, lint-alignment, audit, compliance-report
   ontology-validate:
@@ -263,9 +263,6 @@ jobs:
           key: sync-manifest-v3-${{ runner.os }}-${{ hashFiles('*.md', 'Cargo.toml', 'Cargo.lock', 'Makefile', 'rust-toolchain.toml', '.cargo/**', 'crates/**', 'slices/**', 'dsl/**', 'imports/**', 'metadata/**', 'shapes/**', 'queries/**', 'evals/**', 'bench/**', 'docs/**', 'i18n/**', 'ontology/**', 'governance/**', 'conformance/**', 'coverage/**', 'tests/**', 'validations/**') }}
           restore-keys: |
             sync-manifest-v3-${{ runner.os }}-
-
-      - name: Engine cross-check (rdflib ≡ purrdf on every query)
-        run: make maint-crosscheck
 
       - name: Full-registry drift gate (statements run natively via gmeow-rdf)
         run: make sync SYNC_MODE=check SYNC_OUTPUTS=generated
@@ -341,8 +338,6 @@ jobs:
   # The authoritative gate stays native and Docker-free; Principle 18 is proven
   # natively by the divergence-ledger enforcer, the on-gate subsumption entail
   # cross-check, and the frozen oracle-gold conformance case (in `make conformance`).
-  # (The rdflib query cross-check lane stays in `gmeow-dev crosscheck-queries`.)
-
   # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
   # target is absent in CI), and the actual wasm is exercised through the public

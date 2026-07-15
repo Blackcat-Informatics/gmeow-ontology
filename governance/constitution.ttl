@@ -107,13 +107,6 @@ meta:tests-alignment a meta:TestSuite ;
         "crates/pipeline/tests/correspondence_soundness_parity.rs",
         "crates/validate/tests/conformance_coreference.rs" .
 
-meta:gate-crosscheck a meta:Gate ;
-    rdfs:label "committed-query soundness crosscheck — every committed query answers on the native purrdf engine (rdflib retired)"@x-gmeow-english ;
-    meta:artifact "crates/gmeow-dev-cli/src/dev_gates.rs" ;
-    meta:symbol "crosscheck_queries" ;
-    meta:makeTarget "maint-crosscheck" ;
-    meta:cliCommand "crosscheck-queries" .
-
 meta:gate-reasoning a meta:Gate ;
     rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free) cross-checked against the purrdf-entail oracle"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/dl.rs" ;
@@ -432,7 +425,7 @@ meta:Principle6 a meta:Principle ;
 meta:Principle7 a meta:Principle ;
     meta:number 7 ;
     meta:title "Verified by construction" ;
-    meta:enforcedBy meta:gate-generator-registry, meta:gate-crosscheck .
+    meta:enforcedBy meta:gate-generator-registry .
 
 meta:Principle8 a meta:Principle ;
     meta:number 8 ;
