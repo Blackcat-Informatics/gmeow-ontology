@@ -75,9 +75,9 @@ class ContentSegment(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    segmentIndex: int | None = Field(default=None, description="The position of this segment within its containing whole — 1-based by convention, but not enforced.", alias="gmeow:segmentIndex")
-    segmentOf: list[Any] = Field(min_length=1, description="A structural segment is part of a larger whole — a work, release, installment, or another segment. Transitive; inverse of gmeow:hasSegment.", alias="gmeow:segmentOf")
-    segmentType: ContentSegmentTypeEnum | None = Field(default=None, description="The structural type of this segment — chapter, section, scene, etc. A value from the open gmeow:ContentSegmentType vocabulary.", alias="gmeow:segmentType")
+    segmentIndex: list[int] | None = Field(default=None, description="The position of this segment within its containing whole — 1-based by convention, but not enforced.", alias="gmeow:segmentIndex")
+    segmentOf: list[str] = Field(min_length=1, description="A structural segment is part of a larger whole — a work, release, installment, or another segment. Transitive; inverse of gmeow:hasSegment.", alias="gmeow:segmentOf")
+    segmentType: list[ContentSegmentTypeEnum] | None = Field(default=None, description="The structural type of this segment — chapter, section, scene, etc. A value from the open gmeow:ContentSegmentType vocabulary.", alias="gmeow:segmentType")
 
 
 class FeedPosting(ConfiguredBaseModel):

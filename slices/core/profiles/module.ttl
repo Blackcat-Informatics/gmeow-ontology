@@ -142,9 +142,9 @@ gmeow:profileTemporalProvenance
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
-# Migrated (#1194): projection of gmeow:ProfileOpenValueUseShape (Warning) — an
-# individual of a profile's gmeow:profileOpenValue class must be the object of at
-# least one of that profile's gmeow:profileDescriptor predicates (Principle 17).
+# Migrated: projection of gmeow:ProfileOpenValueUseShape — an individual of a
+# profile's gmeow:profileOpenValue class must be the object of at least one of
+# that profile's gmeow:profileDescriptor predicates (Principle 17).
 # The descriptor predicate is named by the profile, so this is a variable-predicate
 # (logic:linkVia) join, mirroring the source sh:SPARQLTarget + FILTER NOT EXISTS.
 gmeow:ProfileOpenValueUseConstraint
@@ -153,7 +153,7 @@ gmeow:ProfileOpenValueUseConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every individual of a gmeow:profileOpenValue class is referenced through one of the owning profile's gmeow:profileDescriptor predicates."@x-gmeow-english ;
-    logic:formalizes gmeow:profileOpenValue ;
+    logic:formalizes gmeow:ProfileOpenValueUseShape ;
     logic:severity "Violation" ;
     logic:message "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard." ;
     logic:integrity logic:povuForall .
@@ -182,3 +182,16 @@ logic:povuDescProp a logic:Formula ; logic:relation gmeow:profileDescriptor ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] .
 logic:povuDescLink a logic:Formula ; logic:relation logic:linkVia ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "subj" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] , [ logic:termIndex 2 ; logic:termVariable "this" ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/Profile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Class> ] .
+
+# Required descriptive spine of a Profile (self-description is the point of the
+# meta-pattern): at least one label, a definition, and one descriptor property.
+# The min-qualified idiom (owl:onClass owl:Thing) is the in-fragment form the
+# native reasoner decides — it degrades to the unqualified sh:minCount 1 the
+# retired hand-authored shape enforced, without minting existential witnesses.
+gmeow:Profile rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty skos:definition ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:profileDescriptor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

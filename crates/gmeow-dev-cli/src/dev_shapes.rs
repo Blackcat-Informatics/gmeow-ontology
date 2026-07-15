@@ -52,6 +52,8 @@ const SH_OR: &str = "http://www.w3.org/ns/shacl#or";
 /// construct, focus-flag agreement required on the projected constraint surface).
 const SH_NODE: &str = "http://www.w3.org/ns/shacl#node";
 const SH_XONE: &str = "http://www.w3.org/ns/shacl#xone";
+const SH_TARGET: &str = "http://www.w3.org/ns/shacl#target";
+const SH_SELECT: &str = "http://www.w3.org/ns/shacl#select";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The projected validation-shape surface, relative to the repo root.
 const PROJECTED_REL: &str = "generated/shapes/validation-shapes.ttl";
@@ -221,6 +223,147 @@ fn collect_formalized_failure_classes(
         }
     }
     out
+}
+
+/// α-canonicalize one SPARQL `sh:select` body for the raw-target identity clearance: tokenize
+/// (IRIs whole; `{ } ( ) [ ] , ;` and a standalone `.` as single-char tokens), fix the focus
+/// variable (`$this` ≡ `?this`), rename every other variable to `?vN` in first-occurrence order,
+/// read each anonymous `[]` node as a FRESH variable (SPARQL bnode-in-query semantics), and
+/// uppercase bare keyword tokens. Two selects with equal canonical forms select/flag exactly the
+/// same focus nodes over every graph — variable names, whitespace, and keyword case are the only
+/// degrees of freedom this normalization removes, so equality is a SOUND (never over-claiming)
+/// witness of semantic identity.
+fn sparql_alpha_canonical(select: &str) -> String {
+    // Tokenize.
+    let mut toks: Vec<String> = Vec::new();
+    let mut chars = select.chars().peekable();
+    while let Some(&c) = chars.peek() {
+        if c.is_whitespace() {
+            chars.next();
+        } else if c == '<' {
+            let mut t = String::new();
+            for ch in chars.by_ref() {
+                t.push(ch);
+                if ch == '>' {
+                    break;
+                }
+            }
+            toks.push(t);
+        } else if matches!(c, '{' | '}' | '(' | ')' | '[' | ']' | ',' | ';' | '.') {
+            toks.push(c.to_string());
+            chars.next();
+        } else {
+            let mut t = String::new();
+            while let Some(&ch) = chars.peek() {
+                if ch.is_whitespace() || matches!(ch, '{' | '}' | '(' | ')' | '[' | ']' | ',' | ';')
+                {
+                    break;
+                }
+                t.push(ch);
+                chars.next();
+            }
+            // A trailing statement-terminating '.' is its own token (IRIs are consumed whole
+            // above, and the corpus selects carry no decimal literals).
+            while t.ends_with('.') {
+                t.pop();
+                if !t.is_empty() {
+                    toks.push(std::mem::take(&mut t));
+                }
+                toks.push(".".to_owned());
+            }
+            if !t.is_empty() {
+                toks.push(t);
+            }
+        }
+    }
+    // α-rename.
+    let mut rename: BTreeMap<String, String> = BTreeMap::new();
+    let mut fresh = 0usize;
+    let mut out: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < toks.len() {
+        let t = &toks[i];
+        if t == "$this" || t == "?this" {
+            out.push("?this".to_owned());
+        } else if t == "[" && toks.get(i + 1).map(String::as_str) == Some("]") {
+            out.push(format!("?v{fresh}"));
+            fresh += 1;
+            i += 2;
+            continue;
+        } else if let Some(rest) = t.strip_prefix('?').or_else(|| t.strip_prefix('$')) {
+            let key = rest.to_owned();
+            let name = rename.entry(key).or_insert_with(|| {
+                let n = format!("?v{fresh}");
+                fresh += 1;
+                n
+            });
+            out.push(name.clone());
+        } else if t.chars().all(|ch| ch.is_ascii_alphabetic()) {
+            out.push(t.to_ascii_uppercase());
+        } else {
+            out.push(t.clone());
+        }
+        i += 1;
+    }
+    out.join(" ")
+}
+
+/// The `sh:select` bodies of every `sh:sparql` constraint on `subject`, sorted for set
+/// comparison.
+fn sparql_constraint_selects(ds: &RdfDataset, subject: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let (Some(sid), Some(sparql), Some(select)) = (
+        ds.term_id_by_value(&TermValue::iri(subject)),
+        ds.term_id_by_value(&TermValue::iri(SH_SPARQL)),
+        ds.term_id_by_value(&TermValue::iri(SH_SELECT)),
+    ) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(Some(sid), Some(sparql), None, GraphMatch::Any) {
+        for sel in ds.quads_for_pattern(Some(q.o), Some(select), None, GraphMatch::Any) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(sel.o) {
+                out.push(lexical.to_owned());
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// The raw `sh:target [ … sh:select "…" ]` body on `subject`, when it carries exactly one.
+fn raw_target_select(ds: &RdfDataset, subject: &str) -> Option<String> {
+    let (sid, target, select) = (
+        ds.term_id_by_value(&TermValue::iri(subject))?,
+        ds.term_id_by_value(&TermValue::iri(SH_TARGET))?,
+        ds.term_id_by_value(&TermValue::iri(SH_SELECT))?,
+    );
+    let mut found: Option<String> = None;
+    for q in ds.quads_for_pattern(Some(sid), Some(target), None, GraphMatch::Any) {
+        for sel in ds.quads_for_pattern(Some(q.o), Some(select), None, GraphMatch::Any) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(sel.o) {
+                if found.is_some() {
+                    return None; // ambiguous — never ground on a multi-target guess
+                }
+                found = Some(lexical.to_owned());
+            }
+        }
+    }
+    found
+}
+
+/// The canonical enforcement key of a raw-SPARQL-target block: the α-canonical target select
+/// plus the sorted α-canonical `sh:sparql` select set.
+fn raw_sparql_block_key(target_select: &str, constraint_selects: &[String]) -> String {
+    let mut selects: Vec<String> = constraint_selects
+        .iter()
+        .map(|s| sparql_alpha_canonical(s))
+        .collect();
+    selects.sort();
+    format!(
+        "target={} constraints={}",
+        sparql_alpha_canonical(target_select),
+        selects.join(" | ")
+    )
 }
 
 /// Parse a Turtle file into a dataset, mapping a read/parse failure to the dev exit code.
@@ -467,6 +610,47 @@ impl OracleCtx {
         semantic_cross_check(&legacy_ttl, &record_ttl, &witnesses).map_err(crate::error::clearance)
     }
 
+    /// Whether an exact `logic:formalizes <iri>` record on a projected constraint surface
+    /// REPLICATES a raw-SPARQL-target legacy block verbatim: the record's own raw `sh:target`
+    /// select and its full `sh:sparql` select set are α-equivalent (variable renaming,
+    /// whitespace, keyword case — nothing else) to the legacy block's. α-equivalent selects
+    /// choose the same focus set and flag the same nodes over every graph, so this is a
+    /// VERIFIED reproduction — strictly stronger evidence than the `sh:sparql` trust anchor,
+    /// available where the witness synthesizer cannot model the target's join skeleton.
+    fn record_replicates_raw_sparql_block(
+        &self,
+        iri: &str,
+        target: &ShapeTarget,
+        legacy_ds: &RdfDataset,
+    ) -> bool {
+        let ShapeTarget::Sparql(legacy_target_select) = target else {
+            return false;
+        };
+        let legacy_selects = sparql_constraint_selects(legacy_ds, iri);
+        if legacy_selects.is_empty() {
+            return false; // nothing to replicate — not this clearance's shape
+        }
+        let legacy_key = raw_sparql_block_key(legacy_target_select, &legacy_selects);
+        for ds in &self.constraint_surfaces {
+            for (record, formalized) in gmeow_validate::shape_grounding::formalizes_records(ds) {
+                if !formalized.contains(iri) {
+                    continue;
+                }
+                let Some(record_target) = raw_target_select(ds, &record) else {
+                    continue;
+                };
+                let record_selects = sparql_constraint_selects(ds, &record);
+                if record_selects.is_empty() {
+                    continue;
+                }
+                if raw_sparql_block_key(&record_target, &record_selects) == legacy_key {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     /// The verdict for one legacy shape across ALL its focus selectors: a multi-target shape
     /// (SHACL unions the focus sets of multi-valued `sh:targetClass` / `sh:targetSubjectsOf`)
     /// applies the SAME constraint payload under every target, so the block-level judgment is
@@ -611,6 +795,30 @@ impl OracleCtx {
                     // projects the legacy shape's only enforcement residue.
                     Verdict::EquivGroundedResidue
                 }
+                None if matches!(target, ShapeTarget::Sparql(s) if s != TARGETLESS_SELECT)
+                    && read.ir.properties.is_empty()
+                    && read.ir.node_components.is_empty()
+                    && !read.unsupported.is_empty()
+                    && read
+                        .unsupported
+                        .iter()
+                        .all(|p| p == SH_SPARQL || p == RAW_SPARQL_TARGET_RESIDUE)
+                    && read
+                        .unsupported
+                        .iter()
+                        .any(|p| p == RAW_SPARQL_TARGET_RESIDUE)
+                    && self.formalized_shapes.contains(iri)
+                    && formalized_failure_matches()
+                    && self.record_replicates_raw_sparql_block(iri, target, legacy_ds) =>
+                {
+                    // A raw-SPARQL-target block whose ENTIRE enforcement is its raw target +
+                    // `sh:sparql` constraints, replicated α-equivalently by its exact
+                    // `logic:formalizes` record's projected twin: identity of the select
+                    // bodies is a verified reproduction (same focus set, same findings over
+                    // every graph), so the block is grounded without a witness plan — which
+                    // cannot be synthesized for a join-shaped target skeleton anyway.
+                    Verdict::EquivGroundedResidue
+                }
                 None if semantic_residue_grounded(&read.unsupported, true)
                     && formalized_failure_matches() =>
                 {
@@ -639,6 +847,19 @@ impl OracleCtx {
                     // exist): not yet grounded, but the honest verdict is its residue, not a
                     // missing peer.
                     Verdict::EquivResidue(read.unsupported.clone())
+                }
+                None if read.ir.properties.is_empty()
+                    && read.ir.node_components.is_empty()
+                    && read.unsupported.is_empty()
+                    && self.formalized_shapes.contains(iri)
+                    && formalized_failure_matches() =>
+                {
+                    // An enforcement-free class-target block whose obligation now rides its
+                    // exact `logic:formalizes` record: the legacy block flags nothing over any
+                    // graph (deleting it loses no enforcement — trivial subsumption), and the
+                    // canonical record carries the class's intended obligation onto the
+                    // projected constraint surface, so the block's identity is record-grounded.
+                    Verdict::EquivGroundedResidue
                 }
                 None => Verdict::NoProjectedPeer,
             },
@@ -3049,6 +3270,107 @@ mod tests {
         );
     }
 
+    // ── Raw-SPARQL-target identity clearance (join-shaped target skeleton) ─────
+
+    /// A legacy raw-target block whose focus selection is a variable-class JOIN (outside the
+    /// witness synthesizer's skeleton) and whose ONLY enforcement is one sh:sparql constraint
+    /// carrying an anonymous `[]` node.
+    const JOIN_LEGACY_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        <https://ex/OpenValueShape> a sh:NodeShape ;\n\
+        \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"\n\
+            SELECT ?this WHERE {\n\
+                ?profile <https://ex/openValue> ?openClass .\n\
+                ?this a ?openClass .\n\
+            }\n\
+        \"\"\" ] ;\n\
+        \x20\x20sh:severity sh:Warning ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:message \"m\" ; sh:select \"\"\"\n\
+            SELECT $this WHERE {\n\
+                ?profile <https://ex/openValue> ?openClass .\n\
+                $this a ?openClass .\n\
+                FILTER NOT EXISTS {\n\
+                    ?profile <https://ex/descriptor> ?descriptor .\n\
+                    [] ?descriptor $this .\n\
+                }\n\
+            }\n\
+        \"\"\" ] .\n";
+
+    /// The faithful projected record: the SAME target select and constraint body up to
+    /// whitespace, variable names (`?p2`), and the `[]` node written as an explicit variable.
+    const JOIN_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/OpenValueConstraintShape> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/OpenValueShape> ;\n\
+        \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE { ?p2 <https://ex/openValue> ?oc . ?this a ?oc . }\"\"\" ] ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:severity sh:Violation ; sh:message \"m\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { ?p2 <https://ex/openValue> ?oc . $this a ?oc . FILTER NOT EXISTS { ?p2 <https://ex/descriptor> ?d . ?subj ?d $this . } }\"\"\" ] .\n";
+
+    /// A DIVERGENT record: same target, but the constraint body checks a different predicate.
+    const JOIN_WRONG_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/OpenValueConstraintShape> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/OpenValueShape> ;\n\
+        \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE { ?p2 <https://ex/openValue> ?oc . ?this a ?oc . }\"\"\" ] ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:severity sh:Violation ; sh:message \"m\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { ?p2 <https://ex/OTHER> ?oc . $this a ?oc . }\"\"\" ] .\n";
+
+    #[test]
+    fn raw_sparql_target_identity_clearance_matrix() {
+        let ds = parse_ttl(JOIN_LEGACY_TTL);
+        let read = read_shacl_shape(&ds, "https://ex/OpenValueShape").expect("legacy reads");
+        assert!(
+            matches!(read.ir.target, ShapeTarget::Sparql(_)),
+            "{:?}",
+            read.ir.target
+        );
+        assert!(read.ir.properties.is_empty(), "{:?}", read.ir.properties);
+
+        // The α-equivalent record clears the block: identical selects (modulo variable
+        // renaming, `[]`, whitespace, keyword case) are a verified reproduction.
+        let ctx = ctx_from("", &[JOIN_RECORD_TTL]);
+        let v = ctx.verdict_all("https://ex/OpenValueShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivGroundedResidue),
+            "the α-equivalent record must clear: {}",
+            v.label()
+        );
+
+        // No record → whole-shape residue.
+        let ctx = ctx_from("", &[]);
+        let v = ctx.verdict_all("https://ex/OpenValueShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivResidue(_)),
+            "no record must not clear: {}",
+            v.label()
+        );
+
+        // A record whose constraint body diverges must NOT clear (and the witness path cannot
+        // synthesize a plan for the join-shaped target, so the block stays residue).
+        let ctx = ctx_from("", &[JOIN_WRONG_RECORD_TTL]);
+        let v = ctx.verdict_all("https://ex/OpenValueShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivResidue(_)),
+            "a divergent record must NOT clear: {}",
+            v.label()
+        );
+    }
+
+    #[test]
+    fn sparql_alpha_canonical_equates_renamings_and_distinguishes_predicates() {
+        let a = "SELECT $this WHERE { ?x <https://ex/p> ?y . [] ?y $this . }";
+        let b = "SELECT ?this WHERE {\n  ?profile <https://ex/p> ?d .\n  ?subj ?d ?this . }";
+        assert_eq!(sparql_alpha_canonical(a), sparql_alpha_canonical(b));
+        let c = "SELECT $this WHERE { ?x <https://ex/OTHER> ?y . [] ?y $this . }";
+        assert_ne!(sparql_alpha_canonical(a), sparql_alpha_canonical(c));
+        // Two `[]` occurrences are DISTINCT fresh variables, never unified.
+        let d = "SELECT ?this WHERE { [] <https://ex/p> ?this . [] <https://ex/q> ?this . }";
+        let e = "SELECT ?this WHERE { ?s <https://ex/p> ?this . ?s <https://ex/q> ?this . }";
+        assert_ne!(sparql_alpha_canonical(d), sparql_alpha_canonical(e));
+    }
+
     #[test]
     fn sparql_target_clearance_rejects_a_mismatched_failure_class() {
         let legacy = META_LEGACY_TTL.replace(
@@ -3106,6 +3428,41 @@ mod tests {
         );
     }
 
+    #[test]
+    fn enforcement_free_class_block_clears_only_via_its_exact_record() {
+        // A class-target block with ZERO enforcement components: deleting it loses nothing,
+        // but its identity clears only once its intended obligation rides an exact
+        // `logic:formalizes` record on the projected constraint surface.
+        let ttl = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <https://ex/NoOpShape> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/C> ;\n\
+             \x20\x20rdfs:comment \"documentation only\" .\n";
+        let record = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/CConstraint> a sh:NodeShape ;\n\
+             \x20\x20<https://blackcatinformatics.ca/logic/formalizes> <https://ex/NoOpShape> .\n";
+        let ds = parse_ttl(ttl);
+        let read = read_shacl_shape(&ds, "https://ex/NoOpShape").expect("no-op class block reads");
+
+        // Without a record the honest verdict stays NO-PROJECTED-PEER.
+        let ctx = ctx_from("", &[]);
+        let v = ctx.verdict_all("https://ex/NoOpShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::NoProjectedPeer),
+            "no record must not clear an enforcement-free class block: {}",
+            v.label()
+        );
+
+        // The exact record grounds the block's identity.
+        let ctx = ctx_from("", &[record]);
+        let v = ctx.verdict_all("https://ex/NoOpShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivGroundedResidue),
+            "the exact formalizes record must clear: {}",
+            v.label()
+        );
+    }
+
     // ── Prune-splicer proof against the REAL shapes/gmeow-shapes.ttl ──────────
 
     /// The real repo-wide shapes file plus its parsed `sh:NodeShape` IRIs.
@@ -3122,7 +3479,7 @@ mod tests {
     #[test]
     fn splicer_resolves_every_real_block_subject_count_exact() {
         let (text, iris) = real_gmeow_shapes();
-        assert_eq!(iris.len(), 173, "the census of the committed file");
+        assert_eq!(iris.len(), 137, "the census of the committed file");
         let mut spans: Vec<(usize, usize)> = Vec::new();
         for iri in &iris {
             let span = subject_span(&text, local_name(iri))
@@ -3131,7 +3488,7 @@ mod tests {
         }
         spans.sort_unstable();
         spans.dedup();
-        assert_eq!(spans.len(), 173, "every block resolves to its OWN span");
+        assert_eq!(spans.len(), 137, "every block resolves to its OWN span");
         for w in spans.windows(2) {
             assert!(
                 w[0].1 <= w[1].0,
@@ -3171,7 +3528,7 @@ mod tests {
             let remaining = node_shape_iris(&ds);
             assert_eq!(
                 remaining.len(),
-                172,
+                136,
                 "pruning {iri} must remove exactly one block"
             );
             assert!(!remaining.contains(iri), "{iri} must be the removed block");
@@ -3371,7 +3728,7 @@ mod tests {
     }
 
     #[test]
-    fn classification_over_the_real_gmeow_shapes_totals_173() {
+    fn classification_over_the_real_gmeow_shapes_totals_137() {
         let (text, _) = real_gmeow_shapes();
         let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
             .expect("the committed shapes file must parse");
@@ -3380,8 +3737,8 @@ mod tests {
         assert!(errors.is_empty(), "every committed block reads: {errors:?}");
         let report = lattice_report(&blocks, &lattice_hier(&[]));
         assert!(
-            report.contains("  TOTAL blocks=173\n"),
-            "the by-block census of the committed file is exactly 173: {}",
+            report.contains("  TOTAL blocks=137\n"),
+            "the by-block census of the committed file is exactly 137: {}",
             report.lines().rev().take(12).collect::<Vec<_>>().join("\n")
         );
     }

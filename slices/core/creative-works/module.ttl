@@ -1544,7 +1544,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# FRBR spine integrity (issue #1194): every gmeow:Manifestation embodies at    #
+# FRBR spine integrity: every gmeow:Manifestation embodies at                  #
 # least one gmeow:Expression. Migrated from the hand-authored                  #
 # gmeow:ManifestationEmbodiesExpressionShape gmeow:embodies min-count property #
 # constraint to a compact logic: disjunctive-requiredness record, projected to #
@@ -1563,3 +1563,30 @@ gmeow:ManifestationEmbodiesRequiredConstraint
     logic:anyOf gmeow:embodies ;
     logic:formalizes gmeow:Manifestation ;
     logic:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/Contribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/contributionRole> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/contributionTarget> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/contributor> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Item> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/exemplifies> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Manifestation> ] .
+<https://blackcatinformatics.ca/gmeow/Manifestation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/embodies> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Expression> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Contribution> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/contributionRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Contribution> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/contributionTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Contribution> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/contributor" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Item> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/exemplifies" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Manifestation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/embodies" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# WEMI spine integrity: every Expression realizes at least one Work
+# (gmeow:realizes, values typed gmeow:Work — subclass instances such as a
+# gmeow:MusicalWork satisfy it under the reasoned closure). Same grounding
+# style as the sibling spine axioms above: universal type via
+# owl:allValuesFrom, existence via the class-scoped closed-world authority.
+<https://blackcatinformatics.ca/gmeow/Expression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/realizes> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Work> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Expression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/realizes" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# gmeow:contributionDegree is optional but single-valued per Contribution
+# (min 0 / max 1). The qualified idiom (owl:onClass owl:Thing) degrades to the
+# unqualified sh:minCount 0 / sh:maxCount 1 the retired hand-authored shape
+# enforced, staying inside the fragment the native reasoner decides.
+gmeow:Contribution rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:contributionDegree ; owl:minQualifiedCardinality 0 ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

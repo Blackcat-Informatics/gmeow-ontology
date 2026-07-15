@@ -202,6 +202,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/commitCommitterIdentity> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Commitment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Commitment-shape> {
+  <https://blackcatinformatics.ca/gmeow/intentionGoal> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/committedAgent> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> NONLITERAL + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/CommunitySummary> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/CommunitySummary-shape> {
   <https://blackcatinformatics.ca/gmeow/summarizesCommunity> IRI ;
@@ -248,6 +255,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/containmentParent> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/ContentSegment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ContentSegment-shape> {
+  <https://blackcatinformatics.ca/gmeow/segmentOf> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/segmentType> IRI ;
+  <https://blackcatinformatics.ca/gmeow/segmentIndex> <http://www.w3.org/2001/XMLSchema#integer> ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/ContinuityDetermination> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ContinuityDetermination-shape> {
   <https://blackcatinformatics.ca/gmeow/determinationForce> IRI ;
@@ -262,9 +276,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Contribution> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Contribution-shape> {
-  <https://blackcatinformatics.ca/gmeow/contributor> IRI ;
-  <https://blackcatinformatics.ca/gmeow/contributionRole> IRI ;
-  <https://blackcatinformatics.ca/gmeow/contributionTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/contributor> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/contributionRole> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/contributionDegree> . ? ;
+  <https://blackcatinformatics.ca/gmeow/contributionTarget> NONLITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/ControlAssessment> (associate via ShapeMap)
@@ -479,6 +494,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/exemplarPolarity> . ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Expression> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Expression-shape> {
+  <https://blackcatinformatics.ca/gmeow/realizes> IRI + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship-shape> {
   <https://blackcatinformatics.ca/gmeow/relationshipSource> IRI ;
@@ -669,6 +689,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Intention> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Intention-shape> {
+  <https://blackcatinformatics.ca/gmeow/intentBearer> . ;
+  <https://blackcatinformatics.ca/gmeow/intentionGoal> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/IntentionTenure> (associate via ShapeMap)
@@ -689,6 +711,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/invoiceRecipient> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Item> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Item-shape> {
+  <https://blackcatinformatics.ca/gmeow/exemplifies> IRI + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/JournalEntry> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/JournalEntry-shape> {
   <https://blackcatinformatics.ca/gmeow/journalEntryPostings> IRI ;
@@ -698,6 +725,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/JurisdictionTenure-shape> {
   <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> IRI ;
   <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/KinRelationship> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/KinRelationship-shape> {
+  <https://blackcatinformatics.ca/gmeow/relationshipChild> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/relationshipParent> NONLITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> (associate via ShapeMap)
@@ -775,6 +808,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/logicConstraintMember> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Manifestation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Manifestation-shape> {
+  <https://blackcatinformatics.ca/gmeow/embodies> IRI + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Mark> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Mark-shape> {
   <https://blackcatinformatics.ca/gmeow/markText> LITERAL ;
@@ -783,6 +821,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/Measurement> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Measurement-shape> {
   <https://blackcatinformatics.ca/gmeow/observationMethod> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MediaObject> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MediaObject-shape> {
+  <https://blackcatinformatics.ca/gmeow/colourspace> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MemoryItem> (associate via ShapeMap)
@@ -943,10 +986,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/NotationSystemUsage-shape> {
-  <https://blackcatinformatics.ca/gmeow/notationUsageRole> IRI ;
-  <https://blackcatinformatics.ca/gmeow/notationUsageTarget> IRI ;
-  <https://blackcatinformatics.ca/gmeow/notationUsageInterval> IRI ;
-  <https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem> IRI ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageRole> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageTarget> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageInterval> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem> NONLITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Observation> (associate via ShapeMap)
@@ -1121,6 +1164,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/hasProcedureStep> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Profile> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Profile-shape> {
+  <http://www.w3.org/2000/01/rdf-schema#label> . + ;
+  <http://www.w3.org/2004/02/skos/core#definition> . + ;
+  <https://blackcatinformatics.ca/gmeow/profileAppliesTo> IRI ;
+  <https://blackcatinformatics.ca/gmeow/profileDescriptor> . + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Prohibition> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Prohibition-shape> {
   <https://blackcatinformatics.ca/gmeow/ruleAction> . ;
@@ -1193,7 +1244,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/RomanticOrientation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/RomanticOrientation-shape> {
-  <https://blackcatinformatics.ca/gmeow/romanticOrientationValue> IRI ;
+  <https://blackcatinformatics.ca/gmeow/romanticOrientationValue> NONLITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/RomanticOrientationValue> (associate via ShapeMap)
@@ -1270,7 +1321,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SexualOrientation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/SexualOrientation-shape> {
-  <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> IRI ;
+  <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> NONLITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SexualOrientationValue> (associate via ShapeMap)

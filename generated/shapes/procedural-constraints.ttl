@@ -1435,7 +1435,7 @@
 
 <https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/gmeow/profileOpenValue> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape> ;
     sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . ?this a ?openClass . }""" ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;

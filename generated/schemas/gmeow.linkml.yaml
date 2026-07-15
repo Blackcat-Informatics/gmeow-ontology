@@ -3763,6 +3763,7 @@ classes:
   ReadingOrder:
     class_uri: https://blackcatinformatics.ca/gmeow/ReadingOrder
     title: Reading Order
+    description: 'Closed-world checks: NONE, by design. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no owl:Restriction requirements, so a ReadingOrder instance is valid without additional closed-world checks — a deliberate absence, not an omission.'
     is_a: Standpoint
   RealizationMode:
     class_uri: https://blackcatinformatics.ca/gmeow/RealizationMode
