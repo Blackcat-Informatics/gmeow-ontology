@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# QC (projection-vocabulary ratchet, Principle 17): every resident
+# gmeow:ProjectionCeilingCommitment names a gmeow:ceilingVocabulary; that
+# vocabulary must itself declare a complete descriptor — a
+# gmeow:vocabularyDefaultCeiling, a gmeow:vocabularySubsumedBy witness back to
+# the logic: core, and a gmeow:vocabularyPreservation judgment — or the
+# Principle 17 audit trail for a vocabulary actually guarded by a committed
+# ceiling is broken. This reads only the RESIDENT ratchet ABox; it does NOT
+# return the live measured residue or headroom, because those are empirical
+# scan results entailed by no resident individual (computed only by
+# `gmeow-dev slice-quality-projection-debt` / `slice-quality-gate`), never a
+# SPARQL-queryable projection. A non-empty result is a failure — the
+# competency cell pins the empty set.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?ceiling ?slice ?vocab WHERE {
+    ?ceiling a gmeow:ProjectionCeilingCommitment ;
+             gmeow:ceilingSlice ?slice ;
+             gmeow:ceilingVocabulary ?vocab .
+    FILTER (
+        NOT EXISTS { ?vocab gmeow:vocabularyDefaultCeiling ?defaultCeiling } ||
+        NOT EXISTS { ?vocab gmeow:vocabularySubsumedBy ?subsumedBy } ||
+        NOT EXISTS { ?vocab gmeow:vocabularyPreservation ?preservation }
+    )
+}
+ORDER BY ?slice ?vocab
