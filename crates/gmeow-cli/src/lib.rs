@@ -275,6 +275,14 @@ pub enum SliceCommands {
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
     },
+    /// Show the committed projection-vocabulary ratchet — the guarded registry and the
+    /// per-(slice, vocabulary) ceilings — straight from the embedded gmeow.gts bundle
+    /// (the commitments view; live measured residue needs a repo checkout).
+    ProjectionCeilings {
+        /// Output serialization: `human` (default) or `tsv`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
@@ -507,6 +515,9 @@ pub fn run() -> i32 {
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {
                 commands::slice_quality(reporter, &dir, &format)
+            }
+            SliceCommands::ProjectionCeilings { format } => {
+                commands::slice_projection_ceilings(reporter, &format)
             }
         },
     }
