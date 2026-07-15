@@ -824,3 +824,94 @@ ex:rowTypedIrMinimumReviewers a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:minimumReviewers ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "minimum-reviewer-count" ] .
+
+# ── Shipped grounding bridge surface ────────────────────────────────────────
+# The query walks the worked graph rather than a VALUES inventory: each pinned
+# term must occur as a class, relation, endpoint, guard, or restriction operator
+# on a subject in the grounding-bridge example namespace.
+
+ex:cqGroundingBridgeSurface a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/grounding-bridge-surface.rq" ;
+    gmeow:cqDataFile "examples/grounding-bridge-surface.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A shipped grounding bridge must retain its source and target endpoints plus explicit preservation judgments, while the worked logic: graph must exercise the canonical OWL/RDFS construct and SHACL-guard surface that is projected outward. These pinned rows are reached from actual example triples, so removing a construct from the worked graph loses its expected result rather than passing through a term inventory." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqGroundingBridgeSurfaceShape ;
+    gmeow:cqExpectRow
+        ex:rowGroundingCorrespondence ,
+        ex:rowGroundingSourceEndpoint ,
+        ex:rowGroundingTargetEndpoint ,
+        ex:rowGroundingTermIn ,
+        ex:rowGroundingTermRegex ,
+        ex:rowGroundingDirectType ,
+        ex:rowGroundingSparqlTarget ,
+        ex:rowGroundingRestriction ,
+        ex:rowGroundingEnumeration ,
+        ex:rowGroundingDatarange ,
+        ex:rowGroundingSubClassOf ,
+        ex:rowGroundingEquivalentClass ,
+        ex:rowGroundingDisjointWith ,
+        ex:rowGroundingSubPropertyOf ,
+        ex:rowGroundingEquivalentProperty ,
+        ex:rowGroundingInverseOf ,
+        ex:rowGroundingDomain ,
+        ex:rowGroundingRange ,
+        ex:rowGroundingInverseFunctionalProperty ,
+        ex:rowGroundingReflexiveProperty ,
+        ex:rowGroundingOnProperty ,
+        ex:rowGroundingSomeValuesFrom ,
+        ex:rowGroundingAllValuesFrom ,
+        ex:rowGroundingHasValue ,
+        ex:rowGroundingMinCardinality ,
+        ex:rowGroundingMaxCardinality ,
+        ex:rowGroundingCardinality ,
+        ex:rowGroundingQualifiedCardinality ,
+        ex:rowGroundingMinQualifiedCardinality ,
+        ex:rowGroundingMaxQualifiedCardinality ,
+        ex:rowGroundingOnDataRange ,
+        ex:rowGroundingOneOf ,
+        ex:rowGroundingOnDatatype ,
+        ex:rowGroundingWithRestrictions .
+
+ex:cqGroundingBridgeSurfaceShape a logic:ResultShape ;
+    logic:declaresColumn [
+        logic:columnVariable "term" ;
+        logic:columnTermKind logic:TermKindIri ;
+        logic:columnBinding logic:BindingRequired
+    ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:rowGroundingCorrespondence a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:GroundingCorrespondence ] .
+ex:rowGroundingSourceEndpoint a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:sourceEndpoint ] .
+ex:rowGroundingTargetEndpoint a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:targetEndpoint ] .
+ex:rowGroundingTermIn a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termIn ] .
+ex:rowGroundingTermRegex a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:termRegex ] .
+ex:rowGroundingDirectType a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:directType ] .
+ex:rowGroundingSparqlTarget a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:sparqlTarget ] .
+ex:rowGroundingRestriction a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Restriction ] .
+ex:rowGroundingEnumeration a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Enumeration ] .
+ex:rowGroundingDatarange a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Datarange ] .
+ex:rowGroundingSubClassOf a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:subClassOf ] .
+ex:rowGroundingEquivalentClass a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:equivalentClass ] .
+ex:rowGroundingDisjointWith a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:disjointWith ] .
+ex:rowGroundingSubPropertyOf a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:subPropertyOf ] .
+ex:rowGroundingEquivalentProperty a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:equivalentProperty ] .
+ex:rowGroundingInverseOf a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:inverseOf ] .
+ex:rowGroundingDomain a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:domain ] .
+ex:rowGroundingRange a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:range ] .
+ex:rowGroundingInverseFunctionalProperty a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:inverseFunctionalProperty ] .
+ex:rowGroundingReflexiveProperty a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:reflexiveProperty ] .
+ex:rowGroundingOnProperty a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:onProperty ] .
+ex:rowGroundingSomeValuesFrom a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:someValuesFrom ] .
+ex:rowGroundingAllValuesFrom a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:allValuesFrom ] .
+ex:rowGroundingHasValue a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:hasValue ] .
+ex:rowGroundingMinCardinality a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:minCardinality ] .
+ex:rowGroundingMaxCardinality a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:maxCardinality ] .
+ex:rowGroundingCardinality a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:cardinality ] .
+ex:rowGroundingQualifiedCardinality a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:qualifiedCardinality ] .
+ex:rowGroundingMinQualifiedCardinality a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:minQualifiedCardinality ] .
+ex:rowGroundingMaxQualifiedCardinality a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:maxQualifiedCardinality ] .
+ex:rowGroundingOnDataRange a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:onDataRange ] .
+ex:rowGroundingOneOf a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:oneOf ] .
+ex:rowGroundingOnDatatype a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:onDatatype ] .
+ex:rowGroundingWithRestrictions a gmeow:ExpectedRow ; gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:withRestrictions ] .

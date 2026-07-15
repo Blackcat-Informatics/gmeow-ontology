@@ -32,7 +32,6 @@
   "gmeow-events.sssom.tsv": 140,
   "gmeow-evidence.sssom.tsv": 7,
   "gmeow-fibo.sssom.tsv": 9,
-  "gmeow-foundational.sssom.tsv": 7,
   "gmeow-gender.sssom.tsv": 28,
   "gmeow-genealogy.sssom.tsv": 23,
   "gmeow-glottolog.sssom.tsv": 1,
@@ -49,6 +48,12 @@
   "gmeow-lexicon.sssom.tsv": 9,
   "gmeow-lexvo.sssom.tsv": 2,
   "gmeow-lifecycle.sssom.tsv": 8,
+  "gmeow-logic-bfo.sssom.tsv": 13,
+  "gmeow-logic-gufo.sssom.tsv": 50,
+  "gmeow-logic-obo.sssom.tsv": 6,
+  "gmeow-logic-owl.sssom.tsv": 33,
+  "gmeow-logic-shacl.sssom.tsv": 15,
+  "gmeow-logic-sumo.sssom.tsv": 24,
   "gmeow-mathlib.sssom.tsv": 11,
   "gmeow-mentation.sssom.tsv": 1,
   "gmeow-model-serving.sssom.tsv": 7,
@@ -84,8 +89,8 @@
   "gmeow-wikidata.sssom.tsv": 196,
   "gmeow-wordnet.sssom.tsv": 3
  },
- "equivalences": 1899,
+ "equivalences": 2033,
  "functions": 59,
- "mapping_sets": 80,
+ "mapping_sets": 85,
  "projections": 635
 }

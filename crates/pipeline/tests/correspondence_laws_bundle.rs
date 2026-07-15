@@ -18,6 +18,14 @@ use std::path::{Path, PathBuf};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const GUFO: &str = "http://purl.org/nemo/gufo#";
+const BFO: &str = "http://purl.obolibrary.org/obo/BFO_";
+const RO: &str = "http://purl.obolibrary.org/obo/RO_";
+const SUMO: &str = "https://www.ontologyportal.org/SUMO.owl#";
+const OWL: &str = "http://www.w3.org/2002/07/owl#";
+const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
+const SH: &str = "http://www.w3.org/ns/shacl#";
 const CORRESPONDENCE_LAWS_GRAPH: &str =
     "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
 
@@ -100,6 +108,102 @@ fn discharged_section_claims_for_cell(
         }
     }
     claims
+}
+
+#[test]
+fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
+    let triples = graph_triples(CORRESPONDENCE_LAWS_GRAPH);
+    let grounding_type = format!("{LOGIC}GroundingCorrespondence");
+    let grounding: BTreeSet<String> = triples
+        .iter()
+        .filter(|(_, predicate, object)| predicate == RDF_TYPE && object == &grounding_type)
+        .map(|(subject, _, _)| subject.clone())
+        .collect();
+    assert_eq!(
+        grounding.len(),
+        141,
+        "the shipped correspondence graph must carry all six canonical grounding catalogs"
+    );
+
+    let source_predicate = format!("{LOGIC}sourceEndpoint");
+    let target_predicate = format!("{LOGIC}targetEndpoint");
+    let class_predicate = format!("{LOGIC}morphismClass");
+    let kind_predicate = format!("{LOGIC}morphismKind");
+    let preservation_predicate = format!("{LOGIC}preservationKind");
+    let mut target_families = std::collections::BTreeMap::<&str, usize>::new();
+    let mut endpoint_pairs = BTreeSet::new();
+
+    for correspondence in &grounding {
+        let sources = objects_of(&triples, correspondence, &source_predicate);
+        let targets = objects_of(&triples, correspondence, &target_predicate);
+        assert_eq!(
+            sources.len(),
+            1,
+            "{correspondence}: exactly one source endpoint"
+        );
+        assert_eq!(
+            targets.len(),
+            1,
+            "{correspondence}: exactly one target endpoint"
+        );
+        assert!(
+            sources[0].starts_with(LOGIC),
+            "{correspondence}: grounding must be oriented from logic:, got {}",
+            sources[0]
+        );
+        for predicate in [&class_predicate, &kind_predicate, &preservation_predicate] {
+            assert_eq!(
+                objects_of(&triples, correspondence, predicate).len(),
+                1,
+                "{correspondence}: semantic judgment {predicate} must ship exactly once"
+            );
+        }
+
+        endpoint_pairs.insert((sources[0].to_owned(), targets[0].to_owned()));
+        let family = if targets[0].starts_with(GUFO) {
+            "gUFO"
+        } else if targets[0].starts_with(BFO) {
+            "BFO"
+        } else if targets[0].starts_with(RO) {
+            "RO"
+        } else if targets[0].starts_with(SUMO) {
+            "SUMO"
+        } else if targets[0].starts_with(OWL) {
+            "OWL"
+        } else if targets[0].starts_with(RDFS) {
+            "RDFS"
+        } else if targets[0].starts_with(SH) {
+            "SHACL"
+        } else {
+            panic!(
+                "{correspondence}: target endpoint is outside the six catalogs: {}",
+                targets[0]
+            );
+        };
+        *target_families.entry(family).or_default() += 1;
+    }
+
+    assert_eq!(
+        target_families,
+        std::collections::BTreeMap::from([
+            ("BFO", 15),
+            ("OWL", 28),
+            ("RDFS", 5),
+            ("RO", 4),
+            ("SHACL", 15),
+            ("SUMO", 24),
+            ("gUFO", 50),
+        ])
+    );
+    for (source, target) in [
+        (format!("{LOGIC}partOf"), format!("{BFO}0000050")),
+        (format!("{LOGIC}overlaps"), format!("{RO}0002131")),
+    ] {
+        assert!(
+            endpoint_pairs.contains(&(source.clone(), target.clone())),
+            "the shipped OBO relation catalog is missing {source} -> {target}"
+        );
+    }
 }
 
 #[test]

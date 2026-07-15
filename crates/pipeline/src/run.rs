@@ -178,7 +178,6 @@ pub fn full_spec() -> PipelineSpec {
             "reason",
             &[
                 "stage-compile-logic",
-                "stage-mappings",
                 "stage-source-load",
                 "stage-statements",
             ],
@@ -508,7 +507,7 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 }
 
 /// The SHACL validation stage: its `stage-compile-logic` dependency is narrowed to
-/// the object-level named graphs ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`])
+/// the complete compiled carrier graphs ([`crate::stages::compile_logic::CARRIER_GRAPHS`])
 /// — the program-level digest standing in for the validation-shape byte artifacts it
 /// reads off that product, and the narrowing that keeps its `graph/diagnostics`
 /// attachment a genuine delta (compile-logic's product carries a graph of the same
@@ -519,7 +518,7 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),
-        crate::stages::compile_logic::object_level_entity_list(),
+        crate::stages::compile_logic::carrier_entity_list(),
     )];
     s
 }
