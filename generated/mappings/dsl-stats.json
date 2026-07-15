@@ -67,7 +67,7 @@
   "gmeow-oeis.sssom.tsv": 3,
   "gmeow-om2.sssom.tsv": 2,
   "gmeow-ontolex.sssom.tsv": 3,
-  "gmeow-openmath.sssom.tsv": 5,
+  "gmeow-openmath.sssom.tsv": 14,
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
   "gmeow-procedures.sssom.tsv": 43,
@@ -86,10 +86,10 @@
   "gmeow-temporal.sssom.tsv": 66,
   "gmeow-trust.sssom.tsv": 12,
   "gmeow-versions.sssom.tsv": 4,
-  "gmeow-wikidata.sssom.tsv": 181,
+  "gmeow-wikidata.sssom.tsv": 196,
   "gmeow-wordnet.sssom.tsv": 3
  },
- "equivalences": 2009,
+ "equivalences": 2033,
  "functions": 59,
  "mapping_sets": 85,
  "projections": 635

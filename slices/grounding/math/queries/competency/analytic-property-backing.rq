@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Which qualitative analytic properties are there, and by which
+# defining law or boundary record is each backed?" This surfaces the machine-audited
+# backing edge math:definingLaw over the open math:AnalyticProperty vocabulary: each
+# analytic property reports the real first-order logic:Formula defining law that grounds
+# it (math:nonAffinity -> math:nonAffinityLaw, math:convexity -> math:convexityLaw,
+# math:boundedness -> math:boundednessLaw) or, for the genuinely second-order
+# smoothness, the honest recorded logic:expressivenessBoundary math:smoothnessBoundary.
+# Read over the merged ontology (no fixture), the answer is exactly the four
+# property -> backing pairs. The analysis-charter sibling of
+# topological-property-defining-law.rq.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?property ?backing WHERE {
+    ?property a math:AnalyticProperty ;
+              math:definingLaw ?backing .
+}
+ORDER BY ?property ?backing

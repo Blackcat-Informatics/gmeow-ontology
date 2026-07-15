@@ -1,0 +1,20 @@
+# Competency question: "For each reified measure evaluation μ(A), which measure does it
+# evaluate, over which measurable subset, and with what resulting mass?"  This exercises
+# the discipline that a math:MeasureEvaluation names all three of its evaluated measure
+# (math:evaluatedMeasure), its measured subset (math:measuredSubset, a math:MeasurableSet)
+# and its result (math:measureResult) — so the mass of a NAMED subset is a comparable
+# datum, distinct from the whole-space math:totalMass. Scoped to the fixture namespace so
+# the answer is the two evaluations of one measure {lengthOfUnit → lengthMeasure over
+# unitInterval, result 1.0; lengthOfDouble → lengthMeasure over doubleInterval, result
+# 2.0} — same measure, different subsets, different comparable masses.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?evaluation ?measure ?subset ?result WHERE {
+    ?evaluation a math:MeasureEvaluation ;
+                math:evaluatedMeasure ?measure ;
+                math:measuredSubset ?subset ;
+                math:measureResult ?resultRaw .
+    FILTER(STRSTARTS(STR(?evaluation), "http://example.org/math/"))
+    BIND(STR(?resultRaw) AS ?result)
+}
+ORDER BY ?evaluation

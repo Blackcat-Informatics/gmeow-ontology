@@ -134,6 +134,138 @@ gmeow:eqMathComplexNumbers a gmeow:TermEquivalence ;
     gmeow:comment "math:complexNumbers is the system ℂ; wd:Q11567 (complex number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+gmeow:eqMathExtendedRealLine a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ExtendedRealLine ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1416516 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "extended real number line" ;
+    gmeow:comment "math:ExtendedRealLine is the signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}; wd:Q1416516 (extended real number line) names the same two-point compactification concept. closeMatch, not identity: the GMEOW term is a system individual carrying the adjunction machinery (its poles and subsystem edges), a close but non-invertible counterpart of the bare Wikidata concept — the same rung the finite number systems take." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Ordered intervals → Wikidata / OpenMath (concept identity) ------------- #
+
+gmeow:eqMathIntervalWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Interval ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q185148 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "interval" ;
+    gmeow:comment "math:Interval is the ordered real interval { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; wd:Q185148 (interval, 'subset of an ordered set consisting of all elements between two given endpoints') names the same order-theoretic concept. closeMatch, not identity: the GMEOW class is the specialization over the extended real line carrying its endpoints and both endpoint inclusions, a close but non-invertible counterpart of the general ordered-set concept." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIntervalOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Interval ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/interval1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "OpenMath interval1 (ordered intervals)" ;
+    gmeow:comment "math:Interval aligns to the OpenMath interval1 content dictionary, whose symbols interval_cc, interval_oo, interval_oc, and interval_co carry exactly the four closed/open endpoint-inclusion combinations math:lowerInclusion and math:upperInclusion express. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+# --- Arithmetic operators → OpenMath (content-dictionary symbols) ----------- #
+# Each arithmetic operator individual denotes the same operation as its OpenMath
+# content-dictionary symbol (arith1 for the algebraic operators, transc1 for the
+# logarithm). closeMatch, full IRI by reference to the CD page (curl-validated
+# HTTP 200 July 2026): the GMEOW individual carries a math: signature over number
+# systems the bare CD symbol does not, so the correspondence is close, not
+# invertible identity. The slice previously anchored these in prose only.
+
+gmeow:eqMathAdditionOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Addition ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 plus" ;
+    gmeow:comment "math:Addition is the binary addition operator (+); the OpenMath arith1 symbol plus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathSubtractionOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Subtraction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 minus" ;
+    gmeow:comment "math:Subtraction is the binary subtraction operator (−); the OpenMath arith1 symbol minus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathMultiplicationOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Multiplication ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 times" ;
+    gmeow:comment "math:Multiplication is the binary multiplication operator (×); the OpenMath arith1 symbol times is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathDivisionOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Division ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 divide" ;
+    gmeow:comment "math:Division is the binary division operator (÷); the OpenMath arith1 symbol divide is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathExponentiationOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Exponentiation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 power" ;
+    gmeow:comment "math:Exponentiation is the exponentiation operator (a^b); the OpenMath arith1 symbol power is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathRootOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Root ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 root" ;
+    gmeow:comment "math:Root is the root operator (the b-th root of a); the OpenMath arith1 symbol root is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathLogarithmOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Logarithm ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/transc1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath transc1 log" ;
+    gmeow:comment "math:Logarithm is the logarithm operator (log_b of a); the OpenMath transc1 symbol log is the same operation. closeMatch by reference to the transc1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathNegationOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Negation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 unary_minus" ;
+    gmeow:comment "math:Negation is the unary additive-inverse operator (−x); the OpenMath arith1 symbol unary_minus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+# --- Closed-form function → Wikidata (concept identity) --------------------- #
+
+gmeow:eqMathClosedFormFunctionWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ClosedFormFunction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q777407 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "closed-form expression" ;
+    gmeow:comment "math:ClosedFormFunction is a function given by an explicit closed-form expression in one formal argument; wd:Q777407 (closed-form expression, 'mathematical formula built with arithmetic operations and other previously defined functions') names the closed-form expression concept the function's body IS. closeMatch, not identity: the GMEOW class is the function abstracted over that expression (carrying its formal argument, parameters, domain, and codomain), a close but non-invertible counterpart of the bare expression concept. QID curl-validated July 2026." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 # --- Algebraic-structure classes → Wikidata (concept identity) ------------- #
 # Each math: structure class denotes the same concept as its Wikidata item — a
 # clean 1:1 identity (the class IS the concept "group", "ring", …), so
@@ -675,6 +807,16 @@ gmeow:eqMathSigmaAlgebra a gmeow:TermEquivalence ;
     gmeow:comment "math:SigmaAlgebra is a collection of subsets closed under complement and countable union; wd:Q217357 (σ-algebra) is the same structure. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+gmeow:eqMathMeasurableSet a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MeasurableSet ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q3054889 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "measurable set" ;
+    gmeow:comment "math:MeasurableSet is an element of the σ-algebra of a measurable space — one measurable subset, the kind of subset a measure can weigh; wd:Q3054889 (measurable set, 'an element of the sigma-algebra of a measurable space') is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 gmeow:eqMathLebesgueMeasure a gmeow:TermEquivalence ;
     gmeow:alignSubject math:LebesgueMeasure ;
     gmeow:alignPredicate skos:exactMatch ;
@@ -1111,6 +1253,46 @@ gmeow:eqMathLimitWd a gmeow:TermEquivalence ;
     gmeow:comment "math:Limit is a limit binding expression; wd:Q33540 (limit of a function) is the analysis concept it most directly realizes. closeMatch — the GMEOW class also covers limits of sequences." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+gmeow:eqMathLimitResultWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LimitResult ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q33540 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "limit of a function" ;
+    gmeow:comment "math:LimitResult is the structured evaluated result of a limit — its outcome and value — not the limit concept itself; wd:Q33540 (limit of a function) is the concept it records the outcome of, a related resource rather than its identity (math:Limit already closeMatches Q33540), so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConvergesFinitelyWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:convergesFinitely ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q1211057 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "convergent series" ;
+    gmeow:comment "math:convergesFinitely is the outcome of a limit that exists and is finite; wd:Q1211057 (convergent series, 'infinite series that produces a finite sum') is the nearest catalogued analysis concept — a convergent series is exactly one whose partial-sum sequence converges finitely — but it is series-specific rather than the general limit outcome, so skos:relatedMatch, not identity." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDivergesToPositiveInfinityWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:divergesToPositiveInfinity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q2592421 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "divergence" ;
+    gmeow:comment "math:divergesToPositiveInfinity is the outcome of a limit running off to +∞; wd:Q2592421 (divergence, 'lack of convergence of a series or integral') is the general non-convergence property it is one signed case of, a related resource rather than its identity (Q2592421 does not distinguish the two poles), so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDivergesToNegativeInfinityWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:divergesToNegativeInfinity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q2592421 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "divergence" ;
+    gmeow:comment "math:divergesToNegativeInfinity is the outcome of a limit running off to −∞, the dual of math:divergesToPositiveInfinity; wd:Q2592421 (divergence, 'lack of convergence of a series or integral') is the general non-convergence property it is one signed case of, a related resource rather than its identity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 gmeow:eqMathSeriesWd a gmeow:TermEquivalence ;
     gmeow:alignSubject math:Series ;
     gmeow:alignPredicate skos:exactMatch ;
@@ -1283,6 +1465,40 @@ gmeow:eqMathErfDlmf a gmeow:TermEquivalence ;
     gmeow:objectLabel "DLMF chapter 7 (error functions)" ;
     gmeow:comment "math:errorFunction is treated in DLMF chapter 7. Link-only locator, so skos:relatedMatch; curl-validated HTTP 200." ;
     gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
+
+# --- Compactification / conformal geometry classes → Wikidata -------------- #
+#
+# QIDs curl-validated against the live Wikidata entity labels/descriptions.
+
+gmeow:eqMathCompactification a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Compactification ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q546145 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "compactification" ;
+    gmeow:comment "math:Compactification is the structured four-role record of embedding an unbounded space in a bounded one; wd:Q546145 (compactification) is the same concept — 'embedding a topological space into a compact space as a dense subset'. closeMatch, not identity: the GMEOW term is a structured record naming its four roles, a close but non-invertible counterpart of the bare Wikidata concept." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConformalCompactification a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ConformalCompactification ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q864015 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "Penrose diagram" ;
+    gmeow:comment "math:ConformalCompactification is the general Penrose-style conformal compactification carrying a conformal factor; wd:Q864015 (Penrose diagram) is the two-dimensional diagram OF such a compactification of spacetime, capturing its causal relations — a related but non-identical concept (a diagram/reading, not the compactification map itself), and Wikidata has no dedicated 'conformal compactification' entity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathBoundaryAtInfinity a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:BoundaryAtInfinity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1191139 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "point at infinity" ;
+    gmeow:comment "math:BoundaryAtInfinity is the boundary — the set of ideal points — a compactification adjoins at infinity; wd:Q1191139 (point at infinity) is the 'limiting point in some geometric spaces' such a boundary collects. closeMatch, not identity: the GMEOW term is the boundary set of ideal points, a close but non-invertible (set-versus-point) counterpart of the individual point-at-infinity concept." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
 # --- Geometry/topology classes → Lean mathlib (structural, by reference) --- #
 #
@@ -1561,4 +1777,50 @@ gmeow:eqMathPosteriorDistribution a gmeow:TermEquivalence ;
     gmeow:confidence 1.0 ;
     gmeow:objectLabel "posterior probability" ;
     gmeow:comment "math:PosteriorDistribution is the distribution over a parameter after data, proportional to prior times likelihood; wd:Q278079 (posterior probability) is the posterior probability distribution used in Bayesian statistics. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Task-7 analytic vocabulary → Wikidata (curl-verified QIDs) ------------- #
+# math:PiecewiseFunction is class-to-class identity (skos:exactMatch); the analytic
+# properties and the monotonicity-kind vocabulary correspond to the Wikidata function
+# CONCEPTS but as a property/kind, not the function class itself, so the honest rung is
+# skos:closeMatch. QIDs verified against the Wikidata search API on authoring.
+
+gmeow:eqMathPiecewiseFunction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PiecewiseFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2037833 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "piecewise function" ;
+    gmeow:comment "math:PiecewiseFunction is a function defined by pieces, each a sub-behaviour over its own interval; wd:Q2037833 (piecewise function) is defined identically ('function which is defined by multiple sub-functions each over its own interval'). Class-to-class identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConvexity a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:convexity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q319913 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "convex function" ;
+    gmeow:comment "math:convexity is the analytic PROPERTY (a function lies on or below its chords), backed by math:convexityLaw; wd:Q319913 (convex function) is the function that bears it ('real function with secant line between points above the graph'). Property to function-class, close but not invertibly identical, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMonotonicityKind a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MonotonicityKind ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q194404 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "monotonic function" ;
+    gmeow:comment "math:MonotonicityKind is the vocabulary classifying a function's monotonic behaviour (strictly increasing/decreasing, non-increasing/decreasing, constant); wd:Q194404 (monotonic function) is the function that preserves or reverses the order. Classifier to function-concept, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSmoothness a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:smoothness ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q868473 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "smooth function" ;
+    gmeow:comment "math:smoothness is the analytic PROPERTY (derivatives of every order), carried as the honest second-order boundary math:smoothnessBoundary; wd:Q868473 (smooth function) is the function 'having derivatives of any order' that bears it. Property to function-class, so skos:closeMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
