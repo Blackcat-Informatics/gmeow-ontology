@@ -390,6 +390,22 @@ gmeow:stageExecutorCapability
 # Gathered on the plan through logic:planFlowEdge.                             #
 # =========================================================================== #
 
+# stage-compile-logic reads ONLY the narrowed graph/logic-compile-inputs named graph of
+# stage-source-load's product — a SOUND (denylist) narrowing of the whole authored corpus
+# with only pure-documentation predicates (SKOS/Dublin-Core/PROV/VANN) stripped, so a
+# documentation-only edit that leaves that graph's digest unchanged skips the (expensive)
+# compiler. The narrowing is the compiler's typed dataflow entity.
+gmeow:pipeline-dataflow-compile-logic-source-load
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: source-load → compile-logic"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-source-load to gmeow:stage-compile-logic: the logic compiler's five augmentation readers read only the graph/logic-compile-inputs named graph of the source-load product — the SOUND denylist narrowing of the whole authored corpus (root ontology + slices + imports) with pure-documentation predicates removed. Records the artifact-level dependency so the compiler's cache key folds that one graph's digest rather than the whole authored file closure, so a documentation-only edit that leaves the narrowed graph unchanged skips re-running the compiler."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-source-load ;
+    gmeow:buildFlowTo gmeow:stage-compile-logic ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> .
+
 # stage-reason reads ONLY the logic / relational-core / correspondence named graphs
 # of stage-compile-logic's product (the object-level EDB), never its diagnostics or
 # the eight projection serializations — so a change to those alone skips the
@@ -459,6 +475,7 @@ gmeow:pipeline-build
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
     logic:planFlowEdge
+        gmeow:pipeline-dataflow-compile-logic-source-load ,
         gmeow:pipeline-dataflow-reason-compile-logic ,
         gmeow:pipeline-dataflow-validate-compile-logic ;
     gmeow:hasStage
@@ -532,7 +549,8 @@ gmeow:stage-compile-logic
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "compile_logic" .
+    gmeow:stageImpl "compile_logic" ;
+    gmeow:dataflowConsumes gmeow:stage-source-load .
 
 gmeow:stage-mappings
     a gmeow:PipelineStage ;
@@ -1017,6 +1035,7 @@ gmeow:stage-source-load
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/authored-default> ,
         <https://blackcatinformatics.ca/gmeow/graph/imports> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> ,
         <https://blackcatinformatics.ca/gmeow/graph/metadata> ,
         <https://blackcatinformatics.ca/gmeow/graph/provenance> ,
         <https://blackcatinformatics.ca/gmeow/graph/quality-assessment> ,

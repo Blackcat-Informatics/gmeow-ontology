@@ -1438,10 +1438,12 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let root = repo_root();
         // Run the real compile-logic stage to get the logic-projections channel, then the
         // real mappings stage to assemble the FINAL projection report over the union.
+        // compile-logic reads its narrowed corpus off the source-load product.
+        let compile_upstream = crate::stages::compile_logic::source_load_upstream(&root);
         let compile = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &BTreeMap::new(),
+                upstream: &compile_upstream,
             })
             .expect("compile-logic");
         let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
@@ -1598,11 +1600,12 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
 
         // Reproduce the report through the REAL single-owner production path: the compile-logic
         // affine gate → channel base, then mappings' `fold_up_projection_audit` over the real
-        // inputs.
+        // inputs. compile-logic reads its narrowed corpus off the source-load product.
+        let compile_upstream = crate::stages::compile_logic::source_load_upstream(&root);
         let compile = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &BTreeMap::new(),
+                upstream: &compile_upstream,
             })
             .expect("compile-logic");
         let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
