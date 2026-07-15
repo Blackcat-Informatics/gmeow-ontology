@@ -55,6 +55,22 @@ Three systems carry most of the load and should be treated as the spine of the r
   (LGPL-v3) + embedded **D-SI** (LGPL) for the calibration-certificate + traceability + unit-
   uncertainty structure. **P/L** for units, **P** for the metrology projection.
 
+### Realized grounding disposition
+
+The external survey is discharged by one of the following concrete treatments;
+there is no unqualified deferral bucket.
+
+| Treatment | Families |
+|---|---|
+| Shipped grounding correspondences | The existing `mappings/equivalences.ttl` identity/reference catalog (including Wikidata, mathlib, DLMF, OEIS, QUDT, D-SI, OM 2, and symbol-level OpenMath targets), the logic-owned SUMO catalog's broad validation-only bridge from `math:Quantity` to `sumo:Quantity`, the six math-owned SOSA / OM 1.8 / IVOA ObsCore / LOINC / QUDT quantity-and-value rows in `mappings/quantity-bridges.ttl`, plus the Data Cube, STATO, OBCS, SIO, and OBI rows in `mappings/statistical-bridges.ttl`; the OBI data-transformation row is intentionally only `skos:relatedMatch` because OBI names an executed process |
+| Generated codec or consumer projection | DCC/D-SI certificate surfaces, RDF Data Cube emission, MathML, OpenMath content, tabular/statistical interchange, and other formats whose structure is a lossy output rather than a term identity |
+| Citation, identifier, or registry linkage only | UCUM, UO, VIM/GUM, MSC, arXiv, zbMATH/MR, proprietary or restricted resources, and non-RDF prover libraries; identifiers may be carried, but their content is not imported |
+| Native authorship | Mathematical structures and preservation laws for which no adequate external ontology exists; these remain `math:` terms rather than receiving a fabricated alignment |
+
+The live rows are `logic:GroundingCorrespondence` records, oriented from
+`math:` and shipped in `graph/correspondence-laws`. A codec projection does not
+substitute for such a row, and a survey citation does not claim one exists.
+
 ## Cluster A — Units, quantities, dimensions
 
 - **QUDT** — P/L | CC-BY-4.0 | active (v3.1.4+) — primary units spine; encodes conversions as
@@ -116,7 +132,10 @@ Three systems carry most of the load and should be treated as the spine of the r
 ## Cluster D — Content markup & theory interchange
 
 - **OpenMath (+ Content Dictionaries)** — S | royalty-free | standard active, CDs dormant (2022) —
-  subsume compositional expression/symbol semantics; the canonical anchor for the expression AST.
+  subsume compositional expression/symbol semantics; grounding rows target canonical symbol IRIs
+  declared by the dictionaries (`http://www.openmath.org/cd/{cd}#{symbol}`). A dictionary HTML page
+  is only a `skos:relatedMatch` when a broad local class spans several symbols and no unique symbol
+  target is honest.
 - **Content MathML** — S | W3C | MathML 4 = draft (2026-06), MathML 3 = Rec — subsume into the AST
   (mirrors OpenMath trees).
 - **Presentation MathML** — P | W3C | as above — the notation projection surface.

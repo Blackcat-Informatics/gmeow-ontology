@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: lang, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/lang/ComposedForm|rdfs:label"
+msgid "Composed Form"
+msgstr "Forme composée"
+
+msgctxt "https://blackcatinformatics.ca/lang/ComposedForm|skos:definition"
+msgid "A composed form: a phrase, clause, sentence, paragraph, section, or text as a tree over indexed slots. Declares its level through lang:compositionLevel, its constituents through lang:formSlot, and its head where headedness is analyzed through lang:formHead. Constituent order is carried by lang:FormSlot individuals with integer lang:slotIndex, never by RDF list ordering — two encodings of one form must be one form. Code-switching is compositional: the composed form belongs to its matrix system while embedded constituents carry their own."
+msgstr "Une forme composée : une phrase, une proposition, un énoncé, un paragraphe, une section ou un texte représenté comme un arbre de positions indexées. Elle déclare son niveau par lang:compositionLevel, ses constituants par lang:formSlot et sa tête, lorsque la structure de tête est analysée, par lang:formHead. L’ordre des constituants est porté par des individus lang:FormSlot munis d’un lang:slotIndex entier, jamais par l’ordre d’une liste RDF — deux encodages d’une même forme doivent désigner une seule forme. L’alternance codique est compositionnelle : la forme composée appartient à son système matrice, tandis que les constituants enchâssés portent le leur."
+
+msgctxt "https://blackcatinformatics.ca/lang/Denotation|rdfs:label"
+msgid "Denotation"
+msgstr "Dénotation"
+
+msgctxt "https://blackcatinformatics.ca/lang/Denotation|skos:definition"
+msgid "A meaning assignment as a reified record — the Peircean triad made structural (sign, object, and the interpreting context that connects them), never a bare triple from form to target. Reification is what makes disagreement, revision, and ambiguity representable. Every denotation names its form (lang:denotedForm, a non-surface form), its kind (lang:denotationKind), its target (lang:denotationTarget), and its context (lang:denotationContext); lang:viaSense routes it through a sense where the head lexeme is ambiguous. Disjoint from lang:Form and lang:Sense — the reference corner of the Frege triangle is not a form and not a sense."
+msgstr "Une attribution de sens sous forme d’enregistrement réifié — la triade peircienne rendue structurelle (le signe, l’objet et le contexte d’interprétation qui les relie), jamais un simple triplet allant de la forme à la cible. La réification permet de représenter le désaccord, la révision et l’ambiguïté. Chaque dénotation nomme sa forme (lang:denotedForm, une forme non surfacique), son type (lang:denotationKind), sa cible (lang:denotationTarget) et son contexte (lang:denotationContext) ; lang:viaSense la fait passer par un sens lorsque le lexème tête est ambigu. Elle est disjointe de lang:Form et de lang:Sense — le sommet référentiel du triangle de Frege n’est ni une forme ni un sens."
+
+msgctxt "https://blackcatinformatics.ca/lang/Form|rdfs:label"
+msgid "Form"
+msgstr "Forme"
+
+msgctxt "https://blackcatinformatics.ca/lang/Form|skos:definition"
+msgid "The abstract root of the form AST: a form that is meant to be analyzed, denoted, translated, matched, or projected is a structured object, never an opaque string. Every lang:Form names exactly one sign system through lang:inSignSystem — an unsituated form is ill-formed. Its identity is computed over structural content alone (sign system, stratum, features, slot structure with constituent keys) and is independent of encoding, script, casing, and rendering. The strata that specialize it — surface forms, morphemes and morphs, lexemes and word forms, orthographic and syntactic words, composed forms, and covert forms — each have a distinct identity criterion."
+msgstr "La racine abstraite de l’arbre syntaxique des formes : toute forme destinée à être analysée, dénotée, traduite, appariée ou projetée est un objet structuré, jamais une chaîne opaque. Chaque lang:Form nomme exactement un système de signes par lang:inSignSystem — une forme non située est mal formée. Son identité se calcule uniquement sur son contenu structurel (système de signes, strate, traits, structure des positions et clés des constituants) et ne dépend ni de l’encodage, ni de l’écriture, ni de la casse, ni du rendu. Les strates qui la spécialisent — formes de surface, morphèmes et morphes, lexèmes et formes de mots, mots orthographiques et syntaxiques, formes composées et formes latentes — possèdent chacune un critère d’identité distinct."
+
+msgctxt "https://blackcatinformatics.ca/lang/Grapheme|rdfs:label"
+msgid "Grapheme"
+msgstr "Graphème"
+
+msgctxt "https://blackcatinformatics.ca/lang/Grapheme|skos:definition"
+msgid "A grapheme: a member character of a script's repertoire — a Latin letter, a Cyrillic letter, a Han character. Declares the script it belongs to through lang:inScript; the owning script lists it through lang:hasGrapheme. A grapheme not in its script's repertoire is ill-formed. Below the morph in the stratification; a repertoire element rather than a sign-system-scoped form."
+msgstr "Un graphème : un caractère membre du répertoire d’une écriture — une lettre latine, une lettre cyrillique ou un caractère han. Il déclare l’écriture à laquelle il appartient par lang:inScript ; l’écriture propriétaire l’énumère par lang:hasGrapheme. Un graphème absent du répertoire de son écriture est mal formé. Il se situe sous le morphe dans la stratification : c’est un élément de répertoire, non une forme définie dans la portée d’un système de signes."
+
+msgctxt "https://blackcatinformatics.ca/lang/InterpretationAct|rdfs:label"
+msgid "Interpretation Act"
+msgstr "Acte d’interprétation"
+
+msgctxt "https://blackcatinformatics.ca/lang/InterpretationAct|skos:definition"
+msgid "The act of assigning meaning to a form — a gmeow:Activity with an agent or method (a person, an NLP engine, a compositional rule run), inputs (the form through lang:interpretedForm, the context, an anchor through lang:anchorsIndexical where deixis needs resolving), and provenance. Its results are lang:Reading objects through lang:producedReading. This is the process of the observation spine's process/result/claim separation, and it is NEVER typed as a gmeow:Observation: the act is disjoint from the claim about its readings."
+msgstr "L’acte d’attribuer un sens à une forme — une gmeow:Activity dotée d’un agent ou d’une méthode (une personne, un moteur de traitement automatique des langues ou l’exécution d’une règle compositionnelle), d’entrées (la forme par lang:interpretedForm, le contexte et, lorsque la deixis doit être résolue, une ancre par lang:anchorsIndexical) et d’une provenance. Ses résultats sont des objets lang:Reading produits par lang:producedReading. Il s’agit du processus dans la séparation processus/résultat/affirmation de l’axe d’observation ; il n’est JAMAIS typé comme gmeow:Observation : l’acte est disjoint de l’affirmation portant sur ses lectures."
+
+msgctxt "https://blackcatinformatics.ca/lang/MorphFeature|rdfs:label"
+msgid "Morph Feature"
+msgstr "Trait morphologique"
+
+msgctxt "https://blackcatinformatics.ca/lang/MorphFeature|skos:definition"
+msgid "A typed morphological feature-value pair — Number=Plur, Tense=Past — carrying a key drawn from a feature inventory (lang:featureKey, a lang:FeatureKey individual), a value drawn from that inventory (lang:featureValue, a lang:FeatureValue individual), and optionally a layer (lang:featureLayer, as in the UD Number[psor] convention). Morphological content is carried this way, never as an unparsed feature string; the inventory aligns to Universal Dependencies' universal features and extends past them where a language demands it."
+msgstr "Une paire typée trait-valeur morphologique — Number=Plur, Tense=Past — portant une clé issue d’un inventaire de traits (lang:featureKey, un individu lang:FeatureKey), une valeur issue de cet inventaire (lang:featureValue, un individu lang:FeatureValue) et, facultativement, une couche (lang:featureLayer, comme dans la convention UD Number[psor]). Le contenu morphologique est porté de cette manière, jamais sous forme d’une chaîne de traits non analysée ; l’inventaire s’aligne sur les traits universels d’Universal Dependencies et les étend lorsqu’une langue l’exige."
+
+msgctxt "https://blackcatinformatics.ca/lang/Reading|rdfs:label"
+msgid "Reading"
+msgstr "Lecture"
+
+msgctxt "https://blackcatinformatics.ca/lang/Reading|skos:definition"
+msgid "A candidate interpretation of a form — the structured result object of an interpretation act, carrying a lang:Denotation through lang:denotation and naming the form it reads through lang:readingOf. An ambiguous form holds multiple co-resident readings, each with its own denotation and its own vantage-held support; the readings are first-class data and are never structurally collapsed. A reading is a result, not a claim: the claim that a reading is correct is a separate gmeow:Observation held from a vantage."
+msgstr "Une interprétation candidate d’une forme — l’objet résultat structuré d’un acte d’interprétation, portant une lang:Denotation par lang:denotation et nommant la forme qu’il lit par lang:readingOf. Une forme ambiguë conserve plusieurs lectures coexistantes, chacune avec sa propre dénotation et son propre appui tenu depuis un point de vue ; les lectures sont des données de premier ordre et ne sont jamais fusionnées structurellement. Une lecture est un résultat, non une affirmation : l’affirmation qu’une lecture est correcte constitue une gmeow:Observation distincte, tenue depuis un point de vue."
+
+msgctxt "https://blackcatinformatics.ca/lang/Rendering|rdfs:label"
+msgid "Rendering"
+msgstr "Rendu"
+
+msgctxt "https://blackcatinformatics.ca/lang/Rendering|skos:definition"
+msgid "A reified record of realizing content as a form: a content object (a lang:Form, a lang:Denotation, a composed form, a document node) rendered into a concrete lang:Form or lang:SurfaceForm under a declared kind and convention. Names the content it renders through lang:renderedContent, the form it produces through lang:renderingForm, its kind through lang:renderingKind (a lang:RenderingKind individual), the convention governing it through lang:renderingConvention, and — where the crossing is judged — a preservation kind through lang:renderingPreservation, which carries a logic:preservationKind rather than a lang: preservation enum. Rendering is the facet layer over a logic:Correspondence whose two sides are content and form; serializing the ontology to Turtle, lifting prose to a docs page, and transliterating a name are all renderings distinguished by kind, never a subclass ladder."
+msgstr "Un enregistrement réifié de la réalisation d’un contenu sous forme : un objet de contenu (une lang:Form, une lang:Denotation, une forme composée ou un nœud documentaire) rendu en lang:Form ou lang:SurfaceForm concrète selon un type et une convention déclarés. Il nomme le contenu rendu par lang:renderedContent, la forme produite par lang:renderingForm, son type par lang:renderingKind (un individu lang:RenderingKind), la convention qui le gouverne par lang:renderingConvention et — lorsque le passage est évalué — un type de préservation par lang:renderingPreservation, lequel porte un logic:preservationKind plutôt qu’une énumération propre à lang:. Le rendu est la couche de facette au-dessus d’une logic:Correspondence dont les deux côtés sont le contenu et la forme ; sérialiser l’ontologie en Turtle, transformer la prose en page documentaire et translittérer un nom sont tous des rendus distingués par leur type, jamais les degrés d’une hiérarchie de sous-classes."
+
+msgctxt "https://blackcatinformatics.ca/lang/SignSystem|rdfs:label"
+msgid "Sign System"
+msgstr "Système de signes"
+
+msgctxt "https://blackcatinformatics.ca/lang/SignSystem|skos:definition"
+msgid "A sign system: the system of signs a form belongs to — a natural language (English), a formal language (Turtle, GTS), a notation (IPA), a gestural language (a signed language), or a tactile system (Braille). A first-class individual, never a subclass ladder and never a bare tag: it is distinguished by a lang:SignSystemKind (through lang:signSystemKind) and a lang:Modality (through lang:modality), and it may align to a BCP-47 tag, an ISO 639 code, a Wikidata QID, or a MIME type — but the GMEOW term remains the local source of truth and external identifiers name alignments, not identity. Every lang:Form names exactly one through lang:inSignSystem."
+msgstr "Un système de signes : le système auquel appartient une forme — une langue naturelle (le français), un langage formel (Turtle, GTS), une notation (API), une langue gestuelle ou un système tactile (braille). C’est un individu de premier ordre, jamais une hiérarchie de sous-classes ni une simple étiquette : il se distingue par un lang:SignSystemKind (via lang:signSystemKind) et une lang:Modality (via lang:modality), et peut être aligné sur une étiquette BCP-47, un code ISO 639, un identifiant Wikidata ou un type MIME — mais le terme GMEOW demeure la source de vérité locale et les identifiants externes nomment des alignements, non l’identité. Chaque lang:Form en nomme exactement un par lang:inSignSystem."
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceAnchor|rdfs:label"
+msgid "Surface Anchor"
+msgstr "Ancre de surface"
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceAnchor|skos:definition"
+msgid "A stand-off anchor locating a surface form in a source: names the source through lang:anchorSource, the span through lang:anchorStart and lang:anchorEnd, and the offset space through lang:offsetSpace (byte, codepoint, or grapheme cluster). Surface-stratum material excluded from form identity but included in surface identity; the anchor is what makes the prose-hash discipline a lookup rather than a recomputation."
+msgstr "Une ancre externe qui localise une forme de surface dans une source : elle nomme la source par lang:anchorSource, l’étendue par lang:anchorStart et lang:anchorEnd, et l’espace de décalage par lang:offsetSpace (octet, point de code ou grappe de graphèmes). Le matériau de la strate surfacique est exclu de l’identité de la forme mais inclus dans l’identité de surface ; l’ancre fait de la discipline de hachage de la prose une recherche plutôt qu’un recalcul."
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceForm|rdfs:label"
+msgid "Surface Form"
+msgstr "Forme de surface"
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceForm|skos:definition"
+msgid "A concrete realization of a form: text (through lang:surfaceText) with a declared script (lang:inScript), encoding (lang:encoding), Unicode normalization (lang:unicodeNormalization), and collation locale (lang:collationLocale). The only stratum where byte identity means anything: two surface forms with different normalization are different surface forms of possibly the same form. A surface either realizes an analyzed form through lang:realizes or is typed lang:UnanalyzedProse — never silently either — and declares how far it has been analyzed through lang:analysisLevel. It may carry a lang:SurfaceAnchor locating it in a source document. Re-encoding or re-normalizing a text creates new surface forms but no new forms."
+msgstr "Une réalisation concrète d’une forme : un texte (par lang:surfaceText) doté d’une écriture déclarée (lang:inScript), d’un encodage (lang:encoding), d’une normalisation Unicode (lang:unicodeNormalization) et d’une locale de collation (lang:collationLocale). C’est la seule strate où l’identité des octets a un sens : deux formes de surface normalisées différemment sont des formes de surface distinctes d’une forme possiblement identique. Une surface réalise soit une forme analysée par lang:realizes, soit elle est typée lang:UnanalyzedProse — jamais l’un ou l’autre implicitement — et déclare son degré d’analyse par lang:analysisLevel. Elle peut porter une lang:SurfaceAnchor qui la localise dans un document source. Réencoder ou renormaliser un texte crée de nouvelles formes de surface, mais aucune nouvelle forme."
+
+msgctxt "https://blackcatinformatics.ca/lang/TranslationUnit|rdfs:label"
+msgid "Translation Unit"
+msgstr "Unité de traduction"
+
+msgctxt "https://blackcatinformatics.ca/lang/TranslationUnit|skos:definition"
+msgid "A reified source-form-to-target-form pairing — the atom of a translation. Names its source form through lang:translationSource, its target form through lang:translationTarget, and the sibling unit it aligns with through lang:translationOf, and it carries the law-spine of the crossing by pointing — through lang:translationCorrespondence — at exactly one logic:Correspondence node. That Correspondence, not the unit, holds the logic:preservationKind, the logic:morphismClass, the logic:correspondenceRelation, the logic:mnemomorphic witness enumerating any untranslatable residue, the logic:hasDeterminacy, and any logic:hasLawClaim. A unit whose target is inadequate is marked through lang:translationGap; the enumerated residue itself lives on the carried Correspondence's mnemomorphic witness, never on the unit."
+msgstr "Un appariement réifié entre une forme source et une forme cible — l’atome d’une traduction. Il nomme sa forme source par lang:translationSource, sa forme cible par lang:translationTarget et l’unité sœur avec laquelle il s’aligne par lang:translationOf ; il porte l’ossature légale du passage en pointant, par lang:translationCorrespondence, vers exactement un nœud logic:Correspondence. Cette correspondance, et non l’unité, porte logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, le témoin logic:mnemomorphic qui énumère tout résidu intraduisible, logic:hasDeterminacy et toute logic:hasLawClaim. Une unité dont la cible est inadéquate est marquée par lang:translationGap ; le résidu énuméré lui-même demeure sur le témoin mnémomorphique de la correspondance portée, jamais sur l’unité."
+
+msgctxt "https://blackcatinformatics.ca/lang/paraphraseForm|rdfs:label"
+msgid "paraphrase form"
+msgstr "forme de paraphrase"
+
+msgctxt "https://blackcatinformatics.ca/lang/paraphraseForm|skos:definition"
+msgid "Relates a lang:Paraphrase to the produced restatement form. Domain lang:Paraphrase, range lang:Form (stated in prose). The source side is lang:paraphraseOf; keeping both roles explicit makes the form-to-form crossing and its relator mediation queryable without treating the reified paraphrase record as a form."
+msgstr "Relie une lang:Paraphrase à la forme de reformulation produite. Le domaine est lang:Paraphrase et la portée lang:Form (énoncés en prose). Le côté source est lang:paraphraseOf ; conserver les deux rôles explicites rend interrogeables le passage de forme à forme et sa médiation de relateur sans traiter l’enregistrement de paraphrase réifié comme une forme."

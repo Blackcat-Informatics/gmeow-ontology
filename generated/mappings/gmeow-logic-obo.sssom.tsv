@@ -18,4 +18,3 @@ logic:disjoint	skos:relatedMatch	ro:0002171	spatially disjoint with	semapv:Manua
 logic:memberOf	skos:closeMatch	ro:0002350	member of	semapv:ManualMappingCuration	0.85	
 logic:overlaps	skos:relatedMatch	ro:0002131	overlaps	semapv:ManualMappingCuration	0.75	RO_0002131 is spatial overlap; logic:overlaps is profile-relative mereological overlap.
 logic:partOf	skos:closeMatch	bfo:BFO_0000050	part of	semapv:ManualMappingCuration	0.9	
-logic:precedes	skos:closeMatch	bfo:BFO_0000063	precedes	semapv:ManualMappingCuration	0.85	

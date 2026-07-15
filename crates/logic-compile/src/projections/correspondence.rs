@@ -48,6 +48,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
+const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
@@ -120,7 +121,7 @@ fn p_probability() -> String {
     format!("{LOGIC_NAMESPACE}probability")
 }
 fn p_according_to() -> String {
-    format!("{LOGIC_NAMESPACE}accordingTo")
+    format!("{GMEOW_NAMESPACE}accordingTo")
 }
 fn p_has_law_claim() -> String {
     format!("{LOGIC_NAMESPACE}hasLawClaim")

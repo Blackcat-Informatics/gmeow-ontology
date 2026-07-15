@@ -8,4 +8,4 @@
 
 ex:english a lang:SignSystem .
 ex:slot a lang:FormSlot ; lang:slotIndex 0 ; lang:slotForm ex:w0 .
-ex:w0 a lang:WordForm ; lang:inSignSystem ex:english .
+ex:w0 a lang:Form ; lang:inSignSystem ex:english .

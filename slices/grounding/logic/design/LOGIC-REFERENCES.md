@@ -71,6 +71,24 @@ unless they themselves cite an external work; they are cross-references within G
   art for context/standpoint indexing, ordered by generality via `genlMt` — see
   [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).)
 
+### Realized grounding disposition
+
+The survey has a concrete, fail-closed disposition; “listed here” is not an
+implicit promise to add a mapping later.
+
+| Family | Realized disposition |
+|---|---|
+| gUFO, BFO 2020, OBO/RO, SUMO, OWL/RDFS, SHACL Core/AF | Shipped `logic:GroundingCorrespondence` catalogs in `mappings/grounding-bridges.ttl` |
+| DUL, IAO, PATO, YAMATO 2021-08-08, OpenCyc 2012-05-10 | Shipped commitment-shifting, validation-only bridge catalog in `mappings/foundation-bridges.ttl`; target axioms remain by-reference |
+| OntoUML | Shipped executable, single-binding grounding correspondences in `mappings/projections-ontouml.ttl` |
+| Sequence Ontology (`SO_`) and Emotion Ontology (`MFOEM_`) | Citation and domain-lineage only here; neither has a foundation-term identity warrant, so no synthetic `logic:` bridge is asserted |
+
+OpenCyc rows use permanent `http://sw.opencyc.org/concept/` identifiers from
+<https://github.com/therohk/opencyc-kb>. YAMATO rows use the version-pinned
+`http://www.hozo.jp/owl/YAMATO20210808.miz.owl#` namespace. The complete row
+ledger and morphism policy are in
+[`docs/foundational-bridging.md`](../../../../docs/foundational-bridging.md).
+
 ## Foundational theory (`intentCitesAsDataSource`)
 
 - Alchourrón, C., Gärdenfors, P. & Makinson, D. (1985). *On the Logic of Theory Change: Partial Meet

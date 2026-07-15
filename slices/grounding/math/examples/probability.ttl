@@ -105,9 +105,9 @@ ex:forecastRainEvent a math:ProbabilityEvent ;
 #    literal.                                                                    #
 # =========================================================================== #
 
-ex:pRainTomorrow a gmeow:Quantity , math:ProbabilityValue ;
+ex:pRainTomorrow a math:Quantity , math:ProbabilityValue ;
     rdfs:label "P(rain tomorrow) = 0.72"@x-gmeow-english ;
-    gmeow:quantityValue "0.72"^^xsd:decimal ;               # in the closed unit interval [0,1] (P1)
+    math:quantityValue "0.72"^^xsd:decimal ;               # in the closed unit interval [0,1] (P1)
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame ;   # names its frame (P3)
     gmeow:isResultOf ex:forecastRun .
 
@@ -191,11 +191,11 @@ ex:sigmaParam a math:DistributionParameter ;
     math:parameterRole ex:stddevRole ;
     math:parameterQuantity ex:sigmaQuantity .
 
-ex:muQuantity a gmeow:Quantity ;
-    gmeow:quantityValue "12.0"^^xsd:decimal .
+ex:muQuantity a math:Quantity ;
+    math:quantityValue "12.0"^^xsd:decimal .
 
-ex:sigmaQuantity a gmeow:Quantity ;
-    gmeow:quantityValue "4.5"^^xsd:decimal .          # strictly positive: satisfies the stddev role
+ex:sigmaQuantity a math:Quantity ;
+    math:quantityValue "4.5"^^xsd:decimal .          # strictly positive: satisfies the stddev role
 
 # =========================================================================== #
 # 4. Every reasoning-facing dependency model, each STRUCTURALLY COMPLETE, so    #
@@ -353,13 +353,13 @@ ex:rainSprinklerCondIndep a math:ConditionalIndependenceAssertion ;
 # 3:1 odds — value 3.0, legitimately outside [0,1] because it is odds, not a probability.
 ex:rainOdds a math:OddsValue ;
     rdfs:label "rain odds 3:1"@x-gmeow-english ;
-    gmeow:quantityValue "3.0"^^xsd:decimal ;
+    math:quantityValue "3.0"^^xsd:decimal ;
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame .
 
 # The logit log(p/(1−p)) = ln 3 ≈ 1.0986, on the whole real line.
 ex:rainLogOdds a math:LogOddsValue ;
     rdfs:label "rain log-odds ln 3"@x-gmeow-english ;
-    gmeow:quantityValue "1.0986"^^xsd:decimal ;
+    math:quantityValue "1.0986"^^xsd:decimal ;
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame .
 
 # The declared transform recovers the probability 3/4 the 3:1 odds re-express.
@@ -367,12 +367,18 @@ ex:oddsToProbability a math:ProbabilityScaleTransform ;
     rdfs:label "3:1 odds → P = 0.75"@x-gmeow-english ;
     math:transformsToProbabilityValue ex:pRainFromOdds .
 
-ex:pRainFromOdds a gmeow:Quantity , math:ProbabilityValue ;
+ex:pRainFromOdds a math:Quantity , math:ProbabilityValue ;
     rdfs:label "P = 0.75 (recovered from 3:1 odds)"@x-gmeow-english ;
-    gmeow:quantityValue "0.75"^^xsd:decimal ;              # in [0,1] (P1)
+    math:quantityValue "0.75"^^xsd:decimal ;              # in [0,1] (P1)
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame .
 
 # Anchors the recovered value to the same rain event the odds themselves re-express
 # (math:probabilityOfEvent) — a second, scale-transformed estimate of P(rain), not an
 # unanchored bare quantity.
 ex:forecastRainEvent math:probabilityOfEvent ex:pRainFromOdds .
+<https://blackcatinformatics.ca/gmeow/examples/math/muQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/lengthDimension> .
+<https://blackcatinformatics.ca/gmeow/examples/math/pRainFromOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/pRainTomorrow> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/rainLogOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/rainOdds> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/sigmaQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/lengthDimension> .

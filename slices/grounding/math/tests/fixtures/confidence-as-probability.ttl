@@ -21,3 +21,5 @@ ex:mappedClaim a math:ProbabilityValue ;
     logic:confidence 0.8 ;
     logic:probabilityModel ex:mappedModel .
 ex:mappedModel a math:JointProbabilityTable .
+<http://example.org/math/mappedClaim> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/unmappedClaim> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

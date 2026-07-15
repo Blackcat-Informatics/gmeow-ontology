@@ -1,5 +1,6 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
@@ -1322,34 +1323,6 @@ gmeow:KinRelationshipShape
         sh:message "A KinRelationship must record exactly one child (gmeow:relationshipChild)." ;
     ] .
 
-# A ScalarQuantity / Quantity / MeasuredValue needs a value and a unit.
-gmeow:ScalarQuantityShape
-    a sh:NodeShape ;
-    rdfs:label "Quantity well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:ScalarQuantity, gmeow:Quantity, gmeow:MeasuredValue ;
-    sh:property [
-        sh:path gmeow:quantityValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:decimal ;
-        sh:severity sh:Violation ;
-        sh:message "A Quantity must carry exactly one numeric gmeow:quantityValue." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:unit ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Quantity must declare exactly one unit (gmeow:unit), identified by an IRI." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:trueQuantity ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Quantity may carry at most one frame-independent magnitude (gmeow:trueQuantity)." ;
-    ] .
-
 # Functional-cardinality shapes for the YAMATO quality stratification props. The
 # owl:FunctionalProperty contract is an OWL-DL entailment; these shapes enforce
 # the same exactly-one cardinality on the raw graph, where pySHACL/native SHACL
@@ -1470,14 +1443,9 @@ gmeow:ProximityMeasurementShape
     sh:property [
         sh:path gmeow:observationResult ;
         sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:or (
-            [ sh:class gmeow:ScalarQuantity ]
-            [ sh:class gmeow:Quantity ]
-            [ sh:class gmeow:MeasuredValue ]
-        ) ;
+        sh:class math:Quantity ;
         sh:severity sh:Violation ;
-        sh:message "A ProximityMeasurement must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+        sh:message "A ProximityMeasurement must yield at least one math:Quantity result." ;
     ] .
 
 # --------------------------------------------------------------------------- #
@@ -1514,14 +1482,8 @@ gmeow:SpatialAggregationShape
     sh:property [
         sh:path gmeow:observationResult ;
         sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:or (
-            [ sh:class gmeow:ScalarQuantity ]
-            [ sh:class gmeow:Quantity ]
-            [ sh:class gmeow:MeasuredValue ]
-        ) ;
         sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+        sh:message "A SpatialAggregation must yield at least one result; quantitative results use math:Quantity, while domain-specific results retain their canonical type." ;
     ] ;
     sh:property [
         sh:path gmeow:minimumPopulation ;

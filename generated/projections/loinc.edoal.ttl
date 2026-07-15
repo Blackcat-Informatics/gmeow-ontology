@@ -1,6 +1,7 @@
 @prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -42,20 +43,6 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:ScalarQuantity ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri loinc:Quantity ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.75"^^xsd:double ;
-            rdfs:label "ScalarQuantity → loinc:Quantity"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
                 edoal:uri gmeow:SensoryObservation ;
             ] ;
             align:entity2 [
@@ -79,6 +66,20 @@
             align:relation "<=" ;
             edoal:measure "0.75"^^xsd:double ;
             rdfs:label "SensoryObservation (finding) → snomed:404684003"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri math:Quantity ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri loinc:Quantity ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.75"^^xsd:double ;
+            rdfs:label "math:Quantity → loinc:Quantity"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

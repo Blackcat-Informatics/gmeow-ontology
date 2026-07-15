@@ -34,6 +34,7 @@ ex:saFailureHierarchy a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     lang:UnsituatedForm      rdfs:subClassOf lang:LangConformanceFailure .
@@ -46,8 +47,10 @@ ASK {
     lang:UnanchoredOffset    rdfs:subClassOf lang:LangConformanceFailure .
     lang:StringOnlyForm      rdfs:subClassOf lang:LangConformanceFailure .
     lang:UngroundedGrapheme  rdfs:subClassOf lang:LangConformanceFailure .
+    lang:OrphanWordForm      logic:subClassOf lang:LangConformanceFailure .
+    lang:UnanchoredGrammar   logic:subClassOf lang:LangConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each of the ten hard-rule failures MUST be a subclass of lang:LangConformanceFailure, so a violation is a typed, queryable object." .
+    gmeow:saRationale "Each form-core hard-rule failure MUST be a subclass of lang:LangConformanceFailure, so a violation is a typed, queryable object." .
 
 # --- 3. The sign-system kinds and modalities exist as individuals (MUST) ----- #
 ex:saKindIndividuals a gmeow:StructuralAssertion ;
@@ -93,7 +96,7 @@ ASK {
     ))
     FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
 }""" ;
-    gmeow:saRationale "No lang: property MUST carry a symmetric, asymmetric, irreflexive, functional, or inverse-functional OWL characteristic — the profile is kept EL-clean; functionality (every form names exactly one sign system) is enforced in SHACL, and the inverse pairing of lang:spansWords / lang:tokenOf is documented in prose." .
+    gmeow:saRationale "No lang: property MUST carry a symmetric, asymmetric, irreflexive, functional, or inverse-functional OWL characteristic — the profile is kept EL-clean; exact-one validation is canonically expressed by qualified maximum restrictions plus class-scoped closed-world closure, and the inverse pairing of lang:spansWords / lang:tokenOf is documented in prose." .
 
 # --- 6. The Frege triangle's three corners are pairwise disjoint (MUST) ------ #
 ex:saFregeDisjoint a gmeow:StructuralAssertion ;
@@ -103,12 +106,13 @@ ex:saFregeDisjoint a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
-    ?d a owl:AllDisjointClasses ;
-       owl:members/rdf:rest*/rdf:first lang:Form ;
-       owl:members/rdf:rest*/rdf:first lang:Sense ;
-       owl:members/rdf:rest*/rdf:first lang:Denotation .
+    lang:FregeDisjointnessAxiom
+        a owl:AllDisjointClasses ;
+        owl:members/rdf:rest*/rdf:first lang:Form ;
+        owl:members/rdf:rest*/rdf:first lang:Sense ;
+        owl:members/rdf:rest*/rdf:first lang:Denotation .
 }""" ;
-    gmeow:saRationale "Form, sense, and denotation-record kinds MUST be pairwise disjoint (the Frege signature rule): string identity never implies form identity, form identity never implies sense identity, sense identity never implies co-reference. Asserted as an owl:AllDisjointClasses over lang:Form, lang:Sense, lang:Denotation — DisjointClasses is OWL 2 EL-clean." .
+    gmeow:saRationale "Form, sense, and denotation-record kinds MUST be pairwise disjoint (the Frege signature rule): string identity never implies form identity, form identity never implies sense identity, sense identity never implies co-reference. The named lang:FregeDisjointnessAxiom is the canonical owl:AllDisjointClasses authority that the validation projection can resolve through logic:formalizes." .
 
 # --- 7. An interpretation act is a gmeow:Activity, never an Observation (MUST) - #
 ex:saActIsActivityNotObservation a gmeow:StructuralAssertion ;
@@ -117,12 +121,16 @@ ex:saActIsActivityNotObservation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     lang:InterpretationAct rdfs:subClassOf gmeow:Activity .
-    lang:InterpretationAct owl:disjointWith gmeow:Observation .
+    lang:ActObservationDisjointnessAxiom
+        a owl:AllDisjointClasses ;
+        owl:members/rdf:rest*/rdf:first lang:InterpretationAct ;
+        owl:members/rdf:rest*/rdf:first gmeow:Observation .
 }""" ;
-    gmeow:saRationale "A lang:InterpretationAct is the process, never the claim: it MUST be a gmeow:Activity and MUST be owl:disjointWith gmeow:Observation, so the observation spine's process/result/claim separation holds and an act is never typed as the observation that a reading is correct." .
+    gmeow:saRationale "A lang:InterpretationAct is the process, never the claim: it MUST be a gmeow:Activity, and the named lang:ActObservationDisjointnessAxiom MUST separate it from gmeow:Observation so the validation projection has a resolvable canonical authority." .
 
 # --- 8. Each meaning failure class subclasses lang:LangConformanceFailure ---- #
 ex:saMeaningFailureHierarchy a gmeow:StructuralAssertion ;
@@ -240,3 +248,106 @@ ASK {
     ?x gmeow:gmnRingWithin ?y .
 }""" ;
     gmeow:saRationale "gmeow:gmnRingWithin is a DERIVED relation (gmeow:ruleGmnRingWithinDerive, a logic:Rule materialized by the native reasoner from a ring's gmeow:gmnRingLevel / gmeow:gmnRingCompartment coordinates) — it MUST NOT appear as an authored source triple anywhere in the module or examples graph. This assertion is a SEPARATE, machine-checked gate from the migration-equivalence witness competency question: a leftover hand-authored edge (e.g. reintroducing the retired core-within-trusted-within-restricted chain) could reproduce the same computed order and so pass an equality check, but it must still fail the build, because the predicate is populated ONLY at reason time (GREENFIELD, no duplicate of the derivation)." .
+
+# --- 15. Retained non-GMN validation residue has canonical authorities (MUST) - #
+ex:saValidationAuthorities a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    lang:formInSignSystemClosure a logic:ClosureEntry ; logic:onClass lang:Form ; logic:closureValue logic:ClosedWorldClosure .
+    lang:wordFormLexemeClosure a logic:ClosureEntry ; logic:onClass lang:WordForm ; logic:closureValue logic:ClosedWorldClosure .
+    lang:grammarSignSystemClosure a logic:ClosureEntry ; logic:onClass lang:Grammar ; logic:closureValue logic:ClosedWorldClosure .
+    lang:grammarRuleOwnerClosure a logic:ClosureEntry ; logic:onClass lang:GrammarRule ; logic:closureValue logic:ClosedWorldClosure .
+    lang:surfaceAnalysisLevelClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceForm ; logic:closureValue logic:ClosedWorldClosure .
+    lang:morphFeatureKeyClosure a logic:ClosureEntry ; logic:onClass lang:MorphFeature ; logic:closureValue logic:ClosedWorldClosure .
+    lang:morphFeatureValueClosure a logic:ClosureEntry ; logic:onClass lang:MorphFeature ; logic:closureValue logic:ClosedWorldClosure .
+    lang:surfaceScriptClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceForm ; logic:closureValue logic:ClosedWorldClosure .
+    lang:surfaceNormalizationClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceForm ; logic:closureValue logic:ClosedWorldClosure .
+    lang:surfaceCollationClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceForm ; logic:closureValue logic:ClosedWorldClosure .
+    lang:anchorSourceClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceAnchor ; logic:closureValue logic:ClosedWorldClosure .
+    lang:anchorStartClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceAnchor ; logic:closureValue logic:ClosedWorldClosure .
+    lang:anchorEndClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceAnchor ; logic:closureValue logic:ClosedWorldClosure .
+    lang:anchorOffsetSpaceClosure a logic:ClosureEntry ; logic:onClass lang:SurfaceAnchor ; logic:closureValue logic:ClosedWorldClosure .
+    lang:graphemeScriptClosure a logic:ClosureEntry ; logic:onClass lang:Grapheme ; logic:closureValue logic:ClosedWorldClosure .
+    lang:denotationFormClosure a logic:ClosureEntry ; logic:onClass lang:Denotation ; logic:closureValue logic:ClosedWorldClosure .
+    lang:denotationKindClosure a logic:ClosureEntry ; logic:onClass lang:Denotation ; logic:closureValue logic:ClosedWorldClosure .
+    lang:denotationTargetClosure a logic:ClosureEntry ; logic:onClass lang:Denotation ; logic:closureValue logic:ClosedWorldClosure .
+    lang:denotationContextClosure a logic:ClosureEntry ; logic:onClass lang:Denotation ; logic:closureValue logic:ClosedWorldClosure .
+    lang:renderingContentClosure a logic:ClosureEntry ; logic:onClass lang:Rendering ; logic:closureValue logic:ClosedWorldClosure .
+    lang:renderingConventionClosure a logic:ClosureEntry ; logic:onClass lang:Rendering ; logic:closureValue logic:ClosedWorldClosure .
+    lang:renderingPreservationClosure a logic:ClosureEntry ; logic:onClass lang:Rendering ; logic:closureValue logic:ClosedWorldClosure .
+    lang:renderingKindClosure a logic:ClosureEntry ; logic:onClass lang:Rendering ; logic:closureValue logic:ClosedWorldClosure .
+    lang:translationSourceClosure a logic:ClosureEntry ; logic:onClass lang:TranslationUnit ; logic:closureValue logic:ClosedWorldClosure .
+    lang:translationTargetClosure a logic:ClosureEntry ; logic:onClass lang:TranslationUnit ; logic:closureValue logic:ClosedWorldClosure .
+    lang:translationCorrespondenceClosure a logic:ClosureEntry ; logic:onClass lang:TranslationUnit ; logic:closureValue logic:ClosedWorldClosure .
+    lang:translationMethodClosure a logic:ClosureEntry ; logic:onClass lang:TranslationUnit ; logic:closureValue logic:ClosedWorldClosure .
+    lang:paraphraseSamenessClosure a logic:ClosureEntry ; logic:onClass lang:Paraphrase ; logic:closureValue logic:ClosedWorldClosure .
+
+    lang:SlotContiguityConstraint a logic:Constraint ; logic:formalizes lang:SlotContiguityShape .
+    lang:SlotFormNodeKindConstraint a logic:PathNodeKindConstraint ; logic:formalizes lang:SlotFormStructuralShape .
+    lang:RealizesNodeKindConstraint a logic:PathNodeKindConstraint ; logic:formalizes lang:RealizesStructuralShape .
+    lang:FormHeadNodeKindConstraint a logic:PathNodeKindConstraint ; logic:formalizes lang:FormHeadStructuralShape .
+    lang:SurfaceMaterialChoiceConstraint a logic:DisjunctiveRequirednessConstraint ; logic:formalizes lang:SurfaceMaterialShape .
+    lang:GraphemeRepertoireConstraint a logic:Constraint ; logic:formalizes lang:GraphemeGroundedShape .
+    lang:ReadingClaimVantageConstraint a logic:GuardedImplicationConstraint ; logic:formalizes lang:ReadingClaimGroundedShape .
+    lang:MachineTranslationProvenanceConstraint a logic:GuardedImplicationConstraint ; logic:formalizes lang:TranslationAttributionShape .
+    lang:FregeDisjointnessAxiom a owl:AllDisjointClasses .
+    lang:ActObservationDisjointnessAxiom a owl:AllDisjointClasses .
+}""" ;
+    gmeow:saRationale "Every retained non-GMN authored validation shape MUST resolve to a real canonical authority: class-scoped logic:ClosureEntry records for closed-world required paths, typed logic: constraints for procedural checks, or named OWL disjointness axioms. The residue is a projection awaiting equivalence proof, never an unbacked second source of truth." .
+
+# --- 16. The ⊑ class-subsumption sign is canonical and candidate-audited (MUST) - #
+ex:saGmnSubsumptionGlyphAudited a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    gmeow:gmnScript lang:hasGrapheme gmeow:gmnGlyphLogicSubClassOf .
+    gmeow:gmnGlyphLogicSubClassOf
+        a lang:Grapheme ;
+        gmeow:gmnCodepoints "U+2291" ;
+        gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+        gmeow:gmnSigilScope gmeow:gmnSigilLogic .
+    gmeow:gmnTokenCostThree math:quantityValue 3 .
+    gmeow:gmnDenLogicSubClassOf
+        a lang:Denotation ;
+        lang:denotationTarget logic:subClassOf ;
+        gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicSubClassOf .
+    gmeow:gmnCandidateLogicSubClassOf
+        a gmeow:GmnSymbolCandidate ;
+        gmeow:gmnCandidateTarget logic:subClassOf ;
+        gmeow:gmnCandidateDenotation gmeow:gmnDenLogicSubClassOf ;
+        gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+        gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost .
+}""" ;
+    gmeow:saRationale "The established description-logic ⊑ sign MUST remain one executable, @ℒ-scoped, measured glyph for canonical logic:subClassOf with an explicit adopted candidate. It MUST NOT regress to the old example-only rdfs:subClassOf denotation or escape the glyph-optimality audit population." .
+
+# --- 17. GMN notation signs are forms, never lexical word inflections (MUST) --- #
+ex:saGmnSignsAreNonLexicalForms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    FILTER NOT EXISTS {
+        ?denotation a lang:Denotation ;
+            gmeow:gmnDenotationGrapheme ?grapheme ;
+            lang:denotedForm ?form .
+        FILTER NOT EXISTS { ?form a lang:Form }
+    }
+    FILTER NOT EXISTS {
+        ?denotation a lang:Denotation ;
+            gmeow:gmnDenotationGrapheme ?grapheme ;
+            lang:denotedForm ?form .
+        ?form a ?formKind .
+        ?formKind rdfs:subClassOf* lang:WordForm .
+    }
+}""" ;
+    gmeow:saRationale "Every graph-derived GMN glyph denotation MUST attach to a generic lang:Form in the notation sign system, never a lang:WordForm. A WordForm is an inflection of a lexeme and therefore requires lang:lexemeOf; logical, mathematical, IPA, gloss, and boundary signs are notation forms rather than fabricated lexical inflections." .

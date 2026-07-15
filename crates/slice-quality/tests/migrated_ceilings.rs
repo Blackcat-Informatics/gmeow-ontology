@@ -49,8 +49,8 @@ fn every_committed_projection_ceiling_is_reproduced_integer_exactly() {
     let rows = golden_rows("projection-ceilings.golden.tsv");
     assert_eq!(
         rows.len(),
-        124,
-        "the frozen projection-ceiling golden has 124 rows"
+        140,
+        "the frozen projection-ceiling golden has 140 rows"
     );
     assert_eq!(
         ceilings.ceilings.len(),
@@ -92,8 +92,8 @@ fn every_guarded_projection_vocabulary_is_reproduced_exactly() {
     let rows = golden_rows("projection-vocabularies.golden.tsv");
     assert_eq!(
         rows.len(),
-        30,
-        "the frozen projection-vocabulary golden has 30 rows"
+        37,
+        "the frozen projection-vocabulary golden has 37 rows"
     );
     assert_eq!(
         ceilings.vocabularies.len(),

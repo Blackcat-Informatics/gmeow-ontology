@@ -24,7 +24,8 @@ use gmeow_errors::{Diag, Result};
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_validate::findings::finding_from_shacl;
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
-use purrdf::{RdfDataset, SparqlResult, TermValue};
+use purrdf::shapes::shapes::Shapes;
+use purrdf::{RdfDataset, RdfTerm, SparqlResult, TermValue};
 
 use crate::dsl::{
     self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, ReasoningProfile,
@@ -204,6 +205,13 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
             detail: format!("building module dataset: {e}"),
         })
     })?;
+    let local_shapes = slice_dir.join("shapes.ttl");
+    let shapes = scope_shapes_to_slice(
+        shapes,
+        &shapes_ttl,
+        &module,
+        local_shapes.is_file().then_some(local_shapes.as_path()),
+    )?;
     let workers = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(1)
@@ -696,10 +704,27 @@ fn run_conformance_cell(
             if codes.is_empty() {
                 Ok(())
             } else {
+                let locations = report
+                    .results
+                    .iter()
+                    .map(|result| {
+                        let finding = finding_from_shacl(result);
+                        let path = result
+                            .result_path
+                            .as_ref()
+                            .map_or_else(|| "<node>".to_owned(), ToString::to_string);
+                        format!(
+                            "{} at {} on {} (shape {})",
+                            finding.code, result.focus_node, path, result.source_shape
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("; ");
                 Err(Diag::of_kind(ConformanceCell {
                     detail: format!(
-                        "expected conformance, got finding(s): {}",
-                        join_codes(&codes)
+                        "expected conformance, got finding(s): {}; {}",
+                        join_codes(&codes),
+                        locations
                     ),
                 }))
             }
@@ -722,6 +747,137 @@ fn run_conformance_cell(
             }
         }
     }
+}
+
+/// Restrict the repository-wide generated shape union to the authority owned by
+/// one slice, plus that slice's residual authored shapes.
+///
+/// Generated validation files are deliberately repository-wide.  A partially
+/// migrated slice must load them so migrated constraints remain live alongside
+/// its residual `shapes.ttl`, but applying every other slice's shapes to this
+/// slice's module would violate the documented slice-scoped conformance contract:
+/// cross-slice values are completed only in the full ontology validation lane.
+/// Ownership is recovered without filename heuristics from the canonical graph:
+/// module terms name their ontology through `rdfs:isDefinedBy`, generated shapes
+/// either derive from one of those terms (`*-shape` / `*-domain-shape`) or carry
+/// `logic:formalizes` / `gmeow:enforcesFailureClass` back to one, and every local
+/// residual node shape is owned by construction.
+fn scope_shapes_to_slice(
+    mut shapes: Shapes,
+    shapes_ttl: &str,
+    module: &RdfDataset,
+    local_shapes_path: Option<&Path>,
+) -> Result<Shapes> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+    const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
+    const SH_NODE_SHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
+    const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+    const ENFORCES_FAILURE_CLASS: &str =
+        "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+
+    let module_quads: Vec<_> = module.owned_quads().collect();
+    let ontology_iris: BTreeSet<String> = module_quads
+        .iter()
+        .filter(|q| q.predicate.as_str() == RDF_TYPE)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(subject), RdfTerm::Iri(object)) if object == OWL_ONTOLOGY => {
+                Some(subject.clone())
+            }
+            _ => None,
+        })
+        .collect();
+    if ontology_iris.is_empty() {
+        return Err(Diag::of_kind(ShapeValidation {
+            detail: "slice module declares no owl:Ontology authority".to_owned(),
+        }));
+    }
+
+    let owned_terms: BTreeSet<String> = module_quads
+        .iter()
+        .filter(|q| q.predicate.as_str() == RDFS_IS_DEFINED_BY)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(subject), RdfTerm::Iri(owner)) if ontology_iris.contains(owner) => {
+                Some(subject.clone())
+            }
+            _ => None,
+        })
+        .collect();
+    if owned_terms.is_empty() {
+        return Err(Diag::of_kind(ShapeValidation {
+            detail: "slice module authority owns no rdfs:isDefinedBy terms".to_owned(),
+        }));
+    }
+
+    // A canonical logic:Constraint is owned through rdfs:isDefinedBy, while its
+    // projected shape authority is the object of logic:formalizes and need not be
+    // declared as a standalone ontology term. Include that one-hop projection
+    // identity in the ownership set so the generated shape is not discarded.
+    let mut owned_authorities = owned_terms.clone();
+    owned_authorities.extend(module_quads.iter().filter_map(|q| {
+        if q.predicate.as_str() != LOGIC_FORMALIZES {
+            return None;
+        }
+        match (&q.subject, &q.object) {
+            (RdfTerm::Iri(source), RdfTerm::Iri(authority)) if owned_terms.contains(source) => {
+                Some(authority.clone())
+            }
+            _ => None,
+        }
+    }));
+
+    let shape_graph = native_query::dataset_from_turtle(shapes_ttl)?;
+    let metadata_owned_shapes: BTreeSet<String> = shape_graph
+        .owned_quads()
+        .filter(|q| {
+            matches!(
+                q.predicate.as_str(),
+                LOGIC_FORMALIZES | ENFORCES_FAILURE_CLASS
+            )
+        })
+        .filter_map(|q| match (q.subject, q.object) {
+            (RdfTerm::Iri(shape), RdfTerm::Iri(authority))
+                if owned_authorities.contains(&authority) =>
+            {
+                Some(shape)
+            }
+            _ => None,
+        })
+        .collect();
+
+    let local_shape_ids = match local_shapes_path {
+        None => BTreeSet::new(),
+        Some(path) => native_query::dataset_from_file(path)?
+            .owned_quads()
+            .filter(|q| q.predicate.as_str() == RDF_TYPE)
+            .filter_map(|q| match (q.subject, q.object) {
+                (RdfTerm::Iri(shape), RdfTerm::Iri(kind)) if kind == SH_NODE_SHAPE => Some(shape),
+                _ => None,
+            })
+            .collect(),
+    };
+
+    shapes.node_shapes.retain(|shape| {
+        let rendered = shape.id.to_string();
+        let Some(shape_iri) = rendered
+            .strip_prefix('<')
+            .and_then(|value| value.strip_suffix('>'))
+        else {
+            return false;
+        };
+        if local_shape_ids.contains(shape_iri) || metadata_owned_shapes.contains(shape_iri) {
+            return true;
+        }
+        generated_shape_source(shape_iri).is_some_and(|source| owned_terms.contains(source))
+    });
+
+    Ok(shapes)
+}
+
+fn generated_shape_source(shape_iri: &str) -> Option<&str> {
+    shape_iri
+        .strip_suffix("-domain-shape")
+        .or_else(|| shape_iri.strip_suffix("-shape"))
 }
 
 fn join_codes(codes: &BTreeSet<String>) -> String {
@@ -770,6 +926,81 @@ mod tests {
 
     fn one_thing_store() -> Arc<RdfDataset> {
         store_from_turtle("@prefix ex: <https://example.org/> .\nex:a a ex:Thing .\n")
+    }
+
+    #[test]
+    fn generated_shape_union_is_scoped_back_to_the_slice_authority() {
+        let module = store_from_turtle(
+            r#"
+            @prefix ex: <https://example.org/> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+            ex:Slice a owl:Ontology ; rdfs:isDefinedBy ex:Slice .
+            ex:Owned a owl:Class ; rdfs:isDefinedBy ex:Slice .
+            ex:OwnedConstraint rdfs:isDefinedBy ex:Slice ;
+                logic:formalizes ex:OwnedShapeAuthority .
+            "#,
+        );
+        let shapes_ttl = r#"
+            @prefix ex: <https://example.org/> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+
+            ex:Owned-shape a sh:NodeShape ; sh:targetClass ex:Owned .
+            ex:OwnedProceduralShape a sh:NodeShape ;
+                logic:formalizes ex:OwnedShapeAuthority ;
+                sh:targetClass ex:Owned .
+            ex:Foreign-shape a sh:NodeShape ; sh:targetClass ex:Foreign .
+        "#;
+        let parsed = parse_shapes(shapes_ttl).expect("shape union parses");
+        let scoped = scope_shapes_to_slice(parsed, shapes_ttl, &module, None)
+            .expect("shape union scopes to module authority");
+        let ids: BTreeSet<String> = scoped
+            .node_shapes
+            .iter()
+            .map(|shape| shape.id.to_string())
+            .collect();
+
+        assert_eq!(
+            ids,
+            BTreeSet::from([
+                "<https://example.org/Owned-shape>".to_owned(),
+                "<https://example.org/OwnedProceduralShape>".to_owned(),
+            ])
+        );
+    }
+
+    #[test]
+    fn lang_gmn_nonlexical_guard_rejects_word_form_subclasses() {
+        let spec_path = paths::repo_root().join("slices/grounding/lang/tests/structural.ttl");
+        let spec = dsl::load_spec(&spec_path).expect("lang structural assertions parse");
+        let pattern = spec
+            .structural
+            .iter()
+            .find(|assertion| assertion.iri.ends_with("saGmnSignsAreNonLexicalForms"))
+            .and_then(|assertion| assertion.pattern.as_deref())
+            .expect("the GMN non-lexical structural ASK is present");
+        let store = store_from_turtle(
+            r#"
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix lang: <https://blackcatinformatics.ca/lang/> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix ex: <https://example.org/> .
+
+            lang:SyntacticWord rdfs:subClassOf lang:WordForm .
+            ex:form a lang:Form, lang:SyntacticWord .
+            ex:denotation a lang:Denotation ;
+                gmeow:gmnDenotationGrapheme ex:glyph ;
+                lang:denotedForm ex:form .
+            "#,
+        );
+
+        assert!(
+            !run_ask(&store, pattern).expect("the GMN non-lexical ASK executes"),
+            "a directly situated GMN form must still be rejected when its specific type is a WordForm subclass"
+        );
     }
 
     #[test]

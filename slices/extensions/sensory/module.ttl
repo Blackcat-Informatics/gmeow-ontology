@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -62,10 +63,8 @@ gmeow:SensoryQuantity
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensory Quantity"@x-gmeow-english ;
-    rdfs:subClassOf logic:Object ,
-        gmeow:Entity ;
-    owl:equivalentClass gmeow:ScalarQuantity ;
-    skos:definition "The scalar numeric result of a sensory observation — a value with unit, determinacy, and granularity. Equivalent to gmeow:ScalarQuantity (following the ScalarQuantity alias precedent); the name 'SensoryQuantity' is the domain-specific label for the same construct in the sensor/observation stack."@x-gmeow-english ;
+    rdfs:subClassOf math:Quantity ;
+    skos:definition "A math:Quantity produced as the scalar numeric result of a sensory observation, further qualified by its dimension, any applicable unit and reference frame, determinacy, granularity, provenance, and uncertainty axes. It is a domain specialization of the math-owned quantity authority, not an equivalent alias."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:hasSensoryObservation

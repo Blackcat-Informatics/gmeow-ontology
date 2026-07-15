@@ -9,6 +9,7 @@
 # fewer than that many people are NOT reported, so the aggregate can be published
 # without re-identifying individuals (P12 — the safe public projection).
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/aggregation/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -27,11 +28,11 @@ ex:householdAgg a gmeow:SpatialAggregation ;
     gmeow:hasBin              ex:downtownBin ;
     gmeow:observationResult   ex:avgHouseholdSize .
 
-# The result is a scalar with its unit (a Quantity must declare exactly one unit,
-# P11); a count of persons-per-household is the dimensionless QUDT number unit.
-ex:avgHouseholdSize a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "2.4"^^xsd:decimal ;
-    gmeow:unit       <http://qudt.org/vocab/unit/NUM> .
+# The result is a dimensionless persons-per-household ratio. It carries no
+# pseudo-unit: math:dimensionless is the complete dimensional statement.
+ex:avgHouseholdSize a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "2.4"^^xsd:decimal .
 
 ex:downtownBin a gmeow:SpatialBin ;
     rdfs:label "Downtown census tract"@x-gmeow-english .

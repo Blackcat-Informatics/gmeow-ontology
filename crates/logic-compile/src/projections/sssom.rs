@@ -44,6 +44,8 @@ const LOGIC_GROUNDING_CORRESPONDENCE: &str =
 const LOGIC_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
 const LOGIC_MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
 const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+const LOGIC_SOURCE_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
+const LOGIC_TARGET_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
 const GM_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
 const GM_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GM_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
@@ -96,6 +98,12 @@ pub(crate) struct EquivalenceCell {
     pub(crate) morphism_kind: Option<String>,
     /// Optional authored per-correspondence preservation judgment.
     pub(crate) preservation: Option<String>,
+    /// Explicit source endpoint of a grounding correspondence. Ordinary SSSOM cells may
+    /// omit it; grounding cells must carry it and it must agree with `alignSubject`.
+    pub(crate) source_endpoint: Option<String>,
+    /// Explicit target endpoint of a grounding correspondence. Ordinary SSSOM cells may
+    /// omit it; grounding cells must carry it and it must agree with `alignObject`.
+    pub(crate) target_endpoint: Option<String>,
     /// Whether the frontend cell is explicitly a `logic:GroundingCorrespondence`.
     pub(crate) grounding: bool,
     comment: String,
@@ -565,6 +573,8 @@ fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
             morphism_class: view.object_iri(&subject, LOGIC_MORPHISM_CLASS),
             morphism_kind: view.object_iri(&subject, LOGIC_MORPHISM_KIND),
             preservation: view.object_iri(&subject, LOGIC_PRESERVATION_KIND),
+            source_endpoint: view.object_iri(&subject, LOGIC_SOURCE_ENDPOINT),
+            target_endpoint: view.object_iri(&subject, LOGIC_TARGET_ENDPOINT),
             grounding: grounding.contains(&subject),
             comment: view
                 .object_literal(&subject, GM_COMMENT)
