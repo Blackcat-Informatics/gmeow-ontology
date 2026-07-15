@@ -66,7 +66,7 @@ use crate::physical::cursor::{
 use crate::physical::id::RowId;
 use crate::provenance::{ProvenanceSemiring, ZWeightSemiring, term_display};
 use crate::rule_ir::Fact;
-use crate::seam::WorldFactSource;
+use crate::seam::{DerivedQuad, WorldFactPattern, WorldFactSource};
 
 // ── Chase-invented nulls: recipe-carrying Skolem terms ──────────────────────────
 //
@@ -941,19 +941,73 @@ impl RelationStore {
 /// [`WorldFactSource::in_world`] and inserts each `(subject, predicate, object)` as a
 /// binary tuple.  Insertion order follows `in_world`'s iteration order; dedup and
 /// index maintenance are handled by [`RelationStore::insert`].
-pub(crate) fn extract_edb(foreign: &dyn WorldFactSource, world: &str) -> RelationStore {
+pub(crate) fn extract_edb(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+) -> gmeow_errors::Result<RelationStore> {
+    extract_edb_patterns(foreign, world, std::slice::from_ref(&WorldFactPattern::ANY))
+}
+
+/// Extract only the source patterns the compiled query can actually consume.
+///
+/// Patterns are assumed to have been deterministically minimized by the caller.
+/// Their full `(S,P,O,G)` cardinality estimates are pushed into the source and used
+/// to visit the smallest independent probe first; the lexical pattern is the stable
+/// tie-break. Estimates never decide absence. Overlap is nevertheless harmless:
+/// [`RelationStore::insert`] deduplicates the same RDF fact.
+pub(crate) fn extract_edb_patterns(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    patterns: &[WorldFactPattern],
+) -> gmeow_errors::Result<RelationStore> {
     let mut store = RelationStore::new();
-    for dq in foreign.in_world(world, None, None, None) {
-        store.insert(&dq.predicate, &dq.subject, &dq.object);
+    visit_edb_patterns(foreign, world, patterns, &mut |quad| {
+        store.insert(&quad.predicate, &quad.subject, &quad.object);
+        Ok(())
+    })?;
+    Ok(store)
+}
+
+/// Visit a cardinality-ordered set of source patterns without an intermediate EDB.
+///
+/// This is the common direct-view ingestion loop for backward extraction and
+/// selected forward materialization. The consumer owns deduplication because its
+/// destination store already has the authoritative tuple identity.
+pub(crate) fn visit_edb_patterns(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    patterns: &[WorldFactPattern],
+    visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<()> {
+    let mut planned = patterns
+        .iter()
+        .map(|pattern| {
+            Ok((
+                foreign
+                    .estimate_world(world, pattern)?
+                    .unwrap_or(usize::MAX),
+                pattern,
+            ))
+        })
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    planned.sort_by(|(left_estimate, left), (right_estimate, right)| {
+        left_estimate
+            .cmp(right_estimate)
+            .then_with(|| left.cmp(right))
+    });
+    for (_, pattern) in planned {
+        foreign.visit_world(world, pattern, visitor)?;
     }
-    store
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::physical::cursor::LendingIterator;
-    use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
+    use crate::seam::{
+        BudgetStatus, DerivationId, DerivedQuad, WorldFactPattern, WorldSourceIdentity,
+    };
 
     fn term(iri: &str) -> TermValue {
         TermValue::iri(iri)
@@ -1304,6 +1358,7 @@ mod tests {
     struct FakeForeign {
         world: String,
         quads: Vec<DerivedQuad>,
+        identity: WorldSourceIdentity,
     }
 
     impl FakeForeign {
@@ -1327,44 +1382,41 @@ mod tests {
             Self {
                 world: world_iri,
                 quads,
+                identity: WorldSourceIdentity::new("test-generation", "test-contract"),
             }
         }
     }
 
     impl WorldFactSource for FakeForeign {
-        fn in_world<'a>(
-            &'a self,
+        fn identity(&self) -> &WorldSourceIdentity {
+            &self.identity
+        }
+
+        fn visit_world(
+            &self,
             world: &str,
-            subject: Option<&TermValue>,
-            predicate: Option<&str>,
-            object: Option<&TermValue>,
-        ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a> {
-            let world = world.to_owned();
-            let subject = subject.cloned();
-            let predicate = predicate.map(str::to_owned);
-            let object = object.cloned();
-            Box::new(self.quads.iter().filter(move |dq| {
-                dq.graph == world
-                    && subject.as_ref().is_none_or(|s| &dq.subject == s)
-                    && predicate.as_ref().is_none_or(|p| &dq.predicate == p)
-                    && object.as_ref().is_none_or(|o| &dq.object == o)
-            }))
-        }
-
-        fn derived_by<'a>(
-            &'a self,
-            _quad_id: Option<&DerivationId>,
-            _rule: Option<&str>,
-            _sources: Option<&[String]>,
-        ) -> Box<dyn Iterator<Item = (&'a DerivationId, &'a str, &'a [String])> + 'a> {
-            Box::new(std::iter::empty())
-        }
-
-        fn contradiction_witness<'a>(
-            &'a self,
-            _world: &str,
-        ) -> Box<dyn Iterator<Item = String> + 'a> {
-            Box::new(std::iter::empty())
+            pattern: &WorldFactPattern,
+            visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+        ) -> gmeow_errors::Result<()> {
+            for quad in &self.quads {
+                if quad.graph == world
+                    && pattern
+                        .subject
+                        .as_ref()
+                        .is_none_or(|subject| &quad.subject == subject)
+                    && pattern
+                        .predicate
+                        .as_ref()
+                        .is_none_or(|predicate| &quad.predicate == predicate)
+                    && pattern
+                        .object
+                        .as_ref()
+                        .is_none_or(|object| &quad.object == object)
+                {
+                    visitor(quad)?;
+                }
+            }
+            Ok(())
         }
     }
 
@@ -1380,7 +1432,7 @@ mod tests {
                 ("http://ex/a", "http://ex/knows", "http://ex/b"),
             ],
         );
-        let edb = extract_edb(&foreign, &foreign.world);
+        let edb = extract_edb(&foreign, &foreign.world).expect("extract test EDB");
 
         let preds: Vec<&str> = edb.predicates().collect();
         assert_eq!(preds, vec!["http://ex/knows", "http://ex/likes"]);

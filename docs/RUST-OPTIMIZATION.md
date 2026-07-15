@@ -36,14 +36,15 @@ behavior with the narrowest useful command, then rerun the same command after th
 change.
 
 The dependency lock is part of that measurement identity. The current baseline is
-the lockstep `purrdf` **0.5.0** family; do not present a measurement taken against a
-0.4.x build as current evidence. The 0.5.0 release already supplies ownership and
-allocation reductions in the RDF IR, SPARQL/XSD, reasoning, SHACL/ShEx, GTS, slice,
-and binding layers, so GMEOW benchmarks should measure on top of those gains rather
-than claim them again. Its owned `QuadPatternCursor` and borrowed dataset-term
-writers are additional cross-crate seams: prefer them when a GMEOW boundary would
-otherwise collect a result-sized quad vector or materialize owned term trees. See
-the [purrdf 0.5.0 release notes](https://github.com/Blackcat-Informatics/purrdf/releases/tag/rust-v0.5.0).
+the exact lockstep `purrdf` revision pinned in `Cargo.toml`, including its fallible
+paged-query view and succinct-pack `DatasetView` contracts; do not present a
+measurement from an older lock as current evidence. Those contracts already supply
+borrowed/dense RDF access, page-pattern translation, typed provider/budget/cancellation
+outcomes, and deterministic request evidence. GMEOW benchmarks must measure on top of
+those gains rather than claim them again. Prefer `DatasetView` pattern/cardinality
+pushdown and operation-scoped `FallibleDatasetView` checkpoints whenever a GMEOW
+boundary would otherwise collect a result-sized quad vector, touch irrelevant pages,
+or confuse incomplete provider access with semantic absence.
 
 Useful lanes:
 
@@ -124,6 +125,13 @@ are consumed through its public Rust API:
 - Static iterator seams: `purrdf::DatasetView` returns `impl Iterator` over
   borrowed quad views instead of boxed iterator objects; `QuadPatternCursor`
   provides the owned, lazy equivalent when a cursor must pin an `Arc<RdfDataset>`.
+- Direct logic views: `crates/logic/src/seam.rs` keeps the external/provider boundary
+  object-safe with a callback visitor while statically dispatching the underlying
+  `DatasetView`. Backward plans push named-world plus subject/predicate/object patterns
+  and cardinality estimates before any RDF row is owned. The fallible dispatch and
+  selected-materialization boundaries sample PurRDF before and after execution, discard
+  partial internal rows on operational failure, and return source/page/generation
+  evidence with the certified result.
 - Dense typed IDs: `purrdf::{TermId, QuadIds}` and the dataset's quad indexes keep
   hot joins on compact local IDs.
 - Const generics: purrdf's internal `AxisOrder<const N>` carries fixed quad-axis

@@ -38,7 +38,7 @@
 //! under `{NAMESPACE}derivation/`.
 //! Sources are sorted for order-independence.
 
-use purrdf::TermValue;
+use purrdf::{RdfTextDirection, TermValue};
 use sha1::{Digest, Sha1};
 use std::num::NonZeroU32;
 
@@ -365,13 +365,22 @@ fn escape_lexical(s: &str) -> String {
 /// rdflib lowercases the BCP-47 language subtag.  The native IR lowercases the
 /// language tag for the identity key, but a `TermValue` constructed directly may
 /// carry an un-lowercased tag, so we lowercase here to stay in sync regardless.
-fn literal_n3_parts(lexical_form: &str, datatype: &str, language: Option<&str>) -> String {
+fn literal_n3_parts(
+    lexical_form: &str,
+    datatype: &str,
+    language: Option<&str>,
+    direction: Option<RdfTextDirection>,
+) -> String {
     let lex = escape_lexical(lexical_form);
 
     if let Some(lang) = language {
         // Language-tagged literal — rdflib elides the rdf:langString datatype.
         // rdflib lowercases the language tag; mirror that.
-        return format!("\"{}\"@{}", lex, lang.to_lowercase());
+        let language = lang.to_lowercase();
+        return match direction {
+            Some(direction) => format!("\"{lex}\"@{language}--{}", direction.as_str()),
+            None => format!("\"{lex}\"@{language}"),
+        };
     }
 
     if datatype == XSD_STRING {
@@ -393,13 +402,11 @@ fn literal_n3_parts(lexical_form: &str, datatype: &str, language: Option<&str>) 
 /// - `Iri(iri)` → `<iri>`
 /// - `Blank` → not expected after Skolemization; serialized as `_:label`
 /// - `Literal` → delegated to [`literal_n3_parts`]
-/// - `Triple` → hard error: RDF-star quoted-triple terms are out of scope for
-///   gmeow-logic v1.  An empty hash would cause silent ID collisions; failing
-///   closed is the correct behavior.
+/// - `Triple` → RDF 1.2 non-asserting triple term `<<( s p o )>>`, recursively.
 ///
 /// # Errors
 ///
-/// Returns an error string if `term` is a `TermValue::Triple`.
+/// Returns an error only when a recursively-contained term is invalid.
 pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Iri(iri) => Ok(format!("<{}>", iri)),
@@ -408,16 +415,18 @@ pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
             lexical_form,
             datatype,
             language,
-            ..
+            direction,
         } => Ok(literal_n3_parts(
             lexical_form,
             datatype,
             language.as_deref(),
+            *direction,
         )),
-        TermValue::Triple { .. } => Err(provenance_err(
-            "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
-             (TermValue::Triple cannot be hashed without risking ID collisions)"
-                .to_owned(),
+        TermValue::Triple { s, p, o } => Ok(format!(
+            "<<( {} {} {} )>>",
+            term_n3(s)?,
+            term_n3(p)?,
+            term_n3(o)?
         )),
     }
 }
@@ -434,13 +443,13 @@ pub fn named_node_n3(iri: &str) -> String {
 ///
 /// Unlike [`term_n3`] this does **not** lowercase the language tag (oxigraph's
 /// Display preserves the stored tag verbatim) and renders a triple term in the
-/// RDF-1.2 quoted form `<< s p o >>`.
+/// RDF 1.2 non-asserting triple-term form `<<( s p o )>>`.
 ///
 /// - `Iri` → `<iri>`
 /// - `Blank` → `_:label`
 /// - `Literal` xsd:string / rdf:langString → `"lex"` ; lang → `"lex"@lang` ;
 ///   typed → `"lex"^^<dt>`
-/// - `Triple` → `<< s p o >>` (recursive)
+/// - `Triple` → `<<( s p o )>>` (recursive)
 pub fn term_display(term: &TermValue) -> String {
     match term {
         TermValue::Iri(iri) => format!("<{iri}>"),
@@ -449,11 +458,14 @@ pub fn term_display(term: &TermValue) -> String {
             lexical_form,
             datatype,
             language,
-            ..
+            direction,
         } => {
             let lex = escape_lexical(lexical_form);
             if let Some(lang) = language {
-                format!("\"{lex}\"@{lang}")
+                match direction {
+                    Some(direction) => format!("\"{lex}\"@{lang}--{}", direction.as_str()),
+                    None => format!("\"{lex}\"@{lang}"),
+                }
             } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
                 format!("\"{lex}\"")
             } else {
@@ -461,7 +473,7 @@ pub fn term_display(term: &TermValue) -> String {
             }
         }
         TermValue::Triple { s, p, o } => format!(
-            "<< {} {} {} >>",
+            "<<( {} {} {} )>>",
             term_display(s),
             term_display(p),
             term_display(o)
@@ -488,8 +500,8 @@ pub fn term_display(term: &TermValue) -> String {
 ///
 /// # Errors
 ///
-/// Returns an error string if either `s` or `o` is a `TermValue::Triple`
-/// (RDF-star quoted triples are out of scope for gmeow-logic v1).
+/// Triple terms are serialized recursively in RDF 1.2 non-asserting form before
+/// hashing, so distinct nested statements retain distinct content identities.
 ///
 /// # Returns
 ///
@@ -557,8 +569,8 @@ pub const NARY_REIFIER_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/reif
 ///
 /// # Errors
 ///
-/// Returns an error string if any argument is a `TermValue::Triple` (RDF-star
-/// quoted triples are out of scope for gmeow-logic v1, per [`term_n3`]).
+/// Triple-term arguments are serialized recursively through [`term_n3`], so native
+/// RDF 1.2 tuple arguments retain their complete content identity.
 pub fn mint_nary_reifier(relation: &str, args: &[TermValue]) -> gmeow_errors::Result<String> {
     let mut payload = String::from("nary\n");
     let rel = named_node_n3(relation);
@@ -796,6 +808,44 @@ mod tests {
     fn term_n3_literal_string() {
         let term = TermValue::simple_literal("hello");
         assert_eq!(term_n3(&term).unwrap(), "\"hello\"");
+    }
+
+    #[test]
+    fn term_n3_and_reifier_preserve_recursive_rdf12_triple_terms() {
+        let triple = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/s")),
+            p: Box::new(TermValue::iri("http://example.org/p")),
+            o: Box::new(TermValue::iri("http://example.org/o")),
+        };
+        assert_eq!(
+            term_n3(&triple).unwrap(),
+            "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>>"
+        );
+        let nested = mint_reifier(
+            &TermValue::iri("http://example.org/holder"),
+            "http://example.org/mentions",
+            &triple,
+        )
+        .expect("RDF 1.2 triple-term reifier");
+        let flat = mint_reifier(
+            &TermValue::iri("http://example.org/holder"),
+            "http://example.org/mentions",
+            &TermValue::iri("http://example.org/o"),
+        )
+        .expect("flat reifier");
+        assert_ne!(nested, flat);
+    }
+
+    #[test]
+    fn directional_language_is_part_of_the_provenance_surface() {
+        let literal = TermValue::Literal {
+            lexical_form: "مرحبا".to_owned(),
+            datatype: RDF_LANG_STRING.to_owned(),
+            language: Some("AR".to_owned()),
+            direction: Some(RdfTextDirection::Rtl),
+        };
+        assert_eq!(term_n3(&literal).unwrap(), "\"مرحبا\"@ar--rtl");
+        assert_eq!(term_display(&literal), "\"مرحبا\"@AR--rtl");
     }
 
     // ── mint_reifier goldens ─────────────────────────────────────────────────

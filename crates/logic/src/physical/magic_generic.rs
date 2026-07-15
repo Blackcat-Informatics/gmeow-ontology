@@ -59,7 +59,7 @@ use crate::query_ir::{
     QProgram, QTerm,
 };
 use crate::rule_ir::EvalTerm;
-use crate::seam::{BudgetStatus, WorldFactSource};
+use crate::seam::{BudgetStatus, WorldFactPattern, WorldFactSource};
 
 // ── Lowering (QProgram → arity-generic IR, ALL terms kept) ───────────────────────
 
@@ -329,16 +329,20 @@ fn magic_transform_generic(
 /// Build the arity-4 generic-triple EDB `triple(subject, predicate, object, world)` by
 /// scanning the world — the REAL n-ary data (the predicate carried as a DATA term) the
 /// binary store cannot represent.
-fn build_generic_edb(foreign: &dyn WorldFactSource, world: &str) -> TypedFactSet {
+fn build_generic_edb(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+) -> gmeow_errors::Result<TypedFactSet> {
     let mut facts = TypedFactSet::new();
-    for dq in foreign.in_world(world, None, None, None) {
-        let s = facts.intern(&dq.subject);
-        let p = facts.intern(&TermValue::iri(dq.predicate.as_str()));
-        let o = facts.intern(&dq.object);
+    foreign.visit_world(world, &WorldFactPattern::ANY, &mut |quad| {
+        let s = facts.intern(&quad.subject);
+        let p = facts.intern(&TermValue::iri(quad.predicate.as_str()));
+        let o = facts.intern(&quad.object);
         let w = facts.intern(&TermValue::iri(world));
         facts.push_fact(GENERIC_TRIPLE_RELATION, vec![s, p, o, w]);
-    }
-    facts
+        Ok(())
+    })?;
+    Ok(facts)
 }
 
 // ── Servability gate (close the silent-empty for un-loadable EDB relations) ──────
@@ -529,7 +533,7 @@ pub(super) fn resolve_native_generic(
 
     // (3) Build the generic-triple EDB, insert the seed demand fact, and run the
     //     arity-generic positive-Datalog fixpoint.
-    let mut facts = build_generic_edb(foreign, world);
+    let mut facts = build_generic_edb(foreign, world)?;
     for (relation, args) in &transformed.seeds {
         let ids: Vec<_> = args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(relation, ids);
@@ -761,7 +765,7 @@ where
         AnnotationLineageContract::AllPhysicalDerivations,
     )?;
     let transformed = magic_transform_generic(&rules, &goal_atom, goal_pattern(goal))?;
-    let mut facts = build_generic_edb(foreign, world);
+    let mut facts = build_generic_edb(foreign, world)?;
     let mut control_relations = transformed
         .rules
         .iter()
@@ -1259,7 +1263,7 @@ mod tests {
         );
         assert_eq!(term_display(&seed_args[0]), format!("<{P2}>"));
 
-        let mut facts = build_generic_edb(&foreign, &world);
+        let mut facts = build_generic_edb(&foreign, &world).unwrap();
         let ids: Vec<_> = seed_args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(&seed_rel, ids);
         let (result, _status) =
