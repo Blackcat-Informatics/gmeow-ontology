@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the closed-form gate: a math:ClosedFormFunction that declares
+# its math:domain, math:codomain, and math:formalArgument but OMITS its
+# math:definingExpression (sh:minCount 1, derived from the exact-one
+# math:definingExpression restriction). Validation MUST emit
+# shacl.MinCountConstraintComponent (math:UnboundClosedForm). The frame and formal
+# argument are present, so the missing body is the single isolated violation — a
+# closed form that does not say what it computes is ill-formed. Bound by
+# tests/example-conformance.ttl (ex:ecClosedFormMissingBody).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bodylessForm a math:ClosedFormFunction ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    math:formalArgument ex:xDecl .
+
+ex:xDecl a math:FreeVariableDeclaration .

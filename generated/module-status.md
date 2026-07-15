@@ -56,7 +56,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
 | logic | core | grounding | 0 | 221 | 409 | 400 | 9 | 49/630 | full |
-| math | core | grounding | 2 | 0 | 0 | 0 | 21 | 0/0 | full |
+| math | core | grounding | 2 | 0 | 0 | 0 | 24 | 0/0 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | model-serving | extension | extensions | 6 | 4 | 13 | 0 | 4 | - | full |
