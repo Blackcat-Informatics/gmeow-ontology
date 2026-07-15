@@ -135,6 +135,26 @@ pub fn load_repo_ceilings(repo_root: &Path) -> gmeow_errors::Result<GovernanceFl
     Ok(repo_rubric(repo_root)?.floors)
 }
 
+/// Load the projection-vocabulary ratchet's COMMITTED governance — the guarded
+/// registry and the committed ceilings — straight from a shipped `gmeow.gts` bundle,
+/// reusing the exact same [`rubric::load_rubric`] the repo path uses. This is the
+/// shippable-`gmeow`-CLI counterpart to [`load_repo_ceilings`]: it surfaces the
+/// resident `gmeow:ProjectionCeilingCommitment` / `gmeow:ProjectionVocabulary`
+/// individuals (the commitments — never the live measured residue, which needs a repo
+/// checkout to scan) from the bundle, dogfooding Principle 17 from the deliverable.
+///
+/// # Errors
+/// HARD FAILS on a corrupt bundle that cannot be flattened, or a structurally
+/// incomplete rubric — the shipped inputs are required, never papered over.
+pub fn ceilings_from_gts(bundle_gts: &[u8]) -> gmeow_errors::Result<GovernanceFloors> {
+    let ds = purrdf::gts::flattened_dataset_from_bytes(bundle_gts).map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("cannot flatten gmeow.gts bundle: {e}"),
+        })
+    })?;
+    Ok(rubric::load_rubric(&ds)?.floors)
+}
+
 /// Load ONLY the floor-free measurement standard (tier ladder + axes) from the
 /// canonical rubric slice under `repo_root` — the scoring half of the segregated
 /// rubric ([`MeasurementStandard`]). The ratchet gate never reads this; scoring
