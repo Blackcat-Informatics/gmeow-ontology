@@ -74,7 +74,6 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-entail-oracle-alloc bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
@@ -478,9 +477,6 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 	$(GMEOW_DEV) compliance-report --from-passing-check
 
 ##@ Maintainer Tasks
-
-maint-crosscheck: ## Prove every committed query answers on the native purrdf engine.
-	$(GMEOW_DEV) crosscheck-queries
 
 maint-extract: ## Run import/extract policy for TARGET.
 	$(GMEOW_DEV) extract --target $(TARGET)
