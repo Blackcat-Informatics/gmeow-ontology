@@ -231,6 +231,7 @@ gmeow:ProfilePage
 gmeow:ReadingOrder
     a logic:SubKind ,
         owl:Class ;
+    rdfs:comment "Closed-world checks: the usage contract only. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no owl:Restriction requirements, so a ReadingOrder instance carries no structural closed-world checks; its single obligation is the wiring contract of its own definition — an ordering standpoint exists to be ordered by, so it must be the gmeow:accordingTo of at least one claim (gmeow:ReadingOrderAccordingToConstraint)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Reading Order"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Standpoint ;
@@ -240,6 +241,21 @@ gmeow:ReadingOrder
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the ordering as a gmeow:ReadingOrder standpoint and index each ordering claim with gmeow:accordingTo that standpoint, letting co-equal orderings coexist rather than picking a primary."@x-gmeow-english ;
     gmeow:useWhen "Use to model a subjective ordering for consuming a work's segments — publication order, internal chronology, author-recommended or fandom order — that competing orderings may contradict without one being canonical."@x-gmeow-english .
+
+# A gmeow:ReadingOrder exists to be ordered by: its definition's usage contract ("claims are
+# annotated gmeow:accordingTo a ReadingOrder") is its one genuine obligation — an ordering
+# standpoint that no claim orders by is unwired (an inverse-existence constraint: the
+# ReadingOrder must be the gmeow:accordingTo of some claim).
+gmeow:ReadingOrderAccordingToConstraint
+    a logic:InverseExistenceConstraint ;
+    rdfs:label "Reading order according-to constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The wiring contract of gmeow:ReadingOrder's own definition: an ordering standpoint exists to be ordered by, so every gmeow:ReadingOrder must be the gmeow:accordingTo of at least one claim (an inverse-existence constraint)."@x-gmeow-english ;
+    logic:onClass gmeow:ReadingOrder ;
+    logic:inversePredicate gmeow:accordingTo ;
+    logic:formalizes gmeow:ReadingOrderShape ;
+    logic:message "A gmeow:ReadingOrder must be the gmeow:accordingTo of at least one claim; an ordering standpoint that nothing orders by is unwired." .
 
 gmeow:SerialInstallment
     a logic:SubKind ,
@@ -876,3 +892,18 @@ gmeow:transcript
     skos:definition "The GMEOW Documents Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/ContentSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentIndex> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/gmeow/ContentSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentOf> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContentSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegmentType> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContentSegment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/segmentOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# A MediaObject carries at most one colourspace per graph/source. The property is
+# DELIBERATELY not owl:FunctionalProperty (a global functional claim would drive
+# incorrect owl:sameAs merges across standpoints); the max-qualified idiom
+# (owl:onClass owl:Thing) is the in-fragment class-scoped form the native reasoner
+# decides, degrading to the unqualified sh:maxCount 1 the retired hand-authored
+# shape enforced.
+gmeow:MediaObject rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:colourspace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

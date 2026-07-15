@@ -237,3 +237,9 @@ STANDPOINT DOCTRINE. Contested facts in genealogy — disputed parentage, confli
     skos:definition "The GMEOW Genealogy Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/KinRelationship> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/relationshipChild> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/KinRelationship> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/relationshipParent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/KinRelationship> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/relationshipChild" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/KinRelationship> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/relationshipParent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .

@@ -231,19 +231,6 @@ gmeow:DeadnameSuppressionShape
 # is functional per facet, but OWL functionality does not REJECT a second value
 # (it infers the two are owl:sameAs). SHACL minCount/maxCount enforces it.
 # --------------------------------------------------------------------------- #
-
-gmeow:GenderIdentityFacetShape
-    a sh:NodeShape ;
-    rdfs:label "GenderIdentity well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:GenderIdentity ;
-    sh:property [
-        sh:path gmeow:genderValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A GenderIdentity facet must point at exactly one gmeow:Gender value (gmeow:genderValue)." ;
-    ] .
-
 gmeow:GenderExpressionFacetShape
     a sh:NodeShape ;
     rdfs:label "GenderExpression well-formedness shape"@x-gmeow-english ;
@@ -255,31 +242,6 @@ gmeow:GenderExpressionFacetShape
         sh:severity sh:Violation ;
         sh:message "A GenderExpression facet must point at exactly one gmeow:GenderExpressionStyle value (gmeow:expressionValue)." ;
     ] .
-
-gmeow:SexualOrientationFacetShape
-    a sh:NodeShape ;
-    rdfs:label "SexualOrientation well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:SexualOrientation ;
-    sh:property [
-        sh:path gmeow:sexualOrientationValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A SexualOrientation facet must point at exactly one gmeow:SexualOrientationValue (gmeow:sexualOrientationValue)." ;
-    ] .
-
-gmeow:RomanticOrientationFacetShape
-    a sh:NodeShape ;
-    rdfs:label "RomanticOrientation well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:RomanticOrientation ;
-    sh:property [
-        sh:path gmeow:romanticOrientationValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A RomanticOrientation facet must point at exactly one gmeow:RomanticOrientationValue (gmeow:romanticOrientationValue)." ;
-    ] .
-
 # The NameUsage relator binds {who is named} × {which appellation}; both relata
 # are required and single-valued per usage (a distinct usage is minted per
 # audience/register). Audience, register and period stay optional.
@@ -304,39 +266,6 @@ gmeow:NameUsageShape
 
 # A NotationSystemUsage mediates exactly one target and one notation system
 # (mirrors the someValuesFrom on notationUsageTarget and notationUsageNotationSystem).
-gmeow:NotationSystemUsageShape
-    a sh:NodeShape ;
-    rdfs:label "NotationSystemUsage well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:NotationSystemUsage ;
-    sh:property [
-        sh:path gmeow:notationUsageTarget ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A NotationSystemUsage must target exactly one entity (gmeow:notationUsageTarget)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:notationUsageNotationSystem ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A NotationSystemUsage must bind exactly one notation system (gmeow:notationUsageNotationSystem)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:notationUsageRole ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A NotationSystemUsage must declare exactly one role (gmeow:notationUsageRole)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:notationUsageInterval ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A NotationSystemUsage must bind exactly one time interval (gmeow:notationUsageInterval)." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # (b) Suppression / display contract (CONSTITUTION P10 — suppression, never
 # erasure). The IdentityFacet sibling of DeadnameSuppressionShape: a facet that
@@ -386,11 +315,6 @@ gmeow:SupersededFacetSuppressionShape
 # no constraint). Contradictory gmeow:accordingTo-scoped claims over the same
 # subject/predicate are co-equal and must NOT be flagged; there is deliberately
 # no shape constraining their coexistence (Principle 9 — no single slot to win).
-gmeow:StandpointCoexistenceShape
-    a sh:NodeShape ;
-    rdfs:label "Standpoint coexistence marker (no-op)"@x-gmeow-english ;
-    rdfs:comment "Documentation only — asserts and enforces nothing. Contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are explicitly permitted and are NOT a violation (Principle 9). Coexistence is proven by the positive fixture in tests/test_standpoint.py, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only rejects malformations."@x-gmeow-english .
-
 # (b) StandpointTenure well-formedness — closed-world cardinality. Mirrors
 # NameUsageShape; the OWL EL someValuesFrom in standpoint.ttl classifies, SHACL
 # enforces "exactly one standpoint".
@@ -510,24 +434,6 @@ gmeow:WithdrawnStandpointSuppressionShape
 # A Participation must mediate exactly one event and at least one participant —
 # the closed-world counterpart of the EL someValuesFrom mediation axiom in
 # events.ttl (mirrors gmeow:NameUsageShape).
-gmeow:ParticipationHasPlayersShape
-    a sh:NodeShape ;
-    rdfs:label "Participation well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Participation ;
-    sh:property [
-        sh:path gmeow:participationEvent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Participation must be part of exactly one event (gmeow:participationEvent)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:participationParticipant ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Participation must have at least one participant (gmeow:participationParticipant)." ;
-    ] .
-
 # An event should carry at least a type or some temporal placement — otherwise it
 # is an unanchored occurrence. Warning (a stub event may be fleshed out later).
 gmeow:EventHasTypeOrTimeShape
@@ -576,36 +482,10 @@ gmeow:CorrectedEventSuppressionShape
 
 # A RightsStatement governs exactly one asset (mirrors the someValuesFrom on
 # gmeow:statementAbout).
-gmeow:RightsStatementShape
-    a sh:NodeShape ;
-    rdfs:label "RightsStatement well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:RightsStatement ;
-    sh:property [
-        sh:path gmeow:statementAbout ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A RightsStatement must govern exactly one asset (gmeow:statementAbout)." ;
-    ] .
-
 # Every deontic rule regulates exactly one action (mirrors the someValuesFrom on
 # gmeow:ruleAction). Targets the concrete rule kinds directly — the SHACL engine does not
 # infer subclass membership, so targeting the abstract gmeow:Rule would miss
 # instances typed only as Permission / Prohibition / Duty.
-gmeow:RuleHasActionShape
-    a sh:NodeShape ;
-    rdfs:label "Rule well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Permission ;
-    sh:targetClass gmeow:Prohibition ;
-    sh:targetClass gmeow:Duty ;
-    sh:property [
-        sh:path gmeow:ruleAction ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A rule (Permission / Prohibition / Duty) must regulate exactly one action (gmeow:ruleAction)." ;
-    ] .
-
 # A Copyright relator mediates exactly one work and at least one holder.
 gmeow:CopyrightShape
     a sh:NodeShape ;
@@ -627,36 +507,7 @@ gmeow:CopyrightShape
 
 # A Licence is granted by at least one licensor (its other parties / work are
 # optional — a blanket or open licence need not name a licensee).
-gmeow:LicenseShape
-    a sh:NodeShape ;
-    rdfs:label "License well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:License ;
-    sh:property [
-        sh:path gmeow:licensor ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A License must name at least one licensor (gmeow:licensor)." ;
-    ] .
-
 # A Trademark mediates exactly one mark and at least one holder.
-gmeow:TrademarkShape
-    a sh:NodeShape ;
-    rdfs:label "Trademark well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Trademark ;
-    sh:property [
-        sh:path gmeow:trademarkMark ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Trademark must be about exactly one mark (gmeow:trademarkMark)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:trademarkHolder ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Trademark must have at least one holder (gmeow:trademarkHolder)." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): an expired / cancelled trademark
 # should set gmeow:displayable false rather than be deleted. Warning (a source
 # may lag the status change).
@@ -979,64 +830,6 @@ gmeow:OrientationShape
     ) ;
     sh:severity sh:Violation ;
     sh:message "An Orientation must carry at least one of: a complete unit quaternion (x,y,z,w); complete Euler angles with eulerOrder (yaw,pitch,roll,order); a heading; a bearing; or a homogeneous coordinate matrix." .
-
-gmeow:ProfileShape
-    a sh:NodeShape ;
-    rdfs:label "Profile well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Profile ;
-    sh:property [
-        sh:path rdfs:label ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Profile must carry at least one rdfs:label."
-    ] ;
-    sh:property [
-        sh:path skos:definition ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Profile must carry a skos:definition."
-    ] ;
-    sh:property [
-        sh:path gmeow:profileAppliesTo ;
-        sh:nodeKind sh:IRI ;
-        sh:class owl:Class ;
-        sh:severity sh:Violation ;
-        sh:message "When a Profile declares gmeow:profileAppliesTo, the value must be an owl:Class."
-    ] ;
-    sh:property [
-        sh:path gmeow:profileDescriptor ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Profile must declare at least one descriptor property (gmeow:profileDescriptor)."
-    ] .
-
-gmeow:ProfileOpenValueUseShape
-    a sh:NodeShape ;
-    rdfs:label "Profile open-value use guard"@x-gmeow-english ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            SELECT ?this WHERE {
-                ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass .
-                ?this a ?openClass .
-            }
-        """
-    ] ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard." ;
-        sh:select """
-            SELECT $this WHERE {
-                ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass .
-                $this a ?openClass .
-                FILTER NOT EXISTS {
-                    ?profile <https://blackcatinformatics.ca/gmeow/profileDescriptor> ?descriptor .
-                    [] ?descriptor $this .
-                }
-            }
-        """
-    ] .
-
 # Disclosure control by generalization (#72, P10) + granularity axis (#79).
 # coarsenTo and hasGranularity are domain-free, so target their subjects directly:
 # whatever carries them, the value must be a gmeow:GranularityLevel.
@@ -1091,26 +884,6 @@ gmeow:HasGranularityShape
 
 # A value marked sensitive-personal SHOULD carry a disclosure-control directive
 # (coarsenTo or displayable false). Warning — a source may publish under consent.
-gmeow:SensitiveValueShape
-    a sh:NodeShape ;
-    rdfs:label "Sensitive value disclosure-control shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:hasSensitivity ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A value marked gmeow:sensitivitySensitivePersonal should also carry gmeow:coarsenTo or gmeow:displayable false — the trigger for projection-time redaction (Principle 10). A source may legitimately publish the precise value under explicit consent." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/hasSensitivity> <https://blackcatinformatics.ca/gmeow/sensitivitySensitivePersonal> .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/coarsenTo> ?lvl
-                }
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # A privacy notice SHOULD declare who issued it.
 gmeow:PrivacyNoticeShape
     a sh:NodeShape ;
@@ -1166,57 +939,11 @@ gmeow:ConsentWellformednessShape
 # here (Principle 4: one canonical source — the shape is canonical for leak
 # detection, the ontology is canonical for vocabulary).
 # --------------------------------------------------------------------------- #
-
-gmeow:DisclosureLeakShape
-    a sh:NodeShape ;
-    rdfs:label "Disclosure leak shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:hasDisclosurePolicy ;
-    sh:severity sh:Violation ;
-    sh:sparql [
-        sh:message "A fact marked gmeow:policyNeverPublic or gmeow:policyInternalOnly must not be eligible for any public consumer (e.g. consumerPublicSite, consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport). Principle 10: suppression, never erasure — withhold at projection time." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> ?policy .
-                FILTER(?policy IN (
-                    <https://blackcatinformatics.ca/gmeow/policyNeverPublic>,
-                    <https://blackcatinformatics.ca/gmeow/policyInternalOnly>
-                ))
-                $this <https://blackcatinformatics.ca/gmeow/eligibleForConsumer> ?consumer .
-                FILTER(?consumer IN (
-                    <https://blackcatinformatics.ca/gmeow/consumerPublicSite>,
-                    <https://blackcatinformatics.ca/gmeow/consumerWikidata>,
-                    <https://blackcatinformatics.ca/gmeow/consumerWikipedia>,
-                    <https://blackcatinformatics.ca/gmeow/consumerSchemaOrgJsonLd>,
-                    <https://blackcatinformatics.ca/gmeow/consumerFoafExport>
-                ))
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Conditional disclosure warning (#225) — publicOnlyWithIndependentSource without
 # an independent source on the supporting citation is a Warning (the solver may
 # still resolve it, but the data graph is under-specified).
 # --------------------------------------------------------------------------- #
-
-gmeow:ConditionalDisclosureWarningShape
-    a sh:NodeShape ;
-    rdfs:label "Conditional disclosure warning shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:hasDisclosurePolicy ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A fact marked gmeow:policyPublicOnlyWithIndependentSource should be supported by a citation with gmeow:sourceIndependence gmeow:sourceIndependenceIndependent." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> <https://blackcatinformatics.ca/gmeow/policyPublicOnlyWithIndependentSource> .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/hasCitation> ?citation .
-                    ?citation <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> .
-                }
-            }
-        """ ;
-    ] .
-
 # =========================================================================== #
 # Observation module data shapes (#66)
 # =========================================================================== #
@@ -1303,25 +1030,6 @@ gmeow:IdentityFacetShape
     ] .
 
 # KinRelationship well-formedness (#69) — multi-participant observation.
-gmeow:KinRelationshipShape
-    a sh:NodeShape ;
-    rdfs:label "KinRelationship well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:KinRelationship ;
-    sh:property [
-        sh:path gmeow:relationshipParent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A KinRelationship must record exactly one parent (gmeow:relationshipParent)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:relationshipChild ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A KinRelationship must record exactly one child (gmeow:relationshipChild)." ;
-    ] .
-
 # A ScalarQuantity / Quantity / MeasuredValue needs a value and a unit.
 gmeow:ScalarQuantityShape
     a sh:NodeShape ;
@@ -1354,29 +1062,6 @@ gmeow:ScalarQuantityShape
 # owl:FunctionalProperty contract is an OWL-DL entailment; these shapes enforce
 # the same exactly-one cardinality on the raw graph, where pySHACL/native SHACL
 # does not read the OWL functionality axiom.
-gmeow:QualityFunctionalShape
-    a sh:NodeShape ;
-    rdfs:label "Quality functional-cardinality shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Quality ;
-    sh:property [
-        sh:path gmeow:bearer ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Quality inheres in at most one bearer (gmeow:bearer)." ;
-    ] .
-
-gmeow:MagnitudeFunctionalShape
-    a sh:NodeShape ;
-    rdfs:label "Magnitude functional-cardinality shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Magnitude ;
-    sh:property [
-        sh:path gmeow:dimension ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Magnitude carries at most one dimension (gmeow:dimension)." ;
-    ] .
-
 gmeow:ObservationTemporalShape
     a sh:NodeShape ;
     rdfs:label "Observation temporal-stamp functional shape"@x-gmeow-english ;
@@ -1391,23 +1076,6 @@ gmeow:ObservationTemporalShape
 
 # Suppression, never erasure (Principle 10): a superseded or withdrawn
 # observation (one with gmeow:validUntil) should set gmeow:displayable false.
-gmeow:SupersededObservationSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Superseded observation suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Observation ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A superseded observation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Temporal kernel data shapes (#67)
 # --------------------------------------------------------------------------- #
@@ -1657,25 +1325,6 @@ gmeow:SuppressedMessageParticipantShape
 
 # An EntityExistence must bind exactly one entity and one interval — the closed-world
 # counterpart of the EL someValuesFrom mediation axiom in lifecycle.ttl.
-gmeow:EntityExistenceHasEntityShape
-    a sh:NodeShape ;
-    rdfs:label "EntityExistence well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:EntityExistence ;
-    sh:property [
-        sh:path gmeow:existenceEntity ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An EntityExistence must record exactly one entity (gmeow:existenceEntity)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:duringInterval ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An EntityExistence must record exactly one interval (gmeow:duringInterval)." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): a superseded entity — one that has a
 # gmeow:supersededBy link to a successor — should set gmeow:displayable false rather
 # than be deleted. Warning — a source may lag the flag.
@@ -1963,39 +1612,6 @@ gmeow:GeocodeShape
 
 # Contribution relator well-formedness — closed-world cardinality.
 # Mirrors ParticipationHasPlayersShape and NameUsageShape.
-gmeow:ContributionHasPlayersShape
-    a sh:NodeShape ;
-    rdfs:label "Contribution well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Contribution ;
-    sh:property [
-        sh:path gmeow:contributor ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Contribution must have exactly one contributor (gmeow:contributor)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:contributionTarget ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Contribution must target exactly one creative work (gmeow:contributionTarget)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:contributionRole ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Contribution must specify exactly one role (gmeow:contributionRole)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:contributionDegree ;
-        sh:minCount 0 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Contribution may have at most one degree (gmeow:contributionDegree)." ;
-    ] .
-
 # CitationAct relator well-formedness — closed-world cardinality.
 gmeow:CitationActShape
     a sh:NodeShape ;
@@ -2024,44 +1640,8 @@ gmeow:CitationActShape
     ] .
 
 # Spine integrity: every Expression realizes at least one Work.
-gmeow:ExpressionRealizesWorkShape
-    a sh:NodeShape ;
-    rdfs:label "Expression realizes Work shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Expression ;
-    sh:property [
-        sh:path gmeow:realizes ;
-        sh:minCount 1 ;
-        sh:class gmeow:Work ;
-        sh:severity sh:Violation ;
-        sh:message "Every Expression must realize at least one Work (gmeow:realizes)." ;
-    ] .
-
 # Spine integrity: every Manifestation embodies at least one Expression.
-gmeow:ManifestationEmbodiesExpressionShape
-    a sh:NodeShape ;
-    rdfs:label "Manifestation embodies Expression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Manifestation ;
-    sh:property [
-        sh:path gmeow:embodies ;
-        sh:minCount 1 ;
-        sh:class gmeow:Expression ;
-        sh:severity sh:Violation ;
-        sh:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." ;
-    ] .
-
 # Spine integrity: every Item exemplifies at least one Manifestation.
-gmeow:ItemExemplifiesManifestationShape
-    a sh:NodeShape ;
-    rdfs:label "Item exemplifies Manifestation shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Item ;
-    sh:property [
-        sh:path gmeow:exemplifies ;
-        sh:minCount 1 ;
-        sh:class gmeow:Manifestation ;
-        sh:severity sh:Violation ;
-        sh:message "Every Item must exemplify at least one Manifestation (gmeow:exemplifies)." ;
-    ] .
-
 # Expression well-formedness: carries a reference frame (language/notation/arrangement).
 # =========================================================================== #
 # Evidence module (#224) — evidential warrant & source-typing shapes
@@ -2120,32 +1700,6 @@ gmeow:NotabilityRequirementShape
             }
         """ ;
     ] .
-
-gmeow:ContentSegmentShape
-    a sh:NodeShape ;
-    rdfs:label "Content Segment Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:ContentSegment ;
-    sh:property [
-        sh:path gmeow:segmentOf ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A ContentSegment must be part of at least one whole (gmeow:segmentOf)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:segmentType ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ContentSegmentType ;
-        sh:severity sh:Violation ;
-        sh:message "A ContentSegment must have at most one gmeow:segmentType." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:segmentIndex ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:integer ;
-        sh:severity sh:Violation ;
-        sh:message "A ContentSegment must have at most one gmeow:segmentIndex." ;
-    ] .
-
 gmeow:CharacterArcShape
     a sh:NodeShape ;
     rdfs:label "Character Arc Shape"@x-gmeow-english ;
@@ -2947,21 +2501,6 @@ gmeow:SceneGraphEdgeShape
 # MediaObject colourspace warning (issue #22 follow-up)
 # =========================================================================== #
 
-gmeow:MediaObjectColourspaceShape
-    a sh:NodeShape ;
-    rdfs:label "Media Object colourspace shape"@x-gmeow-english ;
-    sh:targetClass gmeow:MediaObject ;
-    # The at-least-one half is the GENERATED MediaObjectFrameRequirementShape
-    # (#283); only the max-one violation — colourspace is deliberately
-    # non-functional in OWL, single-valued by SHACL contract — stays here.
-    sh:property [
-        sh:path gmeow:colourspace ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A MediaObject must have at most one colourspace per graph/source." ;
-    ] .
-
-
 
 # =========================================================================== #
 # Calendar / Scheduling module (#62)
@@ -3124,75 +2663,11 @@ gmeow:TimeZoneHasIanaIdShape
 # --------------------------------------------------------------------------- #
 # Teleology shapes (#350, EPIC #348) — goals, intentional modes, commitments.
 # --------------------------------------------------------------------------- #
-
-gmeow:IntentionalModeShape
-    a sh:NodeShape ;
-    rdfs:label "Intentional Mode Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Desire, gmeow:Intention ;
-    sh:property [
-        sh:path gmeow:intentBearer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Desire or Intention must inhere in exactly one gmeow:intentBearer (an intrinsic mode has exactly one bearer)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:intentionGoal ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Desire or Intention must aim at exactly one gmeow:intentionGoal — five goals are five modes." ;
-    ] .
-
-gmeow:CommitmentShape
-    a sh:NodeShape ;
-    rdfs:label "Commitment Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Commitment ;
-    sh:property [
-        sh:path gmeow:committedAgent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Commitment must bind exactly one gmeow:committedAgent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:commitmentBeneficiary ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Commitment must name at least one gmeow:commitmentBeneficiary — a resolution to oneself is an Intention, not a Commitment." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:intentionGoal ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Commitment must aim at exactly one gmeow:intentionGoal." ;
-    ] .
     # The beneficiary≠committedAgent distinctness MIGRATED to
     # logic:commitmentBeneficiaryDistinctness (generated/shapes/constraint-shapes.ttl, P17).
 
 # gmeow:CounterGoalIrreflexiveShape MIGRATED to logic:counterGoalIrreflexivity,
 # projected to generated/shapes/constraint-shapes.ttl (P17 single-source).
-
-gmeow:IntentionTenureShape
-    a sh:NodeShape ;
-    rdfs:label "Intention Tenure Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:IntentionTenure ;
-    sh:property [
-        sh:path gmeow:tenureAgent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An IntentionTenure must record exactly one gmeow:tenureAgent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:tenureIntention ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An IntentionTenure must record exactly one gmeow:tenureIntention." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Aboutness guard (#349, EPIC #348) — the axis targets vocabulary IRIs.
 # The vocabulary stays OPEN (Principle 9): the guard forbids literals, not
@@ -3345,32 +2820,6 @@ gmeow:PrecedenceTenureShape
     ] .
     # The higher≠lower distinctness MIGRATED to logic:precedenceTenureDistinctness
     # (generated/shapes/constraint-shapes.ttl, P17).
-
-gmeow:ConditionEvaluationShape
-    a sh:NodeShape ;
-    rdfs:label "Condition Evaluation Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:ConditionEvaluation ;
-    sh:property [
-        sh:path gmeow:evaluatedCondition ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A ConditionEvaluation must report on exactly one gmeow:evaluatedCondition." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:evaluationVerdict ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A ConditionEvaluation must carry exactly one gmeow:evaluationVerdict." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:vantage ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A ConditionEvaluation must name its vantage — the verdict is somebody's observation, never a graph fact (Principle 9)." ;
-    ] .
-
 gmeow:ComplianceAssessmentShape
     a sh:NodeShape ;
     rdfs:label "Compliance Assessment Shape"@x-gmeow-english ;
@@ -3739,33 +3188,6 @@ gmeow:AssessmentShape
 # --------------------------------------------------------------------------- #
 # Registers & personas shapes (#355, EPIC #348).
 # --------------------------------------------------------------------------- #
-
-gmeow:PersonaShape
-    a sh:NodeShape ;
-    rdfs:label "Persona Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Persona ;
-    sh:property [
-        sh:path gmeow:personaBearer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Persona must have exactly one gmeow:personaBearer — one persona, one agent; an agent bears many co-equal personas." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:personaRegister ;
-        sh:minCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Persona must express in at least one gmeow:personaRegister (an IRI — the Register vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:expressesNorm ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:Norm ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:expressesNorm must target gmeow:Norm instances (sound here: instance norms are typed in data graphs, unlike module-typed vocabulary)." ;
-    ] .
-
 gmeow:StyleGuideShape
     a sh:NodeShape ;
     rdfs:label "Style Guide Shape"@x-gmeow-english ;
@@ -3937,38 +3359,6 @@ gmeow:MitigationShape
 # --------------------------------------------------------------------------- #
 # Affect shapes (#356, EPIC #348) — thin slice, thin shapes.
 # --------------------------------------------------------------------------- #
-
-gmeow:EmotionShape
-    a sh:NodeShape ;
-    rdfs:label "Emotion Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Emotion ;
-    sh:property [
-        sh:path gmeow:emotionBearer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:emotionType ;
-        sh:minCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "An Emotion must carry at least one gmeow:emotionType (an IRI — the vocabulary is OPEN per Principle 9: blended emotions and rival traditions coexist)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:affectiveElicitor ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:affectiveElicitor must be an IRI — the event/state/act that triggered the emotion (open range)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:affectiveTarget ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:affectiveTarget must be an IRI — the emotion's intentional object (open range)." ;
-    ] .
-
 gmeow:AffectiveExperienceShape
     a sh:NodeShape ;
     rdfs:label "Affective Experience Shape"@x-gmeow-english ;
@@ -4419,35 +3809,6 @@ gmeow:ArcSampleShape
         sh:severity sh:Violation ;
         sh:message "An ArcSample must name its analyzing vantage — two analyzers disagreeing about chapter 31 are two cells (Principle 9)." ;
     ] .
-
-gmeow:RoleInNarrativeShape
-    a sh:NodeShape ;
-    rdfs:label "Role In Narrative Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:RoleInNarrative ;
-    sh:property [
-        sh:path gmeow:narrativeRoleBearer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A RoleInNarrative must have exactly one gmeow:narrativeRoleBearer." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:narrativeRoleScope ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A RoleInNarrative must be relative to exactly one gmeow:narrativeRoleScope (an IRI) — protagonist-of-WHAT is half the claim. nodeKind only: scope instances are data-typed concretely (BookRelease, NarrativeReferenceFrame, ContentSegment) and raw-graph SHACL does no subclass inference toward NarrativeScope." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:narrativeRoleValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A RoleInNarrative must bear exactly one gmeow:narrativeRoleValue (an IRI — the role vocabulary is OPEN per Principle 9)." ;
-    ] .
-
 gmeow:MotifShape
     a sh:NodeShape ;
     rdfs:label "Motif Shape"@x-gmeow-english ;
@@ -4475,46 +3836,10 @@ gmeow:MotifShape
 # --------------------------------------------------------------------------- #
 # Web-presence model (#410): a page names at most one principal subject.
 # --------------------------------------------------------------------------- #
-
-gmeow:WebPageMainEntityShape
-    a sh:NodeShape ;
-    rdfs:label "WebPage principal-subject shape"@x-gmeow-english ;
-    sh:targetClass gmeow:WebPage ;
-    sh:property [
-        sh:path gmeow:pagePrincipalSubject ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:WebPage names at most one principal subject (gmeow:pagePrincipalSubject); it may still mention many via gmeow:isAbout." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Closed-world twins for the new functional properties (#410, #412): the
 # owl:FunctionalProperty contract enforced in the raw-graph lane by SHACL.
 # --------------------------------------------------------------------------- #
-
-gmeow:FeedPostingKindShape
-    a sh:NodeShape ;
-    rdfs:label "FeedPosting kind cardinality shape"@x-gmeow-english ;
-    sh:targetClass gmeow:FeedPosting ;
-    sh:property [
-        sh:path gmeow:feedPostingKind ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:FeedPosting has at most one gmeow:feedPostingKind value (the functional contract)." ;
-    ] .
-
-gmeow:MediaTypeShape
-    a sh:NodeShape ;
-    rdfs:label "Media-type cardinality shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:mediaType ;
-    sh:property [
-        sh:path gmeow:mediaType ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A subject carries at most one gmeow:mediaType (the functional contract)." ;
-    ] .
-
 # =========================================================================== #
 # Flagship acceptance manifest — the shared depth-bar wiring shape.
 #
