@@ -322,7 +322,14 @@ pub fn write_docs_projection(
         Ok(t) => t,
         Err(e) => return fail(format!("cannot create docs tree: {e}")),
     };
-    for (rel, data) in &tree {
+    write_docs_projection_tree(dir, &tree)
+}
+
+/// Reconcile an already-rendered documentation tree to `dir` without taking
+/// ownership. This lets one canonical site render feed multiple destinations
+/// without cloning its byte payloads or rendering twice.
+pub fn write_docs_projection_tree(dir: &Path, tree: &BTreeMap<String, Vec<u8>>) -> i32 {
+    for (rel, data) in tree {
         let rel_path = Path::new(rel);
         if rel_path.is_absolute()
             || rel_path
@@ -334,6 +341,15 @@ pub fn write_docs_projection(
             ));
         }
         let target = dir.join(rel_path);
+        // Idempotency policy: an equal projection is already synchronized. Do not
+        // rewrite it (or touch its mtime/inode), which keeps warm docs runs cheap
+        // and prevents downstream rebuilds triggered only by filesystem churn.
+        match std::fs::read(&target) {
+            Ok(existing) if existing == *data => continue,
+            Ok(_) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return fail(format!("cannot read {}: {e}", target.display())),
+        }
         if let Some(parent) = target.parent()
             && let Err(e) = std::fs::create_dir_all(parent)
         {

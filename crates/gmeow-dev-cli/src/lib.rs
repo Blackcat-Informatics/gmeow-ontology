@@ -23,6 +23,7 @@ mod dev_project;
 mod dev_reason;
 mod dev_shapes;
 mod dev_slice_quality;
+mod dev_sync;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
@@ -31,9 +32,44 @@ pub mod feedback_bundle;
 
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use gmeow_cli_core::ConsoleMode;
-pub use gmeow_cli_core::ExportFormat;
+/// Whether synchronization updates the worktree or verifies it read-only.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum SyncMode {
+    Update,
+    Check,
+}
+
+impl SyncMode {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Update => "update",
+            Self::Check => "check",
+        }
+    }
+}
+
+/// Which projections the unified synchronization phase materializes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum SyncOutput {
+    /// Pipeline, committed/generated, and all external documentation outputs.
+    All,
+    /// Pipeline and committed/generated outputs only.
+    Generated,
+    /// All documentation outputs plus their required fresh pipeline inputs.
+    Docs,
+}
+
+impl SyncOutput {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::All => "all",
+            Self::Generated => "generated",
+            Self::Docs => "docs",
+        }
+    }
+}
 
 use dev_common::{project_root, snapshot_bytes};
 
@@ -60,29 +96,27 @@ pub enum Commands {
     Version,
     /// Show a summary of the bundled GMEOW ontology snapshot.
     Info,
-    /// Rebuild all checked-in generated artifacts from canonical sources.
-    Regenerate {
+    /// Run the canonical one-pass pipeline, strict gates, and output projections.
+    Sync {
+        /// Update locally or verify read-only. Defaults to check in CI, update elsewhere.
+        #[arg(long = "mode", value_enum)]
+        mode: Option<SyncMode>,
+        /// Projection set. All outputs are made by default.
+        #[arg(long = "outputs", value_enum, default_value_t = SyncOutput::All)]
+        outputs: SyncOutput,
         #[arg(short = 'j', long = "jobs")]
         jobs: Option<usize>,
-        #[arg(long = "check")]
-        check: bool,
         #[arg(long = "metadata")]
         metadata: bool,
         #[arg(long = "list-paths")]
         list_paths: bool,
+        #[arg(long = "lang")]
+        lang: Option<String>,
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
     /// Project the flat consumer tree back out of gmeow.gts.
     Fanout {
-        #[arg(short = 'j', long = "jobs")]
-        jobs: Option<usize>,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
-    /// Drift-check every committed artifact against its canonical source.
-    #[command(name = "check-generated")]
-    CheckGenerated {
         #[arg(short = 'j', long = "jobs")]
         jobs: Option<usize>,
         #[arg(long = "timings-json")]
@@ -404,19 +438,6 @@ pub enum Commands {
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
     },
-    /// Export documentation projections (site, mdbook, PDF, snippets) from
-    /// canonical repository sources.
-    #[command(name = "export-docs")]
-    ExportDocs {
-        #[arg(long, default_value = "all")]
-        format: ExportFormat,
-        #[arg(long = "directory", short = 'd')]
-        directory: PathBuf,
-        #[arg(long = "force")]
-        force: bool,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
-    },
     /// Prove legacy `shapes.ttl` blocks are reproduced by the projected validation shapes.
     #[command(name = "shape-equivalence")]
     ShapeEquivalence {
@@ -692,25 +713,26 @@ pub fn run() -> i32 {
     match cli.command {
         Commands::Version => version(),
         Commands::Info => info(),
-        Commands::Regenerate {
+        Commands::Sync {
+            mode,
+            outputs,
             jobs,
-            check,
             metadata,
             list_paths,
+            lang,
             timings_json,
-        } => dev_build::regenerate(
+        } => dev_sync::sync(
+            mode,
+            outputs,
             jobs,
-            check,
+            lang.as_deref(),
+            timings_json.as_deref(),
             metadata,
             list_paths,
-            timings_json.as_deref(),
             console,
         ),
         Commands::Fanout { jobs, timings_json } => {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
-        }
-        Commands::CheckGenerated { jobs, timings_json } => {
-            dev_build::check_generated(jobs, timings_json.as_deref(), console)
         }
         Commands::ReleaseBundle {
             out,
@@ -893,12 +915,6 @@ pub fn run() -> i32 {
         Commands::Describe { term, gts, lang } => {
             dev_project::describe(&term, gts.as_deref(), lang.as_deref())
         }
-        Commands::ExportDocs {
-            format,
-            directory,
-            force,
-            lang,
-        } => dev_project::export_docs(&format, &directory, force, lang.as_deref()),
         Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
         Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
         Commands::ShapeMigrate { path, apply, prune } => {

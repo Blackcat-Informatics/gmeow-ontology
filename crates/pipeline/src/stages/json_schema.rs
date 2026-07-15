@@ -156,13 +156,18 @@ impl Stage for JsonSchemaStage {
     }
 }
 
-fn report_losses(losses: &[purrdf::shapes::json_schema::LossRecord]) {
+fn report_losses(losses: &purrdf::LossLedger) {
     let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
-    for loss in losses {
+    for loss in losses.entries() {
+        let subject = loss
+            .location
+            .as_deref()
+            .and_then(|location| location.subject.as_deref())
+            .unwrap_or("<unlocated>");
         grouped
-            .entry((loss.construct.as_str(), loss.reason.as_str()))
+            .entry((loss.code.as_ref(), loss.note.as_ref()))
             .or_default()
-            .push(loss.shape_iri.as_str());
+            .push(subject);
     }
     for ((construct, reason), mut shapes) in grouped {
         shapes.sort_unstable();
