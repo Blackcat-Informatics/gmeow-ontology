@@ -1818,6 +1818,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/causalModality> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingCount> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ceilingCount-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/ceilingCount> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingSlice> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ceilingSlice-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/ceilingSlice> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingVocabulary> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ceilingVocabulary-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/ceilingVocabulary> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/centsFromOrigin> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/centsFromOrigin-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/centsFromOrigin> . {0,1} ;
@@ -5268,6 +5283,36 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/versionSet> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/versionSet-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/versionSet> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyCountKind> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyCountKind-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyCountKind> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyOwner> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyOwner-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyOwner> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyPrefix> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyPrefix-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyPrefix> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyPreservation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularyPreservation-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularyPreservation> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/voiceMetricStructure> (associate via ShapeMap)

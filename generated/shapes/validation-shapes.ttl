@@ -1683,6 +1683,18 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/causalModality> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/causalModality> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/ceilingCount-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingCount> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ceilingCount> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/ceilingSlice-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingSlice> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ceilingSlice> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/ceilingVocabulary-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ceilingVocabulary> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ceilingVocabulary> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/centsFromOrigin-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/centsFromOrigin> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/centsFromOrigin> ; sh:maxCount 1 ] .
@@ -4448,6 +4460,30 @@
 <https://blackcatinformatics.ca/gmeow/versionSet-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/versionSet> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/versionSet> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/vocabularyCountKind-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyCountKind> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vocabularyCountKind> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/vocabularyOwner-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyOwner> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vocabularyOwner> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/vocabularyPrefix-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyPrefix> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vocabularyPrefix> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/vocabularyPreservation-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularyPreservation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vocabularyPreservation> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/voiceMetricStructure-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/voiceMetricStructure> ;

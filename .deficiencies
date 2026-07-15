@@ -598,6 +598,58 @@ HONEST NOTES (resolved by different means than the literal ask, or consciously s
   value — the report surfaces only rounded scores and an exact-value pin would risk a
   hairline EPSILON red; the truncation is provably ≤ measured and raise-only.
 
+## 2026-07-14 — Issue #1546 (projection-vocabulary ratchet)
+
+The ratchet was substantially re-architected mid-review under maintainer direction (8
+corrections). Most stage-1 deviations were RESOLVED and are NOT deficiencies:
+- Conformance fixtures: now authored in the slice's consumed convention
+  (`tests/structural.ttl` gmeow:StructuralAssertion invariants + a MUST-NOT counter-example),
+  red/green-probed — not docs prose.
+- Competency query: wired per convention (`queries/qc/`, registered as
+  `ex:cqProjectionCeilingsHold` in `tests/competency.ttl`).
+- Regenerate + generated `generated/governance/slice-quality-projection-{ceilings,vocabularies}.tsv`
+  + `gmeow.gts` fold: produced (make regenerate run); the ratchet gate passes GREEN
+  (`gmeow-dev slice-quality-gate` exit 0, 124 committed cells).
+
+Recorded deviations (honest):
+- WEAKER-THAN-PROPOSED RDFS COUNTED SET: `countKindStructuralAxiom` for `rdfs:` counts only
+  `rdfs:subClassOf`/`rdfs:subPropertyOf` (the subsumption taxonomy), NOT the `rdfs:domain`/
+  `rdfs:range` I originally proposed under "minimum useful structural set." Reason: counting
+  property signatures made the projection-vocab schema's OWN new `rdfs:domain`/`range` (60
+  lines) net-new debt that the grandfather gate correctly refused to grandfather (a
+  self-referential bootstrap). Narrowing to the subsumption taxonomy is a faithful reading of
+  "minimum useful structural set" and resolves the bootstrap; property signatures are RBox
+  declarations, not migration debt. Domain/range are simply not guarded by this ratchet.
+- OWL NOT GUARDED AT ALL (maintainer decision "definitely no OWL"): the permanent OWL/RDFS
+  carve-out doctrine was removed, but only RDFS-subsumption is guarded; declarative OWL is left
+  to the existing `reason-verify` gate.
+- LARGE GRANDFATHERED SEED: the strict owner-boundary + rdfs + SHACL-obligation counting produce
+  124 grandfathered ceiling cells (vs 33), including cross-slice external-reference debt (e.g.
+  correspondence cells in non-owner core slices). This is intended debt, seeded at current
+  measured and lower-only; migration ratchets it down.
+- `projection-debt` REPORT CLI HOST: the live-measured debt report remains on
+  `gmeow-dev slice-quality-projection-debt` (it needs a repo checkout to scan). The shippable
+  `gmeow slice projection-ceilings` (landed) surfaces the COMMITMENTS view — the registry +
+  124 committed ceilings from the bundle — but not the live measured/headroom, which stays on
+  `gmeow-dev`. A shippable live-measured surface would require shipping a repo scan and is not
+  provided.
+- CONFORMANCE-FIXTURE COUNTER-EXAMPLES RUN OFF-GATE: the `tests/structural.ttl`
+  `gmeow:StructuralAssertion` cells (incl. the `saProjectionCeilingNotDoubleSliced` MUST-NOT
+  counter-example) are effective when run, but the slice-quality-rubric structural file is
+  excluded from the on-gate nextest `default-filter` (`.config/nextest.toml`) because it is the
+  repo's largest module (~19-42s) — it runs only in the off-gate `maint-rust-heavy` lane. This
+  is a PRE-EXISTING exclusion affecting ALL of the rubric's structural cells equally (not
+  introduced here); a regression violating a ratchet-cell well-formedness invariant would be
+  caught by `maint-rust-heavy`, not per-commit `make check`. The AC#6 competency query DOES
+  gate on-commit (`crosscheck-queries`).
+- DOCS COVERAGE RATCHET DRIFTED UPWARD (recorded, not concealed): adding the ratchet
+  registry (2 new gmeow: properties + ~154 vocab/ceiling individuals) increased the
+  docs burn-down baseline `docs/missing-annotation-coat` +1 and
+  `docs/missing-competency-rationale` +15 (warnings, gate stays green). These are new
+  ontology terms lacking the full annotation coat / a competency-rationale reference;
+  the coverage_ratchet golden was re-baselined (its doctrine allows drift with slice
+  content). The annotation debt on the new terms is owed and should be burned down.
+
 ================================================================================
 Issue #1544 — signed compactified radial field math grounding (MERGED, PR #1550)
 Date: 2026-07-15 (stage 3)

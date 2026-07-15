@@ -7,7 +7,8 @@
 
 GMEOW (the Global Metadata and Entity Ontology for the Web) should read as
 rigorous, reasoning-centric, and open linked-data infrastructure — a canonical,
-gUFO-grounded super-vocabulary — rather than as a single application.
+RDF 1.2-native super-vocabulary grounded by its co-foundational language,
+mathematics, and logic slices — rather than as a single application.
 
 ## Tagline
 
@@ -16,7 +17,8 @@ A reasoning-centric super-vocabulary for the web.
 ## Repository description
 
 Global Metadata and Entity Ontology for the Web — a reasoning-centric, OWL 2 DL,
-gUFO-grounded super-vocabulary (FOAF/REL/DOAP/PROV-O/Wikidata-aligned) and its
+RDF 1.2-native super-vocabulary grounded by `lang:`, `math:`, and `logic:`
+(FOAF/REL/DOAP/PROV-O/Wikidata-aligned) and its
 publishing toolchain.
 
 ## Family system

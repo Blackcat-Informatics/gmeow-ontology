@@ -91,19 +91,35 @@ pub const GRAPH_RELATIONAL_CORE: &str =
 /// `skos:exactMatch` / `owl:equivalentClass`); the overclaim gate forbids over-alignment.
 pub const GRAPH_CORRESPONDENCE: &str = "https://blackcatinformatics.ca/gmeow/graph/correspondence";
 
-/// The object-level named graphs this stage contributes to the reasoned EDB and the
-/// carrier fold, in fold order. The SINGLE authority for the set: the carrier's two
-/// fold sites ([`crate::stages::carrier::assemble_object_level_edb`] and the snapshot
-/// assembly), [`crate::stages::reason::ReasonStage`]'s consumed entities, and the
-/// `run.rs` reason-stage dataflow spec all derive from this constant, and the slice
-/// DAG's `gmeow:flowEntity` mirror is bind-checked against the derived entity list.
-pub const OBJECT_LEVEL_GRAPHS: [&str; 3] =
-    [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE, GRAPH_CORRESPONDENCE];
+/// Every named graph this stage contributes to the shipped carrier, in fold order.
+/// `graph/correspondence` is deliberately carried here: correspondence is first-class
+/// shipped ontology content with a digest-pinned typed handle, even though its
+/// meta-formula envelope must not enter the object-level reasoning closure.
+pub const CARRIER_GRAPHS: [&str; 3] = [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE, GRAPH_CORRESPONDENCE];
+
+/// The object-level named graphs this stage contributes to the reasoned EDB, in fold
+/// order. Correspondence is intentionally absent: `logic:Correspondence` relates
+/// propositions and target vocabularies at the meta level, so treating endpoint IRIs as
+/// object-level axioms would both violate the IR stratification and make external target
+/// constructs appear to be authored ontology commitments.
+pub const OBJECT_LEVEL_GRAPHS: [&str; 2] = [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE];
 
 /// The object-level graph set as the sorted entity list the typed-dataflow machinery
 /// compares (the loader's Rust/RDF bind agreement and the slice-DAG mirror).
 pub fn object_level_entity_list() -> Vec<String> {
     let mut entities: Vec<String> = OBJECT_LEVEL_GRAPHS
+        .iter()
+        .map(|iri| (*iri).to_string())
+        .collect();
+    entities.sort_unstable();
+    entities
+}
+
+/// The complete compile-logic carrier graph set as a sorted entity list. Validation
+/// depends on the full compiled program, including correspondence, while reasoning uses
+/// [`object_level_entity_list`] and therefore cannot consume the meta-level graph.
+pub fn carrier_entity_list() -> Vec<String> {
+    let mut entities: Vec<String> = CARRIER_GRAPHS
         .iter()
         .map(|iri| (*iri).to_string())
         .collect();
@@ -860,7 +876,7 @@ fn build_logic_bundle(
     // `graph/diagnostics` named graph, so the presenter unions it with the SHACL
     // diagnostics as a pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte
     // artifact. It is object-level-inert (a Finding graph), so it never reaches the reason
-    // EDB (which projects only logic / relational-core / correspondence). The byte lane is
+    // EDB (which projects only logic / relational-core). The byte lane is
     // kept for the byte readers.
     let diag_rdf = artifacts.get(DIAG_RDF_PATH).ok_or_else(|| {
         stage_err(format!(
@@ -1703,6 +1719,28 @@ mod tests {
     }
 
     // ── C10: the correspondence carrier lane ──────────────────────────────
+
+    /// Correspondence is shipped and digest-pinned, but it is a meta-formula envelope:
+    /// target vocabulary IRIs must never be scanned as object-level OWL commitments.
+    #[test]
+    fn correspondence_is_carried_but_not_reasoned() {
+        assert!(
+            CARRIER_GRAPHS.contains(&GRAPH_CORRESPONDENCE),
+            "the shipped carrier must retain graph/correspondence"
+        );
+        assert!(
+            !OBJECT_LEVEL_GRAPHS.contains(&GRAPH_CORRESPONDENCE),
+            "the meta-level correspondence graph must stay outside object-level closure"
+        );
+        assert!(
+            carrier_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
+            "validation/cache dataflow must still see the complete compiled carrier"
+        );
+        assert!(
+            !object_level_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
+            "reasoning dataflow must not consume correspondence target IRIs"
+        );
+    }
 
     /// The compile-logic stage pins a REAL typed [`PipelineHandle::Correspondence`]
     /// handle to `graph/correspondence`, and that handle re-derives (via the SAME reverse

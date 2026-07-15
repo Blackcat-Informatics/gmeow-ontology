@@ -79,6 +79,29 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
     format!("{LOGIC_NAMESPACE}correspondence/{tag}/{hex}")
 }
 
+/// Parse an optional `logic:` enum IRI authored on a mapping cell. The mapping SHACL
+/// shape constrains these values too, but the compiler remains fail-closed when called
+/// directly: a foreign namespace or unknown local name is never silently treated as the
+/// default rung.
+fn parse_logic_enum<T>(
+    value: Option<&str>,
+    field: &str,
+    parse: impl FnOnce(&str) -> Option<T>,
+) -> gmeow_errors::Result<Option<T>> {
+    let Some(iri) = value else { return Ok(None) };
+    let local = iri.strip_prefix(LOGIC_NAMESPACE).ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: format!("TermEquivalence {field} must be a logic: IRI, found <{iri}>"),
+        })
+    })?;
+    let parsed = parse(local).ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: format!("TermEquivalence has unknown {field} <{iri}>"),
+        })
+    })?;
+    Ok(Some(parsed))
+}
+
 /// The typed `(relation, morphism class, morphism kind)` envelope of one materialized
 /// correspondence — the single source of truth a dialect lowering's overclaim gate and
 /// ledger path now CONSUME, instead of re-deriving the relation inline.
@@ -250,15 +273,73 @@ pub fn transpile_correspondences_indexed(
     // ── gmeow:TermEquivalence cells (the SSSOM 1:1 band) ───────────────────────────
     for cell in equivalence_cells(dsl_view) {
         // Relation + morphism class from the SAME band the SSSOM ledger gate uses.
-        let (relation, morphism_class) = sssom_band(&cell.predicate);
-        // The 1:1 SSSOM band is a satisfaction-preserving lens, never a bridge.
-        let morphism_kind = MorphismKind::InstitutionMorphism;
+        let (relation, derived_class) = sssom_band(&cell.predicate);
+        let authored_class = parse_logic_enum(
+            cell.morphism_class.as_deref(),
+            "logic:morphismClass",
+            MorphismClass::from_local,
+        )?;
+        let authored_kind = parse_logic_enum(
+            cell.morphism_kind.as_deref(),
+            "logic:morphismKind",
+            MorphismKind::from_local,
+        )?;
+        let preservation = parse_logic_enum(
+            cell.preservation.as_deref(),
+            "logic:preservationKind",
+            PreservationKind::from_local,
+        )?;
+        if cell.grounding
+            && (authored_class.is_none() || authored_kind.is_none() || preservation.is_none())
+        {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                     logic:morphismClass, logic:morphismKind, and logic:preservationKind",
+                    cell.subject, cell.predicate, cell.obj
+                ),
+            }));
+        }
+        let morphism_class = authored_class.unwrap_or(derived_class);
+        // The ordinary 1:1 SSSOM band defaults to a satisfaction-preserving lens; a
+        // grounding bridge can explicitly replace that with CommitmentShiftingBridge.
+        let morphism_kind = authored_kind.unwrap_or(MorphismKind::InstitutionMorphism);
+        if cell.grounding
+            && ((morphism_class == MorphismClass::BridgeView)
+                != (morphism_kind == MorphismKind::CommitmentShiftingBridge))
+        {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding TermEquivalence ({}, {}, {}) must pair logic:BridgeView with \
+                     logic:CommitmentShiftingBridge (and only that pair)",
+                    cell.subject, cell.predicate, cell.obj
+                ),
+            }));
+        }
         // The per-correspondence key folds (subject, predicate, object) — one subject may
         // align to several objects, so the triple (not just the subject) is the identity.
-        let key = format!("{}|{}|{}", cell.subject, cell.predicate, cell.obj);
+        let authored_key = if cell.morphism_class.is_some()
+            || cell.morphism_kind.is_some()
+            || cell.preservation.is_some()
+            || cell.grounding
+        {
+            format!(
+                "|class={}|kind={}|pres={}|grounding={}",
+                morphism_class.as_str(),
+                morphism_kind.as_str(),
+                preservation.map(|p| p.as_str()).unwrap_or(""),
+                cell.grounding,
+            )
+        } else {
+            String::new()
+        };
+        let key = format!(
+            "{}|{}|{}{}",
+            cell.subject, cell.predicate, cell.obj, authored_key
+        );
         let iri = correspondence_iri("term-equivalence", &key);
         let evidence_strength = evidence_strength_of_justification(cell.justification.as_deref());
-        let corr = Correspondence::new(
+        let mut corr = Correspondence::new(
             iri,
             relation,
             morphism_class,
@@ -278,10 +359,14 @@ pub fn transpile_correspondences_indexed(
             // Unindexed cells are scoped to the unspecified standpoint (unspecified, not
             // universal): `accordingTo` stays unset.
             None,
-            // The lane preservation polarity is program-level (SoundUnder below); a DSL cell
-            // authors no per-correspondence rung.
-            None,
-        )?;
+            // Ordinary cells inherit the lane polarity; grounding cells author their own
+            // preservation judgment explicitly.
+            preservation,
+        )?
+        .with_endpoints(cell.subject.clone(), cell.obj.clone())?;
+        if cell.grounding {
+            corr = corr.as_grounding();
+        }
         correspondences.push(corr);
         by_key.insert(
             NaturalKey::Equivalence {

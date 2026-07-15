@@ -9,20 +9,22 @@ Welcome, AI Agent! This file is your behavioral contract and instruction manual 
 
 ## 1. Project Overview & Architecture
 
-GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary** that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data.
+GMEOW is a **reasoning-centric, RDF 1.2-native, logic-canonical super-vocabulary** that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data. OWL 2 DL, SHACL, gUFO, and other external formalisms are typed target views of the canonical grounding kernel, not its semantic owners.
 
-Every design decision, code modification, and schema change is governed by the twelve principles of the [CONSTITUTION.md](./CONSTITUTION.md). Cite these principles by number (e.g., `"Principle 4"`) in your commit messages, pull requests, and discussions.
+Every design decision, code modification, and schema change is governed by the nineteen principles of the [CONSTITUTION.md](./CONSTITUTION.md). Cite these principles by number (e.g., `"Principle 4"`) in your commit messages, pull requests, and discussions.
 
 ### Critical Ontological Rules
 
 * **One Canonical Source (Principle 4)**: Do not hand-edit generated files. Any change must be made in the canonical source files.
-  * **Mappings**: Authored in [dsl/mappings/](./dsl/mappings/) -> compiled to `generated/`
+  * **Mappings**: Shared vocabulary and cross-cutting sets live in [dsl/mappings/](./dsl/mappings/); slice-owned mappings live in `slices/<group>/<name>/mappings/`. Both compile to `generated/`.
   * **Statements**: Authored in [dsl/statements/](./dsl/statements/) -> compiled to `generated/statements/`.
   * **Citations**: Authored in [metadata/references.ttl](./metadata/references.ttl) -> compiled to [generated/references/](./generated/references/). Follow [docs/CITATIONS.md](./docs/CITATIONS.md) when adding external sources, standards, issues, PRs, or review-thread citations.
-* **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The logical core stays OWL 2 DL.
+* **Grounding ownership (Principles 17 & 19)**: All semantic grounding to external formalisms is authored in `slices/grounding/lang`, `slices/grounding/math`, or `slices/grounding/logic`. The grounding term is the source and the external vocabulary is the target. Grounding correspondences ship in `graph/correspondence-laws`; SSSOM is only a generated view. Read [docs/GROUNDING.md](./docs/GROUNDING.md) and the owning slice's design set before editing these seams.
+* **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The canonical logical core is `logic:`; OWL 2 DL is a generated decidable projection.
 * **Co-equal & Non-privileged (Principles 9 & 10)**: There is no `primaryName`, `preferredGender`, or single-winner preference. A contested fact is represented as coexisting standpoint-indexed claims. A superseded label/deadname is suppressed using `gmeow:displayable false` rather than deleted.
 * **Validation is authored in `logic:`, never on a shape surface (Principle 17)**: OWL, SHACL, ShEx, and Datalog are **generated lossy projections** of the canonical `logic:` core, not authoring surfaces. See [`slices/grounding/logic/design/LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md) and [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md). Concretely, when you add a constraint to a slice:
   * **NEVER hand-author a `sh:NodeShape` / `sh:PropertyShape` in a slice's `shapes.ttl`** (or root `shapes/*.ttl`). A hand-authored shape is a **second source of truth** no reasoner backs, no loss ledger governs, and free to drift — it is sealed off by the projection-purity gate (`meta:gate-projection-shape-purity`). Any authored shape that remains must carry a `logic:formalizes` back-reference naming the `logic:` node it projects; an un-backed shape is flagged `slice-quality.projection.ungrounded-shape` by the `gmeow:axisShapeMigration` quality axis. (The many legacy `shapes.ttl` blocks are a **debt being migrated under equivalence-before-deletion**, not a pattern to copy.)
+  * **The projection-vocabulary ratchet caps net-new ungrounded growth.** A `make check` gate holds a per-(slice, guarded-vocabulary) non-increasing ceiling on ungrounded residue — hand-authored constructs carrying no resolvable typed `logic:formalizes`, authored outside the vocabulary's grounding-slice owner boundary. Net-new second-source authoring in SHACL, gUFO, BFO/OBO/DOLCE/SUMO bridge vocabularies, RDFS subsumption (`rdfs:subClassOf`/`subPropertyOf`), and the alignment stack reds the gate; a ceiling only ever falls (equivalence-before-deletion). See [`docs/PROJECTION-VOCABULARY-RATCHET.md`](./docs/PROJECTION-VOCABULARY-RATCHET.md).
   * **Declarative checks** (cardinality, `sh:class`/datatype/node-kind/value-set) are authored as **ordinary EL-safe OWL/RDFS axioms in the slice's `module.ttl`** — `rdfs:domain`/`rdfs:range`, `owl:allValuesFrom`/`someValuesFrom`/`hasValue`, `owl:oneOf`, `owl:disjointWith`, `owl:FunctionalProperty`, and `owl:maxQualifiedCardinality`/`minQualifiedCardinality` **+ `owl:onClass`**. The pipeline **derives** the SHACL Core + ShEx surfaces from these axioms (`derive_validation_shapes`); you write the axiom, never the shape. **Never** un-qualified `owl:cardinality`/`owl:minCardinality`/`owl:maxCardinality` (out of the EL fragment — hard-fails `make reason-verify`). A genuinely closed-world **required path** (`sh:minCount 1`) is `owl:allValuesFrom` **plus** an explicit `logic:ClosureEntry` (`logic:onClass K`, `logic:closureKey P`, `logic:closureValue logic:ClosedWorldClosure`), never a bare existential.
   * **Procedural / cross-node checks** (value comparisons, guarded existence, uniqueness, forbidden patterns) are authored as a **`logic:Constraint`** whose `logic:integrity` is a realized `logic:Formula` tree (`∀/∃/∧/∨/¬/→`, `logic:relation` + `logic:argument`), carrying `logic:formalizes` and `logic:message`. The pipeline lowers it to a `sh:SPARQLConstraint`. Slice sugar (`logic:GuardedImplicationConstraint`, `logic:ChoiceGroupConstraint`, `logic:ForbiddenPatternConstraint`, …) is available; see [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md) for the cheatsheet and [`slices/core/ai/module.ttl`](./slices/core/ai/module.ttl) for worked examples.
   * **Mathematical / structural laws** are authored as real first-order `logic:Formula` ASTs (e.g. `math:continuityLaw`), attached via `math:definingLaw`/`math:preservesStructure`; a genuinely higher-order property that is not first-order axiomatizable is carried as an honest `logic:expressivenessBoundary` record (e.g. `math:compactnessBoundary`), never a faked formula.
@@ -141,7 +143,7 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 * `generated/lpg/`, `generated/schemas/` — the `lpg` and `schemas` generators
 * `generated/module-status.md` — the `matrix` generator (the per-slice audit ledger)
 
-`make commit` stages only the generated artifacts above. If you also have source changes (e.g. in `dsl/mappings/`), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
+`make commit` stages only the generated artifacts above. If you also have source changes (for example in `dsl/mappings/` or a slice-local `mappings/` directory), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
 
 > [!TIP]
 > If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check-generated` to verify the full gate still passes.
@@ -334,12 +336,12 @@ The Makefile is only a task runner. The actual compiler and validation logic liv
 
 Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), implemented by the native Rust pipeline stage in [crates/pipeline/src/stages/mappings.rs](./crates/pipeline/src/stages/mappings.rs) and the `gmeow-slice` emitters.
 
-* **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/), plus the DSL vocabulary in [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
+* **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/) and every slice-local `slices/<group>/<name>/mappings/` directory. The shared DSL vocabulary remains [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
 * **Generated outputs**:
-  * `mappings/*.sssom.tsv` — SSSOM term-equivalence rows.
-  * `projections/*.edoal.ttl` — EDOAL alignment cells.
-  * `projections/functions.fno.ttl` — generated FnO function catalog.
-  * `queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
+  * `generated/mappings/*.sssom.tsv` — SSSOM term-equivalence rows.
+  * `generated/projections/*.edoal.ttl` — EDOAL alignment cells.
+  * `generated/projections/functions.fno.ttl` — generated FnO function catalog.
+  * `generated/queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
 * **Hand-authored companion file**: `dsl/mappings/transforms.fno.ttl` is read by the compiler/lints but is authored, never generated.
 * **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
 * **Drift check**: `make check-generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
@@ -348,6 +350,14 @@ The mapping DSL has two main authoring units:
 
 * `gmeow:TermEquivalence` for pure cross-ontology links that compile to SSSOM rows.
 * `gmeow:ProjectionMapping` for directional, possibly lossy projections that compile to SPARQL branches and, when applicable, EDOAL/FnO/SSSOM artifacts.
+
+`logic:GroundingCorrespondence` is the explicit grounding marker on a
+`gmeow:TermEquivalence` frontend cell. It requires authored
+`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`, and
+compiles to a shipped content-addressed `logic:Correspondence` with named
+source and target endpoints. Formal and upper-ontology catalogs belong in
+[`slices/grounding/logic/mappings/`](./slices/grounding/logic/mappings/), never
+in a domain slice or a generated SSSOM table.
 
 Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to satisfy review feedback. Patch the DSL source, re-run the compiler, and include the regenerated artifacts.
 
@@ -368,7 +378,7 @@ Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeo
 
 Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical. Treat that as binding:
 
-* Source changes belong in `slices/<group>/<name>/module.ttl`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
+* Source changes belong in `slices/<group>/<name>/module.ttl`, slice-local `mappings/`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
 * Generated artifact changes must be reproducible by `make regenerate`.
 * If `make check-generated` reports drift, run `make regenerate` rather than hand-editing the output.
 * If a generated artifact is nondeterministic, fix the compiler determinism bug. Do not normalize the artifact by hand.
@@ -399,8 +409,8 @@ slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segmen
                          #   queries/, examples/, tests/, docs.md
 slices/vocabulary.ttl    # The slice-manifest authoring vocabulary (spec layer)
 ontology/gmeow.ttl # Root ontology = the CORE profile (generated imports)
-dsl/mappings/            # Mapping DSL: vocabulary, foundational bridge, per-target
-                         #   projections, shared equivalences, transforms.fno.ttl
+dsl/mappings/            # Shared mapping vocabulary, cross-cutting sets,
+                         #   shared equivalences, transforms.fno.ttl
 dsl/statements/          # Statement DSL (canonical RDF 1.2 statement metadata)
 shapes/                  # Authored SHACL (incl. slice-manifest-shapes.ttl)
 queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/
@@ -485,7 +495,7 @@ Apply fixes **only in canonical source files** (Principle 4):
 
 | Review target | Canonical source to edit |
 |---|---|
-| SSSOM / EDOAL / FnO / projection queries | `dsl/mappings/` |
+| SSSOM / EDOAL / FnO / projection queries | owning slice's `mappings/`, or `dsl/mappings/` for genuinely cross-cutting sources |
 | RDF 1.2 / OWL statement artifacts | `dsl/statements/` |
 | Ontology terms, axioms, observation bridges | `slices/<group>/<name>/module.ttl` |
 | SHACL shapes | `shapes/` |

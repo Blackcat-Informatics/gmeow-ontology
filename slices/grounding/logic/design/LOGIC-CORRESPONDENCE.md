@@ -41,13 +41,19 @@ are projections) already performed this move for facts and for axioms. The corre
 performs the identical move for cross-ontology alignment: the alignment layer becomes a generated
 projection of `logic:`, peer to the OWL/Datalog/gUFO projections, never a second source of truth.
 
-The current mapping DSL (`dsl/mappings/`) is a useful first inversion (one source → four artifacts)
-but stops one level too shallow: it is "a spec layer never reasoned over," so it cannot say *what kind*
-of correspondence a mapping is, it collapses the distinct quantitative axes into one
-`gmeow:confidence`, and it authors down- and up-projection apart (the up-projection was an independent
-SSSOM-reading heuristic authored separately from the down CONSTRUCT — now retired in favour of the
-derived `put` leg executed natively by `crates/pipeline/src/put_executor.rs`). Folding correspondence into the IR
-makes it **reasoned over**, **content-addressed**, and **governed by the loss ledger**.
+The mapping DSL is the ergonomic frontend, not a competing semantic layer. A frontend cell may
+state its correspondence class, morphism kind, and preservation kind; the compiler folds those
+judgments into the typed IR, assigns content-addressed identity, derives the executable legs, and
+governs the result through the loss ledger. The up-projection was formerly an independent
+SSSOM-reading heuristic authored separately from the down CONSTRUCT; it is now the derived `put` leg
+executed natively by `crates/pipeline/src/put_executor.rs`.
+
+The realized grounding instance is
+[`slices/grounding/logic/mappings/grounding-bridges.ttl`](../mappings/grounding-bridges.ttl).
+Its `logic:GroundingCorrespondence` frontend marker requires explicit class/kind/preservation
+judgments and compiles to a `logic:Correspondence` that retains the marker plus named
+`logic:sourceEndpoint` and `logic:targetEndpoint`. Those records ship in the
+`graph/correspondence-laws` named graph of `gmeow.gts`; SSSOM remains only a generated lowering.
 
 ## The ninth node kind
 
@@ -106,6 +112,11 @@ view `V`.** Therefore down-projection (GMEOW → external) is `get`, and up-proj
 is `put`. The view is the smaller, derived thing; `put` folds a (possibly fresh) view back into the rich
 source. The ingest-with-no-prior-state case (`S` empty) is exactly where the view alone is insufficient
 and a **witness must travel in the view** — the mnemomorphism, below.
+
+This orientation is also an ownership rule: grounding catalogs live in `lang:`, `math:`, or
+`logic:` according to their semantic domain, and their external vocabulary is always the target.
+For the formal grounding catalog, gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL are therefore views
+of `logic:`, never sources from which `logic:` is defined.
 
 ## The ordered law-spine
 

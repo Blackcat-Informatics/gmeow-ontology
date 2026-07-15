@@ -1,0 +1,17 @@
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX exg:   <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/>
+
+SELECT DISTINCT ?term
+WHERE {
+  {
+    ?subject ?term ?object .
+    FILTER (STRSTARTS(STR(?subject), STR(exg:)))
+  }
+  UNION
+  {
+    ?subject ?predicate ?term .
+    FILTER (STRSTARTS(STR(?subject), STR(exg:)))
+  }
+  FILTER (isIRI(?term) && STRSTARTS(STR(?term), STR(logic:)))
+}
+ORDER BY ?term
