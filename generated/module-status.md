@@ -42,21 +42,21 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 18/18 | full |
-| guides | core | core | 1 | 2 | 9 | 0 | 1 | 0/11 | full |
+| guides | core | core | 1 | 5 | 34 | 0 | 1 | 2/39 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 16 | 35 | 0 | 6 | 0/51 | full |
 | inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 29/44 | full |
-| lang | core | grounding | 7 | 15 | 40 | 110 | 4 | 55/55 | full |
+| lang | core | grounding | 7 | 15 | 40 | 79 | 4 | 55/55 | full |
 | language | core | core | 3 | 2 | 3 | 0 | 1 | 5/5 | full |
 | languages | extension | extensions | 6 | 11 | 22 | 0 | 1 | - | full |
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | grounding | 0 | 227 | 435 | 400 | 10 | 81/662 | full |
-| math | core | grounding | 2 | 0 | 0 | 0 | 26 | 0/0 | full |
+| logic | core | grounding | 0 | 228 | 437 | 400 | 11 | 81/665 | full |
+| math | core | grounding | 2 | 0 | 0 | 0 | 25 | 0/0 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | model-serving | extension | extensions | 6 | 4 | 13 | 0 | 4 | - | full |
@@ -89,4 +89,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1527/2351 core class/property terms.
+**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1529/2382 core class/property terms.

@@ -12,6 +12,8 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix ex: <https://gmeow.example/corr/> .
 
 ex:collapse a logic:Correspondence ;
@@ -19,8 +21,24 @@ ex:collapse a logic:Correspondence ;
     logic:morphismClass logic:SectionRetraction ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
-    logic:getLeg ex:collapseGet .
+    logic:getLeg ex:collapseGet ;
+    logic:recoveryCase ex:collapseRecovery .
 
 # The get leg reads the language's signSystemKind; the retraction (put) is its
 # structural inverse (recover the class from the kind value).
 ex:collapseGet gmeow:path ex:collapseStep .
+
+# The complete source query class is executed, not inferred from the mechanically derived
+# path inverse: the distinct kind value is what permits exact recovery of FormalLanguage.
+ex:collapseRecovery a logic:RecoveryCase ;
+    logic:recoveryTransform ex:collapseRecoveryFormula .
+ex:collapseRecoveryFormula a logic:Formula ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:FormalLanguage ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation lang:signSystemKind ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:formalLanguageKind ] ]
+    ] .

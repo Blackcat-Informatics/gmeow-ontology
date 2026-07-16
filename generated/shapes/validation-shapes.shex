@@ -5612,6 +5612,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/planSuccessMode> IRI + ;
 }
 
+# targetClass <https://blackcatinformatics.ca/logic/RecoveryCase> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/RecoveryCase-shape> {
+  <https://blackcatinformatics.ca/logic/recoveryTransform> IRI + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/logic/RefutationAcceptanceWitness> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/RefutationAcceptanceWitness-shape> {
   <https://blackcatinformatics.ca/logic/namesContradictionWitness> IRI + ;
@@ -5785,6 +5790,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/planSuccessMode> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/planSuccessMode-domain-shape> {
   <https://blackcatinformatics.ca/logic/planSuccessMode> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/recoveryTransform> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/recoveryTransform-domain-shape> {
+  <https://blackcatinformatics.ca/logic/recoveryTransform> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/relation> (associate via ShapeMap)

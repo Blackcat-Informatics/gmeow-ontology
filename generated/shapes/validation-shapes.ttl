@@ -4763,6 +4763,10 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/planGoal> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Goal> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/PlanSuccessMode> ] .
 
+<https://blackcatinformatics.ca/logic/RecoveryCase-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/RecoveryCase> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/recoveryTransform> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/Formula> ] .
+
 <https://blackcatinformatics.ca/logic/RefutationAcceptanceWitness-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/logic/UnwitnessedRefutation> ;
     sh:targetClass <https://blackcatinformatics.ca/logic/RefutationAcceptanceWitness> ;
@@ -4904,6 +4908,10 @@
 <https://blackcatinformatics.ca/logic/planSuccessMode-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/planSuccessMode> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/recoveryTransform-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/recoveryTransform> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/recoveryTransform> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/relation-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/relation> ;

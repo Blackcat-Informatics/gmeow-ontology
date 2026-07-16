@@ -769,7 +769,8 @@ expected gap report. The decisive gates:
 1. **Law gate** — a correspondence may not claim a law it fails.
 2. **Overclaim gate** — a bridge view cannot emit equivalence; a caveated overlap cannot emit
    `exactMatch`; a claimed rung must be satisfiable by the lowered legs.
-3. **Round-trip gate** — `iso` and `section/retraction` claims pass canonical-identity checks.
+3. **Round-trip gate** — `iso` and `section/retraction` claims execute their complete declared
+   query-class recovery cases and reproduce the source atom set.
 4. **Mnemomorphism gate** — if a correspondence claims recoverability, the witness/complement
    must *actually* recover the source.
 5. **Composition gate** — composing correspondences may only preserve or weaken claims.

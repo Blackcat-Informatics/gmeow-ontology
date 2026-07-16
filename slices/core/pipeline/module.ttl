@@ -390,6 +390,24 @@ gmeow:stageExecutorCapability
 # Gathered on the plan through logic:planFlowEdge.                             #
 # =========================================================================== #
 
+# stage-compile-logic reads ONLY the narrowed graph/logic-compile-inputs named graph of
+# stage-source-load's product — a SOUND (denylist) narrowing of the whole authored corpus
+# stripping every predicate family the compiler's five augmentation readers provably never
+# read (documentation, alignment/mapping, foreign-domain example, and bibliographic metadata),
+# so an edit that touches only those inert families leaves the narrowed graph's digest
+# unchanged and skips the (expensive) compiler. The narrowing is the compiler's typed dataflow
+# entity, and its soundness is guarded by a reader-output-identity test.
+gmeow:pipeline-dataflow-compile-logic-source-load
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: source-load → compile-logic"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-source-load to gmeow:stage-compile-logic: the logic compiler's five augmentation readers read only the graph/logic-compile-inputs named graph of the source-load product — the SOUND denylist narrowing of the whole authored corpus (root ontology + slices + imports) with every provably-never-read predicate family removed (documentation, alignment/mapping, foreign-domain example, and bibliographic-metadata vocabularies), leaving only the OWL/RDFS/XSD restriction and logic:/gmeow: structural surface the readers consume. Records the artifact-level dependency so the compiler's cache key folds that one graph's digest rather than the whole authored file closure, so an edit that touches only the inert families leaves the narrowed graph unchanged and skips re-running the compiler."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-source-load ;
+    gmeow:buildFlowTo gmeow:stage-compile-logic ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> .
+
 # stage-reason reads ONLY the logic / relational-core named graphs of
 # stage-compile-logic's product (the object-level EDB), never its meta-level
 # correspondence graph, diagnostics, or projection serializations — so a change to
@@ -458,6 +476,7 @@ gmeow:pipeline-build
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
     logic:planFlowEdge
+        gmeow:pipeline-dataflow-compile-logic-source-load ,
         gmeow:pipeline-dataflow-reason-compile-logic ,
         gmeow:pipeline-dataflow-validate-compile-logic ;
     gmeow:hasStage
@@ -466,6 +485,7 @@ gmeow:pipeline-build
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
+        gmeow:stage-slice-brief ,
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
@@ -532,7 +552,8 @@ gmeow:stage-compile-logic
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "compile_logic" .
+    gmeow:stageImpl "compile_logic" ;
+    gmeow:dataflowConsumes gmeow:stage-source-load .
 
 gmeow:stage-mappings
     a gmeow:PipelineStage ;
@@ -554,6 +575,16 @@ gmeow:stage-math-producers
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "math_producers" .
+
+gmeow:stage-slice-brief
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "slice-brief"@x-gmeow-english ;
+    skos:definition "Assemble a gmeow:AuthoringPacket for every in-repo slice batch — the term definitions and axioms, the bounded graph neighbourhood, the same-slice exemplar coats, and the cross-ontology / cross-lingual grounding cross-table — and fold the union into the carrier as the graph/authoring-briefs corpus, so the shippable authoring deliverable rides in gmeow.gts (and its fanout twin generated/briefs/authoring-packets.nt) rather than living only behind a test-side gate. A leaf compute stage: it consumes no upstream pipeline product — it reads the authored slice sources (module, examples, tests, mappings, and i18n translation catalogs) and the SHACL shape union directly, gating each same-slice exemplar on SHACL per-term conformance (a coat with any shape violation is never surfaced) and ordering the conforming candidates by annotation completeness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "slice-brief" .
 
 gmeow:stage-reason
     a gmeow:PipelineStage ;
@@ -626,6 +657,7 @@ gmeow:stage-docs-render
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
+        gmeow:stage-term-manifest ,
         gmeow:stage-validate .
 
 gmeow:stage-constraint-catalog
@@ -674,6 +706,7 @@ gmeow:stage-snapshot
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
         gmeow:stage-reason ,
+        gmeow:stage-slice-brief ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-term-manifest ,
@@ -1028,6 +1061,7 @@ gmeow:stage-source-load
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/authored-default> ,
         <https://blackcatinformatics.ca/gmeow/graph/imports> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> ,
         <https://blackcatinformatics.ca/gmeow/graph/metadata> ,
         <https://blackcatinformatics.ca/gmeow/graph/provenance> ,
         <https://blackcatinformatics.ca/gmeow/graph/quality-assessment> ,
@@ -1053,6 +1087,10 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
+
+gmeow:stage-slice-brief
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/authoring-briefs> .
 
 gmeow:stage-mappings
     gmeow:attachesGraph
@@ -1084,6 +1122,7 @@ gmeow:stage-docs-render
 gmeow:stage-snapshot
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/attestations> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/briefs/authoring-packets.nt> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/logic-compile.nq> ,
@@ -1169,6 +1208,7 @@ gmeow:stage-snapshot
 # =========================================================================== #
 
 gmeow:pipeline-build gmeow:fanoutExtracts
+    gmeow:fanout-briefs-authoring-packets ,
     gmeow:fanout-catalog-constraint-catalog ,
     gmeow:fanout-catalog-term-content-manifest ,
     gmeow:fanout-diagnostics-logic-compile ,
@@ -1186,6 +1226,14 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
     gmeow:fanout-edoal-projections .
+
+gmeow:fanout-briefs-authoring-packets a gmeow:FanoutExtraction ;
+    rdfs:label "fanout briefs authoring packets"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/briefs/authoring-packets.nt is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as N-Triples. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/briefs/authoring-packets.nt" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 
 gmeow:fanout-catalog-constraint-catalog a gmeow:FanoutExtraction ;
     rdfs:label "fanout catalog constraint catalog"@x-gmeow-english ;

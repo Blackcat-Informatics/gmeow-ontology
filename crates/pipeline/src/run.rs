@@ -189,12 +189,20 @@ pub fn full_spec() -> PipelineSpec {
     let mut stages = vec![
         st_source("stage-source-load", "source_load", &[]),
         st("stage-statements", "statements", &[]),
-        st("stage-compile-logic", "compile_logic", &[]),
+        st_compile_logic(
+            "stage-compile-logic",
+            "compile_logic",
+            &["stage-source-load"],
+        ),
         // Leaf compute: RUN the eight math producers (five flagship producers plus the
         // probability-model seam, p-value tri-slice, and Clifford producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
+        // Leaf compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and
+        // attach the union as graph/authoring-briefs (folded into gmeow.gts by
+        // stage-snapshot). It reads the authored slice sources directly — no upstream.
+        st("stage-slice-brief", "slice-brief", &[]),
         st("stage-mappings", "mappings", &["stage-compile-logic"]),
         st_reason(
             "stage-reason",
@@ -253,6 +261,13 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-gts-compose",
                 "stage-mappings",
                 "stage-reason",
+                // THIS run's fresh term-content-manifest product: the docs model's
+                // per-term content-address provenance (definition digest + first-seen
+                // version + computed changelog) reads it in-memory, never the previous
+                // run's committed generated/catalog/term-content-manifest.nq, which
+                // lags one regenerate behind on a definition-digest change (the same
+                // stale-disk-fold class).
+                "stage-term-manifest",
                 "stage-validate",
             ],
         ),
@@ -293,6 +308,9 @@ pub fn full_spec() -> PipelineSpec {
                 // folded into gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
+                // The authoring-packet corpus (graph/authoring-briefs), folded into
+                // gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
+                "stage-slice-brief",
                 // The self-description named graphs (authored default / imports / metadata
                 // / alignments / slice-analysis / verify / provenance): the presenter reads
                 // them off this product instead of re-loading + re-canonicalizing sources.
@@ -519,6 +537,22 @@ fn st_source(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
     s.capabilities = vec![SINK_CAPABILITY.to_string()];
+    s
+}
+
+/// The logic compiler stage: it reads ONLY the narrowed `graph/logic-compile-inputs` named
+/// graph off the `stage-source-load` product (a SOUND denylist narrowing of the whole
+/// authored corpus its five augmentation readers walk), so its single typed dataflow entity
+/// is that graph — a documentation-only edit that leaves the graph's digest unchanged skips
+/// re-running the (expensive) compiler. Derives the SAME entity list as
+/// [`crate::stages::compile_logic::CompileLogicStage`]'s consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.dataflow_entities = vec![(
+        "stage-source-load".to_string(),
+        vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
+    )];
     s
 }
 

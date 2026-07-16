@@ -422,6 +422,25 @@ classes:
     slots:
     - authorIdentityString
     - canonicalizedIdentity
+  AuthoringPacket:
+    class_uri: https://blackcatinformatics.ca/gmeow/AuthoringPacket
+    title: Authoring Packet
+    slots:
+    - exemplarShortfall
+    - packetAxis
+    - packetBatch
+    - packetCoversTerm
+    - packetDigest
+    - packetExemplar
+    - packetExternalAbsent
+    - packetExternalMapped
+    - packetFrAbsent
+    - packetFrPresent
+    - packetGrounding
+    - packetSourceSlice
+    - packetTermCount
+    - packetZhAbsent
+    - packetZhPresent
   AuthorityLevel:
     class_uri: https://blackcatinformatics.ca/gmeow/AuthorityLevel
     title: Authority Level
@@ -2044,6 +2063,23 @@ classes:
   GrooveProfileKind:
     class_uri: https://blackcatinformatics.ca/gmeow/GrooveProfileKind
     title: Groove Profile Kind
+  GroundingAttribute:
+    class_uri: https://blackcatinformatics.ca/gmeow/GroundingAttribute
+    title: Grounding Attribute
+  GroundingCoverage:
+    class_uri: https://blackcatinformatics.ca/gmeow/GroundingCoverage
+    title: Grounding Coverage
+    slots:
+    - groundingAlignPredicate
+    - groundingAttribute
+    - groundingConfidence
+    - groundingConflict
+    - groundingConflictWith
+    - groundingExternalEntity
+    - groundingExternalLabel
+    - groundingPredicate
+    - groundingTerm
+    - groundingValue
   Group:
     class_uri: https://blackcatinformatics.ca/gmeow/Group
     title: Group
@@ -8119,6 +8155,12 @@ slots:
     range: Criterion
     domain: Exemplar
     multivalued: true
+  exemplarShortfall:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exemplarShortfall
+    title: exemplar shortfall
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
   exemplarSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/exemplarSubject
     title: exemplar subject
@@ -9018,6 +9060,66 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/groundedIn
     title: grounded in
     range: EvidenceSpan
+    multivalued: true
+  groundingAlignPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingAlignPredicate
+    title: grounding alignment predicate
+    range: string
+    domain: GroundingCoverage
+    multivalued: true
+  groundingAttribute:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingAttribute
+    title: grounding attribute
+    range: GroundingAttribute
+    domain: GroundingCoverage
+    multivalued: true
+  groundingConfidence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingConfidence
+    title: grounding confidence
+    range: decimal
+    domain: GroundingCoverage
+    multivalued: true
+  groundingConflict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingConflict
+    title: grounding conflict
+    range: boolean
+    domain: GroundingCoverage
+    multivalued: true
+  groundingConflictWith:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingConflictWith
+    title: grounding conflict with
+    range: uriorcurie
+    domain: GroundingCoverage
+    multivalued: true
+  groundingExternalEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingExternalEntity
+    title: grounding external entity
+    range: uriorcurie
+    domain: GroundingCoverage
+    multivalued: true
+  groundingExternalLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingExternalLabel
+    title: grounding external label
+    range: string
+    domain: GroundingCoverage
+    multivalued: true
+  groundingPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingPredicate
+    title: grounding predicate
+    range: string
+    domain: GroundingCoverage
+    multivalued: true
+  groundingTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingTerm
+    title: grounding term
+    range: uriorcurie
+    domain: GroundingCoverage
+    multivalued: true
+  groundingValue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingValue
+    title: grounding value
+    range: string
+    domain: GroundingCoverage
     multivalued: true
   groundsClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/groundsClaim
@@ -12143,6 +12245,90 @@ slots:
     title: package of
     range: SoftwareProduct
     domain: Package
+    multivalued: true
+  packetAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetAxis
+    title: packet axis
+    range: string
+    domain: AuthoringPacket
+    multivalued: true
+  packetBatch:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetBatch
+    title: packet batch
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetCoversTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetCoversTerm
+    title: packet covers term
+    range: uriorcurie
+    domain: AuthoringPacket
+    multivalued: true
+  packetDigest:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetDigest
+    title: packet digest
+    range: string
+    domain: AuthoringPacket
+    multivalued: true
+  packetExemplar:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetExemplar
+    title: packet exemplar
+    range: uriorcurie
+    domain: AuthoringPacket
+    multivalued: true
+  packetExternalAbsent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetExternalAbsent
+    title: packet external absent
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetExternalMapped:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetExternalMapped
+    title: packet external mapped
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetFrAbsent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetFrAbsent
+    title: packet French absent
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetFrPresent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetFrPresent
+    title: packet French present
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetGrounding:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetGrounding
+    title: packet grounding
+    range: GroundingCoverage
+    domain: AuthoringPacket
+    multivalued: true
+  packetSourceSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetSourceSlice
+    title: packet source slice
+    range: uriorcurie
+    domain: AuthoringPacket
+    multivalued: true
+  packetTermCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetTermCount
+    title: packet term count
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetZhAbsent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetZhAbsent
+    title: packet Chinese absent
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetZhPresent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetZhPresent
+    title: packet Chinese present
+    range: integer
+    domain: AuthoringPacket
     multivalued: true
   pageOfSite:
     slot_uri: https://blackcatinformatics.ca/gmeow/pageOfSite
@@ -18456,6 +18642,9 @@ enums:
   BuildDataFlowEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
     permissible_values:
+      pipeline-dataflow-compile-logic-source-load:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-compile-logic-source-load
+        title: 'dataflow: source-load → compile-logic'
       pipeline-dataflow-reason-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
         title: 'dataflow: compile-logic → reason'
@@ -20301,6 +20490,9 @@ enums:
   FanoutExtractionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FanoutExtraction
     permissible_values:
+      fanout-briefs-authoring-packets:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-briefs-authoring-packets
+        title: fanout briefs authoring packets
       fanout-catalog-constraint-catalog:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-catalog-constraint-catalog
         title: fanout catalog constraint catalog
@@ -21249,6 +21441,24 @@ enums:
       grooveProfileKindSwingRatio:
         meaning: https://blackcatinformatics.ca/gmeow/grooveProfileKindSwingRatio
         title: swing ratio
+  GroundingAttributeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GroundingAttribute
+    permissible_values:
+      groundingEn:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingEn
+        title: English grounding
+      groundingExemplar:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingExemplar
+        title: exemplar grounding
+      groundingExternalMapped:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingExternalMapped
+        title: external-mapped grounding
+      groundingFr:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingFr
+        title: French grounding
+      groundingZh:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingZh
+        title: Chinese grounding
   GroupOperatorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GroupOperator
     permissible_values:
@@ -23526,6 +23736,9 @@ enums:
       stage-reason:
         meaning: https://blackcatinformatics.ca/gmeow/stage-reason
         title: reason
+      stage-slice-brief:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-slice-brief
+        title: slice-brief
       stage-snapshot:
         meaning: https://blackcatinformatics.ca/gmeow/stage-snapshot
         title: snapshot

@@ -210,6 +210,7 @@ fn comprehensive_round_trip_is_isomorphic() {
         Some("urn:test:comprehensive".to_owned()),
     )
     .with_correspondences(vec![correspondence])
+    .unwrap()
     .with_formulas(vec![formula]);
 
     // First normalization: a programmatically-built program is not yet at the frontend's
@@ -629,6 +630,7 @@ fn transaction_program_round_trips() {
         Some("urn:test:legprograms".to_owned()),
     )
     .with_correspondences(vec![correspondence])
+    .unwrap()
     .with_transaction_programs(vec![
         TransactionProgramIr {
             iri: leg_get,
