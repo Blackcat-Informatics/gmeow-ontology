@@ -1206,3 +1206,32 @@ D4. The logic-slice rdfs residue ratchet violation cleared during #1570 was a PR
   red — the sanctioned grandfathering path for the recovery-case vocabulary's
   legitimate axiom — OR grounding by the recovery-case vocabulary's owner. Left red on
   this branch pending that decision.
+
+=============================================================================
+## From #1570 — stage 3 finalization / main integration (recorded 2026-07-16)
+Merged origin/main (154921ddc); completion-adversary STAGE=3 PASS; full `cargo xtask check` EXIT 0 (19 gates).
+
+D5. Merging current main surfaced that origin/main ITSELF fails make check, and #1570 fixed the
+    blockers to reach a green gate (user-directed, out of #1570's mathematics scope):
+    - logic:FunctionTerm hand-authored `rdfs:subClassOf logic:ArgumentStructure` (#1295) pushed the
+      logic rdfs projection residue to 70>ceiling 68 (RecoveryCase from #1573 was the other +1, ground
+      in stage 2). Grounded to canonical `logic:subClassOf`; VERIFIED derived rdfs:subClassOf (owl-el/
+      owl-dl) + SHACL-AF byte-identical (no #1295/#1573 degradation), now projects to more views.
+      User authorized "Ground FunctionTerm too" over the #930-documented maintainer ceiling-bump path.
+    - #1295 moved logic:argument's rdfs:domain to the new shared logic:ArgumentStructure parent but
+      left the saTypedIrCarrierContract structural ASK asserting the old logic:Formula domain — a stale
+      test origin/main is itself red on. Aligned the ASK to the shipped domain (not weakened).
+    Forward path: none open on this branch; these fixes ride to main via this merge and clear main's
+    own red on slice-quality-gate + rust-gate for the recovery-case/argument-structure vocabularies.
+
+D6. The STAGE-3 completion-adversary flagged a PRE-EXISTING systemic projection-fidelity gap (tracked
+    as #1579): owl:FunctionalProperty constraints do not project to sh:maxCount 1 in the derived SHACL.
+    This is NOT a #1570 regression — the canonical functional constraint is preserved in the logic:
+    layer; it affects pre-existing FunctionalProperties repo-wide. Observed during review; out of #1570
+    scope. Forward path: owned by the projection/#1579 workstream, not #1570.
+
+D7. The fold-proving gates fold_parity + conformance_math_producers remain OFF-GATE in make check's
+    default nextest profile (also noted in the stage-2 block). This session ran conformance_math_producers
+    explicitly (15/15 PASS) and the captured production `cargo xtask check` EXIT 0 covers the fold via
+    the superset/sync-check path; the adversary's independent full_parity re-run exceeded a 25-min local
+    budget (SIGTERM, no assertion failure). Forward path: promote these gates on-gate (repo-wide decision).
