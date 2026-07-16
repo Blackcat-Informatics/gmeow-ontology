@@ -592,7 +592,7 @@ class Logic_FunctionTerm(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/FunctionTerm", "curie": "logic:FunctionTerm", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/logic/FunctionTerm"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/FunctionTerm", "curie": "logic:FunctionTerm", "definitionDigest": "blake3:45ced004e2e444c5551f2b15ac292eaf46f7467696da780b037a6faf295ea950", "iri": "https://blackcatinformatics.ca/logic/FunctionTerm"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -970,7 +970,7 @@ class Logic_TermCarrier(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/TermCarrier", "curie": "logic:TermCarrier", "definitionDigest": "blake3:0512742696e98bc5bfd40da85ebd72c4e7763c7d757ae400ea09e6f6cd23723e", "iri": "https://blackcatinformatics.ca/logic/TermCarrier"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/TermCarrier", "curie": "logic:TermCarrier", "definitionDigest": "blake3:1d27c546e48579e8e984c6aa84e450469e745f0dac75e557b230f4b99e5c80f9", "iri": "https://blackcatinformatics.ca/logic/TermCarrier"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

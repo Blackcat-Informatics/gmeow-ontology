@@ -33,6 +33,14 @@ class DiagnosticStandpointEnum(StrEnum):
     standpointPerspectival = "gmeow:standpointPerspectival"
 
 
+class GapShapeEnum(StrEnum):
+    GapShapeExistentialWitness = "gmeow:GapShapeExistentialWitness"
+    GapShapeMalformed = "gmeow:GapShapeMalformed"
+    GapShapeNativeCoverage = "gmeow:GapShapeNativeCoverage"
+    GapShapeRoleAssertion = "gmeow:GapShapeRoleAssertion"
+    GapShapeVendoringMultiGoal = "gmeow:GapShapeVendoringMultiGoal"
+
+
 class GateVerdictEnum(StrEnum):
     gateCollected = "gmeow:gateCollected"
     gateFatal = "gmeow:gateFatal"

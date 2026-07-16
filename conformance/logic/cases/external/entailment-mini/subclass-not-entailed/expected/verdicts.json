@@ -1,0 +1,6 @@
+{
+  "https://gmeow.example/entailment-mini/subclass-not-entailed/w": {
+    "quads": 6,
+    "status": "consistent"
+  }
+}

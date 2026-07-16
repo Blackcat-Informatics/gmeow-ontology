@@ -1,15 +1,31 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Per-corpus vendoring metadata + license audit.
+//! The one vendored-corpus contract, shared by every corpus family.
 //!
-//! Every vendored external corpus carries a `corpus.json` at
-//! `conformance/logic/cases/external/<corpus>/corpus.json` declaring its SPDX
+//! There is a SINGLE vendored-corpus root — `conformance/logic/cases/` — under which
+//! every vendored corpus family lives, and a SINGLE gate that admits a corpus into
+//! that root: its `corpus.json` (this module's [`CorpusMeta`] schema) declaring an
+//! SPDX license that [`audit_vendorable`] confirms is IMPORT_OK. The two families
+//! that consume this one contract are:
+//!
+//! * **`cases/external/`** — third-party *correctness* suites (TPTP SZS problems, W3C
+//!   `mf:`/`otest:`/`test:` entailment manifests, FAIR OntoUML/UFO models) graded
+//!   against their published verdicts by `stage-conformance` → the agreement matrix.
+//! * **`cases/bench/`** — engine-vs-engine *performance* corpora (ChaseBench-like,
+//!   relational-core) consumed by the `gmeow-bench-engines` harness.
+//!
+//! Same `corpus.json` schema, same license gate, different grading consumer. The
+//! contract is domain-neutral — it lives here, not inside `external::`, precisely so
+//! the bench family can share it without reaching across a sibling module boundary.
+//!
+//! Every vendored corpus carries its `corpus.json` at
+//! `conformance/logic/cases/<family>/<corpus>/corpus.json` declaring its SPDX
 //! license, upstream source, pinned version/commit, refresh command, and lane. The
 //! license is audited against the native [`gmeow_license`] policy BEFORE a corpus is
-//! vendored: an IMPORT_OK license may be committed under `cases/external/`; a
-//! REFERENCE_ONLY (or unknown) license is a hard error — such corpora may only be
-//! fetched live in the Lane-B (`make -C validations/classic-cross-check validate`) lane.
+//! vendored: an IMPORT_OK license may be committed; a REFERENCE_ONLY (or unknown)
+//! license is a hard error — such corpora may only be fetched live in the Lane-B
+//! (`make -C validations/classic-cross-check validate`) lane.
 //!
 //! Parsing is manual + hard-fail (matching `profile.rs`): a missing required field,
 //! a wrong type, an unknown key, or an unknown lane is an error — never a silent
@@ -65,10 +81,10 @@ impl Lane {
     }
 }
 
-/// Parsed `corpus.json` metadata for one vendored external corpus.
+/// Parsed `corpus.json` metadata for one vendored corpus.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CorpusMeta {
-    /// The corpus name (matches the `cases/external/<corpus>/` directory).
+    /// The corpus name (matches the `cases/<family>/<corpus>/` directory).
     pub name: String,
     /// SPDX license identifier of the vendored artifacts (audited before vendoring).
     pub spdx_license: String,
@@ -165,10 +181,9 @@ pub fn audit_vendorable(meta: &CorpusMeta) -> gmeow_errors::Result<()> {
     }
 }
 
-/// Resolve the run [`Lane`] for a case directory, if it belongs to a vendored
-/// external corpus.
+/// Resolve the run [`Lane`] for a case directory, if it belongs to a vendored corpus.
 ///
-/// A case under `cases/external/<corpus>/<case>/` carries its corpus metadata at the
+/// A case under `cases/<family>/<corpus>/<case>/` carries its corpus metadata at the
 /// parent `corpus.json`; this returns that corpus's declared lane. An endogenous case
 /// (`cases/<category>/<case>/`, no parent `corpus.json`) returns `None` — it is always
 /// run by the native gate. This keeps `crate::discover` category-agnostic: lane is

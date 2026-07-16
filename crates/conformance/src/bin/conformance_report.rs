@@ -96,8 +96,8 @@ fn main() -> gmeow_errors::Result<()> {
         // `make -C validations/classic-cross-check validate`, so it is excluded here (it may also lie
         // outside the native fragment and would not be honestly decided).
         if matches!(
-            gmeow_conformance::external::lane_for_case(&case.case_dir)?,
-            Some(gmeow_conformance::external::Lane::B)
+            gmeow_conformance::vendored::lane_for_case(&case.case_dir)?,
+            Some(gmeow_conformance::vendored::Lane::B)
         ) {
             continue;
         }
