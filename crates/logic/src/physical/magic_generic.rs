@@ -819,26 +819,49 @@ fn admit_provider_row<E: Clone>(
     seed_provider_sources: &mut BTreeMap<GenericAnnotationKey, Vec<ProviderTupleSource>>,
 ) -> bool {
     let key = generic_key(relation, &resolved.arguments);
-    if let std::collections::btree_map::Entry::Vacant(entry) = rows.entry(key.clone()) {
-        let provider_sources = vec![resolved.source.clone()];
-        seeds.insert(key.clone(), resolved.annotation.clone());
-        seed_provider_sources.insert(key, provider_sources.clone());
-        entry.insert(GenericAnnotatedRow {
-            relation: relation.to_owned(),
-            args: resolved.arguments,
-            annotation: resolved.annotation.clone(),
-            derivations: vec![AnnotationDerivation {
-                rule_iri: "https://blackcatinformatics.ca/logic/external-relation-input".to_owned(),
-                sources: Vec::new(),
-                tuple_sources: Vec::new(),
-                provider_sources: provider_sources.clone(),
-                annotation: resolved.annotation,
-            }],
-            provider_sources,
-        });
-        true
-    } else {
-        false
+    match rows.entry(key.clone()) {
+        std::collections::btree_map::Entry::Vacant(entry) => {
+            let provider_sources = vec![resolved.source.clone()];
+            seeds.insert(key.clone(), resolved.annotation.clone());
+            seed_provider_sources.insert(key, provider_sources.clone());
+            entry.insert(GenericAnnotatedRow {
+                relation: relation.to_owned(),
+                args: resolved.arguments,
+                annotation: resolved.annotation.clone(),
+                derivations: vec![AnnotationDerivation {
+                    rule_iri: "https://blackcatinformatics.ca/logic/external-relation-input"
+                        .to_owned(),
+                    sources: Vec::new(),
+                    tuple_sources: Vec::new(),
+                    provider_sources: provider_sources.clone(),
+                    annotation: resolved.annotation,
+                }],
+                provider_sources,
+            });
+            true
+        }
+        std::collections::btree_map::Entry::Occupied(mut entry) => {
+            // The same tuple can be legitimately returned by more than one
+            // provider request (different `request_iri` / `resolved.source`).
+            // Every contributing source must be retained so the query receipt
+            // reports every provider that contributed, not just the first.
+            let row = entry.get_mut();
+            if !row.provider_sources.contains(&resolved.source) {
+                row.provider_sources.push(resolved.source.clone());
+            }
+            if let Some(seed_derivation) = row.derivations.first_mut()
+                && !seed_derivation.provider_sources.contains(&resolved.source)
+            {
+                seed_derivation
+                    .provider_sources
+                    .push(resolved.source.clone());
+            }
+            let entry_sources = seed_provider_sources.entry(key).or_default();
+            if !entry_sources.contains(&resolved.source) {
+                entry_sources.push(resolved.source);
+            }
+            false
+        }
     }
 }
 

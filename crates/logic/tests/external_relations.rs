@@ -365,6 +365,114 @@ fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
 }
 
 #[test]
+fn duplicate_tuple_delivered_by_two_distinct_provider_requests_both_contribute() {
+    // The lexical relation is queried twice inside one fixpoint with different
+    // bound patterns (fully unbound, then bound to `ex:cat`); both calls
+    // legitimately deliver the overlapping tuple (cat, doc/one). This exercises
+    // the OCCUPIED path of `admit_provider_row`: the second delivery re-admits
+    // an already-present row rather than inserting a new one, and its lineage
+    // must still be retained. A second, structurally distinct provider (vector)
+    // also contributes, so the receipt must identify every contributing
+    // provider and every contributing provider *request*.
+    let lexical = TableProvider::new(vec![
+        row("cat", "doc/one", 7, "001"),
+        row("cat", "doc/two", 5, "002"),
+        row("dog", "doc/three", 3, "003"),
+    ]);
+    let vector = TableProvider::new(vec![row("cat", "doc/four", 9, "004")]);
+    let providers = QueryRelationProviders::new(
+        vec![
+            registration(
+                LEXICAL,
+                "https://example.org/provider/lexical",
+                "https://example.org/model/bm25-v1",
+                RelationAnnotationDimension::Similarity,
+                &lexical,
+            ),
+            registration(
+                VECTOR,
+                "https://example.org/provider/vector",
+                "https://example.org/model/embedding-v2",
+                RelationAnnotationDimension::Distance,
+                &vector,
+            ),
+        ],
+        RelationProviderBudget::new(8, 32).unwrap(),
+        &NEVER_CANCELLED,
+    )
+    .unwrap();
+    let store = WorldStore::new();
+    store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
+    let program = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ex:hit(D) :- ex:relation/lexical(Q, D).\n\
+         ex:hit(D) :- ex:relation/lexical(ex:cat, D).\n\
+         ex:hit(D) :- ex:relation/vector(ex:cat, D).\n\
+         ?- ex:hit(D).\n",
+    )
+    .expect("duplicate-delivery fixture program");
+
+    let result = query(&snapshot(&store), &program, &providers).expect("complete hybrid query");
+
+    let lexical_invocations = result
+        .receipt
+        .invocations
+        .iter()
+        .filter(|invocation| {
+            invocation.relation_iri == LEXICAL
+                && invocation.status == RelationInvocationStatus::Complete
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        lexical_invocations.len(),
+        2,
+        "the unbound and cat-bound calls are two distinct provider requests"
+    );
+    assert!(
+        lexical_invocations
+            .iter()
+            .all(|invocation| invocation.contributed),
+        "every lexical request that delivered a contributing tuple must be marked contributed"
+    );
+    let lexical_request_iris = lexical_invocations
+        .iter()
+        .map(|invocation| invocation.request_iri.clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        lexical_request_iris.len(),
+        2,
+        "the two calls mint distinct request identities"
+    );
+
+    // Both distinct lexical request_iri values must appear as provider sources
+    // in doc/one's lineage: this is exactly what the vacant-only
+    // `admit_provider_row` lineage bug drops for a re-delivered tuple.
+    let doc_one = format!("<{}>", ex("doc/one"));
+    let doc_one_answer = result
+        .answer
+        .answers
+        .iter()
+        .find(|answer| answer.binding["D"] == doc_one)
+        .expect("doc/one is a hit via both lexical calls");
+    let doc_one_request_iris = doc_one_answer
+        .derivations
+        .iter()
+        .flat_map(|derivation| &derivation.provider_sources)
+        .map(|source| source.request_iri.clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        doc_one_request_iris, lexical_request_iris,
+        "doc/one's lineage must cite both provider requests that delivered it"
+    );
+
+    assert_eq!(
+        result.receipt.contributing_providers.len(),
+        2,
+        "both the lexical and vector providers contributed"
+    );
+}
+
+#[test]
 fn lexical_and_vector_alternatives_aggregate_and_repeat_deterministically() {
     let lexical = TableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
     let vector = TableProvider::new(vec![row("cat", "doc/one", 3, "001")]);
