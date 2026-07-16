@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Non-invertibility counterexample: the vector-symbolic unbinding supplies a
+# complete frame — vector space, basis, bound vector, key, recovered operand, and
+# capacity descriptor — but OMITS its required recovery-loss (fidelity) contract
+# (math:recoveryLossContract). Recovery is APPROXIMATE unless an exact algebra
+# proves otherwise, so without a declared math:RecoveryLossContract the unbinding
+# asserts a retrieval it cannot certify as invertible: it isolates
+# math:IncompleteVectorSymbolicOperation via the single derived QualifiedMinCount
+# constraint on math:recoveryLossContract.
+ex:unbinding a math:VectorUnbinding ;
+    math:overVectorSpace ex:space ;
+    math:overBasis ex:basis ;
+    math:boundVector ex:bound ;
+    math:unbindingKey ex:key ;
+    math:recoveredOperand ex:recovered ;
+    math:operationCapacity ex:capacity .
+
+ex:space a math:VectorSpace .
+ex:basis a math:Basis .
+
+ex:bound a math:Vector ; math:inBasis ex:basis .
+ex:key a math:Vector ; math:inBasis ex:basis .
+ex:recovered a math:Vector ; math:inBasis ex:basis .
+
+ex:capacity a math:VectorSymbolicCapacity ;
+    math:capacityBound ex:capacityBound .
+ex:capacityBound a math:RationalValue ; math:numerator 2 ; math:denominator 1 .

@@ -1261,3 +1261,20 @@ ex:ecMapperConstructionNoCover a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, filter function, clustering rule, and output nerve — but omits its required cover of the filter codomain, isolating math:IncompleteMapperConstruction." .
+
+ex:ecVectorSymbolicComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/vector-symbolic-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The binding, bundling, and unbinding each name a complete frame — their vector space, their basis, their operand vectors (two operands for the binding and bundling; the bound vector, key, and recovered operand for the unbinding), their capacity descriptor at the exact bound 2/1, and their recovery-loss contract at the exact loss 0/1 — so under the exact bipolar MAP algebra the retrieval is certified invertible rather than an implicit similarity claim." .
+
+ex:ecVectorSymbolicCapacityDegradation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/vector-symbolic-capacity-degradation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic binding — vector space, basis, two operand vectors, and an exact recovery-loss contract — but omits its required capacity descriptor, leaving the superposition-crosstalk limit unstated and isolating math:IncompleteVectorSymbolicOperation." .
+
+ex:ecVectorSymbolicNonInvertibility a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/vector-symbolic-non-invertibility.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic unbinding — vector space, basis, bound vector, key, recovered operand, and capacity descriptor — but omits its required recovery-loss (fidelity) contract, so it cannot certify the retrieval as invertible and isolates math:IncompleteVectorSymbolicOperation." .

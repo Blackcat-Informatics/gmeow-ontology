@@ -2529,3 +2529,28 @@ ex:rowCoverageMapperConstruction a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cover" ; gmeow:cellValueIri cov:mapperCover ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clustering" ; gmeow:cellValueIri cov:mapperClustering ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nerve" ; gmeow:cellValueIri cov:mapperNerve ] .
+
+ex:cqCoverageVectorSymbolic a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/vector-symbolic-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A vector-symbolic binding is recoverable from its vector space, its basis, its capacity descriptor, and its recovery-loss (fidelity) contract as separate reusable mathematical objects, without a project-specific similarity-score surrogate that flattens the capacity/recovery frame — recovery being approximate unless an exact algebra proves otherwise." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageVectorSymbolicShape ;
+    gmeow:cqExpectRow ex:rowCoverageVectorSymbolic .
+
+ex:cqCoverageVectorSymbolicShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "binding" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "space" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "basis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "capacity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "contract" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageVectorSymbolic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "binding" ; gmeow:cellValueIri cov:vsaBinding ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri cov:vsaSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "basis" ; gmeow:cellValueIri cov:vsaBasis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "capacity" ; gmeow:cellValueIri cov:vsaCapacity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "contract" ; gmeow:cellValueIri cov:vsaContract ] .

@@ -2781,3 +2781,107 @@ msgstr "分析输入"
 msgctxt "https://blackcatinformatics.ca/math/analysisInput|skos:definition"
 msgid "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."
 msgstr "将数学分析活动关联到其显式分析对象；对于要求输入的分析，缺少此关系即为不良构。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|rdfs:label"
+msgid "Vector-Symbolic Capacity"
+msgstr "向量符号容量"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|skos:definition"
+msgid "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."
+msgstr "向量符号运算的容量描述符：一个一等数学对象，携带（通过 math:capacityBound）关于多少个表示可被绑定或叠加进单个向量、直至恢复退化到低于运算的恢复损失契约之前的精确 math:RationalValue 界。math:MathematicalObject 的子类。容量是已声明的，绝非维度的隐式后果；缺少它的向量符号运算是不良构成的（math:IncompleteVectorSymbolicOperation），因为叠加串扰压倒检索的临界点此时未被说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|rdfs:label"
+msgid "Recovery-Loss Contract"
+msgstr "恢复损失契约"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|skos:definition"
+msgid "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "向量符号运算的恢复损失（保真度）契约：一个一等数学对象，携带（通过 math:lossBound）关于恢复的操作数与原始操作数之间差异的精确 math:RationalValue 损失界——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数。math:MathematicalObject 的子类。恢复是近似的，除非精确代数证明相反，因此该契约是构成性的：保真度被留作隐式的解绑不能宣称可逆性，而缺少该契约的向量符号运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|rdfs:label"
+msgid "Incomplete Vector-Symbolic Operation"
+msgstr "不完整向量符号运算"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|skos:definition"
+msgid "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."
+msgstr "当向量符号运算缺少必需的框架组成部分时引发的失败——它所组合于其中的 math:VectorSpace、固定其坐标的 math:Basis、其操作数向量（绑定或捆绑需两个或更多；解绑需绑定向量、键与恢复的操作数）、其容量描述符，或其恢复损失（保真度）契约。向量符号运算仅相对于完整且已声明的框架才有定义；容量或恢复损失契约为隐式的裸绑定、捆绑或解绑是不良构成的，因为没有容量，叠加串扰的极限未被说明；没有损失界，运算无法宣称可逆性——恢复是近似的，除非精确代数证明相反。"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|rdfs:label"
+msgid "over vector space"
+msgstr "在向量空间上"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到它在其中组合分布式表示的 math:VectorSpace——其向量被绑定、捆绑或解绑的环境空间。定义域 math:VectorSymbolicOperation，值域 math:VectorSpace（以散文陈述）。该空间是运算框架的组成部分，绝非隐式；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|rdfs:label"
+msgid "over basis"
+msgstr "在基上"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到固定其向量空间坐标的 math:Basis，使操作数向量与结果向量具有无歧义的分量且绑定律可复现。定义域 math:VectorSymbolicOperation，值域 math:Basis（以散文陈述）。基是运算框架的组成部分，绝非隐式；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|rdfs:label"
+msgid "vsa operand"
+msgstr "vsa 操作数"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|skos:definition"
+msgid "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."
+msgstr "将 math:VectorBinding 或 math:VectorBundling 关联到它所组合的操作数 math:Vector 之一——绑定的一个因子或捆绑的一个加项。定义域 math:VectorBinding 或 math:VectorBundling，值域 math:Vector（以散文陈述）。绑定与捆绑各取两个或更多操作数；声明更少的运算是不良构成的（math:IncompleteVectorSymbolicOperation），因为单个操作数无从组合。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|rdfs:label"
+msgid "bound vector"
+msgstr "绑定向量"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|skos:definition"
+msgid "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到它从中恢复操作数的复合 math:Vector——解绑所作用于的先前已绑定表示。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。绑定向量是解绑框架的组成部分，绝非隐式；缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|rdfs:label"
+msgid "unbinding key"
+msgstr "解绑键"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|skos:definition"
+msgid "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到为检索一个已绑定因子而提供的键（线索）math:Vector——原始绑定的另一个操作数，或其在已声明绑定律下的逆。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。没有键，就没有东西可用来探测绑定向量，因此缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|rdfs:label"
+msgid "recovered operand"
+msgstr "恢复的操作数"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|skos:definition"
+msgid "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到它所产生的 math:Vector——绑定操作数的检索估计，当精确代数使绑定可逆时为精确值，否则为带噪近似。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。恢复的操作数是解绑的已声明输出；缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|rdfs:label"
+msgid "operation capacity"
+msgstr "运算容量"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到 math:VectorSymbolicCapacity 描述符，该描述符界定多少个表示可被绑定或叠加、直至恢复退化之前。定义域 math:VectorSymbolicOperation，值域 math:VectorSymbolicCapacity（以散文陈述）。容量是已声明的，绝非维度的隐式后果；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
+msgid "recovery-loss contract"
+msgstr "恢复损失契约关系"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到陈述检索精确保真度的 math:RecoveryLossContract——当精确代数使其可逆时损失 0/1，否则为一个已声明的正有理数。定义域 math:VectorSymbolicOperation，值域 math:RecoveryLossContract（以散文陈述）。恢复是近似的，除非精确代数证明相反，因此该契约是构成性的；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|rdfs:label"
+msgid "capacity bound"
+msgstr "容量界"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|skos:definition"
+msgid "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."
+msgstr "将 math:VectorSymbolicCapacity 关联到它在恢复退化之前可绑定或叠加的表示的最大数目的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此容量可复现。定义域 math:VectorSymbolicCapacity，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|rdfs:label"
+msgid "loss bound"
+msgstr "损失界"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
+msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
+msgstr "将 math:RecoveryLossContract 关联到其恢复损失界的精确 math:RationalValue——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数——以精确的分子/分母对携带，绝非小数。定义域 math:RecoveryLossContract，值域 math:RationalValue（以散文陈述）。"
