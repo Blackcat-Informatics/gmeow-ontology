@@ -381,27 +381,12 @@ fn select_tasks(
         if path.starts_with(".github/") {
             continue;
         }
-        if path.starts_with("docs/") || extension == "md" {
-            for task in ["sync", "doc-lint", "compliance-report"] {
-                add(task, path);
-            }
-            if path == "CONSTITUTION.md" {
-                add("constitution-check", path);
-            }
-            continue;
-        }
-        if path.starts_with("i18n/") || extension == "po" {
-            for task in ["sync", "i18n-lint", "doc-lint", "compliance-report"] {
-                add(task, path);
-            }
-            continue;
-        }
-        if path.starts_with("bench/") {
-            for task in ["bench-soak", "compliance-report"] {
-                add(task, path);
-            }
-            continue;
-        }
+
+        // Semantic membership MUST be checked before the docs shortcut: a
+        // `.md` file under a semantic prefix (e.g. a design doc pulled into a
+        // Rust test via `include_str!`) still needs the full semantic gate,
+        // not the docs-only set. Checking extension alone would fail-OPEN and
+        // silently skip Rust/reason coverage that CI still enforces.
         let semantic = ["ttl", "nt", "nq", "trig", "rq", "sssom", "csv", "tsv"]
             .contains(&extension)
             || [
@@ -440,6 +425,27 @@ fn select_tasks(
                 "bench-soak",
                 "compliance-report",
             ] {
+                add(task, path);
+            }
+            continue;
+        }
+        if path.starts_with("docs/") || extension == "md" {
+            for task in ["sync", "doc-lint", "compliance-report"] {
+                add(task, path);
+            }
+            if path == "CONSTITUTION.md" {
+                add("constitution-check", path);
+            }
+            continue;
+        }
+        if path.starts_with("i18n/") || extension == "po" {
+            for task in ["sync", "i18n-lint", "doc-lint", "compliance-report"] {
+                add(task, path);
+            }
+            continue;
+        }
+        if path.starts_with("bench/") {
+            for task in ["bench-soak", "compliance-report"] {
                 add(task, path);
             }
             continue;
@@ -529,6 +535,7 @@ mod tests {
     const TASKS: &[&str] = &[
         "sync",
         "check-lint",
+        "rust-build",
         "rust-gate",
         "validate",
         "reason-gate",
@@ -551,6 +558,35 @@ mod tests {
                 .into_iter()
                 .map(str::to_owned)
                 .collect()
+        );
+    }
+
+    #[test]
+    fn slices_markdown_selects_the_full_semantic_gate_not_docs_only() {
+        let (selected, _) =
+            select_tasks(&["slices/grounding/math/design/FOO.md".to_owned()], TASKS);
+        assert!(
+            selected.contains("rust-build"),
+            "semantic-prefix markdown must select rust-build: {selected:?}"
+        );
+        assert!(
+            selected.contains("reason-gate"),
+            "semantic-prefix markdown must select reason-gate: {selected:?}"
+        );
+        let docs_only: BTreeSet<String> = ["check-lint", "compliance-report", "doc-lint", "sync"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        assert_ne!(
+            selected, docs_only,
+            "semantic-prefix markdown must not be misrouted to the docs-only set"
+        );
+
+        let (md_selected, _) = select_tasks(&["slices/x/foo.md".to_owned()], TASKS);
+        let (ttl_selected, _) = select_tasks(&["slices/x/foo.ttl".to_owned()], TASKS);
+        assert_eq!(
+            md_selected, ttl_selected,
+            "a .md file under a semantic prefix must select the same gate as a .ttl file there"
         );
     }
 
