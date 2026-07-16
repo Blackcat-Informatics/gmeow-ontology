@@ -1854,6 +1854,102 @@ msgctxt "https://blackcatinformatics.ca/math/Surprisal|skos:definition"
 msgid "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."
 msgstr "结果已声明概率的负对数，并记录对数底与单位。"
 
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|rdfs:label"
+msgid "Logarithm Base"
+msgstr "对数底"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|skos:definition"
+msgid "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."
+msgstr "确定信息测度尺度的已声明对数底——底 2（比特）、底 e（奈特）或底 10（哈特莱）。底是每个信息测度框架的组成部分，绝非隐式默认；三个规范底是命名个体 math:logBaseTwo、math:logBaseE 和 math:logBaseTen。"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|rdfs:label"
+msgid "Information Unit"
+msgstr "信息单位"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|skos:definition"
+msgid "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."
+msgstr "表达信息测度大小所用的单位，与其对数底配对——比特（底 2）、奈特（底 e）或哈特莱（底 10）。三个规范单位是命名个体 math:bit、math:nat 和 math:hartley。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|rdfs:label"
+msgid "Joint Distribution"
+msgstr "联合分布"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|skos:definition"
+msgid "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."
+msgstr "两个或多个随机变量上的联合概率分布，由此可恢复每个边缘分布。math:Distribution 的子类；互信息在联合分布上取得，度量其相对于边缘分布乘积的散度。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|rdfs:label"
+msgid "Incomplete Information Measure"
+msgstr "不完整信息测度"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|skos:definition"
+msgid "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."
+msgstr "当信息测度缺少必需的框架组成部分时引发的失败——其概率分布、对数底、信息单位、散度的参考分布、Fisher 信息的似然模型或得分参数，或自信息量的结果。信息测度仅相对于完整且已声明的框架才有定义；带有隐式分布、底或单位的裸不确定性、散度或信息标记是不良构成的。"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|rdfs:label"
+msgid "over distribution"
+msgstr "在分布上"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|skos:definition"
+msgid "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."
+msgstr "将信息测度关联到其所取的概率分布——熵、自信息量、交叉熵或散度的 P，或互信息的联合分布。定义域 math:InformationMeasure，值域 math:Distribution（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|rdfs:label"
+msgid "reference distribution"
+msgstr "参考分布"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|skos:definition"
+msgid "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."
+msgstr "将散度或交叉熵关联到其参考（第二）分布 Q——用以评估主分布 P 的模型分布。定义域 math:InformationMeasure，值域 math:Distribution（以散文陈述）。方向 P→Q 是固定的，因此 Kullback–Leibler 散度不对称。"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|rdfs:label"
+msgid "information base"
+msgstr "信息底"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|skos:definition"
+msgid "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."
+msgstr "将信息测度关联到确定其尺度的对数底——底 2、底 e 或底 10。定义域 math:InformationMeasure，值域 math:LogarithmBase（以散文陈述）。底是测度框架的一部分，绝非隐式默认；缺少它的测度是不良构成的（math:IncompleteInformationMeasure）。"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|rdfs:label"
+msgid "information unit"
+msgstr "信息单位"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|skos:definition"
+msgid "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."
+msgstr "将信息测度关联到表达其大小所用的单位——比特（底 2）、奈特（底 e）或哈特莱（底 10）——与已声明的对数底配对。定义域 math:InformationMeasure，值域 math:InformationUnit（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|rdfs:label"
+msgid "likelihood model"
+msgstr "似然模型"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|skos:definition"
+msgid "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."
+msgstr "将 Fisher 信息关联到其度量得分函数曲率的参数似然模型。定义域 math:FisherInformation，值域 math:Distribution（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|rdfs:label"
+msgid "score parameter"
+msgstr "得分参数"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|skos:definition"
+msgid "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."
+msgstr "将 Fisher 信息关联到取对数似然得分及其期望曲率所依据的模型参数。定义域 math:FisherInformation，值域 math:DistributionParameter（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|rdfs:label"
+msgid "of outcome"
+msgstr "关于结果"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|skos:definition"
+msgid "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."
+msgstr "将自信息量关联到其在分布下取已声明概率之负对数的单个结果。定义域 math:Surprisal，值域 math:MathematicalObject（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|rdfs:label"
+msgid "measure value"
+msgstr "测度值"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
+msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
+msgstr "将信息测度关联到其在已声明单位下计算所得大小的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此诸如均匀两结果分布的香农熵之类的参考计算被记录为恰好 1/1 比特。定义域 math:InformationMeasure，值域 math:RationalValue（以散文陈述）。"
+
 msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
 msgid "Vector-Symbolic Operation"
 msgstr "向量符号运算"

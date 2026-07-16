@@ -1854,6 +1854,102 @@ msgctxt "https://blackcatinformatics.ca/math/Surprisal|skos:definition"
 msgid "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."
 msgstr "Le logarithme négatif de la probabilité déclarée d'un résultat, avec base et unités enregistrées."
 
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|rdfs:label"
+msgid "Logarithm Base"
+msgstr "Base logarithmique"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|skos:definition"
+msgid "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."
+msgstr "La base logarithmique déclarée qui fixe l'échelle d'une mesure d'information — base 2 (bits), base e (nats) ou base 10 (hartleys). La base est une composante du cadre de toute mesure d'information, jamais une valeur par défaut implicite ; les trois bases canoniques sont les individus nommés math:logBaseTwo, math:logBaseE et math:logBaseTen."
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|rdfs:label"
+msgid "Information Unit"
+msgstr "Unité d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|skos:definition"
+msgid "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."
+msgstr "L'unité dans laquelle la magnitude d'une mesure d'information est exprimée, appariée à sa base logarithmique — le bit (base 2), le nat (base e) ou le hartley (base 10). Les trois unités canoniques sont les individus nommés math:bit, math:nat et math:hartley."
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|rdfs:label"
+msgid "Joint Distribution"
+msgstr "Distribution jointe"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|skos:definition"
+msgid "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."
+msgstr "Une distribution de probabilité jointe sur deux variables aléatoires ou plus, dont chaque marginale est récupérable. Une sous-classe de math:Distribution ; une information mutuelle est prise sur une distribution jointe, dont elle mesure la divergence par rapport au produit de ses marginales."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|rdfs:label"
+msgid "Incomplete Information Measure"
+msgstr "Mesure d'information incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|skos:definition"
+msgid "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."
+msgstr "L'échec soulevé lorsqu'une mesure d'information manque d'une composante de cadre requise — sa distribution de probabilité, sa base logarithmique, son unité d'information, la distribution de référence d'une divergence, le modèle de vraisemblance ou le paramètre de score d'une information de Fisher, ou le résultat d'une surprise informationnelle. Une mesure d'information n'est définie que relativement à un cadre complet et déclaré ; un simple jeton d'incertitude, de divergence ou d'information avec une distribution, une base ou une unité implicite est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|rdfs:label"
+msgid "over distribution"
+msgstr "sur distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|skos:definition"
+msgid "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."
+msgstr "Relie une mesure d'information à la distribution de probabilité sur laquelle elle est prise — le P d'une entropie, d'une surprise informationnelle, d'une entropie croisée ou d'une divergence, ou la distribution jointe d'une information mutuelle. Domaine math:InformationMeasure, portée math:Distribution (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|rdfs:label"
+msgid "reference distribution"
+msgstr "distribution de référence"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|skos:definition"
+msgid "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."
+msgstr "Relie une divergence ou une entropie croisée à sa distribution de référence (seconde) Q — la distribution modèle par rapport à laquelle la distribution primaire P est évaluée. Domaine math:InformationMeasure, portée math:Distribution (énoncé en prose). La direction P→Q est fixée, donc une divergence de Kullback–Leibler n'est pas symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|rdfs:label"
+msgid "information base"
+msgstr "base d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|skos:definition"
+msgid "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."
+msgstr "Relie une mesure d'information à la base logarithmique fixant son échelle — base 2, base e ou base 10. Domaine math:InformationMeasure, portée math:LogarithmBase (énoncé en prose). La base fait partie du cadre de la mesure, jamais une valeur par défaut implicite ; une mesure qui en manque est mal formée (math:IncompleteInformationMeasure)."
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|rdfs:label"
+msgid "information unit"
+msgstr "unité d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|skos:definition"
+msgid "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."
+msgstr "Relie une mesure d'information à l'unité dans laquelle sa magnitude est exprimée — le bit (base 2), le nat (base e) ou le hartley (base 10) — appariée à la base logarithmique déclarée. Domaine math:InformationMeasure, portée math:InformationUnit (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|rdfs:label"
+msgid "likelihood model"
+msgstr "modèle de vraisemblance"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|skos:definition"
+msgid "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."
+msgstr "Relie une information de Fisher au modèle de vraisemblance paramétrique dont elle mesure la courbure de la fonction de score. Domaine math:FisherInformation, portée math:Distribution (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|rdfs:label"
+msgid "score parameter"
+msgstr "paramètre de score"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|skos:definition"
+msgid "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."
+msgstr "Relie une information de Fisher au paramètre du modèle par rapport auquel le score de la log-vraisemblance et sa courbure attendue sont pris. Domaine math:FisherInformation, portée math:DistributionParameter (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|rdfs:label"
+msgid "of outcome"
+msgstr "du résultat"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|skos:definition"
+msgid "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."
+msgstr "Relie une surprise informationnelle au résultat unique dont elle prend le logarithme négatif de la probabilité déclarée sous sa distribution. Domaine math:Surprisal, portée math:MathematicalObject (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|rdfs:label"
+msgid "measure value"
+msgstr "valeur de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
+msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
+msgstr "Relie une mesure d'information à la valeur math:RationalValue exacte de sa magnitude calculée dans son unité déclarée — portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte qu'un calcul de référence tel que l'entropie de Shannon d'une distribution uniforme à deux résultats est enregistré comme exactement 1/1 bit. Domaine math:InformationMeasure, portée math:RationalValue (énoncé en prose)."
+
 msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
 msgid "Vector-Symbolic Operation"
 msgstr "Opération vectorielle-symbolique"

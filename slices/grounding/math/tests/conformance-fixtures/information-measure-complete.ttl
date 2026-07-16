@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Every information measure names a complete, declared frame: its distribution(s),
+# logarithm base, and information unit (and, for the parametric and outcome-scoped
+# measures, the likelihood model + score parameter, or the outcome). All seven
+# measures conform against the derived frame shapes.
+
+# --- Entropy with an EXACT reference calculation --------------------------- #
+# H(X) for X uniform over two equiprobable outcomes, in bits (base 2):
+#   H = -Σ p·log2 p = -(1/2·log2(1/2) + 1/2·log2(1/2))
+#     = -(1/2·(-1) + 1/2·(-1)) = 1 bit, exactly.
+# Recorded as the exact rational 1/1 bit (numerator 1, denominator 1) — no decimal.
+ex:entropy a math:Entropy ;
+    math:overDistribution ex:uniformTwo ;
+    math:informationBase math:logBaseTwo ;
+    math:informationUnit math:bit ;
+    math:measureValue ex:oneBit .
+ex:oneBit a math:RationalValue ;
+    math:numerator 1 ;
+    math:denominator 1 .
+ex:uniformTwo a math:Distribution ;
+    math:distributionFamily ex:uniformFamily .
+ex:uniformFamily a math:DistributionFamily .
+
+# --- Mutual information over a joint distribution -------------------------- #
+ex:mutualInfo a math:MutualInformation ;
+    math:overDistribution ex:jointXY ;
+    math:informationBase math:logBaseTwo ;
+    math:informationUnit math:bit .
+ex:jointXY a math:JointDistribution ;
+    math:distributionFamily ex:jointFamily .
+ex:jointFamily a math:DistributionFamily .
+
+# --- Kullback–Leibler divergence: primary P, reference Q, base ------------- #
+ex:kl a math:KullbackLeiblerDivergence ;
+    math:overDistribution ex:pDist ;
+    math:referenceDistribution ex:qDist ;
+    math:informationBase math:logBaseTwo .
+
+# --- Cross entropy: primary P, reference Q, base -------------------------- #
+ex:crossEntropy a math:CrossEntropy ;
+    math:overDistribution ex:pDist ;
+    math:referenceDistribution ex:qDist ;
+    math:informationBase math:logBaseTwo .
+ex:pDist a math:Distribution ;
+    math:distributionFamily ex:bernoulliFamily .
+ex:qDist a math:Distribution ;
+    math:distributionFamily ex:bernoulliFamily .
+ex:bernoulliFamily a math:DistributionFamily .
+
+# --- Fisher information: parametric likelihood model + score parameter ----- #
+ex:fisher a math:FisherInformation ;
+    math:likelihoodModel ex:likelihood ;
+    math:scoreParameter ex:theta .
+ex:likelihood a math:Distribution ;
+    math:distributionFamily ex:bernoulliFamily .
+ex:theta a math:DistributionParameter .
+
+# --- Surprisal: outcome + distribution + base ----------------------------- #
+ex:surprisal a math:Surprisal ;
+    math:ofOutcome ex:heads ;
+    math:overDistribution ex:coin ;
+    math:informationBase math:logBaseTwo .
+ex:heads a math:MathematicalObject .
+ex:coin a math:Distribution ;
+    math:distributionFamily ex:bernoulliFamily .

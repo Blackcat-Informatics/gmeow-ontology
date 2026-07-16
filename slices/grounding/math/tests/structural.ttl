@@ -1353,3 +1353,24 @@ ASK {
     math:CliffordConjugation logic:subClassOf math:CliffordInvolution .
 }""" ;
     gmeow:saRationale "The quadratic/Clifford coverage family MUST distinguish the carrier space, its scalar-valued quadratic form, the general involution operation, and Clifford conjugation as one particular involution. These canonical logic:subClassOf assertions prevent the runtime kernel's structures from collapsing into an untyped collection and exercise the exact semantic edges the producer relies on." .
+
+# --- External-concept information-theoretic taxonomy is logic-owned (MUST) --- #
+
+ex:saExternalInformationTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:InformationMeasure logic:subClassOf math:MathematicalObject .
+    math:Entropy logic:subClassOf math:InformationMeasure .
+    math:MutualInformation logic:subClassOf math:InformationMeasure .
+    math:KullbackLeiblerDivergence logic:subClassOf math:InformationMeasure .
+    math:CrossEntropy logic:subClassOf math:InformationMeasure .
+    math:FisherInformation logic:subClassOf math:InformationMeasure .
+    math:Surprisal logic:subClassOf math:InformationMeasure .
+    math:JointDistribution logic:subClassOf math:Distribution .
+    math:LogarithmBase logic:subClassOf math:MathematicalObject .
+    math:InformationUnit logic:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "The information-theoretic coverage family MUST keep each measure a specialization of math:InformationMeasure, keep a mutual information's operand a math:JointDistribution specializing math:Distribution, and keep the logarithm base and information unit first-class mathematical objects. These canonical logic:subClassOf edges prevent entropy, divergence, and Fisher information from collapsing into a single untyped scoring token and exercise the exact semantic edges the completeness restrictions and competency frame rely on." .

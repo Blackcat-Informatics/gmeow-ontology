@@ -136,3 +136,17 @@ cov:e13 a math:BasisBlade ;
     math:bladeGrade 1 ; math:generatorIndex 13 ; math:generatorSquare 1 .
 cov:associativity a math:Axiom .
 cov:anticommutation a math:Axiom .
+
+# Information-theoretic coverage: the Shannon entropy of a uniform two-outcome
+# distribution is recoverable from its distribution, logarithm base, and unit as
+# separate reusable objects, and carries its exact reference value of 1/1 bit.
+cov:coverageEntropy a math:Entropy ;
+    math:overDistribution cov:uniformTwo ;
+    math:informationBase math:logBaseTwo ;
+    math:informationUnit math:bit ;
+    math:measureValue cov:oneBit .
+cov:uniformTwo a math:Distribution ;
+    math:distributionFamily cov:uniformFamily .
+cov:uniformFamily a math:DistributionFamily .
+cov:oneBit a math:RationalValue ;
+    math:numerator 1 ; math:denominator 1 .
