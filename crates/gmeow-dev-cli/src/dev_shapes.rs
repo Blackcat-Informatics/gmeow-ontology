@@ -481,6 +481,11 @@ struct OracleCtx {
     formalized_shapes: std::collections::BTreeSet<String>,
     formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>>,
     object_properties: std::collections::BTreeSet<String>,
+    /// Each property's declared `rdfs:range` class (IRI → range IRI). A legacy property
+    /// `sh:class C` component whose path's range is exactly `C` is grounded by the range at the
+    /// reasoning layer (the SHACL restatement is a redundant, inference-only Tier-1 check), so it
+    /// is stripped before the enforcement comparison.
+    object_ranges: BTreeMap<String, String>,
     /// The parsed constraint/procedural projection surfaces themselves, retained so the
     /// semantic clearance path can extract a `logic:formalizes` record's shape subgraph and run
     /// it as a REAL SHACL validator in the witness cross-check.
@@ -496,6 +501,7 @@ impl OracleCtx {
         projected_ds: &RdfDataset,
         constraint_surfaces: Vec<std::sync::Arc<RdfDataset>>,
         object_properties: std::collections::BTreeSet<String>,
+        object_ranges: BTreeMap<String, String>,
     ) -> Result<Self, Vec<String>> {
         let mut proj_errors = Vec::new();
         let projected = shapes_by_target(projected_ds, &mut proj_errors);
@@ -544,6 +550,7 @@ impl OracleCtx {
             formalized_shapes,
             formalized_failure_classes,
             object_properties,
+            object_ranges,
             constraint_surfaces,
         })
     }
@@ -560,6 +567,7 @@ impl OracleCtx {
             &projected_ds,
             constraint_surfaces,
             object_property_iris(root),
+            object_range_iris(root),
         )
         .map_err(|errors| {
             for e in &errors {
@@ -690,7 +698,10 @@ impl OracleCtx {
         // IRI-named-individual convention an object-property value IS an IRI, so the node-kind is
         // definitionally satisfied — not an enforcement the projection must reproduce.
         let stripped = ShapeRead {
-            ir: strip_redundant_iri_nodekind(&read.ir, &self.object_properties),
+            ir: strip_range_backed_class(
+                &strip_redundant_iri_nodekind(&read.ir, &self.object_properties),
+                &self.object_ranges,
+            ),
             unsupported: read.unsupported.clone(),
             extra_targets: read.extra_targets.clone(),
         };
@@ -739,6 +750,30 @@ impl OracleCtx {
                     // A record exists but did NOT reproduce the residue semantics: the shape
                     // stays ungrounded, and the refusal's detail must reach the operator — a
                     // silently-dropped clearance failure is undiagnosable at wave scale.
+                    eprintln!("shape-oracle: semantic clearance for <{iri}> not granted: {e}");
+                    false
+                }
+            }
+        };
+        // A block with NO declarative peer whose whole enforcement is covered constructs that a
+        // procedural `logic:formalizes` record reproduces — a node-level property-alternatives
+        // `sh:or` (disjunctive requiredness), a focus `sh:class`, or a per-property facet
+        // (`sh:nodeKind` / `sh:uniqueLang`) on a path with no declarative peer shape. The record
+        // trust anchor alone is NOT enough: these constructs are machine-readable, so the witness
+        // cross-check VERIFIES the record reproduces every judgment (near-misses minted from the
+        // legacy constructs; focus-flag agreement on both sides). A record whose lowered
+        // constraint does not reproduce the semantics NEVER clears.
+        let covered_construct_grounded = || {
+            let eligible = read.unsupported.is_empty()
+                && (!read.ir.node_components.is_empty()
+                    || read.ir.properties.iter().any(|p| !p.components.is_empty()))
+                && self.formalized_shapes.contains(iri);
+            if !eligible {
+                return false;
+            }
+            match self.semantic_agreement(iri, read, legacy_ds, true) {
+                Ok(()) => true,
+                Err(e) => {
                     eprintln!("shape-oracle: semantic clearance for <{iri}> not granted: {e}");
                     false
                 }
@@ -877,6 +912,13 @@ impl OracleCtx {
                     // canonical record carries the class's intended obligation onto the
                     // projected constraint surface, so the block's identity is record-grounded.
                     Verdict::EquivGroundedResidue
+                }
+                None if covered_construct_grounded() && formalized_failure_matches() => {
+                    // A declarative covered construct (node-level `sh:or`, focus `sh:class`, or a
+                    // per-property `sh:nodeKind` / `sh:uniqueLang` facet) with no declarative peer,
+                    // grounded by its exact `logic:formalizes` procedural record: the witness
+                    // cross-check verified the record reproduces every judgment.
+                    Verdict::EquivGroundedResidueSemantic
                 }
                 None => Verdict::NoProjectedPeer,
             },
@@ -2241,6 +2283,82 @@ fn object_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
     out
 }
 
+/// Each property's declared `rdfs:range` class (property IRI → range IRI), scanned across the
+/// slice `module.ttl` files and `ontology/gmeow.ttl`. Only IRI-valued single ranges are kept (a
+/// multi-range or blank range is ambiguous and omitted). Used to credit a legacy `sh:class C`
+/// component whose path's range is exactly `C` (the range grounds value-class at the reasoning
+/// layer; the SHACL restatement is a redundant, inference-only Tier-1 check).
+fn object_range_iris(root: &Path) -> BTreeMap<String, String> {
+    let mut modules = Vec::new();
+    collect_module_files(&root.join("slices"), &mut modules);
+    let ont = root.join("ontology/gmeow.ttl");
+    if ont.is_file() {
+        modules.push(ont);
+    }
+    let mut out: BTreeMap<String, String> = BTreeMap::new();
+    let mut ambiguous: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let range = "http://www.w3.org/2000/01/rdf-schema#range";
+    for m in modules {
+        let Ok(ds) = parse_ttl_file(&m) else { continue };
+        let Some(rp) = ds.term_id_by_value(&TermValue::iri(range)) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(rp), None, GraphMatch::Any) {
+            if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                match out.get(s) {
+                    Some(prev) if prev != o => {
+                        ambiguous.insert(s.to_owned());
+                    }
+                    _ => {
+                        out.insert(s.to_owned(), o.to_owned());
+                    }
+                }
+            }
+        }
+    }
+    for a in ambiguous {
+        out.remove(&a);
+    }
+    out
+}
+
+/// A copy of `ir` with every legacy `sh:class C` property component removed whose path's declared
+/// `rdfs:range` is exactly `C`. The range already entails that the value is a `C` under the native
+/// reasoner (Principle 18), so the Tier-1 SHACL class restatement is redundant — grounded by the
+/// range, never dropped. Cardinality and other components are untouched.
+fn strip_range_backed_class(
+    ir: &ValidationShapeIr,
+    object_ranges: &BTreeMap<String, String>,
+) -> ValidationShapeIr {
+    let mut props = Vec::new();
+    for pc in &ir.properties {
+        let range = object_ranges.get(&pc.path);
+        let backed = |c: &ConstraintComponent| matches!(c, ConstraintComponent::Class(cls) if Some(cls) == range);
+        if !pc.inverse && pc.components.iter().any(backed) {
+            let kept: Vec<ConstraintComponent> = pc
+                .components
+                .iter()
+                .filter(|c| !backed(c))
+                .cloned()
+                .collect();
+            if let Ok(p) = PropertyConstraintIr::new(
+                &pc.path,
+                pc.min_count,
+                pc.max_count,
+                pc.cardinality_provenance,
+                kept,
+            ) {
+                props.push(p);
+                continue;
+            }
+        }
+        props.push(pc.clone());
+    }
+    let mut stripped = ir.clone();
+    stripped.properties = props;
+    stripped
+}
+
 /// A copy of `ir` with every redundant `sh:nodeKind sh:IRI` component removed from an
 /// `owl:ObjectProperty` forward path (GMEOW individuals are IRI-named, so it enforces nothing). A
 /// property left with no cardinality and no components after the strip is dropped entirely.
@@ -2861,6 +2979,7 @@ mod tests {
             formalized_shapes: std::collections::BTreeSet::new(),
             formalized_failure_classes: BTreeMap::new(),
             object_properties: std::collections::BTreeSet::new(),
+            object_ranges: BTreeMap::new(),
             constraint_surfaces: Vec::new(),
         };
         let ds = parse_dataset(b"", "text/turtle", None).expect("empty dataset parses");
@@ -2966,8 +3085,13 @@ mod tests {
     fn ctx_from(projected_ttl: &str, surfaces: &[&str]) -> OracleCtx {
         let projected = parse_ttl(projected_ttl);
         let surfaces = surfaces.iter().map(|s| parse_ttl(s)).collect();
-        OracleCtx::from_surfaces(&projected, surfaces, std::collections::BTreeSet::new())
-            .expect("test surfaces must index cleanly")
+        OracleCtx::from_surfaces(
+            &projected,
+            surfaces,
+            std::collections::BTreeSet::new(),
+            BTreeMap::new(),
+        )
+        .expect("test surfaces must index cleanly")
     }
 
     // ── Scanner ────────────────────────────────────────────────────────────────
@@ -3496,7 +3620,7 @@ mod tests {
     #[test]
     fn splicer_resolves_every_real_block_subject_count_exact() {
         let (text, iris) = real_gmeow_shapes();
-        assert_eq!(iris.len(), 85, "the census of the committed file");
+        assert_eq!(iris.len(), 77, "the census of the committed file");
         let mut spans: Vec<(usize, usize)> = Vec::new();
         for iri in &iris {
             let span = subject_span(&text, local_name(iri))
@@ -3505,7 +3629,7 @@ mod tests {
         }
         spans.sort_unstable();
         spans.dedup();
-        assert_eq!(spans.len(), 85, "every block resolves to its OWN span");
+        assert_eq!(spans.len(), 77, "every block resolves to its OWN span");
         for w in spans.windows(2) {
             assert!(
                 w[0].1 <= w[1].0,
@@ -3545,7 +3669,7 @@ mod tests {
             let remaining = node_shape_iris(&ds);
             assert_eq!(
                 remaining.len(),
-                84,
+                76,
                 "pruning {iri} must remove exactly one block"
             );
             assert!(!remaining.contains(iri), "{iri} must be the removed block");
@@ -3745,7 +3869,7 @@ mod tests {
     }
 
     #[test]
-    fn classification_over_the_real_gmeow_shapes_totals_85() {
+    fn classification_over_the_real_gmeow_shapes_totals_77() {
         let (text, _) = real_gmeow_shapes();
         let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
             .expect("the committed shapes file must parse");
@@ -3754,8 +3878,8 @@ mod tests {
         assert!(errors.is_empty(), "every committed block reads: {errors:?}");
         let report = lattice_report(&blocks, &lattice_hier(&[]));
         assert!(
-            report.contains("  TOTAL blocks=85\n"),
-            "the by-block census of the committed file is exactly 85: {}",
+            report.contains("  TOTAL blocks=77\n"),
+            "the by-block census of the committed file is exactly 77: {}",
             report.lines().rev().take(12).collect::<Vec<_>>().join("\n")
         );
     }

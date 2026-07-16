@@ -20,6 +20,20 @@ class GenericQualityEnum(StrEnum):
     pressure = "gmeow:pressure"
 
 
+class ObservablePropertyEnum(StrEnum):
+    observablePropertyAirQualityIndex = "gmeow:observablePropertyAirQualityIndex"
+    observablePropertyAtmosphericPressure = "gmeow:observablePropertyAtmosphericPressure"
+    observablePropertyHumidity = "gmeow:observablePropertyHumidity"
+    observablePropertyLightIntensity = "gmeow:observablePropertyLightIntensity"
+    observablePropertyLoudness = "gmeow:observablePropertyLoudness"
+    observablePropertyRadiationLevel = "gmeow:observablePropertyRadiationLevel"
+    observablePropertyRoughness = "gmeow:observablePropertyRoughness"
+    observablePropertySoundPressureLevel = "gmeow:observablePropertySoundPressureLevel"
+    observablePropertyTemperature = "gmeow:observablePropertyTemperature"
+    observablePropertyTimbre = "gmeow:observablePropertyTimbre"
+    observablePropertyTimingDeviation = "gmeow:observablePropertyTimingDeviation"
+
+
 class ObservationMethodEnum(StrEnum):
     methodComputationalModel = "gmeow:methodComputationalModel"
     methodDirectObservation = "gmeow:methodDirectObservation"
@@ -404,6 +418,10 @@ class SensoryObservation(Observation):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     observationMethod: ObservationMethodEnum = Field(description="The method or protocol used to produce the observation. Functional: one method per observation (compound protocols are modelled as a single fused method individual, e.g. 'GPS-RTK survey with ground control'). Distinct from gmeow:vantage: the method is *how* it was done, the vantage is *who* did it.", alias="gmeow:observationMethod")
+    sensoryObservationOf: list[Entity] | None = Field(default=None, description="The entity whose property is being observed — the observedFeature of a sensory observation. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain.", alias="gmeow:sensoryObservationOf")
+    sensoryProperty: list[ObservablePropertyEnum] | None = Field(default=None, description="The observable property that a sensory observation measures — temperature, humidity, light intensity, etc. Distinct from gmeow:observationMethod (the procedure or protocol used); this names the property itself. A sensory observation concerns exactly one observable property per observation; multiple properties require multiple observations (Principle 9).", alias="gmeow:sensoryProperty")
+    sensoryResult: list[str] | None = Field(default=None, description="The scalar quantity result of a sensory observation — a value with unit, determinacy, and granularity. Subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The reference frame in which the quantity is expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain.", alias="gmeow:sensoryResult")
+    vantage: list[Agent] | None = Field(default=None, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
 
 
 class StandpointClaim(Observation):

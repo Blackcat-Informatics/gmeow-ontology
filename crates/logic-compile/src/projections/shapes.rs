@@ -336,6 +336,8 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
                 .join(" ");
             vec![format!("sh:or ( {items} )")]
         }
+        // A per-property unique-language facet: at most one value per language tag.
+        ConstraintComponent::UniqueLang => vec!["sh:uniqueLang true".to_owned()],
     }
 }
 
@@ -509,7 +511,8 @@ fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<St
         | ConstraintComponent::LanguageIn(_)
         | ConstraintComponent::DateTimeRange { .. }
         | ConstraintComponent::HasValue(_)
-        | ConstraintComponent::OrProperties(_) => {}
+        | ConstraintComponent::OrProperties(_)
+        | ConstraintComponent::UniqueLang => {}
     }
 }
 
@@ -697,6 +700,9 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             // ShEx Core has alternation (`|`) but not exclusive-or; both are carried in the
             // canonical logic: layer rather than partially projected. Declared in shex_residue.
             | ConstraintComponent::Or(_)
+            // `sh:uniqueLang` has no ShEx Core form; carried in the canonical logic: layer and
+            // disclosed in shex_residue.
+            | ConstraintComponent::UniqueLang
             | ConstraintComponent::Xone(_) => {}
         }
     }
@@ -856,6 +862,11 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 ConstraintComponent::OrProperties(_) => residue.push(format!(
                     "property-alternatives disjunction (sh:or over sh:path branches) on {} is \
                      carried whole in the canonical logic: layer",
+                    p.path
+                )),
+                ConstraintComponent::UniqueLang => residue.push(format!(
+                    "unique-language facet (sh:uniqueLang) on {} has no ShEx Core form; carried \
+                     in the canonical logic: layer",
                     p.path
                 )),
                 // ShEx-faithful, or already carried by the shacl_residue base — no *additional*
@@ -1333,16 +1344,24 @@ fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>>
                 branches.join(" UNION ")
             )])
         }
-        // `¬(a ∧ b) ≡ ¬a ∨ ¬b`. A pure-filter conjunction negates to one `FILTER ( … || … )`.
-        Formula::And(fs) => {
+        // `¬(a ∧ b ∧ …)`. A pure-filter conjunction negates to one `FILTER ( … || … )`.
+        Formula::And(_) => {
             if let Some(expr) = filter_expr(f, focus, true) {
                 return Ok(vec![format!("FILTER ( {} )", expr?)]);
             }
-            let mut branches = Vec::with_capacity(fs.len());
-            for x in fs {
-                branches.push(format!("{{ {} }}", lower_negative(x, focus)?.join(" ")));
-            }
-            Ok(vec![branches.join(" UNION ")])
+            // The conjunction binds patterns: negate it as ONE scoped `FILTER NOT EXISTS` over the
+            // whole positive conjunction — NEVER a `{¬a} UNION {¬b}` of per-conjunct
+            // `FILTER NOT EXISTS` branches. A union arm `{ FILTER NOT EXISTS { $this p o } }` binds
+            // no variable, so SPARQL's algebra evaluates `Union(¬a, ¬b, …)` INDEPENDENTLY of the
+            // guard it is joined with: `$this` is unbound inside each arm, silently turning the
+            // per-conjunct negation into an UNSCOPED global existence check that any sibling node
+            // satisfying that one conjunct clears (the orgbook_notability_mutation regression). The
+            // single scoped `FILTER NOT EXISTS { pos(a) pos(b) … }` keeps `$this` bound (the FILTER
+            // rides the guard's group), so `¬(a ∧ b ∧ …)` is checked per focus node, not globally.
+            Ok(vec![format!(
+                "FILTER NOT EXISTS {{ {} }}",
+                lower_positive(f, focus)?.join(" ")
+            )])
         }
         Formula::Iff(..) => Err(proj_err(
             "a biconditional has no SPARQL constraint-body form",

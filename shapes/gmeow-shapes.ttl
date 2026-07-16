@@ -288,22 +288,6 @@ gmeow:NoPreferredClaimShape
 # events.ttl (mirrors gmeow:NameUsageShape).
 # An event should carry at least a type or some temporal placement — otherwise it
 # is an unanchored occurrence. Warning (a stub event may be fleshed out later).
-gmeow:EventHasTypeOrTimeShape
-    a sh:NodeShape ;
-    rdfs:label "Event has type or time shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Event ;
-    sh:severity sh:Warning ;
-    sh:or (
-        [ sh:path gmeow:eventType ; sh:minCount 1 ]
-        [ sh:path gmeow:eventTime ; sh:minCount 1 ]
-        [ sh:path gmeow:eventInterval ; sh:minCount 1 ]
-        [ sh:path gmeow:earliestStart ; sh:minCount 1 ]
-        [ sh:path gmeow:latestEnd ; sh:minCount 1 ]
-        [ sh:path gmeow:atTime ; sh:minCount 1 ]
-        [ sh:path gmeow:ingestedAt ; sh:minCount 1 ]
-    ) ;
-    sh:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd / atTime / ingestedAt)." .
-
 # Suppression, never erasure (Principle 10): a superseded participation claim — a
 # corrected participant, role, or date carried on a Participation that has ended
 # (gmeow:validUntil) — should set gmeow:displayable false rather than be deleted.
@@ -752,36 +736,6 @@ gmeow:ConsentWellformednessShape
 # properties (usageNamer, facetVantage, statementAbout, relationshipParent)
 # bridge to vantage/observedFeature via rdfs:subPropertyOf in the reasoned core,
 # but SHACL runs without OWL inference. Each subclass has its own shape below.
-gmeow:ObservationShape
-    a sh:NodeShape ;
-    rdfs:label "Observation well-formedness shape"@x-gmeow-english ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            SELECT ?this WHERE {
-                ?this a <https://blackcatinformatics.ca/gmeow/Observation> .
-                FILTER NOT EXISTS {
-                    ?this a ?sub .
-                    ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/gmeow/Observation> .
-                    FILTER (?sub != <https://blackcatinformatics.ca/gmeow/Observation>)
-                }
-            }
-        """ ;
-    ] ;
-    sh:property [
-        sh:path gmeow:vantage ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Observation must record at least one vantage (gmeow:vantage)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observedFeature ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Observation must record exactly one observed feature (gmeow:observedFeature)." ;
-    ] .
-
 # Core observation kinds (Measurement, SensoryObservation, StandpointClaim) still
 # require a method — they are the original observation stack.
 # IdentityFacet well-formedness (#69) — the universal claim construct bridges.
@@ -1125,26 +1079,6 @@ gmeow:GeocodeShape
 # clears the branch). The single-block FILTER NOT EXISTS here is the faithful check,
 # so this shape stays live until the logic-compile shapes projector emits a single
 # scoped NOT-EXISTS block for a negated conjunctive consequent.
-gmeow:NotabilityRequirementShape
-    a sh:NodeShape ;
-    rdfs:label "Notability requirement shape"@x-gmeow-english ;
-    sh:targetClass gmeow:CitationAct ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A citation with supportsNotability true must have sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage (WP:GNG triad)." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this a <https://blackcatinformatics.ca/gmeow/CitationAct> .
-                $this <https://blackcatinformatics.ca/gmeow/supportsNotability> true .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> .
-                    $this <https://blackcatinformatics.ca/gmeow/sourceTier> <https://blackcatinformatics.ca/gmeow/sourceTierSecondary> .
-                    $this <https://blackcatinformatics.ca/gmeow/coverageDepth> <https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage> .
-                }
-            }
-        """ ;
-    ] .
-
 gmeow:CharacterArcShape
     a sh:NodeShape ;
     rdfs:label "Character Arc Shape"@x-gmeow-english ;
@@ -1557,32 +1491,6 @@ gmeow:CancelledOrderSuppressionShape
 # A deception event must carry at least one held standpoint and one projected
 # standpoint. minCount only (open-world: a complex deception may have more).
 # A deception cue observation must carry vantage and observationResult.
-gmeow:DeceptionCueShape
-    a sh:NodeShape ;
-    rdfs:label "Deception cue well-formedness shape"@x-gmeow-english ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            SELECT ?this WHERE {
-                ?event a <https://blackcatinformatics.ca/gmeow/Event> .
-                ?event <https://blackcatinformatics.ca/gmeow/deceptionCue> ?this .
-            }
-        """ ;
-    ] ;
-    sh:class gmeow:Observation ;
-    sh:property [
-        sh:path gmeow:vantage ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A deception cue observation must have a vantage (gmeow:vantage)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observationResult ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A deception cue observation must have an observation result (gmeow:observationResult)." ;
-    ] .
-
 # =========================================================================== #
 # Procedures module shapes (#226) — plan ⟂ execution de-conflation
 # =========================================================================== #
@@ -1594,18 +1502,6 @@ gmeow:DeceptionCueShape
 # --------------------------------------------------------------------------- #
 # Notes & Annotation building block (#63)
 # --------------------------------------------------------------------------- #
-gmeow:CommentHasParentShape
-    a sh:NodeShape ;
-    rdfs:label "Comment parent must be an Entity"@x-gmeow-english ;
-    sh:targetClass gmeow:Comment ;
-    sh:property [
-        sh:path gmeow:commentParent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Entity ;
-        sh:severity sh:Violation ;
-        sh:message "A commentParent must point to exactly one Entity (typically an Annotation or Comment)." ;
-    ] .
 # =========================================================================== #
 # Images module (issue #22) — DepictionUsage, ImageRegion, SceneGraphEdge
 # =========================================================================== #
@@ -1644,18 +1540,6 @@ gmeow:CommentHasParentShape
 # kernel module, not in data) and would force data graphs to re-type kernel
 # vocabulary, which no other value-vocabulary shape requires.
 # --------------------------------------------------------------------------- #
-
-gmeow:AboutnessTargetShape
-    a sh:NodeShape ;
-    rdfs:label "Aboutness Target Shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:hasAboutness ;
-    sh:property [
-        sh:path gmeow:hasAboutness ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasAboutness must target an AboutnessMode individual (an IRI), not a free literal." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Norms shapes (#351 / #352, EPIC #348) — indexed authority, condition
 # machinery, and the rights-graft modality invariants.
@@ -2087,19 +1971,6 @@ gmeow:ExemplarShape
             }
         """ ;
     ] .
-
-gmeow:UsesScaleTargetShape
-    a sh:NodeShape ;
-    rdfs:label "Uses Scale Target Shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:usesScale ;
-    sh:property [
-        sh:path gmeow:usesScale ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ScoreScale ;
-        sh:severity sh:Violation ;
-        sh:message "A holder binds at most one gmeow:usesScale, a ScoreScale — two scales make anchor containment and score interpretation ambiguous (closed-world functional)." ;
-    ] .
-
 gmeow:AssessmentShape
     a sh:NodeShape ;
     rdfs:label "Assessment Shape"@x-gmeow-english ;
@@ -2180,47 +2051,6 @@ gmeow:StyleGuideShape
 # --------------------------------------------------------------------------- #
 # Risk shapes (#354, EPIC #348) — types never tokens; reify with a reason.
 # --------------------------------------------------------------------------- #
-gmeow:CausalLinkShape
-    a sh:NodeShape ;
-    rdfs:label "Causal Link Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:CausalLink ;
-    sh:property [
-        sh:path gmeow:linkAntecedent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:EventType ;
-        sh:severity sh:Violation ;
-        sh:message "A CausalLink must have exactly one gmeow:linkAntecedent, an EventType." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:linkConsequent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:EventType ;
-        sh:severity sh:Violation ;
-        sh:message "A CausalLink must have exactly one gmeow:linkConsequent, an EventType." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:causalModality ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A CausalLink must state exactly one gmeow:causalModality (an IRI — the vocabulary is OPEN per Principle 9): if you reified, you had a reason." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:linkStrength ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:decimal ;
-        sh:severity sh:Violation ;
-        sh:message "A CausalLink carries at most one decimal gmeow:linkStrength per base graph (single-valued in SHACL, deliberately not OWL-functional — divergent estimates ride the statement layer)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:linkMechanism ;
-        sh:uniqueLang true ;
-        sh:severity sh:Violation ;
-        sh:message "A CausalLink carries at most one gmeow:linkMechanism per language tag (localizable prose, the #376 convention)." ;
-    ] .
     # The antecedent≠consequent distinctness and the linkNext acyclicity MIGRATED to
     # logic:causalLinkDistinctness and logic:linkNextAcyclicity
     # (generated/shapes/constraint-shapes.ttl, P17).

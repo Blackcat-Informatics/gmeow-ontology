@@ -395,17 +395,30 @@ fn target_from_integrity(integrity: &Formula) -> gmeow_errors::Result<ShapeTarge
              (∀ this. guard(this) → condition); the ∀ body is not a material implication",
         ));
     };
-    // The guard is either a single atom or a conjunction of atoms; gather the atoms.
-    let guard_atoms: Vec<&Formula> = match antecedent.as_ref() {
-        atom @ Formula::Atom { .. } => vec![atom],
-        Formula::And(fs) => fs.iter().collect(),
-        _ => {
-            return Err(ir_err(
-                "ConstraintIr integrity guard must be an atom or a conjunction of atoms that \
-                 range-restricts the focus variable",
-            ));
+    // The guard is a single atom, a conjunction of atoms, or an existential wrapping such a
+    // conjunction (`∃x. C(x) ∧ P(x, this)` — the focus is the OBJECT of a predicate whose subject
+    // is separately typed). Gather every atom, descending through `∃` and `∧`, so an object-of
+    // membership guard yields a well-formed target.
+    fn collect_guard_atoms<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
+        match f {
+            Formula::Atom { .. } => out.push(f),
+            Formula::And(fs) => {
+                for x in fs {
+                    collect_guard_atoms(x, out);
+                }
+            }
+            Formula::Exists { body, .. } => collect_guard_atoms(body, out),
+            _ => {}
         }
-    };
+    }
+    let mut guard_atoms: Vec<&Formula> = Vec::new();
+    collect_guard_atoms(antecedent.as_ref(), &mut guard_atoms);
+    if guard_atoms.is_empty() {
+        return Err(ir_err(
+            "ConstraintIr integrity guard must be an atom, a conjunction of atoms, or an \
+             existential over such a conjunction that range-restricts the focus variable",
+        ));
+    }
 
     // Prefer a class-membership guard `rdf:type(this, C)`.
     for atom in &guard_atoms {

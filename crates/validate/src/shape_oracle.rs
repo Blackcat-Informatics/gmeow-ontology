@@ -495,6 +495,13 @@ impl CompAcc {
             }
             "qualifiedMinCount" => self.qvs_min = Some(obj_u32(ds, obj, &ctx)?),
             "qualifiedMaxCount" => self.qvs_max = Some(obj_u32(ds, obj, &ctx)?),
+            // `sh:uniqueLang true` is the per-property unique-language facet (no two
+            // language-tagged values share a tag); `false` is the vacuous default.
+            "uniqueLang" => {
+                if obj_lexical(ds, obj, &ctx)? == "true" {
+                    self.comps.push(ConstraintComponent::UniqueLang);
+                }
+            }
             // A SHACL-namespace predicate that is NOT a covered component predicate — the
             // caller routes it (presentation skip, structural, or residue).
             _ => return Ok(false),
@@ -1478,6 +1485,7 @@ fn property_component_witness(
             | ConstraintComponent::Not(_)
             | ConstraintComponent::Or(_)
             | ConstraintComponent::Xone(_)
+            | ConstraintComponent::UniqueLang
             | ConstraintComponent::OrProperties(_) => return None,
         }
     };
@@ -1524,6 +1532,7 @@ fn node_component_witness(
         | ConstraintComponent::QualifiedValueShape { .. }
         | ConstraintComponent::Not(_)
         | ConstraintComponent::Or(_)
+        | ConstraintComponent::UniqueLang
         | ConstraintComponent::Xone(_) => return None,
     };
     let focus = mint(idx);
@@ -1754,13 +1763,18 @@ enum FocusMembership {
     /// A directly-invertible target ([`target_triples`]).
     Target(ShapeTarget),
     /// The conservative skeleton of a raw `sh:SPARQLTarget` select: the focus must carry these
-    /// `rdf:type` classes and (when present) sit under this IRI namespace. Parsed ONLY to mint
-    /// focus-MEMBERSHIP triples — the select body is never used to derive constraint semantics,
-    /// and an unparsable select yields no membership at all (clearance is then impossible: the
-    /// witness cross-check hard-fails rather than passing vacuously).
+    /// `rdf:type` classes, (when present) sit under this IRI namespace, and (when present) be the
+    /// OBJECT of these predicates from a subject of the paired type (`subject a T ; P focus` — an
+    /// object-of-property membership like a deception cue). Parsed ONLY to mint focus-MEMBERSHIP
+    /// triples — the select body is never used to derive constraint semantics, and an unparsable
+    /// select yields no membership at all (clearance is then impossible: the witness cross-check
+    /// hard-fails rather than passing vacuously).
     Skeleton {
         namespace: Option<String>,
         types: Vec<String>,
+        /// `(subject rdf:type, predicate)` edges: a subject of the given type links to the focus
+        /// via the predicate (`?s a T . ?s P ?this`). `None` type ⇒ an untyped subject.
+        object_of: Vec<(Option<String>, String)>,
     },
 }
 
@@ -1776,14 +1790,20 @@ impl FocusMembership {
                     .to_owned(),
             )),
             ShapeTarget::Sparql(select) => {
-                let (namespace, types) = parse_target_skeleton(select).ok_or_else(|| {
-                    parse_err(format!(
-                        "semantic witnesses: the sh:SPARQLTarget select is outside the \
-                         machine-readable skeleton (type patterns + STRSTARTS namespace filter); \
-                         cannot synthesize focus membership: {select}"
-                    ))
-                })?;
-                Ok(FocusMembership::Skeleton { namespace, types })
+                let (namespace, types, object_of) =
+                    parse_target_skeleton(select).ok_or_else(|| {
+                        parse_err(format!(
+                            "semantic witnesses: the sh:SPARQLTarget select is outside the \
+                             machine-readable skeleton (type patterns + STRSTARTS namespace \
+                             filter + object-of-property membership); cannot synthesize focus \
+                             membership: {select}"
+                        ))
+                    })?;
+                Ok(FocusMembership::Skeleton {
+                    namespace,
+                    types,
+                    object_of,
+                })
             }
             other => Ok(FocusMembership::Target(other.clone())),
         }
@@ -1799,17 +1819,29 @@ impl FocusMembership {
                 let triples = target_triples(t, &focus);
                 (focus, triples)
             }
-            FocusMembership::Skeleton { namespace, types } => {
+            FocusMembership::Skeleton {
+                namespace,
+                types,
+                object_of,
+            } => {
                 let focus = format!(
                     "{}gmeow-witness-{n}",
                     namespace
                         .as_deref()
                         .unwrap_or("https://gmeow.example/witness/")
                 );
-                let triples = types
+                let mut triples = types
                     .iter()
                     .map(|c| format!("<{focus}> <{RDF_TYPE}> <{c}> .\n"))
                     .collect::<String>();
+                // Object-of membership: mint a typed subject linking to the focus.
+                for (k, (subj_type, pred)) in object_of.iter().enumerate() {
+                    let subj = format!("{focus}/target-subject-{k}");
+                    if let Some(t) = subj_type {
+                        triples.push_str(&format!("<{subj}> <{RDF_TYPE}> <{t}> .\n"));
+                    }
+                    triples.push_str(&format!("<{subj}> <{pred}> <{focus}> .\n"));
+                }
                 (focus, triples)
             }
         }
@@ -1856,13 +1888,19 @@ fn paren_close(toks: &[String], open: usize) -> Option<usize> {
     None
 }
 
+/// The membership skeleton of a raw `sh:SPARQLTarget` select: `(namespace filter on ?this,
+/// rdf:type classes ?this must carry, object-of edges `(subject type, predicate)`)`.
+type TargetSkeleton = (Option<String>, Vec<String>, Vec<(Option<String>, String)>);
+
 /// Conservatively parse a raw `sh:SPARQLTarget` select into a MEMBERSHIP skeleton:
-/// `(namespace filter on ?this, rdf:type classes ?this must carry)`. Accepts EXACTLY the closed
-/// grammar the corpus meta-shapes author — `?this a <C> .`, `?this a ?v .` with a
-/// `FILTER(?v IN (<C1>, <C2>, …))` domain (the first class is chosen), and
-/// `FILTER(STRSTARTS(STR(?this), "ns"))` — and returns `None` for ANYTHING else, so an opaque
-/// select can never mint a false focus member (the caller then hard-fails, it never clears).
-fn parse_target_skeleton(select: &str) -> Option<(Option<String>, Vec<String>)> {
+/// `(namespace filter on ?this, rdf:type classes ?this must carry, object-of edges)`. Accepts
+/// EXACTLY the closed grammar the corpus meta-shapes author — `?this a <C> .`, `?this a ?v .`
+/// with a `FILTER(?v IN (<C1>, <C2>, …))` domain (the first class is chosen),
+/// `FILTER(STRSTARTS(STR(?this), "ns"))`, and OBJECT-OF membership `?s a <T> . ?s <P> ?this .`
+/// (the focus is the object of `P` from a subject of type `T`, e.g. a deception cue) — and returns
+/// `None` for ANYTHING else, so an opaque select can never mint a false focus member (the caller
+/// then hard-fails, it never clears).
+fn parse_target_skeleton(select: &str) -> Option<TargetSkeleton> {
     let toks = tokenize_select(select);
     let prefixes = select_prefixes(&toks);
     let resolve = |t: &str| -> Option<String> {
@@ -1880,6 +1918,11 @@ fn parse_target_skeleton(select: &str) -> Option<(Option<String>, Vec<String>)> 
     let body = &toks[open + 1..close];
     let mut types: Vec<String> = Vec::new();
     let mut type_vars: Vec<String> = Vec::new();
+    // Non-focus subject variables typed by an IRI class (`?s a <T>`), and object-of edges
+    // (`?s <P> ?this`) — resolved against the subject types after the body is scanned.
+    let mut subj_types: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
+    let mut object_edges: Vec<(String, String)> = Vec::new();
     let mut var_domains: std::collections::BTreeMap<String, Vec<String>> =
         std::collections::BTreeMap::new();
     let mut namespace: Option<String> = None;
@@ -1961,16 +2004,35 @@ fn parse_target_skeleton(select: &str) -> Option<(Option<String>, Vec<String>)> 
             i = end;
             continue;
         }
-        // `?this a <C>` / `?this a ?v` — the only triple pattern the skeleton admits.
-        if t == "?this" && body.get(i + 1).map(String::as_str) == Some("a") {
-            let obj = body.get(i + 2)?;
-            if let Some(var) = obj.strip_prefix('?') {
-                type_vars.push(format!("?{var}"));
-            } else {
-                types.push(resolve(obj)?);
+        // A triple pattern `?S <pred> <obj>` with `?S` a variable subject.
+        if t.starts_with('?') {
+            let (Some(p), Some(o)) = (body.get(i + 1), body.get(i + 2)) else {
+                return None;
+            };
+            // `?S a <C>` / `?S a ?v` — a type triple.
+            if p == "a" {
+                if t == "?this" {
+                    if let Some(var) = o.strip_prefix('?') {
+                        type_vars.push(format!("?{var}"));
+                    } else {
+                        types.push(resolve(o)?);
+                    }
+                } else if o.starts_with('?') {
+                    // A non-focus subject typed by a variable is out of skeleton.
+                    return None;
+                } else {
+                    subj_types.insert(t.clone(), resolve(o)?);
+                }
+                i += 3;
+                continue;
             }
-            i += 3;
-            continue;
+            // `?S <P> ?this` — an object-of membership edge (P an IRI predicate, focus the object).
+            if o == "?this" && p != "?this" {
+                object_edges.push((t.clone(), resolve(p)?));
+                i += 3;
+                continue;
+            }
+            return None;
         }
         return None;
     }
@@ -1978,10 +2040,14 @@ fn parse_target_skeleton(select: &str) -> Option<(Option<String>, Vec<String>)> 
         let domain = var_domains.remove(&v)?;
         types.push(domain.into_iter().next().expect("non-empty domain"));
     }
-    if types.is_empty() && namespace.is_none() {
+    let object_of: Vec<(Option<String>, String)> = object_edges
+        .into_iter()
+        .map(|(subj, pred)| (subj_types.get(&subj).cloned(), pred))
+        .collect();
+    if types.is_empty() && namespace.is_none() && object_of.is_empty() {
         return None;
     }
-    Some((namespace, types))
+    Some((namespace, types, object_of))
 }
 
 /// The parsed structural form of one `sh:xone` branch or `sh:node` inner shape: a list of
@@ -2232,6 +2298,7 @@ pub fn semantic_witness_plan(
     // every required sh:node path, and full satisfaction of ONE sh:xone branch (`branch`).
     let base = |focus: &str,
                 exclude: Option<&str>,
+                node_exclude: Option<usize>,
                 branch: Option<usize>,
                 tag: &mut usize|
      -> Option<String> {
@@ -2254,6 +2321,26 @@ pub fn semantic_witness_plan(
                 out.push_str(&extra);
             }
         }
+        // Satisfy the focus-node-level covered constructs (all but `node_exclude`): a `sh:class`
+        // types the focus, a node-level property-alternatives `sh:or` needs ONE alternative path
+        // present. (`sh:nodeKind` is definitionally met — the minted focus is an IRI.)
+        for (ni, nc) in read.ir.node_components.iter().enumerate() {
+            if Some(ni) == node_exclude {
+                continue;
+            }
+            match nc {
+                ConstraintComponent::Class(c) => {
+                    out.push_str(&format!("<{focus}> <{RDF_TYPE}> <{c}> .\n"));
+                }
+                ConstraintComponent::OrProperties(paths) => {
+                    if let Some(p0) = paths.first() {
+                        out.push_str(&format!("<{focus}> <{p0}> <{focus}/orprop-{tag}> .\n"));
+                        *tag += 1;
+                    }
+                }
+                _ => {}
+            }
+        }
         if let Some(b) = branch {
             out.push_str(&satisfy_props(&constructs.xone_branches[b], focus, tag)?);
         }
@@ -2267,7 +2354,7 @@ pub fn semantic_witness_plan(
     // Conforming baseline: flagged by NEITHER side.
     {
         let (focus, mut triples) = membership.mint(&mut idx);
-        let body = base(&focus, None, default_branch, &mut tag).ok_or_else(|| {
+        let body = base(&focus, None, None, default_branch, &mut tag).ok_or_else(|| {
             parse_err(format!(
                 "semantic witnesses: <{shape_iri}> has no constructible conforming baseline \
                  (a covered component admits no confident satisfying value)"
@@ -2289,7 +2376,7 @@ pub fn semantic_witness_plan(
         }
         if pc.min_count.unwrap_or(0) >= 1 {
             let (focus, mut triples) = membership.mint(&mut idx);
-            if let Some(body) = base(&focus, Some(&pc.path), default_branch, &mut tag) {
+            if let Some(body) = base(&focus, Some(&pc.path), None, default_branch, &mut tag) {
                 triples.push_str(&body);
                 plan.covered.push(SemanticWitness {
                     label: format!("sh:minCount@{}", pc.path),
@@ -2315,7 +2402,7 @@ pub fn semantic_witness_plan(
             // Only m+1 DISTINCT satisfying values discriminate sh:maxCount — identical terms
             // (an sh:hasValue path) collapse to one value, so the witness is suppressed.
             if distinct.len() == (m as usize) + 1
-                && let Some(body) = base(&focus, Some(&pc.path), default_branch, &mut tag)
+                && let Some(body) = base(&focus, Some(&pc.path), None, default_branch, &mut tag)
             {
                 triples.push_str(&body);
                 triples.push_str(&over);
@@ -2332,7 +2419,7 @@ pub fn semantic_witness_plan(
             let Some((bad, kind)) = violating_object(comp, &focus) else {
                 continue;
             };
-            if let Some(body) = base(&focus, Some(&pc.path), default_branch, &mut tag) {
+            if let Some(body) = base(&focus, Some(&pc.path), None, default_branch, &mut tag) {
                 triples.push_str(&body);
                 triples.push_str(&format!("<{focus}> <{}> {bad} .\n", pc.path));
                 plan.covered.push(SemanticWitness {
@@ -2345,11 +2432,45 @@ pub fn semantic_witness_plan(
         }
     }
 
+    // Focus-node-level covered constructs near-misses: a `sh:class` the focus does NOT carry
+    // (flagged), and a node-level property-alternatives `sh:or` with NONE of its paths present
+    // (flagged — the at-least-one obligation fails). The conforming baseline above already
+    // exercises the satisfying case for each (typed / one-alternative-present).
+    for (ni, nc) in read.ir.node_components.iter().enumerate() {
+        match nc {
+            ConstraintComponent::Class(c) => {
+                let (focus, mut triples) = membership.mint(&mut idx);
+                if let Some(body) = base(&focus, None, Some(ni), default_branch, &mut tag) {
+                    triples.push_str(&body);
+                    plan.covered.push(SemanticWitness {
+                        label: format!("node:sh:class@{c}"),
+                        focus,
+                        triples,
+                        expect_flagged: true,
+                    });
+                }
+            }
+            ConstraintComponent::OrProperties(paths) => {
+                let (focus, mut triples) = membership.mint(&mut idx);
+                if let Some(body) = base(&focus, None, Some(ni), default_branch, &mut tag) {
+                    triples.push_str(&body);
+                    plan.residue.push(SemanticWitness {
+                        label: format!("node:sh:or-properties@{}", paths.join("|")),
+                        focus,
+                        triples,
+                        expect_flagged: true,
+                    });
+                }
+            }
+            _ => {}
+        }
+    }
+
     // sh:xone near-misses: zero branches satisfied, and (when two branches are constructible)
     // two branches satisfied — the witness that discriminates exactly-one from at-least-one.
     if !constructs.xone_branches.is_empty() {
         let (focus, mut triples) = membership.mint(&mut idx);
-        if let Some(body) = base(&focus, None, None, &mut tag) {
+        if let Some(body) = base(&focus, None, None, None, &mut tag) {
             triples.push_str(&body);
             plan.residue.push(SemanticWitness {
                 label: "sh:xone: no alternative present".to_owned(),
@@ -2361,7 +2482,7 @@ pub fn semantic_witness_plan(
         if constructs.xone_branches.len() >= 2 {
             let (focus, mut triples) = membership.mint(&mut idx);
             if let (Some(body), Some(second)) = (
-                base(&focus, None, Some(0), &mut tag),
+                base(&focus, None, None, Some(0), &mut tag),
                 satisfy_props(&constructs.xone_branches[1], &focus, &mut tag),
             ) {
                 triples.push_str(&body);
@@ -2375,7 +2496,7 @@ pub fn semantic_witness_plan(
             }
             // A second-branch conformer: exactly one (the OTHER) alternative present.
             let (focus, mut triples) = membership.mint(&mut idx);
-            if let Some(body) = base(&focus, None, Some(1), &mut tag) {
+            if let Some(body) = base(&focus, None, None, Some(1), &mut tag) {
                 triples.push_str(&body);
                 plan.conforming.push(SemanticWitness {
                     label: "conforming (second alternative)".to_owned(),
@@ -2398,7 +2519,7 @@ pub fn semantic_witness_plan(
         });
         if inner_required {
             let (focus, mut triples) = membership.mint(&mut idx);
-            if let Some(body) = base(&focus, Some(&np.path), default_branch, &mut tag) {
+            if let Some(body) = base(&focus, Some(&np.path), None, default_branch, &mut tag) {
                 triples.push_str(&body);
                 triples.push_str(&format!(
                     "<{focus}> <{}> <{focus}/node-near-miss> .\n",
@@ -2414,7 +2535,7 @@ pub fn semantic_witness_plan(
         }
         let (focus, mut triples) = membership.mint(&mut idx);
         if let (Some(body), Some(inner_ok)) = (
-            base(&focus, Some(&np.path), default_branch, &mut tag),
+            base(&focus, Some(&np.path), None, default_branch, &mut tag),
             satisfy_props(&np.inner, &format!("{focus}/node-conforms"), &mut tag),
         ) {
             triples.push_str(&body);
@@ -2433,6 +2554,80 @@ pub fn semantic_witness_plan(
     }
 
     Ok(plan)
+}
+
+/// Multi-sibling near-miss witnesses for a negated-conjunction obligation over a focus class:
+/// `∀this. C(this) ∧ trigger(this, tv) → (p₁ v₁ ∧ … ∧ pₙ vₙ)`. This is the shape a De-Morgan
+/// lowering that splits `¬(p₁ ∧ … ∧ pₙ)` into an UNSCOPED `{¬p₁} UNION … UNION {¬pₙ}` silently
+/// mis-projects: each union arm binds no variable, so SPARQL evaluates it independently of the
+/// guard join — `$this` is unbound inside the arm and `NOT EXISTS { $this pᵢ vᵢ }` degrades to a
+/// GLOBAL existence check that ANY sibling carrying `pᵢ vᵢ` clears.
+///
+/// For each conjunct k it mints (a) a NEAR-MISS focus that triggers the obligation and satisfies
+/// every conjunct BUT k, paired with a SIBLING that carries conjunct k (so the unscoped union
+/// arm for k — and every other arm, which the focus itself satisfies — is globally cleared), with
+/// `expect_flagged = true`; plus one CONFORMING focus that satisfies every conjunct
+/// (`expect_flagged = false`). A scoped `FILTER NOT EXISTS { $this p₁ v₁ . … . $this pₙ vₙ }`
+/// record flags each near-miss and passes; an unscoped union record flags none and is caught.
+///
+/// Object terms (`trigger_obj`, each conjunct object) are already-serialized Turtle terms
+/// (`<iri>` or a literal like `'true'^^<…boolean>`), so a boolean-triggered obligation is
+/// expressible.
+pub fn negated_conjunction_sibling_witnesses(
+    focus_class: &str,
+    trigger_pred: &str,
+    trigger_obj: &str,
+    conjuncts: &[(&str, &str)],
+) -> Vec<SemanticWitness> {
+    let base_ns = "https://gmeow.example/negconj";
+    let head = |focus: &str| {
+        format!(
+            "<{focus}> <{RDF_TYPE}> <{focus_class}> .\n<{focus}> <{trigger_pred}> {trigger_obj} .\n"
+        )
+    };
+    let mut out = Vec::new();
+
+    // Conforming: triggers the obligation and satisfies every conjunct.
+    {
+        let focus = format!("{base_ns}/conforming");
+        let mut triples = head(&focus);
+        for (p, v) in conjuncts {
+            triples.push_str(&format!("<{focus}> <{p}> {v} .\n"));
+        }
+        out.push(SemanticWitness {
+            label: "negated-conjunction: conforming (all conjuncts)".to_owned(),
+            focus,
+            triples,
+            expect_flagged: false,
+        });
+    }
+
+    // For each conjunct k: a near-miss focus (all conjuncts but k) + a sibling carrying k.
+    for (k, (pk, _vk)) in conjuncts.iter().enumerate() {
+        let focus = format!("{base_ns}/near-miss-{k}");
+        let sibling = format!("{base_ns}/sibling-{k}");
+        let mut triples = head(&focus);
+        for (i, (p, v)) in conjuncts.iter().enumerate() {
+            if i == k {
+                continue;
+            }
+            triples.push_str(&format!("<{focus}> <{p}> {v} .\n"));
+        }
+        // The sibling carries the OMITTED conjunct's exact (predicate, value) — the datum that
+        // clears the unscoped union arm globally.
+        let (pk_v, vk_v) = conjuncts[k];
+        let _ = pk;
+        triples.push_str(&format!("<{sibling}> <{RDF_TYPE}> <{focus_class}> .\n"));
+        triples.push_str(&format!("<{sibling}> <{pk_v}> {vk_v} .\n"));
+        out.push(SemanticWitness {
+            label: format!("negated-conjunction: near-miss missing conjunct {k} (sibling clears)"),
+            focus,
+            triples,
+            expect_flagged: true,
+        });
+    }
+
+    out
 }
 
 /// The Turtle serialization of the shape subgraphs rooted at `roots` in `ds`: every statement
@@ -3455,11 +3650,33 @@ mod tests {
 
     #[test]
     fn target_skeleton_parses_type_pattern_and_namespace() {
-        let (ns, types) = parse_target_skeleton(META_SELECT).expect("meta skeleton parses");
+        let (ns, types, object_of) =
+            parse_target_skeleton(META_SELECT).expect("meta skeleton parses");
         assert_eq!(ns.as_deref(), Some("https://example.test/ns/"));
         assert_eq!(
             types,
             vec!["http://www.w3.org/2002/07/owl#Class".to_owned()]
+        );
+        assert!(object_of.is_empty());
+    }
+
+    #[test]
+    fn target_skeleton_parses_object_of_property_membership() {
+        // `?event a Event . ?event deceptionCue ?this` — the focus is the OBJECT of deceptionCue
+        // from an Event-typed subject (the deception-cue membership shape).
+        let select = "SELECT ?this WHERE { \
+             ?event a <https://ex/Event> . \
+             ?event <https://ex/deceptionCue> ?this . }";
+        let (ns, types, object_of) =
+            parse_target_skeleton(select).expect("object-of skeleton parses");
+        assert!(ns.is_none());
+        assert!(types.is_empty());
+        assert_eq!(
+            object_of,
+            vec![(
+                Some("https://ex/Event".to_owned()),
+                "https://ex/deceptionCue".to_owned()
+            )]
         );
     }
 
@@ -3474,13 +3691,15 @@ mod tests {
                 ))\n\
                 FILTER(STRSTARTS(STR(?this), \"https://example.test/ns/\"))\n\
             }\n";
-        let (ns, types) = parse_target_skeleton(select).expect("IN-domain skeleton parses");
+        let (ns, types, object_of) =
+            parse_target_skeleton(select).expect("IN-domain skeleton parses");
         assert_eq!(ns.as_deref(), Some("https://example.test/ns/"));
         assert_eq!(
             types,
             vec!["http://www.w3.org/2002/07/owl#ObjectProperty".to_owned()],
             "the first domain class is the membership type"
         );
+        assert!(object_of.is_empty());
     }
 
     #[test]
@@ -3603,6 +3822,85 @@ mod tests {
         let err = semantic_cross_check("", "", &[])
             .expect_err("an empty witness set is vacuous, not a pass");
         assert!(err.to_string().contains("vacuous"), "{err}");
+    }
+
+    // The WP:GNG-triad negated-conjunction fixtures: a `CitationAct` asserting `supportsNotability
+    // true` must carry all three triad values. `NC_*` model the projected record two ways.
+    //
+    // The CORRECT scoped lowering: ONE `FILTER NOT EXISTS` over the whole triad conjunction, so
+    // `$this` stays bound and the check is per focus node.
+    const NC_SCOPED_TTL: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/NotabilityShape> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/NotabilityShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/CitationAct> ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:message \"WP:GNG triad\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { \
+        $this <https://ex/supportsNotability> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . \
+        FILTER NOT EXISTS { $this <https://ex/indep> <https://ex/independent> . \
+        $this <https://ex/tier> <https://ex/secondary> . \
+        $this <https://ex/cov> <https://ex/significant> . } }\"\"\" ] .\n";
+    // The BUGGY unscoped De-Morgan lowering: a UNION of per-conjunct `FILTER NOT EXISTS` arms.
+    // Each arm binds nothing, so `$this` is unbound and the check degrades to global existence.
+    const NC_UNION_TTL: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/NotabilityShape> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/NotabilityShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/CitationAct> ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:message \"WP:GNG triad\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { \
+        $this <https://ex/supportsNotability> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . \
+        { FILTER NOT EXISTS { $this <https://ex/indep> <https://ex/independent> . } } UNION \
+        { FILTER NOT EXISTS { $this <https://ex/tier> <https://ex/secondary> . } } UNION \
+        { FILTER NOT EXISTS { $this <https://ex/cov> <https://ex/significant> . } } }\"\"\" ] .\n";
+
+    fn nc_witnesses() -> Vec<SemanticWitness> {
+        negated_conjunction_sibling_witnesses(
+            "https://ex/CitationAct",
+            "https://ex/supportsNotability",
+            "'true'^^<http://www.w3.org/2001/XMLSchema#boolean>",
+            &[
+                ("https://ex/indep", "<https://ex/independent>"),
+                ("https://ex/tier", "<https://ex/secondary>"),
+                ("https://ex/cov", "<https://ex/significant>"),
+            ],
+        )
+    }
+
+    #[test]
+    fn negated_conjunction_witnesses_carry_a_conforming_and_a_multi_sibling_near_miss() {
+        let ws = nc_witnesses();
+        assert!(ws.iter().any(|w| !w.expect_flagged), "{ws:?}");
+        assert_eq!(
+            ws.iter().filter(|w| w.expect_flagged).count(),
+            3,
+            "one multi-sibling near-miss per triad conjunct: {ws:?}"
+        );
+        // Every near-miss carries a sibling that satisfies the omitted conjunct.
+        assert!(
+            ws.iter()
+                .filter(|w| w.expect_flagged)
+                .all(|w| w.triples.contains("/sibling-")),
+            "{ws:?}"
+        );
+    }
+
+    #[test]
+    fn semantic_cross_check_accepts_the_scoped_negated_conjunction_record() {
+        // The scoped single-NOT-EXISTS record reproduces the per-focus triad obligation.
+        semantic_cross_check(NC_SCOPED_TTL, NC_SCOPED_TTL, &nc_witnesses())
+            .expect("the scoped record reproduces the negated-conjunction semantics");
+    }
+
+    #[test]
+    fn semantic_cross_check_rejects_the_unscoped_union_negated_conjunction_projection() {
+        // The load-bearing guard: the pre-fix `{¬a} UNION {¬b} UNION {¬c}` lowering loses
+        // $this-scoping, so a sibling satisfying one conjunct globally clears the branch and the
+        // near-miss is NOT flagged — the oracle MUST catch it (guard against silent recurrence of
+        // the orgbook_notability_mutation projector bug).
+        let err = semantic_cross_check(NC_SCOPED_TTL, NC_UNION_TTL, &nc_witnesses())
+            .expect_err("an unscoped-union projection must not survive the witness cross-check");
+        assert!(err.to_string().contains("does not reproduce"), "{err}");
     }
 
     #[test]

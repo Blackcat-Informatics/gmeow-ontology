@@ -7634,6 +7634,18 @@ logic:ValueRangeConstraint
     gmeow:howToUse "Name the target class, the value path, and at least one inclusive literal bound; the compiled condition flags any value outside the closed interval."@x-gmeow-english ;
     gmeow:useWhen "Use when every numeric value of one direct predicate on a class must lie in a closed interval under closed-world validation."@x-gmeow-english .
 
+logic:UniqueLangConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unique Language Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a per-property unique-language constraint: a logic:onClass target and a logic:valuePath predicate whose language-tagged literal values must each carry a DISTINCT language tag (no two values on that path share a tag). Expands declaratively to a sh:uniqueLang true property component on the target class node shape; a language-tagged prose predicate localizes at most once per language. Frontend-only authoring shortcut with no ShEx form (the uniqueLang facet is a disclosed ShEx drop)."@x-gmeow-english ;
+    skos:example "ex:oneNamePerLang a logic:UniqueLangConstraint ; logic:onClass ex:Place ; logic:valuePath ex:localName ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to cap total values (that is a cardinality restriction) or to constrain a non-language-tagged predicate; uniqueLang only bites language-tagged literals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class and the localizable-prose value path; the derived sh:uniqueLang true flags any focus carrying two values that share a language tag."@x-gmeow-english ;
+    gmeow:useWhen "Use when a language-tagged prose predicate on a class must localize at most once per language tag (the localizable-prose convention)."@x-gmeow-english .
+
 logic:AggregateConstraint
     a owl:Class ;
     rdfs:subClassOf logic:ConstraintSugar ;

@@ -316,6 +316,7 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "AcyclicConstraint"
             | "ValueSetMembershipConstraint"
             | "StringPatternConstraint"
+            | "UniqueLangConstraint"
     )
 }
 
@@ -1683,6 +1684,34 @@ pub fn derive_validation_shapes(
         };
         acc.entry(iri)
             .or_insert_with(|| (target, Vec::new(), Vec::new()))
+    }
+
+    // ── Unique-language sugar (logic:UniqueLangConstraint) → declarative sh:uniqueLang ────────
+    // A per-property unique-language record grounds a `sh:uniqueLang true` facet DECLARATIVELY on
+    // its `logic:onClass` node shape (the localizable-prose convention): the value path localizes
+    // at most once per language tag. Unlike the procedural sugars, uniqueLang is a faithful SHACL
+    // Core facet, so it rides the class node shape as a covered property component.
+    let unique_lang_ty = Node::iri(logic_iri("UniqueLangConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &unique_lang_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path))) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+        ) else {
+            continue;
+        };
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::UniqueLang],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
     }
 
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────

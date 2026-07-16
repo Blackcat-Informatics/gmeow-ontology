@@ -186,9 +186,10 @@ class CausalLink(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    causalModality: list[CausalModalityEnum] = Field(description="The force this link claims. Functional and mandatory (SHACL): if you reified, you had a reason — the modality is it. Open vocabulary (sh:nodeKind sh:IRI, never sh:in).", alias="gmeow:causalModality")
+    causalModality: CausalModalityEnum = Field(description="The force this link claims. Functional and mandatory (SHACL): if you reified, you had a reason — the modality is it. Open vocabulary (sh:nodeKind sh:IRI, never sh:in).", alias="gmeow:causalModality")
     linkAntecedent: EventTypeEnum = Field(description="The causing kind. Functional and mandatory (SHACL); distinct from the consequent (the logic:causalLinkDistinctness axiom, projected to SHACL — nothing type-causes itself).", alias="gmeow:linkAntecedent")
     linkConsequent: EventTypeEnum = Field(description="The caused kind. Functional and mandatory (SHACL).", alias="gmeow:linkConsequent")
+    linkMechanism: list[Any] | None = Field(default=None, description="How the causation works — prose. NOT functional and range-open (localizable prose, the localizable-prose convention lesson): one mechanism account per language tag.", alias="gmeow:linkMechanism")
     linkStrength: float | None = Field(default=None, description="A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional design review: strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing owl:sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention).", alias="gmeow:linkStrength")
 
 
