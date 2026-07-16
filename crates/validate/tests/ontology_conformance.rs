@@ -45,17 +45,17 @@ use rstest::rstest;
 // ── Tests migrated from tests/test_shapes.py ─────────────────────────────────
 #[case::wellformed_relator_fixture_conforms(Case::file("shapes", "relator-wellformed"))]
 #[case::malformed_relator_fixture_is_flagged(
-    // The genderValue exactly-one bound migrated to the projected surface
-    // (generated/shapes/validation-shapes.ttl GenderIdentity-shape), which the
-    // fixture corpus deliberately excludes — its witness rides the production
-    // shape union below (`malformed_relator_gender_value_bounds_on_union`).
+    // The genderValue AND usageAppellation exactly-one bounds migrated to the projected
+    // surface (generated/shapes/validation-shapes.ttl GenderIdentity-shape / NameUsage-shape),
+    // which the fixture corpus deliberately excludes — their witnesses ride the production
+    // shape union below (`malformed_relator_gender_value_bounds_on_union`). The suppression
+    // warning likewise migrated to gmeow:SupersededFacetSuppressionConstraint on that union.
+    // What remains authored on the fixture corpus is the orthogonality disjointness check.
     Case::file("shapes", "relator-malformed")
         .fails()
         .violations(&[
-            "must use exactly one appellation",
             "may fill at most one of these mutually disjoint classes",
         ])
-        .warnings(&["should set gmeow:displayable false"])
 )]
 #[case::suppression_warning_does_not_fail_validation(
     Case::file("shapes", "suppression-warning-only")

@@ -178,39 +178,7 @@ gmeow:GmeowOntologyShape
 # A name must carry content, but a SURNAME is never required — mononyms and
 # non-Western naming systems are first-class. Satisfied by a full name or any
 # typed part.
-gmeow:AppellationHasContentShape
-    a sh:NodeShape ;
-    rdfs:label "Appellation content shape (no required surname)"@x-gmeow-english ;
-    sh:targetClass gmeow:Appellation ;
-    sh:or (
-        [ sh:path gmeow:fullName ; sh:minCount 1 ]
-        [ sh:path gmeow:hasNamePart ; sh:minCount 1 ]
-    ) ;
-    sh:severity sh:Violation ;
-    sh:message "An appellation must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .
-
 # Deadnames and superseded names must be suppressed from display by default.
-gmeow:DeadnameSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Deadname / superseded suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:PersonName ;
-    sh:sparql [
-        sh:severity sh:Warning ;
-        sh:message "A superseded name or deadname should set gmeow:displayable false." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/namePurpose> ?p .
-                FILTER(?p IN (
-                    <https://blackcatinformatics.ca/gmeow/namePurposeDeadname>,
-                    <https://blackcatinformatics.ca/gmeow/namePurposeSuperseded>
-                ))
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # =========================================================================== #
 # Hybrid OWL+SHACL closed-world data shapes (#39, epic #35).
 #
@@ -231,39 +199,9 @@ gmeow:DeadnameSuppressionShape
 # is functional per facet, but OWL functionality does not REJECT a second value
 # (it infers the two are owl:sameAs). SHACL minCount/maxCount enforces it.
 # --------------------------------------------------------------------------- #
-gmeow:GenderExpressionFacetShape
-    a sh:NodeShape ;
-    rdfs:label "GenderExpression well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:GenderExpression ;
-    sh:property [
-        sh:path gmeow:expressionValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A GenderExpression facet must point at exactly one gmeow:GenderExpressionStyle value (gmeow:expressionValue)." ;
-    ] .
 # The NameUsage relator binds {who is named} × {which appellation}; both relata
 # are required and single-valued per usage (a distinct usage is minted per
 # audience/register). Audience, register and period stay optional.
-gmeow:NameUsageShape
-    a sh:NodeShape ;
-    rdfs:label "NameUsage well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:NameUsage ;
-    sh:property [
-        sh:path gmeow:usageNamed ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A NameUsage must name exactly one entity (gmeow:usageNamed)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:usageAppellation ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A NameUsage must use exactly one appellation (gmeow:usageAppellation)." ;
-    ] .
-
 # A NotationSystemUsage mediates exactly one target and one notation system
 # (mirrors the someValuesFrom on notationUsageTarget and notationUsageNotationSystem).
 # --------------------------------------------------------------------------- #
@@ -277,26 +215,6 @@ gmeow:NameUsageShape
 # Targets the four concrete IdentityFacet axes directly (not the abstract base):
 # a closed-world data check runs without subclass inference, so an instance typed
 # only as gmeow:GenderIdentity would not match a gmeow:IdentityFacet target.
-gmeow:SupersededFacetSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Superseded identity-facet suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:GenderIdentity ;
-    sh:targetClass gmeow:GenderExpression ;
-    sh:targetClass gmeow:SexualOrientation ;
-    sh:targetClass gmeow:RomanticOrientation ;
-    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
-    sh:sparql [
-        sh:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # The identity-axis orthogonality data-check MIGRATED to the named axiom
 # gmeow:identityAxisDisjointness (owl:AllDisjointClasses in the gender slice),
 # projected to gmeow:IdentityAxisDisjointnessConstraintShape in
@@ -318,26 +236,6 @@ gmeow:SupersededFacetSuppressionShape
 # (b) StandpointTenure well-formedness — closed-world cardinality. Mirrors
 # NameUsageShape; the OWL EL someValuesFrom in standpoint.ttl classifies, SHACL
 # enforces "exactly one standpoint".
-gmeow:StandpointTenureShape
-    a sh:NodeShape ;
-    rdfs:label "StandpointTenure well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:StandpointTenure ;
-    sh:property [
-        sh:path gmeow:tenureStandpoint ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A StandpointTenure must record exactly one standpoint (gmeow:tenureStandpoint)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:standpointClaim ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:StandpointClaim ;
-        sh:severity sh:Violation ;
-        sh:message "A StandpointTenure must record exactly one generated StandpointClaim (gmeow:standpointClaim)." ;
-    ] .
-
 # (c) No preferred / primary claim (Principle 9). Fires on any GMEOW-namespace
 # predicate whose local name begins with "primary" / "preferred" — the forward
 # guard against ever re-creating the single winning slot the edit war is fought
@@ -374,56 +272,10 @@ gmeow:NoPreferredClaimShape
 # data-level because match strength may be attributed, confidence-weighted, or
 # standpoint-indexed in statement metadata.
 # =========================================================================== #
-
-gmeow:AuthorityLinkMatchStrengthShape
-    a sh:NodeShape ;
-    rdfs:label "Authority link match-strength shape"@x-gmeow-english ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            SELECT ?this WHERE {
-                ?this <https://blackcatinformatics.ca/gmeow/authorityLink> ?auth .
-            }
-        """ ;
-    ] ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "An authority link should also assert skos:exactMatch or skos:closeMatch to record coreference strength." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/authorityLink> ?auth .
-                FILTER NOT EXISTS {
-                    $this <http://www.w3.org/2004/02/skos/core#exactMatch> ?auth
-                }
-                FILTER NOT EXISTS {
-                    $this <http://www.w3.org/2004/02/skos/core#closeMatch> ?auth
-                }
-            }
-        """ ;
-    ] .
-
 # (d) Withdrawn-standpoint suppression (Principle 10 — suppression, never
 # erasure). The StandpointTenure sibling of SupersededFacetSuppressionShape: a
 # tenure whose interval has ended (a withdrawn position) should set
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
-gmeow:WithdrawnStandpointSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Withdrawn standpoint suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:StandpointTenure ;
-    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
-    sh:sparql [
-        sh:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/duringInterval> ?iv .
-                ?iv <https://blackcatinformatics.ca/gmeow/endedAtTime> ?end .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Events module (#41). Closed-world well-formedness for the universal event +
 # its Participation relator; the standpoint coexistence / no-preferred-claim
@@ -456,23 +308,6 @@ gmeow:EventHasTypeOrTimeShape
 # corrected participant, role, or date carried on a Participation that has ended
 # (gmeow:validUntil) — should set gmeow:displayable false rather than be deleted.
 # The events sibling of SupersededFacetSuppressionShape. Warning (a source may lag).
-gmeow:CorrectedEventSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Corrected / superseded participation suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Participation ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A superseded participation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Rights / IP module (#21). Closed-world well-formedness for the rights relators
 # (the SHACL counterpart of the EL someValuesFrom mediation axioms in rights.ttl),
@@ -833,46 +668,6 @@ gmeow:OrientationShape
 # Disclosure control by generalization (#72, P10) + granularity axis (#79).
 # coarsenTo and hasGranularity are domain-free, so target their subjects directly:
 # whatever carries them, the value must be a gmeow:GranularityLevel.
-gmeow:CoarsenToShape
-    a sh:NodeShape ;
-    rdfs:label "coarsenTo disclosure-control well-formedness shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:coarsenTo ;
-    sh:property [
-        sh:path gmeow:coarsenTo ;
-        sh:class gmeow:GranularityLevel ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:coarsenTo must point at a single gmeow:GranularityLevel — the coarsest level the value may be disclosed at; multiple, possibly conflicting, markers are ill-formed." ;
-    ] ;
-    # Reachability (warning): coarsening replaces the precise value with an enclosing
-    # ancestor at the target level. If no gmeow:containedInPlace+ ancestor carries that
-    # gmeow:hasGranularity, the precise value is suppressed with nothing to put in its
-    # place — silent precision loss. Warn rather than fail (the ancestor may be supplied
-    # by a separate graph, or coarsening deferred to the solver).
-    sh:sparql [
-        sh:severity sh:Warning ;
-        sh:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/coarsenTo> ?lvl .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/containedInPlace>+ ?ancestor .
-                    ?ancestor <https://blackcatinformatics.ca/gmeow/hasGranularity> ?lvl .
-                }
-            }
-        """ ;
-    ] .
-
-gmeow:HasGranularityShape
-    a sh:NodeShape ;
-    rdfs:label "hasGranularity facet well-formedness shape"@x-gmeow-english ;
-    sh:targetSubjectsOf gmeow:hasGranularity ;
-    sh:property [
-        sh:path gmeow:hasGranularity ;
-        sh:class gmeow:GranularityLevel ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:hasGranularity must point at a gmeow:GranularityLevel — the value's own resolution level." ;
-    ] .
 # --------------------------------------------------------------------------- #
 # Privacy / consent / redaction shapes (#73, PRIV-GEN).
 #
@@ -989,91 +784,13 @@ gmeow:ObservationShape
 
 # Core observation kinds (Measurement, SensoryObservation, StandpointClaim) still
 # require a method — they are the original observation stack.
-gmeow:CoreObservationMethodShape
-    a sh:NodeShape ;
-    rdfs:label "Core observation method shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Measurement ;
-    sh:targetClass gmeow:SensoryObservation ;
-    sh:targetClass gmeow:StandpointClaim ;
-    sh:targetClass gmeow:TemporalMeasurement ;
-    sh:property [
-        sh:path gmeow:observationMethod ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ObservationMethod ;
-        sh:severity sh:Violation ;
-        sh:message "A core observation (measurement, sensory, standpoint claim, or temporal measurement) must record exactly one observation method (gmeow:observationMethod)." ;
-    ] .
-
 # IdentityFacet well-formedness (#69) — the universal claim construct bridges.
-gmeow:IdentityFacetShape
-    a sh:NodeShape ;
-    rdfs:label "IdentityFacet well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:IdentityFacet ;
-    sh:targetClass gmeow:GenderIdentity ;
-    sh:targetClass gmeow:GenderExpression ;
-    sh:targetClass gmeow:SexualOrientation ;
-    sh:targetClass gmeow:RomanticOrientation ;
-    sh:property [
-        sh:path gmeow:facetSubject ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An IdentityFacet must record exactly one subject (gmeow:facetSubject)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:facetVantage ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An IdentityFacet must record exactly one vantage (gmeow:facetVantage)." ;
-    ] .
-
 # KinRelationship well-formedness (#69) — multi-participant observation.
 # A ScalarQuantity / Quantity / MeasuredValue needs a value and a unit.
-gmeow:ScalarQuantityShape
-    a sh:NodeShape ;
-    rdfs:label "Quantity well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:ScalarQuantity, gmeow:Quantity, gmeow:MeasuredValue ;
-    sh:property [
-        sh:path gmeow:quantityValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:decimal ;
-        sh:severity sh:Violation ;
-        sh:message "A Quantity must carry exactly one numeric gmeow:quantityValue." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:unit ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Quantity must declare exactly one unit (gmeow:unit), identified by an IRI." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:trueQuantity ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Quantity may carry at most one frame-independent magnitude (gmeow:trueQuantity)." ;
-    ] .
-
 # Functional-cardinality shapes for the YAMATO quality stratification props. The
 # owl:FunctionalProperty contract is an OWL-DL entailment; these shapes enforce
 # the same exactly-one cardinality on the raw graph, where pySHACL/native SHACL
 # does not read the OWL functionality axiom.
-gmeow:ObservationTemporalShape
-    a sh:NodeShape ;
-    rdfs:label "Observation temporal-stamp functional shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Observation ;
-    sh:property [
-        sh:path gmeow:observedAt ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:dateTime ;
-        sh:severity sh:Violation ;
-        sh:message "An Observation records at most one observation time (gmeow:observedAt), an xsd:dateTime." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): a superseded or withdrawn
 # observation (one with gmeow:validUntil) should set gmeow:displayable false.
 # --------------------------------------------------------------------------- #
@@ -1082,37 +799,6 @@ gmeow:ObservationTemporalShape
 
 # A TemporalMeasurement is an Observation: it needs vantage, observedFeature,
 # observationMethod, and either an observationResult (Instant) or a measuredAge.
-gmeow:TemporalMeasurementShape
-    a sh:NodeShape ;
-    rdfs:label "TemporalMeasurement well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:TemporalMeasurement ;
-    sh:property [
-        sh:path gmeow:vantage ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A TemporalMeasurement must record at least one vantage (gmeow:vantage)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observedFeature ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A TemporalMeasurement must record exactly one observed feature (gmeow:observedFeature)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observationMethod ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:DatingMethod ;
-        sh:severity sh:Violation ;
-        sh:message "A TemporalMeasurement must record exactly one observation method (gmeow:observationMethod, range DatingMethod)." ;
-    ] ;
-    sh:or (
-        [ sh:path gmeow:measuredAge ; sh:minCount 1 ; sh:datatype xsd:decimal ]
-        [ sh:path gmeow:measuredDate ; sh:minCount 1 ; sh:class gmeow:Instant ]
-    ) ;
-    sh:severity sh:Violation ;
-    sh:message "A TemporalMeasurement must have either gmeow:measuredAge or gmeow:measuredDate (or both)." .
 # --------------------------------------------------------------------------- #
 # Proximity / distance shapes (#95)
 # --------------------------------------------------------------------------- #
@@ -1151,54 +837,6 @@ gmeow:ProximityMeasurementShape
 # --------------------------------------------------------------------------- #
 # Spatial Aggregation / Statistics (#101)
 # --------------------------------------------------------------------------- #
-
-gmeow:SpatialAggregationShape
-    a sh:NodeShape ;
-    rdfs:label "SpatialAggregation well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:SpatialAggregation ;
-    sh:property [
-        sh:path gmeow:vantage ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation must record exactly one vantage (gmeow:vantage)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observedFeature ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Place ;
-        sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation must name exactly one observed feature (the aggregation region, gmeow:observedFeature)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:aggregationFunction ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:AggregationFunction ;
-        sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation must declare exactly one aggregation function (gmeow:aggregationFunction)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observationResult ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:or (
-            [ sh:class gmeow:ScalarQuantity ]
-            [ sh:class gmeow:Quantity ]
-            [ sh:class gmeow:MeasuredValue ]
-        ) ;
-        sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:minimumPopulation ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:nonNegativeInteger ;
-        sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation may declare at most one minimum population (gmeow:minimumPopulation)." ;
-    ] .
-
 gmeow:CentroidGeometryShape
     a sh:NodeShape ;
     rdfs:label "Place centroid shape"@x-gmeow-english ;
@@ -1219,52 +857,9 @@ gmeow:CentroidGeometryShape
 # A Tagging must mediate exactly one tagged entity and exactly one tag —
 # the closed-world counterpart of the EL someValuesFrom mediation axiom in
 # tags.ttl (mirrors gmeow:ParticipationHasPlayersShape).
-gmeow:TaggingHasPlayersShape
-    a sh:NodeShape ;
-    rdfs:label "Tagging well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Tagging ;
-    sh:property [
-        sh:path gmeow:taggingTagged ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Tagging must tag exactly one entity (gmeow:taggingTagged)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:taggingTag ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Tagging must use exactly one tag (gmeow:taggingTag)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:taggingTagger ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Tagging must have exactly one tagger (gmeow:taggingTagger)." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): a retracted or superseded tagging
 # (one whose gmeow:taggingInterval has gmeow:endedAtTime) should set
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
-gmeow:RetractedTagSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Retracted / superseded tag suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Tagging ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A retracted or superseded tagging (one whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/taggingInterval>/<https://blackcatinformatics.ca/gmeow/endedAtTime> ?until .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Email module (#159). Closed-world well-formedness for the MessageParticipant
 # relator; suppression contract (Principle 10) for withdrawn occurrences.
@@ -1273,51 +868,9 @@ gmeow:RetractedTagSuppressionShape
 # A MessageParticipant must mediate exactly one message, one address, and one
 # role — the closed-world counterpart of the EL someValuesFrom mediation axiom
 # in email.ttl (mirrors gmeow:TaggingHasPlayersShape).
-gmeow:MessageParticipantHasPlayersShape
-    a sh:NodeShape ;
-    rdfs:label "MessageParticipant well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:MessageParticipant ;
-    sh:property [
-        sh:path gmeow:participantMessage ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A MessageParticipant must belong to exactly one message (gmeow:participantMessage)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:participantAddress ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A MessageParticipant must reference at most one EmailAddress (gmeow:participantAddress)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:participantRole ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A MessageParticipant must declare exactly one role (gmeow:participantRole)." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): a withdrawn or superseded
 # MessageParticipant occurrence (one with gmeow:validUntil) should set
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
-gmeow:SuppressedMessageParticipantShape
-    a sh:NodeShape ;
-    rdfs:label "Suppressed / withdrawn message participant shape"@x-gmeow-english ;
-    sh:targetClass gmeow:MessageParticipant ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A withdrawn or superseded MessageParticipant (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Lifecycle module (#81). Closed-world well-formedness for EntityExistence and
 # suppression guards for superseded entities.
@@ -1328,23 +881,6 @@ gmeow:SuppressedMessageParticipantShape
 # Suppression, never erasure (Principle 10): a superseded entity — one that has a
 # gmeow:supersededBy link to a successor — should set gmeow:displayable false rather
 # than be deleted. Warning — a source may lag the flag.
-gmeow:SupersededEntitySuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Superseded entity suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Entity ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A superseded entity (one with gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/supersededBy> ?successor .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # =========================================================================== #
 # Places module — terrestrial realm deepening (#82)
 # --------------------------------------------------------------------------- #
@@ -1540,53 +1076,9 @@ gmeow:SupersededPlaceSuppressionShape
 # Accessibility module (#102). Closed-world well-formedness for the
 # AccessibilityAssertion relator; suppression contract (Principle 10).
 # --------------------------------------------------------------------------- #
-
-gmeow:AccessibilityAssertionShape
-    a sh:NodeShape ;
-    rdfs:label "AccessibilityAssertion well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:AccessibilityAssertion ;
-    sh:property [
-        sh:path gmeow:assertionSubject ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An AccessibilityAssertion must assess exactly one subject (gmeow:assertionSubject)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:assertionFacet ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An AccessibilityAssertion must assert exactly one facet (gmeow:assertionFacet)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:assertionPolarity ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An AccessibilityAssertion must declare exactly one polarity (gmeow:assertionPolarity)." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): a retracted or superseded
 # accessibility assertion (one with gmeow:validUntil) should set
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
-gmeow:RetractedAccessibilityAssertionShape
-    a sh:NodeShape ;
-    rdfs:label "Retracted accessibility assertion suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:AccessibilityAssertion ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 gmeow:GeocodeShape
     a sh:NodeShape ;
     rdfs:label "Geocode well-formedness shape"@x-gmeow-english ;
@@ -1613,32 +1105,6 @@ gmeow:GeocodeShape
 # Contribution relator well-formedness — closed-world cardinality.
 # Mirrors ParticipationHasPlayersShape and NameUsageShape.
 # CitationAct relator well-formedness — closed-world cardinality.
-gmeow:CitationActShape
-    a sh:NodeShape ;
-    rdfs:label "CitationAct well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:CitationAct ;
-    sh:property [
-        sh:path gmeow:citingEntity ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A CitationAct must have exactly one citing entity (gmeow:citingEntity)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:citedEntity ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A CitationAct must have exactly one cited entity (gmeow:citedEntity)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:citationIntent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A CitationAct must specify exactly one citation intent (gmeow:citationIntent)." ;
-    ] .
-
 # Spine integrity: every Expression realizes at least one Work.
 # Spine integrity: every Manifestation embodies at least one Expression.
 # Spine integrity: every Item exemplifies at least one Manifestation.
@@ -1650,37 +1116,15 @@ gmeow:CitationActShape
 # Self/private-only warning: a citation whose only evidence classes are SELF or
 # PrivateScan, and whose source independence is self/issuer originated, is
 # eligible for projection suppression (Principle 10 — never erasure).
-gmeow:SelfPrivateEvidenceWarningShape
-    a sh:NodeShape ;
-    rdfs:label "Self/private-only evidence warning shape"@x-gmeow-english ;
-    sh:targetClass gmeow:CitationAct ;
-    sh:sparql [
-        sh:severity sh:Warning ;   # on the constraint, where conformant SHACL honors it (a source may lag the flag)
-        sh:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this a <https://blackcatinformatics.ca/gmeow/CitationAct> .
-                $this <https://blackcatinformatics.ca/gmeow/hasEvidenceClass> ?ec .
-                FILTER(?ec IN (
-                    <https://blackcatinformatics.ca/gmeow/evidenceSELF>,
-                    <https://blackcatinformatics.ca/gmeow/evidencePrivateScan>
-                ))
-                # Ensure ALL evidence classes are in the self/private set.
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/hasEvidenceClass> ?other .
-                    FILTER(?other NOT IN (
-                        <https://blackcatinformatics.ca/gmeow/evidenceSELF>,
-                        <https://blackcatinformatics.ca/gmeow/evidencePrivateScan>
-                    ))
-                }
-                # And the source is self/issuer originated.
-                $this <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceSelfOrIssuerOriginated> .
-            }
-        """ ;
-    ] .
-
 # Notability-requirement violation: supportsNotability true requires the full
 # WP:GNG triad (independent + secondary + significant coverage).
+# WAVE-B1 BLOCKED (retained): the gmeow:NotabilityRequirementConstraint record
+# projects the conjunctive triad consequent via De Morgan into a UNION of bare
+# `FILTER NOT EXISTS { $this p o }` branches, which lose the $this binding across a
+# multi-CitationAct graph (a sibling citation satisfying an inner pattern silently
+# clears the branch). The single-block FILTER NOT EXISTS here is the faithful check,
+# so this shape stays live until the logic-compile shapes projector emits a single
+# scoped NOT-EXISTS block for a negated conjunctive consequent.
 gmeow:NotabilityRequirementShape
     a sh:NodeShape ;
     rdfs:label "Notability requirement shape"@x-gmeow-english ;
@@ -1700,6 +1144,7 @@ gmeow:NotabilityRequirementShape
             }
         """ ;
     ] .
+
 gmeow:CharacterArcShape
     a sh:NodeShape ;
     rdfs:label "Character Arc Shape"@x-gmeow-english ;
@@ -1747,13 +1192,6 @@ gmeow:MythShape
         sh:severity sh:Violation ;
         sh:message "A Myth affected consumer surface must be a gmeow:ProjectionContext." ;
     ] .
-
-gmeow:ReadingOrderShape
-    a sh:NodeShape ;
-    rdfs:label "Reading Order Shape"@x-gmeow-english ;
-    rdfs:comment "Documentation only — asserts no property constraints. gmeow:ReadingOrder is a gmeow:Standpoint subclass; Standpoint declares no owl:Restriction requirements in the ontology, so this shape serves as a marker confirming ReadingOrder instances are valid without additional closed-world checks."@x-gmeow-english ;
-    sh:targetClass gmeow:ReadingOrder .
-
 # =========================================================================== #
 # Finance module (#64) — MonetaryAmount and FinancialAccount shapes
 # =========================================================================== #
@@ -1789,19 +1227,6 @@ gmeow:FinancialAccountShape
     ] .
 
 # Every MonetaryAmount must have exactly one monetary value.
-gmeow:MonetaryAmountHasValueShape
-    a sh:NodeShape ;
-    rdfs:label "MonetaryAmount value shape"@x-gmeow-english ;
-    sh:targetClass gmeow:MonetaryAmount ;
-    sh:property [
-        sh:path gmeow:monetaryValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:decimal ;
-        sh:severity sh:Violation ;
-        sh:message "Every MonetaryAmount must have exactly one monetary value (gmeow:monetaryValue, xsd:decimal)." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Finance module Phase B shapes — Transactions, Ledger, Posting.
 # --------------------------------------------------------------------------- #
@@ -2131,33 +1556,6 @@ gmeow:CancelledOrderSuppressionShape
 
 # A deception event must carry at least one held standpoint and one projected
 # standpoint. minCount only (open-world: a complex deception may have more).
-gmeow:DeceptionEventShape
-    a sh:NodeShape ;
-    rdfs:label "Deception event well-formedness shape"@x-gmeow-english ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            SELECT ?this WHERE {
-                ?this a <https://blackcatinformatics.ca/gmeow/Event> .
-                ?this <https://blackcatinformatics.ca/gmeow/eventType> <https://blackcatinformatics.ca/gmeow/eventTypeDeception> .
-            }
-        """ ;
-    ] ;
-    sh:property [
-        sh:path gmeow:heldStandpoint ;
-        sh:minCount 1 ;
-        sh:class gmeow:DoxasticStandpointClaim ;
-        sh:severity sh:Violation ;
-        sh:message "A deception event must carry at least one held standpoint (gmeow:heldStandpoint) of type gmeow:DoxasticStandpointClaim." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:projectedStandpoint ;
-        sh:minCount 1 ;
-        sh:class gmeow:DoxasticStandpointClaim ;
-        sh:severity sh:Violation ;
-        sh:message "A deception event must carry at least one projected standpoint (gmeow:projectedStandpoint) of type gmeow:DoxasticStandpointClaim." ;
-    ] .
-
 # A deception cue observation must carry vantage and observationResult.
 gmeow:DeceptionCueShape
     a sh:NodeShape ;
@@ -2190,140 +1588,12 @@ gmeow:DeceptionCueShape
 # =========================================================================== #
 
 # An Execution must reference at least one Procedure or ProcedureStep.
-gmeow:ExecutionHasPlanShape
-    a sh:NodeShape ;
-    rdfs:label "Execution must reference a plan or step"@x-gmeow-english ;
-    sh:targetClass gmeow:Execution ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "An Execution must reference at least one Procedure (gmeow:executesProcedure) or ProcedureStep (gmeow:executesStep)." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this a <https://blackcatinformatics.ca/gmeow/Execution> .
-                FILTER NOT EXISTS {
-                    { $this <https://blackcatinformatics.ca/gmeow/executesProcedure> ?p }
-                    UNION
-                    { $this <https://blackcatinformatics.ca/gmeow/executesStep> ?s }
-                }
-            }
-        """ ;
-    ] .
-
 # A ControlFlow must have exactly one source and one target.
-gmeow:ControlFlowHasSourceTargetShape
-    a sh:NodeShape ;
-    rdfs:label "ControlFlow must have source and target"@x-gmeow-english ;
-    sh:targetClass gmeow:ControlFlow ;
-    sh:property [
-        sh:path gmeow:flowSource ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ProcedureStep ;
-        sh:severity sh:Violation ;
-        sh:message "A ControlFlow must have exactly one flowSource (a ProcedureStep)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:flowTarget ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ProcedureStep ;
-        sh:severity sh:Violation ;
-        sh:message "A ControlFlow must have exactly one flowTarget (a ProcedureStep)." ;
-    ] .
-
 # A DataFlow must have exactly one source and one target.
-gmeow:DataFlowHasSourceTargetShape
-    a sh:NodeShape ;
-    rdfs:label "DataFlow must have source and target"@x-gmeow-english ;
-    sh:targetClass gmeow:DataFlow ;
-    sh:property [
-        sh:path gmeow:dataFlowSource ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ProcedureStep ;
-        sh:severity sh:Violation ;
-        sh:message "A DataFlow must have exactly one dataFlowSource (a ProcedureStep)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:dataFlowTarget ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ProcedureStep ;
-        sh:severity sh:Violation ;
-        sh:message "A DataFlow must have exactly one dataFlowTarget (a ProcedureStep)." ;
-    ] .
-
 # A branch step must be the source of at least two ControlFlow relators.
-gmeow:BranchHasOutgoingFlowsShape
-    a sh:NodeShape ;
-    rdfs:label "Branch step must have at least two outgoing control flows"@x-gmeow-english ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            SELECT ?this WHERE {
-                ?this a <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
-                ?this <https://blackcatinformatics.ca/gmeow/procedureStepType> <https://blackcatinformatics.ca/gmeow/stepTypeBranch> .
-            }
-        """ ;
-    ] ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A ProcedureStep of type stepTypeBranch must be the source of at least two ControlFlow relators." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this a <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
-                $this <https://blackcatinformatics.ca/gmeow/procedureStepType> <https://blackcatinformatics.ca/gmeow/stepTypeBranch> .
-                FILTER NOT EXISTS {
-                    ?flow1 a <https://blackcatinformatics.ca/gmeow/ControlFlow> ;
-                           <https://blackcatinformatics.ca/gmeow/flowSource> $this .
-                    ?flow2 a <https://blackcatinformatics.ca/gmeow/ControlFlow> ;
-                           <https://blackcatinformatics.ca/gmeow/flowSource> $this .
-                    FILTER (?flow1 != ?flow2)
-                }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Notes & Annotation building block (#63)
 # --------------------------------------------------------------------------- #
-
-gmeow:WebAnnotationShape
-    a sh:NodeShape ;
-    rdfs:label "Web Annotation well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Annotation ;
-    sh:property [
-        sh:path gmeow:annotationTarget ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "Every Annotation must have exactly one annotationTarget." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:annotationBody ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Annotation may have at most one annotationBody." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:annotationMotivation ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "Every Annotation must have exactly one annotationMotivation." ;
-    ] .
-
-gmeow:HighlightHasSelectorShape
-    a sh:NodeShape ;
-    rdfs:label "Highlight must have a selector span"@x-gmeow-english ;
-    sh:targetClass gmeow:Highlight ;
-    sh:property [
-        sh:path gmeow:annotationTargetSpan ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "Every Highlight must have at least one annotationTargetSpan (an EvidenceSpan or Selector)." ;
-    ] .
-
 gmeow:CommentHasParentShape
     a sh:NodeShape ;
     rdfs:label "Comment parent must be an Entity"@x-gmeow-english ;
@@ -2336,167 +1606,9 @@ gmeow:CommentHasParentShape
         sh:severity sh:Violation ;
         sh:message "A commentParent must point to exactly one Entity (typically an Annotation or Comment)." ;
     ] .
-
-gmeow:NoteContentShape
-    a sh:NodeShape ;
-    rdfs:label "Note must have content or a label"@x-gmeow-english ;
-    sh:targetClass gmeow:Note ;
-    sh:or (
-        [ sh:path gmeow:noteContent ; sh:minCount 1 ]
-        [ sh:path rdfs:label ; sh:minCount 1 ]
-    ) ;
-    sh:severity sh:Violation ;
-    sh:message "A Note must have gmeow:noteContent or at least one rdfs:label." .
-
-gmeow:RetractedNoteSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Retracted comment suppression check"@x-gmeow-english ;
-    sh:targetClass gmeow:Comment ;
-    sh:sparql [
-        sh:severity sh:Warning ;
-        sh:message "A comment whose parent is suppressed should set gmeow:displayable false (Principle 10)." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this a <https://blackcatinformatics.ca/gmeow/Comment> .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false .
-                }
-                $this <https://blackcatinformatics.ca/gmeow/commentParent> ?parent .
-                ?parent <https://blackcatinformatics.ca/gmeow/displayable> false .
-            }
-        """ ;
-    ] .
-
 # =========================================================================== #
 # Images module (issue #22) — DepictionUsage, ImageRegion, SceneGraphEdge
 # =========================================================================== #
-
-gmeow:DepictionUsageShape
-    a sh:NodeShape ;
-    rdfs:label "Depiction Usage Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:DepictionUsage ;
-    sh:property [
-        sh:path gmeow:depictionSubject ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Entity ;
-        sh:severity sh:Violation ;
-        sh:message "A DepictionUsage must specify exactly one depicted entity (gmeow:depictionSubject)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:depictionImage ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:MediaObject ;
-        sh:severity sh:Violation ;
-        sh:message "A DepictionUsage must specify exactly one image (gmeow:depictionImage)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:depictionContext ;
-        sh:minCount 1 ;
-        sh:class gmeow:DepictionContext ;
-        sh:severity sh:Violation ;
-        sh:message "A DepictionUsage must specify exactly one depiction context (gmeow:depictionContext)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:depictionContext ;
-        sh:maxCount 1 ;
-        sh:class gmeow:DepictionContext ;
-        sh:severity sh:Violation ;
-        sh:message "A DepictionUsage must have at most one depiction context." ;
-    ] .
-
-gmeow:ImageRegionShape
-    a sh:NodeShape ;
-    rdfs:label "Image Region Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:ImageRegion ;
-    sh:property [
-        sh:path gmeow:regionOf ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:MediaObject ;
-        sh:severity sh:Violation ;
-        sh:message "An ImageRegion must be a region of exactly one MediaObject (gmeow:regionOf)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:regionSelector ;
-        sh:minCount 1 ;
-        sh:class gmeow:RegionSelector ;
-        sh:severity sh:Violation ;
-        sh:message "An ImageRegion must have at least one selector (gmeow:regionSelector)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:regionSelector ;
-        sh:maxCount 1 ;
-        sh:class gmeow:RegionSelector ;
-        sh:severity sh:Violation ;
-        sh:message "An ImageRegion must have at most one selector." ;
-    ] .
-
-gmeow:RegionSelectorShape
-    a sh:NodeShape ;
-    rdfs:label "Region Selector Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:RegionSelector ;
-    sh:property [
-        sh:path gmeow:selectorType ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:SelectorType ;
-        sh:severity sh:Violation ;
-        sh:message "A RegionSelector must specify exactly one selector type (gmeow:selectorType)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:selectorValue ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:Literal ;
-        sh:severity sh:Violation ;
-        sh:message "A RegionSelector must specify exactly one literal selector value (gmeow:selectorValue)." ;
-    ] .
-
-gmeow:SceneGraphEdgeShape
-    a sh:NodeShape ;
-    rdfs:label "Scene Graph Edge Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:SceneGraphEdge ;
-    sh:property [
-        sh:path gmeow:sceneSubject ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ImageRegion ;
-        sh:severity sh:Violation ;
-        sh:message "A SceneGraphEdge must have exactly one subject region (gmeow:sceneSubject)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:sceneObject ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ImageRegion ;
-        sh:severity sh:Violation ;
-        sh:message "A SceneGraphEdge must have exactly one object region (gmeow:sceneObject)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:sceneRelation ;
-        sh:minCount 1 ;
-        sh:class gmeow:SceneRelationType ;
-        sh:severity sh:Violation ;
-        sh:message "A SceneGraphEdge must specify a relation (gmeow:sceneRelation)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:sceneRelation ;
-        sh:maxCount 1 ;
-        sh:class gmeow:SceneRelationType ;
-        sh:severity sh:Violation ;
-        sh:message "A SceneGraphEdge must have at most one relation." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:sceneConfidence ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:decimal ;
-        sh:minInclusive 0.0 ;
-        sh:maxInclusive 1.0 ;
-        sh:severity sh:Violation ;
-        sh:message "When present, gmeow:sceneConfidence must be a decimal in [0.0, 1.0]." ;
-    ] .
 # =========================================================================== #
 # MediaObject colourspace warning (issue #22 follow-up)
 # =========================================================================== #
@@ -2507,159 +1619,13 @@ gmeow:SceneGraphEdgeShape
 # =========================================================================== #
 
 # An EventSchedule must anchor at least a template event or a recurrence rule.
-gmeow:ScheduleHasRuleShape
-    a sh:NodeShape ;
-    rdfs:label "Schedule has rule or template shape"@x-gmeow-english ;
-    sh:targetClass gmeow:EventSchedule ;
-    sh:or (
-        [ sh:path gmeow:scheduleTemplateEvent ; sh:minCount 1 ; sh:class gmeow:Event ]
-        [ sh:path gmeow:scheduleRecurrenceRule ; sh:minCount 1 ; sh:class gmeow:RecurrenceRule ]
-    ) ;
-    sh:severity sh:Violation ;
-    sh:message "An EventSchedule must have at least one scheduleTemplateEvent or scheduleRecurrenceRule." .
-
 # An EventInvitation must have at least one invitee and exactly one invitationStatus.
-gmeow:InvitationHasInviteeAndStatusShape
-    a sh:NodeShape ;
-    rdfs:label "Invitation has invitee and status shape"@x-gmeow-english ;
-    sh:targetClass gmeow:EventInvitation ;
-    sh:property [
-        sh:path gmeow:invitationEvent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Event ;
-        sh:severity sh:Violation ;
-        sh:message "An EventInvitation must have exactly one invitationEvent (Event)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:invitationInvitee ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An EventInvitation must have at least one invitee (gmeow:invitationInvitee)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:invitationStatus ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:InvitationStatus ;
-        sh:severity sh:Violation ;
-        sh:message "An EventInvitation must have exactly one invitationStatus." ;
-    ] .
-
 # A Task must have exactly one taskStatus.
-gmeow:TaskHasStatusShape
-    a sh:NodeShape ;
-    rdfs:label "Task has status shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Task ;
-    sh:property [
-        sh:path gmeow:taskStatus ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:TaskStatus ;
-        sh:severity sh:Violation ;
-        sh:message "A Task must have exactly one taskStatus." ;
-    ] .
-
 # Suppression, never erasure (Principle 10): a cancelled occurrence should be
 # suppressed rather than deleted. Warning — a source may lag on setting the flag.
-gmeow:CancelledOccurrenceSuppressionShape
-    a sh:NodeShape ;
-    rdfs:label "Cancelled occurrence suppression shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Event ;
-    sh:severity sh:Warning ;
-    sh:sparql [
-        sh:message "A cancelled occurrence (one with a ScheduleException of type exceptionTypeCancellation) should set gmeow:displayable false — suppressed from display, never deleted." ;
-        sh:select """
-            SELECT $this WHERE {
-                ?exception <https://blackcatinformatics.ca/gmeow/exceptionType> <https://blackcatinformatics.ca/gmeow/exceptionTypeCancellation> .
-                ?exception <https://blackcatinformatics.ca/gmeow/exceptionSchedule> ?schedule .
-                ?exception <https://blackcatinformatics.ca/gmeow/exceptionOriginalDate> ?date .
-                ?schedule <https://blackcatinformatics.ca/gmeow/scheduleOccurrence> $this .
-                $this <https://blackcatinformatics.ca/gmeow/eventTime> ?date .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
-                }
-            }
-        """ ;
-    ] .
-
 # An Availability must have exactly one slot and one status.
-gmeow:AvailabilityHasIntervalAndStatusShape
-    a sh:NodeShape ;
-    rdfs:label "Availability has interval and status shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Availability ;
-    sh:property [
-        sh:path gmeow:availabilityAgent ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "An Availability must have exactly one availabilityAgent (Agent)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:availabilitySlot ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:TimeInterval ;
-        sh:severity sh:Violation ;
-        sh:message "An Availability must have exactly one availabilitySlot (TimeInterval)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:availabilityStatus ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:AvailabilityStatus ;
-        sh:severity sh:Violation ;
-        sh:message "An Availability must have exactly one availabilityStatus." ;
-    ] .
-
 # A Reminder must have exactly one trigger and one action.
-gmeow:ReminderHasTriggerAndActionShape
-    a sh:NodeShape ;
-    rdfs:label "Reminder has trigger and action shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Reminder ;
-    sh:property [
-        sh:path gmeow:reminderTarget ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Event ;
-        sh:severity sh:Violation ;
-        sh:message "A Reminder must have exactly one reminderTarget (Event)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:reminderTrigger ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:or (
-            [ sh:datatype xsd:duration ]
-            [ sh:datatype xsd:dateTime ]
-        ) ;
-        sh:severity sh:Violation ;
-        sh:message "A Reminder must have exactly one reminderTrigger (xsd:duration or xsd:dateTime)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:reminderAction ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ReminderAction ;
-        sh:severity sh:Violation ;
-        sh:message "A Reminder must have exactly one reminderAction." ;
-    ] .
-
 # A TimeZone must have exactly one IANA id.
-gmeow:TimeZoneHasIanaIdShape
-    a sh:NodeShape ;
-    rdfs:label "Time zone has IANA id shape"@x-gmeow-english ;
-    sh:targetClass gmeow:TimeZone ;
-    sh:property [
-        sh:path gmeow:timeZoneIanaId ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "A TimeZone must have exactly one timeZoneIanaId." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Teleology shapes (#350, EPIC #348) — goals, intentional modes, commitments.
 # --------------------------------------------------------------------------- #
@@ -3211,59 +2177,9 @@ gmeow:StyleGuideShape
         sh:severity sh:Violation ;
         sh:message "Every gmeow:voiceExemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
     ] .
-
-gmeow:OrganizationCurrencyShape
-    a sh:NodeShape ;
-    rdfs:label "Organization Currency Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Organization ;
-    sh:property [
-        # open-vocabulary contract: the value is an IRI whose frameRealm IS the
-        # currency realm — NO sh:class, which would force data graphs to restate
-        # the frame's TBox typing in the raw-graph lane.
-        sh:path gmeow:acceptsCurrency ;
-        sh:nodeKind sh:IRI ;
-        sh:node [
-            sh:property [
-                sh:path gmeow:frameRealm ;
-                sh:hasValue gmeow:frameRealmCurrency ;
-                sh:severity sh:Violation ;
-                sh:message "A gmeow:acceptsCurrency value must be in the currency realm (gmeow:frameRealm gmeow:frameRealmCurrency)." ;
-            ] ;
-        ] ;
-        sh:severity sh:Violation ;
-        sh:message "Each gmeow:acceptsCurrency value must be a currency reference frame in gmeow:frameRealmCurrency (e.g. gmeow:referenceFrameUSD), not an arbitrary reference frame." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Risk shapes (#354, EPIC #348) — types never tokens; reify with a reason.
 # --------------------------------------------------------------------------- #
-
-gmeow:HazardShape
-    a sh:NodeShape ;
-    rdfs:label "Hazard Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Hazard ;
-    sh:property [
-        sh:path gmeow:hazardBearer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Hazard must inhere in exactly one gmeow:hazardBearer — the same danger borne by two systems is two hazards." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:manifestedAsType ;
-        sh:minCount 1 ;
-        sh:class gmeow:EventType ;
-        sh:severity sh:Violation ;
-        sh:message "A Hazard must name at least one feared gmeow:manifestedAsType, an EventType — the type level is where counterfactuals live without machinery." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hazardSeverity ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Hazard carries at most one gmeow:hazardSeverity (closed-world functional)." ;
-    ] .
-
 gmeow:CausalLinkShape
     a sh:NodeShape ;
     rdfs:label "Causal Link Shape"@x-gmeow-english ;
@@ -3308,54 +2224,6 @@ gmeow:CausalLinkShape
     # The antecedent≠consequent distinctness and the linkNext acyclicity MIGRATED to
     # logic:causalLinkDistinctness and logic:linkNextAcyclicity
     # (generated/shapes/constraint-shapes.ttl, P17).
-
-gmeow:CascadeShape
-    a sh:NodeShape ;
-    rdfs:label "Cascade Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Cascade ;
-    sh:property [
-        sh:path gmeow:cascadeFirstLink ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:CausalLink ;
-        sh:severity sh:Violation ;
-        sh:message "A Cascade must enter at exactly one gmeow:cascadeFirstLink, a CausalLink." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:cascadeSeverity ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Cascade must carry exactly one gmeow:cascadeSeverity (an IRI) — an ungraded cascade is just a story." ;
-    ] .
-
-gmeow:MitigationShape
-    a sh:NodeShape ;
-    rdfs:label "Mitigation Shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Mitigation ;
-    sh:property [
-        sh:path gmeow:mitigationMeasure ;
-        sh:minCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across the deontic and procedural worlds, P16)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:mitigationCounters ;
-        sh:minCount 1 ;
-        sh:or ( [ sh:class gmeow:CausalLink ] [ sh:class gmeow:Hazard ] ) ;
-        sh:severity sh:Violation ;
-        sh:message "A Mitigation must counter at least one risk factor — a CausalLink (barrier on the chain) or a Hazard (control at the source). sh:or over the concrete classes, not sh:class RiskFactor: data graphs type instances concretely and raw-graph SHACL does no subclass inference." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:mitigationStatus ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A Mitigation carries at most one gmeow:mitigationStatus (closed-world functional; open vocabulary)." ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # Affect shapes (#356, EPIC #348) — thin slice, thin shapes.
 # --------------------------------------------------------------------------- #

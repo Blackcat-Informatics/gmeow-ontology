@@ -351,7 +351,7 @@ CRediT, PROV-O, and PAV by reference (Principle 5)."""@x-gmeow-english ;
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Migrated evidential constraints (#1194): closed-world citation/evidence shapes #
+# Migrated evidential constraints: closed-world citation/evidence shapes #
 # from shapes/gmeow-shapes.ttl lifted to logic: (Principle 17).                 #
 # =========================================================================== #
 
@@ -363,7 +363,7 @@ gmeow:NotabilityRequirementConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:CitationAct asserting gmeow:supportsNotability true carries sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage."@x-gmeow-english ;
-    logic:formalizes gmeow:CitationAct ;
+    logic:formalizes gmeow:NotabilityRequirementShape ;
     logic:message "A citation with supportsNotability true must have sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage (WP:GNG triad)." ;
     logic:integrity logic:notrForall .
 logic:notrForall a logic:Formula ;
@@ -392,7 +392,7 @@ gmeow:SelfPrivateEvidenceWarningConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: no gmeow:CitationAct relies solely on gmeow:evidenceSELF/gmeow:evidencePrivateScan evidence from a gmeow:sourceIndependenceSelfOrIssuerOriginated source."@x-gmeow-english ;
-    logic:formalizes gmeow:CitationAct ;
+    logic:formalizes gmeow:SelfPrivateEvidenceWarningShape ;
     logic:severity "Warning" ;
     logic:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
     logic:integrity logic:speForall .
@@ -423,3 +423,20 @@ logic:speOtherEvidence a logic:Formula ; logic:relation gmeow:hasEvidenceClass ;
 logic:speOtherNotInSet a logic:Formula ; logic:not logic:speOtherIn .
 logic:speOtherIn a logic:Formula ; logic:relation logic:termIn ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termIri gmeow:evidenceSELF ] , [ logic:termIndex 2 ; logic:termIri gmeow:evidencePrivateScan ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<https://blackcatinformatics.ca/gmeow/CitationAct> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CitationAct> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CitationAct> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CitationAct> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/citationIntent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CitationAct> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/citedEntity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CitationAct> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/citingEntity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: citation-act cardinality restoration ---
+# gmeow:CitationActShape — a CitationAct has exactly one citing entity, one cited entity, and one
+# citation intent.
+gmeow:CitationAct rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:citingEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:citedEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:citationIntent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

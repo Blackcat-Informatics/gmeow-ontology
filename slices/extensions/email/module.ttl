@@ -1496,7 +1496,7 @@ gmeow:WithdrawnMessageParticipantSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a withdrawn or superseded gmeow:MessageParticipant (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:MessageParticipant ;
+    logic:formalizes gmeow:SuppressedMessageParticipantShape ;
     logic:severity "Warning" ;
     logic:message "A withdrawn or superseded MessageParticipant (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supMpForall .
@@ -1516,3 +1516,17 @@ logic:supMpValid a logic:Formula ; logic:relation gmeow:validUntil ;
 logic:supMpNotSuppressed a logic:Formula ; logic:not logic:supMpDisp .
 logic:supMpDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/MessageParticipant> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/participantMessage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/MessageParticipant> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/participantRole> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MessageParticipant> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/participantMessage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MessageParticipant> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/participantRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: message-participant cardinality + suppression ---
+# gmeow:MessageParticipantHasPlayersShape — a MessageParticipant belongs to exactly one message,
+# references at most one address, and declares exactly one role.
+gmeow:MessageParticipant rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participantMessage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participantAddress ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participantRole ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

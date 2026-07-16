@@ -23,6 +23,95 @@ class CausalModalityEnum(StrEnum):
     causallyPromotes = "gmeow:causallyPromotes"
 
 
+class EventTypeEnum(StrEnum):
+    eventTypeAcquisition = "gmeow:eventTypeAcquisition"
+    eventTypeAdoption = "gmeow:eventTypeAdoption"
+    eventTypeAgentEpisode = "gmeow:eventTypeAgentEpisode"
+    eventTypeAnnulment = "gmeow:eventTypeAnnulment"
+    eventTypeAudit = "gmeow:eventTypeAudit"
+    eventTypeBaptism = "gmeow:eventTypeBaptism"
+    eventTypeBarMitzvah = "gmeow:eventTypeBarMitzvah"
+    eventTypeBatMitzvah = "gmeow:eventTypeBatMitzvah"
+    eventTypeBirth = "gmeow:eventTypeBirth"
+    eventTypeBuild = "gmeow:eventTypeBuild"
+    eventTypeBullshit = "gmeow:eventTypeBullshit"
+    eventTypeBurial = "gmeow:eventTypeBurial"
+    eventTypeCensus = "gmeow:eventTypeCensus"
+    eventTypeCensusActivity = "gmeow:eventTypeCensusActivity"
+    eventTypeChristening = "gmeow:eventTypeChristening"
+    eventTypeClinicalTrial = "gmeow:eventTypeClinicalTrial"
+    eventTypeCodeReview = "gmeow:eventTypeCodeReview"
+    eventTypeCommit = "gmeow:eventTypeCommit"
+    eventTypeConcert = "gmeow:eventTypeConcert"
+    eventTypeConfirmation = "gmeow:eventTypeConfirmation"
+    eventTypeCreation = "gmeow:eventTypeCreation"
+    eventTypeCremation = "gmeow:eventTypeCremation"
+    eventTypeDJSet = "gmeow:eventTypeDJSet"
+    eventTypeDeath = "gmeow:eventTypeDeath"
+    eventTypeDeception = "gmeow:eventTypeDeception"
+    eventTypeDestruction = "gmeow:eventTypeDestruction"
+    eventTypeDisinformation = "gmeow:eventTypeDisinformation"
+    eventTypeDissolution = "gmeow:eventTypeDissolution"
+    eventTypeDistortion = "gmeow:eventTypeDistortion"
+    eventTypeDivorce = "gmeow:eventTypeDivorce"
+    eventTypeEmigration = "gmeow:eventTypeEmigration"
+    eventTypeEngagement = "gmeow:eventTypeEngagement"
+    eventTypeExcavation = "gmeow:eventTypeExcavation"
+    eventTypeExpressionCreation = "gmeow:eventTypeExpressionCreation"
+    eventTypeFabrication = "gmeow:eventTypeFabrication"
+    eventTypeFirstCommunion = "gmeow:eventTypeFirstCommunion"
+    eventTypeForgery = "gmeow:eventTypeForgery"
+    eventTypeFuneral = "gmeow:eventTypeFuneral"
+    eventTypeGraduation = "gmeow:eventTypeGraduation"
+    eventTypeHiring = "gmeow:eventTypeHiring"
+    eventTypeImageAnnotation = "gmeow:eventTypeImageAnnotation"
+    eventTypeImageCapture = "gmeow:eventTypeImageCapture"
+    eventTypeImageProcessing = "gmeow:eventTypeImageProcessing"
+    eventTypeImageScanning = "gmeow:eventTypeImageScanning"
+    eventTypeImmigration = "gmeow:eventTypeImmigration"
+    eventTypeImpersonation = "gmeow:eventTypeImpersonation"
+    eventTypeInhabitationTransition = "gmeow:eventTypeInhabitationTransition"
+    eventTypeJamSession = "gmeow:eventTypeJamSession"
+    eventTypeLie = "gmeow:eventTypeLie"
+    eventTypeManifestationProduction = "gmeow:eventTypeManifestationProduction"
+    eventTypeMarriage = "gmeow:eventTypeMarriage"
+    eventTypeMerge = "gmeow:eventTypeMerge"
+    eventTypeMerger = "gmeow:eventTypeMerger"
+    eventTypeMigration = "gmeow:eventTypeMigration"
+    eventTypeMilitaryService = "gmeow:eventTypeMilitaryService"
+    eventTypeMusicalPerformance = "gmeow:eventTypeMusicalPerformance"
+    eventTypeNameChange = "gmeow:eventTypeNameChange"
+    eventTypeNaturalization = "gmeow:eventTypeNaturalization"
+    eventTypeOmission = "gmeow:eventTypeOmission"
+    eventTypeOrdination = "gmeow:eventTypeOrdination"
+    eventTypeOverdub = "gmeow:eventTypeOverdub"
+    eventTypePaltering = "gmeow:eventTypePaltering"
+    eventTypeProbate = "gmeow:eventTypeProbate"
+    eventTypePromotion = "gmeow:eventTypePromotion"
+    eventTypePush = "gmeow:eventTypePush"
+    eventTypeRecordingSession = "gmeow:eventTypeRecordingSession"
+    eventTypeReflection = "gmeow:eventTypeReflection"
+    eventTypeRehearsal = "gmeow:eventTypeRehearsal"
+    eventTypeRelease = "gmeow:eventTypeRelease"
+    eventTypeRename = "gmeow:eventTypeRename"
+    eventTypeResidence = "gmeow:eventTypeResidence"
+    eventTypeResignation = "gmeow:eventTypeResignation"
+    eventTypeRetirement = "gmeow:eventTypeRetirement"
+    eventTypeSelfDeception = "gmeow:eventTypeSelfDeception"
+    eventTypeSeparation = "gmeow:eventTypeSeparation"
+    eventTypeSoundcheck = "gmeow:eventTypeSoundcheck"
+    eventTypeSpinOff = "gmeow:eventTypeSpinOff"
+    eventTypeSplit = "gmeow:eventTypeSplit"
+    eventTypeSupersession = "gmeow:eventTypeSupersession"
+    eventTypeSurvey = "gmeow:eventTypeSurvey"
+    eventTypeTake = "gmeow:eventTypeTake"
+    eventTypeTermination = "gmeow:eventTypeTermination"
+    eventTypeTransfer = "gmeow:eventTypeTransfer"
+    eventTypeTransmission = "gmeow:eventTypeTransmission"
+    eventTypeWill = "gmeow:eventTypeWill"
+    eventTypeWorkConception = "gmeow:eventTypeWorkConception"
+
+
 class MitigationStatusEnum(StrEnum):
     mitigationActive = "gmeow:mitigationActive"
     mitigationProposed = "gmeow:mitigationProposed"
@@ -59,14 +148,14 @@ class Cascade(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Cascade", "curie": "gmeow:Cascade", "definitionDigest": "blake3:9ad6c113932b1c3ff3c2cf1fdb20f5244b4eeb3f8c4291856b733444da52080a", "iri": "https://blackcatinformatics.ca/gmeow/Cascade"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Cascade", "curie": "gmeow:Cascade", "definitionDigest": "blake3:f53ecc24e56b0765c39a82dbf7c5e40bf81ce9421a91d9058d197bbf16535aae", "iri": "https://blackcatinformatics.ca/gmeow/Cascade"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    cascadeFirstLink: list[Any] | None = Field(default=None, description="The entry link of this cascade. Functional and mandatory (SHACL).", alias="gmeow:cascadeFirstLink")
-    cascadeSeverity: Any = Field(description="The cascade's graded severity — according to whoever grades it (statement-layer indexed). NOT functional design review: grading is evaluative and source-variable; divergent grades coexist through the statement layer, and single-valuedness per base graph is SHACL's job (the hasAuthorityLevel convention). Mandatory: an ungraded cascade is just a story.", alias="gmeow:cascadeSeverity")
+    cascadeFirstLink: list[CausalLink] = Field(min_length=1, description="The entry link of this cascade. Functional and mandatory (SHACL).", alias="gmeow:cascadeFirstLink")
+    cascadeSeverity: SeverityLevelEnum = Field(description="The cascade's graded severity — according to whoever grades it (statement-layer indexed). NOT functional design review: grading is evaluative and source-variable; divergent grades coexist through the statement layer, and single-valuedness per base graph is SHACL's job (the hasAuthorityLevel convention). Mandatory: an ungraded cascade is just a story.", alias="gmeow:cascadeSeverity")
 
 
 class CausalLink(ConfiguredBaseModel):
@@ -91,12 +180,16 @@ class CausalLink(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CausalLink", "curie": "gmeow:CausalLink", "definitionDigest": "blake3:67f1a8cc19ad48d91fd3bf8a90e9cdfed7e160e2c8a4900a1a94d23dd62940fe", "iri": "https://blackcatinformatics.ca/gmeow/CausalLink"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CausalLink", "curie": "gmeow:CausalLink", "definitionDigest": "blake3:ca384aa56770b3d12629c507d765d36ecb9152e32e70f4cb5ba32d7e497234b3", "iri": "https://blackcatinformatics.ca/gmeow/CausalLink"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    causalModality: list[CausalModalityEnum] = Field(description="The force this link claims. Functional and mandatory (SHACL): if you reified, you had a reason — the modality is it. Open vocabulary (sh:nodeKind sh:IRI, never sh:in).", alias="gmeow:causalModality")
+    linkAntecedent: EventTypeEnum = Field(description="The causing kind. Functional and mandatory (SHACL); distinct from the consequent (the logic:causalLinkDistinctness axiom, projected to SHACL — nothing type-causes itself).", alias="gmeow:linkAntecedent")
+    linkConsequent: EventTypeEnum = Field(description="The caused kind. Functional and mandatory (SHACL).", alias="gmeow:linkConsequent")
+    linkStrength: float | None = Field(default=None, description="A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional design review: strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing owl:sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention).", alias="gmeow:linkStrength")
 
 
 class Hazard(ConfiguredBaseModel):
@@ -121,15 +214,15 @@ class Hazard(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Hazard", "curie": "gmeow:Hazard", "definitionDigest": "blake3:56e6b8da17834c48ac62cf1823425664fd40766a0291412b64af0b365314868a", "iri": "https://blackcatinformatics.ca/gmeow/Hazard"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Hazard", "curie": "gmeow:Hazard", "definitionDigest": "blake3:b641bc8e1313ee3b5cadcc6c6a752a041b9376baf181367ab866f3e3b57fe352", "iri": "https://blackcatinformatics.ca/gmeow/Hazard"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hazardBearer: Any = Field(description="The entity in which this hazard inheres. Functional and mandatory (SHACL): a disposition has exactly one bearer (gUFO inherence, asserted with GMEOW's own property — Principle 5). The same danger borne by two systems is two hazards.", alias="gmeow:hazardBearer")
+    hazardBearer: str = Field(description="The entity in which this hazard inheres. Functional and mandatory (SHACL): a disposition has exactly one bearer (gUFO inherence, asserted with GMEOW's own property — Principle 5). The same danger borne by two systems is two hazards.", alias="gmeow:hazardBearer")
     hazardSeverity: Any | None = Field(default=None, description="The hazard's graded severity, when graded standalone (a hazard feeding a cascade usually inherits attention from the cascade's grade). NOT functional (design review — evaluative, source-variable; the hasAuthorityLevel convention); optional, at most one per base graph (SHACL).", alias="gmeow:hazardSeverity")
-    manifestedAsType: list[Any] | None = Field(default=None, description="The feared kind of event — what this hazard's manifestation would BE, were it to occur. Range is gmeow:EventType, never gmeow:Event: the type level is where counterfactuals live without machinery. NOT functional, at least one (SHACL): a hazard may threaten several manifestation kinds.", alias="gmeow:manifestedAsType")
+    manifestedAsType: list[EventTypeEnum] = Field(description="The feared kind of event — what this hazard's manifestation would BE, were it to occur. Range is gmeow:EventType, never gmeow:Event: the type level is where counterfactuals live without machinery. NOT functional, at least one (SHACL): a hazard may threaten several manifestation kinds.", alias="gmeow:manifestedAsType")
 
 
 class Mitigation(ConfiguredBaseModel):
@@ -156,7 +249,7 @@ class Mitigation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Mitigation", "curie": "gmeow:Mitigation", "definitionDigest": "blake3:966dde356bcd99477976b27d94fb12c961e9ab3a6c2d3009f879aa0e5718642d", "iri": "https://blackcatinformatics.ca/gmeow/Mitigation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Mitigation", "curie": "gmeow:Mitigation", "definitionDigest": "blake3:cc9a7fff1b00dc0aded269936826383e2dd40f03948f50e1587b171621b2a014", "iri": "https://blackcatinformatics.ca/gmeow/Mitigation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

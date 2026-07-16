@@ -59,7 +59,7 @@ class Commitment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Commitment", "curie": "gmeow:Commitment", "definitionDigest": "blake3:7deabe56615c02dbe8791453e477bf45ddaabe5462bd90a1956c1b53545b1331", "iri": "https://blackcatinformatics.ca/gmeow/Commitment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Commitment", "curie": "gmeow:Commitment", "definitionDigest": "blake3:561251a7d22a9dc724af82f375c373df6aa52a48714fdbc920bb7663a5e3c538", "iri": "https://blackcatinformatics.ca/gmeow/Commitment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -212,7 +212,7 @@ class Intention(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Intention", "curie": "gmeow:Intention", "definitionDigest": "blake3:9509acea7285e807d6008d01fd5f02225eeb1b997cada1be82f2696520a29a7e", "iri": "https://blackcatinformatics.ca/gmeow/Intention"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Intention", "curie": "gmeow:Intention", "definitionDigest": "blake3:bfbe97f8b529c5a1710cafb3b2600663ccf167a57b6be5344c7788af671f4ef1", "iri": "https://blackcatinformatics.ca/gmeow/Intention"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

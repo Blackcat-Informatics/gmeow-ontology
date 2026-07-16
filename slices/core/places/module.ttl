@@ -5441,7 +5441,7 @@ gmeow:CoarsenToReachabilityConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world reachability constraint: for every gmeow:coarsenTo target level, some gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the coarsened value has a replacement."@x-gmeow-english ;
-    logic:formalizes gmeow:coarsenTo ;
+    logic:formalizes gmeow:CoarsenToShape ;
     logic:severity "Warning" ;
     logic:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
     logic:integrity logic:ctrForall .

@@ -125,3 +125,54 @@ Privacy (k-anonymity, coarsening, suppression) is handled by the existing projec
     skos:definition "The GMEOW Spatial Aggregation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/aggregationFunction> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/AggregationFunction> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/minimumPopulation> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Place> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/aggregationFunction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationResult" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: spatial-aggregation cardinality + result-type grounding ---
+# gmeow:SpatialAggregationShape — exactly one vantage, one observed region, one aggregation
+# function, one scalar result, and at most one minimum population.
+gmeow:SpatialAggregation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:aggregationFunction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:minimumPopulation ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] .
+
+# The observationResult value is a scalar quantity (gmeow:ScalarQuantity / gmeow:Quantity /
+# gmeow:MeasuredValue, the three owl:equivalentClass aliases) — the value-class-disjunction of the
+# retired gmeow:SpatialAggregationShape sh:or, carried in the logic: canon (no single OWL antecedent
+# reproduces a disjunctive value class on a path).
+gmeow:SpatialAggregationResultTypeConstraint
+    a logic:Constraint ;
+    rdfs:label "Spatial aggregation result-type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SpatialAggregation yields exactly one scalar quantity result — a gmeow:ScalarQuantity, gmeow:Quantity, or gmeow:MeasuredValue."@x-gmeow-english ;
+    logic:formalizes gmeow:SpatialAggregationShape ;
+    logic:message "A SpatialAggregation must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+    logic:integrity logic:spaggForall .
+logic:spaggForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:spaggImpl .
+logic:spaggImpl a logic:Formula ; logic:antecedent logic:spaggGuard ; logic:consequent logic:spaggOr .
+logic:spaggGuard a logic:Formula ; logic:and logic:spaggType , logic:spaggResult .
+logic:spaggType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SpatialAggregation ] .
+logic:spaggResult a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:spaggOr a logic:Formula ; logic:or logic:spaggScalar , logic:spaggQuantity , logic:spaggMeasured .
+logic:spaggScalar a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ScalarQuantity ] .
+logic:spaggQuantity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Quantity ] .
+logic:spaggMeasured a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:MeasuredValue ] .

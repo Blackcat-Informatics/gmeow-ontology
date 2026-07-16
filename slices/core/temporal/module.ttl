@@ -1471,9 +1471,48 @@ gmeow:TemporalFrame rdfs:subClassOf
 gmeow:TemporalMeasurement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 <https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameTimeScale> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeScale> ] .
 <https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameRealm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
 <https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/FrameKind> ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/DatingMethod> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationMethod" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: temporal-measurement cardinality + date/age disjunction ---
+# gmeow:TemporalMeasurementShape — exactly one observed feature and one dating method (a
+# gmeow:DatingMethod); at least one vantage (rides the migrated existence closure).
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DatingMethod ] .
+
+# A TemporalMeasurement carries either a gmeow:measuredAge or a gmeow:measuredDate (or both) —
+# the disjunctive-requiredness image of the retired gmeow:TemporalMeasurementShape node-level sh:or.
+gmeow:TemporalMeasurementDateOrAgeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Temporal measurement date-or-age constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:TemporalMeasurement has gmeow:measuredAge (a decimal) or gmeow:measuredDate (a gmeow:Instant), or both; the value-kind of each alternative rides the property range axioms."@x-gmeow-english ;
+    logic:formalizes gmeow:TemporalMeasurementShape ;
+    logic:onClass gmeow:TemporalMeasurement ;
+    logic:anyOf gmeow:measuredAge , gmeow:measuredDate ;
+    logic:message "A TemporalMeasurement must have either gmeow:measuredAge or gmeow:measuredDate (or both)." .
+
+# gmeow:CoreObservationMethodShape / gmeow:TemporalMeasurementShape exactly-one method: the plain
+# sh:maxCount 1 (owl:onClass owl:Thing degrades to it) alongside the DatingMethod-qualified bound.
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# gmeow:CoreObservationMethodShape target gmeow:TemporalMeasurement: its method is also an
+# gmeow:ObservationMethod (gmeow:DatingMethod ⊑ gmeow:ObservationMethod), so the value-class the
+# core-observation shape requires is carried alongside the finer DatingMethod bound.
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:allValuesFrom gmeow:ObservationMethod ] .
