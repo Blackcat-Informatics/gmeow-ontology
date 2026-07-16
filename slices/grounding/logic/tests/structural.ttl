@@ -942,7 +942,7 @@ ASK {
     logic:Formula a owl:Class .
     logic:Rule a owl:Class .
     logic:TermCarrier a owl:Class .
-    logic:argument rdfs:domain logic:Formula ; rdfs:range logic:TermCarrier .
+    logic:argument rdfs:domain logic:ArgumentStructure ; rdfs:range logic:TermCarrier .
     logic:quantifiedVariable rdfs:domain logic:Formula ; rdfs:range logic:TermCarrier .
     logic:termIndex rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
     logic:termIri rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .

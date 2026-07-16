@@ -7546,7 +7546,7 @@ logic:TermCarrier
 
 logic:FunctionTerm
     a owl:Class ;
-    rdfs:subClassOf logic:ArgumentStructure ;
+    logic:subClassOf logic:ArgumentStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Function Term"@x-gmeow-english ;
     skos:definition "A compound function-term application node: a single reified function symbol (logic:functionSymbol, a logic:Type individual) applied to a non-empty, ordered list of logic:argument term-carriers, denoting a first-order term such as cons(H, T) or s(X). It mirrors the atomic-predication pattern (logic:relation over ordered logic:argument), but predicates a FUNCTION symbol producing a term rather than a relation producing a truth value; reifying the symbol as a logic:Type individual keeps the object level first-order, so there is no function-variable. An argument carrier may itself carry logic:termApplication, so a nested term such as cons(H, cons(1, nil)) round-trips. It is not itself a logic:Formula: it is a term, referenced from a carrier's logic:termApplication, never asserted as a sentence."@x-gmeow-english ;
@@ -10187,8 +10187,8 @@ logic:ContradictionWitness rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:allValuesFrom xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:allValuesFrom xsd:string ] .
 
-logic:RecoveryCase rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:recoveryTransform ; owl:allValuesFrom logic:Formula ] .
+logic:RecoveryCase logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:recoveryTransform ; logic:allValuesFrom logic:Formula ] .
 
 # Global at-most-one semantics for the carriers legacy SHACL constrained with maxCount 1.
 logic:candidateSourceHash a owl:FunctionalProperty .

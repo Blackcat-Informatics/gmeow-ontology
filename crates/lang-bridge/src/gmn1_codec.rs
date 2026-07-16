@@ -25,7 +25,7 @@
 //! `identifier | number | list`, and `identifier` is `[A-Za-z_][A-Za-z0-9_.-]*` — no colon,
 //! no arbitrary Unicode. Three consequences this codec resolves explicitly:
 //!
-//! 1. **IRIs** are represented as either a dictionary alias (`gmeow:gmnDictV2`, read from
+//! 1. **IRIs** are represented as either a dictionary alias (`gmeow:gmnDictV3`, read from
 //!    the compiled carrier — never hardcoded) OR a deterministic, injective
 //!    prefix-mangling of the term's CURIE under the SAME prefix registry the rest of the
 //!    pipeline treats as canonical (`gmeow_logic_compile::ingest::prefixes`): `prefix__local`
@@ -139,7 +139,7 @@ const BLANK_PREFIX: &str = "_b";
 const REF_PREFIX: &str = "r_";
 
 const DIALECT_VERSION: &str = "1";
-const DICTIONARY_VERSION: &str = "2";
+const DICTIONARY_VERSION: &str = "3";
 const GLYPH_VERSION: &str = "2";
 
 // ── GMN-0: the canonical quad-set normal form ───────────────────────────────────────
@@ -1173,7 +1173,7 @@ fn is_default_ignorable(ch: char) -> bool {
     )
 }
 
-// ── The dictionary bijection (`gmeow:gmnDictV2`, read from the carrier) ─────────────
+// ── The dictionary bijection (`gmeow:gmnDictV3`, read from the carrier) ─────────────
 
 /// The GMN alias-table bijection, read from the compiled carrier — never hardcoded.
 /// Injective over its covered term set (checked at load time, defensively: the carrier's
@@ -1381,7 +1381,7 @@ pub struct UncoveredTerm(pub String);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Gmn1Error {
     /// `lang:GmnUncoveredTerm` — a grammar-valid term the pinned dictionary / prefix registry
-    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v2` does
+    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v3` does
     /// not mint, a quoted RDF 1.2 triple term, a named-graph quad). Named so it is diagnosable.
     Uncovered(UncoveredTerm),
     /// `lang:GmnNonCanonicalOrder` — a record's field keys are not in the canonical key order
@@ -1483,7 +1483,7 @@ fn non_decodable(detail: String) -> Gmn1Error {
 pub enum Gmn1ConstructCategory {
     /// An IRI rendered through a scoped, graph-derived GMN glyph Denotation.
     IriGlyph,
-    /// An IRI resolved via the `gmeow:gmnDictV2` alias table (a dictionary hit).
+    /// An IRI resolved via the `gmeow:gmnDictV3` alias table (a dictionary hit).
     IriDictAlias,
     /// An IRI resolved via `prefix__local` mangling with no `/` in the stripped local
     /// part (the common case).
@@ -2559,7 +2559,7 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
     Ok(Gmn0Model { quads })
 }
 
-/// Validate `@gmn{v: 1, aliases: dict-v2, glyphs: 2}` by explicit token scanning — never by re-deriving
+/// Validate `@gmn{v: 1, aliases: dict-v3, glyphs: 2}` by explicit token scanning — never by re-deriving
 /// from what [`gmn1_write`] would emit. A header that fails to open/close or fails to pin the
 /// expected version is `lang:GmnUndeclaredDialectVersion` (the dialect coordinates the reader
 /// refuses to guess).
@@ -2967,9 +2967,9 @@ mod tests {
 
 gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;
     gmeow:references ex:dict, ex:script, ex:mathRole, ex:logicRole ;
-    gmeow:gmnDictionaryVersion "2" ;
+    gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "{version}" .
-ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "2" .
+ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
 ex:script a lang:Script ;
     lang:hasGrapheme ex:g, ex:g1, ex:g2, ex:gPlus, ex:gNot .
 ex:mathRole gmeow:gmnSigilGlyph "@μ" .
@@ -3282,8 +3282,8 @@ ex:c a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d ; gmeow:gmnA
             br#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix ex: <https://example.test/> .
-gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ; gmeow:references ex:dict, ex:script ; gmeow:gmnDictionaryVersion "2" .
-ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "2" .
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ; gmeow:references ex:dict, ex:script ; gmeow:gmnDictionaryVersion "3" .
+ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
 ex:script a lang:Script ; lang:hasGrapheme ex:g .
 "#,
             "text/turtle",
@@ -3305,7 +3305,7 @@ ex:script a lang:Script ; lang:hasGrapheme ex:g .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix ex: <https://example.test/> .
 gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ; gmeow:references ex:dict, ex:script ; gmeow:gmnGlyphTableVersion "2" .
-ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "2" .
+ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
 ex:script a lang:Script ; lang:hasGrapheme ex:g .
 "#,
             "text/turtle",
@@ -3504,7 +3504,7 @@ ex:fixtureDenotation a lang:Denotation ;
         );
 
         let wrong_scope = Gmn1Document::from_text(
-            "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@ℒ{s: logic__Formula, p: +, o: logic__Formula}\n",
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__Formula, p: +, o: logic__Formula}\n",
         );
         assert!(
             matches!(
@@ -3514,7 +3514,7 @@ ex:fixtureDenotation a lang:Denotation ;
             "a math-scoped glyph must not decode in @logic scope"
         );
         let wrong_fallback_scope = Gmn1Document::from_text(
-            "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@ℒ{s: logic__Formula, p: add, o: logic__Formula}\n",
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__Formula, p: add, o: logic__Formula}\n",
         );
         assert!(
             matches!(
@@ -3598,8 +3598,8 @@ ex:fixtureDenotation a lang:Denotation ;
     fn real_dictionary_loads_and_is_injective() {
         let dict = real_dict();
         assert!(
-            dict.term_to_alias.len() >= 24,
-            "expected at least the 24 authored dict-v2 entries, got {}",
+            dict.term_to_alias.len() >= 30,
+            "expected at least the 30 authored dict-v3 entries, got {}",
             dict.term_to_alias.len()
         );
         assert_eq!(
@@ -3679,9 +3679,9 @@ ex:fixtureDenotation a lang:Denotation ;
         // a doubled '\r\r\n', or a lone trailing '\r' with no following '\n') — before
         // the fix, parse_header matched the un-trimmed line exactly against
         // "@gmn{...}" and hard-failed as Malformed on any such residue.
-        assert!(parse_header("@gmn{v: 1, aliases: dict-v2, glyphs: 2}\r", &dict).is_ok());
-        assert!(parse_header("  @gmn{v: 1, aliases: dict-v2, glyphs: 2}  ", &dict).is_ok());
-        assert!(parse_header("@gmn{v: 1, aliases: dict-v2, glyphs: 2}", &dict).is_ok());
+        assert!(parse_header("@gmn{v: 1, aliases: dict-v3, glyphs: 2}\r", &dict).is_ok());
+        assert!(parse_header("  @gmn{v: 1, aliases: dict-v3, glyphs: 2}  ", &dict).is_ok());
+        assert!(parse_header("@gmn{v: 1, aliases: dict-v3, glyphs: 2}", &dict).is_ok());
     }
 
     #[test]
@@ -3695,7 +3695,7 @@ ex:fixtureDenotation a lang:Denotation ;
             // A doubled '\r' before the line feed: std::str::lines() strips exactly
             // one trailing '\r' per line, so one '\r' still reaches parse_header
             // un-trimmed without the fix.
-            "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\r\r\n",
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\r\r\n",
             // A stray space between the sigil and its opening brace.
             "@c {s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n",
             "@claims[s p o]\n",
@@ -3722,7 +3722,7 @@ ex:fixtureDenotation a lang:Denotation ;
         // table does not mint) — it is a structural defect the parse table has no production
         // for, so it is `lang:GmnNonDecodableGrammar`, never silently parsed.
         let dict = empty_dict();
-        let text = "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let text = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let doc = Gmn1Document {
             text: text.to_owned(),
             refs: BTreeMap::new(),
@@ -3802,7 +3802,7 @@ ex:fixtureDenotation a lang:Denotation ;
         let dict = empty_dict();
         let read = |q: &str| {
             let text = format!(
-                "@gmn{{v: 1, aliases: dict-v2, glyphs: 2}}\n@c{{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: {q}}}\n"
+                "@gmn{{v: 1, aliases: dict-v3, glyphs: 2}}\n@c{{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: {q}}}\n"
             );
             gmn1_read(
                 &Gmn1Document {
@@ -3829,7 +3829,7 @@ ex:fixtureDenotation a lang:Denotation ;
 
         // A grammar-valid identifier in an object slot the empty dictionary does not cover
         // stays Uncovered (dictionary-coverage), NOT MalformedNumber.
-        let text = "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@c{s: unregistered, p: unregistered, o: unregistered}\n";
+        let text = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: unregistered, p: unregistered, o: unregistered}\n";
         let err = gmn1_read(
             &Gmn1Document {
                 text: text.to_owned(),
@@ -3892,7 +3892,7 @@ ex:fixtureDenotation a lang:Denotation ;
     fn detection_precedence_grammar_wins_over_key_order() {
         let dict = empty_dict();
         // Non-canonical order (q before s) is the sole defect → NonCanonicalOrder.
-        let misordered = "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@c{q: 0.95, s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let misordered = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{q: 0.95, s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let err = gmn1_read(
             &Gmn1Document {
                 text: misordered.to_owned(),
@@ -3904,7 +3904,7 @@ ex:fixtureDenotation a lang:Denotation ;
         assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_CANONICAL_ORDER);
 
         // A duplicate key is a grammar defect that dominates the misorder.
-        let duplicate = "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@c{s: gmeow__gate1, s: gmeow__gate2, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let duplicate = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__gate1, s: gmeow__gate2, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let err = gmn1_read(
             &Gmn1Document {
                 text: duplicate.to_owned(),
@@ -3925,7 +3925,7 @@ ex:fixtureDenotation a lang:Denotation ;
     fn tabular_schema_with_duplicate_column_is_non_decodable_grammar() {
         let dict = empty_dict();
         let text = concat!(
-            "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n",
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n",
             "@claims[s p o o]\n",
             "gmeow__gate1 gmeow__hasState gmeow__doorGate1 gmeow__doorGate2\n",
         );

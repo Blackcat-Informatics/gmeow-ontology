@@ -19395,6 +19395,9 @@ enums:
       gmnFormalSemanticsNotationWork:
         meaning: https://blackcatinformatics.ca/gmeow/gmnFormalSemanticsNotationWork
         title: formal-semantics notation conventions
+      gmnInformationTheoryWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnInformationTheoryWork
+        title: information-theory notation reference
       gmnLinguisticNotationWork:
         meaning: https://blackcatinformatics.ca/gmeow/gmnLinguisticNotationWork
         title: linguistic acceptability notation conventions
@@ -21051,12 +21054,105 @@ enums:
       gmnDictV2EntryTranslation:
         meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryTranslation
         title: 'dict-v2 entry: lang:Translation to xl'
+      gmnDictV3EntryBoundaryClosed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed
+        title: 'dict-v3 entry: logic:Closed to closed'
+      gmnDictV3EntryBoundaryOpen:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen
+        title: 'dict-v3 entry: logic:Open to open'
+      gmnDictV3EntryCodebook:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook
+        title: 'dict-v3 entry: gmeow:GmnCodebook to gcb'
+      gmnDictV3EntryDenotation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation
+        title: 'dict-v3 entry: lang:Denotation to den'
+      gmnDictV3EntryEnvelope:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope
+        title: 'dict-v3 entry: gmeow:GmnEnvelope to genv'
+      gmnDictV3EntryEvKindComputational:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational
+        title: 'dict-v3 entry: computational model to cmp'
+      gmnDictV3EntryEvKindDirect:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect
+        title: 'dict-v3 entry: direct observation to dir'
+      gmnDictV3EntryEvKindExpert:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert
+        title: 'dict-v3 entry: expert judgement to exj'
+      gmnDictV3EntryEvKindInstrumental:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental
+        title: 'dict-v3 entry: instrumental reading to inst'
+      gmnDictV3EntryEvKindRemote:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote
+        title: 'dict-v3 entry: remote sensing to rmt'
+      gmnDictV3EntryEvKindStreaming:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming
+        title: 'dict-v3 entry: streaming observation to strm'
+      gmnDictV3EntryEvKindSurvey:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey
+        title: 'dict-v3 entry: survey to srv'
+      gmnDictV3EntryLogicAnd:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd
+        title: 'dict-v3 entry: logic:and to and'
+      gmnDictV3EntryLogicExists:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists
+        title: 'dict-v3 entry: logic:exists to ex'
+      gmnDictV3EntryLogicForall:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall
+        title: 'dict-v3 entry: logic:forall to fa'
+      gmnDictV3EntryLogicIff:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff
+        title: 'dict-v3 entry: logic:iff to iff'
+      gmnDictV3EntryLogicOr:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr
+        title: 'dict-v3 entry: logic:or to or'
+      gmnDictV3EntryMathBoundaryOperator:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator
+        title: 'dict-v3 entry: math:BoundaryOperator to boundary'
+      gmnDictV3EntryMathCoboundaryOperator:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator
+        title: 'dict-v3 entry: math:CoboundaryOperator to coboundary'
+      gmnDictV3EntryMathDirectSum:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum
+        title: 'dict-v3 entry: math:DirectSumDecomposition to ds'
+      gmnDictV3EntryMathDivision:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision
+        title: 'dict-v3 entry: math:Division to div'
+      gmnDictV3EntryMathHodgeLaplacian:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian
+        title: 'dict-v3 entry: math:HodgeLaplacian to hlap'
+      gmnDictV3EntryMathLeftContraction:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction
+        title: 'dict-v3 entry: math:LeftContraction to lcon'
+      gmnDictV3EntryMathReversion:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion
+        title: 'dict-v3 entry: math:Reversion to rev'
+      gmnDictV3EntryModalActual:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual
+        title: 'dict-v3 entry: actual modal force to act'
+      gmnDictV3EntryModalCounterfactual:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual
+        title: 'dict-v3 entry: counterfactual modal force to cf'
+      gmnDictV3EntryModalNecessary:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary
+        title: 'dict-v3 entry: necessary modal force to nec'
+      gmnDictV3EntryModalPossible:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible
+        title: 'dict-v3 entry: possible modal force to poss'
+      gmnDictV3EntryMorphemeBoundary:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary
+        title: 'dict-v3 entry: lang:MorphemeBoundary to mb'
+      gmnDictV3EntryTranslation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation
+        title: 'dict-v3 entry: lang:Translation to xl'
   GmnDictionaryEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
     permissible_values:
       gmnDictV2:
         meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2
         title: GMN dictionary (version 2)
+      gmnDictV3:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV3
+        title: GMN dictionary (version 3)
   GmnDispositionBasisEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnDispositionBasis
     permissible_values:
@@ -21213,27 +21309,78 @@ enums:
       gmnCandidateMathAddition:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathAddition
         title: 'GMN candidate: addition as +'
+      gmnCandidateMathBoundaryOperator:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator
+        title: 'GMN candidate: boundary operator'
+      gmnCandidateMathCoboundaryOperator:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator
+        title: 'GMN candidate: coboundary operator'
+      gmnCandidateMathDirectSum:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum
+        title: 'GMN candidate: direct sum'
       gmnCandidateMathDivision:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathDivision
         title: 'GMN candidate: division sign'
+      gmnCandidateMathEntropy:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathEntropy
+        title: 'GMN candidate: Shannon entropy H'
       gmnCandidateMathEulerMascheroni:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathEulerMascheroni
         title: 'GMN candidate: Euler–Mascheroni as γ'
       gmnCandidateMathExponentiation:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathExponentiation
         title: 'GMN candidate: exponentiation as ^'
+      gmnCandidateMathExteriorProduct:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct
+        title: 'GMN candidate: exterior product'
+      gmnCandidateMathGeometricProductDot:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot
+        title: 'GMN candidate: geometric-product dot'
+      gmnCandidateMathGradeProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection
+        title: 'GMN candidate: grade projection'
+      gmnCandidateMathHodgeLaplacian:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian
+        title: 'GMN candidate: Hodge Laplacian'
+      gmnCandidateMathKullbackLeibler:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathKullbackLeibler
+        title: 'GMN candidate: Kullback–Leibler divergence D'
+      gmnCandidateMathLeftContraction:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction
+        title: 'GMN candidate: left contraction'
       gmnCandidateMathMultiplication:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathMultiplication
         title: 'GMN candidate: multiplication as ×'
+      gmnCandidateMathMutualInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathMutualInformation
+        title: 'GMN candidate: mutual information I'
       gmnCandidateMathNegation:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegation
         title: 'GMN candidate: unary negation minus'
+      gmnCandidateMathNerve:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathNerve
+        title: 'GMN candidate: nerve of a cover N'
       gmnCandidateMathPi:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathPi
         title: 'GMN candidate: math:pi as π'
+      gmnCandidateMathReversion:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion
+        title: 'GMN candidate: Clifford reversion'
+      gmnCandidateMathSheafLaplacian:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathSheafLaplacian
+        title: 'GMN candidate: sheaf Laplacian'
       gmnCandidateMathSubtraction:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathSubtraction
         title: 'GMN candidate: binary subtraction minus'
+      gmnCandidateMathVectorBinding:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathVectorBinding
+        title: 'GMN candidate: vector-symbolic binding ⊛'
+      gmnCandidateMathVectorBundling:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathVectorBundling
+        title: 'GMN candidate: vector-symbolic bundling ⊕'
+      gmnCandidateMathVectorUnbinding:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathVectorUnbinding
+        title: 'GMN candidate: vector-symbolic unbinding ⊘'
   GmnSymbolDispositionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnSymbolDisposition
     permissible_values:

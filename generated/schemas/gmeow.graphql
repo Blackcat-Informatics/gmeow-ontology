@@ -1322,6 +1322,7 @@ enum CreativeWorkEnum {
   gmnCommonLogicWork
   gmnDescriptionLogicNotationWork
   gmnFormalSemanticsNotationWork
+  gmnInformationTheoryWork
   gmnLinguisticNotationWork
   gmnOpenMathWork
   gmnUnicodeMathWork
@@ -1988,10 +1989,41 @@ enum GmnDictionaryEntryEnum {
   gmnDictV2EntryMathDivision
   gmnDictV2EntryMorphemeBoundary
   gmnDictV2EntryTranslation
+  gmnDictV3EntryBoundaryClosed
+  gmnDictV3EntryBoundaryOpen
+  gmnDictV3EntryCodebook
+  gmnDictV3EntryDenotation
+  gmnDictV3EntryEnvelope
+  gmnDictV3EntryEvKindComputational
+  gmnDictV3EntryEvKindDirect
+  gmnDictV3EntryEvKindExpert
+  gmnDictV3EntryEvKindInstrumental
+  gmnDictV3EntryEvKindRemote
+  gmnDictV3EntryEvKindStreaming
+  gmnDictV3EntryEvKindSurvey
+  gmnDictV3EntryLogicAnd
+  gmnDictV3EntryLogicExists
+  gmnDictV3EntryLogicForall
+  gmnDictV3EntryLogicIff
+  gmnDictV3EntryLogicOr
+  gmnDictV3EntryMathBoundaryOperator
+  gmnDictV3EntryMathCoboundaryOperator
+  gmnDictV3EntryMathDirectSum
+  gmnDictV3EntryMathDivision
+  gmnDictV3EntryMathHodgeLaplacian
+  gmnDictV3EntryMathLeftContraction
+  gmnDictV3EntryMathReversion
+  gmnDictV3EntryModalActual
+  gmnDictV3EntryModalCounterfactual
+  gmnDictV3EntryModalNecessary
+  gmnDictV3EntryModalPossible
+  gmnDictV3EntryMorphemeBoundary
+  gmnDictV3EntryTranslation
 }
 
 enum GmnDictionaryEnum {
   gmnDictV2
+  gmnDictV3
 }
 
 enum GmnDispositionBasisEnum {
@@ -2060,13 +2092,30 @@ enum GmnSymbolCandidateEnum {
   gmnCandidateLogicOr
   gmnCandidateLogicSubClassOf
   gmnCandidateMathAddition
+  gmnCandidateMathBoundaryOperator
+  gmnCandidateMathCoboundaryOperator
+  gmnCandidateMathDirectSum
   gmnCandidateMathDivision
+  gmnCandidateMathEntropy
   gmnCandidateMathEulerMascheroni
   gmnCandidateMathExponentiation
+  gmnCandidateMathExteriorProduct
+  gmnCandidateMathGeometricProductDot
+  gmnCandidateMathGradeProjection
+  gmnCandidateMathHodgeLaplacian
+  gmnCandidateMathKullbackLeibler
+  gmnCandidateMathLeftContraction
   gmnCandidateMathMultiplication
+  gmnCandidateMathMutualInformation
   gmnCandidateMathNegation
+  gmnCandidateMathNerve
   gmnCandidateMathPi
+  gmnCandidateMathReversion
+  gmnCandidateMathSheafLaplacian
   gmnCandidateMathSubtraction
+  gmnCandidateMathVectorBinding
+  gmnCandidateMathVectorBundling
+  gmnCandidateMathVectorUnbinding
 }
 
 enum GmnSymbolDispositionEnum {

@@ -55,6 +55,12 @@ Three systems carry most of the load and should be treated as the spine of the r
   (LGPL-v3) + embedded **D-SI** (LGPL) for the calibration-certificate + traceability + unit-
   uncertainty structure. **P/L** for units, **P** for the metrology projection.
 
+A private 95-topic mathematics snapshot was also used as a one-time coverage probe. Its source
+identity, checkout path, and revision are intentionally not published and it is not an ontology
+dependency. The anonymized decisions are recorded in
+[`MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md`](MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md); all minted
+identities are general `math:` terms with independent definitions and public authority links.
+
 ### Realized grounding disposition
 
 The external survey is discharged by one of the following concrete treatments;
@@ -298,8 +304,9 @@ substitute for such a row, and a survey citation does not claim one exists.
 
 - **QUDT quantitykind:InformationEntropy** — P/L | CC-BY-4.0 | active — entropy-as-a-unit
   (bit/nat/shannon) only.
-- **Mutual information / KL divergence / cross-entropy / Fisher information geometry** — **none exists →
-  GMEOW authors it.**
+- **Mutual information / KL divergence / cross-entropy / Fisher information geometry** — no
+  structural ontology supplies the required frames, so GMEOW authors them; verified Wikidata QIDs
+  provide identity anchors for the named measures.
 
 ## Cluster Q — ML geometry / KG embeddings / latent spaces (domain depth)
 
