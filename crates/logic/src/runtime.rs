@@ -168,11 +168,27 @@ pub use crate::query_ir::{
 /// Production entry points and completeness/evidence carriers for backward goal
 /// resolution over snapshots, resident/pack views, and fallible paged views.
 pub use crate::dispatch::{
-    CompleteAnnotatedViewQuery, CompleteViewQuery, FallibleAnnotatedViewQueryResult,
-    FallibleViewQueryError, FallibleViewQueryResult, QueryExecutionEvidence,
-    QueryExecutionIdentity, ResidentViewEvidence, dispatch_query,
-    dispatch_query_annotated_fallible_view, dispatch_query_annotated_view,
-    dispatch_query_fallible_view, dispatch_query_view,
+    CompleteAnnotatedViewQuery, CompleteRelationViewQuery, CompleteViewQuery,
+    FallibleAnnotatedViewQueryResult, FallibleRelationViewQueryError,
+    FallibleRelationViewQueryResult, FallibleViewQueryError, FallibleViewQueryResult,
+    QueryExecutionEvidence, QueryExecutionIdentity, RelationAnnotationRequest, RelationQueryError,
+    ResidentViewEvidence, dispatch_query, dispatch_query_annotated_fallible_view,
+    dispatch_query_annotated_view, dispatch_query_annotated_with_relations,
+    dispatch_query_annotated_with_relations_fallible_view,
+    dispatch_query_annotated_with_relations_view, dispatch_query_fallible_view,
+    dispatch_query_view,
+};
+
+/// Immutable external-relation descriptors, providers, evidence, and typed failures.
+pub use crate::external_relation::{
+    ExternalRelationProvider, NeverCancelled, ProviderTupleSource, QueryRelationProviders,
+    RelationAccessMetrics, RelationAnnotationDimension, RelationBatch, RelationCall,
+    RelationCancellation, RelationContractError, RelationExecutionError,
+    RelationExecutionFailureKind, RelationInvocationReceipt, RelationInvocationStatus,
+    RelationOrderDirection, RelationOrdering, RelationProviderBudget, RelationProviderDescriptor,
+    RelationProviderError, RelationProviderFailureKind, RelationProviderIncompletenessKind,
+    RelationProviderRegistration, RelationQueryFailureReceipt, RelationQueryReceipt,
+    RelationQueryResult, RelationTuple,
 };
 
 /// Opaque tuple-annotation inputs and results used by annotated direct-view dispatch.
@@ -194,12 +210,13 @@ pub use crate::materialize::{
 /// faithfulness judgment a consumer reads off an answer.
 pub use crate::result::PreservationClaim;
 pub use gmeow_logic_compile::ir::{LogicProgram, PreservationKind, SemanticProfileId};
+pub use gmeow_logic_compile::result_shape::ColumnKind;
 
 /// Frozen-dataset construction types, re-exported so a consumer needs no direct
 /// `purrdf` import churn to build the `Arc<RdfDataset>` it folds.
 pub use purrdf::{
     FallibleDatasetView, PackView, PagedDataset, PagedQueryError, PagedQueryEvidence,
-    PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm,
+    PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue,
 };
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -619,6 +636,23 @@ impl EngineContract {
             budget,
             annotation,
             algebra_identity,
+        )
+    }
+
+    /// Reproduce the invocation identity used by provider-aware annotated dispatch.
+    pub fn external_relation_query_contract_hash(
+        profile: &str,
+        budget: &Budget,
+        annotation: &AnnotationContract,
+        algebra_identity: &str,
+        provider_manifest_hash: &str,
+    ) -> String {
+        crate::dispatch::external_relation_query_contract_hash(
+            profile,
+            budget,
+            annotation,
+            algebra_identity,
+            provider_manifest_hash,
         )
     }
 
