@@ -80,7 +80,7 @@ use gmeow_conformance::serialize::{
 };
 use gmeow_license::{LicensePolicy, policy_for_license};
 use gmeow_logic::foundation::{AntiRigidityPolicy, FoundationQuad};
-use purrdf::TermRef;
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
 
 const USAGE: &str = "\
 usage:
@@ -901,25 +901,41 @@ enum EntailmentLowering {
 }
 
 /// Build the reduced default-graph dataset `premise ∪ negation` (the negation triples
-/// are all IRIs) by serializing the premise's default graph to N-Triples, appending
-/// the negation triples, and re-parsing — so purrdf owns all term encoding.
+/// are all IRIs) programmatically via [`purrdf::RdfDatasetBuilder`] — no premise
+/// serialize→reparse roundtrip, purrdf still owns every term's encoding. Mirrors the
+/// shipped runtime reduction in `gmeow_logic::entail::build_world_edb`, minus the
+/// world-scoping (this reduction lives in the default graph).
 fn build_reduced_dataset(
     premise: &purrdf::RdfDataset,
     negation: &[(String, String, String)],
 ) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
-    let nt_bytes = purrdf::serialize_dataset(
-        premise,
-        "application/n-triples",
-        purrdf::SerializeGraph::DefaultGraph,
-    )
-    .map_err(|e| ce(format!("premise N-Triples serialize failed: {e}")))?;
-    let mut nt =
-        String::from_utf8(nt_bytes).map_err(|_| ce("premise N-Triples not UTF-8".to_string()))?;
-    for (s, p, o) in negation {
-        nt.push_str(&format!("<{s}> <{p}> <{o}> .\n"));
+    let mut builder = RdfDatasetBuilder::new();
+    for q in premise.quads() {
+        // Default graph only — the reduced EDB is the premise's default-graph triples
+        // (the prior path serialized SerializeGraph::DefaultGraph) unioned with the
+        // negation. Named-graph quads, if any, are not part of the reduction.
+        if q.g.is_some() {
+            continue;
+        }
+        let TermRef::Iri(pred) = premise.resolve(q.p) else {
+            // A non-IRI predicate is not well-formed RDF; skip it defensively.
+            continue;
+        };
+        let pred = pred.to_owned();
+        let subject = premise.to_owned_term(q.s);
+        let object = premise.to_owned_term(q.o);
+        builder.push_owned_quad(&RdfQuad::new(subject, pred, object));
     }
-    purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| ce(format!("reduced EDB re-parse failed: {e}")))
+    for (s, p, o) in negation {
+        builder.push_owned_quad(&RdfQuad::new(
+            RdfTerm::iri(s.clone()),
+            p.clone(),
+            RdfTerm::iri(o.clone()),
+        ));
+    }
+    builder
+        .freeze()
+        .map_err(|e| ce(format!("reduced EDB failed to build: {e}")))
 }
 
 /// Lower one entailment manifest entry into either a decided reduced-EDB consistency
