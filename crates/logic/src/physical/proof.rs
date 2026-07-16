@@ -84,6 +84,27 @@ pub(crate) enum ProofError {
         /// The goal that was not found in [`RuleCtx::asserted`].
         goal: NodeId,
     },
+    /// An `assert` proof's goal is not a reifiable ground n-ary application (the
+    /// reifier the checker must recompute cannot be minted from it).
+    NotReifiable {
+        /// The goal that failed to reify.
+        goal: NodeId,
+        /// The [`reify`] hard-failure detail.
+        detail: String,
+    },
+    /// An `assert` proof's carried reifier does not match EITHER canonical reifier
+    /// recomputed from its stated goal — the caller supplied forged provenance rather
+    /// than a content-addressed handle a real minting recipe produces for that goal.
+    ForgedReifier {
+        /// The asserted goal.
+        goal: NodeId,
+        /// The structured (dag-content-key) reifier IRI [`structured_reifier`]
+        /// recomputed from `goal` — always defined, so always the fallback "expected"
+        /// value reported when neither recipe matches.
+        expected: String,
+        /// The reifier IRI the proof actually carried.
+        supplied: String,
+    },
     /// A `by_rule` proof cites a rule IRI absent from the [`RuleCtx`].
     UnknownRule {
         /// The cited rule-IRI leaf handle.
@@ -116,9 +137,31 @@ pub(crate) enum ProofError {
         /// The goal the proof claimed to establish.
         stated: NodeId,
     },
+    /// A `by_rule` proof's negative premise is not well-founded-FALSE — its atom is a member of
+    /// `Γ(W)` (well-founded True or Undefined), so `not <atom>` does not hold. A merely non-TRUE
+    /// (Undefined) negative is NOT a valid negation-as-failure; only a genuinely FALSE atom is.
+    NegativePremiseNotFalse {
+        /// The cited rule.
+        rule: TermId,
+        /// The ground negative body atom that is not well-founded-false.
+        neg_atom: NodeId,
+    },
 }
 
 // ── The rule/EDB context the checker re-derives against ─────────────────────────
+
+/// A ground rule instance the checker re-derives a `by_rule` proof against: the ground head,
+/// the ground POSITIVE body atoms (one checked subproof each), and the ground NEGATIVE body
+/// atoms (negation-as-failure premises, each of which must be well-founded-FALSE).
+#[derive(Debug, Clone)]
+pub(crate) struct GroundClause {
+    /// The ground head atom.
+    pub(crate) head: NodeId,
+    /// The ground positive body atoms — one checked subproof per atom, in order.
+    pub(crate) pos: Vec<NodeId>,
+    /// The ground negative body atoms — each must be FALSE (absent from [`RuleCtx::not_false`]).
+    pub(crate) neg: Vec<NodeId>,
+}
 
 /// The small caller-supplied context [`check`] re-derives against.
 ///
@@ -128,10 +171,16 @@ pub(crate) enum ProofError {
 /// an `assert` leaf may cite.
 #[derive(Debug, Default)]
 pub(crate) struct RuleCtx {
-    /// Rule clause per rule-IRI leaf handle: `(head atom, body atoms)`.
-    pub(crate) rules: HashMap<TermId, (NodeId, Vec<NodeId>)>,
+    /// Ground rule clause per firing-IRI leaf handle: head + positive + negative body atoms.
+    pub(crate) rules: HashMap<TermId, GroundClause>,
     /// The proven EDB goals (asserted facts) an `assert` proof may appeal to.
     pub(crate) asserted: HashSet<NodeId>,
+    /// The atoms that are NOT well-founded-false (`Γ(W)` = the true ∪ undefined atoms). A
+    /// `by_rule` proof's negative premise is valid ONLY if its ground atom is ABSENT here — i.e.
+    /// genuinely FALSE. A negative premise whose atom is present is an unsound `not <non-false>`
+    /// and is rejected ([`ProofError::NegativePremiseNotFalse`]). Empty for a purely-positive
+    /// program (no negation to constrain).
+    pub(crate) not_false: HashSet<NodeId>,
 }
 
 // ── Constructors ────────────────────────────────────────────────────────────────
@@ -275,11 +324,13 @@ fn classify(dag: &TermDag, node: NodeId) -> Result<ProofShape, ProofError> {
 /// Check `proof` bottom-up against `ctx`, returning the goal it proves or a [`ProofError`].
 ///
 /// This is the de-Bruijn criterion: the checker RE-DERIVES the proof rather than trusting
-/// its stated goal. An `assert` proof must cite an EDB member; a `by_rule` proof must, after
-/// its subproofs are recursively checked, have the cited rule's body unify with those proven
-/// premises and the instantiated head equal the stated goal (NodeId equality, i.e. alpha- and
-/// structural equality via hash-consing). Any deviation is an `Err` — a tampered proof cannot
-/// pass.
+/// its stated goal. An `assert` proof must cite an EDB member AND carry the reifier the
+/// checker independently RECOMPUTES from that goal via [`reify`] (never the caller-supplied
+/// handle taken on faith — a mismatched reifier is forged provenance, rejected as
+/// [`ProofError::ForgedReifier`]); a `by_rule` proof must, after its subproofs are recursively
+/// checked, have the cited rule's body unify with those proven premises and the instantiated
+/// head equal the stated goal (NodeId equality, i.e. alpha- and structural equality via
+/// hash-consing). Any deviation is an `Err` — a tampered proof cannot pass.
 ///
 /// # Metavariable isolation
 ///
@@ -289,37 +340,66 @@ fn classify(dag: &TermDag, node: NodeId) -> Result<ProofShape, ProofError> {
 /// forces a repeated rule variable to agree across body atoms.
 pub(crate) fn check(dag: &mut TermDag, proof: NodeId, ctx: &RuleCtx) -> Result<NodeId, ProofError> {
     match classify(dag, proof)? {
-        ProofShape::Assert { goal, reifier: _ } => {
-            if ctx.asserted.contains(&goal) {
-                Ok(goal)
-            } else {
-                Err(ProofError::NotAsserted { goal })
+        ProofShape::Assert { goal, reifier } => {
+            if !ctx.asserted.contains(&goal) {
+                return Err(ProofError::NotAsserted { goal });
             }
+            // The reifier is a PURE function of the goal (§19 single-path identity): never
+            // trust the caller's handle, recompute it and reject a mismatch as forged
+            // provenance. Two canonical, single-sourced minting recipes are legitimate
+            // depending on the goal's shape: the flat RDF-grounded recipe ([`reify`], a
+            // ground n-ary application over atomic-leaf arguments only) and, for a
+            // structured (function-symbol) fact `reify` cannot express, the structured
+            // content-key recipe ([`structured_reifier`], byte-identical to
+            // [`crate::physical::resolve_fol`]'s minting so the two never fork). The
+            // structured recipe is defined for ANY ground goal, so it is always the
+            // fallback "expected" value reported when neither recipe matches.
+            let supplied = atom_iri(dag, reifier).map_err(|e| ProofError::NotReifiable {
+                goal,
+                detail: e.to_string(),
+            })?;
+            let structured_expected = structured_reifier(dag, goal);
+            if supplied == structured_expected {
+                return Ok(goal);
+            }
+            if let Ok(flat_expected) = reify(dag, goal)
+                && supplied == flat_expected
+            {
+                return Ok(goal);
+            }
+            Err(ProofError::ForgedReifier {
+                goal,
+                expected: structured_expected,
+                supplied,
+            })
         }
         ProofShape::ByRule {
             goal,
             rule,
             subproofs,
         } => {
-            let (head, body) = match ctx.rules.get(&rule) {
-                Some((head, body)) => (*head, body.clone()),
+            let (head, pos, neg) = match ctx.rules.get(&rule) {
+                Some(clause) => (clause.head, clause.pos.clone(), clause.neg.clone()),
                 None => return Err(ProofError::UnknownRule { rule }),
             };
-            // Recursively check each subproof to the (proven) premise atom it establishes.
+            // Recursively check each subproof to the (proven) premise atom it establishes. A
+            // negative body atom carries NO subproof (it is a refutation obligation, not a
+            // derivation), so the subproofs match the POSITIVE body atoms one-for-one.
             let mut proven = Vec::with_capacity(subproofs.len());
             for sub in &subproofs {
                 proven.push(check(dag, *sub, ctx)?);
             }
-            if body.len() != proven.len() {
+            if pos.len() != proven.len() {
                 return Err(ProofError::ArityMismatch {
                     rule,
-                    body: body.len(),
+                    body: pos.len(),
                     premises: proven.len(),
                 });
             }
-            // Re-derive: unify each body atom with its proven premise, accumulating the MGU.
+            // Re-derive: unify each positive body atom with its proven premise, accumulating the
+            // MGU.
             let mut subst = Subst::new();
-            for (&body_atom, &proven_atom) in body.iter().zip(proven.iter()) {
+            for (&body_atom, &proven_atom) in pos.iter().zip(proven.iter()) {
                 if unify(dag, body_atom, proven_atom, &mut subst) != Unified::Ok {
                     return Err(ProofError::PremiseMismatch {
                         rule,
@@ -330,15 +410,22 @@ pub(crate) fn check(dag: &mut TermDag, proof: NodeId, ctx: &RuleCtx) -> Result<N
             }
             // The instantiated head MUST equal the stated goal, else the proof is a forgery.
             let derived = apply(dag, &subst, head);
-            if derived == goal {
-                Ok(goal)
-            } else {
-                Err(ProofError::HeadMismatch {
+            if derived != goal {
+                return Err(ProofError::HeadMismatch {
                     rule,
                     derived,
                     stated: goal,
-                })
+                });
             }
+            // Every negative premise must be well-founded-FALSE: absent from `not_false` (Γ(W)).
+            // A `not <atom>` over a True/Undefined atom is an unsound justification — reject it
+            // rather than rubber-stamp it. Ground negatives, so no substitution is applied.
+            for &neg_atom in &neg {
+                if ctx.not_false.contains(&neg_atom) {
+                    return Err(ProofError::NegativePremiseNotFalse { rule, neg_atom });
+                }
+            }
+            Ok(goal)
         }
     }
 }
@@ -492,6 +579,21 @@ pub(crate) fn reify(dag: &TermDag, node: NodeId) -> gmeow_errors::Result<String>
     provenance::mint_nary_reifier(&relation, &arg_values)
 }
 
+/// The content-addressed reifier IRI of a STRUCTURED (function-symbol) ground fact,
+/// folding the term's canonical content key ([`TermDag::key`]) through blake3 under the
+/// `dag/assert/` namespace — the SAME recipe [`crate::physical::resolve_fol`] mints for
+/// every unit-clause (`assert`) answer proof, never a forked hash. Unlike [`reify`] this
+/// is defined for ANY ground node, including one with compound (non-atomic-leaf)
+/// arguments `reify` cannot express (Peano numbers, lists, …), because `TermDag::key` is
+/// injective, bottom-up, and alpha-invariant over the whole term, not just its
+/// top-level arguments.
+pub(crate) fn structured_reifier(dag: &TermDag, node: NodeId) -> String {
+    format!(
+        "https://blackcatinformatics.ca/logic/dag/assert/{}",
+        blake3::hash(dag.key(node).as_bytes()).to_hex()
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -544,7 +646,14 @@ mod tests {
         let p_a = ground_atom(&mut dag, P, &[A]);
 
         let mut ctx = RuleCtx::default();
-        ctx.rules.insert(rule_tid, (head, body));
+        ctx.rules.insert(
+            rule_tid,
+            GroundClause {
+                head,
+                pos: body,
+                neg: vec![],
+            },
+        );
         ctx.asserted.insert(q_a);
 
         let q_a_reifier = provenance::mint_nary_reifier(Q, &[iri(A)]).unwrap();
@@ -572,7 +681,14 @@ mod tests {
         let q_b = ground_atom(&mut dag, Q, &[B]);
 
         let mut ctx = RuleCtx::default();
-        ctx.rules.insert(rule_tid, (head, body));
+        ctx.rules.insert(
+            rule_tid,
+            GroundClause {
+                head,
+                pos: body,
+                neg: vec![],
+            },
+        );
         ctx.asserted.insert(q_a); // ONLY q(a) is asserted.
 
         let q_a_reifier = provenance::mint_nary_reifier(Q, &[iri(A)]).unwrap();
@@ -621,6 +737,42 @@ mod tests {
                 Err(ProofError::UnknownRule { .. })
             ),
             "a proof citing a rule absent from the context is rejected"
+        );
+    }
+
+    // ── Test 2b: check rejects a forged (wrong) assert reifier ──────────────────────
+
+    #[test]
+    fn check_rejects_forged_assert_reifier() {
+        // G2 regression: `assert(valid_goal, arbitrary_iri)` must be REJECTED by check(),
+        // even though the goal genuinely IS a member of the asserted EDB — the reifier is
+        // a pure function of the goal, and a caller-supplied handle that does not match
+        // the recomputed one is forged provenance.
+        let mut dag = TermDag::new();
+        let q_a = ground_atom(&mut dag, Q, &[A]);
+
+        let mut ctx = RuleCtx::default();
+        ctx.asserted.insert(q_a);
+
+        // An arbitrary IRI, NOT the reifier `mint_nary_reifier` mints for q(a).
+        let arbitrary_tid = reifier_handle(&mut dag, "https://example.org/not-a-real-reifier");
+        let forged = proof_assert(&mut dag, q_a, arbitrary_tid);
+        assert!(
+            matches!(
+                check(&mut dag, forged, &ctx),
+                Err(ProofError::ForgedReifier { .. })
+            ),
+            "assert(valid_goal, arbitrary_iri) must be rejected as a forged reifier"
+        );
+
+        // The correctly-minted reifier for the SAME goal passes.
+        let q_a_reifier = provenance::mint_nary_reifier(Q, &[iri(A)]).unwrap();
+        let q_a_reifier_tid = reifier_handle(&mut dag, &q_a_reifier);
+        let genuine = proof_assert(&mut dag, q_a, q_a_reifier_tid);
+        assert_eq!(
+            check(&mut dag, genuine, &ctx),
+            Ok(q_a),
+            "the correctly-minted reifier for the same goal must check"
         );
     }
 

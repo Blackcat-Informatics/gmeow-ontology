@@ -63,7 +63,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use purrdf::TermValue;
 
 use crate::physical::id::{MetaId, NodeId, TermId};
-use crate::physical::proof::{RuleCtx, proof_assert, proof_by_rule};
+use crate::physical::proof::{GroundClause, RuleCtx, proof_assert, proof_by_rule};
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind};
 use crate::physical::term_dag::{NodeData, TermDag};
 use crate::physical::unify::{SortContext, Subst, Unified, apply, unify_sorted};
@@ -170,8 +170,11 @@ impl FolOutcome {
 /// The control outcome of the resolver: a decided model or a typed unsupported gap.
 #[derive(Debug)]
 pub(crate) enum FolControl {
-    /// The resolver decided the goal.
-    Decided(FolOutcome),
+    /// The resolver decided the goal. Boxed: [`FolOutcome`] now carries the well-founded
+    /// true/not-false sets alongside the rule context, so it is comfortably larger than the
+    /// typed-gap variant — boxing keeps `FolControl` itself pointer-sized rather than sized
+    /// to its largest payload.
+    Decided(Box<FolOutcome>),
     /// A typed gap (e.g. a floundering NAF goal). Surfaced by dispatch as a hard failure,
     /// never a fabricated answer.
     Unsupported(UnsupportedKind),
@@ -265,7 +268,7 @@ impl Engine {
 
     /// Register a demanded call (its canonical pattern), returning the canonical key.
     fn register_call(&mut self, dag: &TermDag, node: NodeId) -> String {
-        let key = canon(dag, node);
+        let key = canon(dag, node, &self.meta_sorts);
         self.calls.entry(key.clone()).or_insert(node);
         self.tables.entry(key.clone()).or_default();
         key
@@ -280,7 +283,7 @@ impl Engine {
     /// The stored answers whose atom unifies with the (partially instantiated) call `a`,
     /// as `(answer_atom, answer_proof)` pairs, in deterministic content-key order.
     fn answers_for(&self, dag: &TermDag, a: NodeId) -> Vec<(NodeId, NodeId)> {
-        let key = canon(dag, a);
+        let key = canon(dag, a, &self.meta_sorts);
         match self.tables.get(&key) {
             Some(table) => table.values().copied().collect(),
             None => Vec::new(),
@@ -292,17 +295,24 @@ impl Engine {
 
 /// The canonical (variant) key of a call/term: metavariables renamed to a first-occurrence
 /// ordinal, so two variant call patterns share one key and one answer table.
-fn canon(dag: &TermDag, node: NodeId) -> String {
+///
+/// The ordinal alone is NOT a sound table identity for an order-sorted program: `p(X:ℤ)` and
+/// `p(X:ℝ)` both rename their sole variable to `?v0`, so keying on the ordinal alone would
+/// collapse them onto one table and serve one call the OTHER sort's answer set. So each
+/// metavariable's DECLARED sort (from `meta_sorts`) is folded into its ordinal token — different
+/// sorts ⇒ distinct keys ⇒ distinct tables, while an identical ordinal+sort still shares.
+fn canon(dag: &TermDag, node: NodeId, meta_sorts: &HashMap<MetaId, NodeId>) -> String {
     let mut map: HashMap<MetaId, usize> = HashMap::new();
     let mut ctr = 0usize;
     let mut out = String::new();
-    canon_rec(dag, node, &mut map, &mut ctr, &mut out);
+    canon_rec(dag, node, meta_sorts, &mut map, &mut ctr, &mut out);
     out
 }
 
 fn canon_rec(
     dag: &TermDag,
     node: NodeId,
+    meta_sorts: &HashMap<MetaId, NodeId>,
     map: &mut HashMap<MetaId, usize>,
     ctr: &mut usize,
     out: &mut String,
@@ -316,6 +326,13 @@ fn canon_rec(
             });
             out.push_str("?v");
             out.push_str(&id.to_string());
+            // Fold the declared sort so a sorted variant keys DISTINCTLY (the sort's content
+            // key is ground and canonical). A sortless metavariable adds nothing, so the
+            // unsorted path is byte-identical to before.
+            if let Some(sort) = meta_sorts.get(m) {
+                out.push(':');
+                out.push_str(dag.key(*sort));
+            }
         }
         NodeData::Leaf(_) | NodeData::Free(_) | NodeData::Bound { .. } => {
             // No metavariables reachable — the cached content key is already canonical.
@@ -325,23 +342,23 @@ fn canon_rec(
         NodeData::App { op, args } => {
             let (op, args) = (*op, args.clone());
             out.push_str("A(");
-            canon_rec(dag, op, map, ctr, out);
+            canon_rec(dag, op, meta_sorts, map, ctr, out);
             for a in args.iter() {
                 out.push(',');
-                canon_rec(dag, *a, map, ctr, out);
+                canon_rec(dag, *a, meta_sorts, map, ctr, out);
             }
             out.push(')');
         }
         NodeData::Binder { op, sorts, body } => {
             let (op, sorts, body) = (*op, sorts.clone(), *body);
             out.push_str("B(");
-            canon_rec(dag, op, map, ctr, out);
+            canon_rec(dag, op, meta_sorts, map, ctr, out);
             for s in sorts.iter() {
                 out.push(',');
-                canon_rec(dag, *s, map, ctr, out);
+                canon_rec(dag, *s, meta_sorts, map, ctr, out);
             }
             out.push(';');
-            canon_rec(dag, body, map, ctr, out);
+            canon_rec(dag, body, meta_sorts, map, ctr, out);
             out.push(')');
         }
     }
@@ -518,14 +535,15 @@ fn solve_body(
 
 // ── Grounding fixpoint (phase 1) ────────────────────────────────────────────────────
 
-/// Compute the content-addressed reifier IRI handle for an asserted ground atom. The value
-/// only needs to be a stable identifier (`check` validates an `assert` proof by EDB
-/// membership, not by the reifier surface), so it is folded from the atom's content key.
+/// Compute the content-addressed reifier IRI handle for an asserted ground atom.
+///
+/// [`crate::physical::proof::check`] independently RECOMPUTES and validates this exact
+/// value from the goal (G2: a caller-supplied reifier that does not match is rejected as
+/// forged provenance), so this delegates to the single-sourced
+/// [`crate::physical::proof::structured_reifier`] recipe rather than folding a second,
+/// forkable copy of the same hash here.
 fn reifier_of(dag: &mut TermDag, atom: NodeId) -> TermId {
-    let iri = format!(
-        "https://blackcatinformatics.ca/logic/dag/assert/{}",
-        blake3::hash(dag.key(atom).as_bytes()).to_hex()
-    );
+    let iri = super::proof::structured_reifier(dag, atom);
     dag.intern_atom(&TermValue::iri(iri))
 }
 
@@ -741,8 +759,56 @@ fn gamma(dag: &TermDag, engine: &Engine, s: &BTreeSet<String>) -> BTreeSet<Strin
     model
 }
 
+/// The least model of the negation-FREE subprogram: iterate only the ground rules with an
+/// EMPTY negative body. Monotone, so its least fixpoint is a genuine subset of the true
+/// well-founded model — every atom in it is founded by a chain of positive facts/rules with no
+/// negative dependency whatsoever. This is the ONLY set that is sound to assert definite-True on
+/// a budget-truncated grounding, where a negative literal may be false only because its
+/// supporting rules were not yet ground.
+fn positive_least_model(dag: &TermDag, engine: &Engine) -> BTreeSet<String> {
+    let mut model: BTreeSet<String> = BTreeSet::new();
+    loop {
+        let mut added = false;
+        for rule in engine.ground_rules.values() {
+            if !rule.neg.is_empty() {
+                continue; // negation is not trusted on a cut — positive subprogram only.
+            }
+            let head_key = dag.key(rule.head);
+            if model.contains(head_key) {
+                continue;
+            }
+            if rule.pos.iter().all(|p| model.contains(dag.key(*p))) {
+                model.insert(head_key.to_owned());
+                added = true;
+            }
+        }
+        if !added {
+            break;
+        }
+    }
+    model
+}
+
 /// The well-founded true set `W = lfp(Γ²)` and the not-false set `Γ(W)`.
+///
+/// # Soundness under a budget cut (incomplete grounding)
+///
+/// When the grounding was truncated ([`Engine::exhausted`]) the discovered ground residual is a
+/// SUBSET of the true program, so negation-as-failure is unsound: a negative literal `not q` may
+/// read as satisfied only because `q`'s founding rules were not yet ground. Evaluating the
+/// alternating fixpoint over that partial program can therefore fabricate a definite `True` (the
+/// `p :- not q.` + `q.` hazard). So on a cut we DEMOTE: `W` is the least model of the
+/// negation-free subprogram (every member independently positively founded, a sound subset of
+/// the true model), and the not-false set is `W` plus every reached atom — so no reached atom is
+/// reported definitely False and no negation-bearing ground rule can found a definite answer.
+/// Answers stay "incomplete, never wrong"; the [`BudgetStatus::Exhausted`] status discloses it.
 fn well_founded(dag: &TermDag, engine: &Engine) -> (BTreeSet<String>, BTreeSet<String>) {
+    if engine.exhausted {
+        let w = positive_least_model(dag, engine);
+        let mut not_false = w.clone();
+        not_false.extend(engine.atoms.keys().cloned());
+        return (w, not_false);
+    }
     let mut w: BTreeSet<String> = BTreeSet::new();
     loop {
         let next = gamma(dag, engine, &gamma(dag, engine, &w));
@@ -778,9 +844,19 @@ fn build_proofs(
     dag: &mut TermDag,
     engine: &Engine,
     w: &BTreeSet<String>,
+    not_false: &BTreeSet<String>,
 ) -> (HashMap<String, NodeId>, RuleCtx) {
     let mut proven: HashMap<String, NodeId> = HashMap::new();
-    let mut ctx = RuleCtx::default();
+    // The atoms that are NOT well-founded-false (Γ(W) = true ∪ undefined), as the arena node
+    // set [`check`] tests a `by_rule` proof's negative premises against: a negative premise is
+    // valid ONLY if its atom is absent here (genuinely FALSE, not merely non-true).
+    let mut ctx = RuleCtx {
+        not_false: not_false
+            .iter()
+            .filter_map(|k| engine.atoms.get(k).copied())
+            .collect(),
+        ..RuleCtx::default()
+    };
     loop {
         let mut added = false;
         // Snapshot rules deterministically (sorted map already gives a stable order).
@@ -792,7 +868,10 @@ fn build_proofs(
             if !w.contains(&head_key) {
                 continue;
             }
-            if !rule.neg.iter().all(|n| !w.contains(dag.key(*n))) {
+            // A founded justification requires every negative premise to be well-founded-FALSE
+            // (∉ Γ(W)). An Undefined negative (in Γ(W)∖W) is NOT a valid `not` — rejecting it
+            // here keeps every built proof soundly founded, and [`check`] re-verifies it.
+            if !rule.neg.iter().all(|n| !not_false.contains(dag.key(*n))) {
                 continue;
             }
             let mut premise_proofs = Vec::with_capacity(rule.pos.len());
@@ -815,7 +894,14 @@ fn build_proofs(
                 proof_assert(dag, rule.head, reifier)
             } else {
                 let firing_iri = firing_rule_iri(dag, rule);
-                ctx.rules.insert(firing_iri, (rule.head, rule.pos.clone()));
+                ctx.rules.insert(
+                    firing_iri,
+                    GroundClause {
+                        head: rule.head,
+                        pos: rule.pos.clone(),
+                        neg: rule.neg.clone(),
+                    },
+                );
                 proof_by_rule(dag, rule.head, firing_iri, &premise_proofs)
             };
             proven.insert(head_key, proof);
@@ -833,7 +919,13 @@ fn build_proofs(
 /// [`RuleCtx`] key.
 fn firing_rule_iri(dag: &mut TermDag, rule: &GroundRule) -> TermId {
     let mut hasher = blake3::Hasher::new();
-    hasher.update(&(rule.rule_iri.index() as u64).to_le_bytes());
+    // Seed from the rule IRI's STABLE lexical surface, never its `TermId` index (a per-DAG
+    // mint-order handle that leaks arena history): identical ground firings must fold to the
+    // SAME firing IRI across independent DAG interning histories. Length-framed so the IRI's
+    // boundary with the head key is unambiguous.
+    let rule_iri_str = dag.atom_display(rule.rule_iri);
+    hasher.update(&(rule_iri_str.len() as u64).to_le_bytes());
+    hasher.update(rule_iri_str.as_bytes());
     hasher.update(dag.key(rule.head).as_bytes());
     for p in &rule.pos {
         hasher.update(b"|");
@@ -939,7 +1031,7 @@ pub(crate) fn resolve_fol(
     }
 
     let (w, not_false) = well_founded(dag, &engine);
-    let (proofs, rule_ctx) = build_proofs(dag, &engine, &w);
+    let (proofs, rule_ctx) = build_proofs(dag, &engine, &w, &not_false);
     let answers = project(dag, &engine, ctx, program, &w, &proofs)?;
 
     let status = if engine.exhausted {
@@ -947,13 +1039,13 @@ pub(crate) fn resolve_fol(
     } else {
         BudgetStatus::Ok
     };
-    Ok(FolControl::Decided(FolOutcome {
+    Ok(FolControl::Decided(Box::new(FolOutcome {
         answers,
         status,
         rule_ctx,
         true_set: w,
         not_false,
-    }))
+    })))
 }
 
 // ── Dispatch-facing entry (QProgram → structured resolution → AnswerSet) ─────────────
@@ -999,7 +1091,11 @@ pub(crate) fn resolve_native_fol(
         clauses: fol.clauses,
         goal: fol.goal,
         goal_vars,
-        meta_sorts: HashMap::new(),
+        // The declared metavariable sorts DISCOVERED by the lowering — the single source, so
+        // order-sorting is live on this path instead of dead behind a hardcoded empty map. A
+        // `QTerm` carries no sort surface today, so the lowering yields an empty map and this
+        // path stays unsorted; any future sorted `QTerm` flows through here unchanged.
+        meta_sorts: fol.meta_sorts,
     };
     let ctx = SortContext::default();
     match resolve_fol(dag, &full, &ctx, budget)? {
@@ -1012,7 +1108,19 @@ pub(crate) fn resolve_native_fol(
                 preservation: crate::result::PreservationClaim::exact(),
                 frontier: CompletionFrontier::empty(),
             };
+            // Canonicalize BEFORE the answer cap so the kept prefix is deterministic.
             answer.canonicalize();
+            // Budget: compose the resolver's step governor (already stamped `Exhausted` on a
+            // grounding cut) with the post-projection `max_answers` truncation. Precedence
+            // mirrors the reference oracle / binary magic path: a REACHED answer cap stamps
+            // `Partial`, overriding a concurrent step `Exhausted`.
+            if let Some(max_a) = budget.max_answers
+                && answer.bindings.len() >= max_a
+                && !answer.bindings.is_empty()
+            {
+                answer.bindings.truncate(max_a);
+                answer.status = BudgetStatus::Partial;
+            }
             Ok(NativeOutcome::Decided(answer))
         }
     }
@@ -1022,7 +1130,9 @@ pub(crate) fn resolve_native_fol(
 fn structured_nodes_in_dag(dag: &TermDag, program: &QProgram) -> bool {
     let atom_ok = |atom: &QAtom| {
         atom.args.iter().all(|t| match t {
-            QTerm::Struct(sn) => dag.contains_node(sn.node()),
+            // Arena-identity membership: the `Struct` node must belong to THIS dag by brand,
+            // not merely by an in-range slot index (a foreign node is rejected).
+            QTerm::Struct(sn) => dag.contains_node(sn.node(), sn.arena()),
             _ => true,
         })
     };
@@ -1040,10 +1150,15 @@ fn structured_nodes_in_dag(dag: &TermDag, program: &QProgram) -> bool {
     })
 }
 
-/// A lowered structured program plus the discovered goal variable names.
+/// A lowered structured program plus the discovered goal variable names and metavariable
+/// sort declarations.
 struct LoweredProgram {
     clauses: Vec<FolClause>,
     goal: NodeId,
+    /// The declared sort of any sorted metavariable minted during lowering (order-sorted
+    /// unification consults it). A `QTerm` carries no sort surface today, so this is empty; it
+    /// is the single, live source the [`FolProgram`] threads rather than a hardcoded map.
+    meta_sorts: HashMap<MetaId, NodeId>,
 }
 
 /// Lower a structured [`QProgram`] into DAG clauses. Each clause is lowered with its OWN
@@ -1089,7 +1204,17 @@ fn lower_qprogram(
         .map(|(name, (_, node))| (node, name))
         .collect();
     goal_vars.sort_by(|a, b| a.1.cmp(&b.1));
-    Ok((LoweredProgram { clauses, goal }, goal_vars))
+    // A `QTerm` carries no sort surface, so the lowering declares no metavariable sorts; the
+    // empty map is nonetheless the live, single source the caller threads.
+    let meta_sorts: HashMap<MetaId, NodeId> = HashMap::new();
+    Ok((
+        LoweredProgram {
+            clauses,
+            goal,
+            meta_sorts,
+        },
+        goal_vars,
+    ))
 }
 
 /// Lower one [`QAtom`] into an `App` node, interning fresh metavariables per source variable

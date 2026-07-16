@@ -58,7 +58,7 @@ fn assert_all_proofs_check(dag: &mut TermDag, outcome: &FolOutcome) {
 
 fn decided(control: FolControl) -> FolOutcome {
     match control {
-        FolControl::Decided(o) => o,
+        FolControl::Decided(o) => *o,
         FolControl::Unsupported(kind) => panic!("expected Decided, got Unsupported({kind:?})"),
     }
 }
@@ -565,7 +565,8 @@ fn structured_qprogram_routes_through_resolve_native_fol() {
     let mut dag = TermDag::new();
     let zero = iri(&mut dag, "zero");
 
-    let struct_t = |n: NodeId| QTerm::Struct(StructNode::new(n));
+    let arena = dag.arena();
+    let struct_t = move |n: NodeId| QTerm::Struct(StructNode::new(n, arena));
     let vt = |s: &str| QTerm::Var(s.to_owned());
 
     // Fact add(zero, Y, Y).

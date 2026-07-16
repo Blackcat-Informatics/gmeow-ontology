@@ -357,8 +357,23 @@ impl SortContext {
 /// mentions one of those `depth` local binders CANNOT be lowered — the bound variable would
 /// escape the metavariable's scope, which has no first-order unifier — so it is a
 /// [`Unified::Clash`] (the sound rejection a naive Robinson step would miss).
+///
+/// # Transactional (all-or-nothing) bindings
+///
+/// A multi-argument `App`/`Binder` unifies its children left-to-right and returns on the
+/// FIRST clash/occurs failure, so an early argument can already have bound a metavariable
+/// into `s` before a later argument fails — e.g. unifying `p(X,a)` against `p(b,c)` binds
+/// `X := b` on argument 0 before argument 1 clashes. A failed unification must leave `s`
+/// EXACTLY as it found it (the documented contract every caller relies on), so this entry
+/// point snapshots `s` before descending and restores the snapshot on any non-`Ok` outcome —
+/// the checkpoint/restore a partial bind through `unify_at` cannot itself undo.
 pub(crate) fn unify(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst) -> Unified {
-    unify_at(dag, a, b, s, 0, None)
+    let checkpoint = s.clone();
+    let outcome = unify_at(dag, a, b, s, 0, None);
+    if outcome != Unified::Ok {
+        *s = checkpoint;
+    }
+    outcome
 }
 
 /// ORDER-SORTED [`unify`]: identical structural algorithm, but a metavariable binding also
@@ -375,6 +390,9 @@ pub(crate) fn unify(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst) -> U
 ///
 /// The occurs-check and every structural rule (App/Binder/Bound/Leaf/Free) are UNCHANGED, so
 /// passing an empty/sortless context makes `unify_sorted` behave exactly like [`unify`].
+///
+/// Transactional exactly like [`unify`]: `s` is snapshotted and restored on any non-`Ok`
+/// outcome, so a partial bind from an earlier argument never survives a later clash.
 pub(crate) fn unify_sorted(
     dag: &mut TermDag,
     a: NodeId,
@@ -382,7 +400,12 @@ pub(crate) fn unify_sorted(
     s: &mut Subst,
     ctx: &SortContext,
 ) -> Unified {
-    unify_at(dag, a, b, s, 0, Some(ctx))
+    let checkpoint = s.clone();
+    let outcome = unify_at(dag, a, b, s, 0, Some(ctx));
+    if outcome != Unified::Ok {
+        *s = checkpoint;
+    }
+    outcome
 }
 
 /// [`unify`]/[`unify_sorted`] at binder `depth` — the number of binders enclosing the current
@@ -929,6 +952,43 @@ mod tests {
         assert!(
             matches!(outcome, Unified::Occurs { .. }),
             "the cyclic demand must be rejected by the occurs-check, got {outcome:?}"
+        );
+    }
+
+    // ── Test 1c: a clash AFTER an argument already bound leaves NO bindings ─────────────
+
+    #[test]
+    fn failed_unification_after_partial_bind_leaves_no_bindings() {
+        // G11 regression: unifying p(X,a) against p(b,c) binds X := b while unifying
+        // argument 0, THEN clashes on argument 1 (a vs c). The module's documented
+        // contract is "a failed unification binds nothing" — `unify` must roll back the
+        // argument-0 bind, not merely report the clash while leaving X bound.
+        let mut dag = TermDag::new();
+        let p = iri(&mut dag, "https://example.org/p");
+        let a = iri(&mut dag, "https://example.org/a");
+        let b = iri(&mut dag, "https://example.org/b");
+        let c = iri(&mut dag, "https://example.org/c");
+        let (_x, x_node) = dag.fresh_meta();
+
+        let left = dag.intern_app(p, vec![x_node, a]);
+        let right = dag.intern_app(p, vec![b, c]);
+
+        let mut s = Subst::new();
+        let outcome = unify(&mut dag, left, right, &mut s);
+        assert!(
+            matches!(outcome, Unified::Clash { .. }),
+            "p(X,a) vs p(b,c) must clash on argument 1 (a vs c), got {outcome:?}"
+        );
+        assert_eq!(
+            s.bound_count(),
+            0,
+            "a failed unification must bind NOTHING, even though X was bound to b \
+             while unifying argument 0 before the argument-1 clash"
+        );
+        assert_eq!(
+            s.resolve(&dag, x_node),
+            x_node,
+            "X must remain its own (unbound) representative after the rollback"
         );
     }
 

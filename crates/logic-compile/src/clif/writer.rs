@@ -246,6 +246,12 @@ fn term_to_clif(term: &Term) -> String {
         },
         // A sequence marker → `(seq n)` reserved form.
         Term::SequenceMarker(n) => format!("(seq {})", quote_string(n)),
+        // A function-term application → the native CL functional term `(f t₀ … tₙ)`.
+        Term::App { symbol, args } => {
+            let mut parts = vec![name_term(symbol)];
+            parts.extend(args.iter().map(term_to_clif));
+            format!("({})", parts.join(" "))
+        }
     }
 }
 

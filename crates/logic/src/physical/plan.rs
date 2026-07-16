@@ -308,9 +308,26 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
             hasher.update(&[2]);
             hasher.update(&value.to_le_bytes());
         }
-        QTerm::Struct(sn) => {
-            hasher.update(&[3]);
-            hasher.update(&(sn.node().index() as u64).to_le_bytes());
+        QTerm::Struct(_) => {
+            // G13: hashing an arena-local `NodeId::index()` into the compiled-plan cache
+            // key would risk cross-arena collisions (two DIFFERENT structured terms from
+            // unrelated `TermDag` arenas can share the same index). This arm is only
+            // reachable through a `QBuiltin` operand ([`hash_builtin`]'s `target`/`lhs`/
+            // `rhs`), and a `QBuiltin` operand is documented (`query_ir::QBuiltin`) to be
+            // exclusively `Var`/`Num` — arithmetic never carries a compound
+            // (function-symbol) term. No `TermDag` is threaded through
+            // `canonical_rule_hash`/`EvalRule`/`EvalTerm` at all (that pipeline is the
+            // flat rule-IR, distinct from the structured-term `physical::term_dag`
+            // arena), so there is no content key (`TermDag::key`) available here to hash
+            // instead — a genuinely-reachable `Struct` would need the caller to plumb a
+            // `dag` through this entire module. Provably dead under every current
+            // producer; a `Struct` reaching here would be an EvalRule construction bug
+            // upstream, not a hashing decision this function should paper over.
+            unreachable!(
+                "canonical_rule_hash: QTerm::Struct in a QBuiltin operand — arithmetic \
+                 builtin operands are Var/Num only (query_ir::QBuiltin); a Struct operand \
+                 here is an upstream EvalRule construction bug, not a hashable term"
+            );
         }
     }
 }
