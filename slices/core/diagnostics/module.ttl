@@ -1151,9 +1151,10 @@ gmeow:GapShapeVendoringMultiGoal
 gmeow:isReasonerFragmentGap
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:GapShape ;
+    rdfs:range xsd:boolean ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "is reasoner fragment gap"@x-gmeow-english ;
-    skos:definition "Whether a gmeow:GapShape is a genuine reasoner-fragment gap (a conclusion shape the native DL fragment cannot soundly refute at all) as opposed to a vendoring-format limit the reasoner itself can decide. Domain gmeow:GapShape, range xsd:boolean (stated in prose) — true for gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed; false for gmeow:GapShapeVendoringMultiGoal. The RDF image of gmeow_logic::entail::CapabilityGapShape::is_reasoner_fragment_gap."@x-gmeow-english ;
+    skos:definition "Whether a gmeow:GapShape is a genuine reasoner-fragment gap (a conclusion shape the native DL fragment cannot soundly refute at all) as opposed to a vendoring-format limit the reasoner itself can decide. Domain gmeow:GapShape, range xsd:boolean — true for gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed; false for gmeow:GapShapeVendoringMultiGoal. The RDF image of gmeow_logic::entail::CapabilityGapShape::is_reasoner_fragment_gap."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:GapShapeRoleAssertion gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
