@@ -1244,3 +1244,20 @@ ex:ecHodgeDecompositionMalformedBoundary a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies a fully framed Hodge decomposition — signal, exact/coexact/harmonic components, carrier sheaf, reconstruction residual, and the three pairwise-orthogonality inner products — but omits its required boundary operator, isolating math:IncompleteHodgeDecomposition." .
+
+ex:ecMapperConstructionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/mapper-construction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The Mapper construction names a complete frame — its source metric space, its fully framed filter function, its finitely enumerated cover of two overlapping closed intervals, its deterministic single-linkage clustering rule at the exact threshold 1/1, and its output nerve complex — so the cover and clustering are determined data rather than free resolution choices." .
+
+ex:ecMapperConstructionNoFilter a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mapper-construction-no-filter.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, cover of two overlapping intervals, clustering rule, and output nerve — but omits its required filter function, isolating math:IncompleteMapperConstruction." .
+
+ex:ecMapperConstructionNoCover a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mapper-construction-no-cover.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, filter function, clustering rule, and output nerve — but omits its required cover of the filter codomain, isolating math:IncompleteMapperConstruction." .

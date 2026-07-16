@@ -7242,6 +7242,48 @@ math:ZigzagPersistence
     skos:definition "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Mapper-construction frame classes (Mapper coverage family) ------------- #
+# A math:MapperConstruction is defined only relative to a complete, declared
+# frame: the source metric space it samples, the filter function it factors
+# through, the cover of the filter codomain, the clustering rule applied inside
+# each cover element's inverse image, and the output nerve complex. The cover and
+# clustering are the reusable objects that make Mapper more than a bare graph, and
+# each is a first-class mathematical object here, never an implicit choice.
+math:MetricSpace
+    a owl:Class ; logic:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Metric Space"@x-gmeow-english ;
+    skos:definition "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Cover
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cover"@x-gmeow-english ;
+    skos:definition "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CoverElement
+    a owl:Class ; logic:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cover Element"@x-gmeow-english ;
+    skos:definition "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ClusteringRule
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clustering Rule"@x-gmeow-english ;
+    skos:definition "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NerveComplex
+    a owl:Class ; logic:subClassOf math:SimplicialComplex ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Nerve Complex"@x-gmeow-english ;
+    skos:definition "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Geometric fields, dynamics, and Morse theory -------------------------- #
 
 math:ScalarField
@@ -7840,6 +7882,49 @@ math:measureValue
     skos:definition "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Mapper-construction frame properties (Mapper coverage family) --------- #
+math:sourceMetricSpace
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "source metric space"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:filterFunction
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filter function"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coverScheme
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cover scheme"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:clusteringRule
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "clustering rule"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:outputNerve
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "output nerve"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasCoverElement
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has cover element"@x-gmeow-english ;
+    skos:definition "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:clusteringThreshold
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "clustering threshold"@x-gmeow-english ;
+    skos:definition "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- Hodge-decomposition frame properties (Hodge coverage family) --------- #
 math:overSheaf
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -8145,6 +8230,13 @@ math:IncompleteHodgeDecomposition
     skos:definition "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:IncompleteMapperConstruction
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Mapper Construction"@x-gmeow-english ;
+    skos:definition "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Task-7 conformance-failure classes ------------------------------------- #
 
 math:UnderspecifiedPiecewiseFunction
@@ -8398,6 +8490,36 @@ math:HodgeDecomposition logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
     [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:allValuesFrom math:RationalValue ] ;
     gmeow:enforcesFailureClass math:IncompleteHodgeDecomposition .
+
+# Mapper coverage family: a Mapper construction is defined only relative to a
+# complete, declared frame — the source metric space it samples, the filter
+# (lens) function it factors through, the cover of the filter codomain, the
+# deterministic clustering rule applied inside each cover element's inverse image,
+# and the output nerve complex. Every obligation is a qualified-cardinality +
+# allValuesFrom OWL restriction (EL-safe) that derives the paired
+# sh:minCount/maxCount + sh:class property shape; a missing or wrongly typed
+# component fails the derived constraint and isolates
+# math:IncompleteMapperConstruction. Omitting the filter function fails the derived
+# QualifiedMinCount on math:filterFunction (the missing-filter counterexample);
+# omitting the cover fails the derived QualifiedMinCount on math:coverScheme (the
+# missing-cover counterexample).
+math:MapperConstruction logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:sourceMetricSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:MetricSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:sourceMetricSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MetricSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:sourceMetricSpace ; owl:allValuesFrom math:MetricSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:filterFunction ; owl:minQualifiedCardinality 1 ; owl:onClass math:Function ] ,
+    [ a owl:Restriction ; owl:onProperty math:filterFunction ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Function ] ,
+    [ a owl:Restriction ; owl:onProperty math:filterFunction ; owl:allValuesFrom math:Function ] ,
+    [ a owl:Restriction ; owl:onProperty math:coverScheme ; owl:minQualifiedCardinality 1 ; owl:onClass math:Cover ] ,
+    [ a owl:Restriction ; owl:onProperty math:coverScheme ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Cover ] ,
+    [ a owl:Restriction ; owl:onProperty math:coverScheme ; owl:allValuesFrom math:Cover ] ,
+    [ a owl:Restriction ; owl:onProperty math:clusteringRule ; owl:minQualifiedCardinality 1 ; owl:onClass math:ClusteringRule ] ,
+    [ a owl:Restriction ; owl:onProperty math:clusteringRule ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ClusteringRule ] ,
+    [ a owl:Restriction ; owl:onProperty math:clusteringRule ; owl:allValuesFrom math:ClusteringRule ] ,
+    [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:minQualifiedCardinality 1 ; owl:onClass math:NerveComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NerveComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:allValuesFrom math:NerveComplex ] ;
+    gmeow:enforcesFailureClass math:IncompleteMapperConstruction .
 
 math:Number rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -12543,5 +12665,6 @@ math:IncompleteDimensionalityReductionAnalysis a logic:Situation .
 math:IncompleteHamiltonianSystem a logic:Situation .
 math:IncompleteHodgeDecomposition a logic:Situation .
 math:IncompleteInformationMeasure a logic:Situation .
+math:IncompleteMapperConstruction a logic:Situation .
 math:IncompletePersistentHomologyAnalysis a logic:Situation .
 math:ZeroDenominator a logic:Situation .

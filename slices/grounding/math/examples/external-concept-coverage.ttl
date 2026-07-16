@@ -180,3 +180,28 @@ cov:hodgeStalk a math:SheafStalk .
 cov:hodgeRestriction a math:SheafRestrictionMap .
 cov:hodgeZero a math:RationalValue ;
     math:numerator 0 ; math:denominator 1 .
+
+# Mapper-construction coverage: a Mapper is recoverable from its source metric
+# space, its filter (lens) function, its finitely enumerated cover, its
+# deterministic clustering rule, and its output nerve complex as separate reusable
+# objects, without a project-specific graph surrogate that flattens the
+# filter/cover/clustering frame. The cover is two explicit overlapping intervals
+# and the clustering rule fixes an exact single-linkage threshold (1/1), so the
+# construction is deterministic.
+cov:mapperConstruction a math:MapperConstruction ;
+    math:sourceMetricSpace cov:mapperSource ;
+    math:filterFunction cov:mapperFilter ;
+    math:coverScheme cov:mapperCover ;
+    math:clusteringRule cov:mapperClustering ;
+    math:outputNerve cov:mapperNerve .
+cov:mapperSource a math:MetricSpace .
+cov:mapperFilter a math:Function .
+cov:mapperCover a math:Cover ;
+    math:hasCoverElement cov:mapperCoverLow , cov:mapperCoverHigh .
+cov:mapperCoverLow a math:CoverElement .
+cov:mapperCoverHigh a math:CoverElement .
+cov:mapperClustering a math:ClusteringRule ;
+    math:clusteringThreshold cov:mapperThreshold .
+cov:mapperThreshold a math:RationalValue ;
+    math:numerator 1 ; math:denominator 1 .
+cov:mapperNerve a math:NerveComplex .

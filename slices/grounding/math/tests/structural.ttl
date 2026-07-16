@@ -1393,3 +1393,21 @@ ASK {
     math:CellularSheaf logic:subClassOf math:MathematicalObject .
 }""" ;
     gmeow:saRationale "The Hodge-decomposition coverage family MUST keep the decomposition and its exact, coexact, and harmonic components first-class mathematical objects, keep the Hodge and sheaf Laplacians and the boundary operator operations, and keep the cellular-sheaf carrier a mathematical object. These canonical logic:subClassOf edges prevent the exact/coexact/harmonic split from collapsing into a single untyped flow token and exercise the exact semantic edges the completeness restrictions and reconstruction/orthogonality competency frame rely on." .
+
+# --- External-concept Mapper-construction taxonomy is logic-owned (MUST) ------ #
+
+ex:saExternalMapperTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:MapperConstruction logic:subClassOf gmeow:Activity .
+    math:MetricSpace logic:subClassOf math:TopologicalSpace .
+    math:Cover logic:subClassOf math:MathematicalObject .
+    math:CoverElement logic:subClassOf math:Set .
+    math:ClusteringRule logic:subClassOf math:MathematicalObject .
+    math:NerveComplex logic:subClassOf math:SimplicialComplex .
+}""" ;
+    gmeow:saRationale "The Mapper-construction coverage family MUST keep the construction a gmeow:Activity, keep the source metric space a topological space, keep the cover and its cover elements and the clustering rule first-class mathematical objects (a cover element a set), and keep the output nerve a simplicial complex. These canonical logic:subClassOf edges prevent the filter/cover/clustering frame from collapsing into a bare untyped graph and exercise the exact semantic edges the completeness restrictions and the reusable-frame competency query rely on." .
