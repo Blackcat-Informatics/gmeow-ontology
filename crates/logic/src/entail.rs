@@ -411,7 +411,15 @@ fn classify_conclusion(conclusion: &RdfDataset) -> Result<Vec<ConclusionShape>, 
         let subject = node_of(conclusion.resolve(q.s));
         let object = node_of(conclusion.resolve(q.o));
         match classify(&subject, pred, &object) {
-            Ok(shape) => shapes.push(shape),
+            // Deduplicate: distinct-but-equivalent conclusion triples classify to the
+            // same shape, and each shape drives one (expensive) `dl_consistency`
+            // refutation in `dl_entails`. Grading a shape twice is redundant work with
+            // no change in verdict, so collapse equal shapes here.
+            Ok(shape) => {
+                if !shapes.contains(&shape) {
+                    shapes.push(shape);
+                }
+            }
             Err(gap_shape) => {
                 return Err(EntailmentGap {
                     shape: gap_shape,
