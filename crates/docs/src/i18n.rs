@@ -39,39 +39,6 @@ use purrdf::slice::{ArtifactRole, SliceCatalog};
 /// The English authoring carrier key (the model's own values).
 pub const ENGLISH: &str = "english";
 
-// ── Namespace constants for CURIE expansion in `.po` msgctxt predicates ─────────
-
-const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
-const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
-const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-
-/// Expand a CURIE-or-IRI predicate (as found in a `.po` `msgctxt`) to a full IRI.
-///
-/// Recognises the prefixes used by GMEOW's localizable predicates. A full IRI or
-/// an unknown prefixed form is returned unchanged.
-/// Expand a `.po` `msgctxt` predicate token to its full IRI: a known CURIE prefix
-/// (`rdfs`/`skos`/`dcterms`/`dct`/`gmeow`) is expanded, a full IRI or unknown prefix
-/// is returned unchanged. This is the inverse of the CURIE the catalog authors write,
-/// so a consumer can key translations by the same full predicate IRI the RDF graph uses.
-pub fn expand_predicate(predicate: &str) -> String {
-    let Some((prefix, local)) = predicate.split_once(':') else {
-        return predicate.to_string();
-    };
-    // A full IRI (scheme://…) has a `//` right after the colon — leave it.
-    if local.starts_with("//") {
-        return predicate.to_string();
-    }
-    let ns = match prefix {
-        "rdfs" => RDFS_NS,
-        "skos" => SKOS_NS,
-        "dcterms" | "dct" => DCTERMS_NS,
-        "gmeow" => GMEOW_NS,
-        _ => return predicate.to_string(),
-    };
-    format!("{ns}{local}")
-}
-
 // ── Translation-integrity checks ──────────────────────────────────────────────
 
 /// Return a stable reason when a non-English translation is not credible enough
@@ -213,191 +180,16 @@ fn is_han(ch: char) -> bool {
     )
 }
 
-// ── gettext `.po` parsing ──────────────────────────────────────────────────────
-
-/// One parsed `.po` entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PoEntry {
-    /// The `msgctxt` value (may be empty for the header entry).
-    pub msgctxt: String,
-    /// The `msgid` (source / English) value.
-    pub msgid: String,
-    /// The `msgstr` (translated) value (empty = untranslated).
-    pub msgstr: String,
-}
-
-/// A parsed `.po` catalog: its `Language:` header code and its entries.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct PoCatalog {
-    /// The BCP-47 code from the `Language:` header (e.g. `fr`), or empty.
-    pub language: String,
-    /// All entries (including any header entry with an empty `msgctxt`).
-    pub entries: Vec<PoEntry>,
-}
-
-/// Reverse the gettext escape sequences in a quoted string body.
-fn po_unescape(value: &str) -> String {
-    let mut out = String::with_capacity(value.len());
-    let mut chars = value.chars();
-    while let Some(ch) = chars.next() {
-        if ch == '\\' {
-            match chars.next() {
-                Some('n') => out.push('\n'),
-                Some('t') => out.push('\t'),
-                Some('r') => out.push('\r'),
-                Some('"') => out.push('"'),
-                Some('\\') => out.push('\\'),
-                Some(other) => {
-                    out.push(other);
-                }
-                None => out.push('\\'),
-            }
-        } else {
-            out.push(ch);
-        }
-    }
-    out
-}
-
-/// Extract the inner body of a leading-keyword PO line such as
-/// `msgid "Hello \"x\""` → `Hello "x"` (unescaped), or a bare continuation
-/// `"more text"`. Returns `None` when the line has no quoted body.
-fn quoted_body(rest: &str) -> Option<String> {
-    let trimmed = rest.trim();
-    let inner = trimmed.strip_prefix('"')?.strip_suffix('"')?;
-    Some(po_unescape(inner))
-}
-
-/// Parse a `.po` source string into a [`PoCatalog`].
-///
-/// Handles multi-line quoted strings (a keyword line followed by bare
-/// `"continuation"` lines) and `\"`/`\n`/`\t` escapes. The `Language:` header is
-/// read from the header entry's `msgstr` (the standard gettext location).
-/// Comment lines (`#…`) are ignored.
-pub fn parse_po(text: &str) -> PoCatalog {
-    #[derive(Clone, Copy, PartialEq)]
-    enum Field {
-        None,
-        Ctxt,
-        Id,
-        Str,
-    }
-
-    let mut entries: Vec<PoEntry> = Vec::new();
-    let mut cur = PoEntry {
-        msgctxt: String::new(),
-        msgid: String::new(),
-        msgstr: String::new(),
-    };
-    let mut have_ctxt = false;
-    let mut have_id = false;
-    let mut have_str = false;
-    let mut field = Field::None;
-
-    let flush = |entries: &mut Vec<PoEntry>,
-                 cur: &mut PoEntry,
-                 have_ctxt: &mut bool,
-                 have_id: &mut bool,
-                 have_str: &mut bool| {
-        if *have_ctxt || *have_id || *have_str {
-            entries.push(cur.clone());
-        }
-        *cur = PoEntry {
-            msgctxt: String::new(),
-            msgid: String::new(),
-            msgstr: String::new(),
-        };
-        *have_ctxt = false;
-        *have_id = false;
-        *have_str = false;
-    };
-
-    for raw in text.lines() {
-        let line = raw.trim();
-        if line.is_empty() {
-            flush(
-                &mut entries,
-                &mut cur,
-                &mut have_ctxt,
-                &mut have_id,
-                &mut have_str,
-            );
-            field = Field::None;
-            continue;
-        }
-        if line.starts_with('#') {
-            continue;
-        }
-        if let Some(rest) = line.strip_prefix("msgctxt") {
-            // A new msgctxt starts a fresh entry if the current one is complete.
-            if have_id {
-                flush(
-                    &mut entries,
-                    &mut cur,
-                    &mut have_ctxt,
-                    &mut have_id,
-                    &mut have_str,
-                );
-            }
-            if let Some(body) = quoted_body(rest) {
-                cur.msgctxt = body;
-                have_ctxt = true;
-                field = Field::Ctxt;
-            }
-        } else if let Some(rest) = line.strip_prefix("msgid") {
-            if let Some(body) = quoted_body(rest) {
-                cur.msgid = body;
-                have_id = true;
-                field = Field::Id;
-            }
-        } else if let Some(rest) = line.strip_prefix("msgstr") {
-            if let Some(body) = quoted_body(rest) {
-                cur.msgstr = body;
-                have_str = true;
-                field = Field::Str;
-            }
-        } else if let Some(body) = quoted_body(line) {
-            // Bare continuation string for the current field.
-            match field {
-                Field::Ctxt => cur.msgctxt.push_str(&body),
-                Field::Id => cur.msgid.push_str(&body),
-                Field::Str => cur.msgstr.push_str(&body),
-                Field::None => {}
-            }
-        }
-    }
-    flush(
-        &mut entries,
-        &mut cur,
-        &mut have_ctxt,
-        &mut have_id,
-        &mut have_str,
-    );
-
-    // The header entry has an empty msgid; its msgstr carries `Language: <code>\n`.
-    let language = entries
-        .iter()
-        .find(|e| e.msgid.is_empty())
-        .and_then(|e| language_from_header(&e.msgstr))
-        .unwrap_or_default();
-
-    PoCatalog { language, entries }
-}
-
-/// Extract the `Language:` code from a gettext header `msgstr` body.
-fn language_from_header(header: &str) -> Option<String> {
-    for line in header.split('\n') {
-        if let Some(rest) = line.trim().strip_prefix("Language:") {
-            let code = rest.trim();
-            if !code.is_empty() {
-                return Some(code.to_string());
-            }
-        }
-    }
-    None
-}
-
 // ── Translations index ─────────────────────────────────────────────────────────
+
+/// A translated literal value plus its review state. `fuzzy` = machine-seeded and
+/// not yet human-reviewed; such a value is carried through the index but treated as
+/// not-yet-live at lookup (English fallback), matching the coverage measure.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct TranslatedValue {
+    pub value: String,
+    pub fuzzy: bool,
+}
 
 /// All translated ontology literals, indexed by `(term_iri, predicate_full_iri,
 /// bcp47_lang)`. Built from every slice's [`ArtifactRole::TranslationCatalog`]
@@ -407,8 +199,8 @@ fn language_from_header(header: &str) -> Option<String> {
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(into = "TranslationsDto", from = "TranslationsDto")]
 pub struct Translations {
-    /// `(term_iri, predicate_full_iri, lang) -> translated_value`.
-    by_key: BTreeMap<(String, String, String), String>,
+    /// `(term_iri, predicate_full_iri, lang) -> translated_value` (with review state).
+    by_key: BTreeMap<(String, String, String), TranslatedValue>,
     /// Sorted set of BCP-47 language codes seen across all catalogs.
     languages: Vec<String>,
     /// `bcp47 -> internal x-gmeow-* tag` (from the language slice).
@@ -435,6 +227,7 @@ struct TranslationEntryDto {
     predicate: String,
     lang: String,
     value: String,
+    fuzzy: bool,
 }
 
 impl From<Translations> for TranslationsDto {
@@ -443,11 +236,12 @@ impl From<Translations> for TranslationsDto {
             by_key: t
                 .by_key
                 .into_iter()
-                .map(|((iri, predicate, lang), value)| TranslationEntryDto {
+                .map(|((iri, predicate, lang), tv)| TranslationEntryDto {
                     iri,
                     predicate,
                     lang,
-                    value,
+                    value: tv.value,
+                    fuzzy: tv.fuzzy,
                 })
                 .collect(),
             languages: t.languages,
@@ -462,7 +256,15 @@ impl From<TranslationsDto> for Translations {
             by_key: d
                 .by_key
                 .into_iter()
-                .map(|e| ((e.iri, e.predicate, e.lang), e.value))
+                .map(|e| {
+                    (
+                        (e.iri, e.predicate, e.lang),
+                        TranslatedValue {
+                            value: e.value,
+                            fuzzy: e.fuzzy,
+                        },
+                    )
+                })
                 .collect(),
             languages: d.languages,
             internal_tag: d.internal_tag,
@@ -474,23 +276,36 @@ impl Translations {
     /// Build the index from every translation catalog in the slice catalog, and
     /// the BCP-47 → internal-tag map read from the language slice's module.
     pub fn from_catalog(catalog: &SliceCatalog) -> Self {
-        let mut by_key: BTreeMap<(String, String, String), String> = BTreeMap::new();
+        use crate::i18n_compile::{expand_predicate, language_from_po, parse_po};
+
+        let mut by_key: BTreeMap<(String, String, String), TranslatedValue> = BTreeMap::new();
         let mut langs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
         for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
             for artifact in &record.artifacts {
                 if artifact.role != ArtifactRole::TranslationCatalog {
                     continue;
                 }
                 let text = String::from_utf8_lossy(&artifact.content);
-                let parsed = parse_po(&text);
-                if parsed.language.is_empty() || parsed.language.eq_ignore_ascii_case("en") {
+                // A present translation catalog is required input: a malformed one is a
+                // HARD FAIL, never a silent skip that would drop measured coverage.
+                let language = language_from_po(&text).unwrap_or_else(|e| {
+                    panic!("i18n catalog for slice {owner} failed to parse: {e}")
+                });
+                let Some(language) = language else {
+                    continue;
+                };
+                if language.is_empty() || language.eq_ignore_ascii_case("en") {
                     continue;
                 }
-                langs.insert(parsed.language.clone());
-                for entry in &parsed.entries {
+                let entries = parse_po(&text, false).unwrap_or_else(|e| {
+                    panic!("i18n catalog for slice {owner} failed to parse: {e}")
+                });
+                langs.insert(language.clone());
+                for entry in &entries {
                     if entry.msgctxt.is_empty()
-                        || !translation_has_integrity(&parsed.language, &entry.msgid, &entry.msgstr)
+                        || !translation_has_integrity(&language, &entry.msgid, &entry.msgstr)
                     {
                         continue;
                     }
@@ -499,8 +314,11 @@ impl Translations {
                     };
                     let predicate = expand_predicate(predicate);
                     by_key.insert(
-                        (term_iri.to_string(), predicate, parsed.language.clone()),
-                        entry.msgstr.clone(),
+                        (term_iri.to_string(), predicate, language.clone()),
+                        TranslatedValue {
+                            value: entry.msgstr.clone(),
+                            fuzzy: entry.fuzzy,
+                        },
                     );
                 }
             }
@@ -517,11 +335,23 @@ impl Translations {
 
     /// Construct a `Translations` index directly from `(iri, predicate, lang) ->
     /// value` triples and a set of languages. For tests / programmatic builders.
+    /// Every constructed value is treated as reviewed (non-fuzzy).
     pub fn from_entries(
         entries: impl IntoIterator<Item = ((String, String, String), String)>,
         languages: impl IntoIterator<Item = String>,
     ) -> Self {
-        let by_key: BTreeMap<(String, String, String), String> = entries.into_iter().collect();
+        let by_key: BTreeMap<(String, String, String), TranslatedValue> = entries
+            .into_iter()
+            .map(|(key, value)| {
+                (
+                    key,
+                    TranslatedValue {
+                        value,
+                        fuzzy: false,
+                    },
+                )
+            })
+            .collect();
         let mut languages: Vec<String> = languages.into_iter().collect();
         languages.sort();
         languages.dedup();
@@ -534,14 +364,16 @@ impl Translations {
 
     /// The translated value for `(iri, predicate, lang)`, or `None` when absent
     /// (the caller falls back to the English carrier value). The English carrier
-    /// key always returns `None` so the model's own value is used.
+    /// key always returns `None` so the model's own value is used, and a stored
+    /// fuzzy (unreviewed) value also returns `None` — it is not yet live.
     pub fn lookup(&self, iri: &str, predicate: &str, lang: &str) -> Option<&str> {
         if lang == ENGLISH {
             return None;
         }
         self.by_key
             .get(&(iri.to_string(), predicate.to_string(), lang.to_string()))
-            .map(String::as_str)
+            .filter(|v| !v.fuzzy)
+            .map(|v| v.value.as_str())
     }
 
     /// All non-English BCP-47 language codes with at least one catalog (sorted).
@@ -1027,7 +859,11 @@ impl UiCatalog {
     /// The msgctxt of each entry is `"ontology-docs-template|<key>"` (matching the
     /// legacy POT format); the language is read from each catalog's header.
     pub fn from_dir(dir: &std::path::Path) -> Self {
+        use crate::i18n_compile::{language_from_po, parse_po};
+
         let mut overrides: BTreeMap<(String, String), String> = BTreeMap::new();
+        // An absent `i18n/` dir means no overrides; a present-but-unreadable/unparsable
+        // template file is a HARD FAIL.
         let Ok(read) = std::fs::read_dir(dir) else {
             return Self { overrides };
         };
@@ -1043,24 +879,35 @@ impl UiCatalog {
             .collect();
         paths.sort();
         for path in paths {
-            let Ok(text) = std::fs::read_to_string(&path) else {
+            let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
+                panic!("UI template catalog {} failed to read: {e}", path.display())
+            });
+            let language = language_from_po(&text).unwrap_or_else(|e| {
+                panic!(
+                    "UI template catalog {} failed to parse: {e}",
+                    path.display()
+                )
+            });
+            let Some(language) = language.filter(|l| !l.is_empty()) else {
                 continue;
             };
-            let parsed = parse_po(&text);
-            if parsed.language.is_empty() {
-                continue;
-            }
-            for entry in &parsed.entries {
-                if !translation_has_integrity(&parsed.language, &entry.msgid, &entry.msgstr) {
+            let entries = parse_po(&text, false).unwrap_or_else(|e| {
+                panic!(
+                    "UI template catalog {} failed to parse: {e}",
+                    path.display()
+                )
+            });
+            for entry in &entries {
+                // Fuzzy (machine-seeded, unreviewed) UI overrides are not inserted; they
+                // fall back to English, consistent with rendering and the coverage measure.
+                if entry.fuzzy || !translation_has_integrity(&language, &entry.msgid, &entry.msgstr)
+                {
                     continue;
                 }
                 let Some(key) = entry.msgctxt.strip_prefix("ontology-docs-template|") else {
                     continue;
                 };
-                overrides.insert(
-                    (parsed.language.clone(), key.to_string()),
-                    entry.msgstr.clone(),
-                );
+                overrides.insert((language.clone(), key.to_string()), entry.msgstr.clone());
             }
         }
         Self { overrides }
@@ -1092,58 +939,10 @@ pub fn ui_string<'a>(key: &str, lang: &str, catalog: &'a UiCatalog) -> &'a str {
 mod tests {
     use super::*;
 
-    const SAMPLE: &str = r#"# a comment
-msgid ""
-msgstr ""
-"Project-Id-Version: gmeow\n"
-"Language: fr\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/Foo|rdfs:label"
-msgid "Foo"
-msgstr "Fou"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/Foo|skos:definition"
-msgid "A foo."
-msgstr ""
-"Une longue "
-"définition."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/Bar|rdfs:label"
-msgid "Bar"
-msgstr ""
-"#;
-
-    #[test]
-    fn parse_po_reads_language_and_entries() {
-        let cat = parse_po(SAMPLE);
-        assert_eq!(cat.language, "fr");
-        // header + 3 entries
-        let non_header: Vec<_> = cat.entries.iter().filter(|e| !e.msgid.is_empty()).collect();
-        assert_eq!(non_header.len(), 3);
-    }
-
-    #[test]
-    fn parse_po_joins_multiline_msgstr() {
-        let cat = parse_po(SAMPLE);
-        let def = cat
-            .entries
-            .iter()
-            .find(|e| e.msgctxt.ends_with("|skos:definition"))
-            .unwrap();
-        assert_eq!(def.msgstr, "Une longue définition.");
-    }
-
-    #[test]
-    fn po_escapes_are_unescaped() {
-        let text = "msgctxt \"x|rdfs:label\"\nmsgid \"a\"\nmsgstr \"line1\\nline2 \\\"q\\\"\"\n";
-        let cat = parse_po(text);
-        let e = cat.entries.iter().find(|e| !e.msgid.is_empty()).unwrap();
-        assert_eq!(e.msgstr, "line1\nline2 \"q\"");
-    }
-
     #[test]
     fn expand_predicate_handles_curies_and_iris() {
+        use crate::i18n_compile::expand_predicate;
+
         assert_eq!(
             expand_predicate("rdfs:label"),
             "http://www.w3.org/2000/01/rdf-schema#label"
@@ -1252,7 +1051,22 @@ msgstr ""
                 "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
                 "fr".to_string(),
             ),
-            "Fou".to_string(),
+            TranslatedValue {
+                value: "Fou".to_string(),
+                fuzzy: false,
+            },
+        );
+        // A fuzzy (unreviewed) value is stored but must NOT surface at lookup.
+        by_key.insert(
+            (
+                "https://blackcatinformatics.ca/gmeow/Fuzzy".to_string(),
+                "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
+                "fr".to_string(),
+            ),
+            TranslatedValue {
+                value: "Approximatif".to_string(),
+                fuzzy: true,
+            },
         );
         let t = Translations {
             by_key,
@@ -1266,6 +1080,15 @@ msgstr ""
                 "fr"
             ),
             Some("Fou")
+        );
+        // A stored fuzzy value falls back to English (lookup returns None).
+        assert_eq!(
+            t.lookup(
+                "https://blackcatinformatics.ca/gmeow/Fuzzy",
+                "http://www.w3.org/2000/01/rdf-schema#label",
+                "fr"
+            ),
+            None
         );
         // English carrier always returns None (model value is used).
         assert_eq!(
@@ -1291,7 +1114,10 @@ msgstr ""
                 "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
                 "fr".to_string(),
             ),
-            "Fou".to_string(),
+            TranslatedValue {
+                value: "Fou".to_string(),
+                fuzzy: false,
+            },
         );
         let mut internal_tag = BTreeMap::new();
         internal_tag.insert("fr".to_string(), "x-gmeow-french".to_string());
