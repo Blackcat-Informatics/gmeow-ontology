@@ -229,6 +229,22 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 
+/// The narrowed authored corpus `stage-compile-logic` reads: the WHOLE merged authored
+/// dataset (`load_authored_dataset` — root ontology + every slice `module.ttl` + every
+/// `imports/*.ttl`) with the pure-documentation predicates in
+/// [`crate::stages::source_load::LOGIC_COMPILE_INPUT_DENYLIST`] removed. It is the SOUND
+/// (denylist) narrowing of the compile-logic input: the five augmentation readers
+/// (`derive_validation_shapes`, `extract_all_constraints`, `extract_correspondences`,
+/// `extract_leg_programs`, `MetaProgram::from_source_dataset`) read the OWL/RDFS/XSD
+/// restriction + `logic:`/`gmeow:` vocabulary + `rdfs:comment` caveats, never the stripped
+/// SKOS/Dublin-Core/PROV/VANN documentation triples, so the graph is reader-identical to
+/// the full corpus (the `logic_compile_input_subgraph_preserves_reader_output` soundness
+/// guard proves it). Attaching it as its own named graph on the `stage-source-load` product
+/// lets compile-logic declare a typed `consumed_entities` edge and drop the whole-corpus
+/// file list from its cache key — a documentation-only edit no longer re-runs the compiler.
+pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
+
 /// The seven `math:` producer graphs, one per native producer entrypoint — five bound to the
 /// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
 /// `probability-model` ([`gmeow_math::producers::probability_model_seam`]), the probability
@@ -588,14 +604,24 @@ pub(crate) fn build_self_description_dataset(
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let quality = gmeow_slice_quality::assessment_artifacts(root)
         .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
-    build_self_description_dataset_with_quality(root, &quality.nquads)
+    let authored_base = crate::stages::source_load::load_authored_dataset(root)?;
+    build_self_description_dataset_with_quality(root, authored_base.as_ref(), &quality.nquads)
 }
 
 /// Build the self-description named graphs with a caller-supplied slice-quality graph.
 /// `stage-source-load` uses this after scoring once so the same pass can also publish the
 /// diagnostics HTML; tests keep a wrapper that scores and calls this helper directly.
+///
+/// `authored_base` is the WHOLE merged authored dataset
+/// ([`crate::stages::source_load::load_authored_dataset`] — root ontology + slice modules +
+/// imports). It is the EXACT corpus `stage-compile-logic` used to re-parse for its five
+/// augmentation readers; the denylisted narrowing of it is published as
+/// [`GRAPH_LOGIC_COMPILE_INPUTS`] so compile-logic reads a typed entity instead. It is NOT
+/// the same dataset as the local `base` below (the authored DEFAULT graph — imports
+/// excluded, `.po` translations merged), so the two must not be conflated.
 pub(crate) fn build_self_description_dataset_with_quality(
     root: &Path,
+    authored_base: &purrdf::RdfDataset,
     quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
@@ -637,6 +663,17 @@ pub(crate) fn build_self_description_dataset_with_quality(
             provenance_nt.as_bytes(),
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+        // graph/logic-compile-inputs — the SOUND (denylist) narrowing of the WHOLE merged
+        // authored corpus `stage-compile-logic` reads (root ontology + slices + imports,
+        // documentation predicates stripped). Published here so compile-logic declares a
+        // typed `consumed_entities` edge on THIS graph and drops the whole-corpus file list
+        // from its cache key. Built from `authored_base` (the same `load_authored_dataset`
+        // compile-logic used), NOT the `base` authored-default above (which excludes imports
+        // and merges translations), so the five readers see a reader-identical corpus.
+        rooted_in_graph(
+            crate::stages::source_load::logic_compile_input_subgraph(authored_base)?.as_ref(),
+            GRAPH_LOGIC_COMPILE_INPUTS,
         )?,
     ];
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
@@ -6057,7 +6094,7 @@ mod logic_graph_golden_tests {
     #[test]
     fn graph_correspondence_fold_byte_golden() {
         let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
-            &gmeow_logic_compile::projections::correspondence::affine_triangle_worked_example(),
+            &crate::stages::compile_logic::affine_worked_example_program(),
         );
 
         let build = || {
@@ -7383,7 +7420,7 @@ mod term_entailments_tests {
         let compile = crate::stages::compile_logic::CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &empty,
+                upstream: &upstream,
             })
             .expect("real compile-logic");
         upstream.insert("stage-compile-logic".to_string(), compile.product);

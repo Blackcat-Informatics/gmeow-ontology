@@ -189,7 +189,11 @@ pub fn full_spec() -> PipelineSpec {
     let mut stages = vec![
         st_source("stage-source-load", "source_load", &[]),
         st("stage-statements", "statements", &[]),
-        st("stage-compile-logic", "compile_logic", &[]),
+        st_compile_logic(
+            "stage-compile-logic",
+            "compile_logic",
+            &["stage-source-load"],
+        ),
         // Leaf compute: RUN the seven math producers (five flagship producers plus the
         // probability-model seam producer and the p-value tri-slice producer) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
@@ -533,6 +537,22 @@ fn st_source(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
     s.capabilities = vec![SINK_CAPABILITY.to_string()];
+    s
+}
+
+/// The logic compiler stage: it reads ONLY the narrowed `graph/logic-compile-inputs` named
+/// graph off the `stage-source-load` product (a SOUND denylist narrowing of the whole
+/// authored corpus its five augmentation readers walk), so its single typed dataflow entity
+/// is that graph — a documentation-only edit that leaves the graph's digest unchanged skips
+/// re-running the (expensive) compiler. Derives the SAME entity list as
+/// [`crate::stages::compile_logic::CompileLogicStage`]'s consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.dataflow_entities = vec![(
+        "stage-source-load".to_string(),
+        vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
+    )];
     s
 }
 
