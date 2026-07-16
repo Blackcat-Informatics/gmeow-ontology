@@ -895,3 +895,46 @@ decisions, NOT open gaps.
   LFS recommended): generated/logic/reasoning-explanations.rdf12.ttl (~55MB) and
   generated/logic/inferred-closure.rdf12.ttl (~54MB). Pre-existing generated files,
   not introduced by this stage.
+
+=============================================================================
+## From #1570 — Close external mathematics concept gaps and ship exact Clifford coverage (recorded 2026-07-16)
+PR #1575; branch paudley/1570-concept-coverage @ cc55c6e32 (merged origin/main); full `cargo xtask check` observed EXIT 0 (all 19 gates); completion-adversary exit gate PASS.
+
+D1. C7 (concise untracked handoff in the private consumer checkout) — HUMAN SIGN-OFF, not verified.
+    The handoff lives OUTSIDE this repository (the consumer checkout is intentionally unnamed) and
+    cannot be observed from here. The user stated verbatim it is "Already done." Discharged by that
+    recorded sign-off only — no production demonstration was possible from this repo.
+    Forward path: the consumer-checkout owner confirms the untracked Markdown handoff exists; nothing
+    to close in this repo.
+
+D2. maint-wikidata-live (OFF-GATE maintainer lane) reports 6 existence-check "bad-syntax" failures on
+    pre-existing lang-slice illustrative lexeme bridges — wd:L7 / wd:L7-S1 (cat), wd:L1119 / (mouse),
+    wd:L14462 / wd:L14462-S2 (chase) — in slices/grounding/lang/mappings/equivalences.ttl. These are
+    NOT introduced by #1570 (git diff origin/main...HEAD adds zero L-IDs), are unrelated to the
+    mathematics scope, and the lane is OFF-GATE (the on-gate `wikidata` check passes in make check).
+    All 474 valid-syntax IDs — including every new math Q-bridge — passed syntax AND live existence,
+    so the user's directive (confirm the new QIDs resolve) is satisfied. Not fixed (out of #1570 scope).
+    Forward path: a lang-slice / maint sweep either corrects the lexeme+sense ID syntax the existence
+    checker rejects, or teaches the checker Lexeme/Sense (L…, L…-S…) ID syntax.
+
+D3. The two gates that most directly PROVE the 8th producer's bundle fold and its SHACL conformance —
+    `fold_parity` (sink_fold_matches_committed_per_named_graph) and `conformance_math_producers` — are
+    architecturally OFF-GATE in the default nextest profile that make check's rust-gate runs
+    (.config/nextest.toml). On-gate coverage rides unit tests + the committed bundle being a projection.
+    The completion-adversary and this session ran both off-gate gates explicitly and both PASS
+    (clifford-12-13 sink=2171 == committed=2171; 15/15 producer conformance), so the criteria are
+    demonstrated — but on the default on-gate surface they are not executed.
+    Forward path: promote fold_parity / conformance_math_producers on-gate, or accept the projection-
+    purity + unit-test on-gate proxy as the standing design (a repo-wide profile decision, not #1570's).
+
+D4. The logic-slice rdfs residue ratchet violation cleared during #1570 was a PRE-EXISTING origin/main
+    drift, not a #1570 regression: my logic slice is byte-identical to origin/main (d7745068f), which
+    itself measures ungrounded rdfs residue 69 above its own committed ceiling of 68 — commit b17f0db02
+    hand-authored logic:RecoveryCase's transform-cardinality restriction as rdfs:subClassOf
+    [owl:Restriction …] without re-seeding the ceiling, and that owl form silently under-projected
+    (never reached owl-dl/gufo/datalog). The user directed "I fix the logic grounding"; fixed in
+    cc55c6e32 by re-authoring in canonical logic:subClassOf [logic:Restriction …] form (residue 69→68,
+    projection now complete). Recorded because the fix touches canonical logic content outside #1570's
+    mathematics scope and remediates an upstream gap opportunistically.
+    Forward path: none open — the drift is grounded and projecting on this branch; the same fix should
+    ride to main via this PR's merge.
