@@ -150,6 +150,12 @@ cov:uniformTwo a math:Distribution ;
 cov:uniformFamily a math:DistributionFamily .
 cov:oneBit a math:RationalValue ;
     math:numerator 1 ; math:denominator 1 .
+# The canonical logarithm base and information unit of the measure. Their types are
+# restated here (as with math:lengthDimension above) so the frame is complete when
+# this scene is read in closed-world isolation: base 2 is a math:LogarithmBase and
+# the bit is the math:InformationUnit paired with it.
+math:logBaseTwo a math:LogarithmBase .
+math:bit a math:InformationUnit .
 
 # Hodge-decomposition coverage: a decomposition is recoverable from its signal,
 # its exact/coexact/harmonic components, and its boundary operator as separate
@@ -166,7 +172,7 @@ cov:hodgeDecomposition a math:HodgeDecomposition ;
     math:exactCoexactInnerProduct cov:hodgeZero ;
     math:exactHarmonicInnerProduct cov:hodgeZero ;
     math:coexactHarmonicInnerProduct cov:hodgeZero .
-cov:hodgeSignal a math:SheafSection .
+cov:hodgeSignal a math:SheafSection , math:MathematicalObject .
 cov:hodgeExact a math:ExactComponent .
 cov:hodgeCoexact a math:CoexactComponent .
 cov:hodgeHarmonic a math:HarmonicComponent .
@@ -195,7 +201,13 @@ cov:mapperConstruction a math:MapperConstruction ;
     math:clusteringRule cov:mapperClustering ;
     math:outputNerve cov:mapperNerve .
 cov:mapperSource a math:MetricSpace .
-cov:mapperFilter a math:Function .
+# The filter (lens) function f: X → ℝ carries its frame: its domain is the set of
+# points of the source metric space and its codomain is the set of filter values.
+cov:mapperFilter a math:Function ;
+    math:domain cov:mapperFilterDomain ;
+    math:codomain cov:mapperFilterCodomain .
+cov:mapperFilterDomain a math:Set .
+cov:mapperFilterCodomain a math:Set .
 cov:mapperCover a math:Cover ;
     math:hasCoverElement cov:mapperCoverLow , cov:mapperCoverHigh .
 cov:mapperCoverLow a math:CoverElement .
@@ -218,7 +230,17 @@ cov:vsaBinding a math:VectorBinding ;
     math:vsaOperand cov:vsaOperandA , cov:vsaOperandB ;
     math:operationCapacity cov:vsaCapacity ;
     math:recoveryLossContract cov:vsaContract .
-cov:vsaSpace a math:VectorSpace .
+# The ambient vector space, genuinely framed as the math:AlgebraicStructure it is
+# (math:VectorSpace ⊑ math:AlgebraicStructure): its carrier is the math:Set of
+# vectors, its math:structureOperation is vector addition, and it satisfies the
+# additive associativity axiom of its underlying abelian group.
+cov:vsaSpace a math:VectorSpace ;
+    math:underlyingSet cov:vsaVectorSet ;
+    math:structureOperation cov:vsaVectorAddition ;
+    math:satisfiesAxiom cov:vsaAdditiveAssociativity .
+cov:vsaVectorSet a math:Set .
+cov:vsaVectorAddition a math:Operation .
+cov:vsaAdditiveAssociativity a math:Axiom .
 cov:vsaBasis a math:Basis .
 cov:vsaOperandA a math:Vector ;
     math:inBasis cov:vsaBasis .

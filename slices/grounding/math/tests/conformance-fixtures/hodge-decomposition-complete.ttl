@@ -36,7 +36,10 @@ ex:decomposition a math:HodgeDecomposition ;
     math:coexactHarmonicInnerProduct ex:zero .
 
 # The whole signal (a cochain / sheaf section) reconstructed by the three parts.
-ex:signal a math:SheafSection .
+# A sheaf section IS a math:MathematicalObject (math:SheafSection ⊑
+# math:MathematicalObject); the object type is asserted explicitly because the
+# closed-world frame shape for math:decomposesFlow reads asserted types.
+ex:signal a math:SheafSection , math:MathematicalObject .
 
 # The exact, coexact, and harmonic summands.
 ex:exactPart a math:ExactComponent .

@@ -22,7 +22,7 @@ ex:decomposition a math:HodgeDecomposition ;
     math:exactHarmonicInnerProduct ex:zero ;
     math:coexactHarmonicInnerProduct ex:zero .
 
-ex:signal a math:SheafSection .
+ex:signal a math:SheafSection , math:MathematicalObject .
 ex:exactPart a math:ExactComponent .
 ex:coexactPart a math:CoexactComponent .
 ex:harmonicPart a math:HarmonicComponent .

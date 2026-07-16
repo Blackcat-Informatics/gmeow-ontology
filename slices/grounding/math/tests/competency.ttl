@@ -2404,7 +2404,8 @@ ex:cqCoverageCellularSheaf a gmeow:CompetencyQuestion ;
     gmeow:cqRationale "A cellular sheaf exposes its base complex, stalks, and restriction map as separate reusable mathematical objects." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCoverageCellularSheafShape ;
-    gmeow:cqExpectRow ex:rowCoverageVertexStalk , ex:rowCoverageEdgeStalk .
+    gmeow:cqExpectRow ex:rowCoverageVertexStalk , ex:rowCoverageEdgeStalk ,
+        ex:rowCoverageHodgeStalk .
 
 ex:cqCoverageCellularSheafShape a logic:ResultShape ;
     logic:declaresColumn
@@ -2425,6 +2426,15 @@ ex:rowCoverageEdgeStalk a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:baseComplex ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:edgeStalk ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:vertexToEdge ] .
+
+# The Hodge-decomposition coverage individual carries its own fully-framed
+# cellular sheaf (cov:hodgeSheaf), which the reusable frame query legitimately
+# finds alongside cov:cellularSheaf; its row is part of the exact expected set.
+ex:rowCoverageHodgeStalk a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri cov:hodgeSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:hodgeComplex ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:hodgeStalk ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:hodgeRestriction ] .
 
 ex:cqCoverageCliffordExtension a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/clifford-extension-frame.rq" ;
