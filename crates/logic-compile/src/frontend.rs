@@ -44,11 +44,11 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec, ComplexityClass,
-    ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope, Correspondence,
-    Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
-    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
-    ShaclSeverity, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
+    ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
+    Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule,
+    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId,
+    ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
 use super::restriction;
 
@@ -276,6 +276,10 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "minInclusiveBound" | "maxInclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
+            // Aggregate-balance satellite (double-entry balance: partitioned two-sum equality).
+            | "balancePostingPredicate" | "balancePartitionPredicate" | "balanceDebitValue"
+            | "balanceCreditValue" | "balanceAmountNodePredicate" | "balanceValuePredicate"
+            | "balanceGroupPredicate"
             // Comparison constraint (two focus-property values compared).
             | "leftPath" | "rightPath" | "compareOp"
             // Path node-kind constraint.
@@ -308,6 +312,7 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ForbiddenPatternConstraint"
             | "ValueRangeConstraint"
             | "AggregateConstraint"
+            | "AggregateBalanceConstraint"
             | "ComparisonConstraint"
             | "PathNodeKindConstraint"
             | "SelfJoinUniquenessConstraint"
@@ -4134,6 +4139,61 @@ fn read_aggregate_constraint(
     Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
 }
 
+/// The double-entry balance sugar (`logic:AggregateBalanceConstraint`): a target class + the seven
+/// predicate/value bindings of an [`AggregateBalance`]. Expands to a canonical guarded universal
+/// carrying an honest reified `balancedByGroup` FOL predication (so the FOL canon is complete + the
+/// target derives) PLUS the structured [`AggregateBalance`] satellite (which drives the real
+/// `GROUP BY`/`HAVING` SPARQL projection).
+fn read_aggregate_balance_constraint(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
+    let class = sugar_target_class(store, node)?;
+    let read = |local: &str| -> gmeow_errors::Result<String> {
+        value(store, node, &nn(&logic_iri(local)))
+            .map(|t| term_str(&t))
+            .ok_or_else(|| {
+                sugar_err(format!(
+                    "logic:AggregateBalanceConstraint requires logic:{local}"
+                ))
+            })
+    };
+    let posting = read("balancePostingPredicate")?;
+    let partition = read("balancePartitionPredicate")?;
+    let debit = read("balanceDebitValue")?;
+    let credit = read("balanceCreditValue")?;
+    let amount_node = read("balanceAmountNodePredicate")?;
+    let value_pred = read("balanceValuePredicate")?;
+    let group = read("balanceGroupPredicate")?;
+    let balance = AggregateBalance::new(
+        posting.clone(),
+        partition.clone(),
+        debit.clone(),
+        credit.clone(),
+        amount_node.clone(),
+        value_pred.clone(),
+        group.clone(),
+    )?;
+    // Honest reified FOL integrity: a single `balancedByGroup` predication over the focus carrying
+    // every binding, guarded by the target class so the target derives. The realized FOL core has
+    // no aggregate node, so the SPARQL projection uses the satellite for a real GROUP BY/HAVING.
+    let reified = Formula::atom(
+        Term::iri(logic_iri("balancedByGroup"))?,
+        vec![
+            t_var("this"),
+            Term::iri(&posting)?,
+            Term::iri(&partition)?,
+            Term::iri(&debit)?,
+            Term::iri(&credit)?,
+            Term::iri(&amount_node)?,
+            Term::iri(&value_pred)?,
+            Term::iri(&group)?,
+        ],
+    )?;
+    let integrity = f_forall_this(f_guard_class(&class)?, reified);
+    Ok(finalize_sugar(store, node, integrity)?.with_aggregate_balance(balance))
+}
+
 /// Map an authored `logic:compareOp` symbol to the `logic:` comparison relation local name the
 /// projector recognizes (the FORBIDDEN relation whose satisfaction is the violation).
 fn compare_op_relation(op: &str) -> Option<&'static str> {
@@ -4427,7 +4487,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
-    let readers: [(&str, Reader); 16] = [
+    let readers: [(&str, Reader); 17] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -4439,6 +4499,10 @@ fn extract_sugar_constraints(
         ("ForbiddenPatternConstraint", read_forbidden_pattern),
         ("ValueRangeConstraint", read_value_range),
         ("AggregateConstraint", read_aggregate_constraint),
+        (
+            "AggregateBalanceConstraint",
+            read_aggregate_balance_constraint,
+        ),
         ("ComparisonConstraint", read_comparison),
         ("PathNodeKindConstraint", read_path_node_kind),
         ("SelfJoinUniquenessConstraint", read_self_join_uniqueness),

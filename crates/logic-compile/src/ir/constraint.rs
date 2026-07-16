@@ -212,6 +212,89 @@ impl AggregateComparison {
     }
 }
 
+/// An aggregate-BALANCE satellite on a [`ConstraintIr`]: the double-entry balance invariant
+/// "within each group, Σ over the focus's postings of the debit-partition amounts equals Σ of the
+/// credit-partition amounts". Like [`AggregateComparison`], the realized FOL [`Formula`] core has no
+/// aggregate node, so a balance integrity is carried HERE as a structured satellite and lowered to a
+/// `SELECT $this … GROUP BY $this ?group HAVING(sumDebits != sumCredits)` `sh:SPARQLConstraint`. It
+/// generalizes the single-aggregate [`AggregateComparison`] to a *partitioned two-sum equality over a
+/// value-key group*: the focus's postings (`posting_predicate`) are partitioned by
+/// `partition_predicate` into a debit side (`debit_value`) and a credit side (`credit_value`); each
+/// posting's numeric amount is read via `amount_node_predicate` then `value_predicate`; the group key
+/// is read via `amount_node_predicate` then `group_predicate`; and the two partition-sums must be
+/// EQUAL within every group.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AggregateBalance {
+    /// The predicate from the focus to each posting (`$this <posting_predicate> ?posting`).
+    pub posting_predicate: String,
+    /// The predicate on a posting whose value selects its partition (debit vs credit).
+    pub partition_predicate: String,
+    /// The `partition_predicate` value marking a DEBIT posting.
+    pub debit_value: String,
+    /// The `partition_predicate` value marking a CREDIT posting.
+    pub credit_value: String,
+    /// The predicate from a posting to its amount node (`?posting <amount_node_predicate> ?amount`).
+    pub amount_node_predicate: String,
+    /// The predicate from the amount node to its numeric value (`?amount <value_predicate> ?val`).
+    pub value_predicate: String,
+    /// The predicate from the amount node to the group key (`?amount <group_predicate> ?group`).
+    pub group_predicate: String,
+}
+
+impl AggregateBalance {
+    /// Construct, validating every predicate / partition value is a non-empty IRI.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        posting_predicate: impl Into<String>,
+        partition_predicate: impl Into<String>,
+        debit_value: impl Into<String>,
+        credit_value: impl Into<String>,
+        amount_node_predicate: impl Into<String>,
+        value_predicate: impl Into<String>,
+        group_predicate: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let out = Self {
+            posting_predicate: posting_predicate.into(),
+            partition_predicate: partition_predicate.into(),
+            debit_value: debit_value.into(),
+            credit_value: credit_value.into(),
+            amount_node_predicate: amount_node_predicate.into(),
+            value_predicate: value_predicate.into(),
+            group_predicate: group_predicate.into(),
+        };
+        for (field, v) in [
+            ("posting_predicate", &out.posting_predicate),
+            ("partition_predicate", &out.partition_predicate),
+            ("debit_value", &out.debit_value),
+            ("credit_value", &out.credit_value),
+            ("amount_node_predicate", &out.amount_node_predicate),
+            ("value_predicate", &out.value_predicate),
+            ("group_predicate", &out.group_predicate),
+        ] {
+            if v.trim().is_empty() {
+                return Err(ir_err(format!(
+                    "AggregateBalance.{field} must be a non-empty IRI"
+                )));
+            }
+        }
+        Ok(out)
+    }
+
+    /// The append-only content-key segment for this satellite.
+    fn content_key(&self) -> String {
+        format!(
+            "posting={}{SEP}part={}{SEP}debit={}{SEP}credit={}{SEP}amount={}{SEP}value={}{SEP}group={}",
+            key_field(&self.posting_predicate),
+            key_field(&self.partition_predicate),
+            key_field(&self.debit_value),
+            key_field(&self.credit_value),
+            key_field(&self.amount_node_predicate),
+            key_field(&self.value_predicate),
+            key_field(&self.group_predicate),
+        )
+    }
+}
+
 /// Length-prefix a free-form fragment so field boundaries can never collide when fragments
 /// are concatenated into a content key (mirrors the `validation` module's helper verbatim).
 fn key_field(s: &str) -> String {
@@ -261,6 +344,10 @@ pub struct ConstraintIr {
     /// `sh:SPARQLConstraint`. Folded into [`Self::content_key`] only when present (append-only:
     /// absent ⇒ the byte-identical historical key).
     pub aggregate: Option<AggregateComparison>,
+    /// The aggregate-BALANCE satellite (`None` ⇒ not a balance constraint). Carries the
+    /// partitioned two-sum equality; lowered to a `GROUP BY`/`HAVING` `sh:SPARQLConstraint`.
+    /// Folded into [`Self::content_key`] only when present (append-only).
+    pub aggregate_balance: Option<AggregateBalance>,
 }
 
 impl ConstraintIr {
@@ -300,7 +387,15 @@ impl ConstraintIr {
             also_formalizes: Vec::new(),
             failure_class: None,
             aggregate: None,
+            aggregate_balance: None,
         })
+    }
+
+    /// Attach the aggregate-balance satellite (the partitioned two-sum equality the `GROUP BY`/
+    /// `HAVING` SPARQL projection lowers). Chainable; folded into the content key.
+    pub fn with_aggregate_balance(mut self, balance: AggregateBalance) -> Self {
+        self.aggregate_balance = Some(balance);
+        self
     }
 
     /// Attach the aggregate-comparison satellite (the structured `GROUP BY`/`HAVING` form the
@@ -394,8 +489,13 @@ impl ConstraintIr {
             self.severity.as_str(),
         );
         // Append-only: an aggregate-free constraint keeps the byte-identical historical key.
-        match &self.aggregate {
+        let base = match &self.aggregate {
             Some(agg) => format!("{base}{SEP}agg={}", key_field(&agg.content_key())),
+            None => base,
+        };
+        // Append-only again: a balance-free constraint keeps the prior key.
+        match &self.aggregate_balance {
+            Some(bal) => format!("{base}{SEP}balance={}", key_field(&bal.content_key())),
             None => base,
         }
     }

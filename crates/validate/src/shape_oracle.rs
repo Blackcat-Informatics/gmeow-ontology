@@ -777,22 +777,32 @@ fn tokenize_select(s: &str) -> Vec<String> {
             }
             toks.push(t);
         } else if c == '"' {
-            // A `"""…"""` or `"…"` literal — consume through the matching closing quote run.
+            // A `"""…"""` or `"…"` literal — consume through the matching closing quote run. The
+            // triple/empty distinction needs the THIRD char: `""x` is an EMPTY string `""` followed
+            // by `x` (a two-quote token, closed), NOT the start of a `"""…"""` triple-string —
+            // otherwise a SPARQL `!= ""` swallows the rest of the query into one token.
             let mut t = String::new();
             t.push(chars.next().expect("peeked quote"));
-            let triple = chars.peek() == Some(&'"');
-            if triple {
+            let mut triple = false;
+            let mut closed = false;
+            if chars.peek() == Some(&'"') {
                 t.push(chars.next().expect("second quote"));
                 if chars.peek() == Some(&'"') {
                     t.push(chars.next().expect("third quote"));
+                    triple = true;
+                } else {
+                    // `""` — a complete empty string literal.
+                    closed = true;
                 }
             }
-            let mut run = 0usize;
-            for ch in chars.by_ref() {
-                t.push(ch);
-                run = if ch == '"' { run + 1 } else { 0 };
-                if (triple && run == 3) || (!triple && run == 1) {
-                    break;
+            if !closed {
+                let mut run = 0usize;
+                for ch in chars.by_ref() {
+                    t.push(ch);
+                    run = if ch == '"' { run + 1 } else { 0 };
+                    if (triple && run == 3) || (!triple && run == 1) {
+                        break;
+                    }
                 }
             }
             toks.push(t);
@@ -2284,6 +2294,169 @@ fn violating_object(comp: &ConstraintComponent, focus: &str) -> Option<(String, 
     }
 }
 
+/// Recognize a predicate-PREFIX, language-tagged-literal target select — the private-use
+/// language-tag gate's focus: any SUBJECT carrying a predicate under a namespace whose object is a
+/// language-tagged literal (`?this ?p ?value . FILTER(STRSTARTS(STR(?p), "ns")) FILTER(isLiteral(?value)
+/// && lang(?value) != "")`). Returns the namespace filter on the PREDICATE variable, or `None` for
+/// any other select. Distinct from [`parse_target_skeleton`], whose `STRSTARTS` filters on `?this`.
+fn parse_lang_tagged_predicate_target(select: &str) -> Option<String> {
+    let toks = tokenize_select(select);
+    let open = toks.iter().position(|t| t == "{")?;
+    let close = toks.iter().rposition(|t| t == "}")?;
+    if close <= open {
+        return None;
+    }
+    let body = &toks[open + 1..close];
+    // A `?this ?p ?value .` triple: `?this` subject, a VARIABLE predicate, a VARIABLE object.
+    let mut pred_var: Option<String> = None;
+    let mut i = 0;
+    while i + 2 < body.len() {
+        if body[i] == "?this"
+            && body[i + 1].starts_with('?')
+            && body[i + 2].starts_with('?')
+            && body[i + 1] != "?this"
+        {
+            pred_var = Some(body[i + 1].clone());
+            break;
+        }
+        i += 1;
+    }
+    let pred_var = pred_var?;
+    // A `STRSTARTS ( STR ( ?p ) , "ns" )` filter on the PREDICATE variable yields the namespace.
+    for w in body.windows(9) {
+        if w[0].eq_ignore_ascii_case("strstarts")
+            && w[1] == "("
+            && w[2].eq_ignore_ascii_case("str")
+            && w[3] == "("
+            && w[4] == pred_var
+            && w[5] == ")"
+            && w[6] == ","
+            && w[7].starts_with('"')
+        {
+            return Some(w[7].trim_matches('"').to_owned());
+        }
+    }
+    None
+}
+
+/// Whether `tag` is a syntactically valid RDF/BCP-47-shaped language tag
+/// (`ALPHA+ ('-' ALNUM+)*`) — so a synthesized witness literal `"…"@tag` always parses.
+fn is_valid_lang_tag(tag: &str) -> bool {
+    let mut parts = tag.split('-');
+    match parts.next() {
+        Some(first) if !first.is_empty() && first.chars().all(|c| c.is_ascii_alphabetic()) => {}
+        _ => return false,
+    }
+    parts.all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_alphanumeric()))
+}
+
+/// The anchored language-tag pattern a private-use language-tag gate tests `LANG(?value)` against
+/// (`regex(lang(?value), "PATTERN", "i")` in the shape's `sh:sparql` body), so the witness
+/// synthesizer can derive a conforming and a violating tag from the ACTUAL authored regex rather
+/// than a hard-coded convention. `None` when the shape carries no such `sh:sparql` regex.
+fn lang_tag_gate_pattern(ds: &RdfDataset, shape_iri: &str) -> Option<String> {
+    let shape = ds.term_id_by_value(&TermValue::iri(shape_iri))?;
+    let sparql = ds.term_id_by_value(&TermValue::iri(format!("{SH}sparql")))?;
+    let select = ds.term_id_by_value(&TermValue::iri(format!("{SH}select")))?;
+    for q in ds.quads_for_pattern(Some(shape), Some(sparql), None, GraphMatch::Any) {
+        for sel in ds.quads_for_pattern(Some(q.o), Some(select), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(sel.o) else {
+                continue;
+            };
+            // The pattern is the first quoted string after a `regex(` call over `lang(?value)`.
+            let low = lexical.to_ascii_lowercase();
+            let Some(rx) = low.find("regex(") else {
+                continue;
+            };
+            let after = &lexical[rx..];
+            let Some(q1) = after.find('"') else { continue };
+            let rest = &after[q1 + 1..];
+            let Some(q2) = rest.find('"') else { continue };
+            let pattern = &rest[..q2];
+            if !pattern.is_empty() {
+                return Some(pattern.to_owned());
+            }
+        }
+    }
+    None
+}
+
+/// Derive `(conforming_tag, violating_tag)` from an anchored language-tag pattern: a tag the pattern
+/// MATCHES (case-insensitively) and one it does NOT, both syntactically valid language tags. The
+/// conforming candidate is built from the pattern's literal prefix; every candidate is VERIFIED
+/// against the compiled regex, so a mis-derived tag yields `None` (clearance denied) rather than a
+/// false pass. `None` when the pattern will not compile, or no verified pair exists.
+fn derive_lang_tags(pattern: &str) -> Option<(String, String)> {
+    let re = regex::RegexBuilder::new(pattern)
+        .case_insensitive(true)
+        .build()
+        .ok()?;
+    // The literal prefix: chars after `^` up to the first regex metacharacter.
+    let body = pattern.trim_start_matches('^');
+    let mut prefix = String::new();
+    for c in body.chars() {
+        if "[](){}.*+?$|\\".contains(c) {
+            break;
+        }
+        prefix.push(c);
+    }
+    let good_candidates = [
+        format!("{prefix}a"),
+        format!("{prefix}en"),
+        prefix.trim_end_matches('-').to_owned(),
+        "x-gmeow-witness".to_owned(),
+    ];
+    let good = good_candidates
+        .into_iter()
+        .find(|t| is_valid_lang_tag(t) && re.is_match(t))?;
+    let bad = ["en", "und", "fr", "zz", "x-none"]
+        .into_iter()
+        .find(|t| is_valid_lang_tag(t) && !re.is_match(t))?
+        .to_owned();
+    Some((good, bad))
+}
+
+/// The dedicated witness plan for a private-use language-tag gate: a CONFORMING focus carrying a
+/// namespaced predicate with a tag the gate accepts, and a VIOLATING focus carrying one with a tag
+/// it rejects. Both tags are derived (and verified) from the shape's own authored `sh:sparql` regex,
+/// so the plan carries no baked-in convention; [`semantic_cross_check`] then re-checks each against
+/// the REAL legacy shape and the projected record, so a mis-derived tag can only DENY clearance.
+fn lang_tagged_witness_plan(
+    ds: &RdfDataset,
+    shape_iri: &str,
+    namespace: &str,
+) -> gmeow_errors::Result<SemanticWitnessPlan> {
+    let pattern = lang_tag_gate_pattern(ds, shape_iri).ok_or_else(|| {
+        parse_err(format!(
+            "semantic witnesses: <{shape_iri}> is a language-tag gate but carries no \
+             regex(lang(?value), …) sh:sparql body to derive witness tags from"
+        ))
+    })?;
+    let (good, bad) = derive_lang_tags(&pattern).ok_or_else(|| {
+        parse_err(format!(
+            "semantic witnesses: <{shape_iri}> language-tag pattern '{pattern}' admits no verified \
+             conforming/violating tag pair"
+        ))
+    })?;
+    let pred = format!("{namespace}languageTagWitnessPredicate");
+    let conforming_focus = "https://gmeow.example/witness/lang-conforming".to_owned();
+    let violating_focus = "https://gmeow.example/witness/lang-violating".to_owned();
+    let mut plan = SemanticWitnessPlan::default();
+    plan.conforming.push(SemanticWitness {
+        label: format!("lang-tag conforming @{good}"),
+        triples: format!("<{conforming_focus}> <{pred}> \"witness\"@{good} .\n"),
+        focus: conforming_focus,
+        expect_flagged: false,
+    });
+    plan.residue.push(SemanticWitness {
+        label: format!("lang-tag violating @{bad}"),
+        triples: format!("<{violating_focus}> <{pred}> \"witness\"@{bad} .\n"),
+        focus: violating_focus,
+        expect_flagged: true,
+    });
+    Ok(plan)
+}
+
 /// Build the semantic witness plan for one legacy shape: conforming witnesses (flagged by
 /// neither side), covered-fragment near-misses, and residue-construct (`sh:node` / `sh:xone`)
 /// near-misses. Witness focus membership is synthesized from the shape's target (for a raw
@@ -2299,6 +2472,17 @@ pub fn semantic_witness_plan(
     shape_iri: &str,
     read: &ShapeRead,
 ) -> gmeow_errors::Result<SemanticWitnessPlan> {
+    // The private-use language-tag gate (a predicate-PREFIX, language-tagged-literal focus:
+    // `?this ?p ?value . FILTER(STRSTARTS(STR(?p), "ns")) FILTER(isLiteral(?value) && lang != "")`)
+    // is outside the machine-readable membership skeleton — its focus filters on the PREDICATE, not
+    // on `?this` — so it gets a dedicated witness plan built from the tag pattern the shape's
+    // sh:sparql body tests. The generic covered/residue machinery below never applies (such a shape
+    // carries no covered property fragment or sh:node/sh:xone construct).
+    if let ShapeTarget::Sparql(select) = &read.ir.target
+        && let Some(namespace) = parse_lang_tagged_predicate_target(select)
+    {
+        return lang_tagged_witness_plan(ds, shape_iri, &namespace);
+    }
     let membership = FocusMembership::from_target(&read.ir.target)?;
     let constructs = residue_constructs(ds, shape_iri)?;
     let mut idx = 0usize;

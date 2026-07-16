@@ -6184,6 +6184,15 @@ type FindingCluster {
   clusterRoot: [Finding!]
 }
 
+type FlagshipScenario {
+  id: String
+  iri: String
+  demonstratedByCompetency: String
+  demonstratedByExample: String
+  demonstratedByProducer: String
+  guardedByCounterExample: String
+}
+
 type ForgePlatform {
   id: String
   iri: String
@@ -9477,6 +9486,11 @@ type TuningSystem {
 }
 
 type TuningSystemKind {
+  id: String
+  iri: String
+}
+
+type UnwiredFlagshipScenario {
   id: String
   iri: String
 }

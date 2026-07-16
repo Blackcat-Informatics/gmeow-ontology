@@ -919,6 +919,18 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/trademarkStatus> ?st . FILTER ( ?st IN (<https://blackcatinformatics.ca/gmeow/trademarkStatusExpired>, <https://blackcatinformatics.ca/gmeow/trademarkStatusCancelled>) ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/FlagshipScenarioWiringConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/FlagshipScenarioShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/gmeow/UnwiredFlagshipScenario> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario must bind exactly one worked example, competency question, native producer, counter-example, and enforcing failure class; an acceptance scenario that does not wire all realizing artifacts is unwired." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/demonstratedByExample> ?ex . $this <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> ?cq . $this <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> ?pr . $this <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> ?ce . $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?fc . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/FrameAxisPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/FrameProfileShape> ;
@@ -1041,6 +1053,21 @@
         sh:severity sh:Violation ;
         sh:message "Every GMEOW datatype must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <http://www.w3.org/2000/01/rdf-schema#label> ?l . $this <http://www.w3.org/2004/02/skos/core#definition> ?d . $this <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> ?i . $this <https://blackcatinformatics.ca/gmeow/graphBoxRole> ?r . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/GmeowInternalLanguageTagConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/InternalLanguageTagShape> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT DISTINCT ?this WHERE {
+    ?this ?p ?value .
+    FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/"))
+    FILTER (isLiteral(?value) && lang(?value) != "")
+}""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Literals in GMEOW must use the 'x-gmeow-' private-use prefix for language tags." ;
+        sh:select """SELECT $this WHERE { $this ?p ?value . FILTER ( STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/') ) FILTER ( isLiteral(?value) ) FILTER ( LANG(?value) != "" ) FILTER ( !REGEX(LANG(?value), '^x-gmeow-[a-z0-9-]+$', 'i') ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/GmeowOntologyCompletenessConstraintProceduralConstraintShape>
@@ -1188,6 +1215,17 @@
         sh:severity sh:Violation ;
         sh:message "An IntentionTenure must record exactly one gmeow:tenureAgent." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/tenureAgent> ?v0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/JournalEntryBalanceConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/JournalEntryBalancedShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/JournalEntry> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
+        sh:select """SELECT $this WHERE { { SELECT $this ?group (SUM(?debitVal) AS ?sumDebits) (SUM(?creditVal) AS ?sumCredits) WHERE { $this <https://blackcatinformatics.ca/gmeow/journalEntryPostings> ?posting . ?posting <https://blackcatinformatics.ca/gmeow/postingAmount> ?amount ; <https://blackcatinformatics.ca/gmeow/postingDirection> ?direction . ?amount <https://blackcatinformatics.ca/gmeow/monetaryValue> ?val ; <https://blackcatinformatics.ca/gmeow/currency> ?group . BIND(IF(?direction = <https://blackcatinformatics.ca/gmeow/postingDirectionDebit>, ?val, 0) AS ?debitVal) BIND(IF(?direction = <https://blackcatinformatics.ca/gmeow/postingDirectionCredit>, ?val, 0) AS ?creditVal) } GROUP BY $this ?group } FILTER(?sumDebits != ?sumCredits) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/JournalEntryPostingsCountConstraintProceduralConstraintShape>

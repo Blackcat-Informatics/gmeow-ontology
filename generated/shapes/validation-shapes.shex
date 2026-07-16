@@ -619,6 +619,15 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/findingSeverity> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/FlagshipScenario-shape> {
+  <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/demonstratedByExample> <http://www.w3.org/2001/XMLSchema#string> + ;
+  <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> <http://www.w3.org/2001/XMLSchema#string> + ;
+  <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> <http://www.w3.org/2001/XMLSchema#string> + ;
+  <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> NONLITERAL + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/GTSSegment> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/GTSSegment-shape> {
   <https://blackcatinformatics.ca/gmeow/gtsHeadId> <http://www.w3.org/2001/XMLSchema#string> ;
@@ -2476,6 +2485,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/degreeCount> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/demonstratedByCompetency-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/demonstratedByExample> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/demonstratedByExample-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/demonstratedByExample> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/demonstratedByProducer-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/deonticModality> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/deonticModality-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/deonticModality> . {0,1} ;
@@ -2954,6 +2978,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gtsSegmentOf> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/gtsSegmentOf-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/gtsSegmentOf> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/guardedByCounterExample-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasContentDisposition> (associate via ShapeMap)

@@ -1831,6 +1831,14 @@ classes:
     title: Finding Cluster
     slots:
     - clusterRoot
+  FlagshipScenario:
+    class_uri: https://blackcatinformatics.ca/gmeow/FlagshipScenario
+    title: flagship scenario
+    slots:
+    - demonstratedByCompetency
+    - demonstratedByExample
+    - demonstratedByProducer
+    - guardedByCounterExample
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -4694,6 +4702,9 @@ classes:
   TuningSystemKind:
     class_uri: https://blackcatinformatics.ca/gmeow/TuningSystemKind
     title: Tuning System Kind
+  UnwiredFlagshipScenario:
+    class_uri: https://blackcatinformatics.ca/gmeow/UnwiredFlagshipScenario
+    title: unwired flagship scenario
   UsageAttestation:
     class_uri: https://blackcatinformatics.ca/gmeow/UsageAttestation
     title: Usage Attestation
@@ -7126,6 +7137,24 @@ slots:
     range: OnlineAccount
     domain: EmailAddress
     multivalued: true
+  demonstratedByCompetency:
+    slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByCompetency
+    title: demonstrated by competency
+    range: uriorcurie
+    domain: FlagshipScenario
+    multivalued: false
+  demonstratedByExample:
+    slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByExample
+    title: demonstrated by example
+    range: string
+    domain: FlagshipScenario
+    multivalued: false
+  demonstratedByProducer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByProducer
+    title: demonstrated by producer
+    range: string
+    domain: FlagshipScenario
+    multivalued: false
   deonticModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/deonticModality
     title: deontic modality
@@ -7832,6 +7861,10 @@ slots:
   enforcedByShape:
     slot_uri: https://blackcatinformatics.ca/gmeow/enforcedByShape
     title: enforced by shape
+    range: string
+  enforcesFailureClass:
+    slot_uri: https://blackcatinformatics.ca/gmeow/enforcesFailureClass
+    title: enforces failure class
     range: string
   entailmentConclusion:
     slot_uri: https://blackcatinformatics.ca/gmeow/entailmentConclusion
@@ -9025,6 +9058,12 @@ slots:
     range: integer
     minimum_value: 0
     multivalued: true
+  guardedByCounterExample:
+    slot_uri: https://blackcatinformatics.ca/gmeow/guardedByCounterExample
+    title: guarded by counter-example
+    range: string
+    domain: FlagshipScenario
+    multivalued: false
   guideBlob:
     slot_uri: https://blackcatinformatics.ca/gmeow/guideBlob
     title: guide blob

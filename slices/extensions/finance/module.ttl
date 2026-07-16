@@ -1227,3 +1227,25 @@ gmeow:Invoice rdfs:subClassOf
 # filler collapses the qualified count to the plain minimum the legacy shape stated).
 gmeow:JournalEntry rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:journalEntryPostings ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+
+# The double-entry balance invariant: within each currency, the sum of a JournalEntry's debit
+# postings equals the sum of its credit postings. A first-class aggregate-balance constraint
+# (partitioned two-sum equality over a value-key group), lowered to a GROUP BY $this ?currency
+# HAVING(sumDebits != sumCredits) violation SELECT.
+gmeow:JournalEntryBalanceConstraint
+    a logic:AggregateBalanceConstraint ;
+    rdfs:label "Journal entry balance constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: for each gmeow:JournalEntry, within every currency bucket the sum of debit-posting amounts must equal the sum of credit-posting amounts. Partitions the entry's postings by gmeow:postingDirection (debit vs credit), reads each posting's amount via gmeow:postingAmount then gmeow:monetaryValue and its currency via gmeow:postingAmount then gmeow:currency, and asserts the two partition-sums are equal per currency."@x-gmeow-english ;
+    logic:onClass gmeow:JournalEntry ;
+    logic:balancePostingPredicate gmeow:journalEntryPostings ;
+    logic:balancePartitionPredicate gmeow:postingDirection ;
+    logic:balanceDebitValue gmeow:postingDirectionDebit ;
+    logic:balanceCreditValue gmeow:postingDirectionCredit ;
+    logic:balanceAmountNodePredicate gmeow:postingAmount ;
+    logic:balanceValuePredicate gmeow:monetaryValue ;
+    logic:balanceGroupPredicate gmeow:currency ;
+    logic:severity "Violation" ;
+    logic:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
+    logic:formalizes gmeow:JournalEntryBalancedShape .

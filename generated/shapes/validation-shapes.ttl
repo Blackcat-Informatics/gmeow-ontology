@@ -560,6 +560,15 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/findingMessage> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/findingSeverity> ; sh:class <https://blackcatinformatics.ca/gmeow/DiagnosticSeverity> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/DiagnosticSeverity> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/DiagnosticSeverity> ] ; sh:qualifiedMinCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/FlagshipScenario-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/gmeow/UnwiredFlagshipScenario> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/demonstratedByExample> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
+
 <https://blackcatinformatics.ca/gmeow/GTSSegment-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/GTSSegment> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
@@ -2229,6 +2238,18 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/degreeCount> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/degreeCount> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/demonstratedByCompetency-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/demonstratedByCompetency> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/demonstratedByExample-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/demonstratedByExample> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/demonstratedByExample> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/demonstratedByProducer-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/demonstratedByProducer> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/deonticModality-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/deonticModality> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/deonticModality> ; sh:maxCount 1 ] .
@@ -2612,6 +2633,10 @@
 <https://blackcatinformatics.ca/gmeow/gtsSegmentOf-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gtsSegmentOf> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gtsSegmentOf> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/guardedByCounterExample-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/guardedByCounterExample> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/hasContentDisposition-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasContentDisposition> ;

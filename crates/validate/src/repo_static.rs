@@ -79,6 +79,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     // `declarative_gate_flags_the_live_legacy_corpus`.
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
+    check_gmeow_shapes_drained(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
@@ -598,6 +599,43 @@ fn hand_authored_shapes_ttl_census(root: &Path, report: &mut RepoStaticReport) -
 /// ([`PINNED_HAND_AUTHORED_SHAPES_TTL`]). Any live entry absent from the pin is a hand-authored
 /// `shapes.ttl` that appeared in a slice never authorized to carry one — a new second source of
 /// validation truth — and fails hard, pointing at `docs/MIGRATING-SHAPES-TO-LOGIC.md`.
+/// The root `shapes/gmeow-shapes.ttl` is now fully grounded in the `logic:` canon: every
+/// validation obligation it once carried lives as a canonical constraint in an owning slice
+/// `module.ttl` and is re-projected (Principle 17). This is a shrink-only zero-ratchet: the file
+/// must still EXIST (its consumers still enumerate it and the terminal increment retires it), but
+/// it must declare ZERO `sh:NodeShape` / `sh:PropertyShape` — a re-introduced shape is a forbidden
+/// second source of validation truth. Ground the obligation in `logic:` and re-project instead.
+fn check_gmeow_shapes_drained(root: &Path, report: &mut RepoStaticReport) {
+    let rel = "shapes/gmeow-shapes.ttl";
+    let path = root.join(rel);
+    let text = match std::fs::read_to_string(&path) {
+        Ok(t) => t,
+        Err(e) => {
+            report.error(format!(
+                "{rel}: the drained root shapes file must still exist (its consumers enumerate it \
+                 and the terminal increment retires it) — cannot read it: {e}"
+            ));
+            return;
+        }
+    };
+    let declared = text
+        .lines()
+        .filter(|l| {
+            let l = l.trim_start();
+            !l.starts_with('#') && (l.contains("sh:NodeShape") || l.contains("sh:PropertyShape"))
+        })
+        .count();
+    if declared != 0 {
+        report.error(format!(
+            "{rel}: {declared} sh:NodeShape/sh:PropertyShape declaration(s) present — this file is \
+             fully drained and shrink-only; every validation obligation lives in the logic: canon \
+             and is re-projected (Principle 17). A hand-authored shape here is a forbidden second \
+             source of truth: ground it in logic: and re-project — see \
+             docs/MIGRATING-SHAPES-TO-LOGIC.md — rather than re-adding it"
+        ));
+    }
+}
+
 fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport) {
     let pinned: BTreeSet<&str> = PINNED_HAND_AUTHORED_SHAPES_TTL.iter().copied().collect();
     for rel in hand_authored_shapes_ttl_census(root, report) {
@@ -2219,6 +2257,49 @@ mod tests {
                     && e.contains("MIGRATING-SHAPES-TO-LOGIC.md")
             }),
             "an unpinned shapes.ttl must be flagged and point at the migration doc; got {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn gmeow_shapes_drained_passes_empty_and_flags_a_regrown_shape() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // A present, fully-drained file (comments only) → passes.
+        write(
+            &root.join("shapes/gmeow-shapes.ttl"),
+            "# fully grounded in the logic: canon; shrink-only.\n",
+        );
+        let mut ok = RepoStaticReport::default();
+        check_gmeow_shapes_drained(root, &mut ok);
+        assert!(ok.ok(), "{:?}", ok.errors);
+
+        // A re-introduced NodeShape → hard fail, pointing at the migration doc.
+        write(
+            &root.join("shapes/gmeow-shapes.ttl"),
+            "gmeow:X a sh:NodeShape ; sh:targetClass gmeow:C .\n",
+        );
+        let mut bad = RepoStaticReport::default();
+        check_gmeow_shapes_drained(root, &mut bad);
+        assert!(
+            bad.errors
+                .iter()
+                .any(|e| e.contains("shapes/gmeow-shapes.ttl")
+                    && e.contains("MIGRATING-SHAPES-TO-LOGIC.md")),
+            "a regrown shape must be flagged; got {:?}",
+            bad.errors
+        );
+    }
+
+    #[test]
+    fn gmeow_shapes_drained_requires_the_file_to_exist() {
+        let temp = tempfile::tempdir().unwrap();
+        let mut report = RepoStaticReport::default();
+        check_gmeow_shapes_drained(temp.path(), &mut report);
+        assert!(
+            report.errors.iter().any(|e| e.contains("must still exist")),
+            "a missing drained file must be flagged; got {:?}",
             report.errors
         );
     }

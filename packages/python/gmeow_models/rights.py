@@ -470,7 +470,7 @@ class LogicalConstraint(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LogicalConstraint", "curie": "gmeow:LogicalConstraint", "definitionDigest": "blake3:cc5298e921979bcef1f9a8379401ab97fe34749fd180e09bdf6245040a241aa5", "iri": "https://blackcatinformatics.ca/gmeow/LogicalConstraint"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LogicalConstraint", "curie": "gmeow:LogicalConstraint", "definitionDigest": "blake3:2253d663f845dc89f25955a0b5df85c7731362e1656c875b9ac5159e4b1336e1", "iri": "https://blackcatinformatics.ca/gmeow/LogicalConstraint"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -661,6 +661,7 @@ class Prohibition(Rule):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    ruleAction: Any = Field(description="The regulated action of a rule — one of the open gmeow:RightsAction values (odrl:action). Functional: a rule regulates exactly one action; several actions are several rules.", alias="gmeow:ruleAction")
 
 
 class RightsStatement(ConfiguredBaseModel):

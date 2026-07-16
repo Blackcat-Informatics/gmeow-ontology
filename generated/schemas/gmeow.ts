@@ -5638,6 +5638,13 @@ export interface FindingCluster {
     clusterRoot?: Finding[],
 }
 
+export interface FlagshipScenario {
+    demonstratedByCompetency?: string,
+    demonstratedByExample?: string,
+    demonstratedByProducer?: string,
+    guardedByCounterExample?: string,
+}
+
 export interface ForgePlatform extends Entity {
 }
 
@@ -7981,6 +7988,9 @@ export interface TuningSystem extends ReferenceFrame {
 }
 
 export interface TuningSystemKind {
+}
+
+export interface UnwiredFlagshipScenario {
 }
 
 export interface UsageAttestation extends Observation {
