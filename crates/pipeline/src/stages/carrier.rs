@@ -860,6 +860,23 @@ fn assemble_carrier(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
         reasoning_iri,
     )?);
+    // graph/goal-directed ← the native proof-carrying backward engine's checked answers +
+    // proof derivations, read off the stage-goal-directed product's attached named graph and
+    // folded into gmeow.gts (dual carriage, exactly like graph/reasoning). This is the fold
+    // that makes the backward engine non-dark: without this explicit push the stage's graph
+    // would never reach the terminal bundle. Bundle-internal (no committed byte artifact this
+    // task) and excluded from the object-level EDB.
+    let goal_directed = upstream.get("stage-goal-directed").ok_or_else(|| {
+        stage_err("missing stage-goal-directed product for the goal-directed graph")
+    })?;
+    let goal_directed_iri = crate::stages::goal_directed::GRAPH_GOAL_DIRECTED;
+    datasets.push(rooted_in_graph(
+        &goal_directed
+            .bundle()
+            .dataset()
+            .project_named_graph(goal_directed_iri),
+        goal_directed_iri,
+    )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
     if conformance.quad_count() != 0 {
         datasets.push(conformance);
@@ -3218,6 +3235,9 @@ impl SnapshotStage {
                 // committed schema from disk and lag a regenerate behind (the bytes
                 // are only flushed to disk AFTER phase 1 returns — run.rs:242-254).
                 "stage-export-json-schema".to_string(),
+                // The native proof-carrying backward engine's checked answers + proof
+                // derivations, folded into the graph/goal-directed named graph of gmeow.gts.
+                "stage-goal-directed".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
                 // The self-description named graphs (authored default / imports / metadata
