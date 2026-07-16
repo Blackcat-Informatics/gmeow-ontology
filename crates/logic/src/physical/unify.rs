@@ -42,7 +42,7 @@
 //! free-metavariable set is recomputed exactly — never stale (a stale set would be a
 //! false "no occurs" and hence an accepted cyclic term, i.e. unsoundness).
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::physical::id::{MetaId, NodeId};
 use crate::physical::term_dag::{NodeData, TermDag};
@@ -57,6 +57,13 @@ use crate::physical::term_dag::{NodeData, TermDag};
 pub(crate) struct Subst {
     /// Slot `MetaId::index()` holds that metavariable's binding, or `None` if unbound.
     bindings: Vec<Option<NodeId>>,
+    /// Slot `MetaId::index()` holds that metavariable's current SORT refinement (a sort
+    /// [`NodeId`] in the caller's [`SortOrder`] lattice), or `None` if the metavariable is
+    /// sortless (the unsorted path, where this table stays empty). Order-sorted unification
+    /// ([`unify_sorted`]) reads it to gate a binding and refines the representative's slot on
+    /// a metavariable/metavariable union. It is EXACT only for the union-find representative;
+    /// a bound metavariable's slot is stale-but-unread (its `sort_of` follows `resolve` first).
+    meta_sort: Vec<Option<NodeId>>,
 }
 
 impl Subst {
@@ -86,6 +93,29 @@ impl Subst {
     #[inline]
     fn get(&self, m: MetaId) -> Option<NodeId> {
         self.bindings.get(m.index()).copied().flatten()
+    }
+
+    /// Declare (or overwrite) metavariable `m`'s SORT — the caller's entry point for minting a
+    /// sorted metavariable. A metavariable minted by [`TermDag::fresh_meta`] is sortless until
+    /// declared here; leaving it undeclared keeps it on the unsorted path.
+    pub(crate) fn declare_meta_sort(&mut self, m: MetaId, sort: NodeId) {
+        self.set_meta_sort(m, Some(sort));
+    }
+
+    /// Set metavariable `m`'s sort slot (growing the table as needed). `None` clears it.
+    #[inline]
+    fn set_meta_sort(&mut self, m: MetaId, sort: Option<NodeId>) {
+        let idx = m.index();
+        if self.meta_sort.len() <= idx {
+            self.meta_sort.resize(idx + 1, None);
+        }
+        self.meta_sort[idx] = sort;
+    }
+
+    /// Metavariable `m`'s current sort refinement, or `None` if it is sortless.
+    #[inline]
+    pub(crate) fn meta_sort(&self, m: MetaId) -> Option<NodeId> {
+        self.meta_sort.get(m.index()).copied().flatten()
     }
 
     /// Whether `m` is bound in this substitution.
@@ -152,6 +182,143 @@ pub(crate) enum Unified {
     },
 }
 
+/// A caller-supplied partial order over sort [`NodeId`]s — the subsort lattice the
+/// order-sorted unifier consults.
+///
+/// The order is SINGLE-SOURCED: the caller derives the covering edges from the reasoned
+/// `rdfs:subClassOf` closure of the authored `math:` subsort tower (`math:NaturalNumber ⊑
+/// Integer ⊑ RationalNumber ⊑ RealNumber ⊑ ComplexNumber`) and passes them to
+/// [`Self::from_subclass_edges`]; nothing about the lattice is hardcoded here. [`Self::leq`]
+/// is the reflexive-transitive subsort test and [`Self::meet`] the greatest-lower-bound the
+/// metavariable/metavariable union rule needs.
+#[derive(Debug, Default, Clone)]
+pub(crate) struct SortOrder {
+    /// `up[a]` is the reflexive-transitive upward closure of `a`: every sort `x` with `a ⊑ x`
+    /// (including `a` itself). Membership is the [`Self::leq`] primitive.
+    up: HashMap<NodeId, HashSet<NodeId>>,
+    /// Every sort node named by a covering edge — the search space for [`Self::meet`].
+    universe: HashSet<NodeId>,
+}
+
+impl SortOrder {
+    /// Build the order from a set of covering `(sub, super)` subsort edges, computing the
+    /// reflexive-transitive closure so [`Self::leq`] is a single set-membership test.
+    pub(crate) fn from_subclass_edges(edges: &[(NodeId, NodeId)]) -> Self {
+        let mut universe: HashSet<NodeId> = HashSet::new();
+        let mut direct: HashMap<NodeId, Vec<NodeId>> = HashMap::new();
+        for &(sub, sup) in edges {
+            universe.insert(sub);
+            universe.insert(sup);
+            direct.entry(sub).or_default().push(sup);
+        }
+        // Reflexive-transitive upward closure per node (DFS over the covering edges).
+        let mut up: HashMap<NodeId, HashSet<NodeId>> = HashMap::new();
+        for &node in &universe {
+            let mut reach: HashSet<NodeId> = HashSet::new();
+            reach.insert(node);
+            let mut stack = vec![node];
+            while let Some(cur) = stack.pop() {
+                if let Some(sups) = direct.get(&cur) {
+                    for &sup in sups {
+                        if reach.insert(sup) {
+                            stack.push(sup);
+                        }
+                    }
+                }
+            }
+            up.insert(node, reach);
+        }
+        Self { up, universe }
+    }
+
+    /// The subsort test `a ⊑ b` (reflexive): `a` is `b` or reaches `b` through the closure.
+    pub(crate) fn leq(&self, a: NodeId, b: NodeId) -> bool {
+        a == b || self.up.get(&a).is_some_and(|s| s.contains(&b))
+    }
+
+    /// The greatest lower bound `a ⊓ b`, or `None` if no common lower bound exists or it is
+    /// not unique.
+    ///
+    /// A lower bound is a sort `c` with `c ⊑ a` and `c ⊑ b`; the meet is the UNIQUE common
+    /// lower bound that is `⊒` every other common lower bound. For a chain `ℕ⊑ℤ⊑ℚ⊑ℝ⊑ℂ`,
+    /// `meet(ℤ,ℝ)=ℤ`. Two incomparable maximal common lower bounds (a genuine non-lattice
+    /// meet) return `None` rather than picking one — no silent degradation.
+    pub(crate) fn meet(&self, a: NodeId, b: NodeId) -> Option<NodeId> {
+        // Candidate lower bounds: the lattice universe, plus `a`/`b` themselves so a lone sort
+        // (never named by an edge) still meets itself reflexively. De-duplicated into a set so
+        // a candidate that is both in the universe and equal to `a`/`b` is not double-counted
+        // (which would spuriously trip the uniqueness guard below).
+        let mut candidates: HashSet<NodeId> = self.universe.clone();
+        candidates.insert(a);
+        candidates.insert(b);
+        let common: Vec<NodeId> = candidates
+            .into_iter()
+            .filter(|&c| self.leq(c, a) && self.leq(c, b))
+            .collect();
+        // The meet is the common lower bound that dominates every common lower bound; if two
+        // qualify (an incomparable pair), there is no unique GLB.
+        let mut glb: Option<NodeId> = None;
+        for &m in &common {
+            if common.iter().all(|&c| self.leq(c, m)) {
+                if glb.is_some() {
+                    return None;
+                }
+                glb = Some(m);
+            }
+        }
+        glb
+    }
+}
+
+/// The order-sorted unification context: the subsort [`SortOrder`] plus the caller-supplied
+/// sort tagging of rigid terms.
+///
+/// `term_sorts` maps a sort-tagged constant/literal [`NodeData::Leaf`]/[`NodeData::Free`]
+/// node to its sort (the caller builds it from reasoned `rdf:type`); `op_result_sort` maps a
+/// function-symbol operator node to the RESULT sort of an application headed by it (the rank
+/// map). The mutable metavariable-sort refinement table lives in [`Subst`] (updated in place
+/// through `&mut Subst`), so the context itself is shared (`&`).
+#[derive(Debug, Default, Clone)]
+pub(crate) struct SortContext {
+    /// The subsort partial order.
+    order: SortOrder,
+    /// Sort of each sort-tagged rigid leaf/free constant.
+    term_sorts: HashMap<NodeId, NodeId>,
+    /// Result sort of an application headed by each function-symbol operator node.
+    op_result_sort: HashMap<NodeId, NodeId>,
+}
+
+impl SortContext {
+    /// Bundle a subsort order with the rigid-term sort tagging and the function rank map.
+    pub(crate) fn new(
+        order: SortOrder,
+        term_sorts: HashMap<NodeId, NodeId>,
+        op_result_sort: HashMap<NodeId, NodeId>,
+    ) -> Self {
+        Self {
+            order,
+            term_sorts,
+            op_result_sort,
+        }
+    }
+
+    /// The sort of `node` under substitution `s`, or `None` if it carries no sort obligation.
+    ///
+    /// Resolves `node` through `s` first (a bound metavariable takes its representative's
+    /// sort), then: a metavariable → its current refinement; a tagged leaf/free constant → its
+    /// `term_sorts` entry; an application → the `op_result_sort` of its operator; a bound
+    /// occurrence or binder → `None` (untyped here).
+    pub(crate) fn sort_of(&self, dag: &TermDag, node: NodeId, s: &Subst) -> Option<NodeId> {
+        let node = s.resolve(dag, node);
+        match dag.data(node) {
+            NodeData::Meta(m) => s.meta_sort(*m),
+            NodeData::Leaf(_) | NodeData::Free(_) => self.term_sorts.get(&node).copied(),
+            NodeData::App { op, .. } => self.op_result_sort.get(op).copied(),
+            NodeData::Bound { .. } | NodeData::Binder { .. } => None,
+        }
+    }
+}
+
 /// Unify `a` and `b` under substitution `s`, accumulating the most-general unifier into
 /// `s` in place.
 ///
@@ -180,11 +347,44 @@ pub(crate) enum Unified {
 /// escape the metavariable's scope, which has no first-order unifier — so it is a
 /// [`Unified::Clash`] (the sound rejection a naive Robinson step would miss).
 pub(crate) fn unify(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst) -> Unified {
-    unify_at(dag, a, b, s, 0)
+    unify_at(dag, a, b, s, 0, None)
 }
 
-/// [`unify`] at binder `depth` — the number of binders enclosing the current position.
-fn unify_at(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst, depth: u32) -> Unified {
+/// ORDER-SORTED [`unify`]: identical structural algorithm, but a metavariable binding also
+/// obeys the subsort lattice in `ctx`.
+///
+/// The only rule that changes is the metavariable step (rule 2). On `Meta(m:Sₘ)` against a
+/// term `t`:
+///
+/// - `t` is `Meta(n:Sₙ)`: bind, refining BOTH metavariables' sort to `meet(Sₘ,Sₙ)`; a `None`
+///   meet (no common lower bound) is a [`Unified::Clash`]. An unconstrained side takes the
+///   other's sort.
+/// - `t` is a non-metavariable of sort `Sₜ`: bind `m := t` iff `Sₜ ⊑ Sₘ`, else clash. An
+///   unconstrained `Sₘ`, or an untyped `t` (no sort obligation), binds unconditionally.
+///
+/// The occurs-check and every structural rule (App/Binder/Bound/Leaf/Free) are UNCHANGED, so
+/// passing an empty/sortless context makes `unify_sorted` behave exactly like [`unify`].
+pub(crate) fn unify_sorted(
+    dag: &mut TermDag,
+    a: NodeId,
+    b: NodeId,
+    s: &mut Subst,
+    ctx: &SortContext,
+) -> Unified {
+    unify_at(dag, a, b, s, 0, Some(ctx))
+}
+
+/// [`unify`]/[`unify_sorted`] at binder `depth` — the number of binders enclosing the current
+/// position. `ctx` is `Some` on the order-sorted path (sorted metavariable binding) and `None`
+/// on the plain unsorted path; the two share this one structural core.
+fn unify_at(
+    dag: &mut TermDag,
+    a: NodeId,
+    b: NodeId,
+    s: &mut Subst,
+    depth: u32,
+    ctx: Option<&SortContext>,
+) -> Unified {
     // Weak-head-normalize each side THROUGH the substitution at this depth: a bound
     // metavariable's ambient solution is lifted by `depth` to the current scope.
     let a = whnf(dag, s, a, depth);
@@ -197,9 +397,10 @@ fn unify_at(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst, depth: u32) 
     let da = dag.data(a).clone();
     let db = dag.data(b).clone();
     match (da, db) {
-        // A metavariable against anything: occurs-check, scope-lower, then bind.
-        (NodeData::Meta(m), _) => bind_meta(dag, s, m, a, b, depth),
-        (_, NodeData::Meta(m)) => bind_meta(dag, s, m, b, a, depth),
+        // A metavariable against anything: occurs-check, sort-check (order-sorted path),
+        // scope-lower, then bind.
+        (NodeData::Meta(m), _) => bind_meta(dag, s, m, a, b, depth, ctx),
+        (_, NodeData::Meta(m)) => bind_meta(dag, s, m, b, a, depth, ctx),
         // Application: operator, arity, then arguments pairwise (all at the same depth).
         (
             NodeData::App {
@@ -214,12 +415,12 @@ fn unify_at(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst, depth: u32) 
             if args1.len() != args2.len() {
                 return Unified::Clash { left: a, right: b };
             }
-            match unify_at(dag, o1, o2, s, depth) {
+            match unify_at(dag, o1, o2, s, depth, ctx) {
                 Unified::Ok => {}
                 other => return other,
             }
             for (&x, &y) in args1.iter().zip(args2.iter()) {
-                match unify_at(dag, x, y, s, depth) {
+                match unify_at(dag, x, y, s, depth, ctx) {
                     Unified::Ok => {}
                     other => return other,
                 }
@@ -244,17 +445,17 @@ fn unify_at(dag: &mut TermDag, a: NodeId, b: NodeId, s: &mut Subst, depth: u32) 
             if s1.len() != s2.len() {
                 return Unified::Clash { left: a, right: b };
             }
-            match unify_at(dag, o1, o2, s, depth) {
+            match unify_at(dag, o1, o2, s, depth, ctx) {
                 Unified::Ok => {}
                 other => return other,
             }
             for (&x, &y) in s1.iter().zip(s2.iter()) {
-                match unify_at(dag, x, y, s, depth) {
+                match unify_at(dag, x, y, s, depth, ctx) {
                     Unified::Ok => {}
                     other => return other,
                 }
             }
-            unify_at(dag, b1, b2, s, depth + 1)
+            unify_at(dag, b1, b2, s, depth + 1, ctx)
         }
         // Any remaining pairing of rigid representatives is a clash (a == b was handled by
         // the short-circuit, so two identical leaves/frees/bounds never reach here).
@@ -299,6 +500,7 @@ fn bind_meta(
     meta_node: NodeId,
     t: NodeId,
     depth: u32,
+    ctx: Option<&SortContext>,
 ) -> Unified {
     if occurs_through(s, dag, m, t) {
         return Unified::Occurs {
@@ -306,9 +508,54 @@ fn bind_meta(
             in_node: t,
         };
     }
+    // Order-sorted admissibility (only on the sorted path). On success, `representative_sort`
+    // carries the metavariable/metavariable refined sort to install on the representative once
+    // the bind lands.
+    let mut representative_sort: Option<(MetaId, Option<NodeId>)> = None;
+    if let Some(ctx) = ctx {
+        let s_m = s.meta_sort(m);
+        match dag.data(t).clone() {
+            // Two metavariables: the representative (`t == n`) carries `meet(Sₘ,Sₙ)`; a
+            // `None` meet (no common lower bound) is a sort clash.
+            NodeData::Meta(n) => {
+                let s_n = s.meta_sort(n);
+                let refined = match (s_m, s_n) {
+                    (None, other) | (other, None) => other,
+                    (Some(x), Some(y)) => match ctx.order.meet(x, y) {
+                        Some(glb) => Some(glb),
+                        None => {
+                            return Unified::Clash {
+                                left: meta_node,
+                                right: t,
+                            };
+                        }
+                    },
+                };
+                representative_sort = Some((n, refined));
+            }
+            // A rigid term: it may bind `m` only if its sort is a subsort of `m`'s. An
+            // unconstrained `Sₘ`, or an untyped `t`, imposes no obligation.
+            _ => {
+                if let (Some(sm), Some(st)) = (s_m, ctx.sort_of(dag, t, s))
+                    && !ctx.order.leq(st, sm)
+                {
+                    return Unified::Clash {
+                        left: meta_node,
+                        right: t,
+                    };
+                }
+            }
+        }
+    }
     match shift_down(dag, t, depth) {
         Some(solution) => {
             s.bind(m, solution);
+            // Install the refined sort on the surviving representative (the metavariable/
+            // metavariable union case); `solution == t == Meta(n)` here, so `n` stays the
+            // unbound representative whose sort the next binding will consult.
+            if let Some((rep, sort)) = representative_sort {
+                s.set_meta_sort(rep, sort);
+            }
             Unified::Ok
         }
         // `t` references a binder local to the unification descent that ambient `m` cannot
@@ -1099,6 +1346,204 @@ mod tests {
                 Unified::Clash { .. }
             ),
             "binders over distinct sorts must clash (sort equality)"
+        );
+    }
+
+    // ── Test 6: order-sorted unification over the math subsort lattice ───────────────────
+
+    /// The authored `math:` number tower `ℕ ⊑ ℤ ⊑ ℚ ⊑ ℝ ⊑ ℂ`, minted as sort leaves plus the
+    /// covering `SortOrder` — the caller-derived lattice the order-sorted unifier consults.
+    struct NumberTower {
+        nat: NodeId,
+        int: NodeId,
+        rat: NodeId,
+        real: NodeId,
+        complex: NodeId,
+        order: SortOrder,
+    }
+
+    fn number_tower(dag: &mut TermDag) -> NumberTower {
+        let nat = iri(dag, "https://gmeow.dev/math/NaturalNumber");
+        let int = iri(dag, "https://gmeow.dev/math/Integer");
+        let rat = iri(dag, "https://gmeow.dev/math/RationalNumber");
+        let real = iri(dag, "https://gmeow.dev/math/RealNumber");
+        let complex = iri(dag, "https://gmeow.dev/math/ComplexNumber");
+        let order =
+            SortOrder::from_subclass_edges(&[(nat, int), (int, rat), (rat, real), (real, complex)]);
+        NumberTower {
+            nat,
+            int,
+            rat,
+            real,
+            complex,
+            order,
+        }
+    }
+
+    #[test]
+    fn subsort_metavar_binds_a_narrower_term_but_not_a_wider_one() {
+        // A metavar X:ℝ unifies with a term of sort ℤ (ℤ ⊑ ℝ) — the subsort binding the
+        // unsorted equality rule would wrongly reject. The reverse, Y:ℤ against a term of
+        // sort ℝ, clashes (ℝ ⋢ ℤ).
+        let mut dag = TermDag::new();
+        let tower = number_tower(&mut dag);
+        let three = iri(&mut dag, "https://example.org/three"); // a constant of sort ℤ
+        let pi = iri(&mut dag, "https://example.org/pi"); // a constant of sort ℝ
+        let term_sorts = HashMap::from([(three, tower.int), (pi, tower.real)]);
+        let ctx = SortContext::new(tower.order.clone(), term_sorts, HashMap::new());
+
+        // X:ℝ vs three:ℤ → Ok, binds X := three.
+        let (x, x_node) = dag.fresh_meta();
+        let mut s = Subst::new();
+        s.declare_meta_sort(x, tower.real);
+        assert_eq!(
+            unify_sorted(&mut dag, x_node, three, &mut s, &ctx),
+            Unified::Ok,
+            "ℤ ⊑ ℝ: a metavar of sort ℝ must accept a term of sort ℤ"
+        );
+        assert_eq!(s.resolve(&dag, x_node), three, "X binds to the ℤ term");
+
+        // Y:ℤ vs pi:ℝ → Clash (ℝ ⋢ ℤ).
+        let (y, y_node) = dag.fresh_meta();
+        let mut s = Subst::new();
+        s.declare_meta_sort(y, tower.int);
+        assert!(
+            matches!(
+                unify_sorted(&mut dag, y_node, pi, &mut s, &ctx),
+                Unified::Clash { .. }
+            ),
+            "ℝ ⋢ ℤ: a metavar of sort ℤ must reject a term of sort ℝ"
+        );
+        assert_eq!(s.bound_count(), 0, "a sort clash binds nothing");
+    }
+
+    #[test]
+    fn sorted_metavar_metavar_union_takes_the_meet() {
+        // X:ℝ unified with Y:ℤ succeeds, and both resolve to one metavariable whose refined
+        // sort is meet(ℝ,ℤ) = ℤ (the narrower of the chain).
+        let mut dag = TermDag::new();
+        let tower = number_tower(&mut dag);
+        let ctx = SortContext::new(tower.order.clone(), HashMap::new(), HashMap::new());
+
+        let (x, x_node) = dag.fresh_meta();
+        let (y, y_node) = dag.fresh_meta();
+        let mut s = Subst::new();
+        s.declare_meta_sort(x, tower.real);
+        s.declare_meta_sort(y, tower.int);
+
+        assert_eq!(
+            unify_sorted(&mut dag, x_node, y_node, &mut s, &ctx),
+            Unified::Ok,
+            "two comparable sorted metavars must unify"
+        );
+        let rx = s.resolve(&dag, x_node);
+        let ry = s.resolve(&dag, y_node);
+        assert_eq!(rx, ry, "both metavars resolve to one representative");
+        assert!(
+            matches!(dag.data(rx), NodeData::Meta(_)),
+            "the representative is still an (unbound) metavariable"
+        );
+        assert_eq!(
+            ctx.sort_of(&dag, rx, &s),
+            Some(tower.int),
+            "the representative's sort is meet(ℝ,ℤ) = ℤ"
+        );
+    }
+
+    #[test]
+    fn incomparable_sorts_clash() {
+        // A sort `Bool` sits outside the number tower (no covering edge to it). A metavar of a
+        // number sort cannot bind a term of sort `Bool` — the sorts are incomparable.
+        let mut dag = TermDag::new();
+        let tower = number_tower(&mut dag);
+        let bool_sort = iri(&mut dag, "https://example.org/Bool");
+        let flag = iri(&mut dag, "https://example.org/flag"); // a constant of sort Bool
+        let term_sorts = HashMap::from([(flag, bool_sort)]);
+        let ctx = SortContext::new(tower.order.clone(), term_sorts, HashMap::new());
+
+        let (m, m_node) = dag.fresh_meta();
+        let mut s = Subst::new();
+        s.declare_meta_sort(m, tower.real); // a number sort
+        assert!(
+            matches!(
+                unify_sorted(&mut dag, m_node, flag, &mut s, &ctx),
+                Unified::Clash { .. }
+            ),
+            "Bool ⋢ ℝ (incomparable): a number metavar must reject a Bool term"
+        );
+        assert_eq!(
+            s.bound_count(),
+            0,
+            "an incomparable sort clash binds nothing"
+        );
+    }
+
+    #[test]
+    fn sort_order_closure_and_meet() {
+        // from_subclass_edges over the number tower's covering edges gives the full
+        // reflexive-transitive subsort order and the chain meets.
+        let mut dag = TermDag::new();
+        let tower = number_tower(&mut dag);
+        let o = &tower.order;
+
+        assert!(o.leq(tower.nat, tower.nat), "leq is reflexive");
+        assert!(o.leq(tower.nat, tower.real), "ℕ ⊑ ℝ through the closure");
+        assert!(o.leq(tower.nat, tower.complex), "ℕ ⊑ ℂ through the closure");
+        assert!(
+            !o.leq(tower.real, tower.nat),
+            "ℝ ⋢ ℕ (order is not symmetric)"
+        );
+        assert_eq!(
+            o.meet(tower.int, tower.real),
+            Some(tower.int),
+            "meet(ℤ,ℝ) = ℤ"
+        );
+        assert_eq!(
+            o.meet(tower.nat, tower.complex),
+            Some(tower.nat),
+            "meet(ℕ,ℂ) = ℕ"
+        );
+        assert_eq!(
+            o.meet(tower.real, tower.int),
+            Some(tower.int),
+            "meet is symmetric"
+        );
+    }
+
+    #[test]
+    fn empty_sort_context_matches_the_unsorted_path() {
+        // An order-sorted unify with a sortless context (no declared metavar sorts, no term
+        // tags) must produce exactly the unsorted result — the backward-compatibility contract.
+        let mut dag = TermDag::new();
+        let f = iri(&mut dag, "https://example.org/f");
+        let a = iri(&mut dag, "https://example.org/a");
+        let f_of_a = dag.intern_app(f, vec![a]);
+        let ctx = SortContext::default();
+
+        // Sortless metavar X against f(a): binds identically on both paths.
+        let (_x, x_node) = dag.fresh_meta();
+        let mut s_plain = Subst::new();
+        let plain = unify(&mut dag, x_node, f_of_a, &mut s_plain);
+        let (_x2, x2_node) = dag.fresh_meta();
+        let mut s_sorted = Subst::new();
+        let sorted = unify_sorted(&mut dag, x2_node, f_of_a, &mut s_sorted, &ctx);
+        assert_eq!(
+            plain, sorted,
+            "empty context must match the unsorted verdict"
+        );
+        assert_eq!(sorted, Unified::Ok);
+        assert_eq!(s_plain.resolve(&dag, x_node), f_of_a);
+        assert_eq!(s_sorted.resolve(&dag, x2_node), f_of_a);
+
+        // A structural clash is likewise identical on both paths.
+        let g = iri(&mut dag, "https://example.org/g");
+        let g_of_a = dag.intern_app(g, vec![a]);
+        let mut s1 = Subst::new();
+        let mut s2 = Subst::new();
+        assert_eq!(
+            unify(&mut dag, f_of_a, g_of_a, &mut s1),
+            unify_sorted(&mut dag, f_of_a, g_of_a, &mut s2, &ctx),
+            "a rigid clash is unaffected by an empty sort context"
         );
     }
 }
