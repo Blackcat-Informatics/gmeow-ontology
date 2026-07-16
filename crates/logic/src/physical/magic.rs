@@ -152,6 +152,11 @@ pub(super) fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
             n.to_string(),
             crate::physical::XSD_INTEGER,
         ))),
+        // A structured (function-symbol) argument never reaches the flat binary/generic
+        // codec: `resolve_native_under` routes any program carrying a `Struct` term to the
+        // full-FOL resolver BEFORE this lowering. Should one ever arrive here it is a
+        // non-binary shape the flat store cannot represent — a typed gap, never a panic.
+        QTerm::Struct(_) => Err(UnsupportedKind::NonBinaryAtom),
     }
 }
 
@@ -160,7 +165,9 @@ pub(super) fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
 fn prefix_builtin_term(t: &QTerm) -> QTerm {
     match t {
         QTerm::Var(v) => QTerm::Var(format!("?{v}")),
-        QTerm::Const(_) | QTerm::Num(_) => t.clone(),
+        // A structured term never reaches the flat builtin surface (it is routed to the
+        // full-FOL resolver upstream); carry it unchanged for exhaustiveness.
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
     }
 }
 
@@ -1041,7 +1048,9 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
     // The goal's constant constraints (by position) and variable names (by position).
     let want_const = |t: &QTerm| match t {
         QTerm::Const(c) => Some(c.clone()),
-        QTerm::Var(_) | QTerm::Num(_) => None,
+        // A structured argument is not a flat constant constraint (structured goals route to
+        // the full-FOL resolver, never here).
+        QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
     };
     let s_const = want_const(&goal.args[0]);
     let o_const = want_const(&goal.args[1]);
@@ -1543,12 +1552,17 @@ pub(crate) fn resolve_native(
     program: &QProgram,
     budget: &Budget,
 ) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
+    // A bare-`QProgram` entry owns no structured-term arena; a parsed program is flat, so the
+    // fresh DAG is unused. A caller holding a STRUCTURED program interned into a live DAG calls
+    // `resolve_native_under` directly, passing that owning arena so the `Struct` nodes resolve.
+    let mut dag = super::term_dag::TermDag::new();
     resolve_native_under(
         "gmeow-backward-unscoped-v1",
         foreign,
         world,
         program,
         budget,
+        &mut dag,
     )
 }
 
@@ -1557,12 +1571,17 @@ pub(crate) fn resolve_native(
 /// The contract hash participates in the immutable plan identity; callers that change
 /// profile/resource semantics cannot accidentally reuse a plan compiled under an older
 /// contract even when their lowered rule text happens to match.
+///
+/// `dag` is the structured-term arena a STRUCTURED program's `Struct` nodes were interned into
+/// — the caller's OWNING arena, so the full-FOL resolver resolves against genuine nodes rather
+/// than a fresh (empty) arena that rejects every node. A flat program never touches `dag`.
 pub(crate) fn resolve_native_under(
     contract_hash: &str,
     foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
+    dag: &mut super::term_dag::TermDag,
 ) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
     // (0) Gate cut (reuse the structural detector the dispatch gate uses).  Arithmetic
     // is no longer a whole-program gap — the closed builtin set is evaluated natively;
@@ -1571,6 +1590,21 @@ pub(crate) fn resolve_native_under(
     // `dispatch::dispatch_query` (`profile_gate::check_builtin_profile`), unchanged.
     if profile_gate::has_cut(program) {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+    }
+
+    // ── Structured (full-FOL) routing ────────────────────────────────────────────────
+    //
+    // A program carrying ANY structured (`QTerm::Struct`) argument — a function-symbol
+    // (compound) term the flat binary/generic store cannot represent — routes to the
+    // full-FOL resolver (`resolve_fol`): SLG tabling over compound terms with three-valued
+    // well-founded negation, proof-carrying answers. The parser produces only flat terms, so
+    // this branch never fires for a parsed production program — the flat path below stays
+    // byte-identical. A structured program travels with the DAG its `Struct` nodes were
+    // interned into, and the caller passes that OWNING arena as `dag`; `resolve_native_fol`
+    // validates arena identity and resolves against the genuine nodes (a foreign arena is a
+    // typed gap, never a fabricated answer).
+    if super::resolve_fol::program_is_structured(program) {
+        return super::resolve_fol::resolve_native_fol(dag, program, budget);
     }
 
     // The backward leg handles a SINGLE goal atom; a multi-atom conjunctive goal is a
