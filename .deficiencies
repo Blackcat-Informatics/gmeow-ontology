@@ -534,6 +534,31 @@ CORRECTED SPEC (not a defect — a contract overreach caught and honestly record
   dropped from the covered-shapes set; subproperty is a genuine role-assertion gap in
   the native EL fragment.
 
+- SUPERSEDED (2026-07-16, owner chose build-over-drop): the "subproperty dropped from the
+  covered-shapes set" correction directly above NO LONGER HOLDS. Asked at the stage-2 gate
+  whether to sign off dropping `rdfs:subPropertyOf` or to build a non-EL grader, the maintainer
+  chose BUILD. A sound, non-refutation subproperty grader now ships in `dl_entails`
+  (crates/logic/src/entail.rs): `rdfs:subPropertyOf` is decided by reflexive-transitive
+  REACHABILITY over the premise's `rdfs:subPropertyOf`/`owl:equivalentProperty` hierarchy —
+  `Entailed` via reachability (rdfs5/rdfs6, unconditionally sound), `NotEntailed` ONLY over a
+  pure property hierarchy (a provably-satisfiable theory whose closure is exactly its entailed
+  subproperty set), otherwise an honest native-coverage gap (never a guessed verdict). `classify`
+  now routes `rdfs:subPropertyOf` to `ConclusionShape::SubPropertyOf` (no longer a role-assertion
+  gap); domain/range and bare `a P b` assertions REMAIN role-assertion gaps. Contract item C2
+  ("subclass/subproperty covered") is therefore now genuinely MET, not dropped.
+
+OWNER SIGN-OFF (#930 closure, 2026-07-16):
+
+- Close #930 on this merge. Asked at the stage-2 gate how #930 should close given that its
+  published headline scope (W3C SPARQL 1.1/1.2 · RDF-canon · IRI · syntax suites + the rdflib
+  LSP gate) is owner-re-homed to the external purrdf#9 repo and NOT verifiable from this repo,
+  the maintainer chose "Close on this merge": the maintainer confirms purrdf#9's W3C suites are
+  green on the #668 agreement matrix, ratifies the self-authored `entailment-mini` corpus plus
+  the native `dl_entails` / subproperty grader as the FINAL in-repo deliverable for #930, and
+  authorizes `Closes #930` on PR #1548. Upstream-suite grading (the IRI-reference resolver +
+  W3C-tree fetch) remains owned by purrdf#9. This is the explicit HUMAN sign-off the
+  completion-adversary exit gate requires for the ABSENT-IN-REPO headline criteria (C1–C5).
+
 ## 2026-07-14 — issue #1533 (slice authoring factory B: gmeow:AuthoringPacket + brief)
 
 - **Stereotype diverges from the issue's literal wording (user-decided).** The issue
