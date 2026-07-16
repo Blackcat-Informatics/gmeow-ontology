@@ -1,0 +1,6 @@
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
+@λ{s: *, p: rdf__type, o: owl__Class}
+@ℒ{s: ¬, p: rdfs__domain, o: logic__Formula}
+@ℒ{s: ⊑, p: rdf__type, o: owl__ObjectProperty}
+@μ{s: +, p: math__operatorDomain, o: math__realNumbers}
+@μ{s: π, p: rdf__type, o: owl__NamedIndividual}

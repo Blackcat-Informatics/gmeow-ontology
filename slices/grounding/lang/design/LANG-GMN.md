@@ -69,7 +69,7 @@ specifies a code — codebook, rate, fidelity:
 - **Codebook** — `gmeow:GmnCodebook` (`gmeow:gmnCodebookCurrent`): the GMN script plus the ten
   sigil roles (linked through `gmeow:references`) plus the alias-table version
   (`gmeow:gmnDictionaryVersion`) and glyph-table version (`gmeow:gmnGlyphTableVersion`). The alias
-  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV1`) whose
+  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV3`) whose
   `gmeow:GmnDictionaryEntry` members each bind one full GMEOW term to one compact alias string — a
   gated **bijection** over its covered term set (injectivity, `lang:GmnDictionaryAliasCollision`).
   A reader that holds the codebook holds everything needed to decode a conforming document.
@@ -128,7 +128,7 @@ and the alias-table reference (resolved, with `gmeow:gmnDictionaryVersion`, to t
 individual of the dialect lineage):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 ```
 
 A **record** is a sigil followed by a braced key–value list. **Key order is generation order**,
@@ -140,7 +140,7 @@ identified by everything before them. Keys that are absent are simply omitted; k
 present appear in exactly this order. A valid record:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12}
 ```
 
@@ -207,7 +207,7 @@ and a dedicated phase marker is declined.
 A record exercising the new slots, alongside a `@p` process record exercising the `@p`-only pair:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12, m: poss, ek: inst}
 @p{s: gate1, p: cycling, o: doorGate1, st: sensorCrew, bd: open, it: cycleSeries1}
 ```
@@ -227,13 +227,12 @@ is admitted **only** if it clears at least one of two razor halves, and both hal
   inequality for every marker admitted under this half.
 - **(b) Ambiguity-class elimination.** The marker retires a *named* `lang:Gmn*` failure class —
   discharged by an executable fixture pair (the class fires on the un-marked form, is absent on
-  the marked form), run through the codec/validator gate. Because the GMN-1 codec and validator
-  are Task 6's build, not yet in this tree, no marker in this charter is admitted under half (b)
-  at this stage — a graph-level SHACL check cannot see a *compaction*-only ambiguity, since the
-  underlying RDF graph is already fully disambiguated regardless of the compact surface's key
-  set. Every marker above is therefore admitted under half (a) alone, honestly, rather than
-  claiming an unfalsifiable ambiguity-class win now. A future marker proposed once the codec
-  exists may qualify under (b) instead, with its fixture pair authored at that time.
+  the marked form), run through the codec/validator gate. The codec and validator now execute this
+  half, but no current factored qualifier is admitted by it: a graph-level check cannot see a
+  *compaction*-only ambiguity when the underlying RDF graph is already fully disambiguated.
+  Every current qualifier therefore earns admission under half (a), honestly. A future marker may
+  qualify under half (b) only when its named failure and positive/negative codec fixtures land in
+  the same change.
 - **No symbolic orthography, ever.** Every slot above is a named ASCII key and every value is a
   named ASCII alias — no private glyph is minted for any of them, and none enters the shared GMN
   script (`gmeow:gmnScript`) repertoire, which stays reserved for the codepoint-explicit,
@@ -244,7 +243,7 @@ A **schema-once tabular batch** declares its columns once in an `@claims[...]` h
 streams bare rows — the token-economy form for homogeneous runs. A valid batch:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @claims[s p o q]
 gate1 locatedIn yardNorth 0.95
 gate2 locatedIn yardSouth 0.88
@@ -278,14 +277,14 @@ The four validator-tier failure classes, each with its labeled INVALID block:
 INVALID — `lang:GmnNonCanonicalOrder` (wrong key order: the confidence precedes the subject):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{q: 0.95, s: gate1, p: hasState, o: doorGate1}
 ```
 
 INVALID — `lang:GmnMalformedNumber` (scientific notation; a three-fractional-digit confidence):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, q: 9.5e-1}
 @c{s: gate2, p: hasState, o: doorGate2, q: 0.951}
 ```
@@ -296,11 +295,11 @@ INVALID — `lang:GmnUndeclaredDialectVersion` (no `@gmn` header before the firs
 @c{s: gate1, p: hasState, o: doorGate1, q: 0.95}
 ```
 
-INVALID — `lang:GmnUncoveredTerm` (grammar-valid tokens that the pinned dictionary `dict-v1`
+INVALID — `lang:GmnUncoveredTerm` (grammar-valid tokens that the pinned dictionary `dict-v3`
 does not mint and no named-key ruling covers — undecodable, never guessable):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: zx9, p: quuxes, o: gate1, q: 0.50}
 ```
 
@@ -313,7 +312,7 @@ on without leaving the channel. Corrections are **deltas over stable record iden
 claims-about-claims — new records with their own standpoint, never in-place mutation of history:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @err{id: c42, class: GmnMalformedNumber}
 @patch{id: c42, q: 0.95}
 @retract{id: c17}
@@ -342,7 +341,12 @@ codebook wearing documentation's clothes.
   sigil-scoped exemption: each reading pins its record scope through `gmeow:gmnSigilScope`, and an
   unscoped collision is `lang:GmnGlyphCollision` — ambiguity in the glyph table itself.
 - **Coverage gate.** Every term the writer emits is either glyphed or covered by an explicit
-  named-key ruling; a term that is neither is `lang:GmnUncoveredTerm`.
+  named-key ruling; a term that is neither is `lang:GmnUncoveredTerm`. The independent glyph-
+  optimality audit is closed in both directions: every `gmeow:GmnSymbolCandidate` is scored, and
+  every target already reachable through an executable Denotation → Grapheme registry binding
+  must have a candidate. Adding a working glyph without its candidate therefore creates
+  `slice-quality.gmn-glyph-optimality.unaudited-executable-target` and enters the denominator; an
+  executable sign can never grow silently outside the audited inventory.
 - **Borrow real notation or use a named key.** A glyph is drawn from an established notation
   (DL's ⊑, measure theory's μ) or the term stays a named key — the dialect invents no private
   symbols. Symbol provenance is a **citation**: the citations vocabulary (`gmeow:cites`, promoted
@@ -357,9 +361,15 @@ The `lang:` plane of the shared glyph inventory. It is authored, not declared: e
 the crate-side token-cost primitive encodes for the glyph's rendering under the pinned codebook
 vocabulary, cross-checked so an authored value can never drift from the measurement.
 
-- **Disposition is read off the measurement.** A symbol earns a glyph slot **iff it costs a single
-  token**; a dearer symbol is not paying its way against a one-token named key and stays a key.
-  The disposition is computed, never pre-committed: the crate-side benchmark decides.
+- **Disposition is read off the measurement and safety evidence.** A conventional Unicode sign may
+  earn a glyph slot when it costs no more than its meaningful ASCII fallback; a cheaper named key
+  wins, ambiguity moves the distinction into a structured constructor, and a semantic mismatch is
+  rejected. The disposition is recorded, never inferred from typography: the crate-side benchmark
+  and the named ambiguity/confusability/mismatch basis decide.
+  - **`⊑`** (U+2291) costs three pinned tokens, no more than the explicit `is_subclass_of` fallback, so the
+    established description-logic sign earns a scoped `@ℒ` glyph without a token penalty. Its
+    denotation target is canonical `logic:subClassOf`; the grounding correspondence to
+    `rdfs:subClassOf` owns the external spelling, preserving the grounding direction.
   - **`*`** (U+002A) is one token — it earns a glyph for the ungrammatical form, its reading pinned
     to the lang-AST record scope through `gmeow:gmnSigilScope` because the codepoint is reused by
     mathematical multiplication in the shared inventory.
@@ -407,9 +417,13 @@ lookahead beyond one token is ever needed. The consequence is the dialect's deep
 **the parser and the constrained decoder are the same automaton** — the table that validates a
 GMN stream is the table that constrains a model's generation of one. The determinism class is a
 declared contract, never taken on faith: the parse-table construction over the grammar's rules is
-the machine check, `lang:GmnNonDecodableGrammar` names its failure, and the EBNF exact round-trip
-lift (`grammars/gmn.ebnf` lifting to an isomorphic grammar object and back) is the partial
-executable check already in force.
+the machine check, `lang:GmnNonDecodableGrammar` names its failure, and the graph-derived glyph
+registry renders the EBNF token production used by the same reader/writer. The authored
+`grammars/gmn.ebnf` is therefore a structural template, not a second codebook: it contains one
+`glyphToken ::= GRAPH_DERIVED_GLYPH_TOKEN` replacement seam and no literal glyph list. Regeneration
+must replace that one production from the registry before parsing or shipping it; zero or multiple
+seams hard-fail. Registry removal, wrong-scope, all-sigil, and generated-projection tests make that
+check executable end to end.
 
 ## Versioning
 

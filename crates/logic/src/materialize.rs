@@ -3,15 +3,19 @@
 
 //! Canonical-IR materialization over the native physical cores.
 
-use purrdf::{RdfDataset, TermValue};
+use purrdf::{DatasetView, FallibleDatasetView, RdfDataset, TermValue, ViewOperationStatus};
 
 use crate::annotation::{
     AnnotatedFactKey, AnnotatedQuad, AnnotationCertification, AnnotationDerivation,
     AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
 };
+use crate::dispatch::{QueryExecutionEvidence, QueryExecutionIdentity, ResidentViewEvidence};
 use crate::provenance::ASSERT_RULE_IRI;
 use crate::result::PreservationClaim;
-use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
+use crate::seam::{
+    BudgetStatus, DerivationId, DerivedQuad, RdfViewFactSource, WorldFactPattern, WorldFactSource,
+    WorldSourceIdentity, WorldSourceMetrics,
+};
 
 pub(crate) const ASSERTED_PROFILE: &str =
     "https://blackcatinformatics.ca/logic/PositiveHornProfile";
@@ -129,6 +133,92 @@ pub struct Materialization {
     pub nonmonotone_solve_runs: Vec<WorldNonmonotoneSolveRun>,
 }
 
+/// A selected view-backed materialization certified under source and engine identities.
+#[derive(Debug, Clone)]
+pub struct CompleteViewMaterialization<BackendEvidence> {
+    /// Program-relevant asserted rows plus their supported native closure.
+    pub materialization: Materialization,
+    /// Backend and source-access evidence captured after output materialization.
+    pub evidence: QueryExecutionEvidence<BackendEvidence>,
+    /// Source generation plus engine and materialization-contract identities.
+    pub identity: QueryExecutionIdentity,
+}
+
+/// Failure of selected materialization over an operationally fallible RDF view.
+#[derive(Debug)]
+pub enum FallibleViewMaterializationError<OperationalError, BackendEvidence> {
+    /// Program lowering or native materialization failed while the view stayed ready.
+    Materialization {
+        /// Ordinary native materialization failure.
+        error: MaterializeError,
+        /// Backend and source-access evidence at the final ready checkpoint.
+        evidence: QueryExecutionEvidence<BackendEvidence>,
+        /// Source and engine identities for the failed attempt.
+        identity: QueryExecutionIdentity,
+    },
+    /// Lazy RDF access failed and invalidated every partial internal row.
+    Operational {
+        /// Sticky typed provider, budget, cancellation, deadline, or generation error.
+        error: OperationalError,
+        /// Backend and source-access evidence at the failure boundary.
+        evidence: QueryExecutionEvidence<BackendEvidence>,
+        /// Source and engine identities for the failed attempt.
+        identity: QueryExecutionIdentity,
+    },
+}
+
+/// Public return type for selected materialization over a fallible RDF view.
+pub type FallibleViewMaterializationResult<OperationalError, BackendEvidence> = Result<
+    CompleteViewMaterialization<BackendEvidence>,
+    Box<FallibleViewMaterializationError<OperationalError, BackendEvidence>>,
+>;
+
+impl<OperationalError, BackendEvidence>
+    FallibleViewMaterializationError<OperationalError, BackendEvidence>
+{
+    /// Borrow the evidence carried by either failure variant.
+    #[must_use]
+    pub const fn evidence(&self) -> &QueryExecutionEvidence<BackendEvidence> {
+        match self {
+            Self::Materialization { evidence, .. } | Self::Operational { evidence, .. } => evidence,
+        }
+    }
+
+    /// Borrow the operational root cause, when lazy RDF access failed.
+    #[must_use]
+    pub const fn operational_error(&self) -> Option<&OperationalError> {
+        match self {
+            Self::Materialization { .. } => None,
+            Self::Operational { error, .. } => Some(error),
+        }
+    }
+
+    /// Borrow the native materialization error, when the RDF view remained ready.
+    #[must_use]
+    pub const fn materialization_error(&self) -> Option<&MaterializeError> {
+        match self {
+            Self::Materialization { error, .. } => Some(error),
+            Self::Operational { .. } => None,
+        }
+    }
+}
+
+impl<OperationalError: std::fmt::Display, BackendEvidence> std::fmt::Display
+    for FallibleViewMaterializationError<OperationalError, BackendEvidence>
+{
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Materialization { error, .. } => error.fmt(formatter),
+            Self::Operational { error, .. } => {
+                write!(
+                    formatter,
+                    "operational RDF materialization failure: {error}"
+                )
+            }
+        }
+    }
+}
+
 /// Native materialization plus the opaque annotation carried by every admitted quad.
 #[derive(Debug, Clone)]
 pub struct AnnotatedMaterialization<E> {
@@ -150,6 +240,253 @@ pub struct MaterializationLimits {
 pub struct WorldNonmonotoneSolveRun {
     pub world: String,
     pub run: crate::reason::perf_ledger::NonmonotoneSolveRun,
+}
+
+pub(crate) fn selected_materialization_contract_hash(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    worlds: &[String],
+    limits: MaterializationLimits,
+    declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
+) -> String {
+    fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value);
+    }
+
+    let mut worlds = worlds.to_vec();
+    worlds.sort();
+    worlds.dedup();
+    let mut hasher = blake3::Hasher::new();
+    frame(
+        &mut hasher,
+        b"gmeow-selected-view-materialization-contract-v1",
+    );
+    frame(&mut hasher, program.canonical_key().as_bytes());
+    match declared_profile {
+        Some(profile) => {
+            hasher.update(&[1]);
+            frame(&mut hasher, profile.as_str().as_bytes());
+        }
+        None => {
+            hasher.update(&[0]);
+        }
+    }
+    match limits.max_steps {
+        Some(steps) => {
+            hasher.update(&[1]);
+            hasher.update(&steps.to_le_bytes());
+        }
+        None => {
+            hasher.update(&[0]);
+        }
+    }
+    for world in worlds {
+        frame(&mut hasher, world.as_bytes());
+    }
+    hasher.finalize().to_hex().to_string()
+}
+
+fn selected_materialization_patterns(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> Result<Vec<WorldFactPattern>, MaterializeError> {
+    fn source_term(term: &crate::rule_ir::EvalTerm) -> Option<TermValue> {
+        match term {
+            crate::rule_ir::EvalTerm::Var(_) => None,
+            crate::rule_ir::EvalTerm::ConstNamed(iri) => Some(TermValue::iri(iri)),
+            crate::rule_ir::EvalTerm::ConstLit(value) => Some(value.clone()),
+        }
+    }
+
+    fn insert_pattern(patterns: &mut Vec<WorldFactPattern>, atom: &crate::rule_ir::EvalAtom) {
+        let pattern = WorldFactPattern::new(
+            source_term(&atom.subject),
+            Some(atom.predicate.clone()),
+            source_term(&atom.object),
+        );
+        if patterns.iter().any(|existing| existing.subsumes(&pattern)) {
+            return;
+        }
+        patterns.retain(|existing| !pattern.subsumes(existing));
+        patterns.push(pattern);
+    }
+
+    let lowering = crate::relational_core::lower_formulas(program);
+    let rules = crate::lower::lower_eval_rules(program)
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    let mut patterns = Vec::new();
+    for rule in rules.iter().chain(lowering.rules.iter()) {
+        insert_pattern(&mut patterns, &rule.head);
+        for atom in &rule.body {
+            insert_pattern(&mut patterns, atom);
+        }
+    }
+    for rule in &lowering.nary_head_rules {
+        for atom in rule.head.iter().chain(rule.body.iter()) {
+            insert_pattern(&mut patterns, atom);
+        }
+    }
+    if patterns.is_empty() {
+        return Err(MaterializeError::Chase(
+            "selected view materialization has no program predicate to push into the RDF source; use the existing whole-dataset materializer when the complete input echo is the intended output"
+                .to_owned(),
+        ));
+    }
+    patterns.sort();
+    Ok(patterns)
+}
+
+/// Materialize the program-relevant slice of explicit named worlds from a fact source.
+///
+/// Every predicate consumed or produced by the canonical program becomes a selective
+/// source probe. Unrelated predicates and pages are never read or copied. The selected
+/// rows form the materializer's necessary working set; the existing whole-dataset API
+/// remains the explicit choice when a caller wants every unrelated asserted quad echoed.
+///
+/// # Errors
+///
+/// Returns a materialization error for source access, program lowering, or a native
+/// evaluator refusal. A program with no pushable predicate is refused rather than
+/// widened to an unconstrained source scan.
+pub fn materialize_program_source(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    source: &dyn WorldFactSource,
+    worlds: &[String],
+    limits: MaterializationLimits,
+    declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
+) -> Result<Materialization, MaterializeError> {
+    let patterns = selected_materialization_patterns(program)?;
+    let mut worlds = worlds.to_vec();
+    worlds.sort();
+    worlds.dedup();
+    let store = crate::store::WorldStore::new();
+    let mut source_provenance = std::collections::BTreeMap::new();
+    for world in &worlds {
+        crate::physical::visit_edb_patterns(source, world, &patterns, &mut |quad| {
+            source_provenance
+                .entry((
+                    quad.graph.clone(),
+                    quad.subject.clone(),
+                    quad.predicate.clone(),
+                    quad.object.clone(),
+                ))
+                .or_insert_with(|| quad.clone());
+            store.insert_quad_terms(
+                world,
+                quad.subject.clone(),
+                TermValue::iri(&quad.predicate),
+                quad.object.clone(),
+            )
+        })
+        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    }
+    let mut materialization = materialize_program_store(program, &store, limits, declared_profile)?;
+    for quad in &mut materialization.quads {
+        if let Some(source_quad) = source_provenance.get(&(
+            quad.graph.clone(),
+            quad.subject.clone(),
+            quad.predicate.clone(),
+            quad.object.clone(),
+        )) {
+            *quad = source_quad.clone();
+        }
+    }
+    Ok(materialization)
+}
+
+/// Materialize directly from an infallible resident or succinct-pack RDF view.
+///
+/// Only the program-relevant rows in the explicitly supplied named worlds enter the
+/// native working set; no complete-world snapshot is constructed.
+pub fn materialize_program_view<V: DatasetView>(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    worlds: &[String],
+    limits: MaterializationLimits,
+    declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
+) -> Result<CompleteViewMaterialization<ResidentViewEvidence>, MaterializeError> {
+    let identity = QueryExecutionIdentity::for_contract(
+        source_identity,
+        selected_materialization_contract_hash(program, worlds, limits, declared_profile),
+    );
+    let source = RdfViewFactSource::new(view, ASSERTED_PROFILE, identity.source.clone());
+    let materialization =
+        materialize_program_source(program, &source, worlds, limits, declared_profile)?;
+    Ok(CompleteViewMaterialization {
+        materialization,
+        evidence: QueryExecutionEvidence {
+            backend: ResidentViewEvidence {
+                len_hint: view.len_hint(),
+                stats_fingerprint: view.stats_fingerprint(),
+            },
+            source: source.metrics(),
+        },
+        identity,
+    })
+}
+
+/// Materialize directly from an operationally fallible RDF view.
+///
+/// Preflight and final checkpoints make provider/budget/cancellation/generation
+/// failure dominant over any internal materialization result. Partial rows never
+/// cross this boundary.
+pub fn materialize_program_fallible_view<V: FallibleDatasetView>(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    worlds: &[String],
+    limits: MaterializationLimits,
+    declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
+) -> FallibleViewMaterializationResult<V::Error, V::Evidence> {
+    let identity = QueryExecutionIdentity::for_contract(
+        source_identity,
+        selected_materialization_contract_hash(program, worlds, limits, declared_profile),
+    );
+    if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
+        return Err(Box::new(FallibleViewMaterializationError::Operational {
+            error,
+            evidence: QueryExecutionEvidence {
+                backend: evidence,
+                source: WorldSourceMetrics::default(),
+            },
+            identity,
+        }));
+    }
+    let source = RdfViewFactSource::new(view, ASSERTED_PROFILE, identity.source.clone());
+    let evaluation = materialize_program_source(program, &source, worlds, limits, declared_profile);
+    let source_metrics = source.metrics();
+    match view.operation_status() {
+        ViewOperationStatus::Failed { error, evidence } => {
+            Err(Box::new(FallibleViewMaterializationError::Operational {
+                error,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }))
+        }
+        ViewOperationStatus::Ready { evidence } => match evaluation {
+            Ok(materialization) => Ok(CompleteViewMaterialization {
+                materialization,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }),
+            Err(error) => Err(Box::new(
+                FallibleViewMaterializationError::Materialization {
+                    error,
+                    evidence: QueryExecutionEvidence {
+                        backend: evidence,
+                        source: source_metrics,
+                    },
+                    identity,
+                },
+            )),
+        },
+    }
 }
 
 fn program_profile(
@@ -305,6 +642,19 @@ pub fn materialize_program(
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
 ) -> Result<Materialization, MaterializeError> {
+    let store = crate::store::WorldStore::new();
+    store
+        .load_dataset(input)
+        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    materialize_program_store(program, &store, limits, declared_profile)
+}
+
+fn materialize_program_store(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    store: &crate::store::WorldStore,
+    limits: MaterializationLimits,
+    declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
+) -> Result<Materialization, MaterializeError> {
     let profile = match declared_profile {
         Some(profile) => profile,
         None => program_profile(program)?,
@@ -314,10 +664,6 @@ pub fn materialize_program(
         .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
     rules.extend(lowering.rules);
     let mut preservation = lowering.preservation;
-    let store = crate::store::WorldStore::new();
-    store
-        .load_dataset(input)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
 
     if matches!(
         profile,
@@ -330,7 +676,7 @@ pub fn materialize_program(
                     .to_owned(),
             ));
         }
-        return materialize_nonmonotone(profile, &rules, &store, preservation);
+        return materialize_nonmonotone(profile, &rules, store, preservation);
     }
 
     let contract_hash = format!("gmeow-materialize-structured-v2:{}", profile.as_str());
@@ -345,7 +691,7 @@ pub fn materialize_program(
             PreservationClaim::for_unsupported(rules.iter().map(|rule| rule.rule_iri.clone()));
         let mut quads = Vec::new();
         for world in store.worlds() {
-            let edb = crate::rule_ir::world_edb_facts(&store, &world)
+            let edb = crate::rule_ir::world_edb_facts(store, &world)
                 .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
             quads.extend(
                 crate::rule_ir::echo_asserted(&world, &edb)
@@ -365,7 +711,7 @@ pub fn materialize_program(
     };
 
     let budgeted =
-        match crate::physical::materialize_native(&store, executable.as_ref(), limits.max_steps)
+        match crate::physical::materialize_native(store, executable.as_ref(), limits.max_steps)
             .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
         {
             crate::physical::NativeOutcome::Decided(result) => result,

@@ -58,7 +58,9 @@ Notes from the baseline:
 - `tests/conformance-fixtures/` and `tests/counter-examples/` are deliberately
   **outside** `examples/` so the global `make validate` gate never loads them as
   data; they are validated **slice-scoped** (module + slice shapes) by the
-  example-conformance harness only.
+  example-conformance harness only. The grounding kernel is the sole data-scope
+  exception: each of its three peers sees the `logic:` + `lang:` + `math:` module
+  union, but shape authority remains restricted to the tested slice.
 - `manifest.ttl` is the **only** truth for slice identity and tier. Registering a
   new slice still needs the root `owl:imports` + the self-count edits — see the
   slice-registration notes; QA cells do not change registration.
@@ -295,3 +297,9 @@ the hand-authored shape (or back a genuine ValidationOnly residue with `logic:fo
 Never delete a shape whose check the projection does not yet reproduce — that drops live
 enforcement. Full procedure, idioms, and the reasoner-safety rules for cardinality:
 [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./MIGRATING-SHAPES-TO-LOGIC.md).
+
+`axisShapeMigration` is measure-only and advisory. Its hard-enforcement counterpart is
+the **projection-vocabulary ratchet**, a `make check` gate that caps hand-authored
+ungrounded growth in `shapes.ttl`/`module.ttl` SHACL *and* every other `logic:`-subsumed
+projection vocabulary (gUFO, BFO, DOLCE, FnO, EDOAL, SSSOM) per slice, and hard-fails on
+any net-new growth: [`docs/PROJECTION-VOCABULARY-RATCHET.md`](./PROJECTION-VOCABULARY-RATCHET.md).

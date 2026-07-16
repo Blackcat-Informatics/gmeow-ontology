@@ -67,6 +67,21 @@ ex:expectation a math:Integral ;
     math:withRespectTo ex:coinMeasure .
 ex:densityFn a math:MeasurableFunction .
 
+# Q6a — two measure evaluations μ(A) of one measure over two measurable subsets, each
+# naming its measure, subset, and finite non-negative result. Unlike the whole-space
+# math:totalMass +∞ of the same measure, μ(unitInterval) = 1 and μ(doubleInterval) = 2
+# are comparable side by side.
+ex:unitInterval a math:MeasurableSet .
+ex:doubleInterval a math:MeasurableSet .
+ex:lengthOfUnit a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:lengthMeasure ;
+    math:measuredSubset ex:unitInterval ;
+    math:measureResult "1.0"^^xsd:double .
+ex:lengthOfDouble a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:lengthMeasure ;
+    math:measuredSubset ex:doubleInterval ;
+    math:measureResult "2.0"^^xsd:double .
+
 # Q8/Q9 — two commensurable energy quantities (same derived dimension) and the
 # homogeneous dimensional expression that sums them.
 ex:energyDim a math:DerivedDimension ;
@@ -92,4 +107,21 @@ ex:totalEnergyExpr a math:DimensionalExpression ;
 # (mass) is unique among the fixture quantities, so it has no commensurable peer.
 ex:sampleMassQ a math:Quantity ;
     math:hasDimension math:massDimension ;
-    gmeow:unit <http://qudt.org/vocab/unit/KiloGM> .
+    math:quantityValue "1"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/KiloGM> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI .
+
+# Q11 — two ordered intervals, each naming both endpoints and both endpoint
+# inclusions. A half-open bounded interval [0, 1) (lower closed, upper open) and an
+# unbounded interval (0, +∞) whose upper endpoint is the pole math:PositiveInfinity
+# (always open, a pole is never a member of ℝ̄).
+ex:halfOpenUnit a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+ex:positiveReals a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .

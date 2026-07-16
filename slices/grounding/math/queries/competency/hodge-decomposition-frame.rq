@@ -1,0 +1,13 @@
+# External-corpus coverage: reusable Hodge-decomposition frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?decomposition ?signal ?exact ?coexact ?harmonic ?operator
+WHERE {
+  ?decomposition a math:HodgeDecomposition ;
+                 math:decomposesFlow ?signal ;
+                 math:exactComponent ?exact ;
+                 math:coexactComponent ?coexact ;
+                 math:harmonicComponent ?harmonic ;
+                 math:hodgeBoundaryOperator ?operator .
+}
+ORDER BY ?decomposition

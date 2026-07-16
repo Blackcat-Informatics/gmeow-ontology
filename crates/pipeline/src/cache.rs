@@ -1,29 +1,35 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The per-stage content-addressed cache (C4-cache).
+//! The opt-in per-stage content-addressed cache (C4-cache).
 //!
 //! The cache key folds `stage.id ++ impl_version ++ sorted(upstream output
 //! digests) ++ source_file_digest[SourceLoad only]` into a [`content_digest`],
-//! and `generated/.pipeline-cache/<version>/` (gitignored) maps key → a serialized
+//! and `.cache/gmeow-sync/pipeline/<version>/` (gitignored) maps key → a serialized
 //! [`CachedBundle`], backed by the kernel `ContentStore`. It is self-verifying: a
 //! digest recheck on load HARD-fails on mismatch and never silently repairs
 //! (no-optionality).
+//!
+//! The full repository synchronization deliberately does **not** use this cache.
+//! Its stage products are cumulative carrier snapshots, so persisting or restoring
+//! them duplicates gigabytes of state and costs more than recomputation. The sync
+//! command instead caches the clean result at the whole-run boundary. This codec
+//! remains available to focused stages and tests whose products are genuinely
+//! bounded and independently reusable.
 //!
 //! # The C4-cache: a canonical-projection / structural-reconstitution cache
 //!
 //! C4 swapped [`StageProduct`]'s carrier from a byte-map to a structured
 //! [`PipelineBundle<PipelineHandle>`](crate::bundle::PipelineHandle) — and the
 //! kernel bundle deliberately has NO serde (the oxigraph-/PyO3-free ring-fence).
-//! The cache therefore persists the bundle's **canonical byte projection + a
-//! per-lane manifest + the handle backing graphs**, NOT the live IR, and on a hit
-//! **reconstitutes** a digest- and structure-equal bundle by parsing the dataset
-//! ONCE at the cache boundary (the single sanctioned re-parse). Each lane:
+//! The cache therefore persists the bundle's **packed IR + a per-lane manifest**
+//! and on a hit **reconstitutes** a digest- and structure-equal bundle without an
+//! RDF text serialization/parsing detour. Each lane:
 //!
-//! * **dataset** — its canonical N-Quads bytes via the production
-//!   [`serialize_dataset`] egress; on load `parse_dataset` round-trips them back to
-//!   an `Arc<RdfDataset>` (serialize/parse are inverses for the star-capable N-Quads
-//!   codec, so the canonical hash is preserved). This is the ONLY re-parse.
+//! * **dataset** — a deterministic `PURRPCK1` image via [`PackBuilder`]; on load
+//!   [`restore_pack`] reconstructs the complete indexed RDF 1.2 dataset (base
+//!   quads, reifiers, and annotations) directly from the packed dictionary and
+//!   side tables.
 //! * **lookaside** — a serde mirror of the kernel [`RdfLookaside`] (which has no
 //!   serde): every resource and blob record the byte-artifact lane and later lanes
 //!   rely on, reconstructed field-for-field on load. The kernel records carry no
@@ -40,10 +46,11 @@
 //!   the full quad content is not rebound (the output-relevant provenance is also
 //!   projected into the dataset and round-trips via the dataset bytes). The sidecar
 //!   is a runtime accumulator and only its public projection feeds the digest.
-//! * **handles** — each `(graph_iri, HandleEntry)` persists its backing named-graph
-//!   canonical bytes plus a tag for the [`PipelineHandle`] arm. On load each handle
-//!   is re-derived from its backing graph and re-attached via `pin_handle`, so the
-//!   digest-pin invariant is re-checked; a handle that fails to re-pin HARD-fails.
+//! * **handles** — each `(graph_iri, HandleEntry)` persists only its graph IRI and
+//!   [`PipelineHandle`] arm tag. On load the backing graph is projected from the
+//!   restored dataset, eliminating the previous duplicate graph serialization;
+//!   each handle is re-derived and re-attached via `pin_handle`, so the digest-pin
+//!   invariant is re-checked and a handle that fails to re-pin HARD-fails.
 //!
 //! # GREENFIELD cache version
 //!
@@ -53,10 +60,12 @@
 //!
 //! # On-disk layout
 //!
-//! `generated/.pipeline-cache/<version>/` holds an `index.json` mapping each stage
-//! key to a blob digest, and `blobs/<digest>` holds the serialized [`CachedBundle`].
-//! On load the blob is re-hashed and compared to the indexed digest — a mismatch is
-//! a HARD failure, never a silent repair (no-optionality).
+//! `.cache/gmeow-sync/pipeline/<version>/` holds an `index.json` mapping each stage
+//! key to a blob digest, and `blobs/<digest>` holds the bincode-serialized
+//! [`CachedBundle`]. The binary encoding keeps the manifest's large `Vec<u8>` lanes
+//! byte-dense instead of expanding every byte into a JSON number. On load the blob
+//! is re-hashed and compared to the indexed digest — a mismatch is a HARD failure,
+//! never a silent repair (no-optionality).
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -65,9 +74,9 @@ use std::sync::Arc;
 
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
-    ContentDigest, ContentStore, QuadHandle, RdfBlobOrigin, RdfBlobRecord, RdfLocation,
-    RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataValue, SerializeGraph,
-    canonicalize, parse_dataset, serialize_dataset,
+    ContentDigest, ContentStore, PackBuilder, QuadHandle, RdfBlobOrigin, RdfBlobRecord,
+    RdfLocation, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataValue,
+    SerializeGraph, canonicalize, restore_pack, serialize_dataset,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -79,11 +88,10 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 3;
+pub const CACHE_VERSION: u32 = 5;
 
-/// The media type of the dataset's canonical byte projection. N-Quads is
-/// star-capable (carries the full RDF-1.2 statement layer) and `serialize_dataset` /
-/// `parse_dataset` are inverses for it, so the round-tripped dataset is canonical-equal.
+/// The text projection used only by the Reasoning handle's legacy reverse parser.
+/// Dataset persistence itself uses `PURRPCK1` and never passes through this codec.
 const DATASET_MEDIA_TYPE: &str = "application/n-quads";
 
 /// Compute a hex SHA-256 over a sequence of byte fields, each length-free but
@@ -152,8 +160,8 @@ struct CachedBundle {
     /// product equals `bundle.digest().to_hex()` but may be decoupled for abstract
     /// products — so it is persisted explicitly).
     digest: String,
-    /// The dataset's canonical N-Quads byte projection (the ONLY re-parse on load).
-    dataset_nquads: Vec<u8>,
+    /// The complete deterministic `PURRPCK1` dataset image.
+    dataset_pack: Vec<u8>,
     /// The lookaside mirror: resources + blob records (the byte-artifact lane and
     /// later typed sidecar lanes ride here).
     lookaside: CachedLookaside,
@@ -163,7 +171,8 @@ struct CachedBundle {
     /// The S0.5 PUBLIC provenance projection rows `(unit, kind, artifact, location)`.
     /// NEVER the runtime numeric ids.
     provenance: Vec<CachedProvRow>,
-    /// The typed-handle lane: each backing graph + its arm tag + canonical bytes.
+    /// The typed-handle lane: each backing graph IRI + its arm tag. The backing
+    /// graph itself already lives in `dataset_pack` and is never duplicated here.
     handles: Vec<CachedHandle>,
 }
 
@@ -218,18 +227,14 @@ struct CachedProvRow {
     location: Option<String>,
 }
 
-/// A persisted typed handle: the backing graph IRI, the [`PipelineHandle`] arm tag,
-/// and the backing named-graph canonical bytes the payload is re-derived from.
+/// A persisted typed handle: the backing graph IRI and [`PipelineHandle`] arm tag.
+/// The payload is re-derived by projecting this graph from the restored dataset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CachedHandle {
     /// The named-graph IRI the handle backs (the [`HandleKey`](purrdf::HandleKey)).
     graph: String,
     /// The [`PipelineHandle`] arm tag (see [`handle_arm_tag`]).
     arm: String,
-    /// The canonical N-Quads bytes of the backing named graph (the sub-dataset the
-    /// placeholder arms wrap). On load the payload is re-derived from these and
-    /// `pin_handle` re-checks the pinned digest against the live dataset.
-    graph_nquads: Vec<u8>,
 }
 
 /// The stable arm tag for a [`PipelineHandle`] variant (persisted with each handle).
@@ -499,16 +504,11 @@ impl CachedBundle {
     fn from_product(product: &StageProduct) -> Result<Self, gmeow_errors::Diag> {
         let bundle = product.bundle();
 
-        // dataset → canonical N-Quads bytes (the production egress; the load-time
-        // re-parse is the sole sanctioned re-parse).
-        let dataset_nquads = serialize_dataset(
-            bundle.dataset(),
-            DATASET_MEDIA_TYPE,
-            SerializeGraph::Dataset,
-        )
-        .map_err(|e| {
+        // dataset → deterministic packed IR. This retains the complete RDF 1.2
+        // value and its query indexes without serializing through RDF text.
+        let dataset_pack = PackBuilder::build_bytes(bundle.dataset()).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("cache: serialize bundle dataset: {e}"),
+                message: format!("cache: pack bundle dataset: {e}"),
             })
         })?;
 
@@ -536,23 +536,14 @@ impl CachedBundle {
             )
             .collect();
 
-        // handles → backing-graph canonical bytes + arm tag, sorted by graph IRI
-        // (BTreeMap iteration is already sorted, so the manifest is deterministic).
+        // handles → graph IRI + arm tag, sorted by graph IRI (BTreeMap iteration is
+        // already sorted). The graph data itself is already present once in the
+        // packed dataset and must not be duplicated in the manifest.
         let mut handles = Vec::with_capacity(bundle.handles().len());
         for (graph, entry) in bundle.handles() {
-            let subgraph = bundle.dataset().project_named_graph(graph);
-            let graph_nquads =
-                serialize_dataset(&subgraph, DATASET_MEDIA_TYPE, SerializeGraph::Dataset).map_err(
-                    |e| {
-                        gmeow_errors::Diag::of_kind(crate::error::Decode {
-                            message: format!("cache: serialize handle backing graph: {e}"),
-                        })
-                    },
-                )?;
             handles.push(CachedHandle {
                 graph: graph.clone(),
                 arm: handle_arm_tag(&entry.payload).to_string(),
-                graph_nquads,
             });
         }
 
@@ -560,7 +551,7 @@ impl CachedBundle {
             version: CACHE_VERSION,
             stage_id: product.stage_id.clone(),
             digest: product.digest.clone(),
-            dataset_nquads,
+            dataset_pack,
             lookaside,
             blobs,
             provenance,
@@ -581,13 +572,14 @@ impl CachedBundle {
             }));
         }
 
-        // dataset: the ONE sanctioned re-parse.
-        let dataset =
-            parse_dataset(&self.dataset_nquads, DATASET_MEDIA_TYPE, None).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!("cache: re-parse bundle dataset: {e}"),
-                })
-            })?;
+        // dataset: reconstruct directly from the packed dictionary, indexes, and
+        // RDF 1.2 side tables. The cache blob digest was verified by `get` before
+        // this point, so the hot path does not repeat canonicalization.
+        let dataset = restore_pack(&self.dataset_pack).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("cache: restore packed bundle dataset: {e}"),
+            })
+        })?;
 
         let lookaside = self.lookaside.into_lookaside();
 
@@ -635,18 +627,10 @@ impl CachedBundle {
         // Assemble the bundle, then re-pin every handle (re-checks the digest invariant).
         let mut bundle = PipelineBundleAlias::new(dataset, lookaside, Arc::new(store), provenance);
         for h in self.handles {
-            let subgraph =
-                parse_dataset(&h.graph_nquads, DATASET_MEDIA_TYPE, None).map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Parse {
-                        message: format!("cache: re-parse handle backing graph: {e}"),
-                    })
-                })?;
-            // Pin against the canonical digest of the PERSISTED backing bytes (the
-            // sub-dataset just re-parsed). `pin_handle` then checks this against the
-            // LIVE named graph of the reconstituted dataset — if the persisted backing
-            // bytes were tampered (so the handle would project a graph that disagrees
-            // with the dataset it rides), the re-pin HARD-fails rather than silently
-            // attaching a stale handle (no-optionality).
+            let subgraph = Arc::new(bundle.dataset().project_named_graph(&h.graph));
+            // Derive the pin and typed payload from the SAME live graph projection.
+            // `pin_handle` independently checks that pin against the restored carrier,
+            // preserving the hard-fail invariant without a duplicate persisted graph.
             let pinned = ContentDigest::of(canonicalize(&subgraph).nquads.as_bytes());
             let payload = rebuild_handle(&h.arm, subgraph)?;
             bundle
@@ -671,25 +655,35 @@ type PipelineBundleAlias = purrdf::PipelineBundle<PipelineHandle>;
 
 // ── On-disk content-addressed cache ──────────────────────────────────────────
 
-/// The persistent per-stage cache under `generated/.pipeline-cache/<version>/`
-/// (gitignored).
+/// The persistent per-stage cache under `.cache/gmeow-sync/pipeline/<version>/`
+/// (gitignored and worktree-local).
 ///
 /// `index.json` maps `stage_key → blob ContentDigest (hex)`; `blobs/<hex>` holds
-/// the serialized [`CachedBundle`]. Reads re-hash the blob and HARD-fail on a
-/// digest mismatch (self-verifying, no silent repair). The `<version>` segment makes
-/// a prior cache-shape revision a clean miss (greenfield, no migration).
+/// the bincode-serialized [`CachedBundle`]. Reads re-hash the blob and HARD-fail on
+/// a digest mismatch (self-verifying, no silent repair). The `<version>` segment
+/// makes a prior cache-shape or codec revision a clean miss (greenfield, no
+/// migration).
 pub struct PipelineCache {
     dir: PathBuf,
     index: BTreeMap<String, String>,
 }
 
 impl PipelineCache {
+    /// Construct an inert cache handle without touching the filesystem.
+    ///
+    /// [`crate::scheduler::RunContext::open_uncached`] uses this for a full sync:
+    /// scheduler cache probes and writes are disabled, so the path is never read.
+    pub fn inert() -> Self {
+        Self {
+            dir: PathBuf::new(),
+            index: BTreeMap::new(),
+        }
+    }
+
     /// The conventional cache base directory under a repo root. [`open`](Self::open)
     /// appends the version segment, so this is the un-segmented base.
     pub fn default_dir(root: &Path) -> PathBuf {
-        // GENERATED-READ-OK: the pipeline cache is a gitignored scratch dir under generated/, not a
-        // committed fanout projection — reading its path cannot trigger the stale-disk-fold bug class.
-        root.join("generated").join(".pipeline-cache")
+        root.join(".cache").join("gmeow-sync").join("pipeline")
     }
 
     /// Open (or create) the cache rooted at `dir`, loading its index. The on-disk
@@ -736,7 +730,7 @@ impl PipelineCache {
                 actual,
             }));
         }
-        let cached: CachedBundle = serde_json::from_slice(&bytes).map_err(|e| {
+        let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("corrupt cached bundle: {e}"),
             })
@@ -756,7 +750,7 @@ impl PipelineCache {
         product: &StageProduct,
     ) -> Result<(), gmeow_errors::Diag> {
         let manifest = CachedBundle::from_product(product)?;
-        let bytes = serde_json::to_vec(&manifest).map_err(|e| {
+        let bytes = bincode::serialize(&manifest).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("cannot serialize cached bundle: {e}"),
             })
@@ -796,6 +790,15 @@ impl PipelineCache {
 /// only ever leave a stray temp file, never a half-written `target` — so the
 /// cache is never bricked mid-write (no-optionality P2).
 fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
+    // Idempotency policy: an equal output is already the desired state. Avoiding
+    // the temp write + rename preserves the target's mtime/inode and eliminates
+    // filesystem churn for warm sync/check runs.
+    if let Ok(existing) = fs::read(target)
+        && existing == bytes
+    {
+        return Ok(());
+    }
+
     let dir = target.parent().ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::Io {
             message: (std::io::Error::new(
@@ -822,7 +825,7 @@ mod tests {
     use super::*;
 
     use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
-    use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId};
+    use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId, parse_dataset};
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
         b.intern_iri(&format!("http://example.org/{n}"))
@@ -1007,16 +1010,51 @@ mod tests {
     }
 
     #[test]
-    fn tampered_handle_backing_graph_hard_fails_on_reload() {
+    fn cached_bundle_binary_encoding_avoids_json_byte_array_expansion() {
+        let payload = vec![0xff; 4096];
+        let mut blobs = BTreeMap::new();
+        blobs.insert("blob-digest".to_owned(), payload.clone());
+        let manifest = CachedBundle {
+            version: CACHE_VERSION,
+            stage_id: "compact-cache-regression".to_owned(),
+            digest: "product-digest".to_owned(),
+            dataset_pack: payload.clone(),
+            lookaside: CachedLookaside::default(),
+            blobs,
+            provenance: Vec::new(),
+            handles: vec![CachedHandle {
+                graph: "http://example.org/graph".to_owned(),
+                arm: "logic".to_owned(),
+            }],
+        };
+
+        let binary = bincode::serialize(&manifest).expect("serialize compact cache manifest");
+        let json = serde_json::to_vec(&manifest).expect("serialize comparison manifest");
+        assert!(
+            binary.len() * 3 < json.len(),
+            "byte lanes must stay compact: binary={} JSON={}",
+            binary.len(),
+            json.len()
+        );
+
+        let decoded: CachedBundle =
+            bincode::deserialize(&binary).expect("deserialize compact cache manifest");
+        assert_eq!(decoded.dataset_pack, manifest.dataset_pack);
+        assert_eq!(decoded.blobs, manifest.blobs);
+        assert_eq!(decoded.handles[0].graph, manifest.handles[0].graph);
+        assert_eq!(decoded.handles[0].arm, manifest.handles[0].arm);
+    }
+
+    #[test]
+    fn tampered_handle_manifest_hard_fails_on_reload() {
         let dir = tempfile::tempdir().unwrap();
         let mut cache = PipelineCache::open(dir.path()).unwrap();
 
         let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
         cache.put("k", &product).unwrap();
 
-        // Tamper the persisted manifest's handle backing graph so the re-derived
-        // payload no longer matches the named graph the dataset carries: the handle
-        // must FAIL to re-pin (drop/stale a handle = hard failure, never silent).
+        // Tamper the persisted handle arm while keeping the packed dataset intact.
+        // An unknown arm must HARD-FAIL rather than silently dropping the handle.
         let blobs_dir = cache.dir.join("blobs");
         let blob_path = std::fs::read_dir(&blobs_dir)
             .unwrap()
@@ -1025,17 +1063,11 @@ mod tests {
             .unwrap()
             .path();
         let bytes = std::fs::read(&blob_path).unwrap();
-        let mut manifest: CachedBundle = serde_json::from_slice(&bytes).unwrap();
-        // Replace the handle's backing-graph bytes with a DIFFERENT graph's canon.
-        let mut b = RdfDatasetBuilder::new();
-        let (s, p, o) = (iri(&mut b, "x"), iri(&mut b, "y"), iri(&mut b, "z"));
-        b.push_quad(s, p, o, None);
-        let other = b.freeze().unwrap();
-        manifest.handles[0].graph_nquads =
-            serialize_dataset(&other, DATASET_MEDIA_TYPE, SerializeGraph::Dataset).unwrap();
+        let mut manifest: CachedBundle = bincode::deserialize(&bytes).unwrap();
+        manifest.handles[0].arm = "not-a-pipeline-handle".to_owned();
         // Re-serialize + re-file under the NEW content digest (and re-point the index),
         // so the blob still self-verifies and we exercise the handle re-pin path.
-        let new_bytes = serde_json::to_vec(&manifest).unwrap();
+        let new_bytes = bincode::serialize(&manifest).unwrap();
         std::fs::remove_file(&blob_path).unwrap();
         let new_hex = ContentDigest::of(&new_bytes).to_hex();
         std::fs::write(blobs_dir.join(&new_hex), &new_bytes).unwrap();
@@ -1048,7 +1080,7 @@ mod tests {
             .expect_err("a stale/dropped handle must hard-fail");
         assert!(
             err.is::<crate::error::Decode>(),
-            "tampered handle backing graph fails to re-pin (hard fail), got {err:?}"
+            "tampered handle manifest hard-fails, got {err:?}"
         );
     }
 
@@ -1241,11 +1273,9 @@ mod tests {
         PipelineBundle<PipelineHandle>,
         gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
     ) {
-        use gmeow_logic_compile::projections::correspondence::{
-            affine_triangle_worked_example, project_correspondence,
-        };
+        use gmeow_logic_compile::projections::correspondence::project_correspondence;
         use std::sync::Arc;
-        let program = affine_triangle_worked_example();
+        let program = crate::stages::compile_logic::affine_worked_example_program();
         let projection = project_correspondence(&program);
         let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
             .expect("parse projection");

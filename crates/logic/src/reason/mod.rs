@@ -21,7 +21,7 @@ pub mod perf_ledger;
 pub mod rl;
 pub(crate) mod rl_rules;
 
-pub use dl::{DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
+pub use dl::{DlGap, DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
 pub use ledger::{
     DivergenceKind, DivergenceLedger, ExternalComparison, LedgerRow, LedgerVerdict, build_ledger,
@@ -32,9 +32,16 @@ pub use rl::{RlClosure, RlTriple, rl_closure};
 
 use crate::facts::TypedFactSet;
 use crate::oracle::TypedRow;
-use crate::result::{ReasoningResult, ResultProvenance};
+use crate::query_ir::Budget;
+use crate::result::{
+    BudgetLimit, BudgetUsage, CompletenessStatus, EvaluationStatus, InformationState, InputStatus,
+    PreservationClaim, ReasoningResult, ResultPayload, ResultProvenance,
+};
+use crate::seam::BudgetStatus;
 use crate::store::WorldStore;
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermValue};
+use purrdf::{
+    RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermRef, TermValue,
+};
 
 /// One production existential-program admission certificate, scoped to the RDF
 /// world whose obligations were chased.
@@ -56,6 +63,26 @@ impl ChaseCertificate {
     }
 }
 
+/// The decomposable derivation of one chase-invented null, re-exported so a
+/// consumer of [`CertifiedReasoning`] can explain an invented individual without
+/// re-running the chase.
+pub use crate::physical::WitnessDerivation;
+
+/// The content-addressed standard-RDF-reification node IRI for a head quad
+/// `⟨subject predicate obj⟩`.
+///
+/// A thin `pub` shim over the crate-internal reifier recipe
+/// ([`crate::provenance::reifier_from_strings`]) so a downstream projector (the
+/// pipeline's chase-witness diagnostics fold) can address the SAME reifier node the
+/// explanation plane already mints — without widening the internal helper.
+/// `subject` and `predicate` are bare IRI strings (this wraps them in `<…>`);
+/// `obj_n3` is the object already in canonical N3 form (`<iri>` for an IRI object,
+/// `"lex"^^<dt>` for a literal) and is used verbatim.
+#[must_use]
+pub fn reifier_iri(subject: &str, predicate: &str, obj_n3: &str) -> String {
+    crate::provenance::reifier_from_strings(subject, predicate, obj_n3)
+}
+
 /// The single production reasoning run and the existential termination evidence
 /// generated while constructing its result.
 #[derive(Debug, Clone, PartialEq)]
@@ -64,6 +91,12 @@ pub struct CertifiedReasoning {
     pub result: ReasoningResult,
     /// Deterministic, deduplicated world-scoped chase certificates.
     pub chase_certificates: Vec<ChaseCertificate>,
+    /// The decomposable derivation of every invented null the chase minted,
+    /// sorted and deduplicated by content-addressed witness IRI. Empty when the
+    /// production program has no existential obligation. Each carries the firing
+    /// rule, existential ordinal, and frontier binding — the recipe an
+    /// `explain(witness)` consumer decomposes.
+    pub witness_derivations: Vec<WitnessDerivation>,
 }
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
@@ -84,6 +117,8 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   when the rule text is unchanged;
 /// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
 ///   existential chase, and relation store that execute those rules;
+/// * the canonical-program lowering, selected-view materializer, and native
+///   non-monotone evaluators exposed as the forward runtime materialization surface;
 /// * the source of this file (`mod.rs`), which owns the production reasoning
 ///   orchestration and typed-result fold.
 ///
@@ -97,6 +132,12 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/dl.rs", include_str!("dl.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
+    ("certify.rs", include_str!("../certify.rs")),
+    ("lower.rs", include_str!("../lower.rs")),
+    ("materialize.rs", include_str!("../materialize.rs")),
+    ("relational_core.rs", include_str!("../relational_core.rs")),
+    ("stablemodel.rs", include_str!("../stablemodel.rs")),
+    ("wellfounded.rs", include_str!("../wellfounded.rs")),
     ("rule_ir.rs", include_str!("../rule_ir.rs")),
     ("physical/plan.rs", include_str!("../physical/plan.rs")),
     (
@@ -200,13 +241,106 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
 /// failures as [`reason_all`].
 pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedReasoning> {
     let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
-    let chase_certificates = dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    let (chase_certificates, witness_derivations) =
+        dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(CertifiedReasoning {
         result: typed_result(inferred, &verdict),
         chase_certificates,
+        witness_derivations,
     })
+}
+
+/// Run the native reasoning closure under a forward-chase step budget that CUTS the
+/// semi-naive fixpoint MID-FLIGHT — the governed entry an agent-facing tool reasons
+/// through so it never runs an unbudgeted Turing-complete closure over agent-influenced
+/// input.
+///
+/// The `budget.max_steps` ceiling is threaded straight into the forward chase
+/// ([`run_reasoning_rules_budgeted`] → [`crate::oracle::native_forward_eval_rules_with_frontier`]
+/// → [`crate::physical::materialize_native`]), where the [`crate::physical::StepGovernor`]
+/// charges one step per COMMITTED derivation at the deterministic FactKey-sorted commit
+/// boundary and stops deriving new facts once the ceiling is reached.
+///
+/// * `budget.max_steps == None` (or a ceiling at/above the true closure size) is
+///   **byte-identical to [`reason_all`]**: the governor never cuts, the full closure is
+///   produced, the DL consistency post-pass runs, and the folded verdict is unchanged.
+/// * A ceiling BELOW the true closure size returns the sound PARTIAL closure on a
+///   non-conclusive [`EvaluationStatus::BudgetExhausted`] /
+///   [`CompletenessStatus::Incomplete`] verdict whose [`InformationState`] is the honest
+///   [`InformationState::Undetermined`] (the DL consistency verdict is NOT computed over a
+///   truncated closure — a skipped derivation could have forced a clash — so it is never a
+///   wrong `supported`/`both`). The consumed step count and declared allowance are recorded
+///   on [`crate::result::BudgetUsage`].
+///
+/// `budget.max_answers` is not a chase-step concept and is ignored here (it is the backward
+/// leg's answer cap); the forward governor bounds derivations, not answers.
+///
+/// # Errors
+///
+/// Returns the same source-loading / native-evaluation failures as [`reason_all`].
+pub fn reason_all_budgeted(
+    edb: &RdfDataset,
+    budget: &Budget,
+) -> gmeow_errors::Result<ReasoningResult> {
+    let closure = run_reasoning_rules_budgeted(edb, dl::structured_dl_rules(), budget.max_steps)?;
+    if closure.status == BudgetStatus::Ok {
+        // Completed within budget: the fold is byte-identical to `reason_all`
+        // (`augment_inferred_with_dl` is `augment_inferred_with_dl_certificates(..).map(|_|())`,
+        // so the closure and folded verdict match the certified path exactly).
+        let mut inferred = closure.inferred;
+        dl::augment_inferred_with_dl(&mut inferred, edb)?;
+        inferred.sort();
+        let verdict = dl::verdict_from_inferred(&inferred, edb)?;
+        Ok(typed_result(inferred, &verdict))
+    } else {
+        // Cut mid-chase: the DL post-pass is deliberately NOT run over the partial closure —
+        // doing so would smuggle uncharged derivations past the governor. The partial closure
+        // is a sound under-approximation carried on a non-conclusive budget-exhausted verdict.
+        let mut inferred = closure.inferred;
+        inferred.sort();
+        Ok(budget_exhausted_result(
+            inferred,
+            PreservationClaim::exact(),
+            budget.max_steps,
+            closure.consumed_steps,
+        ))
+    }
+}
+
+/// Fold a PARTIAL forward closure — one the step governor cut mid-flight — into a
+/// non-conclusive [`EvaluationStatus::BudgetExhausted`] [`ReasoningResult`].
+///
+/// The consistency verdict is intentionally left uncomputed: a truncated closure may have
+/// skipped the very derivation that would force a clash, so claiming `supported`/`both`
+/// would be unsound. The information state is therefore the honest
+/// [`InformationState::Undetermined`] ("the engine has not reached a verdict"), the
+/// completeness is [`CompletenessStatus::Incomplete`], and the consumed step count plus the
+/// declared allowance are recorded on the provenance budget (a real measurement, never a
+/// post-hoc fiction).
+fn budget_exhausted_result(
+    inferred: Vec<InferredAxiom>,
+    preservation: PreservationClaim,
+    allowance: Option<u64>,
+    consumed_steps: u64,
+) -> ReasoningResult {
+    let mut provenance = ResultProvenance::native(native_contract_hash(), "");
+    provenance.consumed_budget = BudgetUsage {
+        consumed: consumed_steps,
+        allowance,
+        limit: Some(BudgetLimit::Inference),
+    };
+    provenance.projection_class = preservation.clone();
+    ReasoningResult::new(
+        InputStatus::Valid,
+        EvaluationStatus::BudgetExhausted,
+        CompletenessStatus::Incomplete,
+        preservation,
+        InformationState::Undetermined,
+        provenance,
+        ResultPayload::Inferred(inferred),
+    )
 }
 
 /// Result of applying one ground conjecture candidate to a cached fixed-rule
@@ -496,12 +630,61 @@ pub fn reason_program(
     program: &gmeow_logic_compile::ir::LogicProgram,
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<ReasoningResult> {
+    // The unbudgeted program path is the `max_steps == None` case of the governed variant:
+    // the forward chase runs to full fixpoint (`BudgetStatus::Ok`), so the returned result is
+    // byte-identical to evaluating the program without any governor.
+    Ok(reason_program_budgeted(program, edb, None)?.0)
+}
+
+/// Reason over `program` against `edb` under a forward-chase step budget, returning the
+/// shared [`ReasoningResult`] together with the [`BudgetStatus`] and the committed step
+/// count the governor observed.
+///
+/// This is the program-carrying analogue of [`reason_all_budgeted`]: the `max_steps`
+/// ceiling is threaded into the same forward semi-naive governor, so a candidate program a
+/// governed caller (e.g. [`crate::conjecture::conjecture_test`]) evaluates over
+/// agent-influenced input is genuinely chase-bounded, not relabeled after a full run.
+///
+/// * `max_steps == None` (or a ceiling at/above the true closure) is byte-identical to the
+///   ungoverned evaluation: the forward chase, the n-ary head chase, and the DL post-pass
+///   all run, and the folded verdict is unchanged (`BudgetStatus::Ok`).
+/// * A ceiling BELOW the true closure size cuts the forward chase mid-flight and returns the
+///   sound PARTIAL closure on a non-conclusive [`EvaluationStatus::BudgetExhausted`] verdict.
+///   The n-ary head chase and the DL post-pass are SKIPPED on a cut — running either over a
+///   truncated closure would smuggle uncharged derivations past the governor — and any
+///   formula-lowering residue is still disclosed in the preservation claim.
+///
+/// # Errors
+///
+/// Returns the same rule-lowering / native-evaluation failures as [`reason_program`].
+pub(crate) fn reason_program_budgeted(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    edb: &RdfDataset,
+    max_steps: Option<u64>,
+) -> gmeow_errors::Result<(ReasoningResult, BudgetStatus, u64)> {
     let lowering = crate::relational_core::lower_formulas(program);
     let formula_preservation = lowering.preservation.clone();
     let mut rules = dl::structured_dl_rules();
     rules.extend(crate::lower::lower_eval_rules(program)?);
     rules.extend(lowering.rules);
-    let mut inferred = run_reasoning_rules(edb, rules)?;
+    let closure = run_reasoning_rules_budgeted(edb, rules, max_steps)?;
+
+    if closure.status != BudgetStatus::Ok {
+        // Cut mid-chase: carry the sound partial closure on a non-conclusive
+        // budget-exhausted verdict, disclosing the formula-lowering residue. Neither the
+        // n-ary head chase nor the DL post-pass runs over a truncated closure.
+        let mut inferred = closure.inferred;
+        inferred.sort();
+        let result = budget_exhausted_result(
+            inferred,
+            formula_preservation,
+            max_steps,
+            closure.consumed_steps,
+        );
+        return Ok((result, closure.status, closure.consumed_steps));
+    }
+
+    let mut inferred = closure.inferred;
 
     // 3b. n-ary HEAD-derivation rules (`Rel(a₀..aₙ)` in a rule head) invent a shared reifier
     //     null per firing. They are evaluated through the native restricted chase,
@@ -518,12 +701,13 @@ pub fn reason_program(
     // 4. Fold into the shared result, unioning the formula-lowering residue into the
     //    preservation claim.
     let provenance = ResultProvenance::native(native_contract_hash(), "");
-    Ok(ReasoningResult::from_dl_verdict_with_preservation(
+    let result = ReasoningResult::from_dl_verdict_with_preservation(
         inferred,
         &verdict,
         &formula_preservation,
         provenance,
-    ))
+    );
+    Ok((result, BudgetStatus::Ok, closure.consumed_steps))
 }
 
 /// Reason over `program` against `edb` and project the resulting closure (asserted +
@@ -772,23 +956,76 @@ pub(crate) fn run_reasoning_rules(
     edb: &RdfDataset,
     rules: Vec<crate::rule_ir::EvalRule>,
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
+    // The ungoverned closure is the `max_steps == None` case: the forward chase runs to full
+    // fixpoint (`BudgetStatus::Ok`), so the returned axioms are byte-identical to the
+    // pre-governor engine and no existing caller/golden is disturbed.
+    Ok(run_reasoning_rules_budgeted(edb, rules, None)?.inferred)
+}
+
+/// The forward reasoning closure together with the step governor's cut status.
+///
+/// Produced by [`run_reasoning_rules_budgeted`]; `status == BudgetStatus::Ok` iff the
+/// semi-naive fixpoint reached its natural end within `max_steps`, otherwise
+/// `BudgetStatus::Exhausted` and `inferred` is the sound (FactKey-ordered) PARTIAL closure at
+/// the deterministic cut. `consumed_steps` is the number of committed derivations (a
+/// deterministic count: identical input + identical `max_steps` ⇒ identical count).
+pub(crate) struct BudgetedClosure {
+    /// The asserted + derived closure (full on `Ok`, partial on `Exhausted`).
+    pub(crate) inferred: Vec<InferredAxiom>,
+    /// Whether the forward chase ran to fixpoint or was cut by the step budget.
+    pub(crate) status: BudgetStatus,
+    /// Committed derivations at the point the chase stopped.
+    pub(crate) consumed_steps: u64,
+}
+
+/// Run the forward reasoning chase under a step budget that CUTS the semi-naive fixpoint
+/// mid-flight.
+///
+/// `max_steps` is threaded straight into
+/// [`crate::oracle::native_forward_eval_rules_with_frontier`] →
+/// [`crate::physical::materialize_native`], where the [`crate::physical::StepGovernor`]
+/// charges one step per committed derivation and stops before committing the derivation that
+/// would exceed the ceiling. `None` is the unbudgeted path (byte-identical to the
+/// pre-governor engine); `Some(n)` admits exactly `n` committed derivations and returns the
+/// sound partial closure on `BudgetStatus::Exhausted`.
+///
+/// # Errors
+///
+/// Returns `Err` if the source store cannot be loaded or native evaluation fails.
+pub(crate) fn run_reasoning_rules_budgeted(
+    edb: &RdfDataset,
+    rules: Vec<crate::rule_ir::EvalRule>,
+    max_steps: Option<u64>,
+) -> gmeow_errors::Result<BudgetedClosure> {
     let edb_facts = build_edb_facts(edb)?;
-    let (chase, _frontier) =
-        crate::oracle::native_forward_eval_rules_with_frontier(&edb_facts, rules)?;
-    chase_rows_to_inferred(&chase)
+    let (chase, frontier, status) =
+        crate::oracle::native_forward_eval_rules_with_frontier(&edb_facts, rules, max_steps)?;
+    let inferred = chase_rows_to_inferred(&chase)?;
+    Ok(BudgetedClosure {
+        inferred,
+        status,
+        consumed_steps: frontier.consumed_steps,
+    })
 }
 
 /// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single native
 /// fact-set construction the whole reasoning path shares.
 ///
-/// Loads `edb` into a fresh [`WorldStore`], then pushes every IRI-object quad of
-/// every world into the typed EDB. The IRI-object filter is a SEMANTIC EL/DL
+/// Walks the frozen dataset directly and pushes every IRI-object quad of every
+/// named-IRI world into the typed EDB. The IRI-object filter is a SEMANTIC EL/DL
 /// restriction: the fixed calculi only fire on axioms whose object is an IRI
 /// (subClassOf, type, disjointWith, equivalentClass, subPropertyOf), so a
 /// literal-object quad (an annotation such as rdfs:comment / dc:creator) can never
 /// participate in any rule, and skipping them is sound for the closure AND the
 /// verdict. It is no longer a transport necessity: the typed adapter carries
 /// literal objects — control characters included — losslessly through the chase.
+///
+/// This deliberately does not first copy the entire immutable `RdfDataset` into a
+/// mutable `WorldStore` and then query every world back out. The frozen IR already
+/// carries the same graph/term information; iterating it once avoids a redundant
+/// full-dataset intern/index pass on every reasoning call while preserving the
+/// world semantics exactly (default and blank-node graph names remain inaccessible
+/// to the named-world calculus, as they are through `WorldStore::worlds`).
 ///
 /// Factored out so benchmark seams drive the exact same fact set as the production
 /// reasoning path.
@@ -797,24 +1034,25 @@ pub(crate) fn run_reasoning_rules(
 ///
 /// Returns `Err` if the source store cannot be loaded.
 pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFactSet> {
-    let store = WorldStore::new();
-    store.load_dataset(edb)?;
-
     let mut edb_facts = TypedFactSet::new();
-    for world in store.worlds() {
-        for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
-            if !quad.o.is_iri() {
-                continue;
-            }
-            // The predicate is always an IRI (RDF invariant); a non-IRI predicate
-            // cannot be a relation name, so skip it defensively.
-            let Some(predicate) = quad.p.as_iri() else {
-                continue;
-            };
-            // Blank subjects/objects are Skolemized inside `push_quad`; the
-            // world travels as a plain string literal.
-            edb_facts.push_quad(&quad.s, predicate, &quad.o, &world);
+    for quad in edb.quads() {
+        let Some(graph) = quad.g else { continue };
+        let TermRef::Iri(world) = edb.resolve(graph) else {
+            continue;
+        };
+        let TermRef::Iri(predicate) = edb.resolve(quad.p) else {
+            continue;
+        };
+        if !matches!(edb.resolve(quad.o), TermRef::Iri(_)) {
+            continue;
         }
+
+        // Resolve only the two fact arguments that survive the semantic filter.
+        // Blank subjects/objects are Skolemized inside `push_quad`; the world
+        // travels as a plain string literal exactly as before.
+        let subject = edb.term_value(quad.s);
+        let object = edb.term_value(quad.o);
+        edb_facts.push_quad(&subject, predicate, &object, world);
     }
     Ok(edb_facts)
 }
@@ -904,6 +1142,77 @@ mod tests {
         builder.freeze().expect("valid test dataset")
     }
 
+    fn fact_surfaces(facts: &TypedFactSet) -> Vec<(String, Vec<String>)> {
+        let mut rows = facts
+            .facts()
+            .map(|fact| {
+                (
+                    fact.predicate.clone(),
+                    fact.args
+                        .iter()
+                        .map(|&id| facts.interner().display_of(id).to_owned())
+                        .collect(),
+                )
+            })
+            .collect::<Vec<_>>();
+        rows.sort();
+        rows
+    }
+
+    #[test]
+    fn direct_edb_fold_is_fact_identical_to_the_world_store_adapter() {
+        let p = "http://gmeow.example/p";
+        let w2 = "urn:gmeow:test:world-2";
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in [
+            quad(A, p, B),
+            RdfQuad::new(RdfTerm::blank_node("subject"), p, RdfTerm::iri(C))
+                .in_graph(RdfTerm::iri(w2)),
+            // Literal objects are outside the fixed EL/DL relation fragment.
+            RdfQuad::new(
+                RdfTerm::iri(A),
+                p,
+                RdfTerm::literal(RdfLiteral::simple("annotation")),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            // Default and blank-node graph names are not named-IRI worlds.
+            RdfQuad::new(RdfTerm::iri(A), p, RdfTerm::iri(C)),
+            RdfQuad::new(RdfTerm::iri(B), p, RdfTerm::iri(C))
+                .in_graph(RdfTerm::blank_node("graph")),
+        ] {
+            builder.push_owned_quad(&quad);
+        }
+        let dataset = builder.freeze().expect("mixed-world fixture freezes");
+
+        let direct = build_edb_facts(dataset.as_ref()).expect("direct frozen-IR fold");
+
+        // The retired production shape is retained here as a semantic oracle: copy
+        // through WorldStore, enumerate its named worlds, and build the same typed
+        // facts. The optimized one-pass adapter must change cost, never membership.
+        let store = WorldStore::new();
+        store
+            .load_dataset(dataset.as_ref())
+            .expect("world-store oracle load");
+        let mut via_store = TypedFactSet::new();
+        for world in store.worlds() {
+            for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
+                if !quad.o.is_iri() {
+                    continue;
+                }
+                let Some(predicate) = quad.p.as_iri() else {
+                    continue;
+                };
+                via_store.push_quad(&quad.s, predicate, &quad.o, &world);
+            }
+        }
+
+        assert_eq!(
+            fact_surfaces(&direct),
+            fact_surfaces(&via_store),
+            "the direct frozen-IR fold preserves the exact named-world fact set"
+        );
+    }
+
     #[test]
     fn native_contract_hash_frames_every_load_bearing_engine_component() {
         let names = NATIVE_CONTRACT_COMPONENTS
@@ -921,6 +1230,12 @@ mod tests {
                 "reason/dl.rs",
                 "reason/mod.rs",
                 "oracle.rs",
+                "certify.rs",
+                "lower.rs",
+                "materialize.rs",
+                "relational_core.rs",
+                "stablemodel.rs",
+                "wellfounded.rs",
                 "rule_ir.rs",
                 "physical/plan.rs",
                 "physical/seminaive.rs",
@@ -1762,5 +2077,133 @@ mod tests {
                 .map(|a| (&a.subject, &a.predicate, &a.object))
                 .collect::<Vec<_>>()
         );
+    }
+
+    // ── Mid-chase step governor: reason_all_budgeted CUTS the forward closure ──────────
+
+    /// A subclass chain c0 ⊑ c1 ⊑ … ⊑ c(n-1) with x : c0. The native DL closure derives
+    /// every transitive subsumption (O(n²)) and propagates x up the whole chain (O(n)), so
+    /// the committed-derivation count grows super-linearly across many semi-naive rounds —
+    /// a closure large enough that a tiny step budget must cut it mid-chase.
+    fn chain_dataset(n: usize) -> std::sync::Arc<purrdf::RdfDataset> {
+        let cls = |i: usize| format!("http://gmeow.example/c{i}");
+        let mut quads = Vec::new();
+        for i in 0..n.saturating_sub(1) {
+            quads.push(quad(&cls(i), SUBCLASS, &cls(i + 1)));
+        }
+        quads.push(quad(X, TYPE, &cls(0)));
+        dataset(quads)
+    }
+
+    #[test]
+    fn reason_all_budgeted_cuts_the_chase_and_returns_a_strictly_smaller_partial_closure() {
+        let store = chain_dataset(20);
+
+        // Ground truth: the UNBUDGETED closure runs to full fixpoint.
+        let full = reason_all(store.as_ref()).expect("unbudgeted reason_all decides the closure");
+        let full_len = full.inferred().len();
+        assert!(
+            full_len > 100,
+            "the chain closure must be large enough to bound meaningfully; got {full_len}"
+        );
+
+        const MAX: u64 = 5;
+        let budget = Budget {
+            max_answers: None,
+            max_steps: Some(MAX),
+        };
+        let cut =
+            reason_all_budgeted(store.as_ref(), &budget).expect("budgeted reason_all decides");
+
+        // The cut is OBSERVED on the governor's own signal — the budget-exhausted status and
+        // the committed step count — NOT inferred from a size comparison after a full run.
+        assert_eq!(
+            cut.evaluation,
+            EvaluationStatus::BudgetExhausted,
+            "a mid-chase cut is a non-conclusive budget-exhausted verdict"
+        );
+        assert_eq!(cut.completeness, CompletenessStatus::Incomplete);
+        assert_eq!(
+            cut.information,
+            InformationState::Undetermined,
+            "a truncated closure yields the honest Undetermined, never a wrong supported/both"
+        );
+        assert_eq!(
+            cut.provenance.consumed_budget.consumed, MAX,
+            "the governor admits EXACTLY max_steps committed derivations, then stops"
+        );
+        assert_eq!(cut.provenance.consumed_budget.allowance, Some(MAX));
+        assert_eq!(
+            cut.provenance.consumed_budget.limit,
+            Some(crate::result::BudgetLimit::Inference)
+        );
+
+        // The materialized PARTIAL closure is STRICTLY smaller than the full closure: the
+        // chase stopped deriving facts, it was not relabeled after running to completion.
+        assert!(
+            cut.inferred().len() < full_len,
+            "partial closure ({}) must be strictly smaller than the full closure ({full_len})",
+            cut.inferred().len()
+        );
+        assert!(
+            !cut.inferred().is_empty(),
+            "the partial closure still carries the EDB echo + the derivations the budget bought"
+        );
+    }
+
+    #[test]
+    fn reason_all_budgeted_with_ample_budget_is_byte_identical_to_unbudgeted() {
+        let store = chain_dataset(8);
+        let full = reason_all(store.as_ref()).expect("unbudgeted reason_all");
+
+        // A ceiling far above the true closure never trips the governor.
+        let ample = reason_all_budgeted(
+            store.as_ref(),
+            &Budget {
+                max_answers: None,
+                max_steps: Some(100_000),
+            },
+        )
+        .expect("ample budgeted reason_all");
+        assert_eq!(
+            ample.evaluation,
+            EvaluationStatus::Completed,
+            "an ample ceiling completes normally (no spurious truncation)"
+        );
+        assert_eq!(
+            ample, full,
+            "an uncut budgeted run is byte-identical to the unbudgeted reason_all"
+        );
+
+        // The absent-budget (`None`) path is likewise byte-identical to today's reason_all.
+        let none = reason_all_budgeted(
+            store.as_ref(),
+            &Budget {
+                max_answers: None,
+                max_steps: None,
+            },
+        )
+        .expect("none-budget reason_all");
+        assert_eq!(
+            none, full,
+            "max_steps == None is the unbudgeted path — identical to reason_all"
+        );
+    }
+
+    #[test]
+    fn reason_all_budgeted_partial_closure_is_deterministic() {
+        let store = chain_dataset(16);
+        let budget = Budget {
+            max_answers: None,
+            max_steps: Some(7),
+        };
+        let a = reason_all_budgeted(store.as_ref(), &budget).expect("budgeted run a");
+        let b = reason_all_budgeted(store.as_ref(), &budget).expect("budgeted run b");
+        assert_eq!(a.evaluation, EvaluationStatus::BudgetExhausted);
+        assert_eq!(
+            a, b,
+            "the same input + the same small max_steps must yield the SAME partial closure"
+        );
+        assert_eq!(a.provenance.consumed_budget.consumed, 7);
     }
 }

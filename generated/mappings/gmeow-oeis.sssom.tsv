@@ -1,7 +1,7 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/oeis
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by-sa/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: "math: named-constant \u2192 OEIS decimal-expansion locators (by reference; link-only). Each cell relates a math:MathematicalConstant to the OEIS A-number whose sequence is that constant's decimal expansion \u2014 a related resource, not an identity (skos:relatedMatch). OEIS is CC BY-SA 4.0 (share-alike), so the alignment is by reference only: no OEIS data is vendored and each object IRI is a real, curl-validated oeis.org A-number."

@@ -8,7 +8,7 @@
 # Worked statement-metadata cells — the canonical RDF 1.2 / RDF* exemplars.
 #
 # Each gmeow:StatementMetadata cell is a 1:1 transcription of one RDF 1.2
-# reifying statement. The `gmeow regenerate` statements generator renders these to:
+# reifying statement. The `gmeow-dev sync --mode update --outputs generated` statements generator renders these to:
 #   * statements/gmeow.rdf12.ttl          (the RDF 1.2 / RDF* lead artifact)
 #   * statements/gmeow-statements.owl.ttl (the OWL axiom-annotation downcast)
 # verified mutually lossless by round-trip isomorphism.

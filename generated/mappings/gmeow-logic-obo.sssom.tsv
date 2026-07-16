@@ -1,0 +1,20 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/logic-obo
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Canonical logic relation bridge views onto BFO and OBO Relation Ontology predicates. Spatial or causal specializations are relatedMatch rather than false equivalences."
+# curie_map:
+#   bfo: http://purl.obolibrary.org/obo/
+#   logic: https://blackcatinformatics.ca/logic/
+#   ro: http://purl.obolibrary.org/obo/RO_
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+# # OBO relations are linked by their persistent OBO IRIs and remain outside the imported closure.
+subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+logic:causalPartOf	skos:relatedMatch	ro:0002418	causally upstream of or within	semapv:ManualMappingCuration	0.75	
+logic:disjoint	skos:relatedMatch	ro:0002171	spatially disjoint with	semapv:ManualMappingCuration	0.7	RO_0002171 is spatially specialized; logic:disjoint is interpreted by the active mereology profile.
+logic:memberOf	skos:closeMatch	ro:0002350	member of	semapv:ManualMappingCuration	0.85	
+logic:overlaps	skos:relatedMatch	ro:0002131	overlaps	semapv:ManualMappingCuration	0.75	RO_0002131 is spatial overlap; logic:overlaps is profile-relative mereological overlap.
+logic:partOf	skos:closeMatch	bfo:BFO_0000050	part of	semapv:ManualMappingCuration	0.9	

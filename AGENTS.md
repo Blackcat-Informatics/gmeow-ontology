@@ -9,18 +9,45 @@ Welcome, AI Agent! This file is your behavioral contract and instruction manual 
 
 ## 1. Project Overview & Architecture
 
-GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary** that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data.
+GMEOW is a **reasoning-centric, RDF 1.2-native, logic-canonical super-vocabulary** that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data. OWL 2 DL, SHACL, gUFO, and other external formalisms are typed target views of the canonical grounding kernel, not its semantic owners.
 
-Every design decision, code modification, and schema change is governed by the twelve principles of the [CONSTITUTION.md](./CONSTITUTION.md). Cite these principles by number (e.g., `"Principle 4"`) in your commit messages, pull requests, and discussions.
+Every design decision, code modification, and schema change is governed by the nineteen principles of the [CONSTITUTION.md](./CONSTITUTION.md). Cite these principles by number (e.g., `"Principle 4"`) in your commit messages, pull requests, and discussions.
 
 ### Critical Ontological Rules
 
 * **One Canonical Source (Principle 4)**: Do not hand-edit generated files. Any change must be made in the canonical source files.
-  * **Mappings**: Authored in [dsl/mappings/](./dsl/mappings/) -> compiled to `generated/`
+  * **Mappings**: Shared vocabulary and cross-cutting sets live in [dsl/mappings/](./dsl/mappings/); slice-owned mappings live in `slices/<group>/<name>/mappings/`. Both compile to `generated/`.
   * **Statements**: Authored in [dsl/statements/](./dsl/statements/) -> compiled to `generated/statements/`.
   * **Citations**: Authored in [metadata/references.ttl](./metadata/references.ttl) -> compiled to [generated/references/](./generated/references/). Follow [docs/CITATIONS.md](./docs/CITATIONS.md) when adding external sources, standards, issues, PRs, or review-thread citations.
-* **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The logical core stays OWL 2 DL.
+* **Grounding ownership (Principles 17 & 19)**: All semantic grounding to external formalisms is authored in `slices/grounding/lang`, `slices/grounding/math`, or `slices/grounding/logic`. The grounding term is the source and the external vocabulary is the target. Grounding correspondences ship in `graph/correspondence-laws`; SSSOM is only a generated view. Read [docs/GROUNDING.md](./docs/GROUNDING.md) and the owning slice's design set before editing these seams.
+* **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The canonical logical core is `logic:`; OWL 2 DL is a generated decidable projection.
 * **Co-equal & Non-privileged (Principles 9 & 10)**: There is no `primaryName`, `preferredGender`, or single-winner preference. A contested fact is represented as coexisting standpoint-indexed claims. A superseded label/deadname is suppressed using `gmeow:displayable false` rather than deleted.
+* **Validation is authored in `logic:`, never on a shape surface (Principle 17)**: OWL, SHACL, ShEx, and Datalog are **generated lossy projections** of the canonical `logic:` core, not authoring surfaces. See [`slices/grounding/logic/design/LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md) and [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md). Concretely, when you add a constraint to a slice:
+  * **NEVER hand-author a `sh:NodeShape` / `sh:PropertyShape` in a slice's `shapes.ttl`** (or root `shapes/*.ttl`). A hand-authored shape is a **second source of truth** no reasoner backs, no loss ledger governs, and free to drift — it is sealed off by the projection-purity gate (`meta:gate-projection-shape-purity`). Any authored shape that remains must carry a `logic:formalizes` back-reference naming the `logic:` node it projects; an un-backed shape is flagged `slice-quality.projection.ungrounded-shape` by the `gmeow:axisShapeMigration` quality axis. (The many legacy `shapes.ttl` blocks are a **debt being migrated under equivalence-before-deletion**, not a pattern to copy.)
+  * **The projection-vocabulary ratchet caps net-new ungrounded growth.** A `make check` gate holds a per-(slice, guarded-vocabulary) non-increasing ceiling on ungrounded residue — hand-authored constructs carrying no resolvable typed `logic:formalizes`, authored outside the vocabulary's grounding-slice owner boundary. Net-new second-source authoring in SHACL, gUFO, BFO/OBO/DOLCE/SUMO bridge vocabularies, RDFS subsumption (`rdfs:subClassOf`/`subPropertyOf`), and the alignment stack reds the gate; a ceiling only ever falls (equivalence-before-deletion). See [`docs/PROJECTION-VOCABULARY-RATCHET.md`](./docs/PROJECTION-VOCABULARY-RATCHET.md).
+  * **Declarative checks** (cardinality, `sh:class`/datatype/node-kind/value-set) are authored as **ordinary EL-safe OWL/RDFS axioms in the slice's `module.ttl`** — `rdfs:domain`/`rdfs:range`, `owl:allValuesFrom`/`someValuesFrom`/`hasValue`, `owl:oneOf`, `owl:disjointWith`, `owl:FunctionalProperty`, and `owl:maxQualifiedCardinality`/`minQualifiedCardinality` **+ `owl:onClass`**. The pipeline **derives** the SHACL Core + ShEx surfaces from these axioms (`derive_validation_shapes`); you write the axiom, never the shape. **Never** un-qualified `owl:cardinality`/`owl:minCardinality`/`owl:maxCardinality` (out of the EL fragment — hard-fails `make reason-verify`). A genuinely closed-world **required path** (`sh:minCount 1`) is `owl:allValuesFrom` **plus** an explicit `logic:ClosureEntry` (`logic:onClass K`, `logic:closureKey P`, `logic:closureValue logic:ClosedWorldClosure`), never a bare existential.
+  * **Procedural / cross-node checks** (value comparisons, guarded existence, uniqueness, forbidden patterns) are authored as a **`logic:Constraint`** whose `logic:integrity` is a realized `logic:Formula` tree (`∀/∃/∧/∨/¬/→`, `logic:relation` + `logic:argument`), carrying `logic:formalizes` and `logic:message`. The pipeline lowers it to a `sh:SPARQLConstraint`. Slice sugar (`logic:GuardedImplicationConstraint`, `logic:ChoiceGroupConstraint`, `logic:ForbiddenPatternConstraint`, …) is available; see [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md) for the cheatsheet and [`slices/core/ai/module.ttl`](./slices/core/ai/module.ttl) for worked examples.
+  * **Mathematical / structural laws** are authored as real first-order `logic:Formula` ASTs (e.g. `math:continuityLaw`), attached via `math:definingLaw`/`math:preservesStructure`; a genuinely higher-order property that is not first-order axiomatizable is carried as an honest `logic:expressivenessBoundary` record (e.g. `math:compactnessBoundary`), never a faked formula.
+  * **In short — OWL as a downstream *surface* is a code smell; OWL/RDFS declarative *axioms in `module.ttl`* are the canonical derive-source and are correct.** If a check cannot be expressed as an EL-safe axiom or a `logic:Constraint`, it is carried as flagged unsupported residue in the loss ledger and the check is relocated — a STOP-and-ask, never a self-granted hand-authored-shape exception.
+
+### No-optionality doctrine
+
+> **No-optionality forbids silent capability degradation; it does not forbid explicit feature selection.**
+
+For a selected operation and profile, every declared input, capability, invariant,
+and output is mandatory. Explicit profiles, sinks, output formats, and DAG branches
+are permitted when they are first-class, deterministic, cache-keyed, and fully
+validated. Missing capabilities must fail; they must never cause silent semantic
+degradation.
+
+Accordingly, CLI choices such as requesting documentation output, selecting an
+extended projection profile, choosing RDF 1.2 output, or naming an output path are
+valid optional inputs that define the requested DAG. Once selected, their stages
+and outputs are required. A missing cache causes recomputation, not skipped work.
+A missing dependency, source, or implementation must hard-fail rather than invoke
+a weaker parser, omit part of an output, retain stale bytes, or otherwise
+half-implement the selected operation. Rust `Option<T>` and conditional DAG edges
+are not themselves violations; opportunistic fallback with weaker semantics is.
 
 ---
 
@@ -77,8 +104,8 @@ enforce the transform, while a compile-time assertion pins purrdf's dist level t
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
 make validate-gts    # Validate generated/dist/gmeow.gts
-make regenerate # Rebuild ALL committed generated artifacts (the registry; parallel by default)
-make check-generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
+make sync # Rebuild ALL committed generated artifacts (the registry; parallel by default)
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl)
 make crate-check     # Verify Rust crate layering and acyclic crate DAGs
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
@@ -121,12 +148,14 @@ When you change canonical sources (ontology modules, mapping-dsl, statement-dsl)
 The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every committed artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
 
 ```bash
-make regenerate      # Rebuild ALL checked-in generated artifacts from canonical sources
-make commit          # Run regenerate, stage the artifacts, and commit (default message)
+make sync                        # Update every output family (local default)
+make sync SYNC_MODE=check        # Strict read-only verification (the CI default)
+make sync SYNC_VERBOSE=1         # Stream live DAG stages and sync boundaries
+make commit          # Run sync, stage the artifacts, and commit (default message)
 make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ```
 
-`make regenerate` runs the registered generators in topological order. Independent generators at the same topological level execute in parallel (default `-j` capped at the CPU count, with a memory-aware ceiling), and a source/output hash stamp cache under `.stamps/generators/` lets `regenerate` and `check-generated` skip generators whose inputs, implementation, and committed outputs have not changed. Override with `--no-skip-unchanged` or `-j 1` via the CLI if needed. It refreshes everything under `generated/`:
+`make sync` runs the registered pipeline exactly once in topological order and, by default, fans out the committed `generated/` tree, runtime `dist/` projections, and external documentation. `SYNC_OUTPUTS=generated` or `docs` explicitly narrows what is materialized without weakening the selected profile's dependencies or gates. Independent generators at the same topological level use every available CPU by default; `--jobs N` is an explicit local override, never a hidden low thread cap. Use `SYNC_VERBOSE=1` (or `gmeow-dev sync --verbose`) to stream live DAG stages and synchronization boundaries. A worktree-local clean manifest under `.cache/gmeow-sync/manifests/` hashes canonical inputs and witnesses every managed output, so a warm fixed-point run skips the pipeline entirely. On a miss, cumulative carrier snapshots are recomputed in memory rather than serialized into a multi-gigabyte stage cache. Update mode writes only byte-changed files and removes stale owned outputs; check mode renders and validates without touching files.
 
 * `generated/mappings/`, `generated/projections/`, `generated/queries/` — the `mappings` generator
 * `generated/statements/` — the `statements` generator (RDF 1.2 lead + OWL downcast)
@@ -135,15 +164,15 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 * `generated/lpg/`, `generated/schemas/` — the `lpg` and `schemas` generators
 * `generated/module-status.md` — the `matrix` generator (the per-slice audit ledger)
 
-`make commit` stages only the generated artifacts above. If you also have source changes (e.g. in `dsl/mappings/`), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
+`make commit` stages only the generated artifacts above. If you also have source changes (for example in `dsl/mappings/` or a slice-local `mappings/` directory), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
 
 > [!TIP]
-> If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check-generated` to verify the full gate still passes.
+> If you suspect generated files are stale but do not want to commit yet, run `make sync SYNC_MODE=check`. It checks the complete fixed point without touching files.
 
 ### Release Outputs
 
 ```bash
-make docs            # Regenerate external docs: site/book/print/snippets, OKF, YAML-LD
+make sync SYNC_OUTPUTS=docs # Regenerate external site/book/print/snippet/model docs
 make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
@@ -155,10 +184,12 @@ packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
 release workflow explicitly writes the signed copy there before packaging.
 
 Documentation projections are never embedded in `gmeow.gts`. The static site,
-mdbook sources, print PDF/Typst, prompt snippets, OKF Markdown, JSON-LD, and
-YAML-LD are derived artifacts regenerated with `make docs`; Pages CI must use
-the source-backed `gmeow-dev export-docs` command. This keeps the logical GTS
-carrier separate from large, easily-derived presentation payloads (Principle 4).
+mdbook sources, print PDF/Typst, prompt snippets, and generated model docs are
+derived artifacts regenerated with `make sync SYNC_OUTPUTS=docs`; Pages CI must
+use the source-backed `gmeow-dev sync --mode update --outputs docs` command. The
+default `make sync` additionally materializes runtime export projections such as
+OKF Markdown, JSON-LD, and YAML-LD. This keeps the logical GTS carrier separate
+from large, easily-derived presentation payloads (Principle 4).
 
 ### Reasoning & Negative Tests
 
@@ -189,6 +220,13 @@ make rust-build      # Compile Rust workspace test binaries without running them
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
 
+Generic RDF 1.2 / RDF\* and SPARQL compliance belongs to PurRDF's own test
+suite. GMEOW does not duplicate that authority with queries that merely prove
+an upstream engine can execute. Repository query tests must assert expected
+GMEOW product behaviour. The separate `make reason-crosscheck` lane remains:
+it compares GMEOW's native reasoning calculus with the independent
+`purrdf-entail` oracle (Principles 4, 7, 18).
+
 ### Maintainer Tasks
 
 All maintainer-only work is prefixed with `maint-`. These targets may use
@@ -197,7 +235,6 @@ are intentionally outside the normal local `make check` path unless a workflow
 calls them explicitly.
 
 ```bash
-make maint-crosscheck               # Native purrdf query-answer cross-check
 make maint-extract TARGET=foaf      # Import/extract policy for one target
 make maint-refresh-target-axioms    # Re-vendor minimal target-axiom snapshots
 make maint-wikidata-live            # Network existence checks for Wikidata IDs
@@ -267,328 +304,42 @@ For optimization doctrine beyond the report-only benchmark commands, see
 guide for static iterator seams, dense typed IDs, const generics/type-state,
 targeted SIMD, sealed traits, deterministic output, and Cargo profile changes.
 
-#### The 25 s per-test budget
+#### Test performance and long-running coverage
 
-**Every test on the always-on gate must complete under 25 s of real wall time.**
-`make rust-test` / `make rust-gate` (and the CI rust shards) run
-`cargo nextest run --profile ci` and then
-`cargo run -p gmeow-test-budget -- target/nextest/ci/junit.xml`, which parses the
-JUnit report and reports any test over budget (`crates/test-budget`, std-only, no
-Python). Override the threshold with `GMEOW_TEST_BUDGET_SECS` only for local
-experiments — never to weaken the gate.
+Wall-clock duration is **not a correctness gate**. `make rust-test`,
+`make rust-gate`, and the CI Rust shards fail on correctness, lint, snapshot,
+and genuine runaway failures — never because one test crossed an elapsed-time
+threshold. Shared development servers and hosted runners vary too much in load,
+cache warmth, and filesystem contention for a single wall-clock sample to be a
+stable policy signal.
 
-**Enforcement is environment-aware, because wall-clock is only trustworthy on a
-dedicated runner.** In CI the gate **hard-fails (exit 1)** on any over-budget test
-— CI is the authoritative timing environment. On a developer box (many concurrent
-worktrees push load far above core count, inflating every heavy test) the gate is
-**advisory**: it still prints the offenders as a warning, but returns success, so
-contention can't emit false reds that block a local `make check`. This is not a
-weakened gate — it measures the right thing in the right place. Enforcement keys on
-the platform-guaranteed `CI` variable and is made explicit by the CI step setting
-`GMEOW_TEST_BUDGET_ENFORCE=1`; that variable (`1`/`true`/`on` vs `0`/`false`/`off`)
-overrides the autodetect in both directions for a local strict check
-(`GMEOW_TEST_BUDGET_ENFORCE=1 make rust-gate`) or a CI soft run.
+The nextest `slow-timeout` remains a 60-second repeated-progress backstop. It
+terminates only after two slow periods and exists to catch hangs/runaways; it is
+not a performance budget. There is no `gmeow-test-budget` post-processor and no
+`GMEOW_TEST_BUDGET_*` enforcement surface.
 
-The nextest `slow-timeout` (`.config/nextest.toml`) stays at the 120 s terminate
-cliff purely as a runaway/hang backstop; the 25 s **policy** is the JUnit gate.
+Scheduling must scale with the host. Do not add fixed global or test-group
+concurrency caps, especially one- or two-thread ceilings. Tests that themselves
+start a full-width worker pool may reserve `threads-required = "num-cpus"` so
+nextest avoids nested oversubscription; that reservation automatically uses the
+available CPU count on both a small CI runner and a 32+ CPU development server.
 
-A test that is *irreducibly* heavier than the budget does NOT get a per-test
-timeout override. Instead it is **carved out of the default/ci profiles and runs
-on the `maint-heavy` profile** (`make maint-rust-heavy`), so its coverage still
-runs — off the per-commit gate, on a maint/scheduled lane. Correctness failures
-stay in the normal gate, even when they were first discovered during
-`maint-heavy` evaluation. The single source of truth for what is off-gate is the
-**`default-filter` expression in `.config/nextest.toml`**; every excluded group
-is justified by an inline comment there. Adding a new off-gate exception requires
-a comment in that filter AND a one-line entry here.
+Optimize from evidence rather than a threshold:
 
-Default off-gate groups (reevaluated 2026-06-29): `gmeow-validate`
-`deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` (30.705 s
-locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
-reasons over user data merged with the whole bundled TBox via the native
-chase; the same merge->inconsistency path is covered on-gate by the fast
-tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
-`deep_pass_failure_*`/`deep_false_*` validate tests); the `gmeow-pipeline`
-`fold_parity` binary (32.231 s locally; the full real-repo terminal sink vs
-committed `generated/dist/gmeow.gts` fold-isomorphism oracle);
-`gmeow-rdf-capi::c_smoke` (82.854 s in CI shard 1; it cold-builds the
-`libpurrdf` cdylib and compiles/links/runs the real C program, with header and
-linkage coverage retained by the dedicated C-API CI lane and `maint-heavy`);
-`gmeow-pipeline::end_to_end` (82.351 s in CI shard 1; it runs the real
-production spine through `stage-snapshot`, so focused per-stage and carrier
-tests keep the failure modes covered on-gate); the `gmeow-pipeline`
-`fanout_parity` binary and
-`gmeow-pipeline::stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean`
-(20.4 s / 17.5 s / 16.8 s locally, 24–30+ s in CI; they reconstruct the whole
-`generated/` tree from the committed `gmeow.gts` bundle alone — irreducibly
-O(bundle size), the same whole-committed-bundle class as `fold_parity`/`end_to_end`;
-the `lang:` total-prose-lift surface grew the bundle ~30 % and nudged all three
-past budget, and the cost is bundle-size not fixture-dependent; both the superset
-reconstruction gate and the fanout reproduction run on every `make check` via
-`make check-generated`, which hard-fails on any drift, so no coverage leaves the
-gate); and
-`gmeow-pipeline::stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs`
-(25.8 s in CI shard 3; it exercises terminal carrier serialization and import
-round-trip work with no remaining CI headroom);
-`gmeow-foundation-corpus::acceptance::imported_graph_conforms_to_shapes` (26.065 s
-in CI shard 2; whole-ontology SHACL conformance — validates the importer output
-unioned with every `slices/*/*/module.ttl` against the entire shape corpus, which
-now includes the H8-migrated `sh:sparql` constraint shapes; the importer's
-graph-shape parity stays on-gate via the four sibling SPARQL acceptance tests and
-whole-ontology SHACL conformance stays on-gate via the ~35 fixture-only domain
-`conformance_*` validate tests); the four `gmeow-validate` whole-ontology-union
-conformance binaries `conformance_finance`, `conformance_agentic`,
-`conformance_ai_claims`, and `conformance_music_analysis` (~8.8 s locally / 24–26 s
-in CI; these are exactly the domain conformance binaries whose cases use
-`Case::with_ontology()`, unioning the fixture with the WHOLE merged ontology and
-validating that entire graph — not just the fixture — against the ENTIRE shape
-corpus, so they carry the same H8 `sh:sparql`-constraint cost as
-`imported_graph_conforms_to_shapes`; fixture-only conformance cases measure ~0.05 s,
-so the cost is the ontology-union validation and is fixture-independent — the four
-ride the 25 s cliff together and CI jitter alone decides which trip, so the whole
-class is carved out; the ~35 fixture-only `conformance_*` domain tests stay on-gate
-against the same shape corpus and the union path stays covered on `maint-heavy`);
-the `gmeow-validate` `conformance_math_producers` binary (~20 s per test in CI;
-each validates a native math-flagship producer's emitted graph, merged with the
-WHOLE base ontology, against the ENTIRE shape corpus via `validate_with_ontology()`
-— the identical whole-ontology-union cost, so it joins the same off-gate group;
-no coverage leaves the per-commit gate because the five producers are still RUN and
-their pinned values asserted on-gate by `crates/pipeline/tests/math_flagship_discharge.rs`,
-this binary being the extra cross-crate proof that the producer output validates
-SHACL-clean);
-the `gmeow-validate` `conformance_affect_producer_union` binary (the 8
-whole-ontology-union affect twins — four `Case::with_ontology()` exclusivity/label
-twins + four `.shape_union()` projected-cardinality twins — split out of the mixed
-`conformance_affect_producer` binary so its ~10 cheap fixture-only + pure-Rust
-producer tests stay on-gate; the same whole-ontology-union H8 `sh:sparql` cost as
-the domain conformance binaries above, and a deterministic cost-partition bench
-(`make maint-bench-instructions`) measured a single twin's whole-graph scan at
-~34.8 GB / 54.2M allocations of churn — ~63× the one-time corpus setup and ~25,000×
-the fixture-only path — so the per-twin scan is irreducible: no setup cache
-amortizes it and folding raises the per-test maximum to setup + 8× the scan, so it
-joins the same off-gate group);
-`gmeow-pipeline::stages::carrier::quality_assessment_tests::quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`
-(86.2 s; it builds the full self-description carrier, scoring every one of the ~81
-slices to attach the `graph/quality-assessment` named graph that folds into
-`gmeow.gts` — irreducibly O(slice count), the same whole-repo class as
-`end_to_end`/`fold_parity`; the attach↔fanout-path bijection and N-Triples fold form
-stay on-gate via the fast sibling units
-`quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
-`superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
-the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
-`make check` via `make check-generated`, and the exhaustive proof stays on-gate on
-`maint-heavy`); and
-`gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
-it imports the WHOLE committed `gmeow.gts` bundle and drives the native
-chase over it twice, proving the shipped ontology is coherent and that an
-injected disjoint-class clash is caught). This exclusion is **budget-exempt,
-not gate-exempt**: the test still runs on every `make check` via the dedicated
-`make coherence-gate-teeth` target, which selects it with
-`--ignore-default-filter` plus an explicit `-E` filter and does not feed the
-JUnit budget gate. The `lang:` projection surface (OntoLex-Lemon / CoNLL-U /
-SemAF forward projections) plus the native-chase logic growth nudged three
-whole-bundle CLI tests past budget —
-`gmeow-dev-cli::cli_parity::build_writes_serializations`,
-`gmeow-cli::cli::export_respects_language_selector`, and
-`gmeow-cli::cli::project_schema_org_view_filter` (6–8 s standalone but
-25.5–27.5 s under full-parallelism CI contention; each drives the CLI to
-serialize / export / project-a-view over the WHOLE bundle, irreducibly
-O(bundle size), the same whole-committed-bundle class as `fanout_parity` /
-`end_to_end`; the written serializations stay drift-gated on every `make check`
-via `make check-generated`, and all three stay on-gate on `maint-heavy`). The
-same lang: graft + correspondence-laws surface growth pushed one whole-site docs
-test past budget — `gmeow-docs::extract_roundtrip::rendered_tree_is_disk_faithful`
-(32.6 s; it drives the real `render::write_site` over the WHOLE primed
-documentation site, writing every page to disk and reading each back to prove
-on-disk bytes equal the in-memory Site — irreducibly O(site size), and the render
-itself is primed so the cost is the per-file disk round-trip over the grown tree,
-not fixture cost; the docs write contract stays drift-gated on every `make check`
-via `make check-generated` and the test stays on-gate on `maint-heavy`).
-Bringing the grounding-language vocabulary (`math:`/`logic:`/`lang:`, ~1.9k terms)
-into the documented-term set grew the rendered site ~40 % and nudged four more
-whole-site render tests past budget —
-`gmeow-docs::render_golden::render_site_is_byte_stable` (33.1 s),
-`gmeow-docs::mdbook_render::book_bodies_are_rewrite_of_single_authority` (34.5 s),
-`gmeow-docs::extract_roundtrip::english_carrier_tree_matches_render_site` (32.6 s),
-and `gmeow-pipeline::stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site`
-(32.9 s); each renders / re-renders / re-packs / round-trips the WHOLE site, so all
-four are irreducibly O(site size) on page-count alone, not fixture cost; byte-stable
-rendering and the docs archive stay drift-gated on every `make check` via
-`make check-generated`, and all four stay on-gate on `maint-heavy`.
-The `lang:` GMN dialect graft grew the bundle again and nudged the two
-whole-bundle inverse-ingest acceptance tests past budget —
-`gmeow-pipeline::projections::tests::up_project_recovers_message_superclass_via_prp_dom`
-and `gmeow-pipeline::projections::tests::up_project_never_fabricates_subkind_or_sibling`
-(6.2 s each standalone but 26.9–27.3 s under full-parallelism contention; each
-folds the WHOLE committed `gmeow.gts` bundle and drives the real `up_project`
-over its mappings/cells archives, irreducibly O(bundle size), the same
-whole-committed-bundle class as the CLI trio above; the up-projection surface
-keeps its fixture-scale on-gate tests in the same module, and both bundle-scale
-tests stay on-gate on `maint-heavy`).
-The `lang:` total-prose-lift + GMN-graft surface plus the conjecture-library
-`logic:`/`math:` term growth grew the bundle again and nudged three more
-whole-bundle CLI tests past budget —
-`gmeow-cli::cli::project_unknown_view_fails`,
-`gmeow-cli::cli::describe_env_language_rejected_if_unknown`, and
-`gmeow-dev-cli::cli_parity::project_view_over_the_snapshot` (3–5 s standalone but
-27.5–32.2 s under full-parallelism CI contention; each drives the CLI to load /
-describe / project-a-view over the WHOLE committed bundle before its fast
-reject/parity assertion, irreducibly O(bundle size), the identical
-whole-committed-bundle class as the `build_writes_serializations` / export /
-`project_schema_org_view` siblings above; the CLI project/describe surface keeps
-its fixture-scale reject/parity coverage on-gate in the same binaries, the
-serializations stay drift-gated via `make check-generated`, and all three stay
-on-gate on `maint-heavy`).
-`gmeow-pipeline::stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo`
-(~100 s locally) proves the B3 entailment-join is non-vacuous against
-the REAL ontology by running the real `source_load` → `statements` /
-`compile_logic` → `mappings` → `reason` stage chain — a full native-chase
-reasoning pass over the whole EDB, irreducibly O(bundle size), the same
-whole-repo class as `end_to_end`/`quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`;
-the join logic itself stays on-gate via the fast fixture-only siblings
-`term_entailments_from_explanations_populates_matching_term_only` and
-`term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
-same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
-Its two symmetric per-term siblings —
-`stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo`
-(the diagnostics→term join over the real `source_load` → `validate` / `compile_logic`
-chain) and `::term_loss_digest_is_non_vacuous_on_the_real_repo` (the per-term
-projection-loss join over the real `compile_logic` → `mappings` chain) — are the same
-whole-repo cost class and are likewise carved to `maint-heavy`, with their join logic
-proven on-gate by fast synthetic siblings in the same module.
-A new GMN-1 Coverage quality axis grew
-`slices/core/slice-quality-rubric/module.ttl` — already the largest, most prose-dense
-module in the repo, being the self-describing quality rubric itself — to a 13th axis,
-nudging its `structural.ttl` datatest case past budget on this shared dev box:
-`gmeow-slicetest::run_structural_file::core/slice-quality-rubric/tests/structural.ttl`
-(19–42 s depending on contention; a same-scope dataset cache landed in
-`run_structural_cell` first, halving the standalone cost, but the module-size x
-cell-count product is still irreducibly over budget under contention). No coverage
-leaves the gate: the assertions still run on `make maint-rust-heavy`, every other
-slice's `structural.ttl` stays on-gate (only this one file's datatest case is
-excluded), and the rubric's axis-shape invariants stay drift-gated via
-`make check-generated`.
-The self-sufficiency parity harness added four more whole-bundle CLI tests —
-`gmeow-cli::self_sufficiency::transpile_wheel_mode_equals_repo_mode`,
-`::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`,
-`::project_wheel_mode_equals_repo_mode`, and
-`::describe_wheel_mode_equals_repo_mode` (31-53 s locally, `describe` 7.6 s
-standalone but 28.0 s under full-gate contention; each drives
-`gmeow transpile`/`gmeow project`/`gmeow describe` over the WHOLE embedded
-bundle — the transpile parity test runs it twice, blinded-cwd and repo-cwd
-legs — the identical whole-committed-bundle class as the
-`build_writes_serializations` / `export_respects_language_selector` /
-`project_schema_org_view_filter` trio above; the same wheel-mode==repo-mode
-parity law stays on-gate at fixture scale via
-`self_sufficiency::validate_wheel_mode_equals_repo_mode`, and all four stay on-gate on
-`maint-heavy`).
-The native release-attestation round-trip added a whole-bundle pair —
-`gmeow-pipeline::release_verify_roundtrip::release_bundle_with_coherence_evidence_round_trips_natively`
-and `::release_bundle_rejects_an_untrusted_out_of_band_key` (~75 s each locally;
-`fold_release_bundle`/`verify_release_bundle` each replay the WHOLE committed
-~48 MB `generated/dist/gmeow.gts`, irreducibly O(bundle size), the identical
-whole-committed-bundle class as `fold_parity`/`fanout_parity`/`end_to_end`
-above; the real crypto-through-the-built-binary requirement — accept a valid
-signature, reject an invalid one — stays on-gate via
-`gmeow-cli::bundle_smoke`, which builds a small in-process signed `.gts`
-rather than replaying the shipped bundle, and `release.rs`'s own unit tests
-cover the fold/verify pair's logic against a tiny synthetic snapshot; the full
-committed-bundle round-trip stays on-gate on `maint-heavy`).
-The AI-agent docs surface (native `validate_local` + `doc_card` tiers + the
-`docs_search`/`counter_examples`/`entailments`/`competency_questions` tools, backed
-by a `graph/documentation` teaching-content projection) grew the bundle and the MCP
-tool surface enough to push two whole-bundle sweeps past budget:
-`gmeow-pipeline::stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle`
-(27.1 s; reconstructs every axis floor from the committed bundle alone, irreducibly
-O(bundle size), the same whole-committed-bundle class as the superset/reconstruction
-siblings above) and
-`gmeow-pipeline::mcp::tests::json_rpc_protocol_conformance_round_trip`
-(25.3 s; dispatches EVERY advertised tool over the whole bundle — `validate_local`
-runs the full SHACL surface and the four content tools each query the whole
-`graph/documentation` projection — so it grew on tool-surface/bundle size, not
-fixture cost). No coverage leaves the gate: the axis-floor bytes are drift-gated on
-every `make check` via `make check-generated`; each new MCP tool keeps its own
-focused on-gate test (`validate_local` parity+correspondence, the four content-tool
-surface tests, and the `tools/list` mode-gating golden), so every tool is still
-exercised on-gate; and both whole-bundle sweeps run on `maint-heavy`.
-The two exhaustive compile-logic -> mappings integration sweeps are also off-gate:
-`gmeow-pipeline::stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows`
-(26.768 s in the failing CI shard) and
-`gmeow-pipeline::product_routing::compiler_products_are_first_class_dag_artifacts`
-(26.026 s in the same shard). Each runs the real pipeline over the WHOLE authored
-repository and is irreducibly O(ontology/projection size). No coverage class leaves
-the gate: `compile_logic_stage_emits_every_product` proves the compiler artifacts and
-in-memory channel, `loss_ledger_and_diagnostics_reach_the_shipped_bundle` proves the
-routed bundle graphs, focused projection-report units cover report construction, and
-`make check-generated` byte-gates the final committed union; the exhaustive pair runs
-on `maint-heavy`.
-Resolving grounding-namespace terms (`lang:`/`math:`/`logic:`) across the shipped
-`describe` + MCP surfaces added four whole-bundle `describe` tests that ride the same
-25 s cliff on bundle size, not fixture cost —
-`gmeow-cli::cli::describe_resolves_grounding_curies` (40.6 s) and
-`::describe_resolves_grounding_full_iris` (27.4 s) spawn the shipped binary once per
-grounding namespace and each spawn pays the full bundle cold-start (the identical
-whole-committed-bundle O(bundle size) class as the single-spawn sibling
-`describe_env_language_rejected_if_unknown` above, which is 3–5 s standalone but
-27–32 s under CI contention — so splitting into single-spawn tests would not clear the
-cliff either); `gmeow-cli::self_sufficiency::describe_grounding_terms_wheel_mode_equals_repo_mode`
-(59.4 s) runs `gmeow describe` in both the wheel-mode and repo-mode legs (the
-grounding-term twin of `describe_wheel_mode_equals_repo_mode` above); and
-`gmeow-docs::describe::tests::every_grounding_namespace_has_describable_terms_that_render`
-(47.5 s) re-folds the whole bundle once per grounding namespace to prove a term renders
-in each. No coverage class leaves the gate: cross-namespace resolution (CURIE / full-IRI /
-bare-local plus the ambiguity hard-fail) stays on-gate via the fixture-scale resolver unit
-tests in `crates/docs` (`describe.rs`) and `crates/pipeline` (the `export.rs` MCP ambiguity
-test), the registry-vs-`PREFIXES_BY_LEN` coherence stays on-gate via the `lpg_prefixes`
-coherence gate, and all four whole-bundle describe tests stay on-gate on `maint-heavy`.
-The whole-bundle export structural sweep
-`gmeow-pipeline::stages::export::tests::export_produces_structurally_valid_artifacts`
-is likewise off-gate (23.014 s in snapshot review, 25.579 s under the full-gate
-shard). It folds the whole committed bundle and renders all 14 export artifacts, so
-its cost is irreducibly O(bundle and vocabulary size) and now rides the 25 s cliff
-under normal contention. No export coverage class leaves the per-commit gate: the
-focused renderer, schema, and envelope tests remain on-gate, every committed export
-is byte-drift-gated by `make check-generated`, and the exhaustive structural sweep
-runs on `maint-heavy`.
-The typed-IR logic uplift grew the shipped vocabulary, documentation model, and bundle
-enough to push eight more whole-site / whole-bundle tests over the budget under the
-full CI shard: `gmeow-docs::mdbook_render::book_term_chapter_with_dropped_link_golden`
-(30.7 s), `::book_no_relative_link_to_dropped_page` (30.4 s), `::book_toml_golden`
-(26.6 s), `::book_zero_term_slice_renders_valid_chapter` (26.4 s),
-`gmeow-cli::cli::describe_known_term_renders_prose` (28.7 s),
-`::describe_unknown_language_fails_with_available_list` (25.9 s),
-`::describe_toon_format_emits_toon` (25.4 s), and
-`gmeow-docs::describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle`
-(25.8 s). The mdBook cases render the WHOLE primed documentation model, while the
-describe cases load/fold the WHOLE shipped bundle before making their focused
-assertions, so the cost is irreducibly O(site or bundle size), not fixture size.
-Focused renderer, link, language, TOON, and fixture-scale describe tests remain
-on-gate, committed documentation stays byte-drift-gated by `make check-generated`,
-and all eight exhaustive cases run on `maint-heavy`.
-Former off-gate groups such as
-ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
-correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
-acceptance, JSON-LD round-trips, slice/slicetest parity, and
-docs live-render guards are in the default/ci profile.
+* use `make bench`, `make bench-compare`, allocation counters, profiles, and
+  deterministic structural counts;
+* compare the same production path before and after, recording cache state and
+  host contention;
+* remove redundant parsing, indexing, serialization, joins, fixture construction,
+  and I/O in production code where possible;
+* preserve semantic parity, deterministic output, and generated-artifact identity.
 
-Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
-`DocsModel` *and* the rendered site for every available language from the
-content-addressed `gmeow_docs::fixture` cache instead of rebuilding or re-rendering.
-The cache is primed once before the run — the `prime-docs-fixture` example, run by
-the Makefile test lanes and the CI test job ahead of `nextest` — so no test pays the
-~12 s build, the cold concurrent-rebuild contention, or a per-language site render. A
-plain `cargo test` still works (a miss falls through to a build/render). The
-live-full-render guards — `render_site_is_byte_stable` and
-`english_carrier_tree_matches_render_site` — measured around 2.1 s locally on
-2026-06-29 and are now on-gate too. The language-comparison round-trips
-(`french_tree`, `chinese_tree`, and the translated no-dangling-link check) only
-need a render's *output*, so they read the per-language cache and are on-gate;
-every single-page / single-term docs test stays on-gate.
-
-The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
-corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an
-expensive fixture once per run like the docs-model cluster) over moving it to
-maint-heavy. Off-gate is for the genuinely irreducible.
+The default nextest filter may still place genuinely exhaustive whole-repository
+proofs on `maint-heavy` when focused tests and dedicated drift gates cover the
+same per-commit contract. This is an architectural lane distinction, not a
+duration allowlist. Never move a test off the default profile merely because a
+contended wall-clock sample was slow. `make maint-rust-heavy` remains the command
+for the complete exhaustive lane.
 
 #### GTS engines (moved to the `gmeow-gts` repo)
 
@@ -612,35 +363,55 @@ The Makefile is only a task runner. The actual compiler and validation logic liv
 
 ### Mapping Compiler
 
-Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), implemented by the native Rust pipeline stage in [crates/pipeline/src/stages/mappings.rs](./crates/pipeline/src/stages/mappings.rs) and the `gmeow-slice` emitters.
+Mapping compilation runs inside `gmeow-dev sync --mode update --outputs generated` (the `mappings` generator), implemented by the native Rust pipeline stage in [crates/pipeline/src/stages/mappings.rs](./crates/pipeline/src/stages/mappings.rs) and the `gmeow-slice` emitters.
 
-* **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/), plus the DSL vocabulary in [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
+* **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/) and every slice-local `slices/<group>/<name>/mappings/` directory. The shared DSL vocabulary remains [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
 * **Generated outputs**:
-  * `mappings/*.sssom.tsv` — SSSOM term-equivalence rows.
-  * `projections/*.edoal.ttl` — EDOAL alignment cells.
-  * `projections/functions.fno.ttl` — generated FnO function catalog.
-  * `queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
+  * `generated/mappings/*.sssom.tsv` — SSSOM term-equivalence rows.
+  * `generated/projections/*.edoal.ttl` — EDOAL alignment cells.
+  * `generated/projections/functions.fno.ttl` — generated FnO function catalog.
+  * `generated/queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
 * **Hand-authored companion file**: `dsl/mappings/transforms.fno.ttl` is read by the compiler/lints but is authored, never generated.
 * **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
-* **Drift check**: `make check-generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
+* **Drift check**: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
 The mapping DSL has two main authoring units:
 
 * `gmeow:TermEquivalence` for pure cross-ontology links that compile to SSSOM rows.
 * `gmeow:ProjectionMapping` for directional, possibly lossy projections that compile to SPARQL branches and, when applicable, EDOAL/FnO/SSSOM artifacts.
 
+`logic:GroundingCorrespondence` is the explicit grounding marker on either a
+`gmeow:TermEquivalence` frontend cell or a single-binding
+`gmeow:ProjectionMapping`. It requires `gmeow:justification`, named
+`logic:sourceEndpoint` and `logic:targetEndpoint` values, and explicit
+`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`
+judgments; the complete contract is specified in
+[`LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md).
+The cell compiles to a shipped content-addressed `logic:Correspondence`. All
+external grounding belongs to exactly one
+grounding slice: linguistic and serialization catalogs in
+[`slices/grounding/lang/mappings/`](./slices/grounding/lang/mappings/),
+mathematical catalogs in
+[`slices/grounding/math/mappings/`](./slices/grounding/math/mappings/), and
+formal or upper-ontology catalogs in
+[`slices/grounding/logic/mappings/`](./slices/grounding/logic/mappings/).
+These laws ship in `gmeow.gts`; they are not disposable documentation
+projections. A domain slice must use the grounding term and must not re-author
+the external term or a competing correspondence. Incomplete marker metadata is
+a validation error.
+
 Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to satisfy review feedback. Patch the DSL source, re-run the compiler, and include the regenerated artifacts.
 
 ### Statement Compiler
 
-Statement compilation runs inside `gmeow regenerate` (the `statements` generator), implemented by the native Rust stage in [crates/pipeline/src/stages/statements.rs](./crates/pipeline/src/stages/statements.rs) and the `gmeow-rdf` statement codec.
+Statement compilation runs inside `gmeow-dev sync --mode update --outputs generated` (the `statements` generator), implemented by the native Rust stage in [crates/pipeline/src/stages/statements.rs](./crates/pipeline/src/stages/statements.rs) and the `gmeow-rdf` statement codec.
 
 * **Canonical input**: all Turtle files under [dsl/statements/](./dsl/statements/), plus the DSL vocabulary in [dsl/statements/vocabulary.ttl](./dsl/statements/vocabulary.ttl).
 * **Generated outputs**:
   * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine. rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
   * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
 * **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `maint-statements-docker-check` oracle lane.
-* **Drift check**: `make check-generated` performs the registered-generator check and fails if committed statement artifacts are stale.
+* **Drift check**: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` performs the registered-generator check and fails if committed statement artifacts are stale.
 
 Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `dsl/statements/`.
 
@@ -648,9 +419,9 @@ Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeo
 
 Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical. Treat that as binding:
 
-* Source changes belong in `slices/<group>/<name>/module.ttl`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
-* Generated artifact changes must be reproducible by `make regenerate`.
-* If `make check-generated` reports drift, run `make regenerate` rather than hand-editing the output.
+* Source changes belong in `slices/<group>/<name>/module.ttl`, slice-local `mappings/`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
+* Generated artifact changes must be reproducible by `make sync`.
+* If `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` reports drift, run `make sync` rather than hand-editing the output.
 * If a generated artifact is nondeterministic, fix the compiler determinism bug. Do not normalize the artifact by hand.
 
 ### Vocabulary Index (llms.txt)
@@ -658,7 +429,7 @@ Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical.
 This project automatically generates a single-file, flat index of all classes,
 properties, and individuals (with CURIEs, parent classes, and definitions) at
 `dist/llms.txt` through the export stage of the registered build pipeline. It
-is **not checked in** — run `make regenerate` to produce it on demand.
+is **not checked in** — run `make sync` to produce it on demand.
 
 If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, generate and ingest `dist/llms.txt` to get a clean, context-efficient overview of the entire ontology.
 
@@ -668,7 +439,7 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 **The one rule:** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make docs` or `gmeow-dev export-docs`. It is never embedded in `generated/dist/gmeow.gts`.
+**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make sync SYNC_OUTPUTS=docs` or `gmeow-dev sync --mode update --outputs docs`. It is never embedded in `generated/dist/gmeow.gts`.
 
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment
@@ -679,8 +450,8 @@ slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segmen
                          #   queries/, examples/, tests/, docs.md
 slices/vocabulary.ttl    # The slice-manifest authoring vocabulary (spec layer)
 ontology/gmeow.ttl # Root ontology = the CORE profile (generated imports)
-dsl/mappings/            # Mapping DSL: vocabulary, foundational bridge, per-target
-                         #   projections, shared equivalences, transforms.fno.ttl
+dsl/mappings/            # Shared mapping vocabulary, cross-cutting sets,
+                         #   shared equivalences, transforms.fno.ttl
 dsl/statements/          # Statement DSL (canonical RDF 1.2 statement metadata)
 shapes/                  # Authored SHACL (incl. slice-manifest-shapes.ttl)
 queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/
@@ -759,8 +530,8 @@ them from canonical sources after the merge. `generated/dist/gmeow.gts` is `merg
 your branch copy without a conflict marker), so it too must be regenerated and committed:
 
 ```bash
-make regenerate          # reconcile all generated artifacts on the merged base
-make check-generated     # verify no drift remains
+make sync          # reconcile all generated artifacts on the merged base
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 ```
 
 ### Pull review feedback
@@ -797,7 +568,7 @@ Apply fixes **only in canonical source files** (Principle 4):
 
 | Review target | Canonical source to edit |
 |---|---|
-| SSSOM / EDOAL / FnO / projection queries | `dsl/mappings/` |
+| SSSOM / EDOAL / FnO / projection queries | owning slice's `mappings/`, or `dsl/mappings/` for genuinely cross-cutting sources |
 | RDF 1.2 / OWL statement artifacts | `dsl/statements/` |
 | Ontology terms, axioms, observation bridges | `slices/<group>/<name>/module.ttl` |
 | SHACL shapes | `shapes/` |
@@ -806,8 +577,8 @@ Apply fixes **only in canonical source files** (Principle 4):
 Never patch generated artifacts by hand. After editing canonical sources, regenerate:
 
 ```bash
-make regenerate          # after ANY canonical-source change
-make check-generated     # verify no drift remains
+make sync          # after ANY canonical-source change
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 ```
 
 ### Validate before pushing

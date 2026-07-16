@@ -13,7 +13,7 @@
 > [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
@@ -40,6 +40,28 @@ layer, lowered to a `logic:` formula). The hierarchy is subsumption: an `math:Ab
 `math:Group` with a commutativity axiom; a `math:Field` is a `math:CommutativeRing` whose non-zero
 elements form a group under multiplication. Structure is declared and checkable — a `math:Group`
 asserted without an operation and identity is ill-formed.
+
+## Clifford algebras and exact extensions
+
+Core classes: `math:QuadraticSpace`, `math:QuadraticForm`, `math:GradedAlgebra`,
+`math:ExteriorAlgebra`, `math:CliffordAlgebra`, `math:BasisBlade`, `math:Multivector`,
+`math:GeometricProduct`, `math:ExteriorProduct`, `math:LeftContraction`,
+`math:GradeProjection`, the Clifford involutions, and `math:CliffordExtension` /
+`math:CliffordModuleDecomposition`.
+
+A Clifford algebra reuses the shared field, carrier, basis, metric-signature, operation, and axiom
+spine. Its scalar field, ordered `(p,q)` signature, carrier basis, grading, involutions, exact
+dimension, and pseudoscalar square are explicit. An extension additionally names its base algebra,
+extended algebra, and last generator; its module decomposition records the old-algebra summand, the
+new-generator summand, and an exact split/join witness. The native `gmeow_math::clifford` kernel is
+the calculation authority for diagonal orthonormal `Cl(p,q)`, including the exact
+`Cl(12,0) → Cl(13,0)` and `Cl(6,6) → Cl(7,6)` decompositions.
+
+> **Hard boundary — dimension is not representation.** Neither a matching dimension nor a useful
+> decomposition licenses an E8 claim. A `math:FaithfulRepresentation` and `math:EquivariantMap`
+> must name the represented object, carrier, representation map, and symmetry under which the map
+> commutes before any E8/Clifford relationship can be asserted. The shipped producer emits no E8
+> edge.
 
 ## Structure-preserving maps
 

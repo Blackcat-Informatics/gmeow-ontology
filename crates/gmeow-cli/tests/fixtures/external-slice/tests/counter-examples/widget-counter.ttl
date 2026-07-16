@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A deliberately-deficient counter-example for gmeow:FixtureExternalWidget: an
+# instance that MUST be rejected (it carries no gmeow:name carrier the well-formed
+# fixture requires). Paired with the well-formed fixture so dimFixturePair can be
+# present for the widget term.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/fixture-external-slice/counter/> .
+
+ex:counterWidget
+    a gmeow:FixtureExternalWidget .

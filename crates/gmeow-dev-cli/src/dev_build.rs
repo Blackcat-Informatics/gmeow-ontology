@@ -1,210 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The build/regeneration commands: `regenerate`, `fanout`, `check-generated`,
-//! `normalize`, `mappings`, `build`, `compile-gts`, and `release-bundle`.
-//!
-//! `regenerate` / `check-generated` drive the single-pass pipeline executor
-//! (`gmeow_pipeline::run::run_full`) and STREAM its `RunReport`/`TimingRecord`
-//! through the shared [`Reporter`], so a TTY sees live per-stage lines and an
-//! agent sees NDJSON stage events.
+//! Focused build commands outside the canonical `sync` workflow: fanout,
+//! normalize, mappings, compile-gts, and release-bundle.
 
 use std::path::{Path, PathBuf};
 
-use gmeow_cli_core::{ConsoleMode, Reporter};
+use gmeow_cli_core::ConsoleMode;
 use gmeow_pipeline::fanout::fanout as run_fanout;
-use gmeow_pipeline::run::{RunMode, RunReport, run_full};
+use gmeow_pipeline::run::{RunMode, run_full};
 
 use crate::dev_common::{
     GTS_SNAPSHOT_REL, fail, project_root, reporter_for, resolve_console, resolve_jobs,
     write_timings_json,
 };
-
-/// Emit each pipeline timing record + any drift finding through the reporter, then
-/// a one-line summary — the "ultra-rich status" surface (live stderr on a TTY,
-/// NDJSON for agents).
-fn stream_run_report(reporter: &dyn Reporter, report: &RunReport) {
-    use std::time::Duration;
-    for t in &report.timings {
-        reporter.stage_end(&t.phase, Duration::from_millis(t.elapsed_ms as u64));
-    }
-    let mut diag = gmeow_errors::Report::new("pipeline");
-    for f in &report.findings {
-        diag.add_finding(f.clone());
-    }
-    reporter.report(&diag.normalized());
-}
-
-/// The deterministic `--timings-json` payload shared by regenerate/check-generated.
-fn timings_payload(command: &str, report: &RunReport) -> serde_json::Value {
-    let timings: Vec<serde_json::Value> = report
-        .timings
-        .iter()
-        .map(|t| {
-            serde_json::json!({
-                "phase": t.phase,
-                "elapsed_ms": t.elapsed_ms,
-                "metadata": t.metadata,
-            })
-        })
-        .collect();
-    serde_json::json!({
-        "command": command,
-        "produced": report.produced,
-        "reproduced": report.reproduced,
-        "written": report.written,
-        "skipped_writes": report.skipped_writes,
-        "drifted": report.drifted,
-        "clean": report.is_clean(),
-        "timings": timings,
-    })
-}
-
-/// `gmeow-dev regenerate [-j --check --metadata --list-paths --timings-json]`.
-pub fn regenerate(
-    jobs: Option<usize>,
-    check: bool,
-    metadata: bool,
-    list_paths: bool,
-    timings_json: Option<&Path>,
-    console: Option<ConsoleMode>,
-) -> i32 {
-    let root = project_root();
-    let reporter = reporter_for(resolve_console(console));
-
-    if list_paths {
-        return list_committed_paths(reporter.as_ref(), &root);
-    }
-
-    if metadata {
-        return emit_generator_metadata(reporter.as_ref(), &root);
-    }
-
-    let jobs = match resolve_jobs(jobs) {
-        Ok(j) => j,
-        Err(code) => return code,
-    };
-    let mode = if check {
-        RunMode::Check
-    } else {
-        RunMode::Regenerate
-    };
-    let report = match run_full(&root, jobs, mode) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("pipeline {mode:?} failed: {e}")),
-    };
-    stream_run_report(reporter.as_ref(), &report);
-    if let Some(path) = timings_json {
-        let code = write_timings_json(path, &timings_payload("regenerate", &report));
-        if code != 0 {
-            return code;
-        }
-    }
-    if check {
-        if !report.drifted.is_empty() {
-            let mut drifted = report.drifted.clone();
-            drifted.sort();
-            for path in &drifted {
-                gmeow_cli_core::note(
-                    reporter.as_ref(),
-                    "gmeow-dev",
-                    "gmeow-dev.regenerate.drift",
-                    format!("drift {path}"),
-                );
-            }
-            return fail(format!("{} artifact(s) drifted", report.drifted.len()));
-        }
-        println!("pipeline check: zero drift");
-    } else {
-        println!(
-            "pipeline regenerate: produced {}, reproduced {}, written {}, unchanged {}",
-            report.produced, report.reproduced, report.written, report.skipped_writes
-        );
-    }
-    0
-}
-
-/// Print the space-separated union of committed generated artifact paths.
-///
-/// The paths are product data (what `make commit` stages), so they go to stdout.
-/// Progress/status is routed through the reporter.
-fn list_committed_paths(reporter: &dyn Reporter, _root: &Path) -> i32 {
-    use std::time::Instant;
-    let started = Instant::now();
-    reporter.stage_start("regenerate-list-paths");
-    let paths = gmeow_pipeline::committed_generated_paths();
-    reporter.stage_end("regenerate-list-paths", started.elapsed());
-    println!("{}", paths.join(" "));
-    0
-}
-
-/// Emit NDJSON metadata for every registered generator.
-///
-/// Each line is one generator's metadata record. Progress/status is routed
-/// through the reporter; the metadata itself is product data on stdout.
-fn emit_generator_metadata(reporter: &dyn Reporter, root: &Path) -> i32 {
-    use std::time::Instant;
-    let started = Instant::now();
-    reporter.stage_start("regenerate-metadata");
-    let records = match gmeow_pipeline::generator_metadata(root) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("generator metadata failed: {e}")),
-    };
-    reporter.stage_end("regenerate-metadata", started.elapsed());
-    for record in records {
-        match serde_json::to_string(&record) {
-            Ok(line) => println!("{line}"),
-            Err(e) => return fail(format!("cannot serialize generator metadata: {e}")),
-        }
-    }
-    0
-}
-
-/// `gmeow-dev check-generated [-j --timings-json]` — drift-check every artifact.
-pub fn check_generated(
-    jobs: Option<usize>,
-    timings_json: Option<&Path>,
-    console: Option<ConsoleMode>,
-) -> i32 {
-    let jobs = match resolve_jobs(jobs) {
-        Ok(j) => j,
-        Err(code) => return code,
-    };
-    let root = project_root();
-    let reporter = reporter_for(resolve_console(console));
-    let report = match run_full(&root, jobs, RunMode::Check) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("pipeline check failed: {e}")),
-    };
-    stream_run_report(reporter.as_ref(), &report);
-    if let Some(path) = timings_json {
-        let code = write_timings_json(path, &timings_payload("check-generated", &report));
-        if code != 0 {
-            return code;
-        }
-    }
-    if !report.drifted.is_empty() {
-        let mut drifted = report.drifted.clone();
-        drifted.sort();
-        for rel in &drifted {
-            gmeow_cli_core::note(
-                reporter.as_ref(),
-                "gmeow-dev",
-                "gmeow-dev.check-generated.drift",
-                format!("drift {rel}"),
-            );
-        }
-        return fail(format!(
-            "{} artifact(s) drifted — run `gmeow-dev regenerate`",
-            report.drifted.len()
-        ));
-    }
-    println!(
-        "all {} committed artifact(s) match canonical sources (no drift)",
-        report.reproduced
-    );
-    0
-}
 
 /// `gmeow-dev fanout [-j --timings-json]` — project the flat tree out of gmeow.gts.
 pub fn fanout(
@@ -331,7 +140,7 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
         Err(code) => return code,
     };
     // The pipeline (the build authority) folds the snapshot at its single gts_sink.
-    if let Err(e) = run_full(&root, jobs, RunMode::Regenerate) {
+    if let Err(e) = run_full(&root, jobs, RunMode::Update) {
         return fail(format!("regenerate failed: {e}"));
     }
     let snapshot = root.join(GTS_SNAPSHOT_REL);

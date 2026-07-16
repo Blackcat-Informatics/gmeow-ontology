@@ -10,11 +10,14 @@
 //! via the native emitter (`purrdf::shapes::json_schema::compile`) — no external
 //! toolkit, no Python.
 //!
-//! Like `frame_shapes`, this is a source-reading export leaf: it declares the
-//! authored shape files as cache inputs and `consumes()` nothing, so it runs as
-//! an independent phase-1 ExportLeaf. Output is byte-deterministic (the emitter
-//! sorts every collection), so it is compared byte-for-byte to the committed
-//! `generated/schemas/gmeow.schema.json` / `gmeow.openapi.json`.
+//! A fresh-union export leaf: it declares the AUTHORED shape files as cache
+//! inputs and `consumes()` the four generated-shape producers
+//! ([`crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS`]) so the
+//! union's `generated/shapes/*.ttl` members are THIS run's product bytes, never
+//! the previous run's committed files (the stale-disk-fold class). Output is
+//! byte-deterministic (the emitter sorts every collection), so it is compared
+//! byte-for-byte to the committed `generated/schemas/gmeow.schema.json` /
+//! `gmeow.openapi.json`.
 //!
 //! SHACL constructs with no JSON Schema equivalent (`sh:sparql` etc.) are never
 //! silently skipped: the emitter records each as a `LossRecord`, which this leaf
@@ -57,36 +60,64 @@ fn schema_bytes(schema: &serde_json::Value) -> Result<Vec<u8>, gmeow_errors::Dia
 }
 
 /// The `stage-export-json-schema` export-leaf stage.
-pub struct JsonSchemaStage;
+pub struct JsonSchemaStage {
+    consumes: Vec<String>,
+}
+
+impl JsonSchemaStage {
+    /// Construct the stage. It reads the AUTHORED shape/ontology sources from disk
+    /// and consumes the four generated-shape producers so the compiled union folds
+    /// THIS run's fresh `generated/shapes/*.ttl` bytes (never the stale committed
+    /// files — the stale-disk-fold class).
+    pub fn new() -> Self {
+        Self {
+            consumes: crate::stages::shape_union_fresh::producer_consumes(),
+        }
+    }
+}
+
+impl Default for JsonSchemaStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for JsonSchemaStage {
     fn id(&self) -> &str {
         "stage-export-json-schema"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "json_schema.v1"
+        // v2: the union's generated/shapes/*.ttl members are product-sourced from the
+        // consumed producer stages (shape_union_fresh) instead of read off disk, so a
+        // shape-source edit reaches the compiled schema in ONE regenerate.
+        "json_schema.v2-fresh-shape-union"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // The shape union (`shapes/*.ttl` minus lints + `generated/shapes/*.ttl`
-        // + `slices/*/*/shapes.ttl`) is exactly the source set the emitter reads.
-        // Declaring those as cache inputs keeps `consumes() == []` (no DAG edge)
-        // while busting the cache whenever any shape file changes — the same
-        // pattern frame_shapes uses for its authored sources. The value-vocabulary
-        // enrichment ALSO reads the ontology ABox (`slices/**/module.ttl`), so those
-        // sources bust the cache too — a new vocabulary member must reflow the schema.
-        let mut files = purrdf::shapes::shape_union::shape_files(root)
-            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+        // The AUTHORED half of the shape union (`shapes/*.ttl` minus lints +
+        // `slices/*/*/shapes.ttl`) is the disk source set the emitter reads — declared
+        // as cache inputs so an authored-shape edit busts the cache. The GENERATED
+        // members are NOT declared: they are product-sourced off the consumed producer
+        // stages, whose product digests already key the cache (declaring a `generated/`
+        // path here would itself be the stale-disk-fold bug class). The
+        // value-vocabulary enrichment ALSO reads the ontology ABox
+        // (`slices/**/module.ttl`), so those sources bust the cache too — a new
+        // vocabulary member must reflow the schema.
+        let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
         files.extend(crate::stages::value_vocab::ontology_module_files(root));
         files.sort();
         files.dedup();
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(input.root)
-            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+        let fresh = crate::stages::shape_union_fresh::fresh_generated_shape_members(
+            self.id(),
+            input.upstream,
+        )?;
+        let (_store, shapes) =
+            crate::stages::shape_union_fresh::load_shapes_fresh(input.root, &fresh)?;
         let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
         let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
         report_losses(&compiled.losses);
@@ -125,13 +156,18 @@ impl Stage for JsonSchemaStage {
     }
 }
 
-fn report_losses(losses: &[purrdf::shapes::json_schema::LossRecord]) {
+fn report_losses(losses: &purrdf::LossLedger) {
     let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
-    for loss in losses {
+    for loss in losses.entries() {
+        let subject = loss
+            .location
+            .as_deref()
+            .and_then(|location| location.subject.as_deref())
+            .unwrap_or("<unlocated>");
         grouped
-            .entry((loss.construct.as_str(), loss.reason.as_str()))
+            .entry((loss.code.as_ref(), loss.note.as_ref()))
             .or_default()
-            .push(loss.shape_iri.as_str());
+            .push(subject);
     }
     for ((construct, reason), mut shapes) in grouped {
         shapes.sort_unstable();
@@ -170,13 +206,37 @@ mod tests {
             .unwrap()
     }
 
+    /// The fresh `generated/shapes/*.ttl` byte map a hermetic test builds from the
+    /// COMMITTED files — the same members [`fresh_generated_shape_members`] pulls
+    /// off the producer products in production
+    /// ([`crate::stages::shape_union_fresh::fresh_generated_shape_members`]), so
+    /// the test exercises the stage's real fresh-union path without a pipeline run.
+    fn committed_fresh_map(root: &Path) -> BTreeMap<String, Vec<u8>> {
+        [
+            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
+            crate::stages::frame_shapes::FRAME_SHAPES_PATH,
+            crate::stages::result_shapes::RESULT_SHAPES_PATH,
+        ]
+        .into_iter()
+        .map(|rel| {
+            (
+                rel.to_string(),
+                std::fs::read(root.join(rel)).unwrap_or_else(|e| panic!("read {rel}: {e}")),
+            )
+        })
+        .collect()
+    }
+
     /// Run the native stage over the real repo and assert the two artifacts are
     /// present, are valid JSON, the schema carries a non-empty `$defs`, and the
     /// whole output is byte-deterministic across two runs.
     fn run_once(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        let stage = JsonSchemaStage;
-        let (_store, shapes) =
-            purrdf::shapes::shape_union::load_shapes(root).expect("load shape union");
+        let stage = JsonSchemaStage::new();
+        let fresh = committed_fresh_map(root);
+        let (_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, &fresh)
+            .expect("load fresh shape union");
         let compiled = purrdf::shapes::json_schema::compile(
             &shapes,
             &crate::gmeow_ns::gmeow_json_schema_namespaces(),

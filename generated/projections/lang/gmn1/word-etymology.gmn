@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gmeow__examples-2f-lexicon-2f-etymology, p: rdf__type, o: gmeow__EtymologicalDerivation}
 @c{s: gmeow__examples-2f-lexicon-2f-etymology, p: gmeow__derivationKind, o: gmeow__derivationBorrowing}
 @c{s: gmeow__examples-2f-lexicon-2f-etymology, p: gmeow__derivationTarget, o: gmeow__examples-2f-lexicon-2f-ontology}
@@ -11,7 +11,7 @@
 @c{s: gmeow__examples-2f-lexicon-2f-greekOntos, p: gmeow__lexicalItemLanguage, o: gmeow__examples-2f-lexicon-2f-greek}
 @c{s: gmeow__examples-2f-lexicon-2f-ontology, p: rdf__type, o: gmeow__LexicalItem}
 @c{s: gmeow__examples-2f-lexicon-2f-ontology, p: gmeow__hasLexicalForm, o: gmeow__examples-2f-lexicon-2f-ontologyForm}
-@c{s: gmeow__examples-2f-lexicon-2f-ontology, p: gmeow__lexicalItemLanguage, o: lang__english}
+@λ{s: gmeow__examples-2f-lexicon-2f-ontology, p: gmeow__lexicalItemLanguage, o: lang__english}
 @c{s: gmeow__examples-2f-lexicon-2f-ontologyForm, p: rdf__type, o: gmeow__LexicalForm}
 @c{s: gmeow__examples-2f-lexicon-2f-ontologyForm, p: gmeow__formOf, o: gmeow__examples-2f-lexicon-2f-ontology}
 @c{s: gmeow__examples-2f-lexicon-2f-ontologyForm, p: gmeow__formRepresentation, v: ontology}

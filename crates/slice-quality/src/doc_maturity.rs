@@ -30,7 +30,7 @@ use gmeow_docs::model::DocsModel;
 use gmeow_docs::rdf::{DocSliceFacts, documentation_graph};
 
 use crate::axes::repo_root_of;
-use crate::score::{AxisScore, ScoreContext, advisory};
+use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
 
 /// The documentation-maturity axis producer. A struct (not a free `fn`) so the
 /// producer symbol the rubric names — `"DocMaturity"` — resolves to a real Rust
@@ -47,8 +47,24 @@ impl DocMaturity {
     /// un-buildable documentation model, or no record in the model is scored the
     /// crate's neutral vacuous `1.0` WITH an advisory naming the reason — never a
     /// silent false-positive "fully documented".
+    ///
+    /// The documentation model's SOURCE branches on the scoring environment:
+    /// [`ScoringEnv::Repo`] reads the memoized repo-wide model ([`Self::axis_repo`]);
+    /// [`ScoringEnv::Bundle`] builds a fresh single-slice model from the slice's own
+    /// directory ([`Self::axis_external`]). The `Bundle` payload (the gmn1 dictionary)
+    /// is irrelevant to documentation maturity, so it is ignored here.
     #[must_use]
     pub fn axis(ctx: &ScoreContext) -> AxisScore {
+        match &ctx.env {
+            ScoringEnv::Repo => Self::axis_repo(ctx),
+            ScoringEnv::Bundle(_) => Self::axis_external(ctx),
+        }
+    }
+
+    /// Repo-mode documentation maturity: read the memoized repo-wide documentation
+    /// model (built once per repo root by [`DocsModel::discover`]) and look the slice
+    /// up by its IRI. This is the verbatim pre-seam behaviour.
+    fn axis_repo(ctx: &ScoreContext) -> AxisScore {
         let Some(root) = repo_root_of(&ctx.slice_dir) else {
             return AxisScore {
                 score: 1.0,
@@ -81,6 +97,50 @@ impl DocMaturity {
                         ),
                     )],
                 },
+            },
+        }
+    }
+
+    /// External-mode documentation maturity for a foreign slice pulled in on its own:
+    /// build a FRESH single-slice documentation model from the slice's OWN directory
+    /// ([`DocsModel::from_slice_dir`]), read back that one slice's [`DocSliceFacts`] via
+    /// [`documentation_graph`], and hand them to the SAME [`score_and_advice`] the repo
+    /// arm uses — so an off-repo slice and an in-repo slice earn the score by the very
+    /// same measure. On a model that will not build → the existing `model-unavailable`
+    /// advisory; on the slice carrying no record in its own model → the existing
+    /// `slice-untracked` advisory.
+    ///
+    /// The single-slice model's `term_loss` is deliberately `None` (see
+    /// [`DocsModel::from_slice_dir`]): a foreign slice was never compiled through the
+    /// pipeline's stage-mappings, so it has no dynamic projection-loss ledger. That is
+    /// the correct off-repo scope boundary — a not-applicable fact, never a failed join.
+    fn axis_external(ctx: &ScoreContext) -> AxisScore {
+        let model = match DocsModel::from_slice_dir(&ctx.slice_dir) {
+            Ok(model) => model,
+            Err(err) => {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.doc-maturity.model-unavailable",
+                        format!(
+                            "the documentation model could not be built ({err}) — documentation maturity cannot be measured (vacuous 1.0)."
+                        ),
+                    )],
+                };
+            }
+        };
+        let graph = documentation_graph(&model);
+        match graph.slices.iter().find(|s| s.documents == ctx.slice_iri) {
+            Some(fact) => score_and_advice(fact),
+            None => AxisScore {
+                score: 1.0,
+                findings: vec![advisory(
+                    "slice-quality.doc-maturity.slice-untracked",
+                    format!(
+                        "{} carries no record in the documentation model (no documented terms) — documentation maturity is vacuously 1.0.",
+                        ctx.slice_iri
+                    ),
+                )],
             },
         }
     }

@@ -8,15 +8,20 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+
+use purrdf::RdfDataset;
 
 use gmeow_cli_core::{Reporter, report_diag};
+use gmeow_errors::dag::DagNode;
 use gmeow_errors::grade::{Belnap, BoundedLattice};
 use gmeow_errors::model::Finding;
 use gmeow_errors::{
     Diag, FindingCategory, Grade, ResultExt, Severity, Standpoint, define_diag_kind,
 };
 use gmeow_pipeline::diagnostics_reader::{
-    FindingIndex, explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
+    FindingIndex, WitnessIndex, WitnessRecord, explain_finding, explain_witness, minimal_fatal_cut,
+    read_findings, read_invented_witnesses, render_shared_dag, verdict,
 };
 
 use crate::{BUNDLE_GTS, NAMESPACE};
@@ -179,22 +184,48 @@ pub fn info(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
 
 // ── verify / verify-release-bundle ───────────────────────────────────────────
 
-/// `gmeow verify` — shell the external `gts verify` binary for the OpenPGP
-/// signature check, then print the source-free "Bundled Ontology Checks" table.
+/// `gmeow verify` — the native OpenPGP signature check, the blob-DAG integrity
+/// law, and the source-free ontology-completeness checks, all folded into ONE
+/// unified proof-carrying report that renders identically to `gmeow validate`
+/// on `--format human|sarif|json` (every finding carrying its remediation "how
+/// to fix" and per-term usage guidance). None of those legs reason, so plain
+/// `verify` is fast even over the full shipped bundle.
+///
+/// The reasoned deep-semantic pass is **`--deep`-gated**, mirroring `validate
+/// --deep`: only under `deep` does verify additionally run the Tier-2 native
+/// semantic pass and emit real `validate.deep.*` reasoned-quad verdicts (the
+/// witnesses the explain-skeleton derivation attaches to).
 pub fn verify(
     reporter: &dyn Reporter,
     file: Option<&Path>,
     trusted_key: Option<&Path>,
     allow_unsigned: bool,
+    format: &str,
+    deep: bool,
 ) -> i32 {
+    let output = format.to_lowercase();
+    if !matches!(output.as_str(), "human" | "sarif" | "json") {
+        return fail(
+            reporter,
+            "gmeow-cli.verify.unknown-format",
+            format!("unknown --format {output:?}: expected human, sarif, or json"),
+        );
+    }
     let bytes = match gts_bytes(reporter, file) {
         Ok(b) => b,
         Err(code) => return code,
     };
 
+    // The single unified report every leg folds into, and the artifact under
+    // inspection is its OWN `documented_terms` subject (the F3 contract:
+    // `subject = bundle`).
+    let mut report = gmeow_errors::Report::new("verify");
+
     // 1. Signature/trust check via the native `purrdf::gts::verify` primitive,
-    // in-process — no external `gts` binary, no PATH/`GMEOW_GTS_BIN` lookup, no
-    // temp-file staging (the wrapper takes the bundle bytes directly).
+    // in-process — no external `gts` binary. Every signature/trust finding
+    // (resolved key/fingerprint, missing signature, untrusted signer, …) folds
+    // into the unified report so it renders enriched on every channel; the
+    // hard-fail boolean still governs the exit code (a bad signature must fail).
     let config = gmeow_validate::validate_all::SignatureConfig {
         require_signatures: !allow_unsigned,
         trusted_key: trusted_key.map(|p| p.to_string_lossy().into_owned()),
@@ -212,18 +243,14 @@ pub fn verify(
             }
         };
     let sig_ok = !sig_hard_fail;
-    // Surface every signature/trust finding (resolved key/fingerprint, missing
-    // signature, untrusted signer, …) through the shared reporter channel instead
-    // of silently dropping them behind a boolean.
-    let mut sig_report = gmeow_errors::Report::new("gmeow-cli.verify");
     for finding in sig_findings {
-        sig_report.add_finding(finding);
+        report.add_finding(finding);
     }
-    reporter.report(&sig_report);
 
     // 2. Blob-DAG integrity over the folded snapshot (the reusable law from
     // `Bundle::integrity_report`): no dangling content-addressed reference, no
-    // orphan blob, no hash-integrity mismatch.
+    // orphan blob, no hash-integrity mismatch. A hard-fail gate (never silently
+    // accepted).
     let integrity_report = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
         .and_then(|bundle| bundle.integrity_report())
     {
@@ -238,52 +265,147 @@ pub fn verify(
     };
     let integrity_ok = integrity_report.is_clean();
 
-    // 3. Source-free ontology checks over the folded snapshot.
-    let checks = match gmeow_pipeline::cli_ops::confirmations::bundle_term_summaries(&bytes) {
-        Ok(terms) => terms,
+    // 3. Source-free ontology-completeness findings over the folded snapshot: one
+    // rule-coded, ledger-identified `Finding` per missing label / definition per
+    // documented term, each carrying the term IRI as its `documented_terms` join
+    // key so the per-term guidance lights up on verify too.
+    if let Err(e) = append_ontology_findings(&bytes, &mut report) {
+        return fail(
+            reporter,
+            "gmeow-cli.verify.ontology-checks",
+            format!("bundled ontology checks failed: {e}"),
+        );
+    }
+
+    // 4. The reasoned deep-semantic pass over the bundle, `--deep`-gated (TRUE
+    // parity with `validate --deep`): plain `verify` never reasons. When `deep`
+    // is set, this calls the SAME public entry the dev bundle pass runs, so
+    // verify emits real `validate.deep.*` reasoned-quad verdicts (the witnesses
+    // the derivation attaches to). Honors the Task-5 hard-fail: a verdict that
+    // cannot be joined to its explain-skeleton derivation propagates as `Err`
+    // and is a `Severity::Error` failure here, never swallowed.
+    if deep && let Err(e) = gmeow_validate::validate_all::bundle_deep_findings(&bytes, &mut report)
+    {
+        return fail(
+            reporter,
+            "gmeow-cli.verify.deep",
+            format!("deep semantic pass failed: {e}"),
+        );
+    }
+
+    // 5. The single proof-carrying enrichment pass over the unified report:
+    // rule identity + registry-authored remediation + per-term usage guidance +
+    // derivation, so verify renders every enrichment identically to validate. The
+    // bundle IS both the rule-catalog graph and the `documented_terms` subject.
+    let bundle_ds = match purrdf::import_gts_events(&bytes) {
+        Ok(b) => b,
         Err(e) => {
             return fail(
                 reporter,
-                "gmeow-cli.verify.ontology-checks",
-                format!("bundled ontology checks failed: {e}"),
+                "gmeow-cli.verify.fold",
+                format!("cannot fold snapshot for enrichment: {e}"),
             );
         }
     };
-    let missing_label = checks.iter().filter(|(_, l, _)| l.is_empty()).count();
-    let missing_def = checks.iter().filter(|(_, _, d)| d.is_empty()).count();
+    let subject = bundle_ds.dataset.as_ref();
+    gmeow_validate::enrich::enrich_findings(&mut report, subject, subject);
 
-    println!("Bundled Ontology Checks");
-    let mut ok = sig_ok;
-    let mut row = |name: &str, passed: bool, detail: String| {
-        ok = ok && passed;
-        println!(
-            "  {name}: {} ({detail})",
-            if passed { "pass" } else { "fail" }
-        );
-    };
-    row(
-        "term catalog",
-        !checks.is_empty(),
-        format!("{} terms", checks.len()),
-    );
-    row(
-        "labels",
-        missing_label == 0,
-        format!("{missing_label} missing"),
-    );
-    row(
-        "definitions",
-        missing_def == 0,
-        format!("{missing_def} missing"),
-    );
-    row("signatures", sig_ok, "native gts verify".to_owned());
-    row("blob integrity", integrity_ok, integrity_report.summary());
+    // 6. Render the unified report on the chosen channel, then compute the exit
+    // code from the unified report's error_count PLUS the signature and integrity
+    // hard-fails (do not regress the existing verify failure semantics).
+    match output.as_str() {
+        "sarif" => match gmeow_errors::render::to_sarif(&report) {
+            Ok(s) => println!("{s}"),
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.verify.render-sarif",
+                    format!("cannot render SARIF: {e}"),
+                );
+            }
+        },
+        "json" => match gmeow_errors::render::to_json(&report) {
+            Ok(s) => println!("{s}"),
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.verify.render-json",
+                    format!("cannot render JSON: {e}"),
+                );
+            }
+        },
+        _ => {
+            let text = gmeow_errors::render::to_text(&report);
+            if !text.is_empty() {
+                println!("{text}");
+            }
+        }
+    }
 
-    if !ok {
+    let verify_failed = !sig_ok || !integrity_ok || report.error_count() > 0;
+    if verify_failed {
         return fail(reporter, "gmeow-cli.verify.failed", "verification failed");
     }
-    println!("verification passed");
+    if output == "human" {
+        println!("verification passed");
+    }
     0
+}
+
+/// Fold one rule-coded, ledger-identified [`Finding`] per ontology-completeness
+/// gap — a missing `rdfs:label` or `skos:definition` on a documented class/property
+/// — into `report`, routing each through a [`DiagLedger`] so it carries a stable
+/// `finding_iri`/anchor identity and its term IRI as `documented_terms` (the Task-4
+/// documented-term guidance join key). Non-blocking Warnings: a bundle that passes
+/// `gmeow verify` today has none, so the exit contract is preserved.
+fn append_ontology_findings(bytes: &[u8], report: &mut gmeow_errors::Report) -> Result<(), Diag> {
+    use gmeow_errors::model::Location;
+    use gmeow_errors::{DiagLedger, StageId, code::register_code};
+
+    let terms = gmeow_pipeline::cli_ops::confirmations::bundle_term_summaries(bytes)?;
+    let stage = StageId::new("verify.ontology");
+    let grade = Grade::new(
+        Severity::Warning,
+        FindingCategory::PolicyWarning,
+        Standpoint::Perspectival,
+    );
+    let mut ledger = DiagLedger::new();
+    for term in &terms {
+        // The term IRI anchors the finding (a non-trivial source context) and is
+        // its `documented_terms` join key.
+        let anchor = || Location {
+            logical: Some(term.iri.clone()),
+            ..Location::default()
+        };
+        if term.label.is_empty() {
+            ledger.attach(
+                Diag::new(
+                    register_code(gmeow_validate::codes::ONTOLOGY_MISSING_LABEL),
+                    grade,
+                    format!("term {} carries no rdfs:label", term.curie),
+                )
+                .with_documented_term(term.iri.clone())
+                .with_location(anchor()),
+                stage.clone(),
+            );
+        }
+        if term.definition.is_empty() {
+            ledger.attach(
+                Diag::new(
+                    register_code(gmeow_validate::codes::ONTOLOGY_MISSING_DEFINITION),
+                    grade,
+                    format!("term {} carries no skos:definition", term.curie),
+                )
+                .with_documented_term(term.iri.clone())
+                .with_location(anchor()),
+                stage.clone(),
+            );
+        }
+    }
+    for finding in ledger.findings("verify") {
+        report.add_finding(finding);
+    }
+    Ok(())
 }
 
 /// `gmeow verify-release-bundle` — native COSE + attestation-walk verification.
@@ -358,20 +480,22 @@ pub fn describe(
     // model-existence signal `build_card` gates a class's `python_model` link on
     // (a class with no `$defs` entry has no generated Pydantic model, so the link
     // must never be fabricated: issue "Pydantic model surface", finding F3).
-    let modeled_defs = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
-        .and_then(|bundle| bundle.modeled_def_keys())
+    let (modeled_defs, dataset) = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
+        .and_then(|bundle| Ok((bundle.modeled_def_keys()?, bundle.dataset()?)))
     {
-        Ok(defs) => defs,
+        Ok(parsed) => parsed,
         Err(e) => {
             return fail(
                 reporter,
                 "gmeow-cli.describe.modeled-defs",
-                format!("cannot read the bundled JSON Schema for the model-existence gate: {e}"),
+                format!(
+                    "cannot read the bundled RDF and JSON Schema for the describe surface: {e}"
+                ),
             );
         }
     };
     let (text, status) =
-        gmeow_docs::describe(term, &bytes, resolved.as_deref(), format, &modeled_defs);
+        gmeow_docs::describe_dataset(term, dataset, resolved.as_deref(), format, &modeled_defs);
     // Map each backend failure kind to its OWN typed diagnostic code — a resolution
     // miss, a cross-namespace ambiguity, an unknown language, and a bundle-load
     // failure are distinct, greppable codes (the old path lumped them all under
@@ -500,6 +624,79 @@ pub fn conjecture_test(
         println!("persisted committed");
     } else {
         println!("persisted no");
+    }
+    0
+}
+
+// ── entails ──────────────────────────────────────────────────────────────────
+
+/// Parse an RDF file into a dataset, inferring the syntax from its extension. A
+/// `file://` base IRI is derived from the path so RDF/XML relative IRIs resolve.
+/// Returns the failure exit code on read / parse error (a hard fail, never a
+/// degraded empty graph).
+fn parse_rdf_file(
+    reporter: &dyn Reporter,
+    path: &Path,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    let media = match path.extension().and_then(|e| e.to_str()) {
+        Some(ext) => ext.to_lowercase(),
+        None => {
+            return Err(fail(
+                reporter,
+                "gmeow-cli.entails.unknown-syntax",
+                format!(
+                    "cannot infer RDF syntax for {} (no extension); expected one of \
+                     .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
+                    path.display()
+                ),
+            ));
+        }
+    };
+    let base = std::path::absolute(path)
+        .ok()
+        .map(|abs| format!("file://{}", abs.display()));
+    purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.entails.parse",
+            format!("cannot parse {} as {media}: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow entails` — decide whether the premise graph entails the conclusion
+/// (`A ⊨ C`) natively, by refutation over the DL consistency calculus
+/// ([`gmeow_logic::entail::dl_entails`]). Prints a stable, greppable verdict:
+/// `verdict entailed` / `verdict not-entailed` / `verdict gap` (plus `gap-shape` /
+/// `gap-detail` for a gap). A malformed / unparsable input is a hard fail (exit 1);
+/// an honest capability gap is a successful, decided answer (exit 0).
+pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i32 {
+    let premise_ds = match parse_rdf_file(reporter, premise) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let conclusion_ds = match parse_rdf_file(reporter, conclusion) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+
+    let verdict = match gmeow_logic::entail::dl_entails(premise_ds.as_ref(), conclusion_ds.as_ref())
+    {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.entails.failed",
+                format!("entailment check failed: {e}"),
+            );
+        }
+    };
+
+    println!("verdict {}", verdict.as_token());
+    if let gmeow_logic::entail::EntailmentVerdict::Gap(gap) = &verdict {
+        println!("gap-shape {}", gap.shape.as_token());
+        println!("gap-detail {}", gap.detail);
     }
     0
 }
@@ -1643,18 +1840,20 @@ define_diag_kind! {
 /// graph. Reads the segments into a dataset that PRESERVES named graphs
 /// (`dataset_from_gts_graph`, not the flattening loader), which the reader then
 /// projects — a flattened dataset would drop the graph label and read empty.
-fn finding_index(bytes: &[u8]) -> gmeow_errors::Result<FindingIndex> {
+/// Fold the GTS snapshot bytes into the graph-preserving dataset the diagnostics
+/// readers project. Shared by the finding index and the invented-witness index so a
+/// single `explain` reads both off one dataset.
+fn diagnostics_dataset(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let graph = purrdf::gts::read_all_segments(bytes).map_err(|e| {
         Diag::of_kind(crate::error::SourceReadFailed {
             detail: format!("cannot read GTS segments: {e}"),
         })
     })?;
-    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| {
+    purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| {
         Diag::of_kind(crate::error::RdfPipelineFailed {
             detail: format!("cannot fold GTS dataset: {e}"),
         })
-    })?;
-    read_findings(&dataset).ctx("cannot read graph/diagnostics")
+    })
 }
 
 /// The always-emitted substrate algebra: the ledger [`verdict`] and the
@@ -1740,12 +1939,95 @@ fn render_anchor_section(
     }
 }
 
+/// The bounded proof height of a witness derivation tree — its min-proof-height over
+/// the invented-null sub-forest: a leaf null (no frontier binding that is itself a
+/// null) is height 1; a null is `1 + max(child heights)`.
+fn witness_height(node: &DagNode<String, WitnessRecord>) -> u32 {
+    1 + node.children.iter().map(witness_height).max().unwrap_or(0)
+}
+
+/// Render a reconstructed invented-null derivation tree, printing a shared antecedent
+/// IN FULL the first time and as a `↑ see <iri>` back-reference on every subsequent
+/// visit (mirroring [`render_shared_dag`] for the witness plane).
+fn render_witness_dag(root: &DagNode<String, WitnessRecord>) -> String {
+    fn render_node(
+        node: &DagNode<String, WitnessRecord>,
+        visited: &mut std::collections::BTreeSet<String>,
+        out: &mut String,
+    ) {
+        let indent = "  ".repeat(node.depth as usize + 1);
+        if visited.contains(&node.key) {
+            out.push_str(&format!("{indent}↑ see {}\n", node.key));
+            return;
+        }
+        visited.insert(node.key.clone());
+        out.push_str(&format!(
+            "{indent}{} [via {}] ordinal {}\n",
+            node.key, node.payload.rule_iri, node.payload.ordinal
+        ));
+        for child in &node.children {
+            render_node(child, visited, out);
+        }
+    }
+    let mut out = String::new();
+    let mut visited = std::collections::BTreeSet::new();
+    render_node(root, &mut visited, &mut out);
+    out
+}
+
+/// Render the explanation of a chase-invented null (Skolem witness): its firing rule,
+/// existential ordinal, frontier binding(s), and bounded proof height, plus the
+/// derivation tree re-descended over the SHARED [`gmeow_errors::dag::walk`] engine.
+fn render_witness(
+    witnesses: &WitnessIndex,
+    target: &str,
+    record: &WitnessRecord,
+) -> Result<String, Diag> {
+    let mut out = String::new();
+    out.push_str(&format!("invented witness {target}\n"));
+    out.push_str(&format!("  firing rule  {}\n", record.rule_iri));
+    out.push_str(&format!("  ordinal      {}\n", record.ordinal));
+    out.push_str(&format!("  predicate    {}\n", record.predicate));
+    let frontier = record.frontier.join(", ");
+    out.push_str(&format!(
+        "  frontier     {}\n",
+        if frontier.is_empty() {
+            "(none)"
+        } else {
+            &frontier
+        }
+    ));
+    let dag = explain_witness(witnesses, target).map_err(|e| {
+        Diag::of_kind(ExplainWalkFailed {
+            target: target.to_owned(),
+            detail: e.to_string(),
+        })
+    })?;
+    out.push_str(&format!(
+        "  proof height {} (bounded min-proof-height over the invented-null sub-derivation)\n",
+        witness_height(&dag)
+    ));
+    out.push_str("witness derivation DAG:\n");
+    out.push_str(&render_witness_dag(&dag));
+    Ok(out)
+}
+
 /// Render the full explanation of an `explain` target — the production rendering
 /// path `explain` prints. A finding fingerprint IRI walks its provenance DAG; an
-/// anchor IRI resolves the cluster and walks each member. BOTH always append the
+/// anchor IRI resolves the cluster and walks each member; a chase-invented null
+/// (skolem IRI) decomposes its Skolem recipe. Finding/anchor always append the
 /// substrate algebra. An unknown/malformed target is a hard [`Diag`] fail — never
 /// an empty DAG returned as success.
-fn render_explanation(index: &FindingIndex, target: &str) -> Result<String, Diag> {
+fn render_explanation(
+    index: &FindingIndex,
+    witnesses: &WitnessIndex,
+    target: &str,
+) -> Result<String, Diag> {
+    // A chase-invented null resolves to the invented-witness plane; a skolem IRI with
+    // no record falls through to the finding/anchor dispatch and its hard fail below.
+    if let Some(record) = witnesses.get(target) {
+        return render_witness(witnesses, target, record);
+    }
     let is_finding = index.get(target).is_some();
     let cluster: Vec<String> = index
         .findings
@@ -1818,7 +2100,17 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
         Ok(b) => b,
         Err(code) => return code,
     };
-    let index = match finding_index(&bytes) {
+    let dataset = match diagnostics_dataset(&bytes) {
+        Ok(d) => d,
+        Err(msg) => {
+            return fail(
+                reporter,
+                "gmeow-cli.explain.read-diagnostics",
+                msg.to_string(),
+            );
+        }
+    };
+    let index = match read_findings(&dataset).ctx("cannot read graph/diagnostics") {
         Ok(i) => i,
         Err(msg) => {
             return fail(
@@ -1828,12 +2120,222 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
             );
         }
     };
-    match render_explanation(&index, &target_iri) {
+    let witnesses = match read_invented_witnesses(&dataset).ctx("cannot read invented witnesses") {
+        Ok(w) => w,
+        Err(msg) => {
+            return fail(
+                reporter,
+                "gmeow-cli.explain.read-diagnostics",
+                msg.to_string(),
+            );
+        }
+    };
+    match render_explanation(&index, &witnesses, &target_iri) {
         Ok(text) => {
             print!("{text}");
             0
         }
         Err(diag) => gmeow_cli_core::emit_and_exit(reporter, diag, "gmeow"),
+    }
+}
+
+// ── slice quality ────────────────────────────────────────────────────────────
+
+/// `gmeow slice quality` — score an EXTERNAL slice directory against the embedded
+/// `gmeow.gts` bundle's rubric (no repo checkout, no generator inputs, no
+/// network): the wheel-shippable consumer runtime entry point for
+/// [`gmeow_slice_quality::score_external_slice_bytes`].
+pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
+    let report = match gmeow_slice_quality::score_external_slice_bytes(BUNDLE_GTS, dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.quality.score",
+                format!("cannot score {}: {e}", dir.display()),
+            );
+        }
+    };
+    let rendered = match format {
+        "human" => Ok(report.render_text()),
+        "json" => gmeow_errors::render::to_json(&report.to_report()),
+        "sarif" => gmeow_errors::render::to_sarif(&report.to_report()),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.quality.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or sarif"),
+            );
+        }
+    };
+    match rendered {
+        Ok(text) => {
+            print!("{text}");
+            0
+        }
+        Err(e) => fail(
+            reporter,
+            "gmeow-cli.slice.quality.render",
+            format!("cannot render slice-quality report: {e}"),
+        ),
+    }
+}
+
+// ── slice brief ──────────────────────────────────────────────────────────────
+
+/// `gmeow slice brief` — assemble and render a `gmeow:AuthoringPacket` for a slice
+/// directory, computed over the slice's OWN sources (module.ttl, mappings/, i18n/).
+///
+/// The per-term exemplar tiers come from the SINGLE canonical library tiering
+/// [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
+/// pipeline stage uses, gated by SHACL per-term conformance against the SAME repo
+/// shape union — so an in-repo slice's live CLI brief and its committed
+/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The repo
+/// root (holding `generated/shapes/`) is resolved by walking up from the slice dir. A
+/// `--batch` out of range returns a typed hard failure through [`fail`] (a non-zero
+/// exit), never a panic or an empty packet.
+pub fn slice_brief(
+    reporter: &dyn Reporter,
+    dir: &Path,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    // Resolve the repo root and load the SHACL shape union the pipeline gates against,
+    // so the CLI's exemplar tiering matches the committed projection in a checkout.
+    let repo_root = match gmeow_slice_brief::resolve_repo_root(dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.repo-root",
+                format!("cannot resolve repo root for {}: {e}", dir.display()),
+            );
+        }
+    };
+    let shapes = match gmeow_slice_brief::load_shape_union(&repo_root) {
+        Ok(s) => s,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.shapes",
+                format!(
+                    "cannot load SHACL shape union from {}: {e}",
+                    repo_root.display()
+                ),
+            );
+        }
+    };
+    let tiers = match gmeow_slice_brief::exemplar_tiers(dir, &shapes) {
+        Ok(t) => t,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.tiers",
+                format!("cannot tier {}: {e}", dir.display()),
+            );
+        }
+    };
+    let packet = match gmeow_slice_brief::assemble_packet(&gmeow_slice_brief::BriefInputs {
+        slice_dir: dir,
+        axis,
+        batch,
+        exemplar_tiers: &tiers,
+        exemplar_target: 3,
+    }) {
+        Ok(p) => p,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.assemble",
+                format!(
+                    "cannot assemble authoring packet for {}: {e}",
+                    dir.display()
+                ),
+            );
+        }
+    };
+    let rendered = match format {
+        "human" => packet.render_text(),
+        "json" => packet.to_json(),
+        "turtle" => packet.to_turtle(),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or turtle"),
+            );
+        }
+    };
+    print!("{rendered}");
+    0
+}
+
+/// `gmeow slice projection-ceilings` — surface the committed projection-vocabulary
+/// ratchet (the guarded registry + the per-(slice, vocabulary) ceilings) straight from
+/// the embedded `gmeow.gts` bundle, dogfooding Principle 17 from the shippable
+/// deliverable. This is the COMMITMENTS view: the resident individuals, not the live
+/// measured residue (which needs a repo checkout to scan — that stays on `gmeow-dev`).
+pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
+    let floors = match gmeow_slice_quality::ceilings_from_gts(BUNDLE_GTS) {
+        Ok(f) => f,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.projection-ceilings.load",
+                format!("cannot load projection ceilings from bundle: {e}"),
+            );
+        }
+    };
+    let mut vocabs = floors.vocabularies;
+    vocabs.sort_by(|a, b| a.prefix.cmp(&b.prefix));
+    let mut ceilings = floors.ceilings;
+    ceilings.sort_by(|a, b| {
+        (a.slice.as_str(), a.vocab_prefix.as_str())
+            .cmp(&(b.slice.as_str(), b.vocab_prefix.as_str()))
+    });
+    match format {
+        "human" => {
+            println!("Guarded projection vocabularies ({}):", vocabs.len());
+            for v in &vocabs {
+                println!(
+                    "  {:<10} owner={:<66} {:<24} default-ceiling {}",
+                    v.prefix,
+                    v.owner,
+                    v.count_kind.as_local(),
+                    v.default_ceiling
+                );
+            }
+            println!("\nCommitted projection ceilings ({}):", ceilings.len());
+            for c in &ceilings {
+                println!(
+                    "  {:<70} {:<10} ceiling {}",
+                    c.slice, c.vocab_prefix, c.count
+                );
+            }
+            0
+        }
+        "tsv" => {
+            for v in &vocabs {
+                println!(
+                    "{}\t{}\t{}\t{}\t{}",
+                    v.prefix,
+                    v.namespaces.join(","),
+                    v.count_kind.as_local(),
+                    v.default_ceiling,
+                    v.owner
+                );
+            }
+            for c in &ceilings {
+                println!("{}\t{}\t{}", c.slice, c.vocab_prefix, c.count);
+            }
+            0
+        }
+        other => fail(
+            reporter,
+            "gmeow-cli.slice.projection-ceilings.unknown-format",
+            format!("unknown --format {other:?}: expected human or tsv"),
+        ),
     }
 }
 
@@ -1850,7 +2352,8 @@ mod explain_tests {
         // loss-ledger / projection-loss witnesses populate it even when clean). If
         // it is empty, explain has nothing to walk on the shippable surface — a
         // blocker to surface, not to paper over.
-        let index = finding_index(BUNDLE_GTS).expect("read diagnostics from shipped bundle");
+        let dataset = diagnostics_dataset(BUNDLE_GTS).expect("fold shipped bundle diagnostics");
+        let index = read_findings(&dataset).expect("read diagnostics from shipped bundle");
         assert!(
             !index.is_empty(),
             "shipped bundle graph/diagnostics carries NO findings — explain has no real witness to walk"
@@ -1866,7 +2369,9 @@ mod explain_tests {
         let real_code = index.get(&real_iri).expect("finding present").code.clone();
 
         // The production rendering path returns the finding's IRI + code + verdict.
-        let text = render_explanation(&index, &real_iri).expect("render a real finding");
+        let witnesses = WitnessIndex::default();
+        let text =
+            render_explanation(&index, &witnesses, &real_iri).expect("render a real finding");
         assert!(text.contains(&real_iri), "output names the finding IRI");
         assert!(text.contains(&real_code), "output names the finding code");
         assert!(
@@ -1889,13 +2394,224 @@ mod explain_tests {
         // An unknown target is a hard fail: Err from the renderer AND a non-zero
         // exit through the command surface — never an empty DAG returned as 0.
         assert!(
-            render_explanation(&index, "not-a-real-iri").is_err(),
+            render_explanation(&index, &witnesses, "not-a-real-iri").is_err(),
             "an unknown target is a hard fail"
         );
         assert_ne!(
             explain(reporter.as_ref(), "not-a-real-iri".to_owned(), None),
             0,
             "an unknown target exits non-zero"
+        );
+    }
+
+    #[test]
+    fn explain_decomposes_an_invented_witness_and_hard_fails_unknown_skolem() {
+        use std::collections::BTreeMap;
+
+        // A two-level invented-null derivation: `outer` is invented on a frontier
+        // that is ITSELF the invented null `inner` — the recursive descent edge.
+        let outer = "https://blackcatinformatics.ca/gmeow/skolem/outer";
+        let inner = "https://blackcatinformatics.ca/gmeow/skolem/inner";
+        let mut map: BTreeMap<String, WitnessRecord> = BTreeMap::new();
+        map.insert(
+            inner.to_owned(),
+            WitnessRecord {
+                witness: inner.to_owned(),
+                rule_iri: "https://blackcatinformatics.ca/gmeow/rule/inner".to_owned(),
+                ordinal: 0,
+                predicate: "https://blackcatinformatics.ca/logic/demonstratesChaseWitness"
+                    .to_owned(),
+                frontier: vec!["https://example.org/seed".to_owned()],
+            },
+        );
+        map.insert(
+            outer.to_owned(),
+            WitnessRecord {
+                witness: outer.to_owned(),
+                rule_iri: "https://blackcatinformatics.ca/gmeow/rule/outer".to_owned(),
+                ordinal: 1,
+                predicate: "https://blackcatinformatics.ca/logic/demonstratesChaseWitness"
+                    .to_owned(),
+                frontier: vec![inner.to_owned()],
+            },
+        );
+        let witnesses = WitnessIndex { witnesses: map };
+        let findings = FindingIndex::default();
+
+        // The witness branch decomposes the recipe: rule, ordinal, frontier binding,
+        // and the bounded proof height over the invented-null sub-derivation (2, since
+        // `outer` descends into `inner`).
+        let text =
+            render_explanation(&findings, &witnesses, outer).expect("explain the invented witness");
+        assert!(
+            text.contains("invented witness"),
+            "labels the witness: {text}"
+        );
+        assert!(
+            text.contains("rule/outer"),
+            "prints the firing rule: {text}"
+        );
+        assert!(
+            text.contains("ordinal      1"),
+            "prints the ordinal: {text}"
+        );
+        assert!(text.contains(inner), "prints the frontier binding: {text}");
+        assert!(
+            text.contains("proof height 2"),
+            "bounded proof height over the sub-derivation: {text}"
+        );
+        assert!(
+            text.contains("witness derivation DAG:"),
+            "renders the derivation tree: {text}"
+        );
+
+        // A skolem IRI with NO record falls through to the finding/anchor dispatch and
+        // its hard fail — never an empty derivation returned as success (AC2).
+        assert!(
+            render_explanation(
+                &findings,
+                &witnesses,
+                "https://blackcatinformatics.ca/gmeow/skolem/missing"
+            )
+            .is_err(),
+            "an unknown skolem IRI is a hard fail"
+        );
+    }
+
+    #[test]
+    fn explain_decomposes_a_chase_invented_null_in_the_shipped_bundle() {
+        // AC2 on the PRODUCTION surface: the shipped gmeow.gts carries chase-invented
+        // nulls; `gmeow explain <skolem-iri>` decomposes one over the real bundle,
+        // reading its skolem IRI FROM the bundle (never hand-built).
+        let dataset = diagnostics_dataset(BUNDLE_GTS).expect("fold shipped bundle diagnostics");
+        let witnesses = read_invented_witnesses(&dataset).expect("read shipped invented witnesses");
+        assert!(
+            !witnesses.is_empty(),
+            "the shipped bundle carries NO chase-invented null — explain(witness) has \
+             nothing to decompose on the production surface"
+        );
+        let iri = witnesses
+            .witnesses
+            .keys()
+            .next()
+            .expect("a shipped invented null")
+            .clone();
+        let findings = read_findings(&dataset).expect("read shipped findings");
+
+        let text = render_explanation(&findings, &witnesses, &iri)
+            .expect("explain a shipped invented null");
+        assert!(
+            text.contains("invented witness"),
+            "labels the witness: {text}"
+        );
+        assert!(
+            text.contains("firing rule"),
+            "prints the firing rule: {text}"
+        );
+        assert!(text.contains("ordinal"), "prints the ordinal: {text}");
+        assert!(
+            text.contains("frontier"),
+            "prints the frontier binding: {text}"
+        );
+        assert!(
+            text.contains("proof height"),
+            "prints the bounded proof height: {text}"
+        );
+
+        // The shipped invented null explains with exit 0 through the i32 command surface.
+        let reporter = reporter_for(ConsoleMode::Text);
+        assert_eq!(
+            explain(reporter.as_ref(), iri, None),
+            0,
+            "a shipped chase-invented null explains successfully"
+        );
+    }
+}
+
+#[cfg(test)]
+mod entails_tests {
+    use gmeow_cli_core::{ConsoleMode, reporter_for};
+
+    use super::*;
+
+    /// Drive the REAL `gmeow entails` production surface (parse files → dl_entails →
+    /// exit code) over a premise `x∈A, A⊑B` and three conclusions: an entailed
+    /// membership, a non-entailed membership, and a role-assertion gap; plus a hard
+    /// fail on an unreadable file.
+    #[test]
+    fn entails_decides_positive_negative_gap_and_hard_fails_missing() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let premise = dir.path().join("premise.ttl");
+        std::fs::write(
+            &premise,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:A .\n\
+             ex:A rdfs:subClassOf ex:B .\n",
+        )
+        .unwrap();
+
+        let concl_pos = dir.path().join("pos.ttl");
+        std::fs::write(
+            &concl_pos,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:B .\n",
+        )
+        .unwrap();
+
+        let concl_neg = dir.path().join("neg.ttl");
+        std::fs::write(
+            &concl_neg,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:C .\n",
+        )
+        .unwrap();
+
+        let concl_gap = dir.path().join("gap.ttl");
+        std::fs::write(
+            &concl_gap,
+            "@prefix ex: <http://ex/> .\nex:x ex:knows ex:y .\n",
+        )
+        .unwrap();
+
+        let reporter = reporter_for(ConsoleMode::Silent);
+        let r = reporter.as_ref();
+
+        // The production handler returns exit 0 for every decided verdict (entailed,
+        // not-entailed, and an honest gap) — the verdict itself is on stdout.
+        assert_eq!(entails(r, &premise, &concl_pos), 0, "entailed exits 0");
+        assert_eq!(entails(r, &premise, &concl_neg), 0, "not-entailed exits 0");
+        assert_eq!(entails(r, &premise, &concl_gap), 0, "an honest gap exits 0");
+
+        // The underlying verdicts are correct on the real datasets (parsed exactly as
+        // the CLI does).
+        let prem = parse_rdf_file(r, &premise).expect("premise parses");
+        let pos = parse_rdf_file(r, &concl_pos).expect("pos parses");
+        let neg = parse_rdf_file(r, &concl_neg).expect("neg parses");
+        let gap = parse_rdf_file(r, &concl_gap).expect("gap parses");
+        use gmeow_logic::entail::{EntailmentVerdict, GapShape, dl_entails};
+        assert_eq!(
+            dl_entails(prem.as_ref(), pos.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed
+        );
+        assert_eq!(
+            dl_entails(prem.as_ref(), neg.as_ref()).unwrap(),
+            EntailmentVerdict::NotEntailed
+        );
+        assert!(matches!(
+            dl_entails(prem.as_ref(), gap.as_ref()).unwrap(),
+            EntailmentVerdict::Gap(g) if g.shape == GapShape::RoleAssertion
+        ));
+
+        // A missing conclusion file is a hard fail (exit 1), never a degraded verdict.
+        let missing = dir.path().join("nope.ttl");
+        assert_eq!(
+            entails(r, &premise, &missing),
+            1,
+            "missing input hard-fails"
         );
     }
 }

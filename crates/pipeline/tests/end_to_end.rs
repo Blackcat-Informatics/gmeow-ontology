@@ -7,17 +7,16 @@
 //! test sink — over the real repo, binding every stage against the default
 //! registry. This exercises the scheduler and carrier assembly on production data
 //! (DAG validate → bind → level-parallel schedule → engine-resource serialization
-//! on reason → content-addressed cache → one Sink) while keeping the always-on
-//! test under the 25s per-test budget. The terminal sink has a focused unit test,
-//! and full sink-vs-committed fold parity stays with the heavy fold-parity lane.
+//! on reason → content-addressed cache → one Sink). It is an exhaustive
+//! `maint-heavy` proof; the terminal sink has focused default-lane tests and
+//! committed output remains protected by the generated-artifact drift gate.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_pipeline::{
-    ENGINE_RESOURCE, PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN,
-    Stage, StageInput, StageOutput, StageProduct, StageRegistry, StageSpec, bind, default_registry,
-    run,
+    PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput,
+    StageOutput, StageProduct, StageRegistry, StageSpec, bind, default_registry, run,
 };
 
 fn repo_root() -> PathBuf {
@@ -31,13 +30,19 @@ fn repo_root() -> PathBuf {
 /// Build a spine [`StageSpec`], deriving resources / capabilities / typed dataflow
 /// from the stage `id` so each mirrors the real Rust impl and bind's agreement holds:
 /// `stage-source-load` holds [`SOURCE_ORIGIN`], the sink stage holds
-/// [`SINK_CAPABILITY`], and `stage-reason` requires the exclusive engine resource and
-/// narrows its compile-logic dependency to the three object-level EDB graphs.
+/// [`SINK_CAPABILITY`], `stage-reason` requires the exclusive engine resource, and
+/// `stage-reason` narrows its compile-logic dependency to the two object-level EDB
+/// graphs, while `stage-validate` sees the complete three-graph compiled carrier.
 fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
-    use gmeow_pipeline::stages::compile_logic::{
-        GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
-    };
-    let is_reason = id == "stage-reason";
+    // Every resource / typed-dataflow-entity declaration is DERIVED from the bound Rust
+    // impl in the default registry (the same registry-derivation this test already does
+    // for attaches_graphs / attaches_blob_reps below), so the spine can never drift from
+    // the production impls' resources() / consumed_entities() — a stage that gains an
+    // engine-resource requirement or a typed dataflow narrowing needs no edit here.
+    // test_sink is absent from the default registry → the derived sets are empty, matching
+    // its no-resource / no-typed-entity default; its SINK capability is set explicitly below.
+    let registry = default_registry();
+    let bound = registry.get(impl_key);
     StageSpec {
         id: id.to_string(),
         capabilities: match id {
@@ -47,27 +52,14 @@ fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
         },
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        // The reason stage requires the exclusive engine resource; mirror the Rust
-        // ReasonStage::resources() so bind's resource-agreement holds.
-        resources: if is_reason {
-            vec![ENGINE_RESOURCE.to_string()]
-        } else {
-            Vec::new()
-        },
-        // The reason stage reads only the logic/relational-core/correspondence graphs
-        // from compile-logic; mirror ReasonStage::consumed_entities() for bind.
-        dataflow_entities: if is_reason {
-            vec![(
-                "stage-compile-logic".to_string(),
-                vec![
-                    GRAPH_CORRESPONDENCE.to_string(),
-                    GRAPH_LOGIC.to_string(),
-                    GRAPH_RELATIONAL_CORE.to_string(),
-                ],
-            )]
-        } else {
-            Vec::new()
-        },
+        resources: bound
+            .as_ref()
+            .map(|s| s.resources().to_vec())
+            .unwrap_or_default(),
+        dataflow_entities: bound
+            .as_ref()
+            .map(|s| s.consumed_entities().to_vec())
+            .unwrap_or_default(),
         formats: Vec::new(),
         // Mirror the bound Rust impl's attach declaration (the same registry-derivation
         // run.rs::full_spec() does) so bind's Rust/RDF attach agreement holds for the
@@ -160,7 +152,11 @@ fn spine() -> PipelineSpec {
         stages: vec![
             spec("stage-source-load", "source_load", &[]),
             spec("stage-statements", "statements", &[]),
-            spec("stage-compile-logic", "compile_logic", &[]),
+            spec(
+                "stage-compile-logic",
+                "compile_logic",
+                &["stage-source-load"],
+            ),
             // Leaf compute: the six math producers (five flagship producers plus the
             // probability-model seam producer), folded into the snapshot (mirrors
             // `run.rs::full_spec()` — kept in sync so `bind`'s Rust/RDF
@@ -172,10 +168,16 @@ fn spine() -> PipelineSpec {
                 "reason",
                 &[
                     "stage-compile-logic",
-                    "stage-mappings",
                     "stage-source-load",
                     "stage-statements",
                 ],
+            ),
+            // The production consumer of the native proof-carrying backward engine: it
+            // attaches graph/goal-directed, which the snapshot folds into gmeow.gts.
+            spec(
+                "stage-goal-directed",
+                "goal_directed",
+                &["stage-compile-logic"],
             ),
             spec(
                 "stage-gts-compose",
@@ -187,21 +189,48 @@ fn spine() -> PipelineSpec {
                     "stage-statements",
                 ],
             ),
-            spec("stage-validate", "validate", &["stage-source-load"]),
+            // The three generated-shape export leaves whose in-memory products (plus
+            // compile-logic's validation-shape artifacts) supply the FRESH
+            // generated/shapes/*.ttl union members validate/json-schema consume —
+            // never a stale disk read (the stale-disk-fold class).
+            spec("stage-export-frame-shapes", "frame_shapes", &[]),
+            spec("stage-export-constraint-shapes", "constraint_shapes", &[]),
+            spec("stage-export-result-shapes", "result_shapes", &[]),
+            spec(
+                "stage-validate",
+                "validate",
+                &[
+                    "stage-compile-logic",
+                    "stage-export-constraint-shapes",
+                    "stage-export-frame-shapes",
+                    "stage-export-result-shapes",
+                    "stage-source-load",
+                ],
+            ),
             spec(
                 "stage-docs-render",
                 "docs_render",
                 &[
                     "stage-compile-logic",
+                    "stage-export-json-schema",
                     "stage-gts-compose",
                     "stage-mappings",
                     "stage-reason",
                     "stage-validate",
                 ],
             ),
-            // The SHACL→JSON-Schema source leaf the snapshot folds; a
-            // source-reading ExportLeaf that consumes nothing.
-            spec("stage-export-json-schema", "json_schema", &[]),
+            // The SHACL→JSON-Schema leaf the snapshot folds; a fresh-union
+            // ExportLeaf consuming the four generated-shape producers.
+            spec(
+                "stage-export-json-schema",
+                "json_schema",
+                &[
+                    "stage-compile-logic",
+                    "stage-export-constraint-shapes",
+                    "stage-export-frame-shapes",
+                    "stage-export-result-shapes",
+                ],
+            ),
             // The external-corpus divergence grader the snapshot folds into
             // graph/conformance; a source-reading Transform that consumes nothing.
             spec("stage-conformance", "conformance", &[]),
@@ -210,10 +239,6 @@ fn spine() -> PipelineSpec {
             // leaf, never re-rendered in the presenter (the transform-once razor).
             spec("stage-export-profiles", "profiles", &[]),
             spec("stage-export-evals", "evals", &[]),
-            // The references export leaf: its in-memory product carries the freshly
-            // generated `references.bib` the snapshot folds into the print PDF
-            // bibliography (mirrors `SnapshotStage::consumes()`).
-            spec("stage-export-references", "references", &[]),
             // The six math producer graphs (five flagship producers plus the
             // probability-model seam producer) the snapshot folds into gmeow.gts
             // as their own bundle-internal named graphs (mirrors `SnapshotStage::consumes()`).
@@ -243,8 +268,8 @@ fn spine() -> PipelineSpec {
                     "stage-export-evals",
                     "stage-export-json-schema",
                     "stage-export-profiles",
-                    "stage-export-references",
                     "stage-export-research-objects",
+                    "stage-goal-directed",
                     "stage-gts-compose",
                     "stage-mappings",
                     "stage-math-producers",
@@ -270,7 +295,11 @@ fn executor_runs_the_spine_end_to_end() {
     // registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 19, "all 19 snapshot-spine stages bound");
+    assert_eq!(bound.len(), 22, "all 22 snapshot-spine stages bound");
+    assert!(
+        bound.iter().any(|s| s.id() == "stage-goal-directed"),
+        "goal-directed stage bound by id, not merely counted"
+    );
     assert!(
         bound.iter().any(|s| s.id() == "stage-constraint-catalog"),
         "constraint-catalog stage bound by id, not merely counted"
@@ -286,7 +315,7 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 19);
+    assert_eq!(result.products.len(), 22);
     assert!(
         result.products.contains_key("stage-constraint-catalog"),
         "constraint-catalog produced a product, not merely counted"
@@ -305,5 +334,74 @@ fn executor_runs_the_spine_end_to_end() {
     assert!(
         quad_count > 4096,
         "snapshot carrier implausibly small: {quad_count} quads"
+    );
+
+    // ── The load-bearing byte-move: graph/goal-directed reaches the terminal carrier ──
+    // Project graph/goal-directed OUT of the assembled snapshot bundle (not off the
+    // goal-directed stage's own product) and assert the native backward engine's checked
+    // answer + its proof-derivation IRI actually rode through stage-snapshot's explicit
+    // enumeration fold into gmeow.gts. Without the assemble_carrier push + the reciprocal
+    // stage-snapshot dataflow edge, this graph would be EMPTY here even though the stage ran.
+    let goal_directed = snapshot
+        .dataset()
+        .project_named_graph(gmeow_pipeline::stages::goal_directed::GRAPH_GOAL_DIRECTED);
+    let gd_quads: Vec<_> = goal_directed.owned_quads().collect();
+    assert!(
+        !gd_quads.is_empty(),
+        "graph/goal-directed reached the terminal carrier (non-empty)"
+    );
+    let has_answer_atom = gd_quads.iter().any(|q| {
+        matches!(&q.object, purrdf::RdfTerm::Literal(l)
+            if l.lexical_form == "add(s(s(zero)),s(zero),s(s(s(zero))))")
+    });
+    assert!(
+        has_answer_atom,
+        "the minimal Peano demonstrator's ground answer atom is folded into gmeow.gts"
+    );
+    let has_derivation = gd_quads.iter().any(|q| {
+        q.predicate == "https://blackcatinformatics.ca/gmeow/goalDirectedDerivation"
+            && matches!(&q.object, purrdf::RdfTerm::Iri(iri)
+                if iri.starts_with("https://blackcatinformatics.ca/gmeow/derivation/"))
+    });
+    assert!(
+        has_derivation,
+        "a content-addressed proof-derivation IRI is folded into gmeow.gts"
+    );
+
+    // The three substantial demonstrators' distinctive results also ride the terminal carrier:
+    // (a) a structured cons-list membership answer;
+    let has_structured_answer = gd_quads.iter().any(|q| {
+        matches!(&q.object, purrdf::RdfTerm::Literal(l)
+            if l.lexical_form == "member(a,cons(a,cons(b,cons(c,nil))))")
+    });
+    assert!(
+        has_structured_answer,
+        "the structured member/cons demonstrator answer is folded into gmeow.gts"
+    );
+    // (b) the SLG-WFS three-valued negation surface, including at least one `undefined` verdict
+    //     alongside a founded `true`/`false` — the observable evidence WFS is non-dark;
+    let wfs_verdicts: Vec<&str> = gd_quads
+        .iter()
+        .filter(|q| q.predicate == "https://blackcatinformatics.ca/gmeow/goalDirectedVerdict")
+        .filter_map(|q| match &q.object {
+            purrdf::RdfTerm::Literal(l) => Some(l.lexical_form.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        wfs_verdicts.contains(&"undefined"),
+        "an undefined SLG-WFS verdict is folded into gmeow.gts: {wfs_verdicts:?}"
+    );
+    assert!(
+        wfs_verdicts.contains(&"true") && wfs_verdicts.contains(&"false"),
+        "founded true/false SLG-WFS verdicts are folded into gmeow.gts: {wfs_verdicts:?}"
+    );
+    // (c) the order-sorted (ℤ ⊑ ℝ) subsort-unified answer.
+    let has_subsort_answer = gd_quads
+        .iter()
+        .any(|q| matches!(&q.object, purrdf::RdfTerm::Literal(l) if l.lexical_form == "p(one)"));
+    assert!(
+        has_subsort_answer,
+        "the order-sorted subsort-unified answer p(one) is folded into gmeow.gts"
     );
 }

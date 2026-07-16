@@ -10,9 +10,20 @@
 # boundary record math:compactnessBoundary. Read over the merged ontology (no
 # fixture), the answer is exactly the eight property -> backing pairs. This is
 # the query twin of the open, type-checked law-backing audit in structural.ttl.
+# Scoped to the TOPOLOGICAL family (the spaces, the continuous map, and the
+# separation axioms) so it reports exactly those eight; the analysis charter's
+# own analytic properties are reported by its sibling analytic-property-backing.rq.
 PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?property ?backing WHERE {
     ?property math:definingLaw ?backing .
+    {
+        ?property rdfs:subClassOf math:TopologicalSpace .
+    } UNION {
+        ?property rdfs:subClassOf math:Morphism .
+    } UNION {
+        ?property a math:SeparationAxiom .
+    }
 }
 ORDER BY ?property ?backing

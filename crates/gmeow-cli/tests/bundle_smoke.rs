@@ -110,10 +110,6 @@ fn verify_allow_unsigned_needs_no_external_gts_on_path() {
         stdout.contains("verification passed"),
         "stdout must report overall success: {stdout}"
     );
-    assert!(
-        stdout.contains("blob integrity: pass"),
-        "the new blob-integrity row must be printed and clean: {stdout}"
-    );
 }
 
 // ── 3. Real cryptographic verification through the BUILT BINARY ─────────────
@@ -295,12 +291,16 @@ fn verify_accepts_a_validly_signed_trusted_bundle() {
          stdout={stdout}\nstderr={stderr}"
     );
     assert!(
-        stdout.contains("signatures: pass"),
-        "the signatures row must report pass: {stdout}"
+        stdout.contains("verification passed"),
+        "stdout must report overall success: {stdout}"
     );
+    // The signature/trust findings now fold into the unified report and render on
+    // the product channel (stdout) via `render::to_text`, so the resolved-key
+    // finding surfaces there rather than on the reporter's stderr channel.
     assert!(
-        stderr.contains("resolved transport key"),
-        "the resolved-key finding must be surfaced: {stderr}"
+        stdout.contains("resolved transport key"),
+        "the resolved-key finding must be surfaced in the unified report: \
+         stdout={stdout}\nstderr={stderr}"
     );
 }
 

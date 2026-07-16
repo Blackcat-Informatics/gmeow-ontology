@@ -1,12 +1,12 @@
-@gmn{v: 1, aliases: dict-v1}
-@c{s: gmeow__examples-2f-names-2f-chosenDenotation, p: rdf__type, o: lang__Denotation}
-@c{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationContext, o: gmeow__examples-2f-names-2f-everydayAddressContext}
-@c{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationKind, o: lang__denotesEntity}
-@c{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationTarget, o: gmeow__examples-2f-names-2f-robin}
-@c{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotedForm, o: gmeow__examples-2f-names-2f-chosenForm}
-@c{s: gmeow__examples-2f-names-2f-chosenForm, p: rdf__type, o: lang__WordForm}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
+@λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: rdf__type, o: den}
+@λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationContext, o: gmeow__examples-2f-names-2f-everydayAddressContext}
+@λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationKind, o: lang__denotesEntity}
+@λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationTarget, o: gmeow__examples-2f-names-2f-robin}
+@λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotedForm, o: gmeow__examples-2f-names-2f-chosenForm}
+@λ{s: gmeow__examples-2f-names-2f-chosenForm, p: rdf__type, o: lang__WordForm}
 @c{s: gmeow__examples-2f-names-2f-chosenForm, p: rdfs__label, v: r_bdeb1c6b51fb92f1}
-@c{s: gmeow__examples-2f-names-2f-chosenForm, p: lang__inSignSystem, o: lang__english}
+@λ{s: gmeow__examples-2f-names-2f-chosenForm, p: lang__inSignSystem, o: lang__english}
 @c{s: gmeow__examples-2f-names-2f-everydayAddressContext, p: rdfs__label, v: r_2dbdaed7ac3c7a72}
 @c{s: gmeow__examples-2f-names-2f-nameChosen, p: rdf__type, o: gmeow__PersonName}
 @c{s: gmeow__examples-2f-names-2f-nameChosen, p: gmeow__appellationDenotation, o: gmeow__examples-2f-names-2f-chosenDenotation}
@@ -24,7 +24,7 @@
 @c{s: gmeow__examples-2f-names-2f-nameHan, p: gmeow__displayable, v: r_d196816ebf91dda9}
 @c{s: gmeow__examples-2f-names-2f-nameHan, p: gmeow__fullName, v: r_aba626b369d5bfeb}
 @c{s: gmeow__examples-2f-names-2f-nameHan, p: gmeow__namePurpose, o: gmeow__namePurposeLegal}
-@c{s: gmeow__examples-2f-names-2f-nameHan, p: gmeow__nameScript, o: lang__hanScript}
+@λ{s: gmeow__examples-2f-names-2f-nameHan, p: gmeow__nameScript, o: lang__hanScript}
 @c{s: gmeow__examples-2f-names-2f-nickRob, p: rdf__type, o: gmeow__PersonName}
 @c{s: gmeow__examples-2f-names-2f-nickRob, p: gmeow__displayable, v: r_d196816ebf91dda9}
 @c{s: gmeow__examples-2f-names-2f-nickRob, p: gmeow__fullName, v: r_f782654051a54e64}

@@ -90,6 +90,93 @@ fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
     );
 }
 
+#[test]
+fn recovery_case_owns_its_formula_and_typed_term_carriers() {
+    let (program, diagnostics) = parse(
+        "ex:c a logic:Correspondence ;
+            logic:correspondenceRelation logic:Subsumes ;
+            logic:morphismClass logic:LossyLens ;
+            logic:morphismKind logic:InstitutionMorphism ;
+            logic:recoveryCase ex:case .
+         ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ;
+            logic:forall [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ; logic:relation ex:source ; logic:argument
+                    [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ,
+                    [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Source ] ] ;
+                logic:consequent [ a logic:Formula ; logic:relation ex:view ; logic:argument
+                    [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ,
+                    [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:View ] ]
+            ]
+         ] .",
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.severity != Severity::Error),
+        "unexpected recovery parse diagnostics: {diagnostics:#?}"
+    );
+    assert_eq!(program.correspondences.len(), 1);
+    assert_eq!(program.correspondences[0].recovery_cases.len(), 1);
+    assert!(
+        program.formulas.is_empty(),
+        "a recovery transform must not also become a top-level formula"
+    );
+    assert!(
+        program.axioms.iter().all(|axiom| {
+            axiom.obj != logic_iri("TermCarrier")
+                && axiom.obj != logic_iri("RecoveryCase")
+                && !axiom.predicate.ends_with("recoveryCase")
+                && !axiom.predicate.ends_with("recoveryTransform")
+        }),
+        "recovery/formula structure leaked into generic axioms: {:#?}",
+        program.axioms
+    );
+}
+
+#[test]
+fn recovery_case_requires_named_identity() {
+    let (program, diagnostics) = parse(
+        "ex:c a logic:Correspondence ;
+            logic:correspondenceRelation logic:Subsumes ;
+            logic:morphismClass logic:LossyLens ;
+            logic:morphismKind logic:InstitutionMorphism ;
+            logic:recoveryCase [ a logic:RecoveryCase ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "MALFORMED_CORRESPONDENCE"
+                && diagnostic.message.contains("non-IRI logic:recoveryCase")
+        }),
+        "unnamed recovery evidence must not disappear silently: {diagnostics:#?}"
+    );
+}
+
+#[test]
+fn orphan_recovery_case_is_hard_failed() {
+    // `ex:case` is typed `logic:RecoveryCase` but no `logic:Correspondence` reaches it via
+    // `logic:recoveryCase`: unowned recovery evidence must be a hard Severity::Error finding,
+    // not silently vanish from the parsed program.
+    let (program, diagnostics) = parse(
+        "ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:relation ex:source ;
+            logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:Source ]
+         ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "ORPHAN_RECOVERY_CASE"
+                && diagnostic.severity == Severity::Error
+                && diagnostic.message.contains("/case")
+        }),
+        "unowned RecoveryCase must be hard-failed: {diagnostics:#?}"
+    );
+}
+
 // ── Minimal graph + reasoning contracts ───────────────────────────────
 
 #[test]
@@ -1137,6 +1224,38 @@ fn formula_cycle_identity_and_message_are_traversal_order_independent() {
 
 // ── Derived validation shapes (OWL restrictions → closed-world SHACL) ─────────
 
+/// [`AUTHORING_NAMESPACES`] is THE single authoring-namespace authority — the derive's own
+/// dogfooding boundary AND the `shape-migrate` injector's eligibility test (`gmeow-dev-cli`)
+/// both consume this exact set. Pin it to exactly the four namespaces so an accidental
+/// addition/removal reds here instead of silently drifting one of its two consumers out of
+/// sync with the other.
+#[test]
+fn authoring_namespaces_is_pinned_to_the_four_dogfooded_namespaces() {
+    assert_eq!(
+        AUTHORING_NAMESPACES,
+        [
+            "https://blackcatinformatics.ca/gmeow/",
+            "https://blackcatinformatics.ca/math/",
+            "https://blackcatinformatics.ca/lang/",
+            "https://blackcatinformatics.ca/logic/",
+        ]
+    );
+}
+
+#[test]
+fn is_authoring_namespace_accepts_every_dogfooded_namespace_and_rejects_external() {
+    for ns in AUTHORING_NAMESPACES {
+        assert!(
+            is_authoring_namespace(&format!("{ns}Example")),
+            "{ns} must be accepted as an authoring namespace"
+        );
+    }
+    assert!(!is_authoring_namespace("http://xmlns.com/foaf/0.1/Person"));
+    assert!(!is_authoring_namespace(
+        "https://ontologies.gufo.example/gufo#Object"
+    ));
+}
+
 /// Parse a Turtle fragment into a dataset for [`derive_validation_shapes`]. The `g:` prefix is
 /// the GMEOW authoring namespace, so its classes are in-scope for derivation.
 fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
@@ -1145,6 +1264,7 @@ fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
          @prefix owl:  <http://www.w3.org/2002/07/owl#> .\n\
          @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix g:    <https://blackcatinformatics.ca/gmeow/> .\n{ttl}"
     );
     parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
@@ -1181,6 +1301,258 @@ fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
         }
     }
     out
+}
+
+#[test]
+fn derive_logic_restrictions_matches_the_lowered_owl_spelling() {
+    let cases = [
+        (
+            "same-path allValuesFrom + maxQualifiedCardinality/onClass",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:item ; owl:allValuesFrom g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:item ;
+                 owl:maxQualifiedCardinality 1 ; owl:onClass g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:item ; logic:allValuesFrom g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:item ;
+                 logic:maxQualifiedCardinality 1 ; logic:onClass g:Item ] ."#,
+        ),
+        (
+            "someValuesFrom",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:someItem ; owl:someValuesFrom g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:someItem ; logic:someValuesFrom g:Item ] ."#,
+        ),
+        (
+            "hasValue",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:state ; owl:hasValue g:active ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:state ; logic:hasValue g:active ] ."#,
+        ),
+        (
+            "unqualified cardinalities",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:minItem ; owl:minCardinality 1 ] ,
+               [ a owl:Restriction ; owl:onProperty g:maxItem ; owl:maxCardinality 2 ] ,
+               [ a owl:Restriction ; owl:onProperty g:exactItem ; owl:cardinality 1 ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:minItem ; logic:minCardinality 1 ] ,
+               [ a logic:Restriction ; logic:onProperty g:maxItem ; logic:maxCardinality 2 ] ,
+               [ a logic:Restriction ; logic:onProperty g:exactItem ; logic:cardinality 1 ] ."#,
+        ),
+        (
+            "qualified cardinalities with class qualifiers",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:exactMember ; owl:qualifiedCardinality 1 ; owl:onClass g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:minMember ; owl:minQualifiedCardinality 1 ; owl:onClass g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:maxMember ; owl:maxQualifiedCardinality 2 ; owl:onClass g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:exactMember ; logic:qualifiedCardinality 1 ; logic:onClass g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:minMember ; logic:minQualifiedCardinality 1 ; logic:onClass g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:maxMember ; logic:maxQualifiedCardinality 2 ; logic:onClass g:Item ] ."#,
+        ),
+        (
+            "qualified cardinality with data-range qualifier",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:score ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:score ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ."#,
+        ),
+        (
+            "unionOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:unionOf ( g:Item g:OtherItem ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:unionOf ( g:Item g:OtherItem ) ] ] ."#,
+        ),
+        (
+            "disjointUnionOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:disjointUnionOf ( g:Item g:OtherItem ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:disjointUnionOf ( g:Item g:OtherItem ) ] ] ."#,
+        ),
+        (
+            "oneOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:state ;
+                 owl:allValuesFrom [ owl:oneOf ( g:active g:inactive ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:state ;
+                 logic:allValuesFrom [ logic:oneOf ( g:active g:inactive ) ] ] ."#,
+        ),
+        (
+            "complementOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:complementOf g:ForbiddenItem ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:complementOf g:ForbiddenItem ] ] ."#,
+        ),
+        (
+            "faceted datatype onDatatype/withRestrictions filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:code ; owl:allValuesFrom
+                 [ a rdfs:Datatype ; owl:onDatatype xsd:string ;
+                   owl:withRestrictions ( [ xsd:minLength 2 ] ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:code ; logic:allValuesFrom
+                 [ a rdfs:Datatype ; logic:onDatatype xsd:string ;
+                   logic:withRestrictions ( [ xsd:minLength 2 ] ) ] ] ."#,
+        ),
+    ];
+
+    let mut merged_logic_shapes = None;
+    for (name, owl_ttl, logic_ttl) in cases {
+        let owl = shape_dataset(owl_ttl);
+        let logic = shape_dataset(logic_ttl);
+        let owl_shapes = derive_validation_shapes(owl.as_ref())
+            .unwrap_or_else(|error| panic!("derive OWL spelling for {name}: {error}"));
+        let logic_shapes = derive_validation_shapes(logic.as_ref())
+            .unwrap_or_else(|error| panic!("derive canonical logic spelling for {name}: {error}"));
+        assert_eq!(
+            logic_shapes, owl_shapes,
+            "canonical logic: spelling must match its OWL projection for {name}"
+        );
+        if name.starts_with("same-path") {
+            merged_logic_shapes = Some(logic_shapes);
+        }
+    }
+
+    let logic_shapes = merged_logic_shapes.expect("the same-path merge case ran");
+    let record = logic_shapes
+        .iter()
+        .find(|shape| shape.iri.ends_with("/Record-shape"))
+        .expect("logic-authored Record restriction must produce a class shape");
+    assert_eq!(record.properties.len(), 1, "same-path restrictions merge");
+    assert_eq!(
+        record.properties[0].path,
+        "https://blackcatinformatics.ca/gmeow/item"
+    );
+}
+
+#[test]
+fn derive_anonymous_one_of_filler_lowers_to_sh_in() {
+    // An allValuesFrom whose filler is an anonymous enumeration `[ owl:oneOf ( a b ) ]` reads
+    // closed-world as a value set on the path (`sh:in`), never a class-membership check.
+    let ds = shape_dataset(
+        "g:Trial a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:sidedness ; \
+           owl:allValuesFrom [ owl:oneOf ( g:oneSided g:twoSided ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::In(vs) if vs.len() == 2
+        )),
+        "expected an sh:in over the two enumerated individuals: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_union_of_bare_existential_restrictions_lowers_to_or_properties() {
+    // `K ⊑ (∃p1.Thing ⊔ ∃p2.Thing)` — the either-of-these-properties existence obligation —
+    // reads closed-world as the node-level property-alternatives disjunction.
+    let ds = shape_dataset(
+        "g:Framed a owl:Class ; rdfs:subClassOf [ owl:unionOf ( \
+           [ a owl:Restriction ; owl:onProperty g:hasFrame ; owl:someValuesFrom owl:Thing ] \
+           [ a owl:Restriction ; owl:onProperty g:hasModel ; owl:someValuesFrom owl:Thing ] ) ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let framed = shapes
+        .iter()
+        .find(|s| s.iri.contains("Framed"))
+        .expect("Framed shape derived");
+    assert!(
+        framed.node_components.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::OrProperties(paths)
+                if paths.len() == 2
+                    && paths.iter().any(|p| p.ends_with("hasFrame"))
+                    && paths.iter().any(|p| p.ends_with("hasModel"))
+        )),
+        "expected an OrProperties node component: {:?}",
+        framed.node_components
+    );
+    // The emitted SHACL carries the node-level sh:or over sh:path branches.
+    let ttl = crate::projections::shapes::project_validation_shape_shacl(framed);
+    assert!(
+        ttl.contains(
+            "sh:or ( [ sh:path <https://blackcatinformatics.ca/gmeow/hasFrame> ; sh:minCount 1 ]"
+        ),
+        "{ttl}"
+    );
+}
+
+#[test]
+fn derive_union_with_a_non_existential_member_stays_in_the_canon() {
+    // A union carrying a NAMED-class member is a genuine class disjunction — it must NOT be
+    // partially read as a property-alternatives disjunction.
+    let ds = shape_dataset(
+        "g:Mixed a owl:Class ; rdfs:subClassOf [ owl:unionOf ( \
+           [ a owl:Restriction ; owl:onProperty g:hasFrame ; owl:someValuesFrom owl:Thing ] \
+           g:NamedAlternative ) ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| s
+            .node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::OrProperties(_)))),
+        "a mixed union must not derive a partial property disjunction: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_blank_restriction_domain_lowers_to_subjects_of_property_shape() {
+    // A ClosedWorldClosure-opted-in property whose rdfs:domain is an anonymous restriction
+    // `[ owl:onProperty q ; owl:minCardinality 1 ]` derives the required-companion condition on
+    // the SubjectsOf(P) domain shape: every subject of P carries at least one q.
+    let ds = shape_dataset(
+        "g:lowersTo a owl:ObjectProperty ; \
+           rdfs:domain [ a owl:Restriction ; owl:onProperty g:denotation ; owl:minCardinality 1 ] . \
+         [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; \
+           <https://blackcatinformatics.ca/logic/closureKey> \"https://blackcatinformatics.ca/gmeow/lowersTo\" ; \
+           <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let domain_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("lowersTo")))
+        .expect("a SubjectsOf(lowersTo) domain shape is derived");
+    assert!(
+        domain_shape
+            .properties
+            .iter()
+            .any(|p| p.path.ends_with("denotation") && p.min_count == Some(1)),
+        "expected a min-1 companion property on the domain shape: {domain_shape:?}"
+    );
+}
+
+#[test]
+fn derive_blank_restriction_domain_without_opt_in_derives_nothing() {
+    // Without the ClosedWorldClosure opt-in, an anonymous restriction domain stays open-world:
+    // no SubjectsOf shape is derived (domain/range are inference axioms by default).
+    let ds = shape_dataset(
+        "g:lowersTo a owl:ObjectProperty ; \
+           rdfs:domain [ a owl:Restriction ; owl:onProperty g:denotation ; owl:minCardinality 1 ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes
+            .iter()
+            .any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("lowersTo"))),
+        "an un-opted-in anonymous domain must derive no shape: {shapes:?}"
+    );
 }
 
 #[test]
@@ -2353,6 +2725,100 @@ fn derive_closed_world_closure_entry_does_not_suppress() {
 }
 
 #[test]
+fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
+    // A ClosedWorldClosure entry carrying logic:onClass is CLASS-SCOPED: it turns the class's
+    // owl:allValuesFrom into a required (minCount 1) path on THAT class's shape, and it must NOT
+    // leak into the property-global opt-in set — no corpus-wide sh:targetSubjectsOf /
+    // sh:targetObjectsOf domain/range shape may be derived from it (closing a predicate on one
+    // class asserts nothing about the predicate's other subjects/objects). The closureKey is a
+    // string literal here, matching the authored slice form.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
+         g:cites a owl:ObjectProperty ; rdfs:domain g:Article ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:onClass g:Article ; \
+            logic:closureKey \"https://blackcatinformatics.ca/gmeow/cites\" ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let article = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("Article")))
+        .expect("the class-scoped entry keeps the Article class shape");
+    assert!(
+        article
+            .properties
+            .iter()
+            .any(|p| p.path.ends_with("cites") && p.min_count == Some(1)),
+        "class-scoped closed universal requires the path on the class shape: {:?}",
+        article.properties
+    );
+    assert!(
+        !shapes.iter().any(|s| matches!(
+            &s.target,
+            ShapeTarget::SubjectsOf(p) | ShapeTarget::ObjectsOf(p) if p.ends_with("cites")
+        )),
+        "a class-scoped entry must derive NO global domain/range shape: {:?}",
+        shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn derive_property_global_closed_entry_is_unaffected_by_a_class_scoped_sibling() {
+    // The two entry scopes coexist without cross-talk: a property-GLOBAL entry (no logic:onClass)
+    // still derives its domain/range shapes, while the class-scoped sibling on another property
+    // derives none.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:refs a owl:ObjectProperty ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:closureKey g:refs ; \
+            logic:closureValue logic:ClosedWorldClosure . \
+         g:cites a owl:ObjectProperty ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:onClass g:Article ; logic:closureKey g:cites ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let refs = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("refs")))
+        .expect("the property-global opt-in still derives its ObjectsOf(refs) range shape");
+    assert!(
+        refs.node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "the global entry's range shape carries its sh:class: {:?}",
+        refs.node_components
+    );
+    assert!(
+        !shapes
+            .iter()
+            .any(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("cites"))),
+        "the class-scoped sibling must not derive a global range shape: {:?}",
+        shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn derive_class_scoped_open_entry_does_not_suppress_globally() {
+    // The symmetric discrimination for the opt-out polarity: an OpenWorldClosure entry carrying
+    // logic:onClass is class-scoped and must NOT sweep its key into the property-global opt-out
+    // set — the closed-world reading of the property's restrictions on OTHER classes stays on.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
+         [] a logic:ClosureEntry ; logic:onClass g:Other ; logic:closureKey g:cites ; \
+            logic:closureValue logic:OpenWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.iter().any(|s| s.iri.contains("Article")),
+        "a class-scoped OpenWorldClosure entry must not opt the property out corpus-wide: {shapes:?}"
+    );
+}
+
+#[test]
 fn derive_grounding_namespaces_are_authoring_ground() {
     // declarative-migration wave 1: the dogfooded grounding slices (math:, lang:, logic:) are authoring ground
     // too — their hand-authored shapes migrate to derived projections, so a restriction on a
@@ -2465,6 +2931,192 @@ fn derive_complement_has_value_lowers_to_not_has_value() {
 }
 
 #[test]
+fn derive_pinned_forbidden_pattern_record_lowers_to_not_has_value_on_the_class_shape() {
+    // FAMILY 7: a `logic:ForbiddenPatternConstraint` with a PINNED `logic:forbiddenValue` is the
+    // decidable, validation-only authoring form of the value-complement pattern. It must lower to
+    // the exact component the legacy shapes carried — `sh:not [ sh:hasValue v ]` on the forbidden
+    // path of the `{C}-shape` — merged with the class's other conditions on that path.
+    let ds = shape_dataset(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         g:Cell a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:denom ; \
+           owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .\n\
+         g:cellDenomNonZero a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass g:Cell ;\n\
+           logic:forbiddenPredicate g:denom ;\n\
+           logic:forbiddenValue \"0\"^^xsd:integer ;\n\
+           logic:formalizes g:Cell .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let cell_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("/Cell")))
+        .expect("a g:Cell class shape must derive");
+    let denom = cell_shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("/denom"))
+        .expect("a g:denom property shape must derive");
+    assert!(
+        denom.components.iter().any(|c| matches!(c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(),
+                    ConstraintComponent::HasValue(ShapeValue::Literal { lexical, .. })
+                        if lexical == "0"))),
+        "expected sh:not [ sh:hasValue 0 ] on the g:denom path: {cell_shape:?}"
+    );
+    // The pinned-value component MERGES with the restriction-derived cardinality on the same
+    // path (one property shape per path, never a colliding second shape).
+    assert_eq!(denom.max_count, Some(1), "same-path conditions must merge");
+}
+
+#[test]
+fn derive_unpinned_and_iri_pinned_forbidden_pattern_records_derive_no_component() {
+    // The UNPINNED form ("C must not carry P at all") has no per-value SHACL-Core lowering
+    // here, and the IRI-pinned form is the class-negation idiom whose declarative home is
+    // the node-level sh:not [ sh:class … ] — neither derives a property component; their
+    // canonical constraint expansions carry them procedurally.
+    let ds = shape_dataset(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         g:cellNoLegacy a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass g:Cell ;\n\
+           logic:forbiddenPredicate g:legacyCode ;\n\
+           logic:formalizes g:Cell .\n\
+         g:cellNotOther a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass g:Cell ;\n\
+           logic:forbiddenPredicate rdf:type ;\n\
+           logic:forbiddenValue g:OtherKind ;\n\
+           logic:formalizes g:Cell .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.is_empty(),
+        "unpinned / IRI-pinned forbidden patterns must derive no declarative shape: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_value_range_record_lowers_to_min_and_max_inclusive_on_the_class_shape() {
+    // FAMILY 8: a `logic:ValueRangeConstraint` is the decidable, validation-only authoring
+    // form of a bounded numeric range (the OWL faceted-datatype filler is undecidable for the
+    // native reasoner once a literal is asserted on the path). It must lower to the exact
+    // components the legacy facet carried — `sh:minInclusive`/`sh:maxInclusive` on the value
+    // path of the `{C}-shape`.
+    let ds = shape_dataset(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         g:unitInterval a logic:ValueRangeConstraint ;\n\
+           logic:onClass g:Probability ;\n\
+           logic:valuePath g:magnitude ;\n\
+           logic:minInclusiveBound 0 ;\n\
+           logic:maxInclusiveBound 1 ;\n\
+           logic:formalizes g:Probability .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("/Probability")))
+        .expect("a g:Probability class shape must derive");
+    let prop = shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("/magnitude"))
+        .expect("a g:magnitude property shape must derive");
+    assert!(
+        prop.components.iter().any(|c| matches!(c,
+            ConstraintComponent::NumericRange {
+                min: Some(lo),
+                max: Some(hi),
+                min_inclusive: true,
+                max_inclusive: true,
+            } if *lo == 0.0 && *hi == 1.0)),
+        "expected sh:minInclusive 0 / sh:maxInclusive 1 on g:magnitude: {shape:?}"
+    );
+}
+
+#[test]
+fn value_range_record_expands_to_one_constraint_and_leaks_no_axiom() {
+    // The record expands to exactly one canonical logic:Constraint whose integrity is the
+    // guarded range formula, and its structural triples never enter `prog.axioms` — a
+    // validates-but-does-not-entail obligation is never a reasoning-core axiom.
+    let (prog, diags) = parse(
+        "ex:unitInterval a logic:ValueRangeConstraint ;\n\
+           logic:onClass ex:Probability ;\n\
+           logic:valuePath ex:magnitude ;\n\
+           logic:minInclusiveBound 0 ;\n\
+           logic:maxInclusiveBound 1 ;\n\
+           logic:formalizes ex:Probability .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert_eq!(
+        prog.constraints.len(),
+        1,
+        "exactly one canonical constraint must expand"
+    );
+    let c = &prog.constraints[0];
+    assert!(
+        matches!(&c.target, ShapeTarget::Class(cl) if cl.ends_with("/Probability")),
+        "the range constraint must target the guarded class: {:?}",
+        c.target
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/unitInterval")),
+        "no record triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+#[test]
+fn value_range_record_without_any_bound_is_a_malformed_record() {
+    // A range record naming no bound constrains nothing — fail-soft like the other sugar
+    // readers: a MALFORMED_CONSTRAINT diagnostic, never a silent no-op constraint.
+    let (prog, diags) = parse(
+        "ex:noBounds a logic:ValueRangeConstraint ;\n\
+           logic:onClass ex:Probability ;\n\
+           logic:valuePath ex:magnitude ;\n\
+           logic:formalizes ex:Probability .",
+    );
+    assert!(prog.constraints.is_empty(), "no constraint may expand");
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("minInclusiveBound")),
+        "a missing-bound record must diagnose: {diags:?}"
+    );
+}
+
+#[test]
+fn pinned_forbidden_pattern_record_contributes_nothing_to_the_reasoned_axiom_set() {
+    // The record is a validation descriptor: it expands to exactly one canonical
+    // logic:Constraint and its structural triples MUST NOT leak into `prog.axioms`
+    // (the reasoned axiom set) — a validates-but-does-not-entail obligation never
+    // becomes a reasoning-core axiom.
+    let (prog, diags) = parse(
+        "ex:cellDenomNonZero a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass ex:Cell ;\n\
+           logic:forbiddenPredicate ex:denom ;\n\
+           logic:forbiddenValue \"0\"^^xsd:integer ;\n\
+           logic:formalizes ex:Cell .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert_eq!(
+        prog.constraints.len(),
+        1,
+        "exactly one canonical constraint must expand"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/cellDenomNonZero")),
+        "no record triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+#[test]
 fn derive_value_keyed_general_class_inclusion() {
     // `[ owl:onProperty mode ; owl:hasValue modeAbduction ] rdfs:subClassOf
     //  [ owl:onProperty explanandum ; owl:minCardinality 1 ]` → a ValueKeyed(mode, modeAbduction)
@@ -2492,5 +3144,136 @@ fn derive_value_keyed_general_class_inclusion() {
             .any(|p| p.path.ends_with("/explanandum") && p.min_count == Some(1)),
         "explanandum minCount 1: {:?}",
         vk.properties
+    );
+}
+
+// ── Compound function-term applications (logic:termApplication / logic:FunctionTerm) ──────────
+
+#[test]
+fn compound_function_term_parses_into_nested_term_app() {
+    use crate::ir::{Formula, Term};
+    // An atomic predication `p(H, cons(H, cons(1, nil)))` — its second argument carries
+    // logic:termApplication onto a logic:FunctionTerm whose own second argument is again a
+    // logic:termApplication, so the parser must reconstruct a NESTED Term::App with argument
+    // order and kinds intact. The atom carries a compound function term, so it exceeds the
+    // function-free Horn fragment and stays a logic:Formula (never routed to axioms).
+    let (prog, diags) = parse(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:consOuter ] .
+         ex:consOuter a logic:FunctionTerm ;
+            logic:functionSymbol ex:cons ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:consInner ] .
+         ex:consInner a logic:FunctionTerm ;
+            logic:functionSymbol ex:cons ;
+            logic:argument [ logic:termIndex 0 ; logic:termLiteral \"1\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termIri ex:nil ] .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "a well-formed compound term must not be flagged malformed: {diags:?}"
+    );
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "the function-term argument keeps the atom in LogicProgram.formulas: {:?}",
+        prog.formulas
+    );
+
+    let ex = "https://example.org/test/";
+    let cons = format!("{ex}cons");
+    let expected_inner = Term::App {
+        symbol: cons.clone(),
+        args: vec![
+            Term::Literal {
+                lexical: "1".to_owned(),
+                datatype: None,
+            },
+            Term::Iri(format!("{ex}nil")),
+        ],
+    };
+    let expected_outer = Term::App {
+        symbol: cons,
+        args: vec![Term::Var("H".to_owned()), expected_inner],
+    };
+
+    let Formula::Atom { relation, args } = &prog.formulas[0] else {
+        panic!("expected an atomic predication, got {:?}", prog.formulas[0]);
+    };
+    assert_eq!(*relation, Term::Iri(format!("{ex}p")), "relation preserved");
+    assert_eq!(args.len(), 2, "atom arity preserved");
+    assert_eq!(
+        args[0],
+        Term::Var("H".to_owned()),
+        "argument 0 order preserved"
+    );
+    assert_eq!(
+        args[1], expected_outer,
+        "argument 1 is the nested cons(H, cons(1, nil)) application"
+    );
+}
+
+#[test]
+fn nullary_function_term_is_rejected() {
+    // A logic:FunctionTerm with a symbol but ZERO logic:argument carriers is a nullary
+    // application. A 0-ary function symbol is a constant (logic:termIri), so this is malformed
+    // rather than a degenerate term — mirrors logic:FunctionTermArityConstraint.
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:empty ] .
+         ex:empty a logic:FunctionTerm ; logic:functionSymbol ex:f .",
+        "at least one argument",
+    );
+}
+
+#[test]
+fn function_term_without_symbol_is_rejected() {
+    // A logic:FunctionTerm bearing arguments but no logic:functionSymbol is malformed —
+    // mirrors logic:FunctionSymbolConstraint (exactly one reified symbol required).
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:ft ] .
+         ex:ft a logic:FunctionTerm ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
+        "exactly one logic:functionSymbol",
+    );
+}
+
+#[test]
+fn cyclic_function_term_is_rejected() {
+    // A logic:FunctionTerm reachable from its own logic:argument expansion is an infinite
+    // term; the parser's path guard rejects it rather than recursing forever.
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:loop ] .
+         ex:loop a logic:FunctionTerm ;
+            logic:functionSymbol ex:f ;
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:loop ] .",
+        "cyclic",
+    );
+}
+
+#[test]
+fn term_application_carrier_excludes_other_value_kinds() {
+    // logic:termApplication is the fifth mutually exclusive term-value kind: a carrier bearing
+    // both logic:termApplication and logic:termIri violates the exactly-one rule (mirrors the
+    // extended logic:TermCarrierValueConstraint).
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:ft ; logic:termIri ex:b ] .
+         ex:ft a logic:FunctionTerm ;
+            logic:functionSymbol ex:f ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
+        "requires exactly one term-value property",
     );
 }

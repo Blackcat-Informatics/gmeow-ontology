@@ -26,8 +26,8 @@ ex:corrEnvelope a logic:Correspondence ;
 # Two dictionary versions at once: not pinned to exactly one.
 ex:envelopeTwoDictVersions a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" , "2" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" , "4" ;
+    gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;

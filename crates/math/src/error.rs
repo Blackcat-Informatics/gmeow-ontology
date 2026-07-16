@@ -25,6 +25,14 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A grade projection lies outside the algebra's closed interval `0..=p+q`.
+    pub struct CliffordGradeOutOfRange { detail: String }
+    code = "math.clifford.grade-out-of-range";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
     /// A checked exact-rational operation overflowed the `i128`/`u128` backing
     /// integer and hard-failed rather than wrapping.
     pub struct ArithmeticOverflow { detail: String }
@@ -141,6 +149,24 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// A Clifford signature requests more than the supported 64 generators, so
+    /// its basis blades cannot be represented by the kernel's exact `u64` masks.
+    pub struct InvalidCliffordSignature { detail: String }
+    code = "math.clifford.invalid-signature";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// A Clifford basis-blade mask or generator index lies outside the algebra's
+    /// declared signature.
+    pub struct CliffordBladeOutOfRange { detail: String }
+    code = "math.clifford.blade-out-of-range";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
 /// The complete math diagnostic-code catalog, in registration order.
 pub const MATH_DIAG_CODES: &[&str] = &[
     RationalDomain::CODE,
@@ -157,6 +183,9 @@ pub const MATH_DIAG_CODES: &[&str] = &[
     GraphRead::CODE,
     MissingProperty::CODE,
     NoCells::CODE,
+    InvalidCliffordSignature::CODE,
+    CliffordBladeOutOfRange::CODE,
+    CliffordGradeOutOfRange::CODE,
 ];
 
 /// Eagerly intern every math diagnostic code (idempotent).
@@ -176,6 +205,9 @@ pub fn register_all() -> Vec<Code> {
         GraphRead::register(),
         MissingProperty::register(),
         NoCells::register(),
+        InvalidCliffordSignature::register(),
+        CliffordBladeOutOfRange::register(),
+        CliffordGradeOutOfRange::register(),
     ]
 }
 

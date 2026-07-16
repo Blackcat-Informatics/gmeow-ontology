@@ -1,4 +1,5 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
@@ -600,7 +601,7 @@ gmeow:mapSchemaMaximumAttendeeCapacity a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
             [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCapacity ; gmeow:objectVar "cap" ]
             [ gmeow:subjectVar "cap" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "sq" ]
-            [ gmeow:subjectVar "sq" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "capVal" ] ) ;
+            [ gmeow:subjectVar "sq" ; gmeow:predicate math:quantityValue ; gmeow:objectVar "capVal" ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "cap" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
@@ -616,7 +617,7 @@ gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
             [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasOccupancy ; gmeow:objectVar "occ" ]
             [ gmeow:subjectVar "occ" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "sq2" ]
-            [ gmeow:subjectVar "sq2" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "occVal" ] ) ;
+            [ gmeow:subjectVar "sq2" ; gmeow:predicate math:quantityValue ; gmeow:objectVar "occVal" ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "occ" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [

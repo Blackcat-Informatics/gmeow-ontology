@@ -79,6 +79,30 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
     format!("{LOGIC_NAMESPACE}correspondence/{tag}/{hex}")
 }
 
+/// Parse an optional `logic:` enum IRI authored on a mapping cell. The mapping SHACL
+/// shape constrains these values too, but the compiler remains fail-closed when called
+/// directly: a foreign namespace or unknown local name is never silently treated as the
+/// default rung.
+fn parse_logic_enum<T>(
+    value: Option<&str>,
+    owner: &str,
+    field: &str,
+    parse: impl FnOnce(&str) -> Option<T>,
+) -> gmeow_errors::Result<Option<T>> {
+    let Some(iri) = value else { return Ok(None) };
+    let local = iri.strip_prefix(LOGIC_NAMESPACE).ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: format!("{owner} {field} must be a logic: IRI, found <{iri}>"),
+        })
+    })?;
+    let parsed = parse(local).ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: format!("{owner} has unknown {field} <{iri}>"),
+        })
+    })?;
+    Ok(Some(parsed))
+}
+
 /// The typed `(relation, morphism class, morphism kind)` envelope of one materialized
 /// correspondence — the single source of truth a dialect lowering's overclaim gate and
 /// ledger path now CONSUME, instead of re-deriving the relation inline.
@@ -250,15 +274,102 @@ pub fn transpile_correspondences_indexed(
     // ── gmeow:TermEquivalence cells (the SSSOM 1:1 band) ───────────────────────────
     for cell in equivalence_cells(dsl_view) {
         // Relation + morphism class from the SAME band the SSSOM ledger gate uses.
-        let (relation, morphism_class) = sssom_band(&cell.predicate);
-        // The 1:1 SSSOM band is a satisfaction-preserving lens, never a bridge.
-        let morphism_kind = MorphismKind::InstitutionMorphism;
+        let (relation, derived_class) = sssom_band(&cell.predicate);
+        let authored_class = parse_logic_enum(
+            cell.morphism_class.as_deref(),
+            "TermEquivalence",
+            "logic:morphismClass",
+            MorphismClass::from_local,
+        )?;
+        let authored_kind = parse_logic_enum(
+            cell.morphism_kind.as_deref(),
+            "TermEquivalence",
+            "logic:morphismKind",
+            MorphismKind::from_local,
+        )?;
+        let preservation = parse_logic_enum(
+            cell.preservation.as_deref(),
+            "TermEquivalence",
+            "logic:preservationKind",
+            PreservationKind::from_local,
+        )?;
+        if cell.grounding && cell.justification.is_none() {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                     gmeow:justification",
+                    cell.subject, cell.predicate, cell.obj
+                ),
+            }));
+        }
+        if cell.grounding
+            && (authored_class.is_none()
+                || authored_kind.is_none()
+                || preservation.is_none()
+                || cell.source_endpoint.is_none()
+                || cell.target_endpoint.is_none())
+        {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                     logic:sourceEndpoint, logic:targetEndpoint, logic:morphismClass, \
+                     logic:morphismKind, and logic:preservationKind",
+                    cell.subject, cell.predicate, cell.obj
+                ),
+            }));
+        }
+        if cell.grounding
+            && (cell.source_endpoint.as_deref() != Some(cell.subject.as_str())
+                || cell.target_endpoint.as_deref() != Some(cell.obj.as_str()))
+        {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding TermEquivalence ({}, {}, {}) endpoints must agree with \
+                     gmeow:alignSubject and gmeow:alignObject",
+                    cell.subject, cell.predicate, cell.obj
+                ),
+            }));
+        }
+        let morphism_class = authored_class.unwrap_or(derived_class);
+        // The ordinary 1:1 SSSOM band defaults to a satisfaction-preserving lens; a
+        // grounding bridge can explicitly replace that with CommitmentShiftingBridge.
+        let morphism_kind = authored_kind.unwrap_or(MorphismKind::InstitutionMorphism);
+        if cell.grounding
+            && ((morphism_class == MorphismClass::BridgeView)
+                != (morphism_kind == MorphismKind::CommitmentShiftingBridge))
+        {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding TermEquivalence ({}, {}, {}) must pair logic:BridgeView with \
+                     logic:CommitmentShiftingBridge (and only that pair)",
+                    cell.subject, cell.predicate, cell.obj
+                ),
+            }));
+        }
         // The per-correspondence key folds (subject, predicate, object) — one subject may
         // align to several objects, so the triple (not just the subject) is the identity.
-        let key = format!("{}|{}|{}", cell.subject, cell.predicate, cell.obj);
+        let authored_key = if cell.morphism_class.is_some()
+            || cell.morphism_kind.is_some()
+            || cell.preservation.is_some()
+            || cell.grounding
+        {
+            format!(
+                "|class={}|kind={}|pres={}|grounding={}",
+                morphism_class.as_str(),
+                morphism_kind.as_str(),
+                preservation.map(|p| p.as_str()).unwrap_or(""),
+                cell.grounding,
+            )
+        } else {
+            String::new()
+        };
+        let key = format!(
+            "{}|{}|{}{}",
+            cell.subject, cell.predicate, cell.obj, authored_key
+        );
         let iri = correspondence_iri("term-equivalence", &key);
         let evidence_strength = evidence_strength_of_justification(cell.justification.as_deref());
-        let corr = Correspondence::new(
+        let mut corr = Correspondence::new(
             iri,
             relation,
             morphism_class,
@@ -276,12 +387,23 @@ pub fn transpile_correspondences_indexed(
             None,
             None,
             // Unindexed cells are scoped to the unspecified standpoint (unspecified, not
-            // universal): `accordingTo` stays unset.
+            // universal): `gmeow:accordingTo` stays unset.
             None,
-            // The lane preservation polarity is program-level (SoundUnder below); a DSL cell
-            // authors no per-correspondence rung.
-            None,
+            // Ordinary cells inherit the lane polarity; grounding cells author their own
+            // preservation judgment explicitly.
+            preservation,
+        )?
+        .with_endpoints(
+            cell.source_endpoint
+                .clone()
+                .unwrap_or_else(|| cell.subject.clone()),
+            cell.target_endpoint
+                .clone()
+                .unwrap_or_else(|| cell.obj.clone()),
         )?;
+        if cell.grounding {
+            corr = corr.as_grounding();
+        }
         correspondences.push(corr);
         by_key.insert(
             NaturalKey::Equivalence {
@@ -299,8 +421,18 @@ pub fn transpile_correspondences_indexed(
 
     // ── gmeow:ProjectionMapping per-profile bindings (the EDOAL/SPARQL get leg) ─────
     for cell in projections(dsl_view)? {
+        if cell.grounding.is_some() && cell.bindings.len() != 1 {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "grounding ProjectionMapping {} must carry exactly one gmeow:hasBinding; \
+                     found {}",
+                    cell.iri,
+                    cell.bindings.len()
+                ),
+            }));
+        }
         for binding in &cell.bindings {
-            let (corr, typed) = correspondence_for_binding(&cell.iri, binding)?;
+            let (corr, typed) = correspondence_for_binding(&cell, binding)?;
             binding_profiles.insert(corr.iri.clone(), binding.profile.clone());
             correspondences.push(corr);
             by_key.insert(
@@ -331,29 +463,116 @@ pub fn transpile_correspondences_indexed(
 /// return that [`TypedRelation`] alongside it (computed once) so the lookup the dialect
 /// gates consume and the materialized node share one derivation.
 fn correspondence_for_binding(
-    cell_iri: &str,
+    cell: &crate::projections::get_leg::ProjectionCell,
     binding: &ProfileBinding,
 ) -> gmeow_errors::Result<(Correspondence, TypedRelation)> {
-    let (relation, morphism_class, morphism_kind) = binding.lattice();
+    let (relation, derived_class, derived_kind) = binding.lattice();
+    let grounding = cell.grounding.as_ref();
+    let authored_class = parse_logic_enum(
+        grounding.and_then(|g| g.morphism_class.as_deref()),
+        "ProjectionMapping",
+        "logic:morphismClass",
+        MorphismClass::from_local,
+    )?;
+    let authored_kind = parse_logic_enum(
+        grounding.and_then(|g| g.morphism_kind.as_deref()),
+        "ProjectionMapping",
+        "logic:morphismKind",
+        MorphismKind::from_local,
+    )?;
+    let preservation = parse_logic_enum(
+        grounding.and_then(|g| g.preservation.as_deref()),
+        "ProjectionMapping",
+        "logic:preservationKind",
+        PreservationKind::from_local,
+    )?;
+    if let Some(grounding) = grounding
+        && (grounding.justification.is_none()
+            || authored_class.is_none()
+            || authored_kind.is_none()
+            || preservation.is_none()
+            || grounding.source_endpoint.is_none()
+            || grounding.target_endpoint.is_none())
+    {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} must explicitly author gmeow:justification, \
+                 logic:sourceEndpoint, logic:targetEndpoint, logic:morphismClass, \
+                 logic:morphismKind, and logic:preservationKind",
+                cell.iri
+            ),
+        }));
+    }
+    let morphism_class = authored_class.unwrap_or(derived_class);
+    let morphism_kind = authored_kind.unwrap_or(derived_kind);
+    if grounding.is_some()
+        && ((morphism_class == MorphismClass::BridgeView)
+            != (morphism_kind == MorphismKind::CommitmentShiftingBridge))
+    {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} must pair logic:BridgeView with \
+                 logic:CommitmentShiftingBridge (and only that pair)",
+                cell.iri
+            ),
+        }));
+    }
+    if grounding.is_some()
+        && morphism_class == MorphismClass::BridgeView
+        && relation == CorrespondenceRelation::Equiv
+    {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} is a commitment-shifting BridgeView and must \
+                 not declare an equivalence binding relation",
+                cell.iri
+            ),
+        }));
+    }
     // The per-profile target IRI the binding projects onto (predicate, class, or EDOAL
-    // target — the first one named). It is the put leg's apex.
-    let target = binding
-        .to_predicate
-        .as_deref()
-        .or(binding.to_class.as_deref())
-        .or(binding.edoal_target.as_deref())
-        .unwrap_or("");
+    // target). A grounding binding names EXACTLY one of these target forms; otherwise its
+    // authored targetEndpoint is ambiguous (or points at no executable target at all).
+    let binding_targets = [
+        binding.to_predicate.as_deref(),
+        binding.to_class.as_deref(),
+        binding.edoal_target.as_deref(),
+    ];
+    let target_count = binding_targets
+        .iter()
+        .filter(|target| target.is_some())
+        .count();
+    if grounding.is_some() && target_count != 1 {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} single binding must carry exactly one of \
+                 gmeow:toPredicate, gmeow:toClass, or gmeow:edoalTarget; found {target_count}",
+                cell.iri
+            ),
+        }));
+    }
+    let target = binding_targets.into_iter().flatten().next().unwrap_or("");
+    if let Some(grounding) = grounding
+        && grounding.target_endpoint.as_deref() != Some(target)
+    {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "grounding ProjectionMapping {} targetEndpoint must equal its single binding \
+                 target <{}>",
+                cell.iri, target
+            ),
+        }));
+    }
     // The per-correspondence key folds (cell IRI, profile, target): one mapping cell has
     // one binding per profile, each its own correspondence.
-    let key = format!("{cell_iri}|{}|{target}", binding.profile);
+    let key = format!("{}|{}|{target}", cell.iri, binding.profile);
     let iri = correspondence_iri("projection-mapping", &key);
     // The get leg references the pattern-bearing mapping cell (an IRI node, the acquired
     // source pattern); the put leg is the per-profile target IRI it projects onto, when
     // the binding names one. Both are absolute IRIs (the pattern's SPARQL-variable anchor
     // is NOT an IRI, so it is never used as a leg).
-    let get_leg = Some(cell_iri.to_owned());
+    let get_leg = Some(cell.iri.clone());
     let put_leg = (!target.trim().is_empty()).then(|| target.to_owned());
-    let corr = Correspondence::new(
+    let mut corr = Correspondence::new(
         iri,
         relation,
         morphism_class,
@@ -367,13 +586,22 @@ fn correspondence_for_binding(
         // committed corpus, so this is empty there.
         binding.ingest_claim.iter().cloned().collect(),
         binding.confidence,
+        evidence_strength_of_justification(grounding.and_then(|g| g.justification.as_deref())),
         None,
         None,
         None,
-        None,
-        // Program-level SoundUnder polarity covers the binding; no per-cell rung authored.
-        None,
+        // Grounding correspondences author their own preservation boundary; ordinary
+        // executable mappings inherit the lane-level SoundUnder polarity.
+        preservation,
     )?;
+    if let Some(grounding) = grounding {
+        corr = corr
+            .with_endpoints(
+                grounding.source_endpoint.clone().expect("checked above"),
+                grounding.target_endpoint.clone().expect("checked above"),
+            )?
+            .as_grounding();
+    }
     Ok((
         corr,
         TypedRelation {

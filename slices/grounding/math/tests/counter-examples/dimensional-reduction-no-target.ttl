@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+ex:reduction a math:DimensionalReduction ;
+    math:analysisInput ex:source ;
+    math:analysisOutput ex:embedding .
+
+ex:source a math:MathematicalObject .
+ex:embedding a math:Embedding ;
+    math:domain ex:sourceSet ;
+    math:codomain ex:targetSet ;
+    math:embeddingSource ex:source ;
+    math:targetSpace ex:targetSpace ;
+    math:embeddingFunction ex:embeddingFunction ;
+    math:embeddingModel ex:model .
+ex:sourceSet a math:Set .
+ex:targetSet a math:Set .
+ex:targetSpace a math:MathematicalObject .
+ex:embeddingFunction a math:Function ;
+    math:domain ex:sourceSet ;
+    math:codomain ex:targetSet .
+ex:model a math:LearnedModel .

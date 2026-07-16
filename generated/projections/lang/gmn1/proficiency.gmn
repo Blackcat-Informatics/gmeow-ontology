@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gmeow__examples-2f-languages-2f-a2, p: rdf__type, o: gmeow__ProficiencyLevel}
 @c{s: gmeow__examples-2f-languages-2f-a2, p: rdfs__label, v: r_a74644dd4503f4f1}
 @c{s: gmeow__examples-2f-languages-2f-b2, p: rdf__type, o: gmeow__ProficiencyLevel}
@@ -6,18 +6,18 @@
 @c{s: gmeow__examples-2f-languages-2f-cefr, p: rdf__type, o: gmeow__ProficiencyScale}
 @c{s: gmeow__examples-2f-languages-2f-cefr, p: rdfs__label, v: r_67483756ba9da361}
 @c{s: gmeow__examples-2f-languages-2f-dana, p: rdf__type, o: gmeow__Person}
-@c{s: gmeow__examples-2f-languages-2f-dana, p: gmeow__knowsLanguage, o: lang__french}
+@λ{s: gmeow__examples-2f-languages-2f-dana, p: gmeow__knowsLanguage, o: lang__french}
 @c{s: gmeow__examples-2f-languages-2f-dana, p: gmeow__name, v: r_e144bf54a4ace628}
-@c{s: gmeow__examples-2f-languages-2f-dana, p: gmeow__nativeLanguage, o: lang__english}
+@λ{s: gmeow__examples-2f-languages-2f-dana, p: gmeow__nativeLanguage, o: lang__english}
 @c{s: gmeow__examples-2f-languages-2f-frenchReading, p: rdf__type, o: gmeow__LanguageProficiency}
 @c{s: gmeow__examples-2f-languages-2f-frenchReading, p: gmeow__proficiencyAgent, o: gmeow__examples-2f-languages-2f-dana}
-@c{s: gmeow__examples-2f-languages-2f-frenchReading, p: gmeow__proficiencyLanguage, o: lang__french}
+@λ{s: gmeow__examples-2f-languages-2f-frenchReading, p: gmeow__proficiencyLanguage, o: lang__french}
 @c{s: gmeow__examples-2f-languages-2f-frenchReading, p: gmeow__proficiencyLevel, o: gmeow__examples-2f-languages-2f-b2}
 @c{s: gmeow__examples-2f-languages-2f-frenchReading, p: gmeow__proficiencyModality, o: gmeow__profModalityReading}
 @c{s: gmeow__examples-2f-languages-2f-frenchReading, p: gmeow__proficiencyScale, o: gmeow__examples-2f-languages-2f-cefr}
 @c{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: rdf__type, o: gmeow__LanguageProficiency}
 @c{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: gmeow__proficiencyAgent, o: gmeow__examples-2f-languages-2f-dana}
-@c{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: gmeow__proficiencyLanguage, o: lang__french}
+@λ{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: gmeow__proficiencyLanguage, o: lang__french}
 @c{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: gmeow__proficiencyLevel, o: gmeow__examples-2f-languages-2f-a2}
 @c{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: gmeow__proficiencyModality, o: gmeow__profModalitySpeaking}
 @c{s: gmeow__examples-2f-languages-2f-frenchSpeaking, p: gmeow__proficiencyScale, o: gmeow__examples-2f-languages-2f-cefr}

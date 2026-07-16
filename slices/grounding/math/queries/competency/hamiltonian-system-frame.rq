@@ -1,0 +1,12 @@
+# External-corpus coverage: reusable Hamiltonian-system frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?system ?stateSpace ?form ?hamiltonian ?flow
+WHERE {
+  ?system a math:HamiltonianSystem ;
+          math:stateSpace ?stateSpace ;
+          math:symplecticForm ?form ;
+          math:hamiltonianFunction ?hamiltonian ;
+          math:generatesFlow ?flow .
+}
+ORDER BY ?system

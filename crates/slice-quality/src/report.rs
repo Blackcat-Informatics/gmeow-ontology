@@ -10,8 +10,8 @@ use gmeow_errors::{Finding, Report, Rule, Severity, Standpoint, seed_codes};
 use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::graph::{self, instances_of};
-use crate::model::{Axis, AxisGrade, Rubric, SliceAssessment};
-use crate::score::{ScoreContext, advisory};
+use crate::model::{Axis, AxisGrade, MeasurementStandard, SliceAssessment};
+use crate::score::{ScoreContext, ScoringEnv, advisory};
 use crate::{axes, lattice};
 
 /// Advice-ranking KIND: an axis-level advice template (the rubric's
@@ -51,6 +51,8 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.linkage.no-correspondence-surface",
     "slice-quality.linkage.no-calculus-eligible-correspondence",
     "slice-quality.linkage.uncalculated-correspondence",
+    "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
+    "slice-quality.gmn-glyph-optimality.unaudited-executable-target",
     "slice-quality.projection.hand-authored-shapes",
     "slice-quality.projection.no-mappings",
     "slice-quality.testing.no-cells",
@@ -63,6 +65,8 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.gmn1-coverage.no-repo-root",
     "slice-quality.gmn1-coverage.no-dictionary",
     "slice-quality.gmn1-coverage.uncovered",
+    "slice-quality.gmn-glyph-optimality.no-candidates",
+    "slice-quality.gmn-glyph-optimality.incomplete",
     // Documentation-maturity axis codes (doc_maturity.rs).
     "slice-quality.doc-maturity.missing-dimension",
     "slice-quality.doc-maturity.model-unavailable",
@@ -84,8 +88,9 @@ pub fn seed_finding_codes() {
 
 /// The full result of scoring one slice.
 pub struct SliceReport {
-    /// The rubric the slice was scored against.
-    pub rubric: Rubric,
+    /// The measurement standard the slice was scored against (the floor-free
+    /// projection of the rubric — scoring never touches a governance floor).
+    pub standard: MeasurementStandard,
     /// The per-axis grade vector + roll-up tier.
     pub assessment: SliceAssessment,
     /// Every advisory finding the axes surfaced, ranked (heaviest axis first).
@@ -95,7 +100,12 @@ pub struct SliceReport {
 }
 
 /// Discover a slice's ontology IRI from its `manifest.ttl` (`a gmeow:Slice`).
-fn slice_iri_of(slice_dir: &Path) -> gmeow_errors::Result<String> {
+///
+/// `pub(crate)` so [`crate::measure_repo_residues`] (the projection-ceiling seed's
+/// and gate's shared residue-measurement helper) resolves the same slice IRI this
+/// module's own scoring path does — one resolution authority, never a second
+/// re-implementation that could silently diverge on IRI choice.
+pub(crate) fn slice_iri_of(slice_dir: &Path) -> gmeow_errors::Result<String> {
     let manifest = slice_dir.join("manifest.ttl");
     let ds = crate::dataset_from_paths(&[&manifest])?;
     instances_of(&ds, &graph::g("Slice"))
@@ -137,39 +147,40 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// Score `slice_dir` against the repo's rubric.
+/// Score `slice_dir` against an already-loaded measurement standard (the floor-free
+/// projection of the rubric; the sweep path reuses one) in the given scoring
+/// environment.
 ///
 /// Every rubric axis binds a measurement primitive; an axis whose producer the
-/// kernel does not implement is a hard error (never a silent skip).
+/// kernel does not implement is a hard error (never a silent skip). `env` decides
+/// where the two repo-anchored axes (`gmn1_coverage`, `DocMaturity`) source their
+/// wide-scope inputs: [`ScoringEnv::Repo`] reads the surrounding checkout (the
+/// in-repo sweep/CLI/MCP path), [`ScoringEnv::Bundle`] carries them in an embedded
+/// wheel (the consumer path — no repo around the slice).
 ///
 /// # Errors
-/// Returns a message if the rubric or the slice graph cannot be loaded, or if the
+/// Returns a message if the standard or the slice graph cannot be loaded, or if the
 /// rubric names a producer with no implemented primitive.
-pub fn score_slice(repo_root: &Path, slice_dir: &Path) -> gmeow_errors::Result<SliceReport> {
-    let rubric = crate::load_repo_rubric(repo_root)?;
-    score_slice_with_rubric(slice_dir, rubric)
-}
-
-/// Score `slice_dir` against an already-loaded rubric (the sweep path reuses one).
-///
-/// # Errors
-/// As [`score_slice`].
-pub fn score_slice_with_rubric(
+pub fn score_slice_with_standard(
     slice_dir: &Path,
-    rubric: Rubric,
+    standard: &MeasurementStandard,
+    env: ScoringEnv,
 ) -> gmeow_errors::Result<SliceReport> {
     let slice_iri = slice_iri_of(slice_dir)?;
     let paths = slice_ttl_paths(slice_dir);
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
     let ds = crate::dataset_from_paths(&path_refs)?;
-    let ctx = ScoreContext::new(slice_iri.clone(), slice_dir.to_path_buf(), &ds);
+    // The scoring environment decides where the two repo-anchored axes source their
+    // wide-scope inputs; every in-repo caller passes `ScoringEnv::Repo` (byte-identical
+    // to the pre-seam behaviour), the consumer wheel passes `ScoringEnv::Bundle`.
+    let ctx = ScoreContext::new(slice_iri.clone(), slice_dir.to_path_buf(), &ds, env);
 
-    let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(rubric.axes.len());
+    let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(standard.axes.len());
     // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
     // ranks an axis-level template item ahead of that axis's per-term findings.
     let mut advisories: Vec<(String, f64, u8, Finding)> = Vec::new();
     let mut axis_weight = std::collections::HashMap::new();
-    for axis in &rubric.axes {
+    for axis in &standard.axes {
         axis_weight.insert(axis.iri.clone(), axis.weight);
         let primitive = axes::resolve(&axis.producer).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::Report {
@@ -198,7 +209,7 @@ pub fn score_slice_with_rubric(
         .map(|(axis_iri, _, _, _)| axis_iri.as_str())
         .collect();
     let mut templates: Vec<(String, f64, u8, Finding)> = Vec::new();
-    for axis in &rubric.axes {
+    for axis in &standard.axes {
         if !deficient.contains(axis.iri.as_str()) {
             continue;
         }
@@ -224,7 +235,7 @@ pub fn score_slice_with_rubric(
     }
     advisories.extend(templates);
 
-    let assessment = lattice::assess(&slice_iri, &scores, &rubric);
+    let assessment = lattice::assess(&slice_iri, &scores, standard);
 
     // Rank advice: heaviest axis first, then group all advisories for the same axis
     // together (axis IRI tiebreak — otherwise two same-weight axes interleave and a
@@ -243,7 +254,7 @@ pub fn score_slice_with_rubric(
     let advisories: Vec<Finding> = advisories.into_iter().map(|(_, _, _, f)| f).collect();
 
     Ok(SliceReport {
-        rubric,
+        standard: standard.clone(),
         assessment,
         advisories,
         axis_weight,
@@ -389,10 +400,6 @@ const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 /// (the scorer is a deterministic Rust primitive, not expert judgement).
 const METHOD_COMPUTATIONAL_MODEL: &str =
     "https://blackcatinformatics.ca/gmeow/methodComputationalModel";
-/// A normalized quality score is a dimensionless ratio in `[0,1]`; the honest QUDT
-/// unit is UNITLESS (never PERCENT — a 0.97 ratio is not 0.97 %).
-const QUDT_UNITLESS: &str = "http://qudt.org/vocab/unit/UNITLESS";
-
 impl SliceReport {
     /// Project this slice assessment into the `gmeow:` RDF vocabulary as
     /// deterministic N-Quads, all in the `gmeow:graph/slice-quality` named graph.
@@ -403,8 +410,8 @@ impl SliceReport {
     /// subclass) whose `gmeow:assessedEntity` is the slice IRI, whose
     /// `gmeow:qualityDimension` is the axis's emitted dimension, whose
     /// `gmeow:observationMethod` is `gmeow:methodComputationalModel`, and whose two
-    /// coexisting `gmeow:observationResult`s are (a) a `gmeow:ScalarQuantity` wrapping
-    /// the normalized score (`gmeow:quantityValue` + UNITLESS `gmeow:unit`) and (b)
+    /// coexisting `gmeow:observationResult`s are (a) a `math:Quantity` wrapping
+    /// the normalized score (`math:quantityValue` + `math:dimensionless`) and (b)
     /// the categorical `gmeow:QualityTier` the score earned. The roll-up tier is one
     /// more top-level `gmeow:QualityAssessment` whose sole result is the meet tier —
     /// dimension-spanning, so it carries no `gmeow:qualityDimension`.
@@ -450,7 +457,7 @@ impl SliceReport {
         // Map each axis IRI to its emitted quality dimension (the grade vector carries
         // only the axis; the dimension binding lives on the rubric axis).
         let dim_of: std::collections::HashMap<&str, &str> = self
-            .rubric
+            .standard
             .axes
             .iter()
             .map(|a| (a.iri.as_str(), a.dimension_iri.as_str()))
@@ -502,8 +509,8 @@ impl SliceReport {
                 &format!("<{METHOD_COMPUTATIONAL_MODEL}>"),
                 &mut lines,
             );
-            // Result 1: the normalized score, wrapped in a ScalarQuantity (the range of
-            // observationResult is gmeow:Entity — a bare literal is forbidden here).
+            // Result 1: the normalized score, wrapped in a math:Quantity (the range of
+            // observationResult is logic:Individual — a bare literal is forbidden here).
             triple(
                 &assessment_subject,
                 &format!("{}observationResult", crate::model::GMEOW),
@@ -530,23 +537,24 @@ impl SliceReport {
                 &mut lines,
             );
 
-            // The score ScalarQuantity: value + dimensionless unit.
+            // The score math:Quantity: value + dimensionless dimension. A normalized
+            // ratio has no unit witness and therefore needs no measurement frame.
             triple(
                 &score_subject,
                 RDF_TYPE,
-                &format!("<{}ScalarQuantity>", crate::model::GMEOW),
+                &format!("<{}Quantity>", crate::model::MATH),
                 &mut lines,
             );
             triple(
                 &score_subject,
-                &format!("{}quantityValue", crate::model::GMEOW),
+                &format!("{}quantityValue", crate::model::MATH),
                 &format!("\"{}\"^^<{XSD_DECIMAL}>", fmt_score(grade.score)),
                 &mut lines,
             );
             triple(
                 &score_subject,
-                &format!("{}unit", crate::model::GMEOW),
-                &format!("<{QUDT_UNITLESS}>"),
+                &format!("{}hasDimension", crate::model::MATH),
+                &format!("<{}dimensionless>", crate::model::MATH),
                 &mut lines,
             );
             annotate(

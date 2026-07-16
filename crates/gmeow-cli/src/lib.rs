@@ -91,7 +91,8 @@ pub enum Commands {
         /// GTS snapshot to inspect (default: bundled gmeow.gts).
         file: Option<PathBuf>,
     },
-    /// Verify GTS signatures and the source-free ontology checks.
+    /// Verify GTS signatures, the reasoned deep-semantic pass, and the source-free
+    /// ontology-completeness checks, rendered as one proof-carrying report.
     Verify {
         /// GTS snapshot to verify (default: bundled gmeow.gts).
         file: Option<PathBuf>,
@@ -101,6 +102,13 @@ pub enum Commands {
         /// Permit unsigned local snapshots.
         #[arg(long = "allow-unsigned")]
         allow_unsigned: bool,
+        /// Output for the unified report: `human`, `sarif`, or `json`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+        /// Opt-in Tier-2 native semantic pass (reasoning) over the bundle,
+        /// mirroring `validate --deep`. Plain `verify` never reasons.
+        #[arg(long = "deep")]
+        deep: bool,
     },
     /// Consumer verification of a signed release bundle.
     #[command(name = "verify-release-bundle")]
@@ -248,6 +256,63 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
+    /// Decide whether a premise RDF graph ENTAILS a conclusion (`A ⊨ C`), natively,
+    /// by refutation over the DL consistency calculus. Prints `entailed`,
+    /// `not-entailed`, or an honest `gap:<shape>` when the conclusion is outside the
+    /// soundly-refutable fragment. Syntax is inferred from each file's extension
+    /// (`.ttl`, `.nt`, `.nq`, `.rdf`/`.owl`/`.xml`, `.trig`).
+    Entails {
+        /// The premise RDF graph `A`.
+        premise: PathBuf,
+        /// The conclusion RDF graph `C`.
+        conclusion: PathBuf,
+    },
+    /// GMEOW slice-quality tools: score an external slice directory against the embedded bundle.
+    Slice {
+        #[command(subcommand)]
+        command: SliceCommands,
+    },
+}
+
+/// The `gmeow slice` nested subcommands.
+#[derive(Debug, Subcommand)]
+pub enum SliceCommands {
+    /// Score an external slice directory against the embedded gmeow.gts bundle
+    /// (no repo checkout required) and render its quality report.
+    Quality {
+        /// Path to the external slice directory to score.
+        dir: PathBuf,
+        /// Output serialization: `human` (default), `json`, or `sarif`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
+    /// Assemble and render a `gmeow:AuthoringPacket` authoring brief for a slice
+    /// directory, computed over the slice's OWN sources (module.ttl, mappings/,
+    /// i18n/) with the SINGLE canonical, SHACL-conformance-gated exemplar tiering. The
+    /// committed `generated/briefs/authoring-packets.nt` is the canonical repo projection
+    /// of this brief for in-repo slices; this command is its live, checkout-free twin.
+    Brief {
+        /// Path to the slice directory to brief.
+        dir: PathBuf,
+        /// Restrict to the subdomain axis (defined-term local-name prefix).
+        #[arg(long)]
+        axis: Option<String>,
+        /// The zero-based batch index of the 25-term chunk to cover (out of range
+        /// is a hard error). Omitted with no axis = the whole slice as one packet.
+        #[arg(long)]
+        batch: Option<u32>,
+        /// Output serialization: `human` (default), `json`, or `turtle`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
+    /// Show the committed projection-vocabulary ratchet — the guarded registry and the
+    /// per-(slice, vocabulary) ceilings — straight from the embedded gmeow.gts bundle
+    /// (the commitments view; live measured residue needs a repo checkout).
+    ProjectionCeilings {
+        /// Output serialization: `human` (default) or `tsv`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
@@ -381,11 +446,15 @@ pub fn run() -> i32 {
             file,
             trusted_key,
             allow_unsigned,
+            format,
+            deep,
         } => commands::verify(
             reporter,
             file.as_deref(),
             trusted_key.as_deref(),
             allow_unsigned,
+            &format,
+            deep,
         ),
         Commands::VerifyReleaseBundle { bundle, public_key } => {
             commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
@@ -472,6 +541,24 @@ pub fn run() -> i32 {
                 max_steps,
                 max_answers,
             ),
+        },
+        Commands::Entails {
+            premise,
+            conclusion,
+        } => commands::entails(reporter, &premise, &conclusion),
+        Commands::Slice { command } => match command {
+            SliceCommands::Quality { dir, format } => {
+                commands::slice_quality(reporter, &dir, &format)
+            }
+            SliceCommands::Brief {
+                dir,
+                axis,
+                batch,
+                format,
+            } => commands::slice_brief(reporter, &dir, axis.as_deref(), batch, &format),
+            SliceCommands::ProjectionCeilings { format } => {
+                commands::slice_projection_ceilings(reporter, &format)
+            }
         },
     }
 }

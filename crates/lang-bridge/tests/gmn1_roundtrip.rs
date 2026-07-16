@@ -33,7 +33,7 @@ fn lang_module_dataset() -> Arc<RdfDataset> {
 }
 
 fn dict() -> GmnDictionary {
-    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v1 loads from the carrier")
+    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v3 loads from the carrier")
 }
 
 /// Load and parse one grounding slice's authored `module.ttl`.
@@ -60,7 +60,10 @@ fn single_claim_record_round_trips() {
     round_trip_check(&model, &dict()).expect("single claim record round-trips");
 
     let doc = gmn1_write(&model, &dict()).expect("write");
-    assert!(doc.text.starts_with("@gmn{v: 1, aliases: dict-v1}\n"));
+    assert!(
+        doc.text
+            .starts_with("@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n")
+    );
     assert!(
         doc.text.contains("@c{"),
         "must emit one @c record: {}",
@@ -181,7 +184,7 @@ fn lang_tagged_literal_round_trips_the_language_tag() {
 // `logic:naryArg0(R, a)`, `logic:naryArg1(R, b)`, … This is ALREADY inside this codec's
 // covered fragment: it is nothing but a subject (the reifier node R, an ordinary IRI or
 // blank node) carrying several ordinary triples, each with >1 primary predicate per
-// subject so the safe-fold guard emits them as flat `@c` records — no special-casing
+// subject so the safe-fold guard emits them as flat logic (`@ℒ`) records — no special-casing
 // needed. This fixture proves the round-trip explicitly rather than asserting it.
 
 #[test]
@@ -203,8 +206,8 @@ fn nary_predication_reification_round_trips() {
 
     let doc = gmn1_write(&model, &dict()).expect("write");
     // Four distinct predicates share the reifier subject, so the safe-fold guard (>1
-    // primary triple per subject) emits four flat @c records — none silently dropped.
-    let claim_count = doc.text.lines().filter(|l| l.starts_with("@c{")).count();
+    // primary triple per subject) emits four flat @ℒ records — none silently dropped.
+    let claim_count = doc.text.lines().filter(|l| l.starts_with("@ℒ{")).count();
     assert_eq!(
         claim_count, 4,
         "all four reifier triples must round-trip: {}",
@@ -317,7 +320,7 @@ fn process_record_with_boundary_and_iteration_round_trips() {
     );
     assert!(
         doc.text.contains("bd: open"),
-        "bd must use the dict-v1 alias: {}",
+        "bd must use the dict-v3 alias: {}",
         doc.text
     );
     assert!(
@@ -413,12 +416,12 @@ fn every_task5_qualifier_slot_round_trips() {
     let doc = gmn1_write(&model, &dict()).expect("write");
     assert!(
         doc.text.contains("m: poss"),
-        "m must use the dict-v1 alias: {}",
+        "m must use the dict-v3 alias: {}",
         doc.text
     );
     assert!(
         doc.text.contains("ek: inst"),
-        "ek must use the dict-v1 alias: {}",
+        "ek must use the dict-v3 alias: {}",
         doc.text
     );
 

@@ -25,7 +25,7 @@
 //! `identifier | number | list`, and `identifier` is `[A-Za-z_][A-Za-z0-9_.-]*` — no colon,
 //! no arbitrary Unicode. Three consequences this codec resolves explicitly:
 //!
-//! 1. **IRIs** are represented as either a dictionary alias (`gmeow:gmnDictV1`, read from
+//! 1. **IRIs** are represented as either a dictionary alias (`gmeow:gmnDictV3`, read from
 //!    the compiled carrier — never hardcoded) OR a deterministic, injective
 //!    prefix-mangling of the term's CURIE under the SAME prefix registry the rest of the
 //!    pipeline treats as canonical (`gmeow_logic_compile::ingest::prefixes`): `prefix__local`
@@ -62,16 +62,57 @@
 //! outside `[A-Za-z0-9_.-]`) — a property a mechanical `write.invert()` would not have,
 //! because there would be nothing exercising those rejection paths.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+use unicode_normalization::is_nfc;
+use unicode_security::skeleton;
 
 use crate::emit::digest16;
 
 // ── Well-known predicate IRIs the compact-record folder recognizes ─────────────────
 
+#[cfg(test)]
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const CLASS_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
+const CLASS_SCRIPT: &str = "https://blackcatinformatics.ca/lang/Script";
+const CLASS_GMN_CODEBOOK: &str = "https://blackcatinformatics.ca/gmeow/GmnCodebook";
+const CLASS_GMN_DICTIONARY: &str = "https://blackcatinformatics.ca/gmeow/GmnDictionary";
+const CLASS_GMN_SYMBOL_CANDIDATE: &str = "https://blackcatinformatics.ca/gmeow/GmnSymbolCandidate";
+const CURRENT_CODEBOOK: &str = "https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent";
+const DISPOSITION_ADOPTED_GLYPH: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnDispositionAdoptedGlyph";
+const PRED_REFERENCES: &str = "https://blackcatinformatics.ca/gmeow/references";
+const PRED_HAS_GRAPHEME: &str = "https://blackcatinformatics.ca/lang/hasGrapheme";
+const PRED_DENOTED_FORM: &str = "https://blackcatinformatics.ca/lang/denotedForm";
+const PRED_DENOTATION_TARGET: &str = "https://blackcatinformatics.ca/lang/denotationTarget";
+const PRED_GMN_DENOTATION_GRAPHEME: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnDenotationGrapheme";
+const PRED_GMN_CODEPOINTS: &str = "https://blackcatinformatics.ca/gmeow/gmnCodepoints";
+const PRED_GMN_SIGIL_SCOPE: &str = "https://blackcatinformatics.ca/gmeow/gmnSigilScope";
+const PRED_GMN_SIGIL_GLYPH: &str = "https://blackcatinformatics.ca/gmeow/gmnSigilGlyph";
+const PRED_GMN_FIXITY: &str = "https://blackcatinformatics.ca/gmeow/gmnFixity";
+const PRED_GMN_ARITY: &str = "https://blackcatinformatics.ca/gmeow/gmnArity";
+const PRED_GMN_CANDIDATE_DENOTATION: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnCandidateDenotation";
+const PRED_GMN_ASCII_FALLBACK: &str = "https://blackcatinformatics.ca/gmeow/gmnAsciiFallback";
+const PRED_GMN_SYMBOL_DISPOSITION: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnSymbolDisposition";
+const PRED_GMN_DICTIONARY_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry";
+const PRED_GMN_DICTIONARY_ENTRY_TERM: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm";
+const PRED_GMN_DICTIONARY_ENTRY_ALIAS: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias";
+const PRED_GMN_DICTIONARY_VERSION: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion";
+const PRED_GMN_GLYPH_TABLE_VERSION: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion";
 
 const PRED_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 const PRED_ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
@@ -97,8 +138,9 @@ const BLANK_PREFIX: &str = "_b";
 /// [`classify_literal`]).
 const REF_PREFIX: &str = "r_";
 
-const DICT_VERSION: &str = "1";
-const DICT_ALIASES_ID: &str = "dict-v1";
+const DIALECT_VERSION: &str = "1";
+const DICTIONARY_VERSION: &str = "3";
+const GLYPH_VERSION: &str = "2";
 
 // ── GMN-0: the canonical quad-set normal form ───────────────────────────────────────
 
@@ -196,16 +238,966 @@ fn term_sort_string(t: &RdfTerm) -> String {
     }
 }
 
-// ── The dictionary bijection (`gmeow:gmnDictV1`, read from the carrier) ─────────────
+// ── The graph-derived glyph registry ───────────────────────────────────────────────
+
+/// The executable operator signature carried by the canonical GMN form behind a
+/// `lang:Denotation`. Constants have neither coordinate; operators have BOTH. Keeping
+/// these coordinates in the registry key prevents typography alone from silently
+/// conflating, for example, unary and binary uses of one glyph.
+#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+struct GmnGlyphSignature {
+    fixity: Option<String>,
+    arity: Option<u32>,
+}
+
+/// The current codebook selection resolved from the graph. The loader follows
+/// `gmeow:gmnCodebookCurrent` through `gmeow:references`; it never treats unrelated
+/// historical dictionaries or codebooks in the same carrier as current inventory.
+#[derive(Debug, Clone)]
+struct CurrentCodebook {
+    references: BTreeSet<String>,
+    dictionary_version: String,
+    glyph_version: String,
+    graphemes: BTreeSet<String>,
+    dictionary_entries: BTreeSet<String>,
+}
+
+/// The executable GMN glyph table, derived from canonical, typed
+/// `lang:Denotation` records in the current codebook's script.
+///
+/// Each key includes `(record sigil, term-or-glyph, fixity, arity)`: sigil scope is
+/// still the primary disambiguation boundary, and the authored operator signature is
+/// an additional, executable criterion. Bare record tokens remain legal only when
+/// that scoped term/glyph has ONE authored signature. ASCII fallbacks are read aliases
+/// on the same scoped signature and are never the writer's canonical spelling.
+#[derive(Debug, Clone)]
+pub struct GmnGlyphRegistry {
+    version: String,
+    term_to_glyph: BTreeMap<(String, String, GmnGlyphSignature), String>,
+    glyph_to_term: BTreeMap<(String, String, GmnGlyphSignature), String>,
+    fallback_to_term: BTreeMap<(String, String, GmnGlyphSignature), String>,
+}
+
+impl Default for GmnGlyphRegistry {
+    fn default() -> Self {
+        Self {
+            version: GLYPH_VERSION.to_owned(),
+            term_to_glyph: BTreeMap::new(),
+            glyph_to_term: BTreeMap::new(),
+            fallback_to_term: BTreeMap::new(),
+        }
+    }
+}
+
+/// A canonical glyph-table defect: an incomplete denotation, malformed codepoint
+/// sequence, unknown scope, or collision inside one sigil scope.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GlyphRegistryError(pub String);
+
+impl GmnGlyphRegistry {
+    /// Build the glyph table from the current codebook graph. A binding exists only
+    /// when a node is explicitly typed `lang:Denotation`, carries both
+    /// `lang:denotationTarget` and `gmeow:gmnDenotationGrapheme`, and is the adopted
+    /// candidate's `gmeow:gmnCandidateDenotation`. The denoted form supplies the
+    /// `gmeow:gmnFixity`/`gmeow:gmnArity` signature, the grapheme supplies canonical
+    /// codepoints and scope, and the adopted candidate supplies the executable ASCII
+    /// read fallback. No local-name convention or label parsing participates.
+    pub fn from_dataset(ds: &RdfDataset) -> Result<Self, GlyphRegistryError> {
+        let codebook = resolve_current_codebook(ds)?;
+        let mut types = BTreeMap::<String, BTreeSet<String>>::new();
+        let mut den_targets = BTreeMap::<String, BTreeSet<String>>::new();
+        let mut den_graphemes = BTreeMap::<String, String>::new();
+        let mut den_forms = BTreeMap::<String, BTreeSet<String>>::new();
+        let mut grapheme_codepoints = BTreeMap::<String, String>::new();
+        let mut grapheme_scopes = BTreeMap::<String, String>::new();
+        let mut role_sigils = BTreeMap::<String, String>::new();
+        let mut form_fixities = BTreeMap::<String, String>::new();
+        let mut form_arities = BTreeMap::<String, u32>::new();
+        let mut candidate_denotations = BTreeMap::<String, String>::new();
+        let mut candidate_fallbacks = BTreeMap::<String, String>::new();
+        let mut candidate_dispositions = BTreeMap::<String, String>::new();
+        let mut candidate_arities = BTreeMap::<String, u32>::new();
+
+        for quad in ds.owned_quads() {
+            let RdfTerm::Iri(subject) = &quad.subject else {
+                continue;
+            };
+            match quad.predicate.as_str() {
+                RDF_TYPE => {
+                    if let RdfTerm::Iri(class) = &quad.object {
+                        types
+                            .entry(subject.clone())
+                            .or_default()
+                            .insert(class.clone());
+                    }
+                }
+                PRED_DENOTED_FORM => {
+                    if let RdfTerm::Iri(form) = &quad.object {
+                        den_forms
+                            .entry(subject.clone())
+                            .or_default()
+                            .insert(form.clone());
+                    }
+                }
+                PRED_DENOTATION_TARGET => {
+                    if let RdfTerm::Iri(target) = &quad.object {
+                        den_targets
+                            .entry(subject.clone())
+                            .or_default()
+                            .insert(target.clone());
+                    }
+                }
+                PRED_GMN_DENOTATION_GRAPHEME => {
+                    if let RdfTerm::Iri(grapheme) = &quad.object {
+                        insert_unique(
+                            &mut den_graphemes,
+                            subject,
+                            grapheme,
+                            "denotation grapheme",
+                        )?;
+                    }
+                }
+                PRED_GMN_CODEPOINTS => {
+                    if let RdfTerm::Literal(literal) = &quad.object {
+                        insert_unique(
+                            &mut grapheme_codepoints,
+                            subject,
+                            &literal.lexical_form,
+                            "grapheme codepoints",
+                        )?;
+                    }
+                }
+                PRED_GMN_SIGIL_SCOPE => {
+                    if let RdfTerm::Iri(scope) = &quad.object {
+                        insert_unique(&mut grapheme_scopes, subject, scope, "glyph scope")?;
+                    }
+                }
+                PRED_GMN_SIGIL_GLYPH => {
+                    if let RdfTerm::Literal(literal) = &quad.object {
+                        insert_unique(
+                            &mut role_sigils,
+                            subject,
+                            &literal.lexical_form,
+                            "sigil glyph",
+                        )?;
+                    }
+                }
+                PRED_GMN_FIXITY => {
+                    if let RdfTerm::Iri(fixity) = &quad.object {
+                        insert_unique(&mut form_fixities, subject, fixity, "GMN fixity")?;
+                    }
+                }
+                PRED_GMN_ARITY => {
+                    if let RdfTerm::Literal(arity) = &quad.object {
+                        insert_unique_u32(
+                            &mut form_arities,
+                            subject,
+                            &arity.lexical_form,
+                            "GMN form arity",
+                        )?;
+                        insert_unique_u32(
+                            &mut candidate_arities,
+                            subject,
+                            &arity.lexical_form,
+                            "GMN candidate arity",
+                        )?;
+                    }
+                }
+                PRED_GMN_CANDIDATE_DENOTATION => {
+                    if let RdfTerm::Iri(denotation) = &quad.object {
+                        insert_unique(
+                            &mut candidate_denotations,
+                            subject,
+                            denotation,
+                            "candidate denotation",
+                        )?;
+                    }
+                }
+                PRED_GMN_ASCII_FALLBACK => {
+                    if let RdfTerm::Literal(fallback) = &quad.object {
+                        insert_unique(
+                            &mut candidate_fallbacks,
+                            subject,
+                            &fallback.lexical_form,
+                            "candidate ASCII fallback",
+                        )?;
+                    }
+                }
+                PRED_GMN_SYMBOL_DISPOSITION => {
+                    if let RdfTerm::Iri(disposition) = &quad.object {
+                        insert_unique(
+                            &mut candidate_dispositions,
+                            subject,
+                            disposition,
+                            "candidate disposition",
+                        )?;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        let current_denotations = den_graphemes
+            .iter()
+            .filter_map(|(denotation, grapheme)| {
+                codebook
+                    .graphemes
+                    .contains(grapheme)
+                    .then_some(denotation.as_str())
+            })
+            .collect::<BTreeSet<_>>();
+        let mut adopted_by_denotation = BTreeMap::<String, String>::new();
+        for (candidate, disposition) in &candidate_dispositions {
+            if disposition != DISPOSITION_ADOPTED_GLYPH {
+                continue;
+            }
+            if !has_type(&types, candidate, CLASS_GMN_SYMBOL_CANDIDATE) {
+                return Err(GlyphRegistryError(format!(
+                    "adopted glyph candidate {candidate} is not typed gmeow:GmnSymbolCandidate"
+                )));
+            }
+            let denotation = candidate_denotations.get(candidate).ok_or_else(|| {
+                GlyphRegistryError(format!(
+                    "adopted glyph candidate {candidate} has no gmnCandidateDenotation"
+                ))
+            })?;
+            if !current_denotations.contains(denotation.as_str()) {
+                continue;
+            }
+            if let Some(prior) = adopted_by_denotation.insert(denotation.clone(), candidate.clone())
+                && prior != *candidate
+            {
+                return Err(GlyphRegistryError(format!(
+                    "denotation {denotation} is claimed by two adopted glyph candidates: {prior} and {candidate}"
+                )));
+            }
+        }
+
+        let mut registry = Self {
+            version: codebook.glyph_version.clone(),
+            ..Self::default()
+        };
+        let mut skeleton_to_glyph = BTreeMap::<(String, String), String>::new();
+        let mut processed_candidates = BTreeSet::<String>::new();
+        for (denotation, grapheme) in den_graphemes {
+            if !codebook.graphemes.contains(&grapheme) {
+                continue;
+            }
+            if !has_type(&types, &denotation, CLASS_DENOTATION) {
+                return Err(GlyphRegistryError(format!(
+                    "glyph denotation {denotation} is not typed lang:Denotation"
+                )));
+            }
+            let targets = den_targets.get(&denotation).ok_or_else(|| {
+                GlyphRegistryError(format!(
+                    "glyph denotation {denotation} has no lang:denotationTarget"
+                ))
+            })?;
+            if targets.len() != 1 {
+                return Err(GlyphRegistryError(format!(
+                    "glyph denotation {denotation} must have exactly one target, found {}",
+                    targets.len()
+                )));
+            }
+            let target = targets
+                .iter()
+                .next()
+                .expect("the exactly-one target set is non-empty");
+            let forms = den_forms.get(&denotation).ok_or_else(|| {
+                GlyphRegistryError(format!(
+                    "glyph denotation {denotation} has no lang:denotedForm"
+                ))
+            })?;
+            if forms.len() != 1 {
+                return Err(GlyphRegistryError(format!(
+                    "glyph denotation {denotation} must have exactly one denoted form, found {}",
+                    forms.len()
+                )));
+            }
+            let form = forms
+                .iter()
+                .next()
+                .expect("the exactly-one denoted-form set is non-empty");
+            let signature = GmnGlyphSignature {
+                fixity: form_fixities.get(form).cloned(),
+                arity: form_arities.get(form).copied(),
+            };
+            if signature.fixity.is_some() != signature.arity.is_some() {
+                return Err(GlyphRegistryError(format!(
+                    "GMN form {form} must author gmnFixity and gmnArity together"
+                )));
+            }
+            let codepoints = grapheme_codepoints.get(&grapheme).ok_or_else(|| {
+                GlyphRegistryError(format!(
+                    "glyph denotation {denotation} names grapheme {grapheme} with no gmnCodepoints"
+                ))
+            })?;
+            let glyph = decode_codepoint_sequence(codepoints)?;
+            validate_glyph_surface(&glyph)?;
+            let sigil = match grapheme_scopes.get(&grapheme) {
+                Some(scope) => {
+                    if !codebook.references.contains(scope) {
+                        return Err(GlyphRegistryError(format!(
+                            "grapheme {grapheme} names sigil scope {scope} outside the current codebook"
+                        )));
+                    }
+                    let sigil = role_sigils.get(scope).cloned().ok_or_else(|| {
+                        GlyphRegistryError(format!(
+                            "grapheme {grapheme} names unknown sigil scope {scope}"
+                        ))
+                    })?;
+                    if !KNOWN_SIGILS.contains(&sigil.as_str()) {
+                        return Err(GlyphRegistryError(format!(
+                            "grapheme {grapheme} names unsupported GMN sigil {sigil:?}"
+                        )));
+                    }
+                    sigil
+                }
+                None => String::new(),
+            };
+            let candidate = adopted_by_denotation.get(&denotation).ok_or_else(|| {
+                GlyphRegistryError(format!(
+                    "executable glyph denotation {denotation} has no adopted GmnSymbolCandidate"
+                ))
+            })?;
+            let fallback = candidate_fallbacks.get(candidate).ok_or_else(|| {
+                GlyphRegistryError(format!(
+                    "adopted glyph candidate {candidate} has no gmnAsciiFallback"
+                ))
+            })?;
+            if !is_identifier(fallback)
+                || fallback.starts_with(BLANK_PREFIX)
+                || fallback.starts_with(REF_PREFIX)
+            {
+                return Err(GlyphRegistryError(format!(
+                    "adopted glyph candidate {candidate} has non-executable ASCII fallback {fallback:?}"
+                )));
+            }
+            if candidate_arities.get(candidate).copied() != signature.arity {
+                return Err(GlyphRegistryError(format!(
+                    "adopted glyph candidate {candidate} arity {:?} disagrees with denoted form {form} arity {:?}",
+                    candidate_arities.get(candidate),
+                    signature.arity
+                )));
+            }
+
+            let term_key = (sigil.clone(), target.clone(), signature.clone());
+            let glyph_key = (sigil.clone(), glyph.clone(), signature.clone());
+            let fallback_key = (sigil.clone(), fallback.clone(), signature.clone());
+            let skeleton_key = (sigil.clone(), skeleton(&glyph).collect::<String>());
+            if let Some(prior) = skeleton_to_glyph.insert(skeleton_key, glyph.clone())
+                && prior != glyph
+            {
+                return Err(GlyphRegistryError(format!(
+                    "glyph {glyph:?} is UTS #39-confusable with {prior:?} in scope {sigil:?}"
+                )));
+            }
+            if let Some(prior) = registry.term_to_glyph.insert(term_key, glyph.clone())
+                && prior != glyph
+            {
+                return Err(GlyphRegistryError(format!(
+                    "term {target} has two glyphs in scope {sigil:?}: {prior:?} and {glyph:?}"
+                )));
+            }
+            if let Some(prior) = registry.glyph_to_term.insert(glyph_key, target.clone())
+                && prior != *target
+            {
+                return Err(GlyphRegistryError(format!(
+                    "glyph {glyph:?} collides in scope {sigil:?}: {prior} and {target}"
+                )));
+            }
+            if let Some(prior) = registry
+                .fallback_to_term
+                .insert(fallback_key, target.clone())
+                && prior != *target
+            {
+                return Err(GlyphRegistryError(format!(
+                    "ASCII fallback {fallback:?} collides in scope {sigil:?}: {prior} and {target}"
+                )));
+            }
+            processed_candidates.insert(candidate.clone());
+        }
+
+        for candidate in adopted_by_denotation.values() {
+            if !processed_candidates.contains(candidate) {
+                return Err(GlyphRegistryError(format!(
+                    "adopted glyph candidate {candidate} is not linked to a denotation/grapheme in the current codebook script"
+                )));
+            }
+        }
+        registry.reject_bare_signature_ambiguity()?;
+        Ok(registry)
+    }
+
+    fn glyph_for(&self, iri: &str, sigil: &str) -> Option<&str> {
+        self.unique_term_binding(iri, sigil)
+            .map(|(_, glyph)| glyph.as_str())
+    }
+
+    fn term_for(&self, glyph: &str, sigil: &str) -> Option<&str> {
+        self.unique_surface_binding(&self.glyph_to_term, glyph, sigil)
+            .map(|(_, term)| term.as_str())
+    }
+
+    fn term_for_fallback(&self, fallback: &str, sigil: &str) -> Option<&str> {
+        self.unique_surface_binding(&self.fallback_to_term, fallback, sigil)
+            .map(|(_, term)| term.as_str())
+    }
+
+    /// Resolve a term only when the caller's explicit operator signature matches the
+    /// authored denoted form. A wrong fixity or arity is a miss, never typography-based
+    /// guessing. Sigil scope retains exact-then-global precedence.
+    #[must_use]
+    pub fn glyph_for_signature(
+        &self,
+        iri: &str,
+        sigil: &str,
+        fixity: Option<&str>,
+        arity: Option<u32>,
+    ) -> Option<&str> {
+        let signature = GmnGlyphSignature {
+            fixity: fixity.map(str::to_owned),
+            arity,
+        };
+        self.term_to_glyph
+            .get(&(sigil.to_owned(), iri.to_owned(), signature.clone()))
+            .or_else(|| {
+                self.term_to_glyph
+                    .get(&(String::new(), iri.to_owned(), signature))
+            })
+            .map(String::as_str)
+    }
+
+    /// Resolve a glyph only when the caller's explicit fixity and arity match the
+    /// authored denoted form. The ordinary reader uses the same table's unique bare
+    /// scoped binding; this method exposes the signature criterion directly to parser
+    /// integrations and acceptance tests.
+    #[must_use]
+    pub fn term_for_signature(
+        &self,
+        glyph: &str,
+        sigil: &str,
+        fixity: Option<&str>,
+        arity: Option<u32>,
+    ) -> Option<&str> {
+        let signature = GmnGlyphSignature {
+            fixity: fixity.map(str::to_owned),
+            arity,
+        };
+        self.glyph_to_term
+            .get(&(sigil.to_owned(), glyph.to_owned(), signature.clone()))
+            .or_else(|| {
+                self.glyph_to_term
+                    .get(&(String::new(), glyph.to_owned(), signature))
+            })
+            .map(String::as_str)
+    }
+
+    /// The glyph-table version pinned in the GMN header.
+    #[must_use]
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    /// The distinct executable glyph tokens, ordered for deterministic longest-match
+    /// lexing (more Unicode scalar values first, then bytewise lexical order).
+    #[must_use]
+    pub fn glyph_tokens(&self) -> Vec<&str> {
+        let mut glyphs: Vec<&str> = self
+            .glyph_to_term
+            .keys()
+            .map(|(_, glyph, _)| glyph.as_str())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
+        glyphs.sort_by(|a, b| {
+            b.chars()
+                .count()
+                .cmp(&a.chars().count())
+                .then_with(|| a.cmp(b))
+        });
+        glyphs
+    }
+
+    /// Render the closed W3C-EBNF `glyphToken` production from the graph-derived
+    /// registry. This is the one grammar inventory used by regeneration; removing a
+    /// Denotation therefore removes the glyph from writer, reader, and generated EBNF.
+    #[must_use]
+    pub fn render_glyph_token_production(&self) -> String {
+        let alternatives = self
+            .glyph_tokens()
+            .into_iter()
+            .map(|glyph| format!("'{glyph}'"))
+            .collect::<Vec<_>>()
+            .join(" | ");
+        format!("glyphToken ::= {alternatives}")
+    }
+
+    /// Render the graph-derived closed glyph production into the GMN EBNF template.
+    /// Exactly one `glyphToken` production must exist: accepting zero would silently leave
+    /// the grammar disconnected from the registry, while accepting two would make the
+    /// grammar ambiguous about which inventory is authoritative.
+    pub fn render_grammar(&self, source: &[u8]) -> Result<Vec<u8>, GlyphRegistryError> {
+        let source = std::str::from_utf8(source)
+            .map_err(|error| GlyphRegistryError(format!("GMN grammar is not UTF-8: {error}")))?;
+        if self.term_to_glyph.is_empty() {
+            return Err(GlyphRegistryError(
+                "the executable glyph registry is empty; a closed glyphToken production cannot be rendered"
+                    .to_owned(),
+            ));
+        }
+        let mut found = 0usize;
+        let production = self.render_glyph_token_production();
+        let mut rendered = String::with_capacity(source.len() + production.len());
+        for line in source.lines() {
+            if line.trim_start().starts_with("glyphToken ::=") {
+                found += 1;
+                rendered.push_str(&production);
+            } else {
+                rendered.push_str(line);
+            }
+            rendered.push('\n');
+        }
+        if found != 1 {
+            return Err(GlyphRegistryError(format!(
+                "GMN grammar must contain exactly one glyphToken production, found {found}"
+            )));
+        }
+        Ok(rendered.into_bytes())
+    }
+
+    /// Whether the graph-derived registry contains `glyph` in `sigil` scope (including
+    /// a deliberately global fallback binding).
+    #[must_use]
+    pub fn contains_glyph(&self, glyph: &str, sigil: &str) -> bool {
+        self.term_for(glyph, sigil).is_some()
+    }
+
+    /// Every `(sigil, glyph)` executable binding for one denoted term, in stable key
+    /// order. Used by the independent glyph-optimality quality axis; the semantic
+    /// round-trip coverage axis does not consume this view.
+    #[must_use]
+    pub fn bindings_for_term(&self, iri: &str) -> Vec<(&str, &str)> {
+        self.term_to_glyph
+            .iter()
+            .filter_map(|((sigil, term, _), glyph)| {
+                (term == iri).then_some((sigil.as_str(), glyph.as_str()))
+            })
+            .collect()
+    }
+
+    fn unique_term_binding(&self, iri: &str, sigil: &str) -> Option<(&GmnGlyphSignature, &String)> {
+        let mut exact = self
+            .term_to_glyph
+            .iter()
+            .filter(|((scope, term, _), _)| scope == sigil && term == iri)
+            .map(|((_, _, signature), glyph)| (signature, glyph));
+        match (exact.next(), exact.next()) {
+            (Some(binding), None) => return Some(binding),
+            (Some(_), Some(_)) => return None,
+            (None, _) => {}
+        }
+        let mut global = self
+            .term_to_glyph
+            .iter()
+            .filter(|((scope, term, _), _)| scope.is_empty() && term == iri)
+            .map(|((_, _, signature), glyph)| (signature, glyph));
+        match (global.next(), global.next()) {
+            (Some(binding), None) => Some(binding),
+            _ => None,
+        }
+    }
+
+    fn unique_surface_binding<'a>(
+        &'a self,
+        table: &'a BTreeMap<(String, String, GmnGlyphSignature), String>,
+        surface: &str,
+        sigil: &str,
+    ) -> Option<(&'a GmnGlyphSignature, &'a String)> {
+        let mut exact = table
+            .iter()
+            .filter(|((scope, token, _), _)| scope == sigil && token == surface)
+            .map(|((_, _, signature), term)| (signature, term));
+        match (exact.next(), exact.next()) {
+            (Some(binding), None) => return Some(binding),
+            (Some(_), Some(_)) => return None,
+            (None, _) => {}
+        }
+        let mut global = table
+            .iter()
+            .filter(|((scope, token, _), _)| scope.is_empty() && token == surface)
+            .map(|((_, _, signature), term)| (signature, term));
+        match (global.next(), global.next()) {
+            (Some(binding), None) => Some(binding),
+            _ => None,
+        }
+    }
+
+    fn reject_bare_signature_ambiguity(&self) -> Result<(), GlyphRegistryError> {
+        reject_ambiguous_groups(
+            self.term_to_glyph
+                .keys()
+                .map(|(scope, term, signature)| (scope.as_str(), term.as_str(), signature)),
+            "term",
+        )?;
+        reject_ambiguous_groups(
+            self.glyph_to_term
+                .keys()
+                .map(|(scope, glyph, signature)| (scope.as_str(), glyph.as_str(), signature)),
+            "glyph",
+        )?;
+        reject_ambiguous_groups(
+            self.fallback_to_term
+                .keys()
+                .map(|(scope, fallback, signature)| (scope.as_str(), fallback.as_str(), signature)),
+            "ASCII fallback",
+        )
+    }
+}
+
+fn reject_ambiguous_groups<'a>(
+    keys: impl Iterator<Item = (&'a str, &'a str, &'a GmnGlyphSignature)>,
+    kind: &str,
+) -> Result<(), GlyphRegistryError> {
+    let mut signatures = BTreeMap::<(String, String), BTreeSet<GmnGlyphSignature>>::new();
+    for (scope, value, signature) in keys {
+        signatures
+            .entry((scope.to_owned(), value.to_owned()))
+            .or_default()
+            .insert(signature.clone());
+    }
+    if let Some(((scope, value), found)) = signatures.iter().find(|(_, found)| found.len() > 1) {
+        return Err(GlyphRegistryError(format!(
+            "{kind} {value:?} in scope {scope:?} has multiple authored fixity/arity signatures {found:?}; a bare GMN token would be ambiguous"
+        )));
+    }
+    Ok(())
+}
+
+fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, GlyphRegistryError> {
+    let mut types = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut references = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut dictionary_versions = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut glyph_versions = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut dictionary_entries = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut script_graphemes = BTreeMap::<String, BTreeSet<String>>::new();
+
+    for quad in ds.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        match quad.predicate.as_str() {
+            RDF_TYPE => {
+                if let RdfTerm::Iri(class) = &quad.object {
+                    types
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(class.clone());
+                }
+            }
+            PRED_REFERENCES => {
+                if let RdfTerm::Iri(object) = &quad.object {
+                    references
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(object.clone());
+                }
+            }
+            PRED_GMN_DICTIONARY_VERSION => {
+                if let RdfTerm::Literal(version) = &quad.object {
+                    dictionary_versions
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(version.lexical_form.clone());
+                }
+            }
+            PRED_GMN_GLYPH_TABLE_VERSION => {
+                if let RdfTerm::Literal(version) = &quad.object {
+                    glyph_versions
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(version.lexical_form.clone());
+                }
+            }
+            PRED_GMN_DICTIONARY_ENTRY => {
+                if let RdfTerm::Iri(entry) = &quad.object {
+                    dictionary_entries
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(entry.clone());
+                }
+            }
+            PRED_HAS_GRAPHEME => {
+                if let RdfTerm::Iri(grapheme) = &quad.object {
+                    script_graphemes
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(grapheme.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    if !has_type(&types, CURRENT_CODEBOOK, CLASS_GMN_CODEBOOK) {
+        return Err(GlyphRegistryError(format!(
+            "current codebook {CURRENT_CODEBOOK} is absent or not typed gmeow:GmnCodebook"
+        )));
+    }
+    let current_references = references.get(CURRENT_CODEBOOK).cloned().ok_or_else(|| {
+        GlyphRegistryError(format!(
+            "current codebook {CURRENT_CODEBOOK} has no gmeow:references inventory"
+        ))
+    })?;
+    let dictionary = exactly_one_typed_reference(
+        &current_references,
+        &types,
+        CLASS_GMN_DICTIONARY,
+        "gmeow:GmnDictionary",
+    )?;
+    let script =
+        exactly_one_typed_reference(&current_references, &types, CLASS_SCRIPT, "lang:Script")?;
+    let codebook_dictionary_version = exactly_one_literal(
+        dictionary_versions.get(CURRENT_CODEBOOK),
+        "current codebook gmnDictionaryVersion",
+    )?;
+    let dictionary_version = exactly_one_literal(
+        dictionary_versions.get(&dictionary),
+        &format!("current dictionary {dictionary} gmnDictionaryVersion"),
+    )?;
+    if codebook_dictionary_version != dictionary_version {
+        return Err(GlyphRegistryError(format!(
+            "current codebook dictionary version {codebook_dictionary_version:?} disagrees with referenced dictionary {dictionary} version {dictionary_version:?}"
+        )));
+    }
+    if dictionary_version != DICTIONARY_VERSION {
+        return Err(GlyphRegistryError(format!(
+            "current dictionary version {dictionary_version:?} does not match codec version {DICTIONARY_VERSION:?}"
+        )));
+    }
+    let glyph_version = exactly_one_literal(
+        glyph_versions.get(CURRENT_CODEBOOK),
+        "current codebook gmnGlyphTableVersion",
+    )?;
+    if glyph_version != GLYPH_VERSION {
+        return Err(GlyphRegistryError(format!(
+            "current glyph-table version {glyph_version:?} does not match codec version {GLYPH_VERSION:?}"
+        )));
+    }
+    let graphemes = script_graphemes.get(&script).cloned().ok_or_else(|| {
+        GlyphRegistryError(format!(
+            "current codebook script {script} has no lang:hasGrapheme inventory"
+        ))
+    })?;
+
+    Ok(CurrentCodebook {
+        references: current_references,
+        dictionary_entries: dictionary_entries
+            .get(&dictionary)
+            .cloned()
+            .unwrap_or_default(),
+        dictionary_version,
+        glyph_version,
+        graphemes,
+    })
+}
+
+fn exactly_one_typed_reference(
+    references: &BTreeSet<String>,
+    types: &BTreeMap<String, BTreeSet<String>>,
+    class: &str,
+    label: &str,
+) -> Result<String, GlyphRegistryError> {
+    let matches = references
+        .iter()
+        .filter(|reference| has_type(types, reference, class))
+        .collect::<Vec<_>>();
+    if matches.len() != 1 {
+        return Err(GlyphRegistryError(format!(
+            "current codebook must reference exactly one {label}, found {}",
+            matches.len()
+        )));
+    }
+    Ok((*matches[0]).clone())
+}
+
+fn exactly_one_literal(
+    values: Option<&BTreeSet<String>>,
+    label: &str,
+) -> Result<String, GlyphRegistryError> {
+    let values = values.cloned().unwrap_or_default();
+    if values.len() != 1 {
+        return Err(GlyphRegistryError(format!(
+            "{label} must be declared exactly once, found {} values",
+            values.len()
+        )));
+    }
+    Ok(values
+        .into_iter()
+        .next()
+        .expect("the exactly-one literal set is non-empty"))
+}
+
+fn has_type(types: &BTreeMap<String, BTreeSet<String>>, node: &str, class: &str) -> bool {
+    types
+        .get(node)
+        .is_some_and(|classes| classes.contains(class))
+}
+
+fn insert_unique(
+    map: &mut BTreeMap<String, String>,
+    key: &str,
+    value: &str,
+    field: &str,
+) -> Result<(), GlyphRegistryError> {
+    if let Some(prior) = map.insert(key.to_owned(), value.to_owned())
+        && prior != value
+    {
+        return Err(GlyphRegistryError(format!(
+            "{field} is not functional for {key}: {prior:?} and {value:?}"
+        )));
+    }
+    Ok(())
+}
+
+fn insert_unique_u32(
+    map: &mut BTreeMap<String, u32>,
+    key: &str,
+    value: &str,
+    field: &str,
+) -> Result<(), GlyphRegistryError> {
+    let value = value.parse::<u32>().map_err(|_| {
+        GlyphRegistryError(format!(
+            "{field} for {key} is not a non-negative 32-bit integer: {value:?}"
+        ))
+    })?;
+    if let Some(prior) = map.insert(key.to_owned(), value)
+        && prior != value
+    {
+        return Err(GlyphRegistryError(format!(
+            "{field} is not functional for {key}: {prior} and {value}"
+        )));
+    }
+    Ok(())
+}
+
+fn decode_codepoint_sequence(value: &str) -> Result<String, GlyphRegistryError> {
+    let mut glyph = String::new();
+    for token in value.split_whitespace() {
+        let hex = token.strip_prefix("U+").ok_or_else(|| {
+            GlyphRegistryError(format!(
+                "codepoint token {token:?} does not use canonical U+XXXX form"
+            ))
+        })?;
+        if !(4..=6).contains(&hex.len())
+            || !hex
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'A'..=b'F').contains(&b))
+        {
+            return Err(GlyphRegistryError(format!(
+                "codepoint token {token:?} is not canonical uppercase U+XXXX hexadecimal"
+            )));
+        }
+        let scalar = u32::from_str_radix(hex, 16).map_err(|_| {
+            GlyphRegistryError(format!("codepoint token {token:?} is outside Unicode"))
+        })?;
+        let ch = char::from_u32(scalar).ok_or_else(|| {
+            GlyphRegistryError(format!("codepoint token {token:?} is not a Unicode scalar"))
+        })?;
+        glyph.push(ch);
+    }
+    if glyph.is_empty() {
+        return Err(GlyphRegistryError(
+            "a glyph codepoint sequence cannot be empty".to_owned(),
+        ));
+    }
+    Ok(glyph)
+}
+
+/// The Unicode security boundary of a GMN glyph token. The grammar is closed and
+/// delimiter-driven, so whitespace/delimiters are never legal content; NFC keeps the
+/// codepoint spelling canonical; bidi controls and default-ignorables are rejected rather
+/// than allowed to alter display or disappear in review.
+fn validate_glyph_surface(glyph: &str) -> Result<(), GlyphRegistryError> {
+    if !is_nfc(glyph) {
+        return Err(GlyphRegistryError(format!(
+            "glyph {glyph:?} is not NFC-normalized"
+        )));
+    }
+    for ch in glyph.chars() {
+        if ch.is_whitespace() || matches!(ch, ',' | ':' | '{' | '}' | '[' | ']' | '\'' | '"' | '\\')
+        {
+            return Err(GlyphRegistryError(format!(
+                "glyph {glyph:?} contains a GMN grammar delimiter or whitespace"
+            )));
+        }
+        if is_bidi_control(ch) || is_default_ignorable(ch) {
+            return Err(GlyphRegistryError(format!(
+                "glyph {glyph:?} contains bidi/default-ignorable codepoint U+{:04X}",
+                ch as u32
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn is_bidi_control(ch: char) -> bool {
+    matches!(
+        ch as u32,
+        0x061C | 0x200E | 0x200F | 0x202A..=0x202E | 0x2066..=0x2069
+    )
+}
+
+/// Unicode Default_Ignorable_Code_Point ranges relevant to serialized source text.
+/// Kept explicit so the security decision is inspectable and dependency-free; bidi
+/// controls are named separately above for a more precise diagnostic.
+fn is_default_ignorable(ch: char) -> bool {
+    matches!(
+        ch as u32,
+        0x00AD
+            | 0x034F
+            | 0x061C
+            | 0x115F..=0x1160
+            | 0x17B4..=0x17B5
+            | 0x180B..=0x180F
+            | 0x200B..=0x200F
+            | 0x202A..=0x202E
+            | 0x2060..=0x206F
+            | 0x3164
+            | 0xFE00..=0xFE0F
+            | 0xFEFF
+            | 0xFFA0
+            | 0x1BCA0..=0x1BCA3
+            | 0x1D173..=0x1D17A
+            | 0xE0000..=0xE0FFF
+    )
+}
+
+// ── The dictionary bijection (`gmeow:gmnDictV3`, read from the carrier) ─────────────
 
 /// The GMN alias-table bijection, read from the compiled carrier — never hardcoded.
 /// Injective over its covered term set (checked at load time, defensively: the carrier's
 /// own SHACL gate is the primary authority, this is the codec's own read-back safety net).
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct GmnDictionary {
     version: String,
     term_to_alias: BTreeMap<String, String>,
     alias_to_term: BTreeMap<String, String>,
+    glyphs: GmnGlyphRegistry,
+}
+
+/// An explicit empty dictionary at the codec's current coordinates. This exists for
+/// fixture-scale prefix-only models; carrier loading never falls back to it —
+/// [`GmnDictionary::from_dataset`] requires the current codebook's declarations.
+impl Default for GmnDictionary {
+    fn default() -> Self {
+        Self {
+            version: DICTIONARY_VERSION.to_owned(),
+            term_to_alias: BTreeMap::new(),
+            alias_to_term: BTreeMap::new(),
+            glyphs: GmnGlyphRegistry::default(),
+        }
+    }
 }
 
 /// A dictionary that fails to load: not a bijection, or an alias collides with a
@@ -214,44 +1206,66 @@ pub struct GmnDictionary {
 pub struct DictionaryError(pub String);
 
 impl GmnDictionary {
-    /// Load `gmeow:gmnDictV1` (the shipped dictionary version) from `ds`: every
-    /// `gmeow:GmnDictionaryEntry` reachable via `gmeow:gmnDictionaryEntryTerm` /
-    /// `gmeow:gmnDictionaryEntryAlias`, verified injective and reserved-shape-safe.
+    /// Load the one dictionary referenced by `gmeow:gmnCodebookCurrent`: only its
+    /// `gmeow:gmnDictionaryEntry` members participate, so historical dictionaries and
+    /// unrelated entry records can coexist in the carrier without contaminating current
+    /// alias resolution. Both the codebook and dictionary MUST explicitly declare the
+    /// same supported version; absence is an error, never a default.
     pub fn from_dataset(ds: &RdfDataset) -> Result<Self, DictionaryError> {
-        let term_pred = format!("{GMEOW_NS}gmnDictionaryEntryTerm");
-        let alias_pred = format!("{GMEOW_NS}gmnDictionaryEntryAlias");
+        let codebook = resolve_current_codebook(ds).map_err(|error| DictionaryError(error.0))?;
 
         let mut terms: BTreeMap<String, String> = BTreeMap::new();
         let mut aliases: BTreeMap<String, String> = BTreeMap::new();
         for quad in ds.owned_quads() {
-            if quad.predicate == term_pred {
+            if quad.predicate == PRED_GMN_DICTIONARY_ENTRY_TERM {
                 let RdfTerm::Iri(subject) = &quad.subject else {
                     continue;
                 };
+                if !codebook.dictionary_entries.contains(subject) {
+                    continue;
+                }
                 let RdfTerm::Iri(term) = &quad.object else {
                     continue;
                 };
-                terms.insert(subject.clone(), term.clone());
-            } else if quad.predicate == alias_pred {
+                insert_unique(&mut terms, subject, term, "dictionary-entry term")
+                    .map_err(|error| DictionaryError(error.0))?;
+            } else if quad.predicate == PRED_GMN_DICTIONARY_ENTRY_ALIAS {
                 let RdfTerm::Iri(subject) = &quad.subject else {
                     continue;
                 };
+                if !codebook.dictionary_entries.contains(subject) {
+                    continue;
+                }
                 let RdfTerm::Literal(lit) = &quad.object else {
                     continue;
                 };
-                aliases.insert(subject.clone(), lit.lexical_form.clone());
+                insert_unique(
+                    &mut aliases,
+                    subject,
+                    &lit.lexical_form,
+                    "dictionary-entry alias",
+                )
+                .map_err(|error| DictionaryError(error.0))?;
             }
         }
 
         let mut term_to_alias = BTreeMap::new();
         let mut alias_to_term: BTreeMap<String, String> = BTreeMap::new();
-        for (entry, term) in &terms {
-            let Some(alias) = aliases.get(entry) else {
-                continue;
-            };
+        for entry in &codebook.dictionary_entries {
+            let term = terms.get(entry).ok_or_else(|| {
+                DictionaryError(format!("dictionary entry {entry} has an alias but no term"))
+            })?;
+            let alias = aliases.get(entry).ok_or_else(|| {
+                DictionaryError(format!("dictionary entry {entry} has a term but no alias"))
+            })?;
             if alias.starts_with(BLANK_PREFIX) || alias.starts_with(REF_PREFIX) {
                 return Err(DictionaryError(format!(
                     "dictionary alias {alias:?} for {term} collides with a reserved token shape"
+                )));
+            }
+            if !is_identifier(alias) {
+                return Err(DictionaryError(format!(
+                    "dictionary alias {alias:?} for {term} is outside the closed identifier grammar"
                 )));
             }
             if let Some(prior) = alias_to_term.insert(alias.clone(), term.clone())
@@ -264,10 +1278,28 @@ impl GmnDictionary {
             term_to_alias.insert(term.clone(), alias.clone());
         }
 
+        let glyphs =
+            GmnGlyphRegistry::from_dataset(ds).map_err(|error| DictionaryError(error.0))?;
+        for ((_scope, glyph, _signature), target) in &glyphs.glyph_to_term {
+            if let Some(alias_target) = alias_to_term.get(glyph) {
+                return Err(DictionaryError(format!(
+                    "executable glyph {glyph:?} for {target} collides with dictionary alias for {alias_target}"
+                )));
+            }
+        }
+        for ((_scope, fallback, _signature), target) in &glyphs.fallback_to_term {
+            if let Some(alias_target) = alias_to_term.get(fallback) {
+                return Err(DictionaryError(format!(
+                    "executable ASCII fallback {fallback:?} for {target} collides with dictionary alias for {alias_target}"
+                )));
+            }
+        }
+
         Ok(Self {
-            version: DICT_VERSION.to_owned(),
+            version: codebook.dictionary_version,
             term_to_alias,
             alias_to_term,
+            glyphs,
         })
     }
 
@@ -279,10 +1311,32 @@ impl GmnDictionary {
         self.alias_to_term.get(alias).map(String::as_str)
     }
 
+    fn glyph_for(&self, iri: &str, sigil: &str) -> Option<&str> {
+        self.glyphs.glyph_for(iri, sigil)
+    }
+
+    fn term_for_glyph(&self, glyph: &str, sigil: &str) -> Option<&str> {
+        self.glyphs.term_for(glyph, sigil)
+    }
+
+    fn term_for_glyph_fallback(&self, fallback: &str, sigil: &str) -> Option<&str> {
+        self.glyphs.term_for_fallback(fallback, sigil)
+    }
+
+    fn aliases_id(&self) -> String {
+        format!("dict-v{}", self.version)
+    }
+
     /// The dictionary version this codec's `@gmn{v: 1, aliases: …}` header pins.
     #[must_use]
     pub fn version(&self) -> &str {
         &self.version
+    }
+
+    /// The graph-derived scoped glyph registry carried beside the alias table.
+    #[must_use]
+    pub fn glyph_registry(&self) -> &GmnGlyphRegistry {
+        &self.glyphs
     }
 }
 
@@ -327,7 +1381,7 @@ pub struct UncoveredTerm(pub String);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Gmn1Error {
     /// `lang:GmnUncoveredTerm` — a grammar-valid term the pinned dictionary / prefix registry
-    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v1` does
+    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v3` does
     /// not mint, a quoted RDF 1.2 triple term, a named-graph quad). Named so it is diagnosable.
     Uncovered(UncoveredTerm),
     /// `lang:GmnNonCanonicalOrder` — a record's field keys are not in the canonical key order
@@ -422,12 +1476,14 @@ fn non_decodable(detail: String) -> Gmn1Error {
 /// [`classify_literal`], [`classify_reference`], and [`classify_value`] are the SAME
 /// dispatch [`encode_reference`]/[`encode_value`] call (each is a one-line wrapper
 /// around its classifier), so a category label can never drift from what [`gmn1_write`] really
-/// does to the same term. [`classify_quad`] and [`ConstructCoverageTally`] compose these
+/// does to the same term. [`classify_model`] and [`ConstructCoverageTally`] compose these
 /// into the per-quad, corpus-wide audit `crates/pipeline/src/stages/gmn1_gate.rs`'s
 /// `check_gmn1_construct_coverage` runs over the real grounding slices.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Gmn1ConstructCategory {
-    /// An IRI resolved via the `gmeow:gmnDictV1` alias table (a dictionary hit).
+    /// An IRI rendered through a scoped, graph-derived GMN glyph Denotation.
+    IriGlyph,
+    /// An IRI resolved via the `gmeow:gmnDictV3` alias table (a dictionary hit).
     IriDictAlias,
     /// An IRI resolved via `prefix__local` mangling with no `/` in the stripped local
     /// part (the common case).
@@ -462,6 +1518,7 @@ impl Gmn1ConstructCategory {
     /// it, so [`Self::all_covered_by_match`] is a compile-time witness that `ALL` cannot
     /// silently fall out of sync with the enum's own variant list.
     pub const ALL: &'static [Self] = &[
+        Self::IriGlyph,
         Self::IriDictAlias,
         Self::IriPrefixMangled,
         Self::IriPrefixMangledSlashEscaped,
@@ -479,7 +1536,8 @@ impl Gmn1ConstructCategory {
     #[allow(dead_code)]
     fn all_covered_by_match(self) {
         match self {
-            Self::IriDictAlias
+            Self::IriGlyph
+            | Self::IriDictAlias
             | Self::IriPrefixMangled
             | Self::IriPrefixMangledSlashEscaped
             | Self::IriBareNamespaceRoot
@@ -550,9 +1608,10 @@ fn classify_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    sigil: &str,
 ) -> Result<(String, Gmn1ConstructCategory), UncoveredTerm> {
     match term {
-        RdfTerm::Iri(iri) => classify_iri(iri, dict, ns_to_prefix)
+        RdfTerm::Iri(iri) => classify_iri(iri, dict, ns_to_prefix, sigil)
             .ok_or_else(|| UncoveredTerm(format!("IRI under no registered namespace: {iri}"))),
         RdfTerm::BlankNode(label) => {
             if !is_safe_token_body(label) {
@@ -581,8 +1640,9 @@ fn encode_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    sigil: &str,
 ) -> Result<String, UncoveredTerm> {
-    classify_reference(term, dict, ns_to_prefix).map(|(token, _)| token)
+    classify_reference(term, dict, ns_to_prefix, sigil).map(|(token, _)| token)
 }
 
 /// Encode a VALUE-position term (`v q`: the object's own literal payload, or an asserted
@@ -614,14 +1674,18 @@ fn encode_value(
 /// `prefix__local` if `iri` starts with a registered namespace and the local part is
 /// GMN-1 identifier-safe; the dictionary alias takes precedence when present (shorter,
 /// and the charter's witness-carried bijection). Also tags WHICH construct category the
-/// resolution took, for [`classify_reference`]/[`classify_quad`]'s audit use — the
+/// resolution took, for [`classify_reference`]/[`classify_model`]'s audit use — the
 /// classification is computed inline (never a second, drift-prone re-derivation of the
 /// same branches).
 fn classify_iri(
     iri: &str,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    sigil: &str,
 ) -> Option<(String, Gmn1ConstructCategory)> {
+    if let Some(glyph) = dict.glyph_for(iri, sigil) {
+        return Some((glyph.to_owned(), Gmn1ConstructCategory::IriGlyph));
+    }
     if let Some(alias) = dict.alias_for(iri) {
         return Some((alias.to_owned(), Gmn1ConstructCategory::IriDictAlias));
     }
@@ -821,6 +1885,7 @@ fn decode_reference(
     token: &str,
     dict: &GmnDictionary,
     prefix_to_ns: &BTreeMap<String, String>,
+    sigil: &str,
 ) -> Result<RdfTerm, Gmn1Error> {
     if let Some(label) = token.strip_prefix(BLANK_PREFIX) {
         if !is_safe_token_body(label) {
@@ -831,6 +1896,12 @@ fn decode_reference(
         return Ok(RdfTerm::BlankNode(label.to_owned()));
     }
     if let Some(term) = dict.term_for(token) {
+        return Ok(RdfTerm::Iri(term.to_owned()));
+    }
+    if let Some(term) = dict.term_for_glyph(token, sigil) {
+        return Ok(RdfTerm::Iri(term.to_owned()));
+    }
+    if let Some(term) = dict.term_for_glyph_fallback(token, sigil) {
         return Ok(RdfTerm::Iri(term.to_owned()));
     }
     if let Some((prefix, local)) = token.split_once(SEP)
@@ -904,7 +1975,71 @@ fn payload_to_term(payload: &RefPayload) -> RdfTerm {
 const KEY_ORDER: [&str; 11] = ["s", "p", "o", "v", "q", "st", "ev", "m", "ek", "bd", "it"];
 
 const SIGIL_CLAIM: &str = "@c";
+const SIGIL_EVIDENCE: &str = "@e";
+const SIGIL_STANDPOINT: &str = "@s";
 const SIGIL_PROCESS: &str = "@p";
+const SIGIL_PROOF: &str = "@π";
+const SIGIL_DEFEATER: &str = "@d";
+const SIGIL_MODAL: &str = "@m";
+const SIGIL_MATH: &str = "@μ";
+const SIGIL_LANG_AST: &str = "@λ";
+const SIGIL_LOGIC: &str = "@ℒ";
+
+const KNOWN_SIGILS: [&str; 10] = [
+    SIGIL_CLAIM,
+    SIGIL_EVIDENCE,
+    SIGIL_STANDPOINT,
+    SIGIL_PROCESS,
+    SIGIL_PROOF,
+    SIGIL_DEFEATER,
+    SIGIL_MODAL,
+    SIGIL_MATH,
+    SIGIL_LANG_AST,
+    SIGIL_LOGIC,
+];
+
+/// Choose a semantic record role from the quad itself. Exact `rdf:type` roles win,
+/// followed by the process annotation pair, then the three grounding namespaces.
+/// The choice changes only the scoped surface vocabulary; every role reconstructs the
+/// same RDF quad shape.
+fn sigil_for_quad(quad: &RdfQuad, has_process_annotations: bool) -> &'static str {
+    if quad.predicate == RDF_TYPE
+        && let RdfTerm::Iri(class) = &quad.object
+    {
+        match class.as_str() {
+            "https://blackcatinformatics.ca/gmeow/EvidenceSpan" => return SIGIL_EVIDENCE,
+            "https://blackcatinformatics.ca/gmeow/Standpoint" => return SIGIL_STANDPOINT,
+            "https://blackcatinformatics.ca/logic/Process" => return SIGIL_PROCESS,
+            "https://blackcatinformatics.ca/math/Proof" => return SIGIL_PROOF,
+            "https://blackcatinformatics.ca/gmeow/Defeater" => return SIGIL_DEFEATER,
+            "https://blackcatinformatics.ca/gmeow/ModalForce" => return SIGIL_MODAL,
+            _ => {}
+        }
+    }
+    if has_process_annotations {
+        return SIGIL_PROCESS;
+    }
+    let iris = [
+        match &quad.subject {
+            RdfTerm::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        },
+        Some(quad.predicate.as_str()),
+        match &quad.object {
+            RdfTerm::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        },
+    ];
+    if iris.iter().flatten().any(|iri| iri.starts_with(MATH_NS)) {
+        SIGIL_MATH
+    } else if iris.iter().flatten().any(|iri| iri.starts_with(LANG_NS)) {
+        SIGIL_LANG_AST
+    } else if iris.iter().flatten().any(|iri| iri.starts_with(LOGIC_NS)) {
+        SIGIL_LOGIC
+    } else {
+        SIGIL_CLAIM
+    }
+}
 
 /// One GMN-1 record: a sigil plus the ordered, sparse field map — the codec's internal
 /// working representation shared by both the record-form and tabular-form writer, and
@@ -934,6 +2069,42 @@ impl Record {
     }
 }
 
+type QuadGroup<'a> = (Option<RdfTerm>, RdfTerm, Vec<&'a RdfQuad>);
+
+/// Group a canonically ordered quad slice by `(graph, subject)`. The writer and
+/// coverage audit share this helper so record context cannot drift between them.
+fn group_quads(quads: &[RdfQuad]) -> Vec<QuadGroup<'_>> {
+    let mut groups = Vec::<QuadGroup<'_>>::new();
+    for quad in quads {
+        if let Some((graph, subject, bucket)) = groups.last_mut()
+            && *graph == quad.graph_name
+            && *subject == quad.subject
+        {
+            bucket.push(quad);
+            continue;
+        }
+        groups.push((quad.graph_name.clone(), quad.subject.clone(), vec![quad]));
+    }
+    groups
+}
+
+/// Return the one safe folded-record host and its selected sigil. A group with
+/// zero or multiple primary quads has no fold context and must use flat records.
+fn folded_record_context<'a>(bucket: &[&'a RdfQuad]) -> Option<(&'a RdfQuad, &'static str)> {
+    let mut primary = bucket
+        .iter()
+        .copied()
+        .filter(|quad| annotation_slot(&quad.predicate).is_none());
+    let host = primary.next()?;
+    if primary.next().is_some() {
+        return None;
+    }
+    let has_process_annotations = bucket
+        .iter()
+        .any(|quad| matches!(annotation_slot(&quad.predicate), Some("bd" | "it")));
+    Some((host, sigil_for_quad(host, has_process_annotations)))
+}
+
 /// Group a subject's quads into records, folding the recognized annotation predicates
 /// into the ONE primary triple's record when — and only when — exactly one candidate
 /// primary triple exists for that subject (the safe-fold guard: with zero or ≥2 primary
@@ -946,21 +2117,8 @@ fn quads_to_records(
     ns_to_prefix: &[(String, String)],
     refs: &mut BTreeMap<String, RefPayload>,
 ) -> Result<Vec<Record>, UncoveredTerm> {
-    // Group by (graph, subject) preserving the model's already-sorted order.
-    let mut groups: Vec<(Option<RdfTerm>, RdfTerm, Vec<&RdfQuad>)> = Vec::new();
-    for q in quads {
-        if let Some((g, s, bucket)) = groups.last_mut()
-            && *g == q.graph_name
-            && *s == q.subject
-        {
-            bucket.push(q);
-            continue;
-        }
-        groups.push((q.graph_name.clone(), q.subject.clone(), vec![q]));
-    }
-
     let mut records = Vec::new();
-    for (graph, _subject, bucket) in groups {
+    for (graph, _subject, bucket) in group_quads(quads) {
         if graph.is_some() {
             return Err(UncoveredTerm(
                 "named-graph-scoped quads are outside this codec's covered record model \
@@ -968,49 +2126,58 @@ fn quads_to_records(
                     .to_owned(),
             ));
         }
-        let (primary, annotation): (Vec<&&RdfQuad>, Vec<&&RdfQuad>) = bucket
-            .iter()
-            .partition(|q| annotation_slot(&q.predicate).is_none());
-
-        if primary.len() == 1 {
-            let host = primary[0];
+        if let Some((host, sigil)) = folded_record_context(&bucket) {
             let mut fields = BTreeMap::new();
-            fields.insert("s", encode_reference(&host.subject, dict, ns_to_prefix)?);
+            fields.insert(
+                "s",
+                encode_reference(&host.subject, dict, ns_to_prefix, sigil)?,
+            );
             fields.insert(
                 "p",
-                encode_reference(&RdfTerm::Iri(host.predicate.clone()), dict, ns_to_prefix)?,
+                encode_reference(
+                    &RdfTerm::Iri(host.predicate.clone()),
+                    dict,
+                    ns_to_prefix,
+                    sigil,
+                )?,
             );
-            let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs)?;
+            let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs, sigil)?;
             fields.insert(obj_key, obj_tok);
 
-            let mut sigil = SIGIL_CLAIM;
-            for q in &annotation {
+            for q in bucket
+                .iter()
+                .copied()
+                .filter(|quad| annotation_slot(&quad.predicate).is_some())
+            {
                 let slot = annotation_slot(&q.predicate).expect("partitioned as annotation");
-                if slot == "bd" || slot == "it" {
-                    sigil = SIGIL_PROCESS;
-                }
                 let tok = if slot == "q" {
                     encode_value(&q.object, refs)?
                 } else {
-                    encode_reference(&q.object, dict, ns_to_prefix)?
+                    encode_reference(&q.object, dict, ns_to_prefix, sigil)?
                 };
                 fields.insert(slot, tok);
             }
             records.push(Record { sigil, fields });
         } else {
             for q in &bucket {
+                let sigil = sigil_for_quad(q, false);
                 let mut fields = BTreeMap::new();
-                fields.insert("s", encode_reference(&q.subject, dict, ns_to_prefix)?);
+                fields.insert(
+                    "s",
+                    encode_reference(&q.subject, dict, ns_to_prefix, sigil)?,
+                );
                 fields.insert(
                     "p",
-                    encode_reference(&RdfTerm::Iri(q.predicate.clone()), dict, ns_to_prefix)?,
+                    encode_reference(
+                        &RdfTerm::Iri(q.predicate.clone()),
+                        dict,
+                        ns_to_prefix,
+                        sigil,
+                    )?,
                 );
-                let (obj_key, obj_tok) = encode_object(&q.object, dict, ns_to_prefix, refs)?;
+                let (obj_key, obj_tok) = encode_object(&q.object, dict, ns_to_prefix, refs, sigil)?;
                 fields.insert(obj_key, obj_tok);
-                records.push(Record {
-                    sigil: SIGIL_CLAIM,
-                    fields,
-                });
+                records.push(Record { sigil, fields });
             }
         }
     }
@@ -1024,11 +2191,12 @@ fn encode_object(
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
     refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
 ) -> Result<(&'static str, String), UncoveredTerm> {
     if matches!(object, RdfTerm::Literal(_)) {
         Ok(("v", encode_value(object, refs)?))
     } else {
-        Ok(("o", encode_reference(object, dict, ns_to_prefix)?))
+        Ok(("o", encode_reference(object, dict, ns_to_prefix, sigil)?))
     }
 }
 
@@ -1076,14 +2244,14 @@ fn record_to_quads(
         .fields
         .get("p")
         .ok_or_else(|| non_decodable("record is missing required key 'p'".to_owned()))?;
-    let subject = decode_reference(s_tok, dict, prefix_to_ns)?;
-    let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns)? else {
+    let subject = decode_reference(s_tok, dict, prefix_to_ns, record.sigil)?;
+    let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns, record.sigil)? else {
         return Err(non_decodable(format!(
             "'p' slot must decode to an IRI, got token {p_tok}"
         )));
     };
     let object = match (record.fields.get("o"), record.fields.get("v")) {
-        (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns)?,
+        (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns, record.sigil)?,
         (None, Some(v_tok)) => decode_value(v_tok, refs)?,
         (None, None) => {
             return Err(non_decodable(
@@ -1111,7 +2279,7 @@ fn record_to_quads(
             let object = if slot == "q" {
                 decode_value(tok, refs)?
             } else {
-                decode_reference(tok, dict, prefix_to_ns)?
+                decode_reference(tok, dict, prefix_to_ns, record.sigil)?
             };
             quads.push(RdfQuad {
                 subject: subject.clone(),
@@ -1187,7 +2355,9 @@ pub fn gmn1_write(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Gmn1Documen
         .map_err(Gmn1Error::Uncovered)?;
 
     let mut lines = vec![format!(
-        "@gmn{{v: {DICT_VERSION}, aliases: {DICT_ALIASES_ID}}}"
+        "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
+        dict.aliases_id(),
+        dict.glyphs.version()
     )];
     for record in &records {
         lines.push(record.render_line());
@@ -1214,7 +2384,9 @@ pub fn gmn1_write_tabular(
         .map_err(Gmn1Error::Uncovered)?;
 
     let mut lines = vec![format!(
-        "@gmn{{v: {DICT_VERSION}, aliases: {DICT_ALIASES_ID}}}"
+        "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
+        dict.aliases_id(),
+        dict.glyphs.version()
     )];
 
     let uniform_schema: Option<Vec<&'static str>> = records.first().and_then(|first| {
@@ -1363,7 +2535,7 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
 
     // ── Pass 4 — header-presence (`GmnUndeclaredDialectVersion`) ───────────────────────
     match header_line {
-        Some(line) => parse_header(line)?,
+        Some(line) => parse_header(line, dict)?,
         None => {
             return Err(Gmn1Error::UndeclaredDialectVersion {
                 detail: "GMN-1 text must open with an @gmn{...} header pinning the schema and \
@@ -1387,11 +2559,11 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
     Ok(Gmn0Model { quads })
 }
 
-/// Validate `@gmn{v: 1, aliases: dict-v1}` by explicit token scanning — never by re-deriving
+/// Validate `@gmn{v: 1, aliases: dict-v3, glyphs: 2}` by explicit token scanning — never by re-deriving
 /// from what [`gmn1_write`] would emit. A header that fails to open/close or fails to pin the
 /// expected version is `lang:GmnUndeclaredDialectVersion` (the dialect coordinates the reader
 /// refuses to guess).
-fn parse_header(line: &str) -> Result<(), Gmn1Error> {
+fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
     let line = line.trim();
     let body = line
         .strip_prefix("@gmn{")
@@ -1401,6 +2573,7 @@ fn parse_header(line: &str) -> Result<(), Gmn1Error> {
         })?;
     let mut version_ok = false;
     let mut aliases_ok = false;
+    let mut glyphs_ok = false;
     for pair in body.split(',') {
         let (k, v) = pair
             .split_once(':')
@@ -1409,8 +2582,9 @@ fn parse_header(line: &str) -> Result<(), Gmn1Error> {
             })?;
         let (k, v) = (k.trim(), v.trim());
         match k {
-            "v" => version_ok = v == DICT_VERSION,
-            "aliases" => aliases_ok = v == DICT_ALIASES_ID,
+            "v" => version_ok = v == DIALECT_VERSION,
+            "aliases" => aliases_ok = v == dict.aliases_id(),
+            "glyphs" => glyphs_ok = v == dict.glyphs.version(),
             other => {
                 return Err(Gmn1Error::UndeclaredDialectVersion {
                     detail: format!("unrecognized @gmn header key: {other}"),
@@ -1418,10 +2592,10 @@ fn parse_header(line: &str) -> Result<(), Gmn1Error> {
             }
         }
     }
-    if !version_ok || !aliases_ok {
+    if !version_ok || !aliases_ok || !glyphs_ok {
         return Err(Gmn1Error::UndeclaredDialectVersion {
             detail: format!(
-                "@gmn header does not pin the expected schema/dictionary version: {line}"
+                "@gmn header does not pin the expected schema/dictionary/glyph-table version: {line}"
             ),
         });
     }
@@ -1436,15 +2610,15 @@ fn lex_sigil_record(line: &str) -> Result<LexedRecord, Gmn1Error> {
         .find('{')
         .ok_or_else(|| non_decodable(format!("record line has no '{{': {line}")))?;
     let sigil_str = line[..brace].trim();
-    let sigil = match sigil_str {
-        "@c" => SIGIL_CLAIM,
-        "@p" => SIGIL_PROCESS,
-        other => {
-            return Err(non_decodable(format!(
-                "sigil {other} is outside the GMN-1 record grammar"
-            )));
-        }
-    };
+    let sigil = KNOWN_SIGILS
+        .iter()
+        .copied()
+        .find(|known| *known == sigil_str)
+        .ok_or_else(|| {
+            non_decodable(format!(
+                "sigil {sigil_str} is outside the GMN-1 record grammar"
+            ))
+        })?;
     let body = line
         .strip_suffix('}')
         .map(|s| &s[brace + 1..])
@@ -1567,16 +2741,14 @@ impl CoverageReport {
 }
 
 /// Measure [`CoverageReport`] over every quad in `model` against `dict`, reusing the
-/// SAME [`classify_quad`] dispatch [`gmn1_write`] calls — never a second, duplicated
+/// SAME grouped record context [`gmn1_write`] uses — never a second, duplicated
 /// notion of "coverable".
 #[must_use]
 pub fn measure_coverage(model: &Gmn0Model, dict: &GmnDictionary) -> CoverageReport {
-    let mut covered = 0usize;
-    for q in &model.quads {
-        if matches!(classify_quad(q, dict), QuadCoverage::Covered { .. }) {
-            covered += 1;
-        }
-    }
+    let covered = classify_model(model, dict)
+        .into_iter()
+        .filter(|coverage| matches!(coverage, QuadCoverage::Covered { .. }))
+        .count();
     CoverageReport {
         covered,
         total: model.quads.len(),
@@ -1607,16 +2779,14 @@ pub enum QuadCoverage {
     Uncovered(UncoveredTerm),
 }
 
-/// Classify one quad exactly the way [`gmn1_write`]'s `quads_to_records`/
-/// [`encode_object`] dispatch would: a named-graph quad is uncovered (the same fragment
-/// boundary [`quads_to_records`] enforces for the writer, checked first here so it is
-/// never silently subsumed by a slot-level classification), then subject/predicate
-/// classify via [`classify_reference`] and the object classifies via [`classify_value`]
-/// (literal) or [`classify_reference`] (otherwise) — the o-vs-v split. This is the
-/// audit's sole classification entry point: `crates/pipeline/src/stages/gmn1_gate.rs`'s
-/// `check_gmn1_construct_coverage` and [`ConstructCoverageTally`] both call only this.
-#[must_use]
-pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
+/// Classify one quad under the sigil selected for its writer record.
+fn classify_quad_in_record(
+    quad: &RdfQuad,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> QuadCoverage {
     if quad.graph_name.is_some() {
         return QuadCoverage::Uncovered(UncoveredTerm(
             "named-graph-scoped quads are outside this codec's covered record model \
@@ -1624,21 +2794,23 @@ pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
                 .to_owned(),
         ));
     }
-    let ns_to_prefix = ns_to_prefix_table();
-    let mut refs = BTreeMap::new();
-    let subject = match classify_reference(&quad.subject, dict, &ns_to_prefix) {
+    let subject = match classify_reference(&quad.subject, dict, ns_to_prefix, sigil) {
         Ok((_, category)) => category,
         Err(e) => return QuadCoverage::Uncovered(e),
     };
-    let predicate =
-        match classify_reference(&RdfTerm::Iri(quad.predicate.clone()), dict, &ns_to_prefix) {
-            Ok((_, category)) => category,
-            Err(e) => return QuadCoverage::Uncovered(e),
-        };
+    let predicate = match classify_reference(
+        &RdfTerm::Iri(quad.predicate.clone()),
+        dict,
+        ns_to_prefix,
+        sigil,
+    ) {
+        Ok((_, category)) => category,
+        Err(e) => return QuadCoverage::Uncovered(e),
+    };
     let object_result = if matches!(quad.object, RdfTerm::Literal(_)) {
-        classify_value(&quad.object, &mut refs)
+        classify_value(&quad.object, refs)
     } else {
-        classify_reference(&quad.object, dict, &ns_to_prefix)
+        classify_reference(&quad.object, dict, ns_to_prefix, sigil)
     };
     let object = match object_result {
         Ok((_, category)) => category,
@@ -1649,6 +2821,39 @@ pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
         predicate,
         object,
     }
+}
+
+/// Classify every quad with the same grouped record context and selected sigil as
+/// [`quads_to_records`]. The returned vector is in `model.quads` order and has the
+/// same length. Exactly-one-primary groups inherit their folded host's sigil,
+/// including `@p` selected by sibling `bd`/`it` annotations; ambiguous groups use
+/// the writer's flat per-quad fallback.
+#[must_use]
+pub fn classify_model(model: &Gmn0Model, dict: &GmnDictionary) -> Vec<QuadCoverage> {
+    let ns_to_prefix = ns_to_prefix_table();
+    let mut refs = BTreeMap::new();
+    let mut classifications = Vec::with_capacity(model.quads.len());
+
+    for (graph, _subject, bucket) in group_quads(&model.quads) {
+        if graph.is_some() {
+            classifications.extend(bucket.into_iter().map(|quad| {
+                classify_quad_in_record(quad, dict, &ns_to_prefix, &mut refs, SIGIL_CLAIM)
+            }));
+        } else if let Some((_host, sigil)) = folded_record_context(&bucket) {
+            classifications.extend(
+                bucket.into_iter().map(|quad| {
+                    classify_quad_in_record(quad, dict, &ns_to_prefix, &mut refs, sigil)
+                }),
+            );
+        } else {
+            classifications.extend(bucket.into_iter().map(|quad| {
+                let sigil = sigil_for_quad(quad, false);
+                classify_quad_in_record(quad, dict, &ns_to_prefix, &mut refs, sigil)
+            }));
+        }
+    }
+
+    classifications
 }
 
 /// Per-[`Gmn1ConstructCategory`] occurrence tally over a quad corpus — the
@@ -1672,10 +2877,10 @@ pub struct ConstructCoverageTally {
 }
 
 impl ConstructCoverageTally {
-    /// Fold every quad of `model` into this tally, via [`classify_quad`].
+    /// Fold every quad of `model` into this tally, via [`classify_model`].
     pub fn absorb(&mut self, model: &Gmn0Model, dict: &GmnDictionary) {
-        for q in &model.quads {
-            match classify_quad(q, dict) {
+        for coverage in classify_model(model, dict) {
+            match coverage {
                 QuadCoverage::Covered {
                     subject,
                     predicate,
@@ -1754,6 +2959,423 @@ mod tests {
         GmnDictionary::from_dataset(&lang_module_dataset()).expect("dictionary loads")
     }
 
+    fn glyph_registry_fixture(rows: &str, version: &str) -> Arc<RdfDataset> {
+        let ttl = format!(
+            r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex: <https://example.test/> .
+
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;
+    gmeow:references ex:dict, ex:script, ex:mathRole, ex:logicRole ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "{version}" .
+ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
+ex:script a lang:Script ;
+    lang:hasGrapheme ex:g, ex:g1, ex:g2, ex:gPlus, ex:gNot .
+ex:mathRole gmeow:gmnSigilGlyph "@μ" .
+ex:logicRole gmeow:gmnSigilGlyph "@ℒ" .
+{rows}
+"#
+        );
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("glyph fixture parses")
+    }
+
+    #[test]
+    fn glyph_registry_is_graph_derived_scoped_and_longest_match_ordered() {
+        let ds = glyph_registry_fixture(
+            r#"
+ex:g1 gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f1 gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:d1 a lang:Denotation ; lang:denotedForm ex:f1 ;
+    lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ;
+    gmeow:gmnDenotationGrapheme ex:g1 .
+ex:c1 a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:d1 ; gmeow:gmnAsciiFallback "add" ;
+    gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+ex:g2 gmeow:gmnCodepoints "U+00AC U+00AC" ; gmeow:gmnSigilScope ex:logicRole .
+ex:f2 gmeow:gmnFixity gmeow:gmnFixityPrefix ; gmeow:gmnArity 1 .
+ex:d2 a lang:Denotation ; lang:denotedForm ex:f2 ;
+    lang:denotationTarget <https://blackcatinformatics.ca/logic/not> ;
+    gmeow:gmnDenotationGrapheme ex:g2 .
+ex:c2 a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gmnAsciiFallback "not" ;
+    gmeow:gmnArity 1 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let registry = GmnGlyphRegistry::from_dataset(&ds).expect("registry loads");
+        assert_eq!(
+            registry.glyph_for(&format!("{MATH_NS}Addition"), "@μ"),
+            Some("+")
+        );
+        assert_eq!(
+            registry.term_for("+", "@μ"),
+            Some(format!("{MATH_NS}Addition").as_str())
+        );
+        assert_eq!(
+            registry.glyph_for(&format!("{MATH_NS}Addition"), "@ℒ"),
+            None
+        );
+        assert_eq!(
+            registry.glyph_for_signature(
+                &format!("{MATH_NS}Addition"),
+                "@μ",
+                Some(&format!("{GMEOW_NS}gmnFixityInfix")),
+                Some(2),
+            ),
+            Some("+")
+        );
+        assert_eq!(
+            registry.glyph_for_signature(
+                &format!("{MATH_NS}Addition"),
+                "@μ",
+                Some(&format!("{GMEOW_NS}gmnFixityPrefix")),
+                Some(2),
+            ),
+            None,
+            "wrong fixity must not resolve"
+        );
+        assert_eq!(
+            registry.term_for_signature(
+                "+",
+                "@μ",
+                Some(&format!("{GMEOW_NS}gmnFixityInfix")),
+                Some(1),
+            ),
+            None,
+            "wrong arity must not resolve"
+        );
+        assert_eq!(registry.glyph_tokens(), vec!["¬¬", "+"]);
+        assert_eq!(
+            registry.render_glyph_token_production(),
+            "glyphToken ::= '¬¬' | '+'"
+        );
+        let grammar = registry
+            .render_grammar(b"referenceToken ::= identifier | glyphToken\nglyphToken ::= 'stale'\n")
+            .expect("the graph-derived production renders");
+        assert_eq!(
+            String::from_utf8(grammar).unwrap(),
+            "referenceToken ::= identifier | glyphToken\nglyphToken ::= '¬¬' | '+'\n"
+        );
+    }
+
+    #[test]
+    fn removing_a_denotation_removes_writer_reader_and_generated_grammar_binding() {
+        let full = glyph_registry_fixture(
+            r#"
+ex:gPlus gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:fPlus gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:dPlus a lang:Denotation ; lang:denotedForm ex:fPlus ; lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ; gmeow:gmnDenotationGrapheme ex:gPlus .
+ex:cPlus a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:dPlus ; gmeow:gmnAsciiFallback "add" ; gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+ex:gNot gmeow:gmnCodepoints "U+00AC" ; gmeow:gmnSigilScope ex:logicRole .
+ex:fNot gmeow:gmnFixity gmeow:gmnFixityPrefix ; gmeow:gmnArity 1 .
+ex:dNot a lang:Denotation ; lang:denotedForm ex:fNot ; lang:denotationTarget <https://blackcatinformatics.ca/logic/not> ; gmeow:gmnDenotationGrapheme ex:gNot .
+ex:cNot a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:dNot ; gmeow:gmnAsciiFallback "not" ; gmeow:gmnArity 1 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let pruned = glyph_registry_fixture(
+            r#"
+ex:gPlus gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:gNot gmeow:gmnCodepoints "U+00AC" ; gmeow:gmnSigilScope ex:logicRole .
+ex:fNot gmeow:gmnFixity gmeow:gmnFixityPrefix ; gmeow:gmnArity 1 .
+ex:dNot a lang:Denotation ; lang:denotedForm ex:fNot ; lang:denotationTarget <https://blackcatinformatics.ca/logic/not> ; gmeow:gmnDenotationGrapheme ex:gNot .
+ex:cNot a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:dNot ; gmeow:gmnAsciiFallback "not" ; gmeow:gmnArity 1 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let full_dict = GmnDictionary::from_dataset(&full).expect("full dictionary loads");
+        let pruned_dict = GmnDictionary::from_dataset(&pruned).expect("pruned dictionary loads");
+
+        let mut builder = RdfDatasetBuilder::new();
+        let subject = builder.intern_iri(&format!("{MATH_NS}Expression"));
+        let predicate = builder.intern_iri(&format!("{MATH_NS}operator"));
+        let addition = builder.intern_iri(&format!("{MATH_NS}Addition"));
+        builder.push_quad(subject, predicate, addition, None);
+        let model = Gmn0Model::from_dataset(&builder.freeze().expect("freeze"));
+
+        let full_doc = gmn1_write(&model, &full_dict).expect("full writer uses glyph");
+        assert!(full_doc.text.contains("o: +"), "{}", full_doc.text);
+        let pruned_doc = gmn1_write(&model, &pruned_dict).expect("fallback writer remains total");
+        assert!(
+            pruned_doc.text.contains("o: math__Addition"),
+            "{}",
+            pruned_doc.text
+        );
+        assert!(
+            matches!(
+                gmn1_read(&full_doc, &pruned_dict),
+                Err(Gmn1Error::Uncovered(_))
+            ),
+            "the pruned reader must reject the now-unknown scoped glyph"
+        );
+
+        let template = b"referenceToken ::= identifier | glyphToken\nglyphToken ::= 'stale'\n";
+        let full_grammar = String::from_utf8(
+            full_dict
+                .glyph_registry()
+                .render_grammar(template)
+                .expect("full grammar"),
+        )
+        .unwrap();
+        let pruned_grammar = String::from_utf8(
+            pruned_dict
+                .glyph_registry()
+                .render_grammar(template)
+                .expect("pruned grammar"),
+        )
+        .unwrap();
+        assert!(full_grammar.contains("'+'"));
+        assert!(!pruned_grammar.contains("'+'"));
+    }
+
+    #[test]
+    fn glyph_registry_rejects_scope_collision_and_uts39_confusable_pair() {
+        let exact = glyph_registry_fixture(
+            r#"
+ex:g1 gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f1 gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:d1 a lang:Denotation ; lang:denotedForm ex:f1 ; lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ; gmeow:gmnDenotationGrapheme ex:g1 .
+ex:c1 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d1 ; gmeow:gmnAsciiFallback "add" ; gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+ex:g2 gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f2 gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:d2 a lang:Denotation ; lang:denotedForm ex:f2 ; lang:denotationTarget <https://blackcatinformatics.ca/math/PositiveSign> ; gmeow:gmnDenotationGrapheme ex:g2 .
+ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gmnAsciiFallback "positive" ; gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&exact).expect_err("exact collision rejects");
+        assert!(error.0.contains("collides in scope"));
+
+        let confusable = glyph_registry_fixture(
+            r#"
+ex:g1 gmeow:gmnCodepoints "U+0041" ; gmeow:gmnSigilScope ex:mathRole .
+ex:d1 a lang:Denotation ; lang:denotedForm ex:f1 ; lang:denotationTarget <https://blackcatinformatics.ca/math/LatinA> ; gmeow:gmnDenotationGrapheme ex:g1 .
+ex:c1 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d1 ; gmeow:gmnAsciiFallback "latinA" ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+ex:g2 gmeow:gmnCodepoints "U+0391" ; gmeow:gmnSigilScope ex:mathRole .
+ex:d2 a lang:Denotation ; lang:denotedForm ex:f2 ; lang:denotationTarget <https://blackcatinformatics.ca/math/GreekAlpha> ; gmeow:gmnDenotationGrapheme ex:g2 .
+ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gmnAsciiFallback "greekAlpha" ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&confusable)
+            .expect_err("a UTS #39 skeleton collision rejects");
+        assert!(error.0.contains("UTS #39-confusable"), "{}", error.0);
+    }
+
+    #[test]
+    fn glyph_registry_rejects_bare_token_signature_ambiguity() {
+        let ambiguous = glyph_registry_fixture(
+            r#"
+ex:g1 gmeow:gmnCodepoints "U+2212" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f1 gmeow:gmnFixity gmeow:gmnFixityPrefix ; gmeow:gmnArity 1 .
+ex:d1 a lang:Denotation ; lang:denotedForm ex:f1 ; lang:denotationTarget <https://blackcatinformatics.ca/math/Negation> ; gmeow:gmnDenotationGrapheme ex:g1 .
+ex:c1 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d1 ; gmeow:gmnAsciiFallback "neg" ; gmeow:gmnArity 1 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+ex:g2 gmeow:gmnCodepoints "U+2212" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f2 gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:d2 a lang:Denotation ; lang:denotedForm ex:f2 ; lang:denotationTarget <https://blackcatinformatics.ca/math/Subtraction> ; gmeow:gmnDenotationGrapheme ex:g2 .
+ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gmnAsciiFallback "sub" ; gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&ambiguous)
+            .expect_err("bare scoped minus cannot choose between two signatures");
+        assert!(
+            error.0.contains("bare GMN token would be ambiguous"),
+            "{}",
+            error.0
+        );
+    }
+
+    #[test]
+    fn glyph_registry_rejects_noncanonical_unicode_and_version_drift() {
+        for (codepoints, needle) in [
+            ("U+03c0", "canonical uppercase"),
+            ("U+0065 U+0301", "not NFC-normalized"),
+            ("U+2066 U+00AC", "bidi/default-ignorable"),
+        ] {
+            let rows = format!(
+                r#"ex:g gmeow:gmnCodepoints "{codepoints}" ; gmeow:gmnSigilScope ex:logicRole .
+ex:f gmeow:gmnFixity gmeow:gmnFixityPrefix ; gmeow:gmnArity 1 .
+ex:d a lang:Denotation ; lang:denotedForm ex:f ; lang:denotationTarget <https://blackcatinformatics.ca/logic/not> ; gmeow:gmnDenotationGrapheme ex:g .
+ex:c a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d ; gmeow:gmnAsciiFallback "not" ; gmeow:gmnArity 1 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ."#
+            );
+            let ds = glyph_registry_fixture(&rows, GLYPH_VERSION);
+            let error = GmnGlyphRegistry::from_dataset(&ds).expect_err("invalid glyph rejects");
+            assert!(
+                error.0.contains(needle),
+                "expected {needle:?} in {}",
+                error.0
+            );
+        }
+
+        let ds = glyph_registry_fixture("", "1");
+        let error = GmnGlyphRegistry::from_dataset(&ds).expect_err("version drift rejects");
+        assert!(error.0.contains("does not match codec version"));
+    }
+
+    #[test]
+    fn glyph_registry_rejects_scope_outside_the_closed_sigil_set() {
+        let unsupported_scope = glyph_registry_fixture(
+            r#"
+gmeow:gmnCodebookCurrent gmeow:references ex:deadRole .
+ex:script lang:hasGrapheme ex:gDead .
+ex:deadRole gmeow:gmnSigilGlyph "@x" .
+ex:gDead gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:deadRole .
+ex:fDead gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:dDead a lang:Denotation ; lang:denotedForm ex:fDead ;
+    lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ;
+    gmeow:gmnDenotationGrapheme ex:gDead .
+ex:cDead a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:dDead ; gmeow:gmnAsciiFallback "add" ;
+    gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&unsupported_scope)
+            .expect_err("a role outside the reader/writer's closed sigil set must reject");
+        assert!(
+            error.0.contains("unsupported GMN sigil \"@x\""),
+            "{}",
+            error.0
+        );
+    }
+
+    #[test]
+    fn glyph_registry_requires_typed_denotation_and_complete_operator_signature() {
+        let untyped = glyph_registry_fixture(
+            r#"
+ex:g gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:d lang:denotedForm ex:f ; lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ; gmeow:gmnDenotationGrapheme ex:g .
+ex:c a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d ; gmeow:gmnAsciiFallback "add" ; gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&untyped)
+            .expect_err("an untyped denotation must not enter executable resolution");
+        assert!(error.0.contains("not typed lang:Denotation"), "{}", error.0);
+
+        let incomplete_signature = glyph_registry_fixture(
+            r#"
+ex:g gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:f gmeow:gmnFixity gmeow:gmnFixityInfix .
+ex:d a lang:Denotation ; lang:denotedForm ex:f ; lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ; gmeow:gmnDenotationGrapheme ex:g .
+ex:c a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d ; gmeow:gmnAsciiFallback "add" ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let error = GmnGlyphRegistry::from_dataset(&incomplete_signature)
+            .expect_err("fixity without arity must not create a partial executable key");
+        assert!(
+            error
+                .0
+                .contains("must author gmnFixity and gmnArity together"),
+            "{}",
+            error.0
+        );
+    }
+
+    #[test]
+    fn current_codebook_versions_are_required_and_unrelated_history_is_ignored() {
+        let missing_glyph_version = parse_dataset(
+            br#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex: <https://example.test/> .
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ; gmeow:references ex:dict, ex:script ; gmeow:gmnDictionaryVersion "3" .
+ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
+ex:script a lang:Script ; lang:hasGrapheme ex:g .
+"#,
+            "text/turtle",
+            None,
+        )
+        .expect("fixture parses");
+        let error = GmnDictionary::from_dataset(&missing_glyph_version)
+            .expect_err("a missing current glyph version must never default");
+        assert!(
+            error
+                .0
+                .contains("gmnGlyphTableVersion must be declared exactly once"),
+            "{}",
+            error.0
+        );
+
+        let missing_dictionary_version = parse_dataset(
+            br#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex: <https://example.test/> .
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ; gmeow:references ex:dict, ex:script ; gmeow:gmnGlyphTableVersion "2" .
+ex:dict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
+ex:script a lang:Script ; lang:hasGrapheme ex:g .
+"#,
+            "text/turtle",
+            None,
+        )
+        .expect("fixture parses");
+        let error = GmnDictionary::from_dataset(&missing_dictionary_version)
+            .expect_err("a missing current dictionary version must never default");
+        assert!(
+            error
+                .0
+                .contains("gmnDictionaryVersion must be declared exactly once"),
+            "{}",
+            error.0
+        );
+
+        let with_history = glyph_registry_fixture(
+            r#"
+ex:oldCodebook a gmeow:GmnCodebook ; gmeow:references ex:oldDict, ex:oldScript, ex:oldRole ; gmeow:gmnDictionaryVersion "1" ; gmeow:gmnGlyphTableVersion "1" .
+ex:oldDict a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "1" ; gmeow:gmnDictionaryEntry ex:oldEntry .
+ex:oldEntry gmeow:gmnDictionaryEntryTerm <https://blackcatinformatics.ca/math/Obsolete> ; gmeow:gmnDictionaryEntryAlias "obsolete" .
+ex:oldScript a lang:Script ; lang:hasGrapheme ex:oldGlyph .
+ex:oldRole gmeow:gmnSigilGlyph "@μ" .
+ex:oldGlyph gmeow:gmnCodepoints "U+2212" ; gmeow:gmnSigilScope ex:oldRole .
+ex:oldForm gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:oldDenotation a lang:Denotation ; lang:denotedForm ex:oldForm ; lang:denotationTarget <https://blackcatinformatics.ca/math/Obsolete> ; gmeow:gmnDenotationGrapheme ex:oldGlyph .
+ex:oldCandidate a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:oldDenotation ; gmeow:gmnAsciiFallback "obsoleteOp" ; gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+"#,
+            GLYPH_VERSION,
+        );
+        let dictionary = GmnDictionary::from_dataset(&with_history)
+            .expect("unrelated historical versions do not contaminate current resolution");
+        assert_eq!(dictionary.version(), DICTIONARY_VERSION);
+        assert!(dictionary.term_for("obsolete").is_none());
+        assert!(dictionary.glyph_registry().glyph_tokens().is_empty());
+    }
+
+    #[test]
+    fn unrelated_denotation_functionality_does_not_poison_current_registry() {
+        let dataset = glyph_registry_fixture(
+            r#"
+ex:g gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:mathRole .
+ex:currentForm gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:currentDenotation a lang:Denotation ;
+    lang:denotedForm ex:currentForm ;
+    lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ;
+    gmeow:gmnDenotationGrapheme ex:g .
+ex:currentCandidate a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:currentDenotation ;
+    gmeow:gmnAsciiFallback "add" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+
+# Slice-quality carriers merge conformance fixtures with the module. A fixture
+# denotation outside the current script may be deliberately non-functional and
+# must not contaminate executable glyph-registry construction.
+ex:fixtureDenotation a lang:Denotation ;
+    lang:denotedForm ex:fixtureFormOne, ex:fixtureFormTwo .
+"#,
+            GLYPH_VERSION,
+        );
+
+        let registry = GmnGlyphRegistry::from_dataset(&dataset)
+            .expect("unrelated fixture denotation is outside current glyph inventory");
+        assert_eq!(
+            registry.glyph_for(&format!("{MATH_NS}Addition"), "@μ"),
+            Some("+")
+        );
+    }
+
     #[test]
     fn identifier_shape_recognizes_grammar_productions() {
         assert!(is_identifier("gate1"));
@@ -1790,6 +3412,172 @@ mod tests {
     }
 
     #[test]
+    fn writer_and_reader_cover_all_ten_declared_sigils() {
+        let mut builder = RdfDatasetBuilder::new();
+        let rdf_type = builder.intern_iri(RDF_TYPE);
+        for (local, class) in [
+            ("evidence", format!("{GMEOW_NS}EvidenceSpan")),
+            ("standpoint", format!("{GMEOW_NS}Standpoint")),
+            ("process", format!("{LOGIC_NS}Process")),
+            ("proof", format!("{MATH_NS}Proof")),
+            ("defeater", format!("{GMEOW_NS}Defeater")),
+            ("modal", format!("{GMEOW_NS}ModalForce")),
+        ] {
+            let subject = builder.intern_iri(&format!("{GMEOW_NS}{local}SigilProbe"));
+            let object = builder.intern_iri(&class);
+            builder.push_quad(subject, rdf_type, object, None);
+        }
+        for (local, predicate, object) in [
+            (
+                "claim",
+                format!("{GMEOW_NS}hasState"),
+                format!("{GMEOW_NS}State"),
+            ),
+            (
+                "math",
+                format!("{MATH_NS}operatorDomain"),
+                format!("{MATH_NS}realNumbers"),
+            ),
+            (
+                "lang",
+                format!("{LANG_NS}denotedForm"),
+                format!("{LANG_NS}Form"),
+            ),
+            (
+                "logic",
+                format!("{LOGIC_NS}and"),
+                format!("{LOGIC_NS}Formula"),
+            ),
+        ] {
+            let subject = builder.intern_iri(&format!("{GMEOW_NS}{local}Probe"));
+            let predicate = builder.intern_iri(&predicate);
+            let object = builder.intern_iri(&object);
+            builder.push_quad(subject, predicate, object, None);
+        }
+        let model = Gmn0Model::from_dataset(&builder.freeze().expect("freeze"));
+        let dictionary = real_dict();
+        let document = gmn1_write(&model, &dictionary).expect("all semantic roles write");
+        for sigil in KNOWN_SIGILS {
+            assert!(
+                document
+                    .text
+                    .lines()
+                    .any(|line| line.starts_with(&format!("{sigil}{{"))),
+                "writer did not emit {sigil}:\n{}",
+                document.text
+            );
+        }
+        round_trip_check(&model, &dictionary).expect("all ten sigils read back exactly");
+    }
+
+    #[test]
+    fn real_writer_uses_scoped_grounding_glyphs_and_wrong_scope_hard_fails() {
+        let mut builder = RdfDatasetBuilder::new();
+        let pi = builder.intern_iri(&format!("{MATH_NS}pi"));
+        let math_predicate = builder.intern_iri(&format!("{MATH_NS}operatorDomain"));
+        let addition = builder.intern_iri(&format!("{MATH_NS}Addition"));
+        builder.push_quad(pi, math_predicate, addition, None);
+        let formula = builder.intern_iri(&format!("{LOGIC_NS}Formula"));
+        let not = builder.intern_iri(&format!("{LOGIC_NS}not"));
+        let operand = builder.intern_iri(&format!("{LOGIC_NS}AtomicFormula"));
+        builder.push_quad(formula, not, operand, None);
+        let model = Gmn0Model::from_dataset(&builder.freeze().expect("freeze"));
+        let dictionary = real_dict();
+        let document = gmn1_write(&model, &dictionary).expect("grounding glyphs write");
+        assert!(document.text.contains("@μ{s: π"), "{}", document.text);
+        assert!(document.text.contains("o: +"), "{}", document.text);
+        assert!(document.text.contains("@ℒ{"), "{}", document.text);
+        assert!(document.text.contains("p: ¬"), "{}", document.text);
+        round_trip_check(&model, &dictionary).expect("glyph-bearing records round-trip");
+
+        let fallback_text = document
+            .text
+            .replace("s: π", "s: pi")
+            .replace("o: +", "o: add")
+            .replace("p: ¬", "p: not");
+        let fallback_document = Gmn1Document::from_text(fallback_text);
+        let fallback_back = gmn1_read(&fallback_document, &dictionary)
+            .expect("authored adopted-glyph ASCII fallbacks decode");
+        assert!(
+            gmn0_canonically_equal(&model, &fallback_back),
+            "ASCII fallbacks must have semantic parity with their canonical glyphs"
+        );
+
+        let wrong_scope = Gmn1Document::from_text(
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__Formula, p: +, o: logic__Formula}\n",
+        );
+        assert!(
+            matches!(
+                gmn1_read(&wrong_scope, &dictionary),
+                Err(Gmn1Error::Uncovered(_))
+            ),
+            "a math-scoped glyph must not decode in @logic scope"
+        );
+        let wrong_fallback_scope = Gmn1Document::from_text(
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__Formula, p: add, o: logic__Formula}\n",
+        );
+        assert!(
+            matches!(
+                gmn1_read(&wrong_fallback_scope, &dictionary),
+                Err(Gmn1Error::Uncovered(_))
+            ),
+            "an adopted glyph's ASCII fallback must preserve the same sigil scope"
+        );
+    }
+
+    #[test]
+    fn coverage_uses_grouped_process_record_context() {
+        let mut builder = RdfDatasetBuilder::new();
+        let subject = builder.intern_iri(&format!("{GMEOW_NS}processCoverageProbe"));
+        let predicate = builder.intern_iri(&format!("{GMEOW_NS}hasState"));
+        let addition = builder.intern_iri(&format!("{MATH_NS}Addition"));
+        builder.push_quad(subject, predicate, addition, None);
+
+        let boundary = builder.intern_iri(PRED_OCCURRENT_BOUNDARY);
+        let open = builder.intern_iri(&format!("{LOGIC_NS}Open"));
+        builder.push_quad(subject, boundary, open, None);
+
+        let model = Gmn0Model::from_dataset(&builder.freeze().expect("freeze"));
+        let dictionary = real_dict();
+        let document = gmn1_write(&model, &dictionary).expect("process record writes");
+        assert!(document.text.contains("@p{"), "{}", document.text);
+        assert!(
+            document.text.contains("o: math__Addition"),
+            "the @p record must not use math:Addition's @mu-only glyph:\n{}",
+            document.text
+        );
+        assert!(!document.text.contains("o: +"), "{}", document.text);
+
+        let classifications = classify_model(&model, &dictionary);
+        let primary = model
+            .quads
+            .iter()
+            .zip(&classifications)
+            .find(|(quad, _)| quad.predicate == format!("{GMEOW_NS}hasState"))
+            .map(|(_, coverage)| coverage)
+            .expect("primary quad is classified");
+        assert!(
+            matches!(
+                primary,
+                QuadCoverage::Covered {
+                    object: Gmn1ConstructCategory::IriPrefixMangled,
+                    ..
+                }
+            ),
+            "coverage must use the writer's @p sigil, not classify the object as an @mu glyph: {primary:?}"
+        );
+
+        let mut tally = ConstructCoverageTally::default();
+        tally.absorb(&model, &dictionary);
+        assert_eq!(
+            tally.count(Gmn1ConstructCategory::IriGlyph),
+            0,
+            "the tally must not claim an @mu glyph the grouped @p writer did not emit"
+        );
+        round_trip_check(&model, &dictionary).expect("process record round-trips");
+    }
+
+    #[test]
     fn iri_under_no_registered_namespace_is_uncovered() {
         let mut b = RdfDatasetBuilder::new();
         let s = b.intern_iri("https://not-registered.example/subject");
@@ -1810,8 +3598,8 @@ mod tests {
     fn real_dictionary_loads_and_is_injective() {
         let dict = real_dict();
         assert!(
-            dict.term_to_alias.len() >= 15,
-            "expected at least the 15 authored dict-v1 entries, got {}",
+            dict.term_to_alias.len() >= 30,
+            "expected at least the 30 authored dict-v3 entries, got {}",
             dict.term_to_alias.len()
         );
         assert_eq!(
@@ -1822,6 +3610,9 @@ mod tests {
             dict.term_for("nec"),
             Some(format!("{GMEOW_NS}modalForceNecessary").as_str())
         );
+        assert_eq!(dict.alias_for(&format!("{LANG_NS}Denotation")), Some("den"));
+        assert_eq!(dict.alias_for(&format!("{MATH_NS}Division")), Some("div"));
+        assert_eq!(dict.alias_for(&format!("{LOGIC_NS}forall")), Some("fa"));
     }
 
     #[test]
@@ -1881,15 +3672,16 @@ mod tests {
 
     #[test]
     fn parse_header_tolerates_trailing_cr_and_incidental_whitespace() {
+        let dict = empty_dict();
         // GMN-1 is an LLM-first interchange dialect: the reader must parse text an
         // external author/tool emits, not only gmn1_write's own canonical whitespace.
         // A trailing '\r' can survive std::str::lines()'s built-in CRLF handling (e.g.
         // a doubled '\r\r\n', or a lone trailing '\r' with no following '\n') — before
         // the fix, parse_header matched the un-trimmed line exactly against
         // "@gmn{...}" and hard-failed as Malformed on any such residue.
-        assert!(parse_header("@gmn{v: 1, aliases: dict-v1}\r").is_ok());
-        assert!(parse_header("  @gmn{v: 1, aliases: dict-v1}  ").is_ok());
-        assert!(parse_header("@gmn{v: 1, aliases: dict-v1}").is_ok());
+        assert!(parse_header("@gmn{v: 1, aliases: dict-v3, glyphs: 2}\r", &dict).is_ok());
+        assert!(parse_header("  @gmn{v: 1, aliases: dict-v3, glyphs: 2}  ", &dict).is_ok());
+        assert!(parse_header("@gmn{v: 1, aliases: dict-v3, glyphs: 2}", &dict).is_ok());
     }
 
     #[test]
@@ -1903,7 +3695,7 @@ mod tests {
             // A doubled '\r' before the line feed: std::str::lines() strips exactly
             // one trailing '\r' per line, so one '\r' still reaches parse_header
             // un-trimmed without the fix.
-            "@gmn{v: 1, aliases: dict-v1}\r\r\n",
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\r\r\n",
             // A stray space between the sigil and its opening brace.
             "@c {s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n",
             "@claims[s p o]\n",
@@ -1930,7 +3722,7 @@ mod tests {
         // table does not mint) — it is a structural defect the parse table has no production
         // for, so it is `lang:GmnNonDecodableGrammar`, never silently parsed.
         let dict = empty_dict();
-        let text = "@gmn{v: 1, aliases: dict-v1}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let text = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let doc = Gmn1Document {
             text: text.to_owned(),
             refs: BTreeMap::new(),
@@ -2010,7 +3802,7 @@ mod tests {
         let dict = empty_dict();
         let read = |q: &str| {
             let text = format!(
-                "@gmn{{v: 1, aliases: dict-v1}}\n@c{{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: {q}}}\n"
+                "@gmn{{v: 1, aliases: dict-v3, glyphs: 2}}\n@c{{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: {q}}}\n"
             );
             gmn1_read(
                 &Gmn1Document {
@@ -2037,8 +3829,7 @@ mod tests {
 
         // A grammar-valid identifier in an object slot the empty dictionary does not cover
         // stays Uncovered (dictionary-coverage), NOT MalformedNumber.
-        let text =
-            "@gmn{v: 1, aliases: dict-v1}\n@c{s: unregistered, p: unregistered, o: unregistered}\n";
+        let text = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: unregistered, p: unregistered, o: unregistered}\n";
         let err = gmn1_read(
             &Gmn1Document {
                 text: text.to_owned(),
@@ -2101,7 +3892,7 @@ mod tests {
     fn detection_precedence_grammar_wins_over_key_order() {
         let dict = empty_dict();
         // Non-canonical order (q before s) is the sole defect → NonCanonicalOrder.
-        let misordered = "@gmn{v: 1, aliases: dict-v1}\n@c{q: 0.95, s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let misordered = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{q: 0.95, s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let err = gmn1_read(
             &Gmn1Document {
                 text: misordered.to_owned(),
@@ -2113,7 +3904,7 @@ mod tests {
         assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_CANONICAL_ORDER);
 
         // A duplicate key is a grammar defect that dominates the misorder.
-        let duplicate = "@gmn{v: 1, aliases: dict-v1}\n@c{s: gmeow__gate1, s: gmeow__gate2, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let duplicate = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__gate1, s: gmeow__gate2, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let err = gmn1_read(
             &Gmn1Document {
                 text: duplicate.to_owned(),
@@ -2134,7 +3925,7 @@ mod tests {
     fn tabular_schema_with_duplicate_column_is_non_decodable_grammar() {
         let dict = empty_dict();
         let text = concat!(
-            "@gmn{v: 1, aliases: dict-v1}\n",
+            "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n",
             "@claims[s p o o]\n",
             "gmeow__gate1 gmeow__hasState gmeow__doorGate1 gmeow__doorGate2\n",
         );

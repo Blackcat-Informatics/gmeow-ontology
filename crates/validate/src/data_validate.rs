@@ -66,6 +66,12 @@ enum DeepPassError {
     /// The declared contradiction-policy contract is garbled; this is INVALID
     /// INPUT and must cause a hard-fail `Severity::Error` finding.
     ContractResolution(String),
+    /// A reasoning verdict named a clash quad whose explain-skeleton derivation
+    /// could not be built (the index build failed after a real verdict) or located
+    /// (the witness references a quad absent from the result). This is an INTERNAL
+    /// INVARIANT VIOLATION and must cause a hard-fail `Severity::Error` finding — it
+    /// must NOT be downgraded to the graceful `Unavailable` advisory.
+    Derivation(String),
     /// The deep pass could not run for an infrastructure / availability reason;
     /// this degrades gracefully to a `Severity::Note` advisory.
     Unavailable(String),
@@ -105,36 +111,78 @@ pub fn run_tier1(
     namespace: &str,
     origin: &str,
 ) -> gmeow_errors::Result<Report> {
-    let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
-    let dataset = data_dataset_flat(data_bytes, data_format)?;
+    Tier1Shapes::from_gts(gts_bytes)?.validate(data_bytes, data_format, namespace, origin)
+}
 
-    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("bundled SHACL shapes failed to parse: {e}"),
-        })
-    })?;
-    let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
-    let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
+/// The parsed data-graph SHACL shape union a Tier-1 run validates against,
+/// decoded ONCE from a bundle's `shapes-archive` blob.
+///
+/// Decoding the multi-megabyte bundle and parsing the shape union dominates a
+/// Tier-1 run (the per-graph validation itself takes milliseconds), so a
+/// resident consumer — the MCP `validate_local` tool, a loop validating many
+/// fixtures — builds this once per bundle and validates every payload against
+/// it via [`Tier1Shapes::validate`]. [`run_tier1`] is the one-shot composition
+/// over raw bundle bytes. Wasm-clean, like the [`run_tier1`] core it carries.
+pub struct Tier1Shapes {
+    shapes: purrdf::shapes::shapes::Shapes,
+}
 
-    let cfg = GufoConfig {
-        namespace: namespace.to_owned(),
-    };
-    let discipline_findings = gufo::reasoning_findings(&dataset, &cfg);
-
-    let mut report = build_report(Vec::new(), Vec::new(), shacl_findings);
-    for mut f in discipline_findings {
-        if let Some(loc) = f.locations.first_mut() {
-            loc.path = Some(origin.to_owned());
-        } else {
-            f.add_location(Location {
-                path: Some(origin.to_owned()),
-                ..Location::default()
-            });
-        }
-        report.add_finding(f);
+impl Tier1Shapes {
+    /// Extract and parse the data-graph shape union from raw `gmeow.gts` bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err` if the bundle carries no `shapes-archive` blob, the
+    /// archive is malformed, or the shapes fail to parse.
+    pub fn from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<Self> {
+        let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
+        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("bundled SHACL shapes failed to parse: {e}"),
+            })
+        })?;
+        Ok(Self { shapes })
     }
 
-    Ok(report)
+    /// Run Tier-1 conformance of `data_bytes` (an RDF graph in `data_format`)
+    /// against these shapes plus the six gUFO/OntoUML disciplines — the
+    /// [`run_tier1`] core with the bundle decode hoisted out.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err` if the data graph fails to parse.
+    pub fn validate(
+        &self,
+        data_bytes: &[u8],
+        data_format: &str,
+        namespace: &str,
+        origin: &str,
+    ) -> gmeow_errors::Result<Report> {
+        let dataset = data_dataset_flat(data_bytes, data_format)?;
+
+        let shacl_report = store::shacl_validate_dataset(&dataset, &self.shapes);
+        let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
+
+        let cfg = GufoConfig {
+            namespace: namespace.to_owned(),
+        };
+        let discipline_findings = gufo::reasoning_findings(&dataset, &cfg);
+
+        let mut report = build_report(Vec::new(), Vec::new(), shacl_findings);
+        for mut f in discipline_findings {
+            if let Some(loc) = f.locations.first_mut() {
+                loc.path = Some(origin.to_owned());
+            } else {
+                f.add_location(Location {
+                    path: Some(origin.to_owned()),
+                    ..Location::default()
+                });
+            }
+            report.add_finding(f);
+        }
+
+        Ok(report)
+    }
 }
 
 /// Validate `data_bytes` (an RDF graph in `data_format`) against the bundle's
@@ -171,15 +219,9 @@ pub fn shacl_report_via_ledger(
 
     use crate::findings::diag_from_shacl;
 
-    let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
+    let tier1 = Tier1Shapes::from_gts(gts_bytes)?;
     let dataset = data_dataset_flat(data_bytes, data_format)?;
-
-    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("bundled SHACL shapes failed to parse: {e}"),
-        })
-    })?;
-    let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
+    let shacl_report = store::shacl_validate_dataset(&dataset, &tier1.shapes);
 
     // The single carrier: every SHACL result interns onto ONE hash-consed ledger via
     // the ledger-native `diag_from_shacl` (which carries the result-path / offending
@@ -245,12 +287,88 @@ pub fn run(
     origin: &str,
     deep: bool,
 ) -> gmeow_errors::Result<Report> {
-    let mut report = run_tier1(data_bytes, data_format, gts_bytes, namespace, origin)?;
+    let tier1 = Tier1Shapes::from_gts(gts_bytes)?;
+    let imported = purrdf::import_gts_events(gts_bytes)?;
+    run_with(
+        BundleParts {
+            gts_bytes,
+            shapes: &tier1,
+            dataset: imported.dataset.as_ref(),
+        },
+        data_bytes,
+        data_format,
+        namespace,
+        origin,
+        deep,
+    )
+}
+
+/// Borrowed views of ONE decoded `gmeow.gts` bundle — the raw bytes, the parsed
+/// Tier-1 shape union, and the imported carrier dataset. All three MUST come
+/// from the same bundle: the parity contract (`validate_local` ≡ `gmeow
+/// validate`) holds only when the shapes, the enrichment join, and the Tier-2
+/// deep pass all read the same ontology.
+///
+/// A resident consumer (the MCP server) decodes these once per bundle and calls
+/// [`run_with`] per payload; the one-shot [`run`] decodes them per invocation.
+#[cfg(not(target_arch = "wasm32"))]
+pub struct BundleParts<'a> {
+    /// The raw `gmeow.gts` bytes (the Tier-2 deep pass reads the bundle's blobs
+    /// and axioms directly from them).
+    pub gts_bytes: &'a [u8],
+    /// The parsed data-graph shape union extracted from `gts_bytes`
+    /// ([`Tier1Shapes::from_gts`]).
+    pub shapes: &'a Tier1Shapes,
+    /// The carrier dataset imported from `gts_bytes`
+    /// (`purrdf::import_gts_events`), the enrichment join's bundle side.
+    pub dataset: &'a RdfDataset,
+}
+
+/// The [`run`] composition with the bundle-derived artifacts supplied by the
+/// caller, so a resident consumer that already holds them (the MCP
+/// `validate_local` tool imports the bundle once at startup) never re-decodes
+/// the whole bundle per payload. Semantics are exactly [`run`]'s: Tier-1
+/// shapes and disciplines, the opt-in Tier-2 deep pass, then the
+/// proof-carrying enrichment pass.
+///
+/// # Errors
+///
+/// Returns `Err` if the data graph fails to parse. A Tier-2 (`deep`) failure is
+/// NOT an error — it is folded as an advisory note (see [`run`]).
+#[cfg(not(target_arch = "wasm32"))]
+pub fn run_with(
+    bundle: BundleParts<'_>,
+    data_bytes: &[u8],
+    data_format: &str,
+    namespace: &str,
+    origin: &str,
+    deep: bool,
+) -> gmeow_errors::Result<Report> {
+    let mut report = bundle
+        .shapes
+        .validate(data_bytes, data_format, namespace, origin)?;
 
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
     if deep {
-        run_deep_pass(gts_bytes, data_bytes, data_format, origin, &mut report);
+        run_deep_pass(
+            bundle.gts_bytes,
+            data_bytes,
+            data_format,
+            origin,
+            &mut report,
+        );
     }
+
+    // The single proof-carrying enrichment pass: rule identity (catalog help URIs)
+    // + registry-authored remediation + per-term usage guidance on every finding, so the
+    // CLI consumer report carries the same enrichment as the pipeline validate
+    // stage. The bundle carries the constraint-catalog `gmeow:ValidationRule`
+    // nodes (the rule-governing-term key); the user's own data graph is the
+    // `documented_terms` subject. A genuinely-corrupt data graph at this point is
+    // a hard input error (Tier-1 already parsed it once above), so it propagates
+    // via `?` rather than being swallowed.
+    let subject = data_dataset(data_bytes, data_format)?;
+    crate::enrich::enrich_findings(&mut report, bundle.dataset, subject.as_ref());
 
     Ok(report)
 }
@@ -270,6 +388,12 @@ pub fn run(
 ///   `logic:ReasoningContract` carries a garbled `logic:admissibleValuation`.
 ///   This is INVALID INPUT (no-optionality discipline): folded as a
 ///   `validate.deep.contract-invalid` `Severity::Error` finding that FAILS the
+///   gate. It must NOT be downgraded to an advisory note.
+///
+/// - [`DeepPassError::Derivation`]: a reasoning verdict referenced a clash quad
+///   whose explain-skeleton derivation could not be built or located. This is an
+///   INTERNAL INVARIANT VIOLATION (no-optionality discipline): folded as a
+///   `validate.deep.derivation-unresolved` `Severity::Error` finding that FAILS the
 ///   gate. It must NOT be downgraded to an advisory note.
 #[cfg(not(target_arch = "wasm32"))]
 fn run_deep_pass(
@@ -301,6 +425,26 @@ fn run_deep_pass(
                     "deep semantic pass: bundle carries a garbled \
                      logic:admissibleValuation that cannot be resolved as a \
                      contradiction policy — the gate is hard-failed: {msg}"
+                ),
+            )
+            .with_tool("validate");
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+            report.add_finding(finding);
+        }
+        Err(DeepPassError::Derivation(msg)) => {
+            // HARD FAIL: a reasoning verdict referenced a clash quad whose
+            // explain-skeleton derivation could not be built or located — an
+            // internal invariant violation. It must surface as a Severity::Error
+            // finding, NEVER be downgraded to the graceful Unavailable note.
+            let mut finding = Finding::new(
+                Severity::Error,
+                crate::codes::VALIDATE_DEEP_DERIVATION_UNRESOLVED,
+                format!(
+                    "deep semantic pass: a reasoning verdict could not be joined to its \
+                     explain-skeleton derivation — the gate is hard-failed: {msg}"
                 ),
             )
             .with_tool("validate");
@@ -360,6 +504,16 @@ fn deep_consistency_findings(
         .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
         .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
+    // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
+    // A build failure AFTER the reasoner produced a real verdict is an internal
+    // invariant violation (a cycle or unresolved antecedent in the proof trace), NOT
+    // an infrastructure availability failure: it maps to the hard-fail `Derivation`
+    // variant, never the graceful `Unavailable` note.
+    let explanations = gmeow_logic::explain::explanations_for_result(&result).map_err(|e| {
+        DeepPassError::Derivation(format!(
+            "explanation-skeleton build failed after a real verdict (internal invariant): {e}"
+        ))
+    })?;
     // The governing contradiction policy is READ from the bundle's declared
     // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
     // no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing); multiple
@@ -374,7 +528,8 @@ fn deep_consistency_findings(
         bundle.dataset.as_ref(),
     )
     .map_err(|e| DeepPassError::ContractResolution(format!("contract resolution failed: {e}")))?;
-    crate::validate_all::fold_reasoning_result(&result, policy, report);
+    crate::validate_all::fold_reasoning_result(&result, policy, &explanations, report)
+        .map_err(|e| DeepPassError::Derivation(e.message))?;
     Ok(())
 }
 

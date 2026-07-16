@@ -225,8 +225,8 @@ msgid "Estimate"
 msgstr "估计值"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|skos:definition"
-msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."
-msgstr "一个估计值：一个产出的值，它估计一个估计目标（math:estimatesEstimand），并在相关时估计一个模型参数（math:estimatedParameter），承载其值（math:estimateValue）与产出它的估计量（math:estimator）。它是 math:MathematicalObject 的子类，也是过程／结果／主张分离中的结构化结果对象——既非分析活动，亦非所持的主张。R 中 broom 的 tidy 三元组将模型系数提升到这些对象之上。"
+msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."
+msgstr "一个估计值：一个产出的值，它估计一个估计目标（math:estimatesEstimand），并在相关时估计一个模型参数（math:estimatedParameter），承载其值（math:estimateValue）与产出它的估计量（math:estimator）。它是 math:MathematicalObject 的子类，也是过程／结果／主张分离中的结构化结果对象——既非分析活动，亦非所持的主张，并且绝不是裸数：它同时固定估计什么（其估计目标和／或被估参数）以及如何估计（产出它的估计量）；既不命名目标量或模型参数，或不命名估计量的估计值，是欠指定的（math:UnderspecifiedEstimate）。R 中 broom 的 tidy 三元组将模型系数提升到这些对象之上。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|rdfs:label"
 msgid "Estimator"
@@ -251,6 +251,14 @@ msgstr "实验设计"
 msgctxt "https://blackcatinformatics.ca/math/ExperimentalDesign|skos:definition"
 msgid "An experimental design: the first-class record of how a study's units were structured and assigned — a completely randomized, block, factorial, crossover, or split-plot design. A subclass of math:MathematicalObject; together with the math:RandomizationScheme it names, it records how units were assigned to conditions, so the design is queryable structure rather than a phrase in a methods section. Naming the design as an object is what lets an analysis's validity conditions be checked against the assignment that actually produced the data."
 msgstr "一个实验设计：关于一项研究的单元如何被结构化与分配的头等记录——一个完全随机、区组、析因、交叉或裂区设计。它是 math:MathematicalObject 的子类；连同它所命名的 math:RandomizationScheme，它记录了单元如何被分配到各方，使设计成为可查询的结构而非方法一节中的一句话。将设计命名为对象，正是让一次分析的有效性条件得以对照真正产出数据的那次分配加以核验。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|rdfs:label"
+msgid "extended real line (ℝ̄)"
+msgstr "扩展实数轴（ℝ̄）"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|skos:definition"
+msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. A math:NumberSystem individual, sibling to math:realNumbers and math:complexNumbers, not a class — it reuses the number-system machinery rather than a parallel one, relating the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoining the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). Because math:NumberSystem is a subclass of math:Set, the system IS the set of its points, so it can be the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
+msgstr "带符号扩展实数轴 ℝ̄ = ℝ ∪ {−∞, +∞}：将其两个极点邻接到实数系统而成。它是一个 math:NumberSystem 个体，与 math:realNumbers 和 math:complexNumbers 同辈，而非一个类——它复用既有的数系机制而非另建平行机制，将实数关联为一个子系统（math:realNumbers math:subsystemOf math:ExtendedRealLine），并将两个扩展实数点 math:PositiveInfinity 与 math:NegativeInfinity 作为其成员邻接（各自 math:inNumberSystem math:ExtendedRealLine）。由于 math:NumberSystem 是 math:Set 的子类，该系统就是其各点构成的集合，因此它可以作为带符号发散场——其取值可能奔向任一极点的扩展实值函数——所遍历的陪域。与 ℂ 不同：ℝ̄ 以两个带符号的端点对有序直线作紧化，而非在代数上将其闭合；带符号扩展实数槽中的值是有限实数、+∞ 或 −∞（否则即为 math:MalformedExtendedReal）。"
 
 msgctxt "https://blackcatinformatics.ca/math/FrequentistResult|rdfs:label"
 msgid "Frequentist Result"
@@ -372,6 +380,158 @@ msgctxt "https://blackcatinformatics.ca/math/lessAlternative|skos:definition"
 msgid "A one-sided 'less' alternative: the extremity is measured in the lower tail (the parameter falls below its null value)."
 msgstr "一个单侧“小于”备择：极端性在下尾中度量（参数落于其零值之下）。"
 
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|rdfs:label"
+msgid "Limit Result"
+msgstr "极限结果"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|skos:definition"
+msgid "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."
+msgstr "一个 math:Limit 的结构化结果——即该极限所求得的值：通过 math:limitOutcome 给出其结局（math:convergesFinitely、math:divergesToPositiveInfinity、math:divergesToNegativeInfinity 或 math:divergesWithoutLimit 之一），并且对于有限收敛的极限，通过 math:limitResultValue 给出其值。它不是极限表达式本身（那绑定 lim_{x→a} f(x) 的 math:Limit，用 math:limitOf 与 math:limitPoint 命名）——它是该极限所奔向的求值结果。收敛结果携带一个有限值；发散到某极点的结果以该极点（math:PositiveInfinity 或 math:NegativeInfinity）为其值命名；无极限地发散的结果（振荡的或其他不存在的极限）则完全不携带任何值。缺少其结局的结果是病态的（math:UnderspecifiedLimitResult），其值与所声明结局相抵触的结果亦然。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|rdfs:label"
+msgid "Limit Outcome"
+msgstr "极限结局"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|skos:definition"
+msgid "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."
+msgstr "一个 math:Limit 所奔向的结局，由 math:LimitResult 通过 math:limitOutcome 携带：math:convergesFinitely（极限存在且有限）、math:divergesToPositiveInfinity（x → a 将 f 推向 +∞）、math:divergesToNegativeInfinity（推向 −∞）或 math:divergesWithoutLimit（不存在极限——取值振荡或以其他方式无法稳定）之一。结局正是区分收敛极限与向任一极点的发散或缺失极限的关键，并在每个 math:LimitResult 上都是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|rdfs:label"
+msgid "converges finitely"
+msgstr "有限收敛"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|skos:definition"
+msgid "The convergent outcome: the limit exists and is a finite value, carried by the math:LimitResult through math:limitResultValue as a finite numeric literal. The case lim_{x→a} f(x) = L for a finite L."
+msgstr "收敛结局：极限存在且为一有限值，由 math:LimitResult 通过 math:limitResultValue 以有限数值字面量携带。即 lim_{x→a} f(x) = L 且 L 有限的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|rdfs:label"
+msgid "diverges to +∞"
+msgstr "发散到 +∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|skos:definition"
+msgid "The outcome of a limit that grows without bound: f runs off to the positive pole, so the math:LimitResult carries math:PositiveInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = +∞ — a definite point on the extended real line ℝ̄, never a finite literal."
+msgstr "无界增长的极限的结局：f 奔向正极点，故 math:LimitResult 以 math:PositiveInfinity 作为其 math:limitResultValue。即 lim_{x→a} f(x) = +∞ 的情形——扩展实数轴 ℝ̄ 上的一个确定点，绝非有限字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|rdfs:label"
+msgid "diverges to −∞"
+msgstr "发散到 −∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|skos:definition"
+msgid "The outcome of a limit that decreases without bound: f runs off to the negative pole, so the math:LimitResult carries math:NegativeInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = −∞ — the dual of math:divergesToPositiveInfinity, a definite point on ℝ̄."
+msgstr "无界减小的极限的结局：f 奔向负极点，故 math:LimitResult 以 math:NegativeInfinity 作为其 math:limitResultValue。即 lim_{x→a} f(x) = −∞ 的情形——math:divergesToPositiveInfinity 的对偶，ℝ̄ 上的一个确定点。"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|rdfs:label"
+msgid "diverges without a limit"
+msgstr "无极限地发散"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|skos:definition"
+msgid "The outcome of a limit that does not exist: f neither settles to a finite value nor runs to a single pole — it oscillates (as sin(1/x) at 0) or otherwise fails to converge. The math:LimitResult carries NO math:limitResultValue, because there is no point of ℝ̄ to name; asserting a value here is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "不存在的极限的结局：f 既不稳定到一个有限值，也不奔向单一极点——它振荡（如 sin(1/x) 在 0 处）或以其他方式不收敛。math:LimitResult 不携带任何 math:limitResultValue，因为没有 ℝ̄ 上的点可供命名；在此断言一个值是病态的（math:UnderspecifiedLimitResult）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|rdfs:label"
+msgid "has limit result"
+msgstr "具有极限结果"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|skos:definition"
+msgid "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."
+msgstr "将一个 math:Limit 关联到记录其求值结果的 math:LimitResult——其结局以及（对于有限收敛的极限）其值。定义域 math:Limit，值域 math:LimitResult（以散文说明）。可选：一个 math:Limit 可以只命名其表达式、点与模式，而不声明求值结果；一旦声明结果，它就是一个 math:LimitResult，绝非裸字面量，从而使结局显式化。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|rdfs:label"
+msgid "limit outcome"
+msgstr "极限结局"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|skos:definition"
+msgid "Relates a math:LimitResult to its math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit. Domain math:LimitResult, range math:LimitOutcome (stated in prose). The outcome is required; a result without a declared outcome is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "将一个 math:LimitResult 关联到其 math:LimitOutcome——math:convergesFinitely、math:divergesToPositiveInfinity、math:divergesToNegativeInfinity 或 math:divergesWithoutLimit。定义域 math:LimitResult，值域 math:LimitOutcome（以散文说明）。结局是必需的；没有声明结局的结果是病态的（math:UnderspecifiedLimitResult）。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|rdfs:label"
+msgid "limit result value"
+msgstr "极限结果值"
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|skos:definition"
+msgid "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."
+msgstr "一个收敛或向极点发散的 math:LimitResult 所求得的值——对于 math:convergesFinitely 结局是一个有限数值字面量，对于 math:divergesToPositiveInfinity / math:divergesToNegativeInfinity 结局则是扩展实数极点 math:PositiveInfinity / math:NegativeInfinity。定义域 math:LimitResult，值域为一个有限数值字面量或一个极点个体（以散文说明）。与 math:totalMass 和 math:extendedRealValue 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，正是因为其值域同时涵盖一个数据类型字面量（有限值）与一个个体（极点）：这两种 DL 属性类型都不能同时容纳二者，因此诚实的 RDF 上位属性承载了扩展实数值域而不产生 DL 矛盾。在 math:divergesWithoutLimit 结果上它是可选且缺席的，因为没有 ℝ̄ 上的点可供命名；否则它存在并与结局相符（math:UnderspecifiedLimitResult）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|rdfs:label"
+msgid "Underspecified Limit Result"
+msgstr "欠定极限结果"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|skos:definition"
+msgid "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."
+msgstr "当一个 math:LimitResult 不命名其 math:limitOutcome，或携带与所声明结局相抵触的 math:limitResultValue 时引发的失败——math:convergesFinitely 期望一个有限（非极点）值，math:divergesToPositiveInfinity 期望 math:PositiveInfinity，math:divergesToNegativeInfinity 期望 math:NegativeInfinity，而 math:divergesWithoutLimit 期望没有任何值。一个结构化的极限结果必须说明它是收敛还是三种发散模式中的哪一种，且其值必须与该结局相符；其余一切皆为病态。"
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|rdfs:label"
+msgid "Interval"
+msgstr "区间"
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|skos:definition"
+msgid "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."
+msgstr "一个有序实区间：扩展实数轴上介于两个有序端点之间的点所构成的内涵集合 { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }。它命名其两个端点——下端点通过 math:lowerEndpoint，上端点通过 math:upperEndpoint——并命名其两个端点包含性——每一端是被包含（闭端，方括号）还是被排除（开端，圆括号）——通过 math:lowerInclusion 与 math:upperInclusion。有界端命名一个有限数值字面量；无界端以极点（math:PositiveInfinity 或 math:NegativeInfinity）为其端点，且这样的无穷端总是开的（∞ 是 ℝ̄ 的极限点，绝非成员）。包含性绝不被静默省略：[0, 1) 是半开单位区间而 (0, 1) 是开区间，究竟指哪一个是数据，而非约定——缺少端点或包含性的区间是病态的（math:UnderspecifiedInterval）。它不是统计学的 math:ConfidenceInterval，后者是携带覆盖水平与点估计的频率派估计量，而非直线的有序子集；math:Interval 是纯序论意义上的集合，其外部锚点是 OpenMath interval1 内容词典。"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|rdfs:label"
+msgid "Endpoint Inclusion"
+msgstr "端点包含性"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|skos:definition"
+msgid "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."
+msgstr "一个 math:Interval 的端点是被包含在区间中还是被排除在外，由每一端通过 math:lowerInclusion 与 math:upperInclusion 携带：math:closedEndpoint（端点是成员——[a, …) 或 (…, b] 的方括号）或 math:openEndpoint（端点被排除——(a, …) 或 (…, b) 的圆括号）之一。包含性正是区分 [0, 1]、[0, 1) 与 (0, 1) 的关键，并在每个 math:Interval 的两端都是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|rdfs:label"
+msgid "closed (included)"
+msgstr "闭（包含）"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|skos:definition"
+msgid "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."
+msgstr "闭端点：端点是区间的成员——[a, …) 或 (…, b] 的方括号。lower ≤ x（或 x ≤ upper）容许相等的情形；只有有限端点才能是闭的，因为无穷极点绝非 ℝ̄ 的成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|rdfs:label"
+msgid "open (excluded)"
+msgstr "开（排除）"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|skos:definition"
+msgid "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."
+msgstr "开端点：端点被排除在区间之外——(a, …) 或 (…, b) 的圆括号。lower < x（或 x < upper）严格成立的情形。位于极点（math:PositiveInfinity 或 math:NegativeInfinity）的无界端总是开的，因为极点是扩展实数轴的极限点，绝非成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|rdfs:label"
+msgid "lower endpoint"
+msgstr "下端点"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|skos:definition"
+msgid "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "一个 math:Interval 的下端点——{ x ∈ ℝ̄ | lower ⋚ x ⋚ upper } 的左端。定义域 math:Interval，值域为一个有限数值字面量（有界下端）或极点 math:NegativeInfinity（下方无界的端）（以散文说明）。与 math:totalMass 和 math:extendedRealValue 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，正是因为其值域同时涵盖一个数据类型字面量（有限端点）与一个个体（极点）：这两种 DL 属性类型都不能同时容纳二者，因此诚实的 RDF 上位属性承载了扩展实数值域而不产生 DL 矛盾。每个 math:Interval 恰好命名一个；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|rdfs:label"
+msgid "upper endpoint"
+msgstr "上端点"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|skos:definition"
+msgid "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "一个 math:Interval 的上端点——{ x ∈ ℝ̄ | lower ⋚ x ⋚ upper } 的右端。定义域 math:Interval，值域为一个有限数值字面量（有界上端）或极点 math:PositiveInfinity（上方无界的端）（以散文说明）。与 math:totalMass 和 math:extendedRealValue 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，正是因为其值域同时涵盖一个数据类型字面量（有限端点）与一个个体（极点）：这两种 DL 属性类型都不能同时容纳二者，因此诚实的 RDF 上位属性承载了扩展实数值域而不产生 DL 矛盾。每个 math:Interval 恰好命名一个；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|rdfs:label"
+msgid "lower inclusion"
+msgstr "下端包含性"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "将一个 math:Interval 关联到其下端的 math:EndpointInclusion——math:closedEndpoint（下端点是成员，[a, …) 的方括号）或 math:openEndpoint（下端点被排除，(a, …) 的圆括号）。定义域 math:Interval，值域 math:EndpointInclusion（以散文说明）。下端包含性是必需的，绝不被静默省略；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|rdfs:label"
+msgid "upper inclusion"
+msgstr "上端包含性"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "将一个 math:Interval 关联到其上端的 math:EndpointInclusion——math:closedEndpoint（上端点是成员，…, b] 的方括号）或 math:openEndpoint（上端点被排除，…, b) 的圆括号）。定义域 math:Interval，值域 math:EndpointInclusion（以散文说明）。上端包含性是必需的，绝不被静默省略；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|rdfs:label"
+msgid "Underspecified Interval"
+msgstr "欠定区间"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|skos:definition"
+msgid "The failure raised when a math:Interval does not name both of its endpoints (math:lowerEndpoint and math:upperEndpoint) and both of its endpoint inclusions (math:lowerInclusion and math:upperInclusion). An ordered interval is { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; without both endpoints and both inclusions, whether [0, 1], [0, 1), or (0, 1) is meant is undetermined. Endpoint inclusion is never silently omitted, so an interval missing an endpoint or an inclusion is ill-formed."
+msgstr "当一个 math:Interval 未同时命名其两个端点（math:lowerEndpoint 与 math:upperEndpoint）和两个端点包含性（math:lowerInclusion 与 math:upperInclusion）时引发的失败。有序区间是 { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }；若缺少两个端点与两个包含性，究竟指 [0, 1]、[0, 1) 还是 (0, 1) 便无从确定。端点包含性绝不被静默省略，因此缺少端点或包含性的区间是病态的。"
+
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|rdfs:label"
 msgid "Measurement Scale"
 msgstr "测量尺度"
@@ -467,6 +627,14 @@ msgstr "多重比较族"
 msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|skos:definition"
 msgid "Relates a math:PValue to the family of comparisons its multiplicity adjustment is taken over — the set of tests within which its error rate is controlled. Domain math:PValue, range the comparison-family object (stated in prose). The family scopes the adjustment: a correction is only meaningful relative to the family of comparisons it controls the error rate across."
 msgstr "将一个 math:PValue 关联到其多重性调整所依据的比较族——其错误率在其中被控制的检验集合。定义域为 math:PValue，值域为比较族对象（在文字中说明）。族为调整框定范围：一个校正只有相对于它控制错误率所跨的比较族才有意义。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|rdfs:label"
+msgid "−∞"
+msgstr "负无穷大（−∞）"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|skos:definition"
+msgid "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."
+msgstr "负无穷大作为一个扩展实数值：带符号扩展实数轴 math:ExtendedRealLine 的负极，是 math:PositiveInfinity 的对偶。它是这样一个扩展实数点：使一个无下界的量——向下发散的极限、无下界集合的下确界——无需有限字面量即可声明。它不是有限数（它不位于 ℝ 中的任何位置）；不是错误、异常或缺失值；也不是 math:PositiveInfinity + math:NegativeInfinity 或 0 · ∞ 所给出的未定义/不确定结果——扩展实数是 ℝ̄ 上的一个确定点，绝非 NaN。带符号扩展实数槽（math:extendedRealValue）中容纳的要么是有限数、要么是 math:PositiveInfinity，要么是这个个体。"
 
 msgctxt "https://blackcatinformatics.ca/math/nullDistribution|rdfs:label"
 msgid "null distribution"
@@ -835,3 +1003,1885 @@ msgstr "变量角色"
 msgctxt "https://blackcatinformatics.ca/math/VariableRole|skos:definition"
 msgid "A variable role: the analytical part a math:StatisticalVariable plays in a model — outcome, predictor, covariate, weight, stratum, cluster, or offset. A subclass of math:MathematicalObject naming the role a variable holds rather than an intrinsic property of the column, so the same measured variable can be an outcome in one model and a predictor in another without changing the data. A variable's role is a first-class object so a model's structure is queryable, never read off a naming convention."
 msgstr "一个变量角色：一个 math:StatisticalVariable 在一个模型中所扮演的分析性部分——结局、预测因子、协变量、权重、层、整群或偏置。它是 math:MathematicalObject 的子类，命名一个变量所持的角色而非该列的一个内在属性，因而同一个被测变量在一个模型中可为结局、在另一个模型中可为预测因子而不改变数据。一个变量的角色是一个头等对象，使一个模型的结构可被查询，绝不从一个命名约定上读取。"
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|rdfs:label"
+msgid "Compactification"
+msgstr "紧化"
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|skos:definition"
+msgid "A compactification: a structured record embedding an unbounded space in a bounded (compact) one as a dense subset, so the points the original space runs off toward are adjoined as a boundary at infinity. It names FOUR roles — the original unbounded space through math:originalSpace, the embedding/map through math:compactifyingMap, the resulting bounded space through math:compactifiedSpace, and the boundary added at infinity through math:boundaryAtInfinity. It is NOT any one construction — not the one-point (Alexandroff) versus Stone–Čech distinction per se — but the general structured record every such construction instantiates; a compactification missing any of the four roles is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "一个紧化：一个结构化记录，将一个无界空间作为稠密子集嵌入一个有界（紧）空间，使得原空间所奔向的那些点作为无穷远边界被添加进来。它命名四个角色——通过 math:originalSpace 命名原无界空间，通过 math:compactifyingMap 命名嵌入/映射，通过 math:compactifiedSpace 命名所得的有界空间，通过 math:boundaryAtInfinity 命名在无穷远处添加的边界。它并非任何一种特定构造——并非单点（Alexandroff）与 Stone–Čech 之别本身——而是每一种此类构造所例示的一般结构化记录；缺少四个角色中任一个的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|rdfs:label"
+msgid "Conformal Compactification"
+msgstr "共形紧化"
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|skos:definition"
+msgid "A conformal (Penrose-style) compactification: the specialization whose math:compactifyingMap is angle-preserving (conformal), carrying a math:conformalFactor Ω that rescales the metric so the points at infinity sit at a finite conformal boundary. A subclass of math:Compactification; it additionally names its math:conformalFactor — a conformal compactification missing it is ill-formed (math:UnderspecifiedCompactification). This is the correct general home for embedding a math:LorentzianManifold's radial chart's infinity as a finite boundary: the conformal factor sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle) structure the Lorentzian metric carries. The metric and its rescaling stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this math object."
+msgstr "一个共形（Penrose 式）紧化：其 math:compactifyingMap 保角（共形）的特化，携带一个 math:conformalFactor Ω，对度量重新标度，使无穷远处的点位于一个有限的共形边界上。它是 math:Compactification 的子类；它额外命名其 math:conformalFactor——缺少它的共形紧化是病态的（math:UnderspecifiedCompactification）。这是将一个 math:LorentzianManifold 的径向图的无穷远作为有限边界来嵌入的正确一般归属：共形因子将无界的度量距离送到一个有限的重标度距离，同时保留洛伦兹度量所携带的因果（角度）结构。度量及其重标度留在数学一侧；一个时空的 Penrose 图是对这一数学对象的下游物理解读。"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|rdfs:label"
+msgid "Boundary at Infinity"
+msgstr "无穷远边界"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|skos:definition"
+msgid "The boundary a compactification adjoins at infinity: the ideal points — the conformal boundary — the original unbounded space approaches but never reaches, made a first-class object rather than an informal edge. Named by a math:Compactification through math:boundaryAtInfinity. For a math:ConformalCompactification it is where the math:conformalFactor vanishes; for the radial half-line r ∈ [0, ∞) it is the single ideal point r = +∞."
+msgstr "一个紧化在无穷远处所添加的边界：理想点——共形边界——原无界空间趋近却永不到达者，被作为头等对象而非非正式的边缘。由一个 math:Compactification 通过 math:boundaryAtInfinity 命名。对一个 math:ConformalCompactification 而言，它是 math:conformalFactor 消失之处；对径向半直线 r ∈ [0, ∞) 而言，它是唯一的理想点 r = +∞。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|rdfs:label"
+msgid "Underspecified Compactification"
+msgstr "欠规范紧化"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|skos:definition"
+msgid "The failure raised when a math:Compactification does not name all four of its roles — its original space (math:originalSpace), its compactifying map (math:compactifyingMap), its compactified space (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity) — or when a math:ConformalCompactification additionally omits its math:conformalFactor. A compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity is ill-formed. Mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."
+msgstr "当一个 math:Compactification 未命名其四个角色的全部——其原空间（math:originalSpace）、其紧化映射（math:compactifyingMap）、其紧化空间（math:compactifiedSpace）与其无穷远边界（math:boundaryAtInfinity）——或当一个 math:ConformalCompactification 额外遗漏其 math:conformalFactor 时所引发的失败。一个不说明它嵌入什么、由何映射、嵌入何处、以及以何无穷远边界的紧化是病态的。它对应 math:UnderspecifiedManifold 与 math:UnderspecifiedChart。"
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|rdfs:label"
+msgid "original space"
+msgstr "原空间"
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|skos:definition"
+msgid "Relates a math:Compactification to the original unbounded space it embeds — the space whose points at infinity the compactification adjoins as a boundary. Domain math:Compactification, range a math:TopologicalSpace or math:Manifold (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到它所嵌入的原无界空间——其无穷远处的点被紧化作为边界所添加的那个空间。定义域 math:Compactification，值域为一个 math:TopologicalSpace 或 math:Manifold（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|rdfs:label"
+msgid "compactifying map"
+msgstr "紧化映射"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|skos:definition"
+msgid "Relates a math:Compactification to the embedding taking its original space into the compactified one — a math:Function (a math:CoordinateMap when it coordinatizes), angle-preserving for a math:ConformalCompactification. Domain math:Compactification, range math:Function (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到把其原空间带入紧化空间的嵌入——一个 math:Function（当它给出坐标时为一个 math:CoordinateMap），对一个 math:ConformalCompactification 而言保角。定义域 math:Compactification，值域 math:Function（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|rdfs:label"
+msgid "compactified space"
+msgstr "紧化空间"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|skos:definition"
+msgid "Relates a math:Compactification to the resulting bounded (compact) space — the image the embedding lands in together with the adjoined boundary at infinity. Domain math:Compactification, range a math:TopologicalSpace (a math:Interval for a compactified half-line) (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到所得的有界（紧）空间——嵌入所落入的像连同所添加的无穷远边界。定义域 math:Compactification，值域为一个 math:TopologicalSpace（对紧化后的半直线为一个 math:Interval）（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|rdfs:label"
+msgid "boundary at infinity"
+msgstr "无穷远边界"
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|skos:definition"
+msgid "Relates a math:Compactification to the math:BoundaryAtInfinity it adjoins — the ideal points at infinity the original space approaches but never reaches. Domain math:Compactification, range math:BoundaryAtInfinity (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到它所添加的 math:BoundaryAtInfinity——原空间趋近却永不到达的无穷远理想点。定义域 math:Compactification，值域 math:BoundaryAtInfinity（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|rdfs:label"
+msgid "conformal factor"
+msgstr "共形因子"
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
+msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:ConformalCompactification 关联到其共形重标度因子 Ω——一个正函数，对度量作乘法，使无界的度量距离在边界处变为有限，同时保留角度。定义域 math:ConformalCompactification，值域为一个正的 math:Function 或 math:Quantity（一个个体，绝非裸字面量——因而是一个 owl:ObjectProperty 而非数据类型属性）（以散文说明）。每个共形紧化恰命名一个；缺少它的一个是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|rdfs:label"
+msgid "Measurable Set"
+msgstr "可测集"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
+msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
+msgstr "一个可测子集：math:MeasurableSpace 的 math:SigmaAlgebra 的一个元素——即该 σ-代数所收集的、对补运算和可数并封闭的子集之一，因而是一个 math:Measure 可以赋予质量的那种子集。它是求值 μ(A) 的个体自变量 A：math:MeasurableSpace 是一个测度在其上作用的整个基底 (X, Σ)，而一个可测集是它的一块可测部分，是一个 math:MeasureEvaluation 读取其质量的那条带或那个区域。与概率宪章共享，在那里一个可测集就是一个事件。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|rdfs:label"
+msgid "Measure Evaluation"
+msgstr "测度求值"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|skos:definition"
+msgid "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "一个测度在一个具名可测子集上的结构化求值 μ(A)，被具体化为一等对象：它通过 math:evaluatedMeasure 命名测度，通过 math:measuredSubset（一个 math:MeasurableSet）命名子集，通过 math:measureResult 命名所得质量（一个有限的非负数或 math:PositiveInfinity，绝不是 math:NegativeInfinity——测度是非负的）。它不是整个空间的 math:totalMass，后者是整个空间的测度 μ(X)：一次测度求值是一个具名子集 A ⊆ X 的测度，因此同一测度的不同子集可以被求值并并排比较——一个二维球的勒贝格质量 μ(B²) 对一个三维球的 μ(B³)，或一个事件的概率对另一个的概率。同时命名测度、子集和结果三者，正是使 μ(A) 成为一条可查询的数据而非一个显示字符串；缺少三者之一的求值是病态的（math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|rdfs:label"
+msgid "evaluated measure"
+msgstr "被求值测度"
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|skos:definition"
+msgid "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "命名一个 math:MeasureEvaluation 所读取的 math:Measure——μ(A) 中的 μ。定义域 math:MeasureEvaluation，值域 math:Measure（以散文说明）。每次求值恰命名一个；一个没有其所求值测度的求值不说明它报告的是谁的质量，是病态的（math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|rdfs:label"
+msgid "measured subset"
+msgstr "被测子集"
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|skos:definition"
+msgid "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "命名一个 math:MeasureEvaluation 向其赋予质量的 math:MeasurableSet——μ(A) 中的 A。定义域 math:MeasureEvaluation，值域 math:MeasurableSet（以散文说明）。每次求值恰命名一个；命名子集正是使同一测度在不同子集上的两次求值得以比较之所在，因此一个没有其子集的求值是病态的（math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|rdfs:label"
+msgid "measure result"
+msgstr "测度结果"
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|skos:definition"
+msgid "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."
+msgstr "一个 math:MeasureEvaluation 所读取的质量——μ(A) 的值，一个有限的非负数或扩展实数 math:PositiveInfinity，绝不是 math:NegativeInfinity，因为测度是非负的。定义域 math:MeasureEvaluation，值域为一个非负数值字面量或 math:PositiveInfinity（以散文说明）。与 math:totalMass 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，恰恰因为其值域同时跨越一个数据类型字面量（有限质量）和一个个体（math:PositiveInfinity）：两种 DL 属性种类都不能兼容两者，因此诚实的 RDF 超类型承载扩展实数值域而无 DL 矛盾。每次求值恰命名一个；一个没有其结果的求值是病态的（math:UnderspecifiedMeasureEvaluation），而 math:NegativeInfinity 的结果是一个非负性违规（math:MalformedExtendedReal 或 math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|rdfs:label"
+msgid "Underspecified Measure Evaluation"
+msgstr "欠定的测度求值"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|skos:definition"
+msgid "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."
+msgstr "当一个 math:MeasureEvaluation 未同时命名其三者——它所求值的测度（math:evaluatedMeasure）、它在其上求值的可测子集（math:measuredSubset）以及所得质量（math:measureResult）——时所引发的失败。一次求值 μ(A) 是一个具名测度赋予一个具名子集的质量；没有测度、子集和结果，它就不说明哪个测度、对哪个子集、给出了哪个值，因此无法与另一次求值比较，是病态的。"
+
+# --- Closed-form expression algebra (the closed-form function facility) ------ #
+
+msgctxt "https://blackcatinformatics.ca/math/NumberLiteral|rdfs:label"
+msgid "Number Literal"
+msgstr "数值字面量"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberLiteral|skos:definition"
+msgid "The numeric-literal leaf of an expression AST: the expression node denoting a specific math:Number — the 1 in (1 − x), the constant 2 in 2·x, the exponents in a closed form. It carries its value through math:literalValue, which points at a well-formed math:Number (situated in a number system through math:inNumberSystem). Distinct from a bare RDF literal: a math:NumberLiteral is an expression node (a subclass of math:MathematicalExpression), so it can fill a math:slotExpression, whereas a raw literal cannot. Distinct too from a math:MathematicalConstant such as π: a constant is a named exact number object, while a NumberLiteral is a syntactic leaf of a formula that names the number it denotes. See MATHEMATICS-NUMBERS-AND-SETS.md for the number-system grounding its math:literalValue rests on."
+msgstr "表达式 AST 的数值字面量叶节点：指称某个具体 math:Number 的表达式节点——(1 − x) 中的 1、2·x 中的常数 2、闭形式中的指数。它通过 math:literalValue 携带其值，后者指向一个良构的 math:Number（经由 math:inNumberSystem 置于某个数系之中）。区别于裸的 RDF 字面量：math:NumberLiteral 是一个表达式节点（math:MathematicalExpression 的子类），因而能填充 math:slotExpression，而裸字面量不能。也区别于诸如 π 的 math:MathematicalConstant：常数是一个具名的精确数对象，而 NumberLiteral 是公式的一个句法叶节点，用以命名它所指称的数。其 math:literalValue 所依托的数系根基见 MATHEMATICS-NUMBERS-AND-SETS.md。"
+
+msgctxt "https://blackcatinformatics.ca/math/literalValue|rdfs:label"
+msgid "literal value"
+msgstr "字面值"
+
+msgctxt "https://blackcatinformatics.ca/math/literalValue|skos:definition"
+msgid "The number a math:NumberLiteral leaf denotes: relates a math:NumberLiteral expression node to the math:Number it stands for. Domain math:NumberLiteral, range math:Number (stated in prose). The value is a well-formed math:Number situated in a number system, not a bare RDF literal — this is the seam by which a syntactic literal leaf of a formula names an exact numeric object rather than carrying an opaque decimal."
+msgstr "一个 math:NumberLiteral 叶节点所指称的数：将一个 math:NumberLiteral 表达式节点关联到它所代表的 math:Number。定义域 math:NumberLiteral，值域 math:Number（以散文陈述）。该值是一个置于数系之中的良构 math:Number，而非裸的 RDF 字面量——这正是公式的句法字面叶节点得以命名一个精确数值对象、而非携带一个不透明小数的接缝。"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|rdfs:label"
+msgid "negation"
+msgstr "取反"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|skos:definition"
+msgid "The unary additive-inverse operator (−x): the single-operand negation that flips a value's sign, so a term like x⁻ᵖ is math:Exponentiation applied to x and math:Negation applied to p. Distinct from binary math:Subtraction (which takes two operands); −x is math:Negation(x). Signature ℝ̄ → ℝ̄ over the signed extended real line: it carries the two poles, mapping math:PositiveInfinity to math:NegativeInfinity and back, so −(+∞) = −∞ is stated rather than undefined. OpenMath arith1 unary_minus."
+msgstr "一元加法逆元算子（−x）：翻转一个值符号的单操作数取反，因而像 x⁻ᵖ 这样的项是对 x 施用 math:Exponentiation、对 p 施用 math:Negation。区别于二元的 math:Subtraction（取两个操作数）；−x 即 math:Negation(x)。签名 ℝ̄ → ℝ̄，作用于带符号的扩展实数线：它携带两个极点，把 math:PositiveInfinity 映到 math:NegativeInfinity 并反之，因而 −(+∞) = −∞ 是被陈述的而非未定义的。OpenMath arith1 unary_minus。"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|rdfs:label"
+msgid "operator domain"
+msgstr "算子定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|skos:definition"
+msgid "The number system an operator's operands are drawn from — the source of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its domain is unframed (math:UnframedOperator). Distinct from math:domain (a function's or relation's source set): math:operatorDomain frames the operator symbol itself, over the number-system tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and the signed extended real line ℝ̄)."
+msgstr "一个算子的操作数所取自的数系——其签名的来源。定义域 math:ArithmeticOperation，值域 math:NumberSystem（以散文陈述）。每个 math:ArithmeticOperation 恰命名一个；没有定义域的算子是未框定的（math:UnframedOperator）。区别于 math:domain（一个函数或关系的源集合）：math:operatorDomain 框定算子符号本身，作用于数系之塔 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ（以及带符号的扩展实数线 ℝ̄）。"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|rdfs:label"
+msgid "operator codomain"
+msgstr "算子陪定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|skos:definition"
+msgid "The number system an operator's result lies in — the target of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its codomain is unframed (math:UnframedOperator). The declared target may be wider than the operator's domain — a real even root or a real logarithm lands in ℂ, so math:Root and math:Logarithm frame math:realNumbers → math:complexNumbers honestly rather than pretending the result stays real."
+msgstr "一个算子的结果所处的数系——其签名的目标。定义域 math:ArithmeticOperation，值域 math:NumberSystem（以散文陈述）。每个 math:ArithmeticOperation 恰命名一个；没有陪定义域的算子是未框定的（math:UnframedOperator）。所声明的目标可能比算子的定义域更宽——一个实数的偶次方根或一个实数的对数会落入 ℂ，因而 math:Root 与 math:Logarithm 诚实地框定为 math:realNumbers → math:complexNumbers，而非假装结果仍是实数。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedOperator|rdfs:label"
+msgid "Unframed Operator"
+msgstr "未框定算子"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedOperator|skos:definition"
+msgid "The failure raised when a math:ArithmeticOperation does not declare both its math:operatorDomain and its math:operatorCodomain — the number system its operands are drawn from and the system its result lies in. An operator is not a bare glyph; every arithmetic operator carries its signature over the number-system tower, so an operator missing either half of its signature is ill-formed."
+msgstr "当一个 math:ArithmeticOperation 未同时声明其 math:operatorDomain 与 math:operatorCodomain——其操作数所取自的数系与其结果所处的数系——时所引发的失败。算子并非一个裸的字形；每个算术算子都在数系之塔上携带其签名，因而缺少签名任一半的算子是病态的。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedFormFunction|rdfs:label"
+msgid "Closed-Form Function"
+msgstr "闭形式函数"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedFormFunction|skos:definition"
+msgid "A function given by an explicit closed-form expression in one formal argument over tunable parameters: the general facility for stating a parameterized curve — for example T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — natively as a math:MathematicalExpression AST rather than as an opaque string. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction). It additionally names its body through math:definingExpression (the expression AST) and its abstraction variable's declaration through math:formalArgument, and it distinguishes that formal argument from its fitted parameters, each declared through math:functionParameter — so in T(x) the argument x and the parameters A, B, C, p, q are separate declarations, not conflated. A closed form missing its body or its formal argument is ill-formed (math:UnboundClosedForm). It is a general facility supporting ANY curve, not a hardwired one; a concrete curve such as T(x) is an instance authored elsewhere."
+msgstr "由一个形式参数上、在可调参数之上的显式闭形式表达式给出的函数：用于陈述参数化曲线的通用设施——例如 T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C——原生地表示为一个 math:MathematicalExpression AST，而非一个不透明字符串。它是 math:Function 的子类，因而继承了声明其 math:domain 与 math:codomain 的要求（未框定者即 math:UnframedFunction）。它另经由 math:definingExpression 命名其主体（表达式 AST）、经由 math:formalArgument 命名其抽象变量的声明，并把该形式参数与其拟合参数区分开，后者各经 math:functionParameter 声明——因而在 T(x) 中，参数 x 与参数 A、B、C、p、q 是彼此分立的声明，不相混淆。缺少主体或形式参数的闭形式是病态的（math:UnboundClosedForm）。它是支持任意曲线的通用设施，而非硬编码的某一条；诸如 T(x) 的具体曲线是在别处撰写的一个实例。"
+
+msgctxt "https://blackcatinformatics.ca/math/definingExpression|rdfs:label"
+msgid "defining expression"
+msgstr "定义表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/definingExpression|skos:definition"
+msgid "The body AST of a function given in closed form: relates a math:Function to the math:MathematicalExpression that is its explicit closed-form body. Domain math:Function, range math:MathematicalExpression (stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a body does not say what it computes and is ill-formed (math:UnboundClosedForm). The body is a structured expression tree, never a display string — the argument and the parameters enter it as math:VariableExpression leaves resolving to the function's math:formalArgument and math:functionParameters."
+msgstr "以闭形式给出的函数的主体 AST：将一个 math:Function 关联到作为其显式闭形式主体的 math:MathematicalExpression。定义域 math:Function，值域 math:MathematicalExpression（以散文陈述）。每个 math:ClosedFormFunction 恰命名一个；没有主体的闭形式不说明它计算什么，是病态的（math:UnboundClosedForm）。该主体是一棵结构化的表达式树，绝非一个显示字符串——参数与形式参数作为 math:VariableExpression 叶节点进入其中，并解析到该函数的 math:formalArgument 与 math:functionParameter。"
+
+msgctxt "https://blackcatinformatics.ca/math/formalArgument|rdfs:label"
+msgid "formal argument"
+msgstr "形式参数"
+
+msgctxt "https://blackcatinformatics.ca/math/formalArgument|skos:definition"
+msgid "The abstraction variable of a closed-form function — the x in f(x): relates a math:ClosedFormFunction to the math:VariableDeclaration that is its formal argument. Domain math:ClosedFormFunction, range math:VariableDeclaration (typically a math:FreeVariableDeclaration, since the argument is free in the body; stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a formal argument does not say over which variable it abstracts and is ill-formed (math:UnboundClosedForm). It is the one declaration the function is a function OF, distinguished from the fitted math:functionParameters it is tuned by."
+msgstr "闭形式函数的抽象变量——f(x) 中的 x：将一个 math:ClosedFormFunction 关联到作为其形式参数的 math:VariableDeclaration。定义域 math:ClosedFormFunction，值域 math:VariableDeclaration（通常是一个 math:FreeVariableDeclaration，因为该参数在主体中是自由的；以散文陈述）。每个 math:ClosedFormFunction 恰命名一个；没有形式参数的闭形式不说明它就哪个变量作抽象，是病态的（math:UnboundClosedForm）。它是该函数所“作为其函数”的那唯一声明，区别于对它加以调节的拟合 math:functionParameter。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionParameter|rdfs:label"
+msgid "function parameter"
+msgstr "函数参数"
+
+msgctxt "https://blackcatinformatics.ca/math/functionParameter|skos:definition"
+msgid "A tunable parameter of a closed-form function — one of the A, B, C, p, q that fix a particular curve within the family: relates a math:ClosedFormFunction to a math:VariableDeclaration that is a fitted parameter. Domain math:ClosedFormFunction, range math:VariableDeclaration (stated in prose). Unconstrained cardinality (0..n): a curve may have no parameters or many. A parameter is held fixed while the math:formalArgument varies, which is exactly what distinguishes the argument the function is OF from the parameters it is tuned BY; both enter the math:definingExpression as math:VariableExpression leaves."
+msgstr "闭形式函数的一个可调参数——固定族内某一条具体曲线的 A、B、C、p、q 之一：将一个 math:ClosedFormFunction 关联到作为拟合参数的 math:VariableDeclaration。定义域 math:ClosedFormFunction，值域 math:VariableDeclaration（以散文陈述）。基数不受约束（0..n）：一条曲线可以没有参数，也可以有许多。当 math:formalArgument 变动时参数被保持固定，这正是把该函数所“作为其函数”的参数与对它加以调节的参数区分开来之处；两者都作为 math:VariableExpression 叶节点进入 math:definingExpression。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|rdfs:label"
+msgid "Unbound Closed Form"
+msgstr "未绑定闭形式"
+
+msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|skos:definition"
+msgid "The failure raised when a math:ClosedFormFunction does not declare both its math:definingExpression (the body AST) and its math:formalArgument (the abstraction variable's declaration). A closed-form function is an explicit expression in one formal argument; a closed form missing its body or its formal argument does not say what it computes or over which variable, and is ill-formed. Its tunable math:functionParameters are 0..n and unconstrained — only the body and the formal argument are required."
+msgstr "当一个 math:ClosedFormFunction 未同时声明其 math:definingExpression（主体 AST）与其 math:formalArgument（抽象变量的声明）时所引发的失败。闭形式函数是一个在单一形式参数上的显式表达式；缺少主体或形式参数的闭形式不说明它计算什么、也不说明就哪个变量，是病态的。其可调的 math:functionParameter 为 0..n 且不受约束——只有主体与形式参数是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|rdfs:label"
+msgid "Piecewise Function"
+msgstr "分段函数"
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|skos:definition"
+msgid "A function defined by pieces: a math:Function whose behaviour is given not by one closed form but by a family of math:FunctionPiece parts, each a sub-behaviour over its own domain restriction. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction); it additionally names one or more pieces through math:hasPiece. A piecewise function declaring NO piece says nothing about what it computes and is ill-formed (math:UnderspecifiedPiecewiseFunction). The pieces partition (or cover) the domain; each piece names the sub-domain it governs through math:pieceDomain and, where it has an explicit form, its behaviour through math:pieceExpression — so the classic split f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} is data (two pieces over two intervals), not prose. It is not a math:ClosedFormFunction (one expression in one formal argument); it is the case-split generalization, and a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) rather than a full expression."
+msgstr "分段函数：一个 math:Function，其行为不是由单一闭式给出，而是由一族 math:FunctionPiece 部分给出，每一部分是其自身定义域限制上的子行为。它是 math:Function 的子类，因此继承声明其 math:domain 与 math:codomain 的义务（无框架的函数是 math:UnframedFunction）；它另外通过 math:hasPiece 命名一个或多个分段。不声明任何分段的分段函数没有说明它计算什么，是不良构的（math:UnderspecifiedPiecewiseFunction）。这些分段划分（或覆盖）定义域；每个分段通过 math:pieceDomain 命名它所支配的子域，并在其有显式形式时通过 math:pieceExpression 命名其行为——因此经典分段 f(x) = {x² 当 x < 0；e⁻ˣ 当 x ≥ 0} 是数据（两个区间上的两个分段），而非散文。它不是 math:ClosedFormFunction（一个形式参数中的一个表达式）；它是按情形的推广，一个分段可以承载定性解析行为（math:hasMonotonicity、math:hasBound）而非完整表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|rdfs:label"
+msgid "Function Piece"
+msgstr "函数分段"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|skos:definition"
+msgid "One piece of a math:PiecewiseFunction: a domain restriction paired with the sub-behaviour that holds on it. A subclass of math:MathematicalObject named by a piecewise function through math:hasPiece. It names EXACTLY ONE sub-domain through math:pieceDomain (a math:Interval — the sub-domain the piece governs), and, where the piece has an explicit closed form, its behaviour through math:pieceExpression (a math:MathematicalExpression); a piece whose behaviour is qualitative rather than symbolic carries instead a math:hasMonotonicity or a math:hasBound. A piece that names no math:pieceDomain does not say WHERE it applies and is ill-formed (the exactly-one math:pieceDomain gate). The piece is the case-split cell: the interval says over which points the cell holds, the expression or the qualitative marker says what the function does there."
+msgstr "math:PiecewiseFunction 的一个分段：一个定义域限制与在其上成立的子行为相配对。它是 math:MathematicalObject 的子类，由分段函数通过 math:hasPiece 命名。它通过 math:pieceDomain 命名恰好一个子域（一个 math:Interval——该分段所支配的子域），并在该分段有显式闭式时通过 math:pieceExpression 命名其行为（一个 math:MathematicalExpression）；行为为定性而非符号的分段则改为承载 math:hasMonotonicity 或 math:hasBound。不命名任何 math:pieceDomain 的分段没有说明它在何处适用，是不良构的（恰好一个 math:pieceDomain 的约束）。分段是按情形划分的单元：区间说明该单元在哪些点上成立，表达式或定性标记说明函数在那里做什么。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|rdfs:label"
+msgid "has piece"
+msgstr "具有分段"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|skos:definition"
+msgid "Relates a math:PiecewiseFunction to one of its math:FunctionPiece parts. Domain math:PiecewiseFunction, range math:FunctionPiece (stated in prose). A piecewise function names one or more pieces (≥ 1, unbounded — a function has at least one piece, and may have arbitrarily many); a piecewise function with no piece is ill-formed (math:UnderspecifiedPiecewiseFunction)."
+msgstr "将一个 math:PiecewiseFunction 关联到它的某个 math:FunctionPiece 部分。定义域 math:PiecewiseFunction，值域 math:FunctionPiece（以散文说明）。分段函数命名一个或多个分段（≥ 1，无上界——一个函数至少有一个分段，并可有任意多个）；没有分段的分段函数是不良构的（math:UnderspecifiedPiecewiseFunction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|rdfs:label"
+msgid "piece domain"
+msgstr "分段定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:Interval it governs — the sub-domain over which the piece's behaviour holds. Domain math:FunctionPiece, range math:Interval (stated in prose). Each piece names exactly one piece-domain; a piece without it does not say where it applies and is ill-formed. The interval is a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed cell [0, 1]."
+msgstr "将一个 math:FunctionPiece 关联到它所支配的 math:Interval——该分段行为成立的子域。定义域 math:FunctionPiece，值域 math:Interval（以散文说明）。每个分段命名恰好一个分段定义域；没有它的分段没有说明它在何处适用，是不良构的。该区间是一个完整成形的 math:Interval（两个端点与两个包含关系），因此半开单元 [0, 1) 与闭单元 [0, 1] 得以区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|rdfs:label"
+msgid "piece expression"
+msgstr "分段表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:MathematicalExpression giving its behaviour on its piece-domain — the closed form the function takes on that cell. Domain math:FunctionPiece, range math:MathematicalExpression (stated in prose). At most one; it is optional because a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) instead of an explicit expression, but a piece never carries two conflicting expressions."
+msgstr "将一个 math:FunctionPiece 关联到给出其在分段定义域上行为的 math:MathematicalExpression——函数在该单元上所取的闭式。定义域 math:FunctionPiece，值域 math:MathematicalExpression（以散文说明）。至多一个；它是可选的，因为一个分段可以承载定性解析行为（math:hasMonotonicity、math:hasBound）而非显式表达式，但一个分段绝不承载两个相互冲突的表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|rdfs:label"
+msgid "Monotonicity Kind"
+msgstr "单调性种类"
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|skos:definition"
+msgid "The kind of monotonic behaviour a function (or a math:FunctionPiece) exhibits over an ordered domain — one of math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, or math:constant. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), so a new monotonic sort joins by minting an individual. Each kind is NOT a bare token: it resolves through math:definingLaw to a real first-order logic:Formula stating what the kind MEANS as an ordering condition on the function's values — math:strictMonotonicityLaw for math:strictlyDecreasing, math:strictIncreaseLaw for math:strictlyIncreasing, and so on — so 'this piece is strictly decreasing' is a quantified statement over the reified real/value signature, not prose. A function names its monotonicity through math:hasMonotonicity."
+msgstr "一个函数（或 math:FunctionPiece）在有序定义域上呈现的单调行为的种类——为 math:strictlyIncreasing、math:strictlyDecreasing、math:nonIncreasing、math:nonDecreasing 或 math:constant 之一。这是 math:NamedIndividual 的一个开放词汇（绝非 owl:oneOf 枚举），因此新的单调类别通过铸造一个个体即可加入。每个类别都不是裸标记：它通过 math:definingLaw 解析为一条真实的一阶 logic:Formula，陈述该类别作为函数值上的序条件所意味的内容——math:strictlyDecreasing 对应 math:strictMonotonicityLaw，math:strictlyIncreasing 对应 math:strictIncreaseLaw，依此类推——因此“该分段严格递减”是关于具体化的实数/值签名的量化陈述，而非散文。函数通过 math:hasMonotonicity 命名其单调性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|rdfs:label"
+msgid "has monotonicity"
+msgstr "具有单调性"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:MonotonicityKind classifying its monotonic behaviour over its ordered domain. Domain math:Function or math:FunctionPiece, range math:MonotonicityKind (stated in prose). The declared, checkable bearer of monotonicity: monotonicity is stated here, and the named kind carries the first-order defining law (math:definingLaw) that fixes its meaning, so a monotonicity claim is always backed by a real logic:Formula, never a flag."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到对其在有序定义域上单调行为进行分类的 math:MonotonicityKind。定义域 math:Function 或 math:FunctionPiece，值域 math:MonotonicityKind（以散文说明）。单调性的已声明、可核查的承载者：单调性在此陈述，且所命名的类别承载确定其含义的一阶定义律（math:definingLaw），因此单调性主张始终由真实的 logic:Formula 支撑，绝非由标志支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|rdfs:label"
+msgid "strictly decreasing"
+msgstr "严格递减"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|skos:definition"
+msgid "Strictly decreasing monotonicity: x < y entails f(x) > f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictMonotonicityLaw (rdfs:seeAlso), so the kind is a real quantified ordering condition on the function's values, not a bare token."
+msgstr "严格递减单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) > f(y)。其定义律是一阶 logic:Formula math:strictMonotonicityLaw（rdfs:seeAlso），因此该类别是关于函数值的真实量化序条件，而非裸标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|rdfs:label"
+msgid "strictly increasing"
+msgstr "严格递增"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|skos:definition"
+msgid "Strictly increasing monotonicity: x < y entails f(x) < f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictIncreaseLaw (rdfs:seeAlso), the order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "严格递增单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) < f(y)。其定义律是一阶 logic:Formula math:strictIncreaseLaw（rdfs:seeAlso），即 math:strictMonotonicityLaw 保序的镜像。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|rdfs:label"
+msgid "non-increasing"
+msgstr "非递增"
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|skos:definition"
+msgid "Non-increasing (weakly decreasing) monotonicity: x < y entails f(x) ≥ f(y) for all points x, y of the domain — the function never rises. Its defining law is the first-order logic:Formula math:monotoneNonIncreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "非递增（弱递减）单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) ≥ f(y)——函数从不上升。其定义律是一阶 logic:Formula math:monotoneNonIncreaseLaw（rdfs:seeAlso），即 math:strictMonotonicityLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|rdfs:label"
+msgid "non-decreasing"
+msgstr "非递减"
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|skos:definition"
+msgid "Non-decreasing (weakly increasing) monotonicity: x < y entails f(x) ≤ f(y) for all points x, y of the domain — the function never falls. Its defining law is the first-order logic:Formula math:monotoneNonDecreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictIncreaseLaw."
+msgstr "非递减（弱递增）单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) ≤ f(y)——函数从不下降。其定义律是一阶 logic:Formula math:monotoneNonDecreaseLaw（rdfs:seeAlso），即 math:strictIncreaseLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/constant|rdfs:label"
+msgid "constant"
+msgstr "常值"
+
+msgctxt "https://blackcatinformatics.ca/math/constant|skos:definition"
+msgid "Constant monotonicity: f(x) = f(y) for all points x, y of the domain — the function's value never changes. The degenerate limit of both weak sorts. Its defining law is the first-order logic:Formula math:constantMapLaw (rdfs:seeAlso), which requires any two of the function's values to be equal."
+msgstr "常值单调性：对定义域中所有点 x、y，f(x) = f(y)——函数的值从不改变。两种弱单调类别的退化极限。其定义律是一阶 logic:Formula math:constantMapLaw（rdfs:seeAlso），它要求函数的任意两个值相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|rdfs:label"
+msgid "Analytic Property"
+msgstr "解析性质"
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|skos:definition"
+msgid "A qualitative analytic property a function may bear — non-affinity, convexity, boundedness, smoothness. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration); a function declares one through math:hasAnalyticProperty. Every analytic property MUST resolve through math:definingLaw to a real first-order logic:Formula (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OR — for a genuinely higher-order property — to an honest logic:expressivenessBoundary record (math:smoothness → math:smoothnessBoundary). A bare analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a quantified statement about the function's values, never a flag."
+msgstr "一个函数可承载的定性解析性质——非仿射性、凸性、有界性、光滑性。这是 math:NamedIndividual 的一个开放词汇（绝非 owl:oneOf 枚举）；函数通过 math:hasAnalyticProperty 声明其一。任何解析性质都必须通过 math:definingLaw 解析为真实的一阶 logic:Formula（math:nonAffinity → math:nonAffinityLaw、math:convexity → math:convexityLaw、math:boundedness → math:boundednessLaw），或——对真正高阶的性质——解析为诚实的 logic:expressivenessBoundary 边界记录（math:smoothness → math:smoothnessBoundary）。没有任何定律或边界支撑的裸解析性质主张是不良构的（math:UnbackedAnalyticProperty）：解析性质是关于函数值的量化陈述，绝非标志。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|rdfs:label"
+msgid "has analytic property"
+msgstr "具有解析性质"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to a math:AnalyticProperty it bears — its non-affinity, convexity, boundedness, or smoothness. Domain math:Function or math:FunctionPiece, range math:AnalyticProperty (stated in prose). The declared bearer of a qualitative analytic claim; because the named property carries its defining law or boundary (math:definingLaw), the claim is always backed by a real logic:Formula or an honest recorded boundary, never a bare flag."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到它所承载的 math:AnalyticProperty——其非仿射性、凸性、有界性或光滑性。定义域 math:Function 或 math:FunctionPiece，值域 math:AnalyticProperty（以散文说明）。定性解析主张的已声明承载者；由于所命名的性质承载其定义律或边界（math:definingLaw），该主张始终由真实的 logic:Formula 或诚实记录的边界支撑，绝非由裸标志支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|rdfs:label"
+msgid "non-affinity"
+msgstr "非仿射性"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|skos:definition"
+msgid "Non-affinity: the function is NOT an affine map — its graph is not a straight line, so there exist three domain points, one an affine combination of the other two, whose graph points fail to be collinear. Its defining law is the first-order logic:Formula math:nonAffinityLaw (rdfs:seeAlso), which witnesses the collinearity failure existentially, mirroring the existential/negation shape of math:connectednessLaw."
+msgstr "非仿射性：函数不是仿射映射——其图像不是直线，故存在三个定义域点，其中之一是另两点的仿射组合，而它们的图像点未能共线。其定义律是一阶 logic:Formula math:nonAffinityLaw（rdfs:seeAlso），它以存在方式见证共线性的失败，镜像 math:connectednessLaw 的存在/否定形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|rdfs:label"
+msgid "convexity"
+msgstr "凸性"
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|skos:definition"
+msgid "Convexity: the function lies on or below its chords — the midpoint of the graph over any two points is at least as high as the graph at the midpoint of those points. Its defining law is the first-order logic:Formula math:convexityLaw (rdfs:seeAlso), authored in the honestly-expressible MIDPOINT-convexity form f((x+y)/2) ≤ (f(x)+f(y))/2: the full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of weights λ and needs scalar arithmetic on the values, so the midpoint form (reifying the midpoint as an uninterpreted relation, never an invented arithmetic function symbol) is the faithful first-order fragment; the λ-general residue is disclosed, not faked."
+msgstr "凸性：函数位于其弦上或弦下——任意两点上图像的中点至少与这两点中点处的图像一样高。其定义律是一阶 logic:Formula math:convexityLaw（rdfs:seeAlso），以可诚实表达的中点凸性形式 f((x+y)/2) ≤ (f(x)+f(y))/2 编写：完整的 λ 弦不等式 f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) 在权重 λ 的连续统上量化并需要对值作标量算术，因此中点形式（将中点具体化为一个未解释的关系，绝非杜撰的算术函数符号）是忠实的一阶片段；λ 一般情形的残余被披露，而非伪造。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|rdfs:label"
+msgid "boundedness"
+msgstr "有界性"
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|skos:definition"
+msgid "Boundedness on an interval: the function's absolute value stays within a declared bound ε over a declared interval — the near-zero plateau's defining VALUE property, |f(x)| ≤ ε for every x in the interval. Its defining law is the first-order logic:Formula math:boundednessLaw (rdfs:seeAlso). It is the VALUE property (a bound on the function's magnitude), distinct from measure dominance (a bound on an integral); the bound ε is named through math:hasBound and the interval it holds on through math:boundOnInterval."
+msgstr "区间上的有界性：函数的绝对值在声明的区间上保持在声明的界 ε 之内——近零平台的定义性数值性质，对区间中每个 x 有 |f(x)| ≤ ε。其定义律是一阶 logic:Formula math:boundednessLaw（rdfs:seeAlso）。它是数值性质（对函数量值的界），有别于测度支配（对积分的界）；界 ε 通过 math:hasBound 命名，其成立所在的区间通过 math:boundOnInterval 命名。"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|rdfs:label"
+msgid "smoothness"
+msgstr "光滑性"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|skos:definition"
+msgid "Smoothness (C^∞ / real-analyticity): the function has derivatives of EVERY order. Unlike its siblings math:nonAffinity, math:convexity, and math:boundedness — each backed by a real first-order logic:Formula — smoothness is genuinely SECOND-ORDER: it quantifies over the infinite family of all derivatives, which is not first-order axiomatizable. So it is NOT faked as a first-order law but backed by the honest recorded boundary math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:definingLaw and rdfs:seeAlso. This exercises the explicit expressiveness-boundary arm: a real boundary carried in the loss ledger, never silent prose."
+msgstr "光滑性（C^∞ / 实解析性）：函数具有任意阶的导数。与其姊妹 math:nonAffinity、math:convexity 和 math:boundedness——各由真实一阶 logic:Formula 支撑——不同，光滑性是真正的二阶性质：它在所有导数的无穷族上量化，而这在一阶中不可公理化。因此它不被伪造为一阶定律，而由诚实记录的边界 math:smoothnessBoundary（logic:expressivenessBoundary logic:SecondOrder、logic:preservationKind logic:Unsupported）支撑，经由 math:definingLaw 与 rdfs:seeAlso 引用。这实践了显式表达力边界之臂：一个承载于损失账本中的真实边界，绝非无声的散文。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|rdfs:label"
+msgid "has bound"
+msgstr "具有界"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the bound ε on its magnitude — the value such that |f(x)| ≤ ε holds over the declared interval. Domain math:Function or math:FunctionPiece, range a finite non-negative numeric literal (stated in prose); an owl:DatatypeProperty, because a magnitude bound is always a finite number, never a pole. The bound is the ε of the boundedness law math:boundednessLaw; the interval over which it holds is named through math:boundOnInterval. A near-zero plateau declares a small ε here."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到其量值上的界 ε——使得 |f(x)| ≤ ε 在声明区间上成立的值。定义域 math:Function 或 math:FunctionPiece，值域为有限非负数值字面量（以散文说明）；一个 owl:DatatypeProperty，因为量值界始终是有限数，绝非极点。该界是有界性定律 math:boundednessLaw 的 ε；其成立所在的区间通过 math:boundOnInterval 命名。近零平台在此声明一个很小的 ε。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|rdfs:label"
+msgid "bound on interval"
+msgstr "区间上的界"
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:Interval over which its math:hasBound ε holds. Domain math:Function or math:FunctionPiece, range math:Interval (stated in prose). Together with math:hasBound it grounds the boundedness law math:boundednessLaw: |f(x)| ≤ ε for every x in this interval. A bound stated without the interval it holds on is incomplete — the boundedness claim is scoped to a region, never global by default."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到其 math:hasBound 之 ε 界成立所在的 math:Interval。定义域 math:Function 或 math:FunctionPiece，值域 math:Interval（以散文说明）。它与 math:hasBound 一起奠定有界性定律 math:boundednessLaw：对该区间中每个 x 有 |f(x)| ≤ ε。未附带其成立区间的界是不完整的——有界性主张被限定于某一区域，绝非默认全局。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|rdfs:label"
+msgid "strict monotonic decrease: x < y entails f(x) > f(y)"
+msgstr "严格单调递减：x < y 蕴含 f(x) > f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|skos:definition"
+msgid "The defining law of math:strictlyDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly decreasing, if x < y and f takes value u at x and v at y, then u > v. math: expresses the law; logic: owns reasoning over it. A sibling of math:continuityLaw in the same first-order style; the monotonicity a strictly-decreasing piece carries, backed by a real law rather than a bare token."
+msgstr "math:strictlyDecreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为严格递减的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u > v。math: 表达定律；logic: 拥有对其的推理。它是 math:continuityLaw 在同一一阶风格下的姊妹；严格递减分段所承载的单调性，由真实定律而非裸标记支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|rdfs:label"
+msgid "strict monotonic increase: x < y entails f(x) < f(y)"
+msgstr "严格单调递增：x < y 蕴含 f(x) < f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|skos:definition"
+msgid "The defining law of math:strictlyIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly increasing, if x < y and f takes value u at x and v at y, then u < v. The order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "math:strictlyIncreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为严格递增的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u < v。即 math:strictMonotonicityLaw 保序的镜像。"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|rdfs:label"
+msgid "non-increase: x < y entails f(x) ≥ f(y)"
+msgstr "非递增：x < y 蕴含 f(x) ≥ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|skos:definition"
+msgid "The defining law of math:nonIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-increasing, if x < y and f takes value u at x and v at y, then u ≥ v — the function never rises. The non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "math:nonIncreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为非递增的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u ≥ v——函数从不上升。即 math:strictMonotonicityLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|rdfs:label"
+msgid "non-decrease: x < y entails f(x) ≤ f(y)"
+msgstr "非递减：x < y 蕴含 f(x) ≤ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|skos:definition"
+msgid "The defining law of math:nonDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-decreasing, if x < y and f takes value u at x and v at y, then u ≤ v — the function never falls. The non-strict counterpart of math:strictIncreaseLaw."
+msgstr "math:nonDecreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为非递减的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u ≤ v——函数从不下降。即 math:strictIncreaseLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|rdfs:label"
+msgid "constant: f(x) = f(y) for all x, y"
+msgstr "常值：对所有 x、y 有 f(x) = f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|skos:definition"
+msgid "The defining law of math:constant as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared constant, if f takes value u at x and v at y, then u = v — its value never changes, regardless of the order of x and y. The degenerate limit of both weak monotonicity sorts, so it carries no order atom."
+msgstr "math:constant 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为常值的函数 f，若 f 在 x 取值 u、在 y 取值 v，则 u = v——无论 x 与 y 的次序如何，其值从不改变。它是两种弱单调类别的退化极限，故不承载任何序原子。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|rdfs:label"
+msgid "non-affinity: the graph has three non-collinear points over a chord"
+msgstr "非仿射性：图像在一条弦上有三个不共线的点"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|skos:definition"
+msgid "The defining law of math:nonAffinity as a first-order logic:Formula over the reified real/value signature: for a function f declared non-affine, there exist domain points x, y, z with z a proper affine combination of x and y, and graph values u = f(x), v = f(y), w = f(z), such that the three plane points (x,u), (y,v), (z,w) are NOT collinear. math: expresses the law; logic: owns reasoning over it. It uses logic:exists and logic:not exactly as math:connectednessLaw does; the midpoint/affine combination and collinearity are reified as uninterpreted relations, never invented arithmetic functions."
+msgstr "math:nonAffinity 的定义律，是关于具体化实数/值签名的一阶 logic:Formula：对声明为非仿射的函数 f，存在定义域点 x、y、z，其中 z 是 x 与 y 的真仿射组合，且图像值 u = f(x)、v = f(y)、w = f(z)，使得平面上三点 (x,u)、(y,v)、(z,w) 不共线。math: 表达定律；logic: 拥有对其的推理。它像 math:connectednessLaw 一样使用 logic:exists 与 logic:not；中点/仿射组合与共线性被具体化为未解释的关系，绝非杜撰的算术函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|rdfs:label"
+msgid "convexity (midpoint form): f((x+y)/2) ≤ (f(x)+f(y))/2"
+msgstr "凸性（中点形式）：f((x+y)/2) ≤ (f(x)+f(y))/2"
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|skos:definition"
+msgid "The defining law of math:convexity as a first-order logic:Formula over the reified real/value signature, in the honestly-expressible MIDPOINT form: for a function f declared convex, for all x, y with domain midpoint m = (x+y)/2 and value midpoint z = (f(x)+f(y))/2, the value w = f(m) satisfies w ≤ z. math: expresses the law; logic: owns reasoning over it. The full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of λ and needs scalar arithmetic on values, exceeding the first-order fragment without inventing arithmetic function symbols; the midpoint form (reifying the midpoint as the uninterpreted relation math:midpointRel, as math:preimageRel reifies the preimage) is the faithful first-order law, and the λ-general residue is disclosed here, never silently faked."
+msgstr "math:convexity 的定义律，是关于具体化实数/值签名、以可诚实表达的中点形式给出的一阶 logic:Formula：对声明为凸的函数 f，对所有 x、y，其定义域中点 m = (x+y)/2、值中点 z = (f(x)+f(y))/2，值 w = f(m) 满足 w ≤ z。math: 表达定律；logic: 拥有对其的推理。完整的 λ 弦不等式 f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) 在 λ 的连续统上量化并需要对值作标量算术，超出一阶片段且不杜撰算术函数符号；中点形式（将中点具体化为未解释关系 math:midpointRel，正如 math:preimageRel 将原像具体化）是忠实的一阶定律，而 λ 一般情形的残余在此披露，绝非无声伪造。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|rdfs:label"
+msgid "boundedness: |f(x)| ≤ ε for every x in the interval"
+msgstr "有界性：对区间中每个 x 有 |f(x)| ≤ ε"
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|skos:definition"
+msgid "The defining law of math:boundedness as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declaring a magnitude bound ε (math:hasBound) that holds on an interval I (math:boundOnInterval), if x lies in I and f takes value v at x, then |v| ≤ ε. math: expresses the law; logic: owns reasoning over it. It is the near-zero plateau's defining VALUE property — a bound on the function's magnitude — distinct from measure dominance (a bound on an integral); the bound is scoped to a region, never global by default."
+msgstr "math:boundedness 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明了在区间 I（math:boundOnInterval）上成立的量值界 ε（math:hasBound）的函数 f，若 x 在 I 中且 f 在 x 取值 v，则 |v| ≤ ε。math: 表达定律；logic: 拥有对其的推理。它是近零平台的定义性数值性质——对函数量值的界——有别于测度支配（对积分的界）；该界被限定于某一区域，绝非默认全局。"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|rdfs:label"
+msgid "smoothness: an honest recorded second-order boundary (no first-order formula)"
+msgstr "光滑性：一个诚实记录的二阶边界（无一阶公式）"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|skos:definition"
+msgid "The loss-ledger boundary record backing math:smoothness: smoothness (C^∞ / real-analyticity, 'the function has derivatives of every order') is genuinely second-order — it ∀-quantifies over the INFINITE FAMILY of all derivatives {f, f′, f″, …}, a quantification over an unbounded family of functions that is not first-order axiomatizable. HiLog reflection could reify a single derivative, but 'for all n, the n-th derivative exists' ranges over the whole family, so a first-order witness would be an unsound uninterpreted predicate. Hence smoothness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:nonAffinityLaw, math:convexityLaw, and math:boundednessLaw, which ARE first-order logic:Formula laws, exactly as math:compactnessBoundary contrasts with math:continuityLaw and math:connectednessLaw."
+msgstr "支撑 math:smoothness 的损失账本边界记录：光滑性（C^∞ / 实解析性，“函数具有任意阶导数”）是真正的二阶——它对所有导数的无穷族 {f, f′, f″, …} 作全称量化，这是对一个无界函数族的量化，在一阶中不可公理化。HiLog 反射可以具体化单个导数，但“对所有 n，第 n 阶导数存在”遍历整个族，因此一阶见证将是一个不可靠的未解释谓词。故光滑性作为一个诚实边界承载（logic:expressivenessBoundary logic:SecondOrder、logic:preservationKind logic:Unsupported），残余在账本中披露而绝非无声散文（原则 17）。这与其姊妹 math:nonAffinityLaw、math:convexityLaw 和 math:boundednessLaw 形成对照，后三者是一阶 logic:Formula 定律，正如 math:compactnessBoundary 与 math:continuityLaw 及 math:connectednessLaw 形成对照。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|rdfs:label"
+msgid "Underspecified Piecewise Function"
+msgstr "欠指定的分段函数"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|skos:definition"
+msgid "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."
+msgstr "当一个 math:PiecewiseFunction 不声明任何 math:hasPiece（最小基数 1）时引发的失败——分段函数由其分段所定义，故没有任何分段者未说明它计算什么，是不良构的。它有别于 math:UnframedFunction（缺少定义域/陪域的函数，分段函数会继承之）：此失败是分段阶梯特有的缺失分段门。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|rdfs:label"
+msgid "Unbacked Analytic Property"
+msgstr "无支撑的解析性质"
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
+msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
+msgstr "当一个 math:AnalyticProperty 不解析为任何定义律时引发的失败——它既不携带指向真实一阶 logic:Formula（math:nonAffinityLaw、math:convexityLaw、math:boundednessLaw）的 math:definingLaw 弧，也不携带指向诚实 logic:expressivenessBoundary 边界记录（math:smoothnessBoundary）的弧。单调性或解析性质主张必须由真实定律或已记录边界支撑，绝非裸标志；裸解析性质标记在构造上不可编写。由受护存在性 logic:Constraint math:AnalyticPropertyBackedConstraint（每个 math:AnalyticProperty 都要求一个 math:definingLaw）强制执行，降级为 SHACL sh:sparql 约束。"
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|rdfs:label"
+msgid "Cell Complex"
+msgstr "胞腔复形"
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|skos:definition"
+msgid "A topological space assembled from cells by attaching each cell boundary to lower-dimensional cells. It is not merely a partition or mesh: cell dimensions and attaching maps are constitutive."
+msgstr "由胞腔组装而成的拓扑空间，其中每个胞腔的边界附着到较低维胞腔。 它不仅仅是划分或网格：胞腔维数与粘贴映射是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|rdfs:label"
+msgid "Simplicial Complex"
+msgstr "单纯复形"
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|skos:definition"
+msgid "A cell complex whose cells are simplices and which is closed under taking faces, with intersections occurring along common faces. It is not an arbitrary cell complex: simplex cells and face closure are required."
+msgstr "以单纯形为胞腔、对取面封闭且交集沿公共面的胞腔复形。 它不是任意胞腔复形：单纯形胞腔与面闭包是必需条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|rdfs:label"
+msgid "Chain Complex"
+msgstr "链复形"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|skos:definition"
+msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."
+msgstr "由边界映射连接的分次模序列，其中任意相邻映射的复合为零。 它不只是一个分次集合：边界映射的平方为零定律是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|rdfs:label"
+msgid "Boundary Operator"
+msgstr "边界算子"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|skos:definition"
+msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."
+msgstr "链复形上降一次的平方为零运算，其同调记录模去边界后的闭链。 它不是一般导数，也不是无类型的几何边界运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|rdfs:label"
+msgid "Coboundary Operator"
+msgstr "上边缘算子"
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|skos:definition"
+msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."
+msgstr "上链复形上升一次的平方为零运算，与边界算子对偶。 它不是任意的 delta 算子：上链分次与平方为零定律是必需条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|rdfs:label"
+msgid "Vietoris–Rips Complex"
+msgstr "Vietoris–Rips 复形"
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|skos:definition"
+msgid "The simplicial complex at a scale whose simplices are finite point sets with all pairwise distances at most that scale. It is not a Čech complex: pairwise distance bounds do not require one common ball intersection."
+msgstr "给定尺度下的单纯复形，其单纯形是两两距离均不超过该尺度的有限点集。 它不是 Čech 复形：成对距离界并不要求所有球具有公共交集。"
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|rdfs:label"
+msgid "Čech Complex"
+msgstr "Čech 复形"
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|skos:definition"
+msgid "The nerve simplicial complex of a family of equal-radius balls, with a simplex for each subfamily having nonempty total intersection. It is not a Vietoris–Rips complex: a common intersection, not merely pairwise proximity, licenses a simplex."
+msgstr "等半径球族的神经复形，每个总交非空的子族对应一个单纯形。 它不是 Vietoris–Rips 复形：许可单纯形的是公共交集，而不只是成对接近。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|rdfs:label"
+msgid "Alpha Complex"
+msgstr "Alpha 复形"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|skos:definition"
+msgid "A scale-indexed subcomplex of a Delaunay complex that captures the homotopy type of the union of restricted balls. It is not the full Delaunay complex or an arbitrary proximity complex."
+msgstr "Delaunay 复形的尺度索引子复形，捕获受限球并集的同伦型。 它既不是完整的 Delaunay 复形，也不是任意邻近复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|rdfs:label"
+msgid "Persistent Homology"
+msgstr "持久同调"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|skos:definition"
+msgid "A topological-data-analysis activity that computes homology across a declared filtration and emits persistence summaries; it is the method, not the filtration itself."
+msgstr "沿已声明滤过计算同调并产生持久性摘要的拓扑数据分析活动；它是方法而非滤过本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|rdfs:label"
+msgid "Persistence Diagram"
+msgstr "持久图"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|skos:definition"
+msgid "A multiset of birth–death points summarizing the lifetimes of homological features in a filtration. It is not the filtration or the persistent-homology activity that produced it."
+msgstr "由出生–死亡点组成的多重集，概括滤过中同调特征的寿命。 它不是产生该结果的滤过或持久同调活动。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|rdfs:label"
+msgid "Persistence Barcode"
+msgstr "持久条形码"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|skos:definition"
+msgid "A family of intervals representing the same persistent-module decomposition encoded by feature birth and death lifetimes. It is not a persistence diagram, although the two may encode equivalent interval data."
+msgstr "用特征出生和死亡区间表示同一持久模分解的一族区间。 它不是持久图，尽管二者可以编码等价的区间数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|rdfs:label"
+msgid "Persistence Landscape"
+msgstr "持久景观"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|skos:definition"
+msgid "A sequence of real-valued functions derived from persistence intervals that places persistent-homology summaries in a statistical function space. It is not a raw barcode or diagram: it is their function-valued transform."
+msgstr "由持久区间导出的一列实值函数，将持久同调摘要置于统计函数空间。 它不是原始条形码或图，而是它们的函数值变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|rdfs:label"
+msgid "Betti Summary"
+msgstr "Betti 摘要"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|skos:definition"
+msgid "A degree-indexed collection of Betti numbers for a declared complex, space, filtration stage, or persistence result. It is not one unscoped Betti number."
+msgstr "按次数索引的 Betti 数集合，对应已声明复形、空间、滤过阶段或持久结果。 它不是一个没有作用域的单一 Betti 数。"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|rdfs:label"
+msgid "Betti Number"
+msgstr "Betti 数"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|skos:definition"
+msgid "The rank of a homology group in a specified degree, counting independent topological features of that degree. It is not a simplex count or an Euler characteristic."
+msgstr "指定次数同调群的秩，计数该次数的独立拓扑特征。 它不是单纯形计数或 Euler 示性数。"
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|rdfs:label"
+msgid "Mapper Construction"
+msgstr "Mapper 构造"
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|skos:definition"
+msgid "A topological-data-analysis activity that covers the range of a filter function, clusters inverse images, and forms their nerve graph or complex. It is not clustering or dimensional reduction alone: the cover and nerve construction are required."
+msgstr "覆盖过滤函数值域、聚类逆像并形成其神经图或复形的拓扑数据分析活动。 它不只是聚类或降维：覆盖与神经构造都是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|rdfs:label"
+msgid "Multiparameter Persistence"
+msgstr "多参数持久性"
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|skos:definition"
+msgid "Persistent-homology analysis over a filtration indexed by a partially ordered parameter space of dimension greater than one. It is not a collection of unrelated one-parameter persistence runs."
+msgstr "在维数大于一的偏序参数空间所索引滤过上进行的持久同调分析。 它不是若干互不相关的单参数持久性运行的集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|rdfs:label"
+msgid "Zigzag Persistence"
+msgstr "之字形持久性"
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|skos:definition"
+msgid "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence."
+msgstr "结构映射可向前或向后的序列上的持久同调分析，允许增加与删除。 它不是仅含前向映射的普通持久性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|rdfs:label"
+msgid "Scalar Field"
+msgstr "标量场"
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|skos:definition"
+msgid "A function assigning a scalar to each point of its declared domain."
+msgstr "为其已声明定义域的每个点赋予一个标量的函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|rdfs:label"
+msgid "Vector Field"
+msgstr "向量场"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|skos:definition"
+msgid "A function assigning to each point of a manifold a vector in the tangent space at that point."
+msgstr "为流形每个点赋予该点切空间向量的函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|rdfs:label"
+msgid "Flow"
+msgstr "流"
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|skos:definition"
+msgid "A parameterized family of transformations describing the evolution generated by a vector field or dynamical system."
+msgstr "描述向量场或动力系统所生成演化的一族参数化变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|rdfs:label"
+msgid "Symplectic Form"
+msgstr "辛形式"
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|skos:definition"
+msgid "A closed nondegenerate differential two-form on a smooth even-dimensional manifold."
+msgstr "光滑偶数维流形上的闭且非退化微分二形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|rdfs:label"
+msgid "Hamiltonian Function"
+msgstr "哈密顿函数"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|skos:definition"
+msgid "A scalar function on a symplectic state space whose symplectic gradient generates the Hamiltonian flow."
+msgstr "辛状态空间上的标量函数，其辛梯度生成哈密顿流。"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|rdfs:label"
+msgid "Hamiltonian Flow"
+msgstr "哈密顿流"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|skos:definition"
+msgid "The flow generated by a Hamiltonian function through a declared symplectic form."
+msgstr "由哈密顿函数通过已声明辛形式生成的流。"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|rdfs:label"
+msgid "Hamiltonian System"
+msgstr "哈密顿系统"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|skos:definition"
+msgid "A dynamical system framed by a symplectic state space and a Hamiltonian function that generates its flow."
+msgstr "由辛状态空间和生成其流的哈密顿函数所框定的动力系统。"
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|rdfs:label"
+msgid "Cellular Sheaf"
+msgstr "胞腔层"
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|skos:definition"
+msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."
+msgstr "胞腔复形上的层，为每个胞腔赋予茎，并为每个面关系赋予兼容限制映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
+msgid "Sheaf Stalk"
+msgstr "层茎"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|skos:definition"
+msgid "The local value object assigned by a sheaf to a point or cell of its base space."
+msgstr "层赋予其基空间某个点或胞腔的局部值对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|rdfs:label"
+msgid "Restriction Map"
+msgstr "限制映射"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|skos:definition"
+msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."
+msgstr "沿包含或关联关系在层茎间传输局部数据并服从恒等与复合律的层态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|rdfs:label"
+msgid "Sheaf Section"
+msgstr "层截面"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|skos:definition"
+msgid "A compatible assignment of local stalk values over a region of a sheaf's base space."
+msgstr "在层的基空间某一区域上对局部茎值的兼容赋值。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|rdfs:label"
+msgid "Sheaf Cohomology"
+msgstr "层上同调"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|skos:definition"
+msgid "The cohomological invariants measuring obstructions to gluing local sheaf data into global sections."
+msgstr "度量将局部层数据粘合为全局截面之障碍的上同调不变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|rdfs:label"
+msgid "Sheaf Laplacian"
+msgstr "层拉普拉斯算子"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|skos:definition"
+msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."
+msgstr "由胞腔层上边缘映射与内积构造、度量局部数据不兼容性的拉普拉斯算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|rdfs:label"
+msgid "Hodge Laplacian"
+msgstr "Hodge 拉普拉斯算子"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|skos:definition"
+msgid "The degree-wise operator formed from a boundary or coboundary and its adjoint, whose kernel is the harmonic component."
+msgstr "由边界或上边缘及其伴随按次数构成的算子，其核为调和分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|rdfs:label"
+msgid "Hodge Decomposition"
+msgstr "Hodge 分解"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|skos:definition"
+msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."
+msgstr "在已声明内积下将链、上链或流正交分解为恰当、余恰当和调和分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|rdfs:label"
+msgid "Harmonic Component"
+msgstr "调和分量"
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the kernel of the applicable Hodge Laplacian."
+msgstr "位于适用 Hodge 拉普拉斯算子核中的 Hodge 分解分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|rdfs:label"
+msgid "Exact Component"
+msgstr "恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the applicable boundary or coboundary operator."
+msgstr "位于适用边界或上边缘算子像中的 Hodge 分解分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|rdfs:label"
+msgid "Coexact Component"
+msgstr "余恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."
+msgstr "位于边界或上边缘算子伴随之像中的 Hodge 分解分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|rdfs:label"
+msgid "Dimensional Reduction"
+msgstr "降维"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|skos:definition"
+msgid "An analysis activity that maps data to a declared lower-dimensional representation and records its input, target dimension, and output embedding."
+msgstr "将数据映射到已声明低维表示并记录输入、目标维数与输出嵌入的分析活动。"
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|rdfs:label"
+msgid "UMAP Reduction"
+msgstr "UMAP 降维"
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|skos:definition"
+msgid "A dimensionality-reduction analysis using the Uniform Manifold Approximation and Projection method with its metric and neighborhood parameters declared."
+msgstr "使用 UMAP 方法且声明度量与邻域参数的降维分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|rdfs:label"
+msgid "Isomap Reduction"
+msgstr "Isomap 降维"
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|skos:definition"
+msgid "A dimensionality-reduction analysis that approximates geodesic distances on a neighborhood graph before embedding them in a lower-dimensional space."
+msgstr "先在邻域图上近似测地距离再嵌入低维空间的降维分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|rdfs:label"
+msgid "Spectral Initialization"
+msgstr "谱初始化"
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|skos:definition"
+msgid "An initialization obtained from eigenvectors of a declared graph, kernel, covariance, or Laplacian operator."
+msgstr "从已声明图、核、协方差算子或拉普拉斯算子的特征向量得到的初始化。"
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|rdfs:label"
+msgid "Reduction Path"
+msgstr "降维路径"
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|skos:definition"
+msgid "An ordered record of intermediate representations and transformations in a staged dimensionality-reduction procedure."
+msgstr "分阶段降维过程中各中间表示与变换的有序记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|rdfs:label"
+msgid "Reconstruction Map"
+msgstr "重构映射"
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|skos:definition"
+msgid "A map from a reduced or embedded representation toward a source-space reconstruction, with exactness, approximation, and round-trip loss declared rather than assumed."
+msgstr "从降维或嵌入表示指向源空间重构的映射，并显式声明精确性、近似性及往返损失。"
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|rdfs:label"
+msgid "Intrinsic Dimension"
+msgstr "内在维数"
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|skos:definition"
+msgid "The estimated minimum number of coordinates needed to describe a dataset or manifold at a declared scale and under a declared estimator."
+msgstr "在已声明尺度和估计器下描述数据集或流形所需坐标的估计最小数量。"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|rdfs:label"
+msgid "Information Measure"
+msgstr "信息测度"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|skos:definition"
+msgid "A mathematically framed quantity measuring uncertainty, dependence, divergence, or information relative to declared distributions, logarithm base, and units."
+msgstr "相对于已声明分布、对数底和单位度量不确定性、依赖、散度或信息的数学量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|rdfs:label"
+msgid "Information Entropy"
+msgstr "信息熵"
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|skos:definition"
+msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."
+msgstr "已声明概率分布的不确定性测度，其对数底和单位属于框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|rdfs:label"
+msgid "Mutual Information"
+msgstr "互信息"
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|skos:definition"
+msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."
+msgstr "联合分布与其边缘分布乘积之间的散度，用以度量统计依赖。"
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|rdfs:label"
+msgid "Kullback–Leibler Divergence"
+msgstr "Kullback–Leibler 散度"
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|skos:definition"
+msgid "The directed expected log-density ratio from one declared probability distribution to another, not a symmetric distance."
+msgstr "从一个已声明概率分布指向另一个的对数密度比期望，不是对称距离。"
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|rdfs:label"
+msgid "Cross Entropy"
+msgstr "交叉熵"
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|skos:definition"
+msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."
+msgstr "一个已声明分布赋予从另一分布抽取结果的负对数似然期望。"
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|rdfs:label"
+msgid "Fisher Information"
+msgstr "Fisher 信息"
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|skos:definition"
+msgid "The expected curvature or score variance of a parametric likelihood with respect to a declared parameter."
+msgstr "参数似然相对于已声明参数的期望曲率或得分方差。"
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|rdfs:label"
+msgid "Surprisal"
+msgstr "自信息量"
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|skos:definition"
+msgid "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."
+msgstr "结果已声明概率的负对数，并记录对数底与单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|rdfs:label"
+msgid "Logarithm Base"
+msgstr "对数底"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|skos:definition"
+msgid "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."
+msgstr "确定信息测度尺度的已声明对数底——底 2（比特）、底 e（奈特）或底 10（哈特莱）。底是每个信息测度框架的组成部分，绝非隐式默认；三个规范底是命名个体 math:logBaseTwo、math:logBaseE 和 math:logBaseTen。"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|rdfs:label"
+msgid "Information Unit"
+msgstr "信息单位"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|skos:definition"
+msgid "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."
+msgstr "表达信息测度大小所用的单位，与其对数底配对——比特（底 2）、奈特（底 e）或哈特莱（底 10）。三个规范单位是命名个体 math:bit、math:nat 和 math:hartley。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|rdfs:label"
+msgid "Joint Distribution"
+msgstr "联合分布"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|skos:definition"
+msgid "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."
+msgstr "两个或多个随机变量上的联合概率分布，由此可恢复每个边缘分布。math:Distribution 的子类；互信息在联合分布上取得，度量其相对于边缘分布乘积的散度。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|rdfs:label"
+msgid "Incomplete Information Measure"
+msgstr "不完整信息测度"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|skos:definition"
+msgid "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."
+msgstr "当信息测度缺少必需的框架组成部分时引发的失败——其概率分布、对数底、信息单位、散度的参考分布、Fisher 信息的似然模型或得分参数，或自信息量的结果。信息测度仅相对于完整且已声明的框架才有定义；带有隐式分布、底或单位的裸不确定性、散度或信息标记是不良构成的。"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|rdfs:label"
+msgid "over distribution"
+msgstr "在分布上"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|skos:definition"
+msgid "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."
+msgstr "将信息测度关联到其所取的概率分布——熵、自信息量、交叉熵或散度的 P，或互信息的联合分布。定义域 math:InformationMeasure，值域 math:Distribution（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|rdfs:label"
+msgid "reference distribution"
+msgstr "参考分布"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|skos:definition"
+msgid "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."
+msgstr "将散度或交叉熵关联到其参考（第二）分布 Q——用以评估主分布 P 的模型分布。定义域 math:InformationMeasure，值域 math:Distribution（以散文陈述）。方向 P→Q 是固定的，因此 Kullback–Leibler 散度不对称。"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|rdfs:label"
+msgid "information base"
+msgstr "信息底"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|skos:definition"
+msgid "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."
+msgstr "将信息测度关联到确定其尺度的对数底——底 2、底 e 或底 10。定义域 math:InformationMeasure，值域 math:LogarithmBase（以散文陈述）。底是测度框架的一部分，绝非隐式默认；缺少它的测度是不良构成的（math:IncompleteInformationMeasure）。"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|rdfs:label"
+msgid "information unit"
+msgstr "信息单位"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|skos:definition"
+msgid "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."
+msgstr "将信息测度关联到表达其大小所用的单位——比特（底 2）、奈特（底 e）或哈特莱（底 10）——与已声明的对数底配对。定义域 math:InformationMeasure，值域 math:InformationUnit（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|rdfs:label"
+msgid "likelihood model"
+msgstr "似然模型"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|skos:definition"
+msgid "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."
+msgstr "将 Fisher 信息关联到其度量得分函数曲率的参数似然模型。定义域 math:FisherInformation，值域 math:Distribution（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|rdfs:label"
+msgid "score parameter"
+msgstr "得分参数"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|skos:definition"
+msgid "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."
+msgstr "将 Fisher 信息关联到取对数似然得分及其期望曲率所依据的模型参数。定义域 math:FisherInformation，值域 math:DistributionParameter（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|rdfs:label"
+msgid "of outcome"
+msgstr "关于结果"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|skos:definition"
+msgid "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."
+msgstr "将自信息量关联到其在分布下取已声明概率之负对数的单个结果。定义域 math:Surprisal，值域 math:MathematicalObject（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|rdfs:label"
+msgid "measure value"
+msgstr "测度值"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
+msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
+msgstr "将信息测度关联到其在已声明单位下计算所得大小的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此诸如均匀两结果分布的香农熵之类的参考计算被记录为恰好 1/1 比特。定义域 math:InformationMeasure，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|rdfs:label"
+msgid "over sheaf"
+msgstr "在层上"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|skos:definition"
+msgid "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "将霍奇分解关联到其所在的胞腔层，该层的层拉普拉斯算子与上边缘映射定义其恰当、上恰当与调和子空间。定义域 math:HodgeDecomposition，值域 math:CellularSheaf（以散文陈述）。该载体是分解框架的组成部分，绝非隐式；缺少它的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|rdfs:label"
+msgid "Hodge boundary operator"
+msgstr "霍奇边缘算子"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|skos:definition"
+msgid "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "将霍奇分解关联到其边缘算子，该算子的像是恰当分量、其伴随的像是上恰当分量。定义域 math:HodgeDecomposition，值域 math:BoundaryOperator（以散文陈述）。该算子是分解的构成要素——恰当/上恰当的分离相对于它而定义；边缘算子被省略或类型错误的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|rdfs:label"
+msgid "exact component"
+msgstr "恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."
+msgstr "将霍奇分解关联到其恰当分量——位于适用边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:ExactComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
+msgid "coexact component"
+msgstr "上恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
+msgstr "将霍奇分解关联到其上恰当分量——位于伴随边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:CoexactComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|rdfs:label"
+msgid "harmonic component"
+msgstr "调和分量"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."
+msgstr "将霍奇分解关联到其调和分量——位于适用霍奇拉普拉斯算子核中的部分，与恰当与上恰当部分皆正交。定义域 math:HodgeDecomposition，值域 math:HarmonicComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|rdfs:label"
+msgid "reconstruction residual"
+msgstr "重构残差"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其重构残差范数的精确 math:RationalValue——信号减去其恰当、上恰当与调和分量之和。霍奇分解定理使该残差恰好为零，以精确对 0/1 携带，绝非小数；非零残差将见证重构失败。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|rdfs:label"
+msgid "exact–coexact inner product"
+msgstr "恰当–上恰当内积"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其恰当与上恰当分量内积 ⟨exact, coexact⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|rdfs:label"
+msgid "exact–harmonic inner product"
+msgstr "恰当–调和内积"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其恰当与调和分量内积 ⟨exact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|rdfs:label"
+msgid "coexact–harmonic inner product"
+msgstr "上恰当–调和内积"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其上恰当与调和分量内积 ⟨coexact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|rdfs:label"
+msgid "Incomplete Hodge Decomposition"
+msgstr "不完整霍奇分解"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:definition"
+msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
+msgstr "当霍奇分解缺少必需的框架组成部分时引发的失败——它所分解的信号、其恰当、上恰当或调和分量、其边缘算子、其载体层、见证重构的精确残差，或三个精确的成对正交性内积之一。霍奇分解仅相对于完整且已声明的框架才有定义；边缘算子、重构残差或分量正交性为隐式的裸分离是不良构成的。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|rdfs:label"
+msgid "Metric Space"
+msgstr "度量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|skos:definition"
+msgid "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."
+msgstr "度量空间 (X, d)：集合 X 连同一个距离函数 d，该函数非负、恰好在对角线上为零、对称并满足三角不等式。每个度量空间都诱导一个拓扑（度量球构成一组基），因此它是 math:TopologicalSpace 的子类，但距离函数是构成性的，无法仅从拓扑中恢复。它是 Mapper 构造的滤波函数与聚类规则所定义于其上的源；以已声明度量采样的点云即是一个度量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|rdfs:label"
+msgid "Cover"
+msgstr "覆盖"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|skos:definition"
+msgid "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "空间的覆盖：一族有限的相互重叠的集合（其 math:CoverElement 成员，通过 math:hasCoverElement 命名），其并集包含被覆盖的空间。在 Mapper 构造中，覆盖取自滤波函数的陪域，相邻覆盖元之间的重叠正是产生输出神经边的原因。覆盖是已声明且有限枚举的，绝非隐式的分辨率参数；缺少它的 Mapper 构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|rdfs:label"
+msgid "Cover Element"
+msgstr "覆盖元"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|skos:definition"
+msgid "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."
+msgstr "math:Cover 的单个元素：其族覆盖空间的相互重叠集合之一（通常是一个开集或区间）。math:Set 的子类。两个重叠的覆盖元在它们的逆像中所发现的聚类之间诱导一条边；覆盖元携带具体的外延（对于实值滤波，是一个带端点与包含性的区间），这使覆盖成为确定的，而非自由的分辨率选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|rdfs:label"
+msgid "Clustering Rule"
+msgstr "聚类规则"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|skos:definition"
+msgid "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "应用于每个覆盖元逆像以将其划分为聚类的、已声明且确定的规则——例如在固定距离阈值（math:clusteringThreshold）处的单连接聚类。math:MathematicalObject 的子类，将该规则命名为一等对象，使 Mapper 的节点集可复现，而绝非某未指定聚类步骤的输出。聚类规则被省略或留给约定的 Mapper 构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|rdfs:label"
+msgid "Nerve Complex"
+msgstr "神经复形"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|skos:definition"
+msgid "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."
+msgstr "被覆盖且被聚类的空间的神经：一个单纯复形，其顶点是每个覆盖元逆像中所发现的聚类，其 k-单形记录 k+1 个聚类的非空交。它是 math:SimplicialComplex 的子类；Mapper 构造的输出神经是其一维骨架图连同来自多路聚类重叠的任何更高单形。它是 Mapper 构造的输出，而非计算它所依据的源复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|rdfs:label"
+msgid "Incomplete Mapper Construction"
+msgstr "不完整 Mapper 构造"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|skos:definition"
+msgid "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."
+msgstr "当 Mapper 构造缺少必需的框架组成部分时引发的失败——其源度量空间、其滤波（透镜）函数、滤波陪域的覆盖、应用于每个覆盖元逆像内部的聚类规则，或输出神经复形。Mapper 构造仅相对于完整且已声明的框架才有定义；滤波、覆盖或聚类规则为隐式的裸图是不良构成的，因为没有它们，节点集与边集都不可复现。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|rdfs:label"
+msgid "source metric space"
+msgstr "源度量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|skos:definition"
+msgid "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到它所采样的源度量空间——带有已声明距离函数的点云（或空间），滤波函数与聚类规则皆定义于其上。定义域 math:MapperConstruction，值域 math:MetricSpace（以散文陈述）。源是构造框架的组成部分，绝非隐式；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|rdfs:label"
+msgid "filter function"
+msgstr "滤波函数"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|skos:definition"
+msgid "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到滤波（透镜）函数，该函数将其源度量空间映射到取覆盖所依据的陪域——一个实值高度、一个偏心率或一个密度估计。定义域 math:MapperConstruction，值域 math:Function（以散文陈述）。滤波是构成性的：整个覆盖/聚类流水线通过它被拉回，因此滤波函数被省略的构造没有可拉回的覆盖，是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|rdfs:label"
+msgid "cover scheme"
+msgstr "覆盖方案"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|skos:definition"
+msgid "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到其滤波函数陪域的 math:Cover——一族有限的相互重叠的覆盖元，其逆像被聚类，其重叠产生神经的边。定义域 math:MapperConstruction，值域 math:Cover（以散文陈述）。覆盖是已声明且有限枚举的，绝非隐式的分辨率/增益参数；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
+msgid "clustering rule"
+msgstr "聚类规则关系"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
+msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到应用于每个覆盖元逆像以产生神经顶点的确定性 math:ClusteringRule——例如在固定距离阈值处的单连接聚类。定义域 math:MapperConstruction，值域 math:ClusteringRule（以散文陈述）。该规则是框架的组成部分，使节点集可复现；聚类被省略或留给约定的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|rdfs:label"
+msgid "output nerve"
+msgstr "输出神经"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|skos:definition"
+msgid "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到它所产生的 math:NerveComplex——一个单纯复形（其一维骨架图加上任何更高单形），其顶点是每个覆盖元的聚类，其单形记录聚类重叠。定义域 math:MapperConstruction，值域 math:NerveComplex（以散文陈述）。神经是构造的已声明输出；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|rdfs:label"
+msgid "has cover element"
+msgstr "具有覆盖元"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|skos:definition"
+msgid "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."
+msgstr "将 math:Cover 关联到其 math:CoverElement 成员之一——覆盖族中单个相互重叠的集合。定义域 math:Cover，值域 math:CoverElement（以散文陈述）。枚举覆盖元正是使覆盖成为确定的原因：该族被显式列出，而非由分辨率与增益概括。"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|rdfs:label"
+msgid "clustering threshold"
+msgstr "聚类阈值"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|skos:definition"
+msgid "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."
+msgstr "将 math:ClusteringRule 关联到它合并点所在距离阈值的精确 math:RationalValue——以精确的分子/分母对携带的单连接截断值，绝非小数，因此聚类可复现。定义域 math:ClusteringRule，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
+msgid "Vector-Symbolic Operation"
+msgstr "向量符号运算"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|skos:definition"
+msgid "An operation in a declared vector-symbolic architecture that composes or retrieves distributed representations."
+msgstr "在已声明向量符号架构中组合或检索分布式表示的运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|rdfs:label"
+msgid "Vector Binding"
+msgstr "向量绑定"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|skos:definition"
+msgid "A vector-symbolic operation combining two representations into a representation of their association."
+msgstr "将两个表示组合成其关联表示的向量符号运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|rdfs:label"
+msgid "Vector Bundling"
+msgstr "向量束集"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|skos:definition"
+msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."
+msgstr "将多个表示叠加成保持相似性聚合的向量符号运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|rdfs:label"
+msgid "Vector Unbinding"
+msgstr "向量解绑"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|skos:definition"
+msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."
+msgstr "在给定另一因子及绑定律时近似或精确恢复一个已绑定因子的向量符号运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|rdfs:label"
+msgid "Quadratic Space"
+msgstr "二次空间"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|skos:definition"
+msgid "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."
+msgstr "配备已声明二次形式并包括标量域与退化性质的向量空间。 它不是缺少该形式的裸向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|rdfs:label"
+msgid "Quadratic Form"
+msgstr "二次形式"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|skos:definition"
+msgid "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."
+msgstr "向量空间上的二次齐次标量值函数；当标量特征允许时确定其伴随双线性形式。 它不是其伴随双线性形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|rdfs:label"
+msgid "Graded Algebra"
+msgstr "分次代数"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|skos:definition"
+msgid "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."
+msgstr "分解为按次数索引分量且乘法遵守已声明分次律的代数。 它不是任意直和分解：乘法必须遵守分次。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|rdfs:label"
+msgid "Grading"
+msgstr "分次"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|skos:definition"
+msgid "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."
+msgstr "将代数或模分解为按索引的齐次分量，并带有运算如何组合次数的定律。 它不是对元素的简单分区或标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|rdfs:label"
+msgid "Exterior Algebra"
+msgstr "外代数"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|skos:definition"
+msgid "The graded alternating algebra generated by a vector space under the exterior product. It is not a Clifford algebra: repeated generators vanish and no quadratic-form contribution is retained."
+msgstr "由向量空间在外积下生成的分次交错代数。 它不是 Clifford 代数：重复生成元为零，并且不保留二次型贡献。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|rdfs:label"
+msgid "Clifford Algebra"
+msgstr "Clifford 代数"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|skos:definition"
+msgid "The unital associative algebra generated by a quadratic space under the relation v² equals its quadratic form; its field, signature, basis, grading, and product convention must be explicit. It is not an exterior algebra because its product retains the quadratic-form contribution."
+msgstr "由二次空间按 v² 等于其二次形式之关系生成的含幺结合代数；标量域、符号差、基、分次和乘积约定必须显式。 它不是外代数，因为其乘积保留二次型贡献。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|rdfs:label"
+msgid "Basis Blade"
+msgstr "基刀片"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|skos:definition"
+msgid "A homogeneous Clifford or exterior basis element formed as an ordered product of distinct basis generators. It is not an arbitrary multivector or a sum of blades."
+msgstr "由不同基生成元的有序乘积形成的齐次 Clifford 或外代数基元素。 它不是任意多向量或若干刃的和。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|rdfs:label"
+msgid "Clifford Anticommutation Witness"
+msgstr "Clifford 反交换见证"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|skos:definition"
+msgid "A calculated record that names two distinct Clifford generators and verifies that reversing their geometric-product order negates the result."
+msgstr "命名两个不同 Clifford 生成元并验证颠倒其几何乘积次序会使结果变号的计算记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|rdfs:label"
+msgid "Multivector"
+msgstr "多向量"
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|skos:definition"
+msgid "An element of a Clifford algebra expressed as a sum of homogeneous blade components across one or more grades. It is not necessarily a vector or a grade-one element."
+msgstr "Clifford 代数中表示为一个或多个次数齐次刀片分量之和的元素。 它不一定是向量或一次元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|rdfs:label"
+msgid "Clifford Product"
+msgstr "Clifford 乘积"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|skos:definition"
+msgid "A bilinear product operation defined within a declared Clifford algebra and governed by its quadratic form."
+msgstr "在已声明 Clifford 代数中定义并由其二次形式支配的双线性乘积运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|rdfs:label"
+msgid "Geometric Product"
+msgstr "几何积"
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|skos:definition"
+msgid "The associative Clifford product combining inner and exterior contributions according to the declared quadratic form. It is not the scalar product or exterior product alone."
+msgstr "按已声明二次形式结合内积与外积贡献的结合 Clifford 乘积。 它不只是标量积或外积。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|rdfs:label"
+msgid "Exterior Product"
+msgstr "外积"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|skos:definition"
+msgid "The alternating graded product, conventionally written with a wedge, that vanishes when a generator is repeated. It is not logical conjunction or the full geometric product."
+msgstr "通常写作楔形符号的分次交错乘积，生成元重复时为零。 它不是逻辑合取，也不是完整几何积。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|rdfs:label"
+msgid "Left Contraction"
+msgstr "左缩并"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|skos:definition"
+msgid "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."
+msgstr "在已声明约定下选取 Clifford 乘积次数差分量的降次乘积。 它不是对称内积：操作数顺序与缩并约定都会影响结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|rdfs:label"
+msgid "Grade Projection"
+msgstr "次数投影"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|skos:definition"
+msgid "The operation selecting the homogeneous component of a multivector at a declared grade. It is not coordinate selection or extraction of one basis coefficient."
+msgstr "选取多向量在已声明次数上的齐次分量之运算。 它不是坐标选择或单一基系数提取。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|rdfs:label"
+msgid "Clifford Involution"
+msgstr "Clifford 对合"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|skos:definition"
+msgid "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."
+msgstr "Clifford 代数上的二阶运算，并声明其对次数及乘积次序的作用。 它不是任意代数自同态：连续应用两次必须返回输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|rdfs:label"
+msgid "Clifford Reversion"
+msgstr "Clifford 逆序"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|skos:definition"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."
+msgstr "在每个刀片中反转基生成元次序的 Clifford 反对合。 它不是次数对合；其依赖次数的符号来自顺序反转。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|rdfs:label"
+msgid "Grade Involution"
+msgstr "分次对合"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|skos:definition"
+msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
+msgstr "对奇次分量取负而保持偶次分量的 Clifford 对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|rdfs:label"
+msgid "Clifford Conjugation"
+msgstr "Clifford 共轭"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|skos:definition"
+msgid "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."
+msgstr "Clifford 代数中分次对合与逆序的复合。 它既不只是逆序，也不只是次数对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|rdfs:label"
+msgid "Rotor"
+msgstr "旋量子"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|skos:definition"
+msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
+msgstr "可逆偶多向量，其夹心作用在已声明约定下实现正交变换。 它不是任意偶多向量：可逆性与夹心作用是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|rdfs:label"
+msgid "Spinor"
+msgstr "旋量"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|skos:definition"
+msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
+msgstr "与二次空间相关的已声明旋表示或旋量模中的元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|rdfs:label"
+msgid "Dirac Operator"
+msgstr "Dirac 算子"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|skos:definition"
+msgid "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."
+msgstr "由 Clifford 乘法及旋量丛上的兼容联络构成的一阶微分算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|rdfs:label"
+msgid "Direct-Sum Decomposition"
+msgstr "直和分解"
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|skos:definition"
+msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."
+msgstr "将一个数学对象分解为显式命名、两两交为零且在已声明范畴中共同张成全部的加项。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|rdfs:label"
+msgid "Clifford Module Decomposition"
+msgstr "Clifford 模分解"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|skos:definition"
+msgid "The vector-space or module decomposition of an extended Clifford algebra into an embedded base-algebra summand and the new-generator multiple of that summand; it is not an algebra direct sum."
+msgstr "将扩展 Clifford 代数按向量空间或模分解为嵌入基代数加项及其新生成元倍数；它不是代数直和。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|rdfs:label"
+msgid "Clifford Extension"
+msgstr "Clifford 扩展"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|skos:definition"
+msgid "A declared extension from a base Clifford algebra to one with an additional generator, recording both signatures and the embedding convention."
+msgstr "从基 Clifford 代数到增加一个生成元之代数的已声明扩展，记录两端符号差和嵌入约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|rdfs:label"
+msgid "Faithful Representation"
+msgstr "忠实表示"
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|skos:definition"
+msgid "A group representation whose kernel is trivial, so distinct represented group elements induce distinct transformations."
+msgstr "核为平凡群的群表示，因而不同群元素诱导不同变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|rdfs:label"
+msgid "Equivariant Map"
+msgstr "等变映射"
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|skos:definition"
+msgid "A morphism between spaces carrying group actions that commutes with the declared actions."
+msgstr "在带群作用的空间间与已声明作用可交换的态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|rdfs:label"
+msgid "analysis output"
+msgstr "分析输出"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|skos:definition"
+msgid "Relates a mathematical analysis activity to an explicit result object it produced; interpretation of that result remains a separate standpoint-indexed claim."
+msgstr "将数学分析活动关联到其产生的显式结果对象；结果解释仍是独立的立场索引主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|rdfs:label"
+msgid "target dimension"
+msgstr "目标维数"
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|skos:definition"
+msgid "The non-negative integer dimension requested as the output dimension of a dimensionality-reduction analysis."
+msgstr "降维分析请求作为输出维数的非负整数。"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|rdfs:label"
+msgid "uses initialization"
+msgstr "使用初始化"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|skos:definition"
+msgid "Relates an iterative mathematical analysis to the explicit initialization from which its optimization or iteration begins."
+msgstr "将迭代数学分析关联到其优化或迭代开始时的显式初始化。"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|rdfs:label"
+msgid "reconstruction of"
+msgstr "所重构者"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|skos:definition"
+msgid "Relates a reconstructed mathematical object to the representation, projection, or source object it attempts to recover."
+msgstr "将重构数学对象关联到其试图恢复的表示、投影或源对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|rdfs:label"
+msgid "symplectic form"
+msgstr "辛形式"
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|skos:definition"
+msgid "Relates a Hamiltonian system or smooth state space to the closed nondegenerate two-form that frames its Hamiltonian dynamics."
+msgstr "将哈密顿系统或光滑状态空间关联到框定其动力学的闭非退化二形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|rdfs:label"
+msgid "state space"
+msgstr "状态空间"
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|skos:definition"
+msgid "Relates a dynamical or Hamiltonian system to the mathematical space containing its states."
+msgstr "将动力系统或哈密顿系统关联到包含其状态的数学空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|rdfs:label"
+msgid "Hamiltonian function"
+msgstr "哈密顿函数"
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|skos:definition"
+msgid "Relates a Hamiltonian system to the scalar function whose symplectic gradient generates its evolution."
+msgstr "将哈密顿系统关联到其辛梯度生成演化的标量函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|rdfs:label"
+msgid "generates flow"
+msgstr "生成流"
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|skos:definition"
+msgid "Relates a vector field, Hamiltonian function, or dynamical system to the flow it generates."
+msgstr "将向量场、哈密顿函数或动力系统关联到其生成的流。"
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|rdfs:label"
+msgid "sheaf base complex"
+msgstr "层基复形"
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|skos:definition"
+msgid "Relates a cellular sheaf to the cell complex on which its stalks and restriction maps are indexed."
+msgstr "将胞腔层关联到索引其茎和限制映射的胞腔复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|rdfs:label"
+msgid "has stalk"
+msgstr "具有茎"
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|skos:definition"
+msgid "Relates a sheaf to one of its local stalk objects."
+msgstr "将一个层关联到其局部茎对象之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|rdfs:label"
+msgid "stalk over cell"
+msgstr "胞腔上的茎"
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|skos:definition"
+msgid "Relates a cellular-sheaf stalk to the cell of the base complex to which it is assigned."
+msgstr "将胞腔层茎关联到其被赋予的基复形胞腔。"
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|rdfs:label"
+msgid "restriction map"
+msgstr "限制映射"
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|skos:definition"
+msgid "Relates a sheaf to one of its compatible restriction maps between stalks."
+msgstr "将一个层关联到其茎之间的兼容限制映射之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|rdfs:label"
+msgid "has section"
+msgstr "具有截面"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|skos:definition"
+msgid "Relates a sheaf to a local or global compatible section."
+msgstr "将一个层关联到局部或全局兼容截面。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|rdfs:label"
+msgid "has Laplacian"
+msgstr "具有拉普拉斯算子"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|skos:definition"
+msgid "Relates a complex, sheaf, or graded space to the Laplacian operator defined on it."
+msgstr "将复形、层或分次空间关联到其上定义的拉普拉斯算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|rdfs:label"
+msgid "decomposes flow"
+msgstr "分解流"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|skos:definition"
+msgid "Relates a Hodge decomposition to the flow, chain, or cochain it separates into exact, coexact, and harmonic components."
+msgstr "将 Hodge 分解关联到其分成恰当、余恰当和调和分量的流、链或上链。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|rdfs:label"
+msgid "has quadratic form"
+msgstr "具有二次形式"
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|skos:definition"
+msgid "Relates a quadratic space or Clifford algebra to the quadratic form governing its metric relation."
+msgstr "将二次空间或 Clifford 代数关联到支配其度量关系的二次形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
+msgid "scalar field"
+msgstr "标量域"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
+msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
+msgstr "将向量空间、二次空间、模或代数关联到解释其运算的显式标量域。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|rdfs:label"
+msgid "has grading"
+msgstr "具有分次"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|skos:definition"
+msgid "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."
+msgstr "将分次代数或模关联到把它分解为齐次分量的显式分次。"
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|rdfs:label"
+msgid "Clifford involution"
+msgstr "Clifford 对合"
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|skos:definition"
+msgid "Relates a Clifford algebra to a supported involution such as reversion, grade involution, or Clifford conjugation."
+msgstr "将 Clifford 代数关联到逆序、分次对合或 Clifford 共轭等受支持对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|rdfs:label"
+msgid "has basis blade"
+msgstr "具有基刀片"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|skos:definition"
+msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
+msgstr "将 Clifford 代数关联到其有序生成元基所诱导的齐次基刀片之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|rdfs:label"
+msgid "has anticommutation witness"
+msgstr "具有反交换见证"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|skos:definition"
+msgid "Relates a Clifford algebra to a calculated witness for one distinct-generator anticommutation law."
+msgstr "将 Clifford 代数关联到不同生成元反交换律的一个计算见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|rdfs:label"
+msgid "left generator"
+msgstr "左生成元"
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the generator occurring on the left in its forward product."
+msgstr "将反交换见证关联到其正向乘积左侧的生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|rdfs:label"
+msgid "right generator"
+msgstr "右生成元"
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the distinct generator occurring on the right in its forward product."
+msgstr "将反交换见证关联到其正向乘积右侧的不同生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|rdfs:label"
+msgid "blade grade"
+msgstr "刀片次数"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|skos:definition"
+msgid "The non-negative integer grade of a homogeneous basis blade."
+msgstr "齐次基刀片的非负整数次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|rdfs:label"
+msgid "generator index"
+msgstr "生成元索引"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|skos:definition"
+msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
+msgstr "Clifford 生成元在代数已声明有序基中的正整数位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|rdfs:label"
+msgid "generator square"
+msgstr "生成元平方"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|skos:definition"
+msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
+msgstr "已声明 Clifford 基生成元在代数符号差约定下的精确标量平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|rdfs:label"
+msgid "pseudoscalar square"
+msgstr "伪标量平方"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|skos:definition"
+msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
+msgstr "已声明 Clifford 代数与基约定中最高次伪标量的精确标量平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|rdfs:label"
+msgid "anticommutation verified"
+msgstr "已验证反交换"
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|skos:definition"
+msgid "The boolean result of exactly checking the named distinct-generator anticommutation witness."
+msgstr "精确检查所命名不同生成元反交换见证的布尔结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|rdfs:label"
+msgid "decomposed object"
+msgstr "被分解对象"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|skos:definition"
+msgid "Relates a decomposition record to the mathematical object decomposed."
+msgstr "将分解记录关联到被分解的数学对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|rdfs:label"
+msgid "direct summand"
+msgstr "直和加项"
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|skos:definition"
+msgid "Relates a direct-sum decomposition to one of its explicitly identified summands."
+msgstr "将直和分解关联到其显式标识加项之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|rdfs:label"
+msgid "module base summand"
+msgstr "模基加项"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the embedded base-algebra summand."
+msgstr "将 Clifford 模分解关联到嵌入的基代数加项。"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|rdfs:label"
+msgid "module extension summand"
+msgstr "模扩展加项"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the summand obtained by left multiplication with the new extension generator."
+msgstr "将 Clifford 模分解关联到以新扩展生成元左乘所得加项。"
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|rdfs:label"
+msgid "split/join verified"
+msgstr "已验证拆分/合并"
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|skos:definition"
+msgid "The boolean result of an exact round trip through a declared Clifford extension split and join."
+msgstr "通过已声明 Clifford 扩展拆分和合并进行精确往返的布尔结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|rdfs:label"
+msgid "base algebra"
+msgstr "基代数"
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the lower-generator Clifford algebra being embedded."
+msgstr "将 Clifford 扩展关联到被嵌入的较少生成元 Clifford 代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|rdfs:label"
+msgid "extended algebra"
+msgstr "扩展代数"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the Clifford algebra obtained after adjoining the declared generator."
+msgstr "将 Clifford 扩展关联到加入已声明生成元后得到的代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|rdfs:label"
+msgid "extension generator"
+msgstr "扩展生成元"
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|skos:definition"
+msgid "Relates a Clifford extension to the additional basis generator, including its grade and exact square."
+msgstr "将 Clifford 扩展关联到额外基生成元，包括其次数和精确平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|rdfs:label"
+msgid "represented object"
+msgstr "被表示对象"
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|skos:definition"
+msgid "Relates a mathematical representation to the group, algebra, or structured object it represents."
+msgstr "将数学表示关联到其表示的群、代数或结构化对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|rdfs:label"
+msgid "representation map"
+msgstr "表示映射"
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|skos:definition"
+msgid "Relates a representation record to the explicit morphism realizing the representation."
+msgstr "将表示记录关联到实现该表示的显式态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|rdfs:label"
+msgid "equivariant map"
+msgstr "等变映射"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|skos:definition"
+msgid "Relates a representation or structured comparison to the explicit map proved to commute with the declared group actions."
+msgstr "将表示或结构化比较关联到已证明与群作用可交换的显式映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|rdfs:label"
+msgid "equivariant under"
+msgstr "关于其等变"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|skos:definition"
+msgid "Relates an equivariant map to the group action or symmetry with which it commutes."
+msgstr "将等变映射关联到其与之可交换的群作用或对称性。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|rdfs:label"
+msgid "Incomplete Persistent-Homology Analysis"
+msgstr "不完整持久同调分析"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|skos:definition"
+msgid "The failure raised when a persistent-homology analysis lacks its input, filtration, or persistence-summary output."
+msgstr "持久同调分析缺少输入、滤过或持久性摘要输出时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|rdfs:label"
+msgid "Incomplete Dimensionality-Reduction Analysis"
+msgstr "不完整降维分析"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|skos:definition"
+msgid "The failure raised when a dimensionality-reduction analysis lacks its input, target dimension, or output embedding."
+msgstr "降维分析缺少输入、目标维数或输出嵌入时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|rdfs:label"
+msgid "Incomplete Hamiltonian System"
+msgstr "不完整哈密顿系统"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|skos:definition"
+msgid "The failure raised when a Hamiltonian system lacks its smooth state space, symplectic form, Hamiltonian function, or generated Hamiltonian flow."
+msgstr "哈密顿系统缺少光滑状态空间、辛形式、哈密顿函数或所生成哈密顿流时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|rdfs:label"
+msgid "Incomplete Cellular Sheaf"
+msgstr "不完整胞腔层"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|skos:definition"
+msgid "The failure raised when a cellular sheaf lacks its base complex, stalks, or restriction maps."
+msgstr "胞腔层缺少基复形、茎或限制映射时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|rdfs:label"
+msgid "Incomplete Clifford Algebra"
+msgstr "不完整 Clifford 代数"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|skos:definition"
+msgid "The failure raised when a Clifford algebra lacks its scalar field, signature, basis blades, grading, product/involution frame, or exact vector-space dimension."
+msgstr "Clifford 代数缺少标量域、符号差、基刀片、分次、乘积或对合框架、或精确向量空间维数时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|rdfs:label"
+msgid "Incomplete Clifford Extension"
+msgstr "不完整 Clifford 扩展"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|skos:definition"
+msgid "The failure raised when a Clifford extension lacks its base algebra, extended algebra, or additional generator."
+msgstr "Clifford 扩展缺少基代数、扩展代数或额外生成元时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|rdfs:label"
+msgid "Metric Signature"
+msgstr "度量符号差"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|skos:definition"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."
+msgstr "实二次空间、度量张量、二次形式或 Clifford 代数共享的签名 (p,q)，由 math:signaturePositive 与 math:signatureNegative 承载。它是结构化对象，且 p+q 等于载体维数。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|rdfs:label"
+msgid "space dimension"
+msgstr "空间维数"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|skos:definition"
+msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
+msgstr "坐标空间、切空间、代数载体或其他显式线性对象的非负整数向量空间维数；它不同于物理量纲 math:hasDimension。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|rdfs:label"
+msgid "metric signature"
+msgstr "度量符号差"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
+msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
+msgstr "将度量张量、二次空间、二次形式或 Clifford 代数关联到其结构化且共享的 math:MetricSignature (p,q)。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgid "has basis"
+msgstr "具有基"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
+msgstr "将向量空间、二次空间或 Clifford 代数关联到其载体的 math:Basis；Clifford 基确定精确乘积所用的有序生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
+msgid "analysis input"
+msgstr "分析输入"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|skos:definition"
+msgid "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."
+msgstr "将数学分析活动关联到其显式分析对象；对于要求输入的分析，缺少此关系即为不良构。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|rdfs:label"
+msgid "Vector-Symbolic Capacity"
+msgstr "向量符号容量"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|skos:definition"
+msgid "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."
+msgstr "向量符号运算的容量描述符：一个一等数学对象，携带（通过 math:capacityBound）关于多少个表示可被绑定或叠加进单个向量、直至恢复退化到低于运算的恢复损失契约之前的精确 math:RationalValue 界。math:MathematicalObject 的子类。容量是已声明的，绝非维度的隐式后果；缺少它的向量符号运算是不良构成的（math:IncompleteVectorSymbolicOperation），因为叠加串扰压倒检索的临界点此时未被说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|rdfs:label"
+msgid "Recovery-Loss Contract"
+msgstr "恢复损失契约"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|skos:definition"
+msgid "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "向量符号运算的恢复损失（保真度）契约：一个一等数学对象，携带（通过 math:lossBound）关于恢复的操作数与原始操作数之间差异的精确 math:RationalValue 损失界——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数。math:MathematicalObject 的子类。恢复是近似的，除非精确代数证明相反，因此该契约是构成性的：保真度被留作隐式的解绑不能宣称可逆性，而缺少该契约的向量符号运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|rdfs:label"
+msgid "Incomplete Vector-Symbolic Operation"
+msgstr "不完整向量符号运算"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|skos:definition"
+msgid "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."
+msgstr "当向量符号运算缺少必需的框架组成部分时引发的失败——它所组合于其中的 math:VectorSpace、固定其坐标的 math:Basis、其操作数向量（绑定或捆绑需两个或更多；解绑需绑定向量、键与恢复的操作数）、其容量描述符，或其恢复损失（保真度）契约。向量符号运算仅相对于完整且已声明的框架才有定义；容量或恢复损失契约为隐式的裸绑定、捆绑或解绑是不良构成的，因为没有容量，叠加串扰的极限未被说明；没有损失界，运算无法宣称可逆性——恢复是近似的，除非精确代数证明相反。"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|rdfs:label"
+msgid "over vector space"
+msgstr "在向量空间上"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到它在其中组合分布式表示的 math:VectorSpace——其向量被绑定、捆绑或解绑的环境空间。定义域 math:VectorSymbolicOperation，值域 math:VectorSpace（以散文陈述）。该空间是运算框架的组成部分，绝非隐式；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|rdfs:label"
+msgid "over basis"
+msgstr "在基上"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到固定其向量空间坐标的 math:Basis，使操作数向量与结果向量具有无歧义的分量且绑定律可复现。定义域 math:VectorSymbolicOperation，值域 math:Basis（以散文陈述）。基是运算框架的组成部分，绝非隐式；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|rdfs:label"
+msgid "vsa operand"
+msgstr "vsa 操作数"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|skos:definition"
+msgid "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."
+msgstr "将 math:VectorBinding 或 math:VectorBundling 关联到它所组合的操作数 math:Vector 之一——绑定的一个因子或捆绑的一个加项。定义域 math:VectorBinding 或 math:VectorBundling，值域 math:Vector（以散文陈述）。绑定与捆绑各取两个或更多操作数；声明更少的运算是不良构成的（math:IncompleteVectorSymbolicOperation），因为单个操作数无从组合。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|rdfs:label"
+msgid "bound vector"
+msgstr "绑定向量"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|skos:definition"
+msgid "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到它从中恢复操作数的复合 math:Vector——解绑所作用于的先前已绑定表示。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。绑定向量是解绑框架的组成部分，绝非隐式；缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|rdfs:label"
+msgid "unbinding key"
+msgstr "解绑键"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|skos:definition"
+msgid "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到为检索一个已绑定因子而提供的键（线索）math:Vector——原始绑定的另一个操作数，或其在已声明绑定律下的逆。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。没有键，就没有东西可用来探测绑定向量，因此缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|rdfs:label"
+msgid "recovered operand"
+msgstr "恢复的操作数"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|skos:definition"
+msgid "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到它所产生的 math:Vector——绑定操作数的检索估计，当精确代数使绑定可逆时为精确值，否则为带噪近似。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。恢复的操作数是解绑的已声明输出；缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|rdfs:label"
+msgid "operation capacity"
+msgstr "运算容量"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到 math:VectorSymbolicCapacity 描述符，该描述符界定多少个表示可被绑定或叠加、直至恢复退化之前。定义域 math:VectorSymbolicOperation，值域 math:VectorSymbolicCapacity（以散文陈述）。容量是已声明的，绝非维度的隐式后果；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
+msgid "recovery-loss contract"
+msgstr "恢复损失契约关系"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到陈述检索精确保真度的 math:RecoveryLossContract——当精确代数使其可逆时损失 0/1，否则为一个已声明的正有理数。定义域 math:VectorSymbolicOperation，值域 math:RecoveryLossContract（以散文陈述）。恢复是近似的，除非精确代数证明相反，因此该契约是构成性的；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|rdfs:label"
+msgid "capacity bound"
+msgstr "容量界"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|skos:definition"
+msgid "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."
+msgstr "将 math:VectorSymbolicCapacity 关联到它在恢复退化之前可绑定或叠加的表示的最大数目的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此容量可复现。定义域 math:VectorSymbolicCapacity，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|rdfs:label"
+msgid "loss bound"
+msgstr "损失界"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
+msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
+msgstr "将 math:RecoveryLossContract 关联到其恢复损失界的精确 math:RationalValue——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数——以精确的分子/分母对携带，绝非小数。定义域 math:RecoveryLossContract，值域 math:RationalValue（以散文陈述）。"

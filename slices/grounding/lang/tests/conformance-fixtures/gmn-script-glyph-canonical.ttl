@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Conforming GMN fixture: a canonical glyph table. One grapheme (⊑) in the GMN script
-# carries a canonical codepoint-explicit spelling (gmeow:gmnCodepoints "U+2291") and its
-# operator form is bound to a denoted term through a full lang:Denotation record. Two
-# further glyphs demonstrate the ONE lawful codepoint reuse: they share "U+03BC" (μ) but
+# Conforming GMN fixture: a canonical glyph table. The shipped ⊑ grapheme in the GMN
+# script carries a canonical codepoint-explicit spelling (gmeow:gmnCodepoints "U+2291")
+# and its operator form is bound to logic:subClassOf through the module's audited
+# lang:Denotation record. Two fixture glyphs demonstrate the ONE lawful codepoint reuse:
+# they share "U+03BC" (μ) but
 # BOTH carry a gmeow:gmnSigilScope, so the sigil-scoped exemption of
 # lang:GmnGlyphCollisionShape holds and no collision fires. Every grapheme is grounded in
 # the script's repertoire (lang:GraphemeGroundedShape) and every codepoint value is
@@ -11,33 +12,26 @@
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/lang/> .
 
-# ── The ⊑ glyph, codepoint-explicit, in the GMN script's repertoire ─────────
+# ── Exercise the shipped ⊑ glyph in the GMN script's repertoire ─────────────
 # Every glyph also carries its measured token-cost feed (gmeow:gmnGlyphTokenCost),
 # so lang:GmnScriptGlyphCoverageShape's total glyph-cost coverage stays satisfied.
-gmeow:gmnScript lang:hasGrapheme ex:gSquareImage , ex:gMuSigil , ex:gMuMeasure .
-
-ex:gSquareImage a lang:Grapheme ;
-    lang:inScript gmeow:gmnScript ;
-    gmeow:gmnCodepoints "U+2291" ;
-    gmeow:gmnGlyphTokenCost ex:qCostOne .
+# The module-owned ⊑ measures three pinned tokens; its canonical denotation target is
+# logic:subClassOf, whose grounding correspondence owns the downstream RDFS spelling.
+# Reusing that shipped chain avoids inventing a second executable glyph inventory in a
+# validation fixture.
+gmeow:gmnScript lang:hasGrapheme
+    gmeow:gmnGlyphLogicSubClassOf ,
+    ex:gMuSigil ,
+    ex:gMuMeasure .
 
 ex:qCostOne a math:Quantity ;
     math:hasDimension math:dimensionless ;
     math:quantityValue 1 .
-
-# ── Its operator form denotes the subsumption relation through a Denotation ──
-ex:squareImageForm a lang:WordForm ;
-    lang:inSignSystem gmeow:gmnModelNotation .
-
-ex:denSquareImage a lang:Denotation ;
-    lang:denotedForm ex:squareImageForm ;
-    lang:denotationKind lang:denotesEntity ;
-    lang:denotationTarget <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
-    lang:denotationContext ex:gmnGlyphTableContext .
 
 # ── The sigil-scoped exemption: two μ glyphs, one codepoint, both scoped ────
 ex:gMuSigil a lang:Grapheme ;

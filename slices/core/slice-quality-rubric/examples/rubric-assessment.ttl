@@ -4,13 +4,14 @@
 # Worked example: a slice-quality report IS a bundle of quality observations.
 # Each per-axis grade is a gmeow:QualityAssessment (a gmeow:Observation subclass)
 # whose assessedEntity is the target slice, whose qualityDimension is the axis's
-# emitted dimension, and whose observationResult is a gmeow:ScalarQuantity grade —
-# the same measurement bundle (method, vantage, unit-carrying result) as any other
+# emitted dimension, and whose observationResult is a math:Quantity grade —
+# the same measurement bundle (method, vantage, dimensioned result) as any other
 # GMEOW observation, never a bare number. This scene includes the epistemically
 # hard case: the translation-coverage grade is genuinely CONTESTED (a bare parallel
 # French literal exists but carries no audited translation record), carried honestly
 # as a low grade rather than smoothed over.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -21,7 +22,7 @@ ex:targetSlice a gmeow:Dataset ;
 ex:advisor a gmeow:Organization ;
     gmeow:name "The gmeow-dev slice-quality advisor"@x-gmeow-english .
 
-# --- A per-axis grade: grounding measured Maximal, unit-bundled. ----------------
+# --- A per-axis grade: grounding measured Maximal as a normalized ratio. --------
 ex:groundingGrade a gmeow:QualityAssessment ;
     gmeow:assessedEntity    ex:targetSlice ;
     gmeow:qualityDimension  gmeow:qualityDimensionGrounding ;
@@ -29,9 +30,9 @@ ex:groundingGrade a gmeow:QualityAssessment ;
     gmeow:vantage           ex:advisor ;
     gmeow:observationResult ex:groundingScore .
 
-ex:groundingScore a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "97.0"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .
+ex:groundingScore a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.97"^^xsd:decimal .
 
 # --- The epistemically hard case: translation coverage is CONTESTED and low. ----
 # A bare parallel French literal exists but carries no audited translation record,
@@ -44,6 +45,6 @@ ex:translationGrade a gmeow:QualityAssessment ;
     gmeow:vantage           ex:advisor ;
     gmeow:observationResult ex:translationScore .
 
-ex:translationScore a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "42.0"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .
+ex:translationScore a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.42"^^xsd:decimal .

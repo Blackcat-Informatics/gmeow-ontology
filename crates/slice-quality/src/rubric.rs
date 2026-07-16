@@ -11,10 +11,11 @@
 
 use purrdf::RdfDataset;
 
-use crate::graph::{all_iris, g, id, instances_of, label_of, one_iri, one_lit};
+use crate::graph::{all_iris, all_lits, g, id, instances_of, label_of, one_iri, one_lit};
 use crate::model::{
-    Axis, AxisFloorCommitment, ContextScope, Exemption, Rubric, SliceTierFloorCommitment,
-    Threshold, Tier,
+    Axis, AxisFloorCommitment, ContextScope, CountKind, Exemption, GovernanceFloors,
+    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
+    SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
@@ -316,12 +317,231 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     let tier_floors: Vec<SliceTierFloorCommitment> =
         tier_floors.into_iter().map(|(_, c)| c).collect();
 
+    // --- Projection vocabularies (the guarded set for the ratchet) ----------
+    // The ontology-resident guarded-vocabulary registry the projection-ceiling
+    // ratchet reads instead of a hardcoded Rust list. Each required binding is a
+    // hard fail when missing — a vocabulary with no prefix, namespace, subsumer,
+    // count-kind, default ceiling, or preservation cannot drive the counter, so we
+    // never silently default one (.goals no-optionality).
+    let vocab_prefix_p = id(ds, &g("vocabularyPrefix"));
+    let vocab_ns_p = id(ds, &g("vocabularyNamespace"));
+    let vocab_subsumed_p = id(ds, &g("vocabularySubsumedBy"));
+    let vocab_owner_p = id(ds, &g("vocabularyOwner"));
+    let vocab_countkind_p = id(ds, &g("vocabularyCountKind"));
+    let vocab_default_p = id(ds, &g("vocabularyDefaultCeiling"));
+    let vocab_preservation_p = id(ds, &g("vocabularyPreservation"));
+    let vocab_align_p = id(ds, &g("vocabularyAlignmentPredicate"));
+    let vocab_countpred_p = id(ds, &g("vocabularyCountPredicate"));
+    let mut vocabularies: Vec<(String, ProjectionVocabulary)> = Vec::new();
+    // The vocab IRI → prefix map the ceiling loop validates gmeow:ceilingVocabulary
+    // against; an unknown vocab reference is a hard fail there, never a silent skip.
+    let mut vocab_iri_to_prefix: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
+    // Two ProjectionVocabulary individuals sharing a prefix collapse in the
+    // prefix-keyed downstream maps (the ceiling key is (slice, prefix)) — hard fail.
+    let mut seen_vocab_prefixes: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    for iri in instances_of(ds, &g("ProjectionVocabulary")) {
+        let sid = id(ds, &iri)
+            .ok_or_else(|| rubric_err(format!("projection vocabulary {iri} not resolvable")))?;
+        let prefix = vocab_prefix_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} has no gmeow:vocabularyPrefix"
+                ))
+            })?;
+        if !seen_vocab_prefixes.insert(prefix.clone()) {
+            return Err(rubric_err(format!(
+                "duplicate gmeow:ProjectionVocabulary prefix {prefix} ({iri}) — two vocabs \
+                 with the same prefix collapse silently in the (slice, prefix) ceiling key"
+            )));
+        }
+        // A vocabulary MUST carry at least one namespace, or the counter can never
+        // recognise one of its constructs — hard fail, never a zero-namespace vocab.
+        let mut namespaces = vocab_ns_p.map(|p| all_lits(ds, sid, p)).unwrap_or_default();
+        namespaces.sort();
+        namespaces.dedup();
+        if namespaces.is_empty() {
+            return Err(rubric_err(format!(
+                "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularyNamespace"
+            )));
+        }
+        let subsumed_by = vocab_subsumed_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularySubsumedBy"
+                ))
+            })?;
+        // Every guarded vocabulary is owned by exactly one grounding slice (logic:,
+        // math:, or lang:) — the only boundary at which its external terms may be
+        // authored. A missing owner cannot drive the owner-boundary enforcement, so it
+        // is a hard fail, never a silent default (.goals no-optionality).
+        let owner = vocab_owner_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularyOwner"
+                ))
+            })?;
+        let count_kind_local = vocab_countkind_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularyCountKind"
+                ))
+            })?;
+        // An unknown count-kind (a typo) would otherwise load cleanly and then never
+        // count anything — hard fail, mirroring the unknown-axis check on floors.
+        let count_kind = CountKind::from_local(&count_kind_local).ok_or_else(|| {
+            rubric_err(format!(
+                "projection vocabulary {iri} ({prefix}) names unknown gmeow:vocabularyCountKind \
+                 {count_kind_local} (expected countKindShape / countKindTypedAxiom / \
+                 countKindNonRdfSurface)"
+            ))
+        })?;
+        let default_ceiling = vocab_default_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .and_then(|s| s.parse::<u64>().ok())
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) has no non-negative-integer \
+                     gmeow:vocabularyDefaultCeiling"
+                ))
+            })?;
+        let preservation = vocab_preservation_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularyPreservation"
+                ))
+            })?;
+        let mut alignment_predicates = vocab_align_p
+            .map(|p| all_lits(ds, sid, p))
+            .unwrap_or_default();
+        alignment_predicates.sort();
+        alignment_predicates.dedup();
+        let mut counted_predicates = vocab_countpred_p
+            .map(|p| all_lits(ds, sid, p))
+            .unwrap_or_default();
+        counted_predicates.sort();
+        counted_predicates.dedup();
+        // countKindStructuralAxiom counts only triples whose predicate is in this
+        // allowlist; an empty allowlist would count nothing and silently disable the
+        // guard — hard fail. Other count kinds ignore the field, and carrying one is a
+        // hard fail (a typo that would never take effect).
+        if count_kind == CountKind::StructuralAxiom {
+            if counted_predicates.is_empty() {
+                return Err(rubric_err(format!(
+                    "projection vocabulary {iri} ({prefix}) is countKindStructuralAxiom but has \
+                     no gmeow:vocabularyCountPredicate allowlist — it would count nothing"
+                )));
+            }
+        } else if !counted_predicates.is_empty() {
+            return Err(rubric_err(format!(
+                "projection vocabulary {iri} ({prefix}) declares gmeow:vocabularyCountPredicate \
+                 but is not countKindStructuralAxiom — the allowlist would never take effect"
+            )));
+        }
+        vocab_iri_to_prefix.insert(iri.clone(), prefix.clone());
+        vocabularies.push((
+            iri,
+            ProjectionVocabulary {
+                prefix,
+                namespaces,
+                subsumed_by,
+                owner,
+                count_kind,
+                default_ceiling,
+                preservation,
+                alignment_predicates,
+                counted_predicates,
+            },
+        ));
+    }
+    vocabularies.sort_by(|a, b| a.0.cmp(&b.0));
+    let vocabularies: Vec<ProjectionVocabulary> =
+        vocabularies.into_iter().map(|(_, v)| v).collect();
+
+    // --- Projection ceiling commitments ------------------------------------
+    // A per-(slice, vocabulary) non-increasing residue ceiling — the inverse-polarity
+    // twin of gmeow:AxisFloorCommitment (lower-only, not raise-only). Each of the three
+    // bindings (ceilingSlice, ceilingVocabulary, ceilingCount) is a hard fail when
+    // missing; the vocabulary reference must resolve to a loaded ProjectionVocabulary.
+    let ceiling_slice_p = id(ds, &g("ceilingSlice"));
+    let ceiling_vocab_p = id(ds, &g("ceilingVocabulary"));
+    let ceiling_count_p = id(ds, &g("ceilingCount"));
+    let mut ceilings: Vec<(String, ProjectionCeilingCommitment)> = Vec::new();
+    // Two ceilings for the same (slice, vocab) collapse in the downstream BTreeMap
+    // keyed on that pair (last-writer-wins) — a hard fail here, never a silent skip.
+    let mut seen_ceiling_keys: std::collections::BTreeSet<(String, String)> =
+        std::collections::BTreeSet::new();
+    for iri in instances_of(ds, &g("ProjectionCeilingCommitment")) {
+        let sid = id(ds, &iri)
+            .ok_or_else(|| rubric_err(format!("ceiling commitment {iri} not resolvable")))?;
+        let slice = ceiling_slice_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling commitment {iri} has no gmeow:ceilingSlice"
+                ))
+            })?;
+        let vocab_iri = ceiling_vocab_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling commitment {iri} has no gmeow:ceilingVocabulary"
+                ))
+            })?;
+        // Every ceiling must name a REAL loaded ProjectionVocabulary — an unknown
+        // reference would otherwise load cleanly and never gate anything (dead
+        // ratchet), so hard-fail, mirroring the unknown-axis floor check.
+        let vocab_prefix = vocab_iri_to_prefix
+            .get(&vocab_iri)
+            .cloned()
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling commitment {iri} names unknown gmeow:ceilingVocabulary {vocab_iri} \
+                 (no such gmeow:ProjectionVocabulary in the registry)"
+                ))
+            })?;
+        if !seen_ceiling_keys.insert((slice.clone(), vocab_prefix.clone())) {
+            return Err(rubric_err(format!(
+                "duplicate gmeow:ProjectionCeilingCommitment for slice {slice} vocab \
+                 {vocab_prefix} ({iri}) — two ceilings for the same (slice, vocab) pair \
+                 collapse silently downstream"
+            )));
+        }
+        let count = ceiling_count_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .and_then(|s| s.parse::<u64>().ok())
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling commitment {iri} has no non-negative-integer gmeow:ceilingCount"
+                ))
+            })?;
+        ceilings.push((
+            iri,
+            ProjectionCeilingCommitment {
+                slice,
+                vocab_prefix,
+                count,
+            },
+        ));
+    }
+    ceilings.sort_by(|a, b| a.0.cmp(&b.0));
+    let ceilings: Vec<ProjectionCeilingCommitment> = ceilings.into_iter().map(|(_, c)| c).collect();
+
     Ok(Rubric {
-        tiers,
-        axes,
-        exemptions,
-        commitments,
-        tier_floors,
+        standard: MeasurementStandard { tiers, axes },
+        floors: GovernanceFloors {
+            exemptions,
+            commitments,
+            tier_floors,
+            vocabularies,
+            ceilings,
+        },
     })
 }
 
@@ -366,8 +586,11 @@ gmeow:exFoo a gmeow:AxisExemption ;
         // Control: the same fixture with a valid axis_iri loads cleanly, proving the
         // negative test isolates the axis check (not a malformed fixture).
         let rubric = load(&rubric_ttl("gmeow:axisFoo")).expect("valid rubric loads");
-        assert_eq!(rubric.exemptions.len(), 1);
-        assert_eq!(rubric.exemptions[0].axis_iri, format!("{GMEOW_NS}axisFoo"));
+        assert_eq!(rubric.floors.exemptions.len(), 1);
+        assert_eq!(
+            rubric.floors.exemptions[0].axis_iri,
+            format!("{GMEOW_NS}axisFoo")
+        );
     }
 
     #[test]
@@ -502,8 +725,8 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
     gmeow:floorValue 0.9954337899543378 ."#,
         ))
         .expect("valid floor commitment loads");
-        assert_eq!(rubric.commitments.len(), 1);
-        let c = &rubric.commitments[0];
+        assert_eq!(rubric.floors.commitments.len(), 1);
+        let c = &rubric.floors.commitments[0];
         assert_eq!(c.slice, format!("{GMEOW_NS}sliceFoo"));
         assert_eq!(c.axis, format!("{GMEOW_NS}axisFoo"));
         assert!((c.floor - 0.995_433_789_954_337_8).abs() < f64::EPSILON);
@@ -518,8 +741,8 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
     gmeow:floorTier gmeow:tierRegistered ."#,
         ))
         .expect("valid tier floor loads");
-        assert_eq!(rubric.tier_floors.len(), 1);
-        let f = &rubric.tier_floors[0];
+        assert_eq!(rubric.floors.tier_floors.len(), 1);
+        let f = &rubric.floors.tier_floors[0];
         assert_eq!(f.slice, format!("{GMEOW_NS}sliceFoo"));
         assert_eq!(f.tier, format!("{GMEOW_NS}tierRegistered"));
     }
@@ -655,7 +878,7 @@ gmeow:floorFooB a gmeow:AxisFloorCommitment ;
     gmeow:floorValue 0.9 ."#,
         ))
         .expect("distinct (slice, axis) commitments load cleanly");
-        assert_eq!(rubric.commitments.len(), 2);
+        assert_eq!(rubric.floors.commitments.len(), 2);
     }
 
     #[test]
@@ -677,6 +900,132 @@ gmeow:tierFloorFooB a gmeow:SliceTierFloor ;
             err.message().contains("sliceFoo"),
             "names the offending slice: {err}"
         );
+    }
+
+    // --- Projection vocabulary + ceiling loaders ---------------------------
+
+    /// A well-formed guarded vocabulary the ceiling tests reference.
+    const VOCAB_SH: &str = r#"gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
+    gmeow:vocabularyPrefix "sh" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#" ;
+    gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
+    gmeow:vocabularyOwner gmeow:sliceLogic ;
+    gmeow:vocabularyCountKind "countKindShape" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
+
+    #[test]
+    fn projection_vocabulary_and_ceiling_load() {
+        // Happy path: a guarded vocab plus a ceiling that references it resolve to
+        // the expected (prefix, namespaces, kind) and (slice, vocab-prefix, count).
+        let body = format!(
+            "{VOCAB_SH}\n\
+gmeow:pcc-foo-sh a gmeow:ProjectionCeilingCommitment ;\n\
+    gmeow:ceilingSlice gmeow:sliceFoo ;\n\
+    gmeow:ceilingVocabulary gmeow:projVocab-sh ;\n\
+    gmeow:ceilingCount 7 ."
+        );
+        let rubric = load(&rubric_with(&body)).expect("valid vocab + ceiling load");
+        assert_eq!(rubric.floors.vocabularies.len(), 1);
+        let v = &rubric.floors.vocabularies[0];
+        assert_eq!(v.prefix, "sh");
+        assert_eq!(v.namespaces, vec!["http://www.w3.org/ns/shacl#".to_owned()]);
+        assert_eq!(v.count_kind, crate::model::CountKind::Shape);
+        assert_eq!(v.default_ceiling, 0);
+        assert_eq!(rubric.floors.ceilings.len(), 1);
+        let c = &rubric.floors.ceilings[0];
+        assert_eq!(c.slice, format!("{GMEOW_NS}sliceFoo"));
+        assert_eq!(c.vocab_prefix, "sh");
+        assert_eq!(c.count, 7);
+    }
+
+    #[test]
+    fn ceiling_with_unknown_vocabulary_hard_fails() {
+        // A ceiling naming a vocab the registry never loaded is a dead ratchet cell —
+        // hard fail, never a silent skip.
+        let body = "gmeow:pcc-foo-nope a gmeow:ProjectionCeilingCommitment ;\n\
+    gmeow:ceilingSlice gmeow:sliceFoo ;\n\
+    gmeow:ceilingVocabulary gmeow:projVocab-nope ;\n\
+    gmeow:ceilingCount 1 .";
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("unknown gmeow:ceilingVocabulary"),
+            "{err}"
+        );
+        assert!(err.message().contains("projVocab-nope"), "names it: {err}");
+    }
+
+    #[test]
+    fn vocabulary_with_unknown_count_kind_hard_fails() {
+        let body = r#"gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
+    gmeow:vocabularyPrefix "sh" ;
+    gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#" ;
+    gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
+    gmeow:vocabularyOwner gmeow:sliceLogic ;
+    gmeow:vocabularyCountKind "countKindBogus" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("unknown gmeow:vocabularyCountKind"),
+            "{err}"
+        );
+        assert!(err.message().contains("countKindBogus"), "names it: {err}");
+    }
+
+    #[test]
+    fn vocabulary_with_no_namespace_hard_fails() {
+        let body = r#"gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
+    gmeow:vocabularyPrefix "sh" ;
+    gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
+    gmeow:vocabularyOwner gmeow:sliceLogic ;
+    gmeow:vocabularyCountKind "countKindShape" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(
+            err.message().contains("no gmeow:vocabularyNamespace"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn duplicate_vocabulary_prefix_hard_fails() {
+        let body = format!(
+            "{VOCAB_SH}\n\
+gmeow:projVocab-sh2 a gmeow:ProjectionVocabulary ;\n\
+    gmeow:vocabularyPrefix \"sh\" ;\n\
+    gmeow:vocabularyNamespace \"http://example.org/other#\" ;\n\
+    gmeow:vocabularySubsumedBy gmeow:sliceLogic ;\n\
+    gmeow:vocabularyOwner gmeow:sliceLogic ;\n\
+    gmeow:vocabularyCountKind \"countKindShape\" ;\n\
+    gmeow:vocabularyDefaultCeiling 0 ;\n\
+    gmeow:vocabularyPreservation gmeow:presSoundUnder ."
+        );
+        let err = load(&rubric_with(&body)).unwrap_err();
+        assert!(err.message().contains("duplicate"), "{err}");
+        assert!(
+            err.message().contains("prefix sh"),
+            "names the prefix: {err}"
+        );
+    }
+
+    #[test]
+    fn duplicate_ceiling_for_same_slice_vocab_hard_fails() {
+        let body = format!(
+            "{VOCAB_SH}\n\
+gmeow:pcc-a a gmeow:ProjectionCeilingCommitment ;\n\
+    gmeow:ceilingSlice gmeow:sliceFoo ;\n\
+    gmeow:ceilingVocabulary gmeow:projVocab-sh ;\n\
+    gmeow:ceilingCount 2 .\n\
+gmeow:pcc-b a gmeow:ProjectionCeilingCommitment ;\n\
+    gmeow:ceilingSlice gmeow:sliceFoo ;\n\
+    gmeow:ceilingVocabulary gmeow:projVocab-sh ;\n\
+    gmeow:ceilingCount 3 ."
+        );
+        let err = load(&rubric_with(&body)).unwrap_err();
+        assert!(err.message().contains("duplicate"), "{err}");
+        assert!(err.message().contains("sliceFoo"), "names the slice: {err}");
     }
 
     const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";

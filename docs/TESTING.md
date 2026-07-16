@@ -10,6 +10,13 @@ live in its `tests/` directory **as ontology data** in the test-DSL vocabulary
 faster than per-test Python (oxigraph SPARQL, no interpreter per assertion) and
 keeps tests inspectable and projectable like every other GMEOW term.
 
+Generic RDF 1.2 / RDF\* and SPARQL engine compliance is owned by PurRDF's own
+test suite. GMEOW tests the ontology and its products: every repository query
+test pins an expected result instead of merely proving that an upstream engine
+can execute it. The independent `make reason-crosscheck` lane is intentionally
+different: it compares GMEOW's native reasoning calculus with the
+`purrdf-entail` oracle.
+
 This document describes the test-DSL, the native harness, and — in detail — the
 **competency-question reasoning model**, which is the one place the harness makes
 a deliberate cost/fidelity trade-off.
@@ -69,7 +76,11 @@ validation outcome (`gmeow:expectedOutcome` conforms/violates, with
 form). The harness validates the example against the slice module + shapes via
 the native SHACL engine (`gmeow_validate`) and compares finding codes. This is
 **slice-scoped** — an example that references cross-slice classes is validated in
-full by `make validate`, not here.
+full by `make validate`, not here. The one data-scope exception is the grounding
+kernel: because `logic:`, `lang:`, and `math:` are co-foundational peers, each of
+their conformance files sees all three grounding modules while enforcing only the
+tested slice's shapes. This exposes peer-owned type witnesses without duplicating
+their canonical declarations (Principles 4 and 19).
 
 ## Competency-question reasoning (the D+C model)
 
@@ -120,8 +131,8 @@ load-bearing: the chase is superlinear in fact count, so a one-/few-module closu
 runs in ~1–90 s where the full-ontology chase takes minutes. This is the native
 twin of the old `gmeow_tools` `_materialize(module, *abox)` pytest pattern (the
 reasoning cluster the ~45-min `python` lane was dominated by, now migrated to native Rust).
-The harness runs under the `engine` nextest test-group (memory-capped, serialized)
-via `cargo nextest run -p gmeow-logic`.
+The harness runs at the natural nextest CPU width via
+`cargo nextest run -p gmeow-logic`; the suite has no fixed test-group cap.
 
 ### Why the default is safe
 

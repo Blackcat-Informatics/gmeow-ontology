@@ -555,17 +555,17 @@ fn realize_losses(
     entries
         .iter()
         .map(|e| {
-            let count = match e.code {
+            let count = match e.code.as_ref() {
                 "named-graph-dropped" => named_graph_count,
                 "rdf12-star-unrepresentable" | "rdf12-star-jsonld-rejected" => star_dropped,
                 c if c.ends_with("-projection") => projection_drops,
                 _ => 0,
             };
             RealizedLoss {
-                code: e.code.to_owned(),
-                from: e.from.to_owned(),
-                to: e.to.to_owned(),
-                note: e.note.to_owned(),
+                code: e.code.to_string(),
+                from: e.from.to_string(),
+                to: e.to.to_string(),
+                note: e.note.to_string(),
                 count,
             }
         })
@@ -608,7 +608,7 @@ struct MatrixEntry {
     /// `true` when the static contract declares any loss for this pair.
     lossy: bool,
     /// The declared loss codes (sorted), empty for a lossless pair.
-    loss_codes: Vec<&'static str>,
+    loss_codes: Vec<String>,
 }
 
 /// Render the supported-transcode matrix as deterministic, pretty JSON.
@@ -629,8 +629,11 @@ pub fn transcode_matrix_json() -> String {
                 continue;
             }
             let ledger = pair_loss_ledger(from.name(), to.name());
-            let mut loss_codes: Vec<&'static str> =
-                ledger.entries().iter().map(|e| e.code).collect();
+            let mut loss_codes: Vec<String> = ledger
+                .entries()
+                .iter()
+                .map(|e| e.code.to_string())
+                .collect();
             loss_codes.sort_unstable();
             entries.push(MatrixEntry {
                 from: from.name(),
@@ -653,9 +656,8 @@ pub fn transcode_matrix_json() -> String {
 /// so rows whose source or target is absent from [`Codec::all`] are excluded.
 pub fn transcode_loss_matrix_json() -> String {
     let supported: HashSet<&str> = Codec::all().iter().map(|codec| codec.name()).collect();
-    let mut entries: Vec<serde_json::Value> =
-        serde_json::from_str(&purrdf::transcode_loss_matrix_json())
-            .expect("purrdf static transcode-loss matrix must be valid JSON");
+    let mut entries: Vec<serde_json::Value> = serde_json::from_str(&purrdf::loss_matrix_json())
+        .expect("purrdf static transcode-loss matrix must be valid JSON");
     entries.retain(|entry| {
         let from = entry.get("from").and_then(serde_json::Value::as_str);
         let to = entry.get("to").and_then(serde_json::Value::as_str);

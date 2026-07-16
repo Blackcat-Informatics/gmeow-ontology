@@ -34,6 +34,20 @@ gmeow-affect = { path = "../affect" }
 # evidence, and its inverse. Drives `gmeow affect ingest-goemotions` / `recover-goemotions`.
 gmeow-affect-ingest = { path = "../affect-ingest" }
 gmeow-pipeline = { path = "../pipeline" }
+# The slice-quality scoring engine. Wheel-safe: it is already in the wheel's tree
+# transitively via gmeow-pipeline, and its zero-config `score_external_slice_bytes`
+# scores an external slice directory against the embedded bundle standards (a
+# BundleStandards flattened from BUNDLE_GTS) with no repo checkout. Live runtime
+# consumer: `src/commands.rs::slice_quality`, wired to the `gmeow slice quality`
+# subcommand — a genuine consumer runtime capability, never a repo-maintenance
+# crate (the wheel-only razor holds).
+gmeow-slice-quality = { path = "../slice-quality" }
+# The authoring-brief assembly engine. Wheel-safe pure-Rust rlib (in the tree
+# transitively via gmeow-pipeline): `completeness_tiers` + `assemble_packet` build
+# and render a gmeow:AuthoringPacket over a slice directory's own sources. Live
+# runtime consumer: `src/commands.rs::slice_brief`, wired to `gmeow slice brief` —
+# a genuine consumer capability, never a repo-maintenance crate.
+gmeow-slice-brief = { path = "../slice-brief" }
 # The consumer `describe` / `docs-on` term-card engine. A pure-Rust rlib (its
 # `python` feature stays OFF here) — a runtime library the wheel ships, not a
 # repo-maintenance crate.

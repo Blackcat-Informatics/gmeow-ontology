@@ -550,7 +550,8 @@ gmeow:GateVerdict gmeow:proseSurface gmeow:gatePolicyProse .
 #
 # A rule carries authored fix guidance ONCE (gmeow:ruleRemediation); each finding
 # of that rule projects it as gmeow:findingRemediation, the sibling of
-# gmeow:findingSuggestion / gmeow:findingHelpUri. The prose is DSL-authored and
+# gmeow:findingSuggestion / gmeow:findingHelpUri. The prose is authored in the
+# validator rule registry (crates/validate) and projected into the bundle, then
 # rendered verbatim into SARIF fixes / JSON / human output, NEVER fabricated at
 # render time (a render-time invention would be an unattributable claim).
 # ════════════════════════════════════════════════════════════════════════════
@@ -561,12 +562,12 @@ gmeow:ruleRemediation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule remediation"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The standing, rule-level remediation guidance of an enforced check — the DSL-authored prose that tells a reader how to fix a violation of the rule, carried once on the gmeow:ValidationRule and projected onto each of its findings as gmeow:findingRemediation. The sibling of gmeow:ruleHelpUri: where the help URI points OUT to the catalog, ruleRemediation carries the fix text IN. It is authored in the DSL and rendered verbatim into the SARIF result fixes, the flat JSON, and the human CLI/HTML output; it is NEVER fabricated at render time — a finding with no authored remediation carries none rather than an invented suggestion."@x-gmeow-english ;
+    skos:definition "The standing, rule-level remediation guidance of an enforced check — the prose that tells a reader how to fix a violation of the rule, authored in the validator rule registry (the `REMEDIATIONS` catalog of crates/validate) and projected into the bundle once on the gmeow:ValidationRule, then onto each of its findings as gmeow:findingRemediation. The sibling of gmeow:ruleHelpUri: where the help URI points OUT to the catalog, ruleRemediation carries the fix text IN. It is rendered verbatim into the SARIF result fixes, the flat JSON, and the human CLI/HTML output; it is NEVER fabricated at render time — a finding with no authored remediation carries none rather than an invented suggestion."@x-gmeow-english ;
     skos:example "ex:ruleRelatorMediation gmeow:ruleRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid fabricating it at render time (it is DSL-authored; a rule with no authored guidance carries no remediation) and avoid confusing it with gmeow:ruleHelpUri (the outward catalog link) or gmeow:ruleCode (the identity); ruleRemediation is the standing fix prose the rule's findings project."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it at render time (it is authored in the validator rule registry and projected into the bundle; a rule with no authored guidance carries no remediation) and avoid confusing it with gmeow:ruleHelpUri (the outward catalog link) or gmeow:ruleCode (the identity); ruleRemediation is the standing fix prose the rule's findings project."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Author it once on the gmeow:ValidationRule as the fix guidance for the code; project it onto every gmeow:Finding of the rule as gmeow:findingRemediation, and render it as the SARIF fixes description, the JSON remediation field, and the CLI/HTML 'how to fix' line."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the standing, DSL-authored fix guidance of an enforced check on its ValidationRule — the rule-level source every finding's remediation projects from."@x-gmeow-english .
+    gmeow:howToUse "Author it once in the validator rule registry as the fix guidance for the code, project it onto the gmeow:ValidationRule; project it further onto every gmeow:Finding of the rule as gmeow:findingRemediation, and render it as the SARIF fixes description, the JSON remediation field, and the CLI/HTML 'how to fix' line."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the standing fix guidance of an enforced check — authored in the validator rule registry and projected into the bundle onto its ValidationRule — the rule-level source every finding's remediation projects from."@x-gmeow-english .
 
 gmeow:findingRemediation
     a owl:DatatypeProperty ;
@@ -574,7 +575,7 @@ gmeow:findingRemediation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding remediation"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The occurrence projection of gmeow:ruleRemediation onto a finding — the DSL-authored fix guidance of the finding's rule, carried on the gmeow:Finding so every surface (SARIF fixes, JSON, CLI, HTML) can render 'how to fix this' beside the message. The sibling of gmeow:findingSuggestion (occurrence advice) and gmeow:findingHelpUri (the rule's outward link): findingRemediation is the standing remediation prose resolved onto the occurrence. It is projected verbatim from the rule's gmeow:ruleRemediation, NEVER fabricated at render time; a finding whose rule authors no remediation carries none."@x-gmeow-english ;
+    skos:definition "The occurrence projection of gmeow:ruleRemediation onto a finding — the fix guidance of the finding's rule, authored in the validator rule registry and projected into the bundle, carried on the gmeow:Finding so every surface (SARIF fixes, JSON, CLI, HTML) can render 'how to fix this' beside the message. The sibling of gmeow:findingSuggestion (occurrence advice) and gmeow:findingHelpUri (the rule's outward link): findingRemediation is the standing remediation prose resolved onto the occurrence. It is projected verbatim from the rule's gmeow:ruleRemediation, NEVER fabricated at render time; a finding whose rule authors no remediation carries none."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing it at render time (project it from the rule's gmeow:ruleRemediation, never fabricate) and avoid conflating it with gmeow:findingSuggestion (per-occurrence advice) or gmeow:findingMessage (the description of what went wrong); findingRemediation is the projected fix guidance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -590,6 +591,66 @@ gmeow:findingRemediation
 # two DIFFERENT-code findings at the SAME source anchor share it — the join the
 # same-fingerprint merge (which keys on code) structurally cannot make.
 # ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingHowToUse
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding how to use"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:howToUse guidance onto the finding — the HOW-facet modeling recipe (companion properties, relators, statement metadata, or projection checks) carried on the gmeow:Finding so CLI/HTML/SARIF/LSP can render 'how to use this term' beside the message. Projected verbatim from the term's gmeow:howToUse in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no how-to-use guidance carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingHowToUse \"Attach the mediating relator via gmeow:mediates before asserting the relationship.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:howToUse) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose); findingHowToUse is the term's own usage recipe, not the rule's fix guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Join a finding's rule to its governing term (or fall back to a documented term) and project that term's gmeow:howToUse onto the finding as gmeow:findingHowToUse; render it as usage guidance beside the message."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's governing/documented term's HOW-facet usage guidance on the occurrence, so a consumer sees how the term is normally used without re-resolving the term."@x-gmeow-english .
+
+gmeow:findingUseWhen
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding use when"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:useWhen guidance onto the finding — the WHEN-facet modeling situation the term should be used in, carried on the gmeow:Finding. Projected verbatim from the term's gmeow:useWhen in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no use-when guidance carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingUseWhen \"Use gmeow:Kind for rigid sortal categories.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:useWhen) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose) or gmeow:findingHowToUse (the HOW facet); findingUseWhen is the term's WHEN-facet usage guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Join a finding's rule to its governing term (or fall back to a documented term) and project that term's gmeow:useWhen onto the finding as gmeow:findingUseWhen; render it beside the message."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's governing/documented term's WHEN-facet usage guidance on the occurrence, so a consumer sees the modeling situation the term is meant for without re-resolving the term."@x-gmeow-english .
+
+gmeow:findingAvoidWhen
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding avoid when"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:avoidWhen guidance onto the finding — the conditions under which the term should NOT be used (or should be promoted to a more precise construct), carried on the gmeow:Finding. Projected verbatim from the term's gmeow:avoidWhen in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no avoid-when guidance carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingAvoidWhen \"Avoid gmeow:Kind for phase-sortals that change over the bearer's lifetime.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:avoidWhen) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose) or gmeow:findingUseWhen (the positive WHEN facet); findingAvoidWhen is the term's negative-scope usage guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Join a finding's rule to its governing term (or fall back to a documented term) and project that term's gmeow:avoidWhen onto the finding as gmeow:findingAvoidWhen; render it beside the message."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's governing/documented term's negative-scope usage guidance on the occurrence, so a consumer sees when NOT to use the term without re-resolving it."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The explain-skeleton derivation edge for a reasoned-quad finding.
+#
+# Distinct from gmeow:findingAntecedent (a finding-to-finding provenance edge
+# keyed on fingerprint IRIs): gmeow:findingDerivedFromQuad points at the
+# logic-world REASONED-QUAD reifier IRIs a finding's verdict derives from — the
+# explain-skeleton citations the reasoner emits, never a finding-to-finding edge.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingDerivedFromQuad
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding derived from quad"@x-gmeow-english ;
+    skos:definition "The logic-world quad-reifier IRIs a reasoned-quad finding's verdict derives FROM — the explain-skeleton cited IRIs of the reasoned quads that fired to produce the verdict. Distinct from gmeow:findingAntecedent (a finding-to-finding provenance edge keyed on fingerprint IRIs): findingDerivedFromQuad points at REASONED-QUAD reifier IRIs, never at another finding. Projected from the reasoner's explain skeleton, never fabricated at render time; empty for a finding that is not the outcome of a reasoning pass. The range is left open (like gmeow:findingAnchor): the value is a quad-reifier IRI, not a typed class in this slice."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingDerivedFromQuad <https://blackcatinformatics.ca/gmeow/quad/9f2c> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at another finding (that is gmeow:findingAntecedent) and avoid fabricating it when no reasoning pass produced the verdict; findingDerivedFromQuad is the reasoner's own explain-skeleton citation, never an invented edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project each cited quad-reifier IRI from the reasoner's explain skeleton onto the finding as gmeow:findingDerivedFromQuad; render the set beside the finding as the reasoned-derivation citation."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the reasoner's explain-skeleton cited quad-reifier IRIs on a reasoned-quad finding, distinct from the finding-to-finding gmeow:findingAntecedent provenance edge."@x-gmeow-english .
 
 gmeow:findingAntecedent
     a owl:ObjectProperty ;
@@ -615,6 +676,48 @@ gmeow:findingAnchor
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Compute the anchor as a content hash over (location, term role, focus) with the code and category EXCLUDED, and point each finding at it; a cross-node-glut rule joins findings on shared gmeow:findingAnchor and compares their gmeow:findingCategory polarities."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the code-blind source anchor of a finding — the join key that lets cross-node glut detection see two different-code findings at the same place the same-fingerprint merge cannot."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The chase-invented existential null (Skolem witness) and its head ordinal.
+#
+# gmeow:InventedWitness types the object of a reasoned head quad p(x, null) the
+# native existential chase mints to discharge a C ⊑ ∃p.D obligation — a rigid,
+# content-addressed Skolem witness (rule + existential ordinal + frontier
+# binding), recognized also by the /skolem/ IRI prefix. It is NOT a
+# gmeow:Finding: the certificate finding points at the null-minting head-quad
+# reifier via gmeow:findingDerivedFromQuad (whose object IS the null), so the
+# null↔firing-rule↔frontier link is ALREADY carried by the reifier/derivation
+# plane and is never re-encoded here. gmeow:existentialOrdinal records which
+# 0-based existential head variable of the firing rule the null fills.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:InventedWitness
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Invented Witness"@x-gmeow-english ;
+    skos:definition "A chase-invented existential null — a Skolem witness the native existential chase mints to satisfy a C ⊑ ∃p.D obligation. It types the OBJECT of a reasoned head quad p(x, null): when the chase fires the existential rule for a frontier binding x, it invents a fresh witness null and writes p(x, null), and that null is a gmeow:InventedWitness. It is recognized also by the /skolem/ IRI prefix its content-addressed identity is minted under (firing rule + existential ordinal + frontier binding). It is a RIGID entity that supplies its OWN principle of identity — hence a logic:Kind, never a gmeow:Finding and never rdfs:subClassOf gmeow:Finding. Its presence in the reasoned graph and the diagnostics projection is the structured, queryable proof that the existential chase actually FIRED, not a bare assertion that an existential holds."@x-gmeow-english ;
+    skos:example "<https://blackcatinformatics.ca/gmeow/skolem/9f2c> a gmeow:InventedWitness ."@x-gmeow-english ;
+    skos:scopeNote "IN scope: the object of a chase-minted head quad p(x, null), recognized by the /skolem/ IRI prefix under which its content-addressed identity is minted — that recognition test is the whole of membership, nothing else qualifies. OUT of scope: an authored/hand-asserted individual of any other IRI shape (even one that happens to satisfy a C ⊑ ∃p.D obligation by coincidence); a blank node standing in for an existential in a non-chase context; and, most importantly, never a gmeow:Finding or rdfs:subClassOf gmeow:Finding — the witness is the reasoned OBJECT a certificate finding cites via gmeow:findingDerivedFromQuad, not a diagnostic in its own right."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand or onto an ordinary domain individual (it types ONLY a chase-minted Skolem null, recognized by the /skolem/ IRI prefix) and avoid making it a gmeow:Finding or rdfs:subClassOf gmeow:Finding — an invented witness is the reasoned object a finding cites, never a diagnostic in its own right."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type each chase-minted existential null as a gmeow:InventedWitness as the head quad p(x, null) is written; reach it back from the certificate gmeow:Finding through gmeow:findingDerivedFromQuad, which cites the null-minting head-quad reifier whose object IS the null, so the null's firing rule and frontier ride the existing reifier/derivation plane rather than being re-encoded here."@x-gmeow-english ;
+    gmeow:useWhen "Use to mark the object of a reasoned head quad p(x, null) as a chase-invented existential null — the structured, queryable proof that the native existential chase fired to discharge a C ⊑ ∃p.D obligation."@x-gmeow-english .
+
+gmeow:existentialOrdinal
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:InventedWitness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "existential ordinal"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The 0-based existential head-variable ordinal a chase-invented null fills in its firing rule's head — WHICH existential of the rule's head this Skolem witness witnesses. A rule head may bind several existential variables (∃p.D, ∃q.E, …); the ordinal disambiguates which one this null discharges, and is one of the three components of the witness's content-addressed identity (firing rule + existential ordinal + frontier binding). Single-valued per gmeow:InventedWitness."@x-gmeow-english ;
+    skos:example "<https://blackcatinformatics.ca/gmeow/skolem/9f2c> gmeow:existentialOrdinal \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    skos:scopeNote "IN scope: the 0-based index of ONE existential head variable within the SPECIFIC firing rule that minted THIS witness — a purely local, per-rule-head coordinate. OUT of scope: it is NOT a global counter over every null the chase has ever minted (two witnesses from two different firing rules can legitimately share the same ordinal, e.g. both 0, because each indexes its own rule's head independently); it is NOT the witness's identity by itself (identity is the triple of firing rule + ordinal + frontier binding, never the ordinal alone); and it does NOT vary once minted — it is single-valued per gmeow:InventedWitness, fixed at mint time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a global counter of minted nulls or as the null's identity on its own (it is ONE component of the content-addressed identity, alongside the firing rule and the frontier binding) and avoid a 1-based reading — the ordinal is 0-based over the firing rule's existential head variables."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Record on each gmeow:InventedWitness the 0-based index of the existential head variable it fills in its firing rule's head; join it with the firing rule and frontier binding (carried by the reifier the certificate finding cites via gmeow:findingDerivedFromQuad) to reconstruct which existential the null discharges."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which existential head-variable ordinal (0-based) a chase-invented null fills in its firing rule's head — the head-position component of the witness's content-addressed identity."@x-gmeow-english .
 
 # ════════════════════════════════════════════════════════════════════════════
 # The diagnostic meta-reasoning fold.
@@ -987,6 +1090,113 @@ gmeow:tallyDlGap
     skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path could not decide (native logic:ConfIncomplete) — the coverage-gap (gmeow:VerdictWeaker) partition, an honest native capability gap. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ════════════════════════════════════════════════════════════════════════════
+# Reified capability gaps — the ontology image of the Rust gmeow_logic::entail
+# CapabilityGapShape taxonomy. Each gmeow:CapabilityGap reifies one committed
+# divergence case the native reasoner honestly could not grade as a single
+# refutation case (its gmeow:gapShape), riding in graph/conformance beside the
+# gmeow:ConformanceComparison individuals above — the first-class ontological
+# image of the agreement-matrix "Capability gaps (by shape)" breakdown.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:GapShape
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape"@x-gmeow-english ;
+    skos:definition "The closed value class of the structured reason a conformance conclusion could not be graded as a single refutation case — the RDF image of the Rust gmeow_logic::entail::CapabilityGapShape taxonomy. Its five named individuals are gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed (four genuine REASONER-FRAGMENT gaps — a conclusion shape the native DL fragment cannot soundly refute at all) and gmeow:GapShapeVendoringMultiGoal (NOT a reasoner-fragment gap — a VENDORING-FORMAT limit: dl_entails decides a conjunctive multi-triple conclusion perfectly well, as n independent refutations, but it cannot be frozen as one single-EDB consistency case). The set is closed, so a misspelt shape names no declared value and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:GapShapeRoleAssertion
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Role Assertion"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conclusion that is a role / property assertion (a bare `a P b`, rdfs:subPropertyOf, domain/range, …): role negation is not EL-expressible, so the native DL fragment cannot refute it. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeExistentialWitness
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Existential Witness"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conclusion carrying a blank-node (existential) subject or object, which needs Skolem-witness semantics outside the ground-refutation fragment the native DL reasoner decides over. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeNativeCoverage
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Native Coverage"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conclusion the native DL engine reported a coverage gap on the reduced EDB for — it cannot honestly decide the reduction, distinct from a shape it refused up front. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeMalformed
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Malformed"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a malformed conclusion triple (e.g. a literal where a class IRI is required), which the refutation calculus cannot normalize into a refutable shape. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeVendoringMultiGoal
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Vendoring Multi Goal"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conjunctive multi-triple conclusion. NOT a reasoner-fragment gap: the native reasoner CAN decide a conjunctive multi-triple conclusion via dl_entails (as n independent refutations); it is only that the frozen, single-input.nq vendoring format cannot freeze a conjunction as one single-EDB consistency case. A VENDORING-FORMAT limit, never a reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:isReasonerFragmentGap
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "is reasoner fragment gap"@x-gmeow-english ;
+    skos:definition "Whether a gmeow:GapShape is a genuine reasoner-fragment gap (a conclusion shape the native DL fragment cannot soundly refute at all) as opposed to a vendoring-format limit the reasoner itself can decide. Domain gmeow:GapShape, range xsd:boolean (stated in prose — an external-vocabulary rdfs:range is held out of the diagnostics slice's ungrounded-residue budget) — true for gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed; false for gmeow:GapShapeVendoringMultiGoal. The RDF image of gmeow_logic::entail::CapabilityGapShape::is_reasoner_fragment_gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:GapShapeRoleAssertion gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeExistentialWitness gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeNativeCoverage gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeMalformed gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeVendoringMultiGoal gmeow:isReasonerFragmentGap "false"^^xsd:boolean .
+
+gmeow:CapabilityGap
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Capability Gap"@x-gmeow-english ;
+    skos:definition "A reified structured capability-gap case — one committed divergence case the native reasoner could not grade as a single refutation case — carrying its corpus (gmeow:capabilityGapCorpus), case (gmeow:capabilityGapCase), and structured shape (gmeow:gapShape). Rides in the graph/conformance named graph beside the divergence gmeow:Finding graph and the gmeow:ConformanceComparison individuals. The first-class ontological image of the agreement-matrix \"Capability gaps (by shape)\" breakdown."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:capabilityGapCorpus
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "capability gap corpus"@x-gmeow-english ;
+    skos:definition "The external-corpus name a gmeow:CapabilityGap belongs to — the cases/external/<corpus>/ directory the divergence case carrying this structured gap lives in. Domain gmeow:CapabilityGap, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:capabilityGapCase
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "capability gap case"@x-gmeow-english ;
+    skos:definition "The case id a gmeow:CapabilityGap grades — the <case> subdirectory within its corpus, unique per corpus. Domain gmeow:CapabilityGap, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:gapShape
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "gap shape"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape classifying why a gmeow:CapabilityGap's conclusion could not be graded as a single refutation case. Domain gmeow:CapabilityGap, range gmeow:GapShape (stated in prose) — the reified image of the case's wire gap_shape token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
@@ -1066,6 +1276,50 @@ logic:gateFatalTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
 }""" ] .
 logic:gateFatalVerdict a logic:Formula ; logic:relation gmeow:findingGateVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gateFatal ] .
+
+# =========================================================================== #
+# Capability-gap fragment-classification constraint (#930): a closed-world      #
+# integrity tree that makes gmeow:isReasonerFragmentGap LOAD-BEARING at         #
+# reason/verify time. Every reified gmeow:CapabilityGap must reference (via      #
+# gmeow:gapShape) a gmeow:GapShape that carries a gmeow:isReasonerFragmentGap    #
+# boolean value; a gap whose gap-shape lacks the reasoner-fragment / vendoring- #
+# format classification is incoherent and is a validation violation. Authored   #
+# in logic: ONLY (no hand-authored sh:NodeShape); projected to a                 #
+# sh:SPARQLConstraint carrying a sh:SPARQLTarget (no targetClass), formalizing   #
+# gmeow:isReasonerFragmentGap. This is the SEMANTIC consumer that closes the     #
+# dark-feature gap in which the boolean was read only by structural schema       #
+# projection (LinkML/TS/GraphQL/Python). (Principle 17; design/LOGIC-VALIDATION.md.) #
+# =========================================================================== #
+
+gmeow:CapabilityGapFragmentClassificationConstraint
+    a logic:Constraint ;
+    rdfs:label "Capability-gap fragment-classification constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint (Principle 17) that makes gmeow:isReasonerFragmentGap load-bearing at reason/verify time: every reified gmeow:CapabilityGap MUST reference via gmeow:gapShape a gmeow:GapShape that carries a gmeow:isReasonerFragmentGap boolean value. A capability gap whose gmeow:gapShape is absent, or whose gap-shape lacks the reasoner-fragment / vendoring-format classification, is incoherent — a divergence case the agreement matrix cannot partition — and is a validation violation. Adding a new gmeow:GapShape individual without the boolean (or mis-pointing a gmeow:CapabilityGap) therefore reddens the verify gate, closing the dark-feature gap in which the boolean was consumed only by structural schema projection (LinkML/TS/GraphQL/Python)."@x-gmeow-english ;
+    logic:formalizes gmeow:isReasonerFragmentGap ;
+    logic:severity "Violation" ;
+    logic:message "A gmeow:CapabilityGap must reference via gmeow:gapShape a gmeow:GapShape carrying a gmeow:isReasonerFragmentGap boolean value — the reasoner-fragment classification consumed by this integrity guard is missing." ;
+    logic:integrity logic:capabilityGapFragmentForall .
+logic:capabilityGapFragmentForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:capabilityGapFragmentImpl .
+logic:capabilityGapFragmentImpl a logic:Formula ; logic:antecedent logic:capabilityGapFragmentTarget ; logic:consequent logic:capabilityGapFragmentClassified .
+logic:capabilityGapFragmentTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CapabilityGap> .
+}""" ] .
+logic:capabilityGapFragmentClassified a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gs" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "frag" ] ;
+    logic:exists logic:capabilityGapFragmentWitness .
+logic:capabilityGapFragmentWitness a logic:Formula ;
+    logic:and logic:capabilityGapFragmentHasShape , logic:capabilityGapFragmentShapeClassified .
+logic:capabilityGapFragmentHasShape a logic:Formula ; logic:relation gmeow:gapShape ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gs" ] .
+logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeow:isReasonerFragmentGap ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gs" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .

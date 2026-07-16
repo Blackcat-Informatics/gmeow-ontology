@@ -3,19 +3,18 @@
 
 # GMEOW Logic — Conformance Corpus
 
-The Python oracle and the Rust core — and any future port — certify against **one shared,
-language-neutral corpus of cases**: static files, not re-derived assertions. This is the contract
-that lets the slow, correct reference and the fast Rust engine coexist and *provably agree*
-(Constitution Principle 7), exactly as it promotes the GTS §18 vectors into a `conformance/`
-directory so any implementation certifies against the same files.
+The native Rust runtime — and any future independent implementation — certifies against **one
+shared, language-neutral corpus of cases**: static files, not re-derived assertions. This is the
+contract that keeps every implementation aligned with the same executable specification
+(Constitution Principle 7).
 
 This corpus is the **executable specification of GMEOW Logic's hardest invariants** — no engine can
 drift from them without a red build. It is the implementation contract for the rungs.
 
-> **Status: scaffold.** The category directories are empty (`.gitkeep`) because cases cannot be
-> authored before the `logic:` surface syntax and the engine exist (the later EPIC rungs). This
-> directory and the [runner contract](runner/README.md) are created now, so every
-> subsequent rung populates a category that already has a home and a verification gate.
+> **Status: active.** The category directories contain the live native-runtime corpus, including
+> foundation, correspondence, projection, profile, transaction, and world-semantics cases. The
+> [runner contract](runner/README.md) and `make conformance` gate keep their expected outputs in
+> sync with the production engine.
 
 Normative source: [`../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md`](../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md).
 
@@ -52,6 +51,7 @@ faithfulness) are the load-bearing invariants.
 | `derivation/` | a monotone positive-Horn `logic:Rule` composing terms across two or more domain slices (`indirect-contributor`, `wemi-instantiation`, `org-membership-propagation`, `tenure-claim-surfacing`) | `materialized.nq` is a strict superset of `input.nq` carrying the rule's derived `gmeow:` head edge — the cross-slice inference materializes natively (`logic:ExactPreservation`), never `SoundUnderApproximation` residue | derivation family |
 | `worlds-B/` | risk cascade, teleology, or norms source | `materialized.nq` proves **exactly zero `Event` instances** are generated (the no-occurrence gate), with type-level force present | — |
 | `worlds-C/` | counterfactual antecedent query | `answers/<q>.json` confirms the consequent and `materialized.nq` shows **no leakage** of the constructed world into the base graph; a deterministic revision yields one world, a genuine tie returns `unknown` | — |
+| `correspondence/` | `input.logic.ttl` authoring `logic:Correspondence` individuals, with optional compositions declared in `profile.json` | `correspondence-gates.json` is mandatory and pins the law, overclaim, round-trip, mnemomorphism, and composition verdicts; when `expected/projections/` is committed, the OWL-DL / OWL-EL / Datalog / N3 / gUFO / canonical-RDF projection outputs and preservation ledger also compare against their goldens | correspondence family |
 | `projections/` | any `input.logic.ttl` | `projections/` (OWL DL/EL, Datalog, N3, gUFO) compare by isomorphism; the preservation ledger matches | — |
 | `decidability/` | a profile-tagged source | a decidable profile is certified, a violating one is flagged, and budget exhaustion returns `unknown` / `incomplete` | — |
 | `profiles/` | rule sets under each declared semantics | answers match the declared semantic profile (PositiveHorn, StratifiedNAF, WellFounded, StableModel); cut appears only under `ProceduralPrologProfile`; under `ProbabilisticProfile` (`probabilistic-*` cases) each binding carries a `probability` from weighted model counting under a declared model, `logic:confidence` is never read as a probability, and probabilistic facts with no declared model return `unknown` | — |

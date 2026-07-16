@@ -26,7 +26,7 @@ and drops relative to the canonical `logic:` core.
 The wheel version (0.1.0) is the ontology's `owl:versionInfo`
 (`ontology/gmeow.ttl`), stamped verbatim into `gmeow_models/__about__.py` and
 read by `pyproject.toml`'s `[tool.hatch.version]`. To release a new version,
-bump `owl:versionInfo` and `make regenerate` — never hand-edit `__about__.py`
+bump `owl:versionInfo` and `make sync` — never hand-edit `__about__.py`
 or set `version` in `pyproject.toml` directly.
 
 ## Usage
@@ -38,6 +38,6 @@ obj = <Class>.model_validate(payload)  # closed-world validation
 schema = <Class>.model_json_schema()   # agrees with the packed GMEOW JSON Schema
 ```
 
-The package ships 575 models across 81 modules (one module per slice,
+The package ships 607 models across 81 modules (one module per slice,
 plus the shared `_base`/`_envelope` scaffolding). Do not edit by hand — it is
 regenerated from the ontology.

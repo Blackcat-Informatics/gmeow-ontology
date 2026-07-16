@@ -45,7 +45,7 @@ with OWL 2 DL retained as a *generated projection*; the never-overclaim rule is 
 applies to `logic:` in full force.
 
 *Embodied in:* the authored `dsl/statements/` source; [`README.md`](./README.md) § RDF 1.2.
-*Tested by:* the `statements` generator drift gate (`gmeow check-generated`), the RDF 1.2
+*Tested by:* the `statements` generator drift gate (`gmeow-dev sync --mode check --outputs generated`), the RDF 1.2
 round-trip tests.
 
 ## 3. The OWL axiom-annotation form is a generated, reasoning-lossless downcast
@@ -60,8 +60,8 @@ applies to schema.org / vCard / FOAF (Principle 4). It is the downgrade for lega
 it recedes naturally as RDF-1.2-native reasoners and stores arrive. The canonical source never
 changes.
 
-*Embodied in:* `make regenerate`, `queries/rdf12-project.rq` (a codec between two
-generated forms). *Tested by:* `make check-generated` and the OWL↔RDF 1.2
+*Embodied in:* `make sync`, `queries/rdf12-project.rq` (a codec between two
+generated forms). *Tested by:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` and the OWL↔RDF 1.2
 round-trip / isomorphism gate.
 
 ## 4. One canonical source; everything else a generated lossy projection
@@ -74,7 +74,7 @@ alignment layer (the mapping compiler), and to the RDF 1.2 ↔ OWL relationship 
 The reasoned core stays clean; lossiness is pushed to the boundary and made explicit.
 
 *Embodied in:* [`docs/projections.md`](./docs/projections.md); [`README.md`](./README.md) §
-The mapping compiler. *Tested by:* `make check-generated`, projection round-trips.
+The mapping compiler. *Tested by:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`, projection round-trips.
 
 ## 5. Maximal superset, maximal bridging — by reference
 
@@ -121,7 +121,7 @@ Generation without verification is a second source of truth in disguise. Every d
 mapping artifacts, the RDF 1.2 view, the OWL compat form — must be regenerable and proven
 non-divergent, so drift is *impossible* rather than merely discouraged.
 
-*Embodied in:* `make check-generated`, the `projection_lint` /
+*Embodied in:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`, the `projection_lint` /
 `statement_lint` invariants, `make check`.
 
 ## 8. Reasoning-gated and FAIR
@@ -452,8 +452,8 @@ oracle fails the gate; any `DlGap` is a native coverage defect and fails. The co
 `gapCount` required at zero; the cross-check emits its agreement + timing data through the
 `gmeow-diagnostics` SARIF rail (the gate taxonomy this issue owns). Producer inversion of the
 RDF-1.2 codec is **done**: the statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is
-written natively by `gmeow-rdf` (`gmeow_rdf.project_statements_rdf12`), so the build / `make check`
-/ `check-generated` / `regenerate` carry **zero Java and zero Docker** on the statement path.
+written natively by `gmeow-rdf` (`gmeow_rdf.project_statements_rdf12`), so the build, `make check`,
+and `sync` paths carry **zero Java and zero Docker** on the statement path.
 
 *Embodied in:* the native reason lane ([`crates/logic/src/reason/mod.rs`](./crates/logic/src/reason/mod.rs)),
 the `reason --mode native` CLI command, the `reason` registered pipeline generator, and the enforcing

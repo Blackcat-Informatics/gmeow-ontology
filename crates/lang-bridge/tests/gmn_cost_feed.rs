@@ -246,7 +246,7 @@ fn qualifier_marker_aliases_are_authored_dictionary_entries() {
 /// The Task-6 closing-the-loop check: the codec must actually EMIT each qualifier
 /// marker's authored alias, verbatim, when a GMN-0 quad uses the term the alias
 /// dealiases — not merely carry a dictionary entry that happens to agree with it. Reads
-/// `gmeow:gmnDictV1` through `GmnDictionary::from_dataset` (the same "compiled carrier"
+/// `gmeow:gmnDictV3` through `GmnDictionary::from_dataset` (the same "compiled carrier"
 /// load path the codec's own writer uses — never a hardcoded parallel alias table) and
 /// asserts the emitted GMN-1 text contains the exact `<slot>: <alias>` token the
 /// dictionary declares, for every Task-5 qualifier marker.
@@ -258,7 +258,7 @@ fn codec_emits_the_authored_qualifier_marker_aliases_verbatim() {
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
     let ds = load_lang_module();
-    let dict = GmnDictionary::from_dataset(&ds).expect("dict-v1 loads from the carrier");
+    let dict = GmnDictionary::from_dataset(&ds).expect("dict-v3 loads from the carrier");
 
     for (alias, full_iri) in QUALIFIER_MARKER_ALIASES {
         let mut b = RdfDatasetBuilder::new();

@@ -2052,7 +2052,44 @@ impl DocsModel {
     /// Discover the slice catalog under `root/slices`, run ownership analysis,
     /// and build the model. Also reads the curated `<root>/docs/four-boxes.md`
     /// prose at build time, if present.
+    ///
+    /// The per-term content manifest is sourced from the committed
+    /// `<root>/generated/catalog/term-content-manifest.nq` ([`read_term_manifest`]) —
+    /// the disk-sourced path for the standalone `make docs` fanout, which runs
+    /// post-pipeline against the fanout-refreshed committed file. The in-pipeline
+    /// `stage-docs-render` run uses [`discover_with_manifest`](Self::discover_with_manifest)
+    /// instead, so the documentation graph reflects THIS run's freshly-computed
+    /// manifest rather than lagging one regenerate behind (the stale-disk-fold class).
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
+        let manifest = read_term_manifest(root)?;
+        Self::discover_with_manifest_map(root, manifest)
+    }
+
+    /// Same as [`discover`](Self::discover) but sources the per-term content
+    /// manifest from `manifest_bytes` — THIS run's fresh `stage-term-manifest`
+    /// product ([`crate::model`]'s in-pipeline caller passes the
+    /// `stage-term-manifest` artifact bytes) — instead of the committed
+    /// (previous-run) `generated/catalog/term-content-manifest.nq` on disk. When a
+    /// term's definition digest changes this build, the fresh manifest carries the
+    /// newly-minted "Definition changed" changelog entry; a committed-file read
+    /// here would omit it, leaving the documentation named graph one regenerate
+    /// behind the manifest (the stale-disk-fold class this fixes). Shares the whole
+    /// discovery body with [`discover`](Self::discover) via
+    /// [`discover_with_manifest_map`](Self::discover_with_manifest_map); only the
+    /// manifest source differs.
+    pub fn discover_with_manifest(root: &Path, manifest_bytes: &[u8]) -> Result<Self, DocsError> {
+        let manifest = parse_term_manifest(manifest_bytes, "stage-term-manifest product")?;
+        Self::discover_with_manifest_map(root, manifest)
+    }
+
+    /// The shared discovery body: build the model from the slice catalog and layer
+    /// on every repo-only enrichment, applying the already-obtained per-term content
+    /// `manifest` (from disk in [`discover`](Self::discover), from the fresh stage
+    /// product in [`discover_with_manifest`](Self::discover_with_manifest)).
+    fn discover_with_manifest_map(
+        root: &Path,
+        manifest: BTreeMap<String, TermProvenance>,
+    ) -> Result<Self, DocsError> {
         let catalog = SliceCatalog::discover(
             &root.join("slices"),
             purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
@@ -2084,16 +2121,50 @@ impl DocsModel {
         // `query_text` from an inline `cqQuery`, since it never sees the repo
         // root). Hard-fails on a dangling `cqQueryFile` — see `DocsError::CompetencyQuery`.
         apply_competency_query_text(&mut model, root)?;
-        // The per-term content-address manifest, read from the committed N-Quads
-        // fanout artifact. It sets each documented term's content digest and
-        // first-seen version and unions the computed changelog into the authored
-        // one. A term absent from the committed manifest is a term added since the
-        // last commit — its content-address self-heals on the next regenerate pass
-        // (the stage recomputes the manifest THIS build; the committed docs catch up
-        // the next), so it is skipped rather than a hard-fail (the two-phase
-        // fixed-point convergence, not a coverage bug).
-        apply_term_manifest(&mut model, root)?;
+        // The per-term content-address manifest (already obtained by the caller:
+        // from the committed N-Quads fanout artifact in `discover`, or from THIS
+        // run's fresh stage-term-manifest product in `discover_with_manifest`). It
+        // sets each documented term's content digest and first-seen version and
+        // unions the computed changelog into the authored one. A term absent from
+        // the manifest is a term added since the last commit — its content-address
+        // self-heals on the next regenerate pass (the stage recomputes the manifest
+        // THIS build; the committed docs catch up the next), so it is skipped rather
+        // than a hard-fail (the two-phase fixed-point convergence, not a coverage bug).
+        apply_term_manifest(&mut model, manifest);
         Ok(model)
+    }
+
+    /// Build a documentation model scoped to EXACTLY ONE external slice directory —
+    /// the whole slice rooted at `slice_dir`, never a repo-wide `slices/` sweep.
+    /// [`SliceCatalog::discover`] stops recursing at the first `manifest.ttl` it
+    /// meets, so pointing it straight at one slice dir yields a catalog with
+    /// exactly one [`SliceRecord`] scoped to `slice_dir`. slice-quality's
+    /// DocMaturity axis reads this to measure a foreign slice's documentation
+    /// coverage from that slice's OWN files (`module.ttl`, `docs.md`,
+    /// `examples/*.ttl`, …), never the host repo's.
+    ///
+    /// This deliberately returns a bare [`from_catalog`](Self::from_catalog) model.
+    /// The repo-only enrichments `discover` layers on afterward (constraint
+    /// catalog, term content manifest, root SHACL shapes, four-boxes prose, concept
+    /// DOI, `cqQueryFile` resolution) do NOT feed the per-term / per-slice coverage
+    /// dimension computation in [`crate::coverage`], so a `from_catalog` model is
+    /// full-fidelity for maturity scoring. `central_mapping_sets` is empty (`&[]`):
+    /// a foreign slice carries its own mapping sets, and no cross-slice publication
+    /// header is in scope here.
+    ///
+    /// The resulting model's [`term_loss`](Self::term_loss) is `None`, and that is a
+    /// DELIBERATE, correct scope boundary — a not-applicable fact, NEVER an
+    /// "unknown" or "failed" join. The dynamic per-term projection-loss ledger is a
+    /// `stage-mappings` product; a foreign slice pulled in on its own was never
+    /// compiled through the pipeline, so it has no dynamic projection-loss rows to
+    /// attach. The STATIC [`loss_targets`](Self::loss_targets) discovered from the
+    /// slice's own `examples/*.ttl` still populate, so `applicable_lossy` remains
+    /// driven honestly by the slice's authored content.
+    pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
+        let catalog =
+            SliceCatalog::discover(slice_dir, purrdf::SliceVocab::for_namespace(GMEOW_NS))?;
+        let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
+        Ok(Self::from_catalog(&catalog, &ownership, &[]))
     }
 }
 
@@ -2125,7 +2196,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
         // Absent only during the one-shot bootstrap build that first mints the
         // manifest (the stage writes it THIS build; the committed docs pick it up
         // the next pass). An empty map skips every term's content-address for this
-        // pass — the two-phase fixed-point convergence. `check-generated` still
+        // pass — the two-phase fixed-point convergence. Strict sync still
         // guarantees the committed manifest is present + current in a landed tree,
         // so a genuinely-missing committed manifest is caught there, not silently.
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
@@ -2201,8 +2272,13 @@ fn parse_term_manifest(
 /// simply omitted until the next regenerate pass promotes the fresh manifest) — the
 /// two-phase fixed-point convergence, never a hard-fail that would brick a
 /// term-adding regenerate.
-fn apply_term_manifest(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
-    let manifest = read_term_manifest(root)?;
+///
+/// The `manifest` map is obtained by the caller — from the committed on-disk file
+/// ([`read_term_manifest`], used by [`DocsModel::discover`]) or from THIS run's
+/// fresh `stage-term-manifest` product bytes ([`parse_term_manifest`], used by
+/// [`DocsModel::discover_with_manifest`]) — so the pure application logic below is
+/// identical regardless of the manifest source.
+fn apply_term_manifest(model: &mut DocsModel, manifest: BTreeMap<String, TermProvenance>) {
     for term in &mut model.terms {
         let Some(provenance) = manifest.get(&term.iri) else {
             continue;
@@ -2227,7 +2303,6 @@ fn apply_term_manifest(model: &mut DocsModel, root: &Path) -> Result<(), DocsErr
         merged.dedup();
         term.changelog = merged;
     }
-    Ok(())
 }
 
 /// Resolve each fixture's [`DocFixture::catalog_slug`] from its
@@ -4289,6 +4364,7 @@ ex:restEnergy a math:Quantity ;
     rdfs:label "rest energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "8.187e-14"^^xsd:double .
 
 ex:energyDimension a math:DerivedDimension ;

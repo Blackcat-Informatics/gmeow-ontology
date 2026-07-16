@@ -115,9 +115,16 @@ fn render_artifacts(
 }
 
 /// Run SHACL over source-graph N-Quads bytes and return deterministic diagnostics.
+///
+/// The shape union is loaded through the FRESH loader
+/// ([`crate::stages::shape_union_fresh::load_shapes_fresh`]): every
+/// `generated/shapes/*.ttl` member's bytes come from `fresh` (THIS run's consumed
+/// producer products), never from the previous run's committed files (the
+/// stale-disk-fold class).
 pub fn validate_source_graph(
     root: &Path,
     source_nquads: &[u8],
+    fresh: &BTreeMap<String, Vec<u8>>,
 ) -> Result<Report, gmeow_errors::Diag> {
     // Parse the source graph into the native IR and validate it directly through the
     // native SHACL engine (`validate_dataset`), oxigraph-free.
@@ -127,8 +134,7 @@ pub fn validate_source_graph(
                 message: format!("source graph parse: {e}"),
             })
         })?;
-    let (_shape_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
-        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+    let (_shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
     let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
         .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
     Ok(diagnostics_report(&report))
@@ -137,14 +143,40 @@ pub fn validate_source_graph(
 /// The `stage-validate` pipeline stage.
 pub struct ValidateStage {
     consumes: Vec<String>,
+    entities: Vec<(String, Vec<String>)>,
 }
 
 impl ValidateStage {
-    /// Construct the SHACL validation stage. It consumes the loaded authored
-    /// source graph and reads the shape union directly from disk.
+    /// Construct the SHACL validation stage. It consumes the loaded authored source
+    /// graph (`stage-source-load`) plus the four generated-shape producers
+    /// ([`crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS`]), so the
+    /// enforced shape union's `generated/shapes/*.ttl` members are THIS run's
+    /// product bytes — the authored `shapes/*.ttl` / `slices/*/*/shapes.ttl` half is
+    /// read from disk, but the generated members are never (the stale-disk-fold
+    /// class).
+    ///
+    /// Typed dataflow (artifact-level): the `stage-compile-logic` dependency is
+    /// narrowed to the complete compiled carrier graphs
+    /// ([`crate::stages::compile_logic::CARRIER_GRAPHS`]) — the program-level
+    /// digest standing in for the validation-shape byte artifacts this stage
+    /// actually reads off that product. The narrowing is what keeps this stage's
+    /// `graph/diagnostics` attachment a genuine DELTA (compile-logic's product
+    /// carries a graph of the same name); byte-level cache soundness for the
+    /// OPT-lifted shape surface is restored by declaring the compiler's non-authored
+    /// raw sources in [`Stage::input_files`].
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-source-load".to_string()],
+            consumes: vec![
+                "stage-compile-logic".to_string(),
+                "stage-export-constraint-shapes".to_string(),
+                "stage-export-frame-shapes".to_string(),
+                "stage-export-result-shapes".to_string(),
+                "stage-source-load".to_string(),
+            ],
+            entities: vec![(
+                "stage-compile-logic".to_string(),
+                crate::stages::compile_logic::carrier_entity_list(),
+            )],
         }
     }
 }
@@ -162,6 +194,9 @@ impl Stage for ValidateStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
+    }
     fn consumes_span_table(&self) -> bool {
         true
     }
@@ -177,6 +212,10 @@ impl Stage for ValidateStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v4: the shape union's generated/shapes/*.ttl members are product-sourced
+        // from the consumed producer stages (shape_union_fresh) instead of read off
+        // disk, so a shape-source edit is ENFORCED (and its diagnostics rendered) in
+        // ONE regenerate.
         // v3: attribute each SHACL finding to its DOCUMENTED constrained property (the
         // `sh:path`) via the finding's `documented_terms` carrier, so the docs
         // diagnostics→term join lights up the property's per-term page. Additive: the
@@ -184,11 +223,27 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v3-shacl-documented-term-attribution"
+        "validate.v4-fresh-shape-union"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        purrdf::shapes::shape_union::shape_files(root)
-            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
+        // The AUTHORED half of the shape union only — the GENERATED members are
+        // product-sourced off the consumed producer stages (declaring a `generated/`
+        // path here would itself be the stale-disk-fold bug class).
+        let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
+        // The compile-logic dependency is narrowed to the object-level graphs
+        // (see `ValidateStage::new`), so the validation-shape BYTE artifacts this
+        // stage reads are not covered by that narrowed key leg. Their complete
+        // non-authored change basis is the compiler's raw sources below (the
+        // authored slice modules are covered by the consumed whole
+        // `stage-source-load` product); folding them here keeps the cache key sound
+        // byte-for-byte without re-widening the dependency to the whole compile-logic
+        // product (which would break this stage's graph/diagnostics attach delta).
+        files.push(root.join(crate::stages::compile_logic::OPT_SOURCE_PATH));
+        files.push(root.join(crate::stages::compile_logic::OPT_TEST_DATATYPES_PATH));
+        files.push(root.join(crate::stages::compile_logic::PATH_SHAPES_EXAMPLE_PATH));
+        files.sort();
+        files.dedup();
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let source_graph = input
@@ -201,7 +256,11 @@ impl Stage for ValidateStage {
                     message: format!("missing stage-source-load {BASE_GRAPH_PATH} artifact"),
                 })
             })?;
-        let mut report = validate_source_graph(input.root, source_graph)?;
+        let fresh = crate::stages::shape_union_fresh::fresh_generated_shape_members(
+            self.id(),
+            input.upstream,
+        )?;
+        let mut report = validate_source_graph(input.root, source_graph, &fresh)?;
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare
         // IRI in the finding's logical location) matches a span-index entry — the path +
         // 1-based line/column travel onto the SHIPPED finding locations (and, via the
@@ -220,12 +279,38 @@ impl Stage for ValidateStage {
             })?
             .span_index()?;
         crate::ingest::enrich_findings_with_spans(&mut report, &spans);
-        // Attach the DSL-authored remediation prose onto each finding through the
-        // annotate-by-fingerprint seam (D1): resolve each finding's code to the rule
-        // catalogue's remediation guidance and hang it on the finding via
-        // `DiagLedger::annotate`, so the RENDERED SARIF `fixes` (and CLI/HTML "how to
-        // fix" lines) are the genuine product of the annotate API, not a bypass.
-        gmeow_validate::remediation::attach_remediations(&mut report);
+        // The single proof-carrying enrichment pass (Part 1): populate rule identity
+        // (catalog help URIs) onto `report.rules`, then attach the registry-authored
+        // remediation prose onto each finding through the annotate-by-fingerprint seam
+        // (D1) — resolve each finding's code to the rule catalogue's remediation
+        // guidance and hang it on the finding via `DiagLedger::annotate`, so the
+        // RENDERED SARIF `fixes` (and CLI/HTML "how to fix" lines) are the genuine
+        // product of the annotate API, not a bypass. Shared with the CLI consumer path
+        // (`gmeow_validate::data_validate::run`) so the two surfaces cannot drift.
+        //
+        // Per-term usage guidance (Part 3) additionally needs an `&RdfDataset` to scan;
+        // this stage runs before `stage-constraint-catalog` (it consumes only
+        // `stage-source-load`, a sibling of `stage-reason` in the DAG, not a
+        // descendant), so no bundle carrying the generated `gmeow:ValidationRule`
+        // catalog is in scope here — the rule-governing-term key honestly resolves
+        // to nothing on this path. The authored source graph IS in scope (already
+        // consumed above as `source_graph`), so it is parsed once more and passed as
+        // BOTH the bundle and the subject: `documented_terms` guidance (prose authored
+        // directly on ontology terms) still resolves fully, and the rule-governing-term
+        // key stays an honest, structurally-guaranteed absence rather than a fabricated
+        // join. No new `consumes()` edge: this is the SAME `stage-source-load` product
+        // already declared.
+        let source_dataset = purrdf::parse_dataset(source_graph, "application/n-quads", None)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("source graph parse (guidance join): {e}"),
+                })
+            })?;
+        gmeow_validate::enrich::enrich_findings(
+            &mut report,
+            source_dataset.as_ref(),
+            source_dataset.as_ref(),
+        );
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
@@ -310,6 +395,16 @@ mod tests {
         repo
     }
 
+    /// The fresh product-byte map covering the mock repo's one generated union
+    /// member — `validate_source_graph` fails closed on any on-disk generated
+    /// member without a fresh entry (the stale-disk-fold class).
+    fn mock_fresh() -> std::collections::BTreeMap<String, Vec<u8>> {
+        std::collections::BTreeMap::from([(
+            "generated/shapes/frame-shapes.ttl".to_string(),
+            b"# generated\n".to_vec(),
+        )])
+    }
+
     #[test]
     fn validate_stage_emits_sarif_for_shacl_violation() {
         let repo = mock_repo(
@@ -326,7 +421,7 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let report = validate_source_graph(repo.path(), b"").expect("validate");
+        let report = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.error_count(), 1);
         assert_eq!(
             report.metadata["shaclGatePassed"],
@@ -367,7 +462,7 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let report = validate_source_graph(repo.path(), b"").expect("validate");
+        let report = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.findings.len(), 1);
         let finding = &report.findings[0];
         assert!(
@@ -389,6 +484,118 @@ ex:RequiredShape a sh:NodeShape ;
         assert!(
             finding.anchor_non_trivial,
             "the focus node is a NonTrivial anchor the glut join can fire on"
+        );
+    }
+
+    /// Task 7 Part C (adversary F1, cross-surface parity/drift guard): the FULL
+    /// `ValidateStage::run` (not just `validate_source_graph`, which returns
+    /// BEFORE the enrichment call) routes its report through the SAME
+    /// `gmeow_validate::enrich::enrich_findings` the CLI/consumer
+    /// `data_validate::run` path calls
+    /// (`crates/validate/tests/proof_carrying_findings.rs`'s
+    /// `cross_surface_parity_cli_path_is_enriched`), so the two consumer surfaces
+    /// cannot silently drift apart — the original bug this whole feature fixes.
+    /// Falsifiable: removing the `enrich_findings` call at the bottom of
+    /// `ValidateStage::run` (this file) makes both assertions below fail.
+    #[test]
+    fn stage_validate_run_is_enriched_matching_the_cli_path() {
+        use purrdf::RdfDatasetBuilder;
+
+        let repo = mock_repo(
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 1 ;
+        sh:message "required value is missing" ;
+    ] .
+"#,
+        );
+
+        // A minimal `stage-source-load` product: an empty base graph (mirrors the
+        // existing `validate_source_graph(repo.path(), b"")` fixtures) plus the
+        // digest-pinned `REP_SPAN_TABLE` blob every downstream consumer of the
+        // span table requires present (`StageProduct::span_index`).
+        let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
+        let span_index = crate::ingest::SpanIndex::new();
+        let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-source-load".to_string(), product);
+        // The stage consumes the four shape producers fail-closed (the
+        // stale-disk-fold class): every generated union member must arrive as a
+        // fresh product byte, so the fixture supplies header-only members.
+        for (producer, rels) in [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ][..],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH][..],
+            ),
+        ] {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
+        let input = StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        };
+
+        let output = ValidateStage::new().run(input).expect("validate stage run");
+        let json_bytes = output
+            .product
+            .artifact(SHACL_JSON_PATH)
+            .expect("shacl.json artifact on the stage product");
+        let report: Report =
+            serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+
+        assert!(
+            !report.rules.is_empty(),
+            "ValidateStage::run must populate report.rules (rule_catalog::populate_rules), \
+             matching the CLI data_validate::run path"
+        );
+        let finding = report
+            .findings
+            .iter()
+            .find(|f| f.code == "shacl.MinCountConstraintComponent")
+            .expect("the SHACL minCount finding");
+        assert!(
+            !finding.remediation.is_empty(),
+            "the pipeline validate-stage report must carry a remediation, matching the CLI \
+             path: {finding:?}"
         );
     }
 }

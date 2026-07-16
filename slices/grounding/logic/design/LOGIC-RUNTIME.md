@@ -346,7 +346,10 @@ the native chase, and the RL `triple/4` fragment is evaluated by the native gene
 (predicate-as-data) rather than by a black-box substrate. The backward substrate and fallback
 router are deleted. Native results remain **corpus-gated** by the divergence ledger
 ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)); captured external expectations keep the native core
-honest without shipping another executable reasoner.
+honest without shipping another executable reasoner. Native's consistency verdict is gated on-gate by
+`reason-verify` (`ReasoningResult::is_consistent`); an independent OWL-Direct tableau consistency
+differential was evaluated as an off-gate arm and retired as empirically intractable at bundle scale
+(per-world OWL-Direct consistency does not complete).
 
 The execution lowering stack:
 
@@ -372,13 +375,46 @@ world/standpoint and the quantitative axes in one pass, where the semiring *is* 
 decidability-as-projection applied to performance.
 
 Honest staging: native subsumption is fragment-by-fragment and corpus-gated. The forward-chase
-profiles (EL, RL, DL Horn) are native and in production; the hard parts —
+profiles (EL, RL, DL Horn) are native and in production, and the backward path is now native too —
+structured-term unification (with order-sorted subsumption), proof objects, and full-FOL resolution
+with three-valued SLG-WFS negation (see *Structured terms, proof objects, and full-FOL backward
+resolution* below). The hard parts that remain staged are the *incremental* versions —
 well-founded / stable-model semantics *incrementally*, existential-rule chase with termination *and*
-incrementality together, and the paraconsistent/modal facets — stay heavy-path fallbacks longest and
-are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
+incrementality together — and the paraconsistent/modal facets; these stay heavy-path fallbacks longest
+and are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
 (architecture borrowed, substrate not) are in
 [`docs/APPLIED_CATEGORY_THEORY/take1.md`](../../../../docs/APPLIED_CATEGORY_THEORY/take1.md) §10.1–§10.2;
 the correspondence calculus that rides this engine is in [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).
+
+### Structured terms, proof objects, and full-FOL backward resolution
+
+The backward path is native, not merely a deleted bootstrap substrate. A hash-consed, binder-aware,
+content-addressed **structured-term arena** — one shared DAG serving `logic:`, `lang:`, and `math:`
+lowering, locally-nameless (bound occurrences are de-Bruijn references, so alpha-equivalence is node
+identity and substitution is capture-avoiding by construction), content keys the persistent identity
+and dense node ids never escaping the runtime — backs:
+
+- **Structured-term unification with occurs-check**, including **order-sorted** unification over the
+  authored `math:` subsort lattice (`math:NaturalNumber ⊑ Integer ⊑ RationalNumber ⊑ RealNumber ⊑
+  ComplexNumber`): a variable of sort `S` unifies with a term of sort `S′ ⊑ S`, and two sorted
+  metavariables unify at their meet — so the `math:` consumer's subsort demand is met natively, not
+  by exact sort-equality alone.
+- **Proof objects as first-class, checkable arena terms** — a proof is a term in the same DAG whose
+  `check()` re-derives its goal from its premises (de Bruijn / Curry-Howard criterion), turning
+  "incomplete, never wrong" from a sampled property into a structural one; its derivation identity
+  reuses the existing `mint_derivation_id` recipe byte-for-byte (numeric ids never enter the hash).
+- **Full-FOL backward resolution** — SLG-style answer tables over compound terms (subsumptive demand
+  keying, `unify` the join primitive, occurs-check ⇒ finite terms), including **three-valued SLG-WFS
+  well-founded negation** (van-Gelder alternating fixpoint): an atom trapped in a negative loop
+  evaluates to **undefined**, never a fabricated true/false. Budget exhaustion returns a
+  **deterministic sound partial** answer set (`BudgetStatus::Exhausted`); an unsupported goal shape is
+  a typed `Unsupported` hard failure — no external oracle, no demotion.
+
+These are shipped and observable: the `stage-goal-directed` pipeline stage evaluates authored
+goal-directed demonstrators through this engine and folds their proof-carrying structured answers and
+three-valued WFS verdicts into the `graph/goal-directed` named graph of `gmeow.gts`. What remains
+staged is the *incremental* form: these backward capabilities are batch, and incremental well-founded
+maintenance is the longest-standing perf gap.
 
 ### Native arithmetic and comparison builtins
 

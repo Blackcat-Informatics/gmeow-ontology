@@ -21,13 +21,14 @@ These artifacts ground the data-axis and process-axis use cases
 
 The round trip is proven two ways inside `make check` — no external tooling required:
 
-- **Structural** — the conformance case
+- **Bounded query-class recovery** — the conformance case
   `conformance/logic/cases/correspondence/openehr-bloodpressure-section-retraction/` authors the
   YAMATO canonical graph + a `logic:Correspondence` (`SectionRetraction`, mnemomorphic) whose
-  `gmeow:SeqPath` get-leg encodes the `archetype_node_id` path witness; the round-trip +
-  mnemomorphism gates pass (`expected/correspondence-gates.json`). This confirms the witness
-  *resolves* and its auto-derived inverse is *well-formed* — the data recovery itself is the next
-  proof.
+  `gmeow:SeqPath` get-leg encodes the `archetype_node_id` path witness and whose
+  `logic:RecoveryCase` declares all three source edges. The native executor constructs the view,
+  runs candidate put, and recovers every declared source atom; the round-trip + mnemomorphism gates
+  pass (`expected/correspondence-gates.json`). This is genuine execution over the bounded case, not
+  acceptance of `put = get.invert()`; the larger fixture recovery is the next proof.
 - **Data** — `crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs` reads the *real*
   fixtures and actually reconstructs `S`: the RM systolic/diastolic `DV_QUANTITY` + FHIR lineage are
   byte-preserved between `source` and `augmented` (`d` is additive), and `u` re-lifts each

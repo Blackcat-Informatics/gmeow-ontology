@@ -43,10 +43,13 @@
 //! Anything else (a class in no documented slice, no gmeow path, and no authored
 //! ecosystem namespace) is a HARD FAIL.
 //!
-//! The public entry point [`render_models_python`] is invoked by the
-//! [`PydanticStage`] production leaf (`stage-export-pydantic`); the carrier folds
-//! its output into the `models-python` blob and writes the package tree to
-//! [`PACKAGE_DISK_PREFIX`] on disk.
+//! The [`PydanticStage`] production leaf (`stage-export-pydantic`) renders through
+//! [`render_models_python_from_shapes`] over the FRESH shape union
+//! ([`crate::stages::shape_union_fresh`] — the generated members are THIS run's
+//! consumed product bytes, never a stale disk read); the standalone
+//! `gmeow-dev sync --mode update --outputs docs` entry ([`render_models_python`]) reads
+//! the committed union. The carrier folds the stage output into the `models-python`
+//! blob and writes the package tree to [`PACKAGE_DISK_PREFIX`] on disk.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -356,7 +359,7 @@ fn is_pep440_public_version(raw: &str) -> bool {
 
 /// Render the `gmeow_models` package as a `{package-relative-path: bytes}` map
 /// (keys `gmeow_models/...`), the public entry point for
-/// `gmeow-dev export-docs --format pydantic` (writes the tree to disk) — the same
+/// `gmeow-dev sync --mode update --outputs docs` (writes the tree to disk) — the same
 /// bytes the pipeline stage folds into the `models-python` blob.
 pub fn render_models_python_package(
     root: &Path,
@@ -364,17 +367,30 @@ pub fn render_models_python_package(
     Ok(render_models_python(root)?.artifacts)
 }
 
-/// Render the `gmeow_models` Pydantic package from the repo's shape union.
+/// Render the Pydantic package from the COMMITTED (on-disk) shape union — the
+/// standalone `make sync SYNC_OUTPUTS=docs` entry, which runs post-pipeline against
+/// the fanout-refreshed committed files. The in-DAG [`PydanticStage`] must NOT use
+/// this: it routes through [`crate::stages::shape_union_fresh::load_shapes_fresh`]
+/// so the union's generated members are THIS run's product bytes (the
+/// stale-disk-fold class).
+pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_errors::Diag> {
+    let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
+        .map_err(|m| err(format!("load shape union: {m}")))?;
+    render_models_python_from_shapes(root, &shapes)
+}
+
+/// Render the `gmeow_models` Pydantic package from an already-loaded shape union.
 ///
 /// Deterministic: every collection is `BTreeMap`/sorted, there are no timestamps,
 /// and the `$defs` iteration order is the compiler's sorted key order.
-pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_errors::Diag> {
-    // 1. THE co-derivation point: load the shape union and compile it with the
-    //    exact call the JSON-Schema stage makes, so both surfaces read one `$defs`.
-    let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
-        .map_err(|m| err(format!("load shape union: {m}")))?;
+pub(crate) fn render_models_python_from_shapes(
+    root: &Path,
+    shapes: &purrdf::shapes::shapes::Shapes,
+) -> Result<ModelsPython, gmeow_errors::Diag> {
+    // 1. THE co-derivation point: compile the shape union with the exact call the
+    //    JSON-Schema stage makes, so both surfaces read one `$defs`.
     let ns = gmeow_json_schema_namespaces();
-    let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
+    let compiled = purrdf::shapes::json_schema::compile(shapes, &ns);
     let mut schema: Value = serde_json::from_str(&compiled.schema_json)
         .map_err(|e| err(format!("parse compiled JSON Schema: {e}")))?;
 
@@ -1038,9 +1054,44 @@ fn ref_to_name(reference: &str, defkey_to_class: &BTreeMap<String, String>) -> S
         .unwrap_or_else(|| py_type_name(target, "GmeowModel"))
 }
 
+/// Extract the `StrEnum` member VALUE from one JSON-Schema `enum` member.
+///
+/// purrdf's value-schema convention (`purrdf::shapes::instance::project_value`,
+/// shared with the `sh:in` enum emitter so a value and its enum member can never
+/// drift) encodes an IRI/blank-node member as `{"@id": curie}` and a lang-tagged
+/// or non-native typed literal as `{"@value": lexical, ...}`; plain strings and
+/// numeric/boolean scalars stay bare. A `StrEnum` member is the identifying
+/// string, so unwrap an object member to its inner `@id`/`@value` — never the
+/// serialized object (that is how a bumped `sh:in` enum used to yield a member
+/// like `"{\"@id\":\"gmeow:...\"}"`). Bare strings and numeric/boolean scalars
+/// pass through unchanged (our value-vocabulary enums stay bare CURIEs). An
+/// object with neither a string `@id` nor a string `@value`, or a `null`/array
+/// member, is not a shape purrdf's value-schema convention produces — it is a
+/// HARD FAIL (never silently re-serialized back into a StrEnum value).
+fn enum_member_value(v: &Value) -> Result<String, gmeow_errors::Diag> {
+    match v {
+        Value::String(s) => Ok(s.clone()),
+        Value::Number(_) | Value::Bool(_) => Ok(v.to_string()),
+        Value::Object(map) => match (map.get("@id"), map.get("@value")) {
+            (Some(Value::String(id)), _) => Ok(id.clone()),
+            (_, Some(Value::String(lexical))) => Ok(lexical.clone()),
+            _ => Err(err(format!(
+                "enum member {v} is an object with neither a string \"@id\" nor a string \
+                 \"@value\" — not a shape purrdf's value-schema convention produces; refusing to \
+                 silently serialize it into a StrEnum value"
+            ))),
+        },
+        Value::Null | Value::Array(_) => Err(err(format!(
+            "enum member {v} is null or a nested array — not a valid StrEnum member; refusing to \
+             silently serialize it into a StrEnum value"
+        ))),
+    }
+}
+
 /// Register (once) and name the `StrEnum` for an `{"enum": [...]}` schema. Member
-/// VALUES are the full IRIs/CURIEs/literals verbatim; two members sharing a value
-/// is a HARD FAIL (StrEnum would silently alias them).
+/// VALUES are the identifying IRI/CURIE/literal (object members unwrapped to
+/// their `@id`/`@value` inner string via [`enum_member_value`]); two members
+/// sharing a value is a HARD FAIL (StrEnum would silently alias them).
 fn register_enum(
     obj: &serde_json::Map<String, Value>,
     ctx: &mut FieldCtx<'_>,
@@ -1053,18 +1104,13 @@ fn register_enum(
     if ctx.enums.contains_key(&name) {
         return Ok(name);
     }
-    let mut values: Vec<String> = obj
-        .get("enum")
-        .and_then(Value::as_array)
-        .map(|a| {
-            a.iter()
-                .map(|v| match v.as_str() {
-                    Some(s) => s.to_owned(),
-                    None => v.to_string(),
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let mut values: Vec<String> = match obj.get("enum").and_then(Value::as_array) {
+        Some(a) => a
+            .iter()
+            .map(enum_member_value)
+            .collect::<Result<Vec<_>, _>>()?,
+        None => Vec::new(),
+    };
     values.sort();
     values.dedup();
 
@@ -1195,14 +1241,16 @@ fn build_model(
                 py_name.push('_');
             }
             let is_envelope = matches!(key.as_str(), "@id" | "@type" | "@annotation");
-            // The property's definition (its alias is the property CURIE) and its
-            // SHACL-derived Field constraints (pattern/min/max/length/items).
+            // The property's definition (its alias is the property CURIE), refined
+            // by any class-local node target carried by this property's schema, and
+            // its SHACL-derived Field constraints (pattern/min/max/length/items).
             let description = if is_envelope {
                 None
             } else {
-                curie_index
+                let property_definition = curie_index
                     .get(key.as_str())
-                    .and_then(|t| t.definition.clone())
+                    .and_then(|t| t.definition.clone());
+                class_local_field_description(route, pv, property_definition)
             };
             let constraints = if is_envelope {
                 Vec::new()
@@ -1239,6 +1287,61 @@ fn build_model(
         extra,
         jse,
         fields,
+    })
+}
+
+/// Refine a property's global definition with any node target imposed by this
+/// particular class shape. JSON Schema represents an unshaped RDF node target as a
+/// small `{"@id": ...}` object whose `$comment` names the target class; retaining
+/// that target in `Field(description=...)` prevents a class-local restriction such as
+/// `ConceptCategorization -> observationResult only Concept` from being flattened into
+/// the property's much broader global range prose.
+fn class_local_field_description(
+    route: &ClassRoute,
+    property_schema: &Value,
+    property_definition: Option<String>,
+) -> Option<String> {
+    fn scan(value: &Value, targets: &mut BTreeSet<String>) {
+        match value {
+            Value::Object(object) => {
+                if let Some(comment) = object.get("$comment").and_then(Value::as_str)
+                    && let Some(target) =
+                        comment.strip_suffix(" has no NodeShape; node reference only")
+                    && !target.is_empty()
+                {
+                    targets.insert(target.to_owned());
+                }
+                for child in object.values() {
+                    scan(child, targets);
+                }
+            }
+            Value::Array(array) => {
+                for child in array {
+                    scan(child, targets);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut targets = BTreeSet::new();
+    scan(property_schema, &mut targets);
+    if targets.is_empty() {
+        return property_definition;
+    }
+
+    let class = if route.curie.is_empty() {
+        route.class_name.as_str()
+    } else {
+        route.curie.as_str()
+    };
+    let local = format!(
+        "Within {class}, values are node references constrained to {}.",
+        targets.into_iter().collect::<Vec<_>>().join(" or ")
+    );
+    Some(match property_definition {
+        Some(global) if !global.is_empty() => format!("{local} {global}"),
+        _ => local,
     })
 }
 
@@ -1694,7 +1797,7 @@ fn render_base() -> Vec<u8> {
 ///
 /// # Bump policy
 ///
-/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make regenerate` — never
+/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make sync` — never
 /// hand-edit this file or set `version` in `pyproject.toml` directly.
 fn render_about(version: &str) -> Vec<u8> {
     let mut out = String::new();
@@ -1704,7 +1807,7 @@ fn render_about(version: &str) -> Vec<u8> {
             "This is the ontology's owl:versionInfo (ontology/gmeow.ttl), verbatim.".to_owned(),
             "pyproject.toml's [tool.hatch.version] reads __version__ from here. To".to_owned(),
             "release a new wheel version, bump owl:versionInfo in ontology/gmeow.ttl".to_owned(),
-            "and run `make regenerate` — never hand-edit this file or set `version`".to_owned(),
+            "and run `make sync` — never hand-edit this file or set `version`".to_owned(),
             "in pyproject.toml directly.".to_owned(),
         ],
     ));
@@ -1821,7 +1924,7 @@ fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
         "The wheel version ({version}) is the ontology's `owl:versionInfo`\n\
          (`ontology/gmeow.ttl`), stamped verbatim into `gmeow_models/__about__.py` and\n\
          read by `pyproject.toml`'s `[tool.hatch.version]`. To release a new version,\n\
-         bump `owl:versionInfo` and `make regenerate` — never hand-edit `__about__.py`\n\
+         bump `owl:versionInfo` and `make sync` — never hand-edit `__about__.py`\n\
          or set `version` in `pyproject.toml` directly.\n\n",
     ));
     out.push_str("## Usage\n\n");
@@ -1846,35 +1949,68 @@ fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
 /// The committed on-disk root of the shipped package (the wheel source tree).
 pub const PACKAGE_ROOT: &str = "packages/python/gmeow_models";
 
-/// The `stage-export-pydantic` export-leaf stage: a source-reading leaf (like
+/// The `stage-export-pydantic` export-leaf stage: a fresh-union leaf (like
 /// `stage-export-json-schema`) that renders the Pydantic model package from the
-/// shape union + docs model. Its artifacts are written to disk under
+/// shape union + docs model, with the union's `generated/shapes/*.ttl` members
+/// sourced from THIS run's consumed producer products (never the stale committed
+/// files — the stale-disk-fold class). Its artifacts are written to disk under
 /// [`PACKAGE_DISK_PREFIX`] (the wheel source) and folded into the `models-python`
 /// blob by the carrier.
-pub struct PydanticStage;
+pub struct PydanticStage {
+    consumes: Vec<String>,
+}
+
+impl PydanticStage {
+    /// Construct the stage. It reads the AUTHORED shape/docs sources from disk and
+    /// consumes the four generated-shape producers so the compiled union folds THIS
+    /// run's fresh `generated/shapes/*.ttl` bytes.
+    pub fn new() -> Self {
+        Self {
+            consumes: crate::stages::shape_union_fresh::producer_consumes(),
+        }
+    }
+}
+
+impl Default for PydanticStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for PydanticStage {
     fn id(&self) -> &str {
         "stage-export-pydantic"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "pydantic.v1"
+        // v2: the union's generated/shapes/*.ttl members are product-sourced from the
+        // consumed producer stages (shape_union_fresh) instead of read off disk, so a
+        // shape-source edit reaches the emitted package in ONE regenerate.
+        "pydantic.v2-fresh-shape-union"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // The emitter reads BOTH the shape union (constraints) and the docs model
-        // (prose/digests/slice routing), so both source sets bust this leaf's cache.
-        let mut files = purrdf::shapes::shape_union::shape_files(root)
-            .map_err(|m| err(format!("shape files: {m}")))?;
+        // The emitter reads BOTH the AUTHORED half of the shape union (constraints)
+        // and the docs model (prose/digests/slice routing), so both source sets bust
+        // this leaf's cache. The GENERATED union members are NOT declared: they are
+        // product-sourced off the consumed producer stages, whose product digests
+        // already key the cache (a `generated/` path here would itself be the
+        // stale-disk-fold bug class).
+        let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
         files.extend(docs_source_files(root));
         files.sort();
         files.dedup();
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let rendered = render_models_python(input.root)?;
+        let fresh = crate::stages::shape_union_fresh::fresh_generated_shape_members(
+            self.id(),
+            input.upstream,
+        )?;
+        let (_store, shapes) =
+            crate::stages::shape_union_fresh::load_shapes_fresh(input.root, &fresh)?;
+        let rendered = render_models_python_from_shapes(input.root, &shapes)?;
         // Key every member at its on-disk package path (the wheel source tree); the
         // carrier strips the prefix back to the package-relative blob member key.
         let artifacts: BTreeMap<String, Vec<u8>> = rendered
@@ -1958,6 +2094,188 @@ mod tests {
             }
         }
         n
+    }
+
+    /// The canonical logic restriction vocabulary must reach the functional-model
+    /// surface without relying on a pre-generated OWL/RDFS copy.  These three lang
+    /// classes are intentionally restriction-only Pydantic targets: losing the
+    /// `logic:subClassOf [ a logic:Restriction ; ... ]` derivation removes their
+    /// JSON-Schema `$defs` and therefore their Python models/re-exports.
+    #[test]
+    fn logic_authored_lang_restrictions_remain_exported() {
+        let source = r#"
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# The package's universal @annotation field references this infrastructure model.
+gmeow:Annotation a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty gmeow:annotationTarget ;
+        logic:allValuesFrom gmeow:Entity ] .
+
+lang:WordForm a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:lexemeOf ;
+        logic:allValuesFrom lang:Lexeme ] .
+
+lang:Grammar a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:grammarFor ;
+        logic:allValuesFrom lang:SignSystem ] .
+
+lang:GrammarRule a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:grammarRuleOf ;
+        logic:allValuesFrom lang:Grammar ] .
+"#;
+        let ontology = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("parse canonical logic restriction fixture");
+        let validation_shapes =
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .expect("derive validation shapes from logic restrictions");
+        let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+            .with_validation_shapes(validation_shapes);
+        let shacl =
+            gmeow_logic_compile::projections::shapes::project_validation_shapes_shacl(&program);
+        let shape_dataset = purrdf::parse_dataset(shacl.as_bytes(), "text/turtle", None)
+            .expect("parse projected SHACL");
+        let prefixes = purrdf::shapes::text_ingest::extract_prefixes(&shacl);
+        let shapes = purrdf::shapes::shapes::from_dataset_with_prefixes(&shape_dataset, &prefixes)
+            .expect("type projected SHACL");
+
+        let rendered = render_models_python_from_shapes(&repo_root(), &shapes)
+            .expect("render Pydantic models from logic-derived shapes");
+        let init = utf8(&rendered.artifacts, "gmeow_models/__init__.py");
+        let lang = utf8(&rendered.artifacts, "gmeow_models/lang.py");
+        for (iri, class) in [
+            (
+                "https://blackcatinformatics.ca/lang/Grammar",
+                "Lang_Grammar",
+            ),
+            (
+                "https://blackcatinformatics.ca/lang/GrammarRule",
+                "Lang_GrammarRule",
+            ),
+            (
+                "https://blackcatinformatics.ca/lang/WordForm",
+                "Lang_WordForm",
+            ),
+        ] {
+            let dotted = format!("gmeow_models.lang.{class}");
+            assert_eq!(
+                rendered.dotted_paths.get(iri).map(String::as_str),
+                Some(dotted.as_str()),
+                "{iri} must retain its importable Pydantic model"
+            );
+            assert!(
+                lang.contains(&format!("class {class}(")),
+                "lang module must define {class}"
+            );
+            assert!(
+                init.contains(&format!("\"{class}\"")),
+                "package __init__ must re-export {class}"
+            );
+        }
+    }
+
+    /// A class-local exact-one dimension restriction must survive the complete
+    /// canonical logic -> derived SHACL -> JSON Schema -> Pydantic path.  The
+    /// committed generated schemas are deliberately not involved here: this test
+    /// proves the fresh projection used by `make sync` without requiring generated
+    /// artifacts to be refreshed during a focused source-only review fix.
+    #[test]
+    fn logic_authored_exact_one_dimension_is_a_required_scalar() {
+        let source = r#"
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# The package's universal @annotation field references this infrastructure model.
+gmeow:Annotation a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty gmeow:annotationTarget ;
+        logic:allValuesFrom gmeow:Entity ] .
+
+math:Dimension a owl:Class .
+math:hasDimension a owl:ObjectProperty .
+math:dimensionless a math:Dimension .
+
+math:OddsValue a owl:Class ;
+    logic:subClassOf
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:minQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass math:Dimension ] .
+
+math:LogOddsValue a owl:Class ;
+    logic:subClassOf
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:minQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass math:Dimension ] .
+"#;
+        let ontology = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("parse canonical exact-one dimension fixture");
+        let validation_shapes =
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .expect("derive validation shapes from exact-one dimension restrictions");
+        let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+            .with_validation_shapes(validation_shapes);
+        let shacl =
+            gmeow_logic_compile::projections::shapes::project_validation_shapes_shacl(&program);
+        let shape_dataset = purrdf::parse_dataset(shacl.as_bytes(), "text/turtle", None)
+            .expect("parse projected exact-one dimension SHACL");
+        let prefixes = purrdf::shapes::text_ingest::extract_prefixes(&shacl);
+        let shapes = purrdf::shapes::shapes::from_dataset_with_prefixes(&shape_dataset, &prefixes)
+            .expect("type projected exact-one dimension SHACL");
+
+        let rendered = render_models_python_from_shapes(&repo_root(), &shapes)
+            .expect("render Pydantic models from exact-one dimension shapes");
+        let math = utf8(&rendered.artifacts, "gmeow_models/math.py");
+        for class_name in ["Math_LogOddsValue", "Math_OddsValue"] {
+            let marker = format!("class {class_name}(");
+            let start = math
+                .find(&marker)
+                .unwrap_or_else(|| panic!("missing {class_name}"));
+            let rest = &math[start..];
+            let end = rest.find("\nclass ").unwrap_or(rest.len());
+            let class_body = &rest[..end];
+            assert!(
+                class_body.contains("hasDimension: str = Field("),
+                "{class_name}.hasDimension must be a required scalar projected from its exact-one canonical restriction"
+            );
+        }
     }
 
     /// The whole package, rendered over the real repo, is deterministic and
@@ -2067,6 +2385,15 @@ mod tests {
         assert!(
             all_text.contains(", description=\""),
             "expected Field(description=...) from property definitions"
+        );
+        assert!(
+            all_text.lines().any(|line| {
+                line.contains("observationResult:")
+                    && line.contains(
+                        "Within gmeow:ConceptCategorization, values are node references constrained to gmeow:Concept."
+                    )
+            }),
+            "ConceptCategorization.observationResult must retain its class-local Concept target in the Pydantic field description"
         );
         // Package README + enriched __init__ docstring are self-explaining.
         let readme = utf8(a, "gmeow_models/README.md");
@@ -2480,5 +2807,53 @@ mod tests {
             init.contains("from .__about__ import __version__ as __version__"),
             "__init__.py must re-export __version__ from __about__.py"
         );
+    }
+
+    /// A `sh:in` enum member arrives from purrdf's value-schema convention as a
+    /// JSON-LD node object `{"@id": curie}` (and a lang/typed literal as
+    /// `{"@value": lexical, ...}`). The StrEnum VALUE must be the inner
+    /// identifying string, never the serialized object — regression anchor for
+    /// the purrdf 0.6.0 `sh:in`-enum object-encoding bump that otherwise yields a
+    /// member value of `"{\"@id\":\"gmeow:...\"}"`.
+    #[test]
+    fn enum_member_value_unwraps_id_and_value_objects() {
+        // IRI node object → its @id CURIE (the openEHR defining-code case).
+        assert_eq!(
+            enum_member_value(
+                &json!({ "@id": "gmeow:openehr/bloodpressure/terminology/local/at0010" })
+            )
+            .unwrap(),
+            "gmeow:openehr/bloodpressure/terminology/local/at0010"
+        );
+        // Typed / lang literal object → its @value lexical.
+        assert_eq!(
+            enum_member_value(&json!({ "@value": "mmHg", "@type": "xsd:string" })).unwrap(),
+            "mmHg"
+        );
+        assert_eq!(
+            enum_member_value(&json!({ "@value": "haut", "@language": "fr" })).unwrap(),
+            "haut"
+        );
+        // Bare string / scalar members (our value-vocabulary enums) pass through.
+        assert_eq!(
+            enum_member_value(&json!("math:twoSidedAlternative")).unwrap(),
+            "math:twoSidedAlternative"
+        );
+        assert_eq!(enum_member_value(&json!(1)).unwrap(), "1");
+        assert_eq!(enum_member_value(&json!(true)).unwrap(), "true");
+    }
+
+    /// An object with neither a string `@id` nor a string `@value`, or a
+    /// `null`/array member, is not a shape purrdf's value-schema convention
+    /// produces — `enum_member_value` must hard-fail rather than silently
+    /// serialize it into a StrEnum value (that is exactly the bug the
+    /// unwrapping above fixes; a fallthrough re-introduces it for any shape
+    /// that slips through the recognized cases).
+    #[test]
+    fn enum_member_value_hard_fails_on_unrecognized_shapes() {
+        assert!(enum_member_value(&json!({ "foo": "bar" })).is_err());
+        assert!(enum_member_value(&json!({ "@id": 5 })).is_err());
+        assert!(enum_member_value(&json!(null)).is_err());
+        assert!(enum_member_value(&json!(["x"])).is_err());
     }
 }

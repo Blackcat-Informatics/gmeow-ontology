@@ -3,9 +3,10 @@
 
 //! End-to-end: score a real slice through the full rubric and render the report.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use gmeow_slice_quality::report::score_slice;
+use gmeow_slice_quality::ScoringEnv;
+use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -14,16 +15,25 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
+/// Score a slice against the repo rubric's measurement standard, in repo mode —
+/// the in-repo replacement for the retired `score_slice(root, dir)`.
+fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
+    let module = root.join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
+    let standard = gmeow_slice_quality::rubric::load_rubric(&ds)?.standard;
+    score_slice_with_standard(dir, &standard, ScoringEnv::Repo)
+}
+
 #[test]
-fn scores_the_rubric_slice_across_all_fourteen_axes() {
+fn scores_the_rubric_slice_across_all_fifteen_axes() {
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
-    let report = score_slice(&root, &dir).expect("the rubric slice scores");
+    let report = score(&root, &dir).expect("the rubric slice scores");
 
     assert_eq!(
         report.assessment.grades.len(),
-        14,
-        "all fourteen axes graded"
+        15,
+        "all fifteen axes graded"
     );
     assert!(
         !report.rollup_label().is_empty(),
@@ -49,8 +59,8 @@ fn scoring_is_deterministic() {
     // requirement: the tool is a gate input and a golden source.
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
-    let a = score_slice(&root, &dir).unwrap();
-    let b = score_slice(&root, &dir).unwrap();
+    let a = score(&root, &dir).unwrap();
+    let b = score(&root, &dir).unwrap();
     assert_eq!(
         a.render_text(),
         b.render_text(),
@@ -71,7 +81,7 @@ fn emitted_codes_are_registered_and_carry_help_uris() {
     // `to_report` seeds the codes and attaches the rule descriptors.
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
-    let report = score_slice(&root, &dir).expect("the rubric slice scores");
+    let report = score(&root, &dir).expect("the rubric slice scores");
     let diag = report.to_report();
     assert!(!diag.findings.is_empty(), "the report emits findings");
 
@@ -124,11 +134,11 @@ fn scores_the_logic_slice_green_vs_advisory() {
     if !dir.join("manifest.ttl").is_file() {
         return; // logic slice not present in this checkout — skip.
     }
-    let report = score_slice(&root, &dir).expect("the logic slice scores");
+    let report = score(&root, &dir).expect("the logic slice scores");
     assert_eq!(
         report.assessment.grades.len(),
-        14,
-        "all fourteen axes graded on logic"
+        15,
+        "all fifteen axes graded on logic"
     );
     assert!(report.to_report().ok(), "advisory only");
 }

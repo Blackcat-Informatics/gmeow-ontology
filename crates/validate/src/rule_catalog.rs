@@ -76,7 +76,7 @@ pub struct RuleSeed {
     /// than a single literal code. Family entries anchor one catalog entry for the
     /// whole family; the generator renders them as a pattern.
     pub family: bool,
-    /// The DSL-authored rule-level remediation prose ([`remediation_for`]), or `None`
+    /// The registry-authored rule-level remediation prose ([`remediation_for`]), or `None`
     /// for a code on the honest-absence allowlist. The constraint-catalog generator
     /// projects it as `gmeow:ruleRemediation`.
     pub remediation: Option<&'static str>,
@@ -308,6 +308,20 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Error,
         Enforcement::Governance,
     ),
+    // ── Bundle ontology completeness (`gmeow verify`) — governance-ish ──
+    // Non-blocking Warnings: a bundle that passes `gmeow verify` today carries
+    // zero missing labels/definitions, so these never change a clean bundle's
+    // exit code (they were previously informational `println!` rows).
+    (
+        codes::ONTOLOGY_MISSING_LABEL,
+        Severity::Warning,
+        Enforcement::Governance,
+    ),
+    (
+        codes::ONTOLOGY_MISSING_DEFINITION,
+        Severity::Warning,
+        Enforcement::Governance,
+    ),
     // ── Input well-formedness ──
     (codes::EXAMPLE_PARSE, Severity::Error, Enforcement::Parse),
 ];
@@ -365,7 +379,7 @@ pub fn help_uri_for(code: &str) -> String {
     format!("{CATALOG_BASE_URI}#{}", slugify(code))
 }
 
-/// The DSL-authored rule-level remediation prose — the standing "how to fix a
+/// The registry-authored rule-level remediation prose — the standing "how to fix a
 /// violation of this rule" guidance, keyed by a static [`codes`] const or a dynamic
 /// family base. It is the SINGLE source of the fix guidance rendered on both the
 /// rule registry (`gmeow:ruleRemediation`, via [`rule_for`]) and, through the
@@ -564,6 +578,15 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
         codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP,
         "Adjust the RDF-1.2 statement so the OWL round-trip is lossless, or record the loss in the projection-loss ledger.",
     ),
+    // ── Bundle ontology completeness (`gmeow verify`) ──
+    (
+        codes::ONTOLOGY_MISSING_LABEL,
+        "Add an rdfs:label to the term so it names itself in the documented vocabulary.",
+    ),
+    (
+        codes::ONTOLOGY_MISSING_DEFINITION,
+        "Add a skos:definition to the term so its meaning is documented in the vocabulary.",
+    ),
     // ── Input well-formedness ──
     (
         codes::EXAMPLE_PARSE,
@@ -689,7 +712,7 @@ pub fn catalog_anchor_uri(code: &str) -> String {
 pub fn rule_for(code: &str, default_severity: Severity) -> Rule {
     let mut rule = Rule::new(code, default_severity);
     rule.help_uri = Some(catalog_anchor_uri(code));
-    // Thread the DSL-authored rule-level remediation onto the built Rule so the
+    // Thread the registry-authored rule-level remediation onto the built Rule so the
     // renderers surface `gmeow:ruleRemediation`. Honest absence for allowlisted codes.
     if let Some(remediation) = remediation_for(code) {
         rule = rule.with_remediation(remediation);

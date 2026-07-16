@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -130,7 +131,7 @@ gmeow:mapsetQudt a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/qudt" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "QUDT alignments for measurement reference frames and quantity values. Contextual: gmeow:ReferenceFrame aligns to qudt:Unit only when the frame's realm is gmeow:frameRealmMeasurement. gmeow:Quantity aligns to qudt:QuantityValue as the value+unit bundle. QUDT uses OWL punning (not strict DL); GMEOW keeps the alignment in the mapping layer only, never importing QUDT into the OWL 2 DL core." .
+    gmeow:setComment "QUDT alignments for measurement reference frames and quantity values. Contextual: gmeow:ReferenceFrame aligns to qudt:Unit only when the frame's realm is gmeow:frameRealmMeasurement. math:Quantity aligns to qudt:QuantityValue as the value+unit bundle. QUDT uses OWL punning (not strict DL); GMEOW keeps the alignment in the mapping layer only, never importing QUDT into the OWL 2 DL core." .
 
 gmeow:mapsetSchemaOrgFinance a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
@@ -161,12 +162,6 @@ gmeow:mapsetLexvo a gmeow:MappingSet ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lexvo" ;
     gmeow:license "https://creativecommons.org/licenses/by-sa/3.0/" ;
     gmeow:setComment "GMEOW sign-system and script → Lexvo alignments — the ISO 639 language-code and ISO 15924 script-code hub (which also anchors the BCP-47 primary subtags; by reference, curl-validated). A Lexvo ISO-code IRI is a code-scoped identifier, a related resource rather than identity (skos:relatedMatch)." .
-
-gmeow:mapsetFoundational a gmeow:MappingSet ;
-    gmeow:sssomFile "gmeow-foundational.sssom.tsv" ;
-    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/foundational" ;
-    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "gUFO↔BFO foundational-spine alignments (by reference; closeMatch — UFO and BFO build their categories on different bases). BFO IRIs verified against the vendored snapshot." .
 
 gmeow:mapsetCommonLogic a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;

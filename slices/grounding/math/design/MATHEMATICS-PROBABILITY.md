@@ -14,7 +14,7 @@
 > [`MATHEMATICS-PROJECTIONS.md`](MATHEMATICS-PROJECTIONS.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
@@ -121,7 +121,7 @@ apparatus is factored across three distinct properties — the earlier single `p
 overload is removed:
 
 - `math:hasDistributionParameter` — Distribution → `math:DistributionParameter`.
-- `math:parameterQuantity` — `math:DistributionParameter` → `gmeow:Quantity` (a numeric parameter).
+- `math:parameterQuantity` — `math:DistributionParameter` → `math:Quantity` (a numeric parameter).
 - `math:parameterExpression` — `math:DistributionParameter` → `math:MathematicalExpression` (a
   symbolic parameter).
 - `math:parameterRole` — `math:DistributionParameter` → `math:DistributionParameterRole`.
@@ -190,8 +190,9 @@ unit interval, only to be handed a log-odds.
 
 ```ttl
 ex:pRainTomorrow
-    a gmeow:Quantity , math:ProbabilityValue ;
-    gmeow:quantityValue "0.72"^^xsd:decimal ;
+    a math:Quantity , math:ProbabilityValue ;
+    math:quantityValue "0.72"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame ;
     gmeow:isResultOf ex:forecastRun2026_07_03 .
 

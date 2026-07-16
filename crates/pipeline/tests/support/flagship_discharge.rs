@@ -35,7 +35,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
-use gmeow_validate::store::{dataset_from_paths, parse_file_dataset, shacl_validate_dataset};
+use gmeow_validate::store::{parse_file_dataset, shacl_validate_dataset};
 use purrdf::shapes::engine::parse_shapes;
 use purrdf::{RdfDataset, RdfTerm};
 
@@ -185,6 +185,54 @@ pub fn repo_root() -> PathBuf {
 /// `gmeow:enforcesFailureClass` is `gmeow:UnwiredFlagshipScenario`).
 pub fn shared_shapes_path() -> PathBuf {
     repo_root().join("shapes").join("gmeow-shapes.ttl")
+}
+
+/// Every enforcing SHACL surface that may own one slice's conformance rules.
+///
+/// Generated validation, constraint, and procedural projections are always canonical and
+/// therefore always participate. A residual hand-authored `shapes.ttl` is composed alongside
+/// them while migration is incomplete; its mere presence must never shadow already-migrated
+/// rules from the generated surface.
+pub fn enforcing_shape_paths(spec: &SliceSpec) -> Vec<PathBuf> {
+    let mut paths = vec![
+        repo_root().join("generated/shapes/validation-shapes.ttl"),
+        repo_root().join("generated/shapes/constraint-shapes.ttl"),
+        repo_root().join("generated/shapes/procedural-constraints.ttl"),
+    ];
+    let residual = spec.slice_root.join("shapes.ttl");
+    if residual.is_file() {
+        paths.push(residual);
+    }
+    paths
+}
+
+/// Parse the repository-wide generated shape surface, then retain only the
+/// authorities owned by `spec` (plus its residual local shapes). The returned
+/// paths remain the complete source set so callers can resolve shape metadata
+/// such as `gmeow:enforcesFailureClass` without broadening enforcement.
+pub fn load_scoped_shapes(spec: &SliceSpec) -> (purrdf::shapes::shapes::Shapes, Vec<PathBuf>) {
+    let paths = enforcing_shape_paths(spec);
+    let shapes_text = paths
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("read enforcing shapes {}: {e}", path.display()))
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let shapes = parse_shapes(&shapes_text).expect("slice shapes parse");
+    let owned_module =
+        gmeow_slicetest::native_query::dataset_from_file(&spec.slice_root.join("module.ttl"))
+            .expect("slice module parses for shape ownership");
+    let local_shapes = spec.slice_root.join("shapes.ttl");
+    let scoped = gmeow_slicetest::exec::scope_shapes_to_slice(
+        shapes,
+        &shapes_text,
+        &owned_module,
+        local_shapes.is_file().then_some(local_shapes.as_path()),
+    )
+    .expect("slice shape authority scopes cleanly");
+    (scoped, paths)
 }
 
 /// The shared in-memory source catalog, discovered ONCE exactly as the mappings stage
@@ -430,23 +478,50 @@ pub fn shacl_slice_failures(
     out
 }
 
+/// Immutable conformance-module unions, keyed by the tested slice root. A flagship
+/// binary validates many fixtures against the same (potentially three-module)
+/// grounding kernel; parsing and unioning that authority once keeps the stricter
+/// grounding scope inside the per-test budget.
+static CONFORMANCE_MODULE_CACHE: std::sync::LazyLock<
+    std::sync::Mutex<HashMap<PathBuf, std::sync::Arc<RdfDataset>>>,
+> = std::sync::LazyLock::new(|| std::sync::Mutex::new(HashMap::new()));
+
+fn conformance_module_dataset(spec: &SliceSpec) -> std::sync::Arc<RdfDataset> {
+    let key = spec
+        .slice_root
+        .canonicalize()
+        .unwrap_or_else(|_| spec.slice_root.clone());
+    let mut cache = CONFORMANCE_MODULE_CACHE
+        .lock()
+        .expect("conformance module cache mutex");
+    if let Some(dataset) = cache.get(&key) {
+        return std::sync::Arc::clone(dataset);
+    }
+    let paths = gmeow_slicetest::paths::conformance_module_files(&spec.slice_root);
+    let dataset = gmeow_slicetest::native_query::dataset_from_files(&paths)
+        .expect("canonical conformance modules parse and union");
+    cache.insert(key, std::sync::Arc::clone(&dataset));
+    dataset
+}
+
 /// Run BOTH channels over a fixture and return the union of triggered slice-namespace failure
 /// classes.
 ///
-/// The fixture is validated MERGED with the slice's `module.ttl` — exactly the union the slice's
-/// own conformance harness validates. The module graph supplies the vocabulary typing and
-/// subclass axioms a counter-example legitimately relies on, so an `sh:class`/`sh:nodeKind`
-/// constraint is discharged by the vocabulary and NOT spuriously counted against a fixture that
-/// isolates a different violation.
+/// The fixture is validated with exactly the canonical module-data scope used by the slice's own
+/// conformance harness. Ordinary slices see their own `module.ttl`; the co-foundational
+/// logic:/lang:/math: kernel sees all three grounding modules. Those modules supply peer-owned
+/// vocabulary typing and subclass axioms a counter-example legitimately relies on, while the
+/// caller still scopes enforcing shapes and failure classes to the tested slice.
 pub fn triggered_slice_failures(
     spec: &SliceSpec,
     fixture: &Path,
     shapes: &purrdf::shapes::shapes::Shapes,
     shape_class: &HashMap<String, String>,
 ) -> HashSet<String> {
-    let module = spec.slice_root.join("module.ttl");
-    let ds = dataset_from_paths(&[module, fixture.to_path_buf()])
-        .unwrap_or_else(|e| panic!("fixture {} + module parse: {e}", fixture.display()));
+    let modules = conformance_module_dataset(spec);
+    let fixture_dataset = gmeow_slicetest::native_query::dataset_from_file(fixture)
+        .unwrap_or_else(|e| panic!("fixture {} parses: {e}", fixture.display()));
+    let ds = gmeow_slicetest::native_query::union(&[modules, fixture_dataset]);
     let lint = structural_lint_dataset(&ds, &minimal_lint_config());
     let mut union = native_failure_classes(&lint.errors(), spec.slice_prefix);
     union.extend(shacl_slice_failures(
@@ -493,29 +568,10 @@ pub fn run_flagship_discharge_with_counterexample(
 ) {
     let flagships = parse_manifest(spec, expected_count);
 
-    // Parse the enforcing SHACL surface once. A slice still being migrated reads its local
-    // `shapes.ttl`; a fully migrated slice reads the canonical generated validation and
-    // procedural projections instead (Principle 17). Deleting a proven-redundant local file must
-    // not delete the negative-test channel that its projection now owns.
-    let legacy_shapes = spec.slice_root.join("shapes.ttl");
-    let shape_paths = if legacy_shapes.is_file() {
-        vec![legacy_shapes]
-    } else {
-        vec![
-            repo_root().join("generated/shapes/validation-shapes.ttl"),
-            repo_root().join("generated/shapes/constraint-shapes.ttl"),
-            repo_root().join("generated/shapes/procedural-constraints.ttl"),
-        ]
-    };
-    let shapes_text = shape_paths
-        .iter()
-        .map(|path| {
-            std::fs::read_to_string(path)
-                .unwrap_or_else(|e| panic!("read enforcing shapes {}: {e}", path.display()))
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-    let shapes = parse_shapes(&shapes_text).expect("slice shapes parse");
+    // Parse the enforcing SHACL surface once. Generated projections remain authoritative even
+    // while a residual local shapes file exists: partial migration is compositional, never an
+    // either/or switch (Principle 17).
+    let (shapes, shape_paths) = load_scoped_shapes(spec);
 
     // The shape→failure-class map, resolved from the slice shapes AND the shared gmeow-shapes,
     // so both slice failures and the shared unwired class resolve through one map.
@@ -530,10 +586,51 @@ pub fn run_flagship_discharge_with_counterexample(
         repo_root: repo_root(),
     };
 
-    for flagship in &flagships {
+    // Fixture validations are immutable and independent. The grounding-kernel
+    // data scope is deliberately larger than an ordinary slice module, so run
+    // the counter/worked pairs across a small bounded worker set while sharing
+    // the parsed modules and shapes. Four workers keeps memory bounded and gives
+    // the five-scenario flagship test ample headroom under the 25 s policy.
+    let workers = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1)
+        .min(flagships.len().max(1))
+        .min(4);
+    let mut validations: Vec<(usize, HashSet<String>, HashSet<String>)> =
+        std::thread::scope(|scope| {
+            let mut handles = Vec::with_capacity(workers);
+            for worker in 0..workers {
+                let flagships = &flagships;
+                let shapes = &shapes;
+                let shape_class = &shape_class;
+                handles.push(scope.spawn(move || {
+                    let mut out = Vec::new();
+                    for (index, flagship) in flagships.iter().enumerate() {
+                        if index % workers != worker {
+                            continue;
+                        }
+                        let triggered = triggered_slice_failures(
+                            spec,
+                            &flagship.counter_example,
+                            shapes,
+                            shape_class,
+                        );
+                        let clean =
+                            triggered_slice_failures(spec, &flagship.example, shapes, shape_class);
+                        out.push((index, triggered, clean));
+                    }
+                    out
+                }));
+            }
+            handles
+                .into_iter()
+                .flat_map(|handle| handle.join().expect("flagship validation worker joins"))
+                .collect()
+        });
+    validations.sort_by_key(|(index, _, _)| *index);
+
+    for (flagship, (_, triggered, clean)) in flagships.iter().zip(validations) {
         // ---- (1) Executed guard: the counter-example raises EXACTLY its failure class. ----
-        let triggered =
-            triggered_slice_failures(spec, &flagship.counter_example, &shapes, &shape_class);
         let expected: HashSet<String> = std::iter::once(flagship.failure_class.clone()).collect();
         assert_eq!(
             triggered,
@@ -546,7 +643,6 @@ pub fn run_flagship_discharge_with_counterexample(
         );
 
         // ---- (2) Clean worked example: NO slice failure class fires. ----
-        let clean = triggered_slice_failures(spec, &flagship.example, &shapes, &shape_class);
         assert!(
             clean.is_empty(),
             "flagship {}: the worked example {} must be clean, but raised {:?}",

@@ -8,8 +8,14 @@
 @prefix ex:   <http://example.org/lang/> .
 
 ex:english a lang:SignSystem .
-ex:refAlice a lang:WordForm ; lang:inSignSystem ex:english .
-ex:refShe a lang:WordForm ; lang:inSignSystem ex:english .
+ex:lexemeAlice a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:lexemeShe a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:refAlice a lang:WordForm ;
+    lang:inSignSystem ex:english ;
+    lang:lexemeOf ex:lexemeAlice .
+ex:refShe a lang:WordForm ;
+    lang:inSignSystem ex:english ;
+    lang:lexemeOf ex:lexemeShe .
 
 ex:drAlice a lang:DiscourseReferent .
 ex:refAlice lang:introducesReferent ex:drAlice .

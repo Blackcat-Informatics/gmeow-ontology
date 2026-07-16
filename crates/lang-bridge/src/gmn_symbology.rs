@@ -155,6 +155,49 @@ mod tests {
         );
     }
 
+    /// Every token-cost disposition shipped by dict-v3 is reproduced from the same pinned
+    /// tokenizer the quality axis calls. An adopted glyph may tie or beat its fallback,
+    /// while a named key must strictly beat the Unicode display notation it replaces.
+    #[test]
+    fn grounding_symbol_dispositions_match_pinned_bpe_costs() {
+        for (glyph, fallback) in [
+            ("¬", "not"),
+            ("π", "pi"),
+            ("γ", "gamma"),
+            ("+", "add"),
+            ("×", "mul"),
+            ("^", "pow"),
+            ("*", "ungrammatical"),
+        ] {
+            let glyph_cost = gmn_glyph_token_cost(glyph);
+            let fallback_cost = gmn_glyph_token_cost(fallback);
+            assert!(
+                glyph_cost <= fallback_cost,
+                "adopted glyph {glyph:?} costs {glyph_cost}, above fallback {fallback:?} ({fallback_cost})"
+            );
+        }
+
+        for (glyph, fallback) in [
+            ("⟦·⟧", "den"),
+            ("⇝", "xl"),
+            ("÷", "div"),
+            ("⊕", "ds"),
+            ("⌟", "lcon"),
+            ("∀", "fa"),
+            ("∃", "ex"),
+            ("∧", "and"),
+            ("∨", "or"),
+            ("↔", "iff"),
+        ] {
+            let glyph_cost = gmn_glyph_token_cost(glyph);
+            let fallback_cost = gmn_glyph_token_cost(fallback);
+            assert!(
+                glyph_cost > fallback_cost,
+                "named key {fallback:?} ({fallback_cost}) does not beat display glyph {glyph:?} ({glyph_cost})"
+            );
+        }
+    }
+
     /// The worked IPA phone symbols carry measured, non-zero costs — the feed the authored
     /// `math:Quantity` per-glyph cost is cross-checked against.
     #[test]

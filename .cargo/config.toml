@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
+[alias]
+xtask = "run --quiet --package xtask --"
+
 [env]
 # Build vendored C deps (zstd-sys, ring) optimized and host-tuned for LOCAL
 # regenerate/reasoning paths by default. `force = true` overrides ambient CFLAGS —

@@ -13,7 +13,7 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::axes;
-use gmeow_slice_quality::score::ScoreContext;
+use gmeow_slice_quality::score::{ScoreContext, ScoringEnv};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -31,7 +31,7 @@ fn slice_graph(slice_dir: &Path) -> std::sync::Arc<purrdf::RdfDataset> {
 fn score(slice: &str, iri: &str) -> gmeow_slice_quality::score::AxisScore {
     let dir = repo_root().join(slice);
     let ds = slice_graph(&dir);
-    let ctx = ScoreContext::new(iri.to_owned(), dir, &ds);
+    let ctx = ScoreContext::new(iri.to_owned(), dir, &ds, ScoringEnv::Repo);
     axes::resolve("flagship_counterexample_depth_axis").unwrap()(&ctx)
 }
 

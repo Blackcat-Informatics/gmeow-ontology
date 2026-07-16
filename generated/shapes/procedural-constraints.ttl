@@ -327,6 +327,19 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/orderStatus> <https://blackcatinformatics.ca/gmeow/orderStatusCancelled> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/CapabilityGapFragmentClassificationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CapabilityGap> .
+}""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:CapabilityGap must reference via gmeow:gapShape a gmeow:GapShape carrying a gmeow:isReasonerFragmentGap boolean value — the reasoner-fragment classification consumed by this integrity guard is missing." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gapShape> ?gs . ?gs <https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap> ?frag . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/CascadeSeverityConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Cascade> ;
@@ -1840,6 +1853,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/trademarkMark> ?v0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/UnitBearingQuantityValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/MeasuredQuantityShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Quantity> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A unit-bearing math:Quantity must carry a numeric magnitude through math:quantityValue; a unit without a value is incomplete." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/unit> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/quantityValue> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/UsesScaleFunctionalConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/UsesScaleTargetShape> ;
@@ -1887,6 +1911,7 @@
 <https://blackcatinformatics.ca/lang/AmbiguousDenotationRoutingConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/AmbiguityRoutingShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnroutedAmbiguousDenotation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1898,6 +1923,7 @@
 <https://blackcatinformatics.ca/lang/ConfidenceModelConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/ConfidenceNotProbabilityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/ConfidenceAsProbability> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/aboutReading> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1909,6 +1935,7 @@
 <https://blackcatinformatics.ca/lang/DenotationKindMatchConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/DenotationKindMatchShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/DenotationKindMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1920,6 +1947,7 @@
 <https://blackcatinformatics.ca/lang/DenotationNonSurfaceConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/DenotationNonSurfaceShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/SurfaceLevelDenotation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1931,6 +1959,7 @@
 <https://blackcatinformatics.ca/lang/DependencyLeavesAnalysisConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/DependencyIntegrityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/DanglingDependency> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/FormSlot> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1941,7 +1970,8 @@
 
 <https://blackcatinformatics.ca/lang/FeatureValueDispositionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/lang/FeatureValue> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnLangCoverageShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnUndispositionedTerm> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/FeatureValue> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1952,18 +1982,32 @@
 
 <https://blackcatinformatics.ca/lang/FlagshipScenarioFailureClassConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/lang/FlagshipScenario> ;
-    sh:targetClass <https://blackcatinformatics.ca/lang/FlagshipScenario> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/FlagshipScenarioShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnwiredFlagshipScenario> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:message "A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/enforcesFailureClass> ?v . FILTER NOT EXISTS { ?v <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/lang/LangConformanceFailure> . } }""" ;
+        sh:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?failure . FILTER ( STRSTARTS(STR(?failure), 'https://blackcatinformatics.ca/lang/') ) FILTER NOT EXISTS { ?failure <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/lang/LangConformanceFailure> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/FormHeadNodeKindConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/FormHeadStructuralShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/StringOnlyForm> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/formHead> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:formHead value must be a resource (a blank node or IRI), never a literal." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/formHead> ?g . $this <https://blackcatinformatics.ca/lang/formHead> ?v . FILTER ( !( isIRI(?v) || isBlank(?v) ) ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/lang/FormSlotAcyclicDependencyConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/lang/FormSlot> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/DependencyIntegrityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/DanglingDependency> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/FormSlot> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1974,7 +2018,8 @@
 
 <https://blackcatinformatics.ca/lang/FormSlotIndexUniquenessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/lang/ComposedForm> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/SlotIndexUniqueShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/DuplicateSlotIndex> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/ComposedForm> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1986,6 +2031,7 @@
 <https://blackcatinformatics.ca/lang/FregeDisjointDenotationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/FregeDisjointShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/FregeConflation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1997,6 +2043,7 @@
 <https://blackcatinformatics.ca/lang/FregeDisjointSenseConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/FregeDisjointShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/FregeConflation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Sense> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2008,6 +2055,7 @@
 <https://blackcatinformatics.ca/lang/GmnCodepointCanonicalConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnCodepointCanonicalShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnNonCanonicalCodepoint> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2018,7 +2066,8 @@
 
 <https://blackcatinformatics.ca/lang/GmnCompactionOverclaimConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/gmeow/GmnCompaction> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnCompactionOverclaimShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnCompactionOverclaim> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/GmnCompaction> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2030,6 +2079,7 @@
 <https://blackcatinformatics.ca/lang/GmnConfusableGlyphConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnConfusableGlyphShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnConfusableGlyph> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnConfusableWith> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2038,9 +2088,34 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnConfusableWith> ?g2 . $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> . ?g2 <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> . FILTER ( $this != ?g2 ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnDictionaryAliasCollision> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GmnDictionary> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Two entries of one GMN dictionary alias different terms with the same alias string; the alias table is not injective." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry> ?entry1 . $this <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry> ?entry2 . ?entry1 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> ?alias . ?entry2 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> ?alias . ?entry1 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> ?term1 . ?entry2 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> ?term2 . FILTER ( ?term1 != ?term2 ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/GmnExportRingBindingConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnExportRingBindingShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnUnringedExportCrossing> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GmnEnvelope> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A GMN envelope generated by an export activity declares no security ring." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?activity . ?activity <https://blackcatinformatics.ca/gmeow/mentalProcessType> <https://blackcatinformatics.ca/gmeow/processExport> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ?ring . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/GmnGlyphCollisionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnGlyphCollisionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnGlyphCollision> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2052,6 +2127,7 @@
 <https://blackcatinformatics.ca/lang/GmnScriptCodepointPresenceConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnScriptCodepointPresenceShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnNonCanonicalCodepoint> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Grapheme> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2062,7 +2138,8 @@
 
 <https://blackcatinformatics.ca/lang/GmnScriptGlyphCoverageConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/lang/Grapheme> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnScriptGlyphCoverageShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnUncostedScriptGlyph> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Grapheme> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2074,6 +2151,7 @@
 <https://blackcatinformatics.ca/lang/GmnVersionOverclaimConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnVersionOverclaimShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GmnVersionOverclaim> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2084,7 +2162,8 @@
 
 <https://blackcatinformatics.ca/lang/GraphemeRepertoireConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/lang/Grapheme> ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GraphemeGroundedShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UngroundedGrapheme> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Grapheme> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2096,6 +2175,7 @@
 <https://blackcatinformatics.ca/lang/IndexicalAnchoredConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/IndexicalAnchoredShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnanchoredIndexical> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2107,6 +2187,7 @@
 <https://blackcatinformatics.ca/lang/MachineTranslationProvenanceConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/TranslationAttributionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnattributedTranslation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2118,6 +2199,7 @@
 <https://blackcatinformatics.ca/lang/ReadingClaimVantageConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/ReadingClaimGroundedShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UngroundedReadingClaim> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/aboutReading> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2126,9 +2208,22 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/aboutReading> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/vantage> ?c0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/RealizesNodeKindConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/RealizesStructuralShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/StringOnlyForm> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/realizes> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:realizes value must be a resource (a blank node or IRI), never a literal." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/realizes> ?g . $this <https://blackcatinformatics.ca/lang/realizes> ?v . FILTER ( !( isIRI(?v) || isBlank(?v) ) ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/RenderingNotIdentityConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/RenderingNotIdentityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/RenderingAsIdentity> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Rendering> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2137,9 +2232,22 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/renderedContent> $this . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/SlotContiguityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/SlotContiguityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/NonContiguousSlots> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/ComposedForm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A composed form's slot indexes are not zero-based and contiguous." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/formSlot> ?slot . ?slot <https://blackcatinformatics.ca/lang/slotIndex> ?index . FILTER NOT EXISTS { { FILTER ( ?index = '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) } UNION { $this <https://blackcatinformatics.ca/lang/formSlot> ?previousSlot . ?previousSlot <https://blackcatinformatics.ca/lang/slotIndex> ?previousIndex . BIND ( ( ?previousIndex + '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) AS ?successorIndex ) FILTER ( ?successorIndex = ?index ) } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/SlotFormNodeKindConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/SlotFormStructuralShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/StringOnlyForm> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/slotForm> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2151,6 +2259,7 @@
 <https://blackcatinformatics.ca/lang/SurfaceAnalysisStructureConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/SurfaceAnalysisShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/MisdeclaredAnalysis> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/SurfaceForm> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2159,9 +2268,22 @@
         sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/lang/analysisLevel> <https://blackcatinformatics.ca/lang/parsedLevel> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/lang/realizes> ?f . ?f a <https://blackcatinformatics.ca/lang/ComposedForm> . } } UNION { $this <https://blackcatinformatics.ca/lang/analysisLevel> <https://blackcatinformatics.ca/lang/rawLevel> . FILTER NOT EXISTS { $this a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . } } UNION { $this <https://blackcatinformatics.ca/lang/realizes> ?g . $this a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/SurfaceMaterialChoiceConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/SurfaceMaterialShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnhashableSurface> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/SurfaceForm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm must carry its bytes inline through lang:surfaceText or by reference through lang:surfaceBlob." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/lang/surfaceBlob> ?v0 . } UNION { $this <https://blackcatinformatics.ca/lang/surfaceText> ?v1 . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/UnmarkedSourceOverclaimConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2173,6 +2295,7 @@
 <https://blackcatinformatics.ca/lang/UnmarkedSourceProseConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2184,6 +2307,7 @@
 <https://blackcatinformatics.ca/lang/UnmarkedTargetOverclaimConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2195,6 +2319,7 @@
 <https://blackcatinformatics.ca/lang/UnmarkedTargetProseConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2234,7 +2359,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:message "A flagship scenario's enforcing failure class must be a logic:LogicConformanceFailure subclass." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?failure . FILTER NOT EXISTS { ?failure <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/LogicConformanceFailure> . } }""" ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?failure . FILTER ( STRSTARTS(STR(?failure), 'https://blackcatinformatics.ca/logic/') ) FILTER NOT EXISTS { ?failure <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/LogicConformanceFailure> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/logic/FormulaConstructorConstraintProceduralConstraintShape>
@@ -2256,6 +2381,26 @@
         sh:severity sh:Violation ;
         sh:message "A FreshnessGuard that declares a logic:freshnessWindow must carry BOTH a logic:freshnessWindowStart AND a logic:freshnessWindowEnd (the closed interval bounds); the property shapes already cap each bound at one." ;
         sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/logic/freshnessWindow> ?w . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/freshnessWindowStart> ?s . } } UNION { $this <https://blackcatinformatics.ca/logic/freshnessWindow> ?w2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ?e . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/logic/FunctionSymbolConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/functionSymbol> ?c0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/logic/FunctionTermArityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/argument> ?c0 . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraintProceduralConstraintShape>
@@ -2286,17 +2431,6 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/logic/termLiteralDatatype> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?c0 . } }""" ;
-    ] .
-
-<https://blackcatinformatics.ca/logic/RationalValueNonZeroDenominatorConstraintProceduralConstraintShape>
-    a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/RationalValue> ;
-    sh:targetClass <https://blackcatinformatics.ca/math/RationalValue> ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/denominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
     ] .
 
 <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationConstraintProceduralConstraintShape>
@@ -2338,12 +2472,47 @@
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } } } }""" ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/AnalyticPropertyBackedConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/AnalyticProperty> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/AnalyticProperty> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AnalyticProperty must resolve to a real first-order logic:Formula or an honest logic:expressivenessBoundary through math:definingLaw; an analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/definingLaw> ?c0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ArgumentSlotContiguityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ArgumentSlotContiguityShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/NonContiguousArgumentSlots> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/MathematicalExpression> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A mathematical expression's math:argumentSlot indexes must form the strict zero-based contiguous sequence 0..n−1; every positive index must have a sibling at its immediate predecessor (math:NonContiguousArgumentSlots)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/argumentSlot> ?slot . ?slot <https://blackcatinformatics.ca/math/slotIndex> ?index . FILTER NOT EXISTS { { FILTER ( ?index = '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) } UNION { $this <https://blackcatinformatics.ca/math/argumentSlot> ?predecessorSlot . ?predecessorSlot <https://blackcatinformatics.ca/math/slotIndex> ?predecessorIndex . BIND ( ( ?predecessorIndex + '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) AS ?successorIndex ) FILTER ( ?successorIndex = ?index ) } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ArgumentSlotIndexNonNegativeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ArgumentSlot> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ArgumentSlot> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ArgumentSlot's math:slotIndex must be a non-negative integer (zero-based operand position); a negative index is ill-formed (math:MalformedArgumentSlot)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/slotIndex> ?v . FILTER ( ?v < '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/SlotIndexUniquenessShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/MalformedArgumentSlot> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/math/argumentSlot> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2354,13 +2523,37 @@
 
 <https://blackcatinformatics.ca/math/ChartDimensionMatchConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Chart> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ChartDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Chart> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:message "A math:Chart's target coordinate space dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
         sh:select """SELECT $this WHERE { ?m <https://blackcatinformatics.ca/math/hasChart> $this . ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md . $this <https://blackcatinformatics.ca/math/targetCoordinateSpace> ?t . ?t <https://blackcatinformatics.ca/math/spaceDimension> ?sd . FILTER ( ?md != ?sd ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ConfidenceAsProbabilityDeclaredConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ConfidenceAsProbabilityConstraint> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/ConfidenceAsProbability> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability; a probability derived from a confidence score with no declared mapping erodes the probability/confidence boundary and is ill-formed (math:ConfidenceAsProbability)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/logic/confidence> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/probabilityModel> ?c0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/DerivativeOrderPositiveConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Derivative> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Derivative> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Derivative's math:derivativeOrder must be a positive integer (a zeroth derivative is the function itself, not a derivative record); an order below one is ill-formed (math:UnderspecifiedDerivative)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/derivativeOrder> ?v . FILTER ( ?v < '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/DimensionExponentDenominatorNonZeroConstraintProceduralConstraintShape>
@@ -2374,9 +2567,22 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/exponentDenominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/DistributionParameterizationDeclaredConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/DistributionParameterizationShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/MissingDistributionParameterization> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Distribution> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Distribution that supplies a math:hasDistributionParameter must name its math:distributionParameterization — the explicit convention fixing which parametric form of its family is meant; a supplied parameter with a silent default parameterization is ill-formed (math:MissingDistributionParameterization)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/hasDistributionParameter> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/distributionParameterization> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/E8WeylOrderConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/RootSystem> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/E8WeylOrderShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/WrongE8WeylOrder> ;
     sh:targetClass <https://blackcatinformatics.ca/math/RootSystem> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2385,15 +2591,27 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/rootCount> '240'^^<http://www.w3.org/2001/XMLSchema#integer> . $this <https://blackcatinformatics.ca/math/rootSystemRank> '8'^^<http://www.w3.org/2001/XMLSchema#integer> . $this <https://blackcatinformatics.ca/math/weylGroup> ?w . ?w <https://blackcatinformatics.ca/math/groupOrder> ?o . FILTER ( ?o != '696729600'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
     ] .
 
-<https://blackcatinformatics.ca/math/FlagshipScenarioFailureClassConstraintProceduralConstraintShape>
+<https://blackcatinformatics.ca/math/ExtendedRealValueConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/FlagshipScenario> ;
-    sh:targetClass <https://blackcatinformatics.ca/math/FlagshipScenario> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/extendedRealValue> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/math/extendedRealValue> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:message "A math:FlagshipScenario's math:enforcesFailureClass must transitively rdfs:subClassOf math:MathConformanceFailure; a scenario that enforces a non-failure class is ill-formed." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/enforcesFailureClass> ?v . FILTER NOT EXISTS { ?v <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/math/MathConformanceFailure> . } }""" ;
+        sh:message "The object of math:extendedRealValue must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; a non-literal value (an IRI or blank node) that is neither pole is not a point of the extended real line ℝ̄ (math:MalformedExtendedReal)." ;
+        sh:select """SELECT $this WHERE { ?s <https://blackcatinformatics.ca/math/extendedRealValue> $this . FILTER ( ( !isLiteral($this) ) && ( $this NOT IN (<https://blackcatinformatics.ca/math/PositiveInfinity>, <https://blackcatinformatics.ca/math/NegativeInfinity>) ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/FlagshipScenarioFailureClassConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/FlagshipScenarioShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UnwiredFlagshipScenario> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass naming a math: class must name a math:MathConformanceFailure subclass — the typed failure its counter-example raises; naming a math: class that is not a conformance failure leaves the scenario unwired (math:UnwiredFlagshipScenario)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?failure . FILTER ( STRSTARTS(STR(?failure), 'https://blackcatinformatics.ca/math/') ) FILTER NOT EXISTS { ?failure <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/math/MathConformanceFailure> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/FormalVerificationResultGroundingConstraintProceduralConstraintShape>
@@ -2409,7 +2627,8 @@
 
 <https://blackcatinformatics.ca/math/FormalVerificationResultVantageGroundingConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/FormalVerificationResult> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/FormalVerificationResultShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UngroundedVerificationResult> ;
     sh:targetClass <https://blackcatinformatics.ca/math/FormalVerificationResult> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2420,7 +2639,8 @@
 
 <https://blackcatinformatics.ca/math/GramMatrixSymmetryConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/GramMatrix> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/GramMatrixShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/AsymmetricGramMatrix> ;
     sh:targetClass <https://blackcatinformatics.ca/math/GramMatrix> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2429,9 +2649,33 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/hasEntry> ?entry . ?entry <https://blackcatinformatics.ca/math/atRow> ?row . ?entry <https://blackcatinformatics.ca/math/atColumn> ?col . ?entry <https://blackcatinformatics.ca/math/entryValue> ?val . ?val <https://blackcatinformatics.ca/math/numerator> ?vnum . ?val <https://blackcatinformatics.ca/math/denominator> ?vden . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/hasEntry> ?mate . ?mate <https://blackcatinformatics.ca/math/atRow> ?col . ?mate <https://blackcatinformatics.ca/math/atColumn> ?row . ?mate <https://blackcatinformatics.ca/math/entryValue> ?mval . ?mval <https://blackcatinformatics.ca/math/numerator> ?vnum . ?mval <https://blackcatinformatics.ca/math/denominator> ?vden . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/IntervalKindConflationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/IntervalKindConflationShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/IntervalKindConflation> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ConfidenceInterval> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConfidenceInterval must not also be a math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/CredibleInterval> . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/LimitResultOutcomeValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/LimitResult> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/LimitResult> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:LimitResult's math:limitResultValue must agree with its math:limitOutcome: a finite numeric literal for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value for math:divergesWithoutLimit; a value that disagrees with the declared outcome is ill-formed (math:UnderspecifiedLimitResult)." ;
+        sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/convergesFinitely> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/limitResultValue> ?vf . FILTER ( isLiteral(?vf) ) } } UNION { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/divergesToPositiveInfinity> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/limitResultValue> ?vp . FILTER ( ?vp IN (<https://blackcatinformatics.ca/math/PositiveInfinity>) ) } } UNION { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/divergesToNegativeInfinity> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/limitResultValue> ?vn . FILTER ( ?vn IN (<https://blackcatinformatics.ca/math/NegativeInfinity>) ) } } UNION { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/divergesWithoutLimit> . $this <https://blackcatinformatics.ca/math/limitResultValue> ?vk . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/LogicLoweringDeclaredConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/LogicLoweringShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UndeclaredLogicLowering> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/math/compilesToLogicFormula> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2442,7 +2686,8 @@
 
 <https://blackcatinformatics.ca/math/LorentzianSignatureConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignatureDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2451,9 +2696,44 @@
         sh:select """SELECT $this WHERE { ?mt <https://blackcatinformatics.ca/math/metricSignature> $this . ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt . ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/lorentzianStructure> . $this <https://blackcatinformatics.ca/math/signaturePositive> ?p . $this <https://blackcatinformatics.ca/math/signatureNegative> ?q . FILTER ( ( ?p != '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) && ( ?q != '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/ManifoldDimensionNonNegativeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Manifold> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Manifold> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Manifold's math:manifoldDimension must be a non-negative integer; a negative dimension names no manifold (math:UnderspecifiedManifold)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/manifoldDimension> ?v . FILTER ( ?v < '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MeasureEvaluation> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/MeasureEvaluation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity; a measure is non-negative, so the negative pole math:NegativeInfinity is not a mass (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/measureResult> <https://blackcatinformatics.ca/math/NegativeInfinity> . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/MeasureTotalMassValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MeasureShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/IncompleteMeasure> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Measure> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Measure's math:totalMass must be a non-negative numeric literal or math:PositiveInfinity; a measure whose total mass is neither is ill-formed (math:IncompleteMeasure)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/totalMass> ?v . FILTER ( ( ( !isLiteral(?v) ) || ( ?v < '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) ) && ( ?v != <https://blackcatinformatics.ca/math/PositiveInfinity> ) ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/MetricSignatureDimensionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignatureDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2462,9 +2742,22 @@
         sh:select """SELECT $this WHERE { ?mt <https://blackcatinformatics.ca/math/metricSignature> $this . ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt . ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md . $this <https://blackcatinformatics.ca/math/signaturePositive> ?p . $this <https://blackcatinformatics.ca/math/signatureNegative> ?q . BIND ( ( ?p + ?q ) AS ?s ) FILTER ( ?s != ?md ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/MissingnessMechanismDeclaredConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ImplicitMissingnessShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/ImplicitMissingness> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/StatisticalVariable> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must declare the math:MissingnessMechanism an analysis depending on it rests on, through math:missingnessMechanism; a variable that depends on missing data but names no MCAR/MAR/MNAR mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/hasMissingnessIndicator> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/missingnessMechanism> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/NormPositiveDefiniteConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Norm> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/NormPositiveDefiniteShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/NonPositiveDefiniteNorm> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Norm> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2473,9 +2766,58 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/inducedByForm> ?v . FILTER NOT EXISTS { ?v <https://blackcatinformatics.ca/math/definiteness> <https://blackcatinformatics.ca/math/positiveDefinite> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/PValueFrameConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/IllFramedPValueShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/IllFramedPValue> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/PValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
+        sh:select """SELECT $this WHERE { { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/testStatistic> ?ts . } UNION { ?t a <https://blackcatinformatics.ca/math/HypothesisTest> . ?t <https://blackcatinformatics.ca/math/pValue> $this . } } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullHypothesis> ?nh . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullDistribution> ?nd . } } UNION { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/tailDefinition> ?td . } UNION { $this <https://blackcatinformatics.ca/math/alternativeSidedness> ?sd . } } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ParameterRoleOverfilledConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ParameterRoleCardinalityConstraint> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DistributionParameterRoleCardinality> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Distribution> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Distribution must not supply a required math:DistributionParameterRole through two distinct math:hasDistributionParameter parameters; a role filled twice is ill-formed (math:DistributionParameterRoleCardinality)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/distributionParameterization> ?pz . ?pz <https://blackcatinformatics.ca/math/requiresParameterRole> ?role . $this <https://blackcatinformatics.ca/math/hasDistributionParameter> ?p1 . ?p1 <https://blackcatinformatics.ca/math/parameterRole> ?role . $this <https://blackcatinformatics.ca/math/hasDistributionParameter> ?p2 . ?p2 <https://blackcatinformatics.ca/math/parameterRole> ?role . FILTER ( ?p1 != ?p2 ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ParameterRoleUnfilledConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ParameterRoleCardinalityConstraint> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DistributionParameterRoleCardinality> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Distribution> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Distribution must supply each math:DistributionParameterRole its math:distributionParameterization requires through math:hasDistributionParameter -> math:parameterRole; a required role supplied zero times is ill-formed (math:DistributionParameterRoleCardinality)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/distributionParameterization> ?pz . ?pz <https://blackcatinformatics.ca/math/requiresParameterRole> ?role . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/hasDistributionParameter> ?param . ?param <https://blackcatinformatics.ca/math/parameterRole> ?role . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/PersistenceDeathNamedConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/PersistenceLifetimeShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UnderspecifiedPersistenceLifetime> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/PersistenceLifetime> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PersistenceLifetime's math:diesAt must name an IRI individual — the finite math:Quantity death threshold, or math:PositiveInfinity for an essential feature; a blank or literal death is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/diesAt> ?v . FILTER ( !isIRI(?v) ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/PreservationLawNodeKindConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Homomorphism> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/PreservationLawShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/StringOnlyPreservationLaw> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Homomorphism> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2484,9 +2826,57 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/preservationLaw> ?v . FILTER ( !( isIRI(?v) || isBlank(?v) ) ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/ProbabilityValueFramedConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ProbabilityValueFramedShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UnframedProbabilityValue> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilityValue must name its probability frame (gmeow:hasReferenceFrame) or its probability model (logic:probabilityModel); a probability that names neither is an unframed bare literal (math:UnframedProbabilityValue)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/hasReferenceFrame> ?v0 . } UNION { $this <https://blackcatinformatics.ca/logic/probabilityModel> ?v1 . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ProbabilityValueRangeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ProbabilityValueRangeShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/ProbabilityOutOfBounds> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilityValue's math:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/quantityValue> ?v . FILTER ( ( ?v < '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) || ( ?v > '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/RandomVariableContextConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/RandomVariableScopedShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UnscopedRandomVariable> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/RandomVariable> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RandomVariable must carry a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/hasDistribution> ?d . } UNION { $this <https://blackcatinformatics.ca/math/randomVariableDomain> ?dom . ?dom a <https://blackcatinformatics.ca/math/ProbabilitySpace> . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/RationalValueDenominatorNonZeroConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/RationalValue> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/RationalValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/denominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/RiemannianSignatureConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignatureDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2508,7 +2898,8 @@
 
 <https://blackcatinformatics.ca/math/SetExtentDisjointConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Set> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/SetExtentShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/AmbiguousSetExtent> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Set> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2519,7 +2910,8 @@
 
 <https://blackcatinformatics.ca/math/TangentSpaceDimensionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/TangentSpace> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/TangentSpaceDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/TangentSpace> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2530,7 +2922,8 @@
 
 <https://blackcatinformatics.ca/math/TheoremWarrantConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Theorem> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/TheoremGroundingShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UngroundedTheoremClaim> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Theorem> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
