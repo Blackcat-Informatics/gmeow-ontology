@@ -141,8 +141,11 @@ pub use chase::ChaseAdmission;
 // backward path consumed by `dispatch::dispatch_query`.
 #[cfg(test)]
 pub(crate) use magic::resolve_native;
-pub(crate) use magic::resolve_native_annotated_under;
 pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native_under};
+pub(crate) use magic::{
+    resolve_native_annotated_under, resolve_native_annotated_with_relations_under,
+};
+pub(crate) use magic_generic::ExternalRelationEvaluationError;
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical

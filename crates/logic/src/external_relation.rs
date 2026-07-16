@@ -10,14 +10,16 @@
 //! an annotation algebra, a preservation claim, and deterministic request policy.
 
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use gmeow_logic_compile::result_shape::ColumnKind;
 use purrdf::TermValue;
 
 use crate::annotation::{AnnotatedAnswerSet, TupleAnnotationAlgebra};
+use crate::provenance::term_display;
 use crate::result::PreservationClaim;
+use crate::seam::WorldSourceIdentity;
 
 fn push_frame(out: &mut String, value: &str) {
     out.push_str(&value.len().to_string());
@@ -454,6 +456,7 @@ impl<'provider, E> RelationProviderRegistration<'provider, E> {
         per_call_limit: usize,
         provider: &'provider dyn ExternalRelationProvider<E>,
     ) -> Result<Self, RelationContractError> {
+        descriptor.validate()?;
         if per_call_limit == 0 {
             return Err(RelationContractError::new(format!(
                 "external relation <{}> per-call limit must be non-zero",
@@ -485,6 +488,11 @@ impl<'provider, E> QueryRelationProviders<'provider, E> {
         budget: RelationProviderBudget,
         cancellation: &'provider dyn RelationCancellation,
     ) -> Result<Self, RelationContractError> {
+        if budget.max_calls == 0 || budget.max_rows == 0 {
+            return Err(RelationContractError::new(
+                "external relation call and row budgets must both be non-zero".to_owned(),
+            ));
+        }
         if registrations.is_empty() {
             return Err(RelationContractError::new(
                 "an external relation query must register at least one provider".to_owned(),
@@ -495,6 +503,15 @@ impl<'provider, E> QueryRelationProviders<'provider, E> {
                 .relation_iri
                 .cmp(&right.descriptor.relation_iri)
         });
+        for registration in &registrations {
+            registration.descriptor.validate()?;
+            if registration.per_call_limit == 0 {
+                return Err(RelationContractError::new(format!(
+                    "external relation <{}> per-call limit must be non-zero",
+                    registration.descriptor.relation_iri
+                )));
+            }
+        }
         for pair in registrations.windows(2) {
             if pair[0].descriptor.relation_iri == pair[1].descriptor.relation_iri {
                 return Err(RelationContractError::new(format!(
@@ -660,6 +677,10 @@ pub struct RelationQueryReceipt {
     pub query_contract_hash: String,
     /// Query-local provider manifest/budget identity.
     pub provider_manifest_hash: String,
+    /// Immutable RDF source generation and source contract.
+    pub source: WorldSourceIdentity,
+    /// Content identity of the native engine that executed the query.
+    pub engine_descriptor_hash: String,
     /// Invocation evidence in deterministic execution order.
     pub invocations: Vec<RelationInvocationReceipt>,
     /// Provider/artifact pairs that contributed to returned answers.
@@ -679,10 +700,784 @@ pub struct RelationQueryResult<E> {
     pub receipt: RelationQueryReceipt,
 }
 
+/// Content-addressed evidence retained when a provider-aware query does not complete.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RelationQueryFailureReceipt {
+    /// Governing provider-aware annotated query contract.
+    pub query_contract_hash: String,
+    /// Query-local provider manifest/budget identity.
+    pub provider_manifest_hash: String,
+    /// Immutable RDF source generation and source contract.
+    pub source: WorldSourceIdentity,
+    /// Content identity of the native engine that attempted the query.
+    pub engine_descriptor_hash: String,
+    /// Every complete, cached, or failed provider attempt before termination.
+    pub invocations: Vec<RelationInvocationReceipt>,
+    /// Structural access evidence at termination.
+    pub metrics: RelationAccessMetrics,
+    /// Stable terminal class supplied by dispatch.
+    pub terminal_kind: String,
+    /// Deterministic diagnostic detail.
+    pub detail: String,
+    /// Content hash over every field above.
+    pub receipt_hash: String,
+}
+
+/// Engine-side terminal class for a provider invocation that cannot produce rows.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RelationExecutionFailureKind {
+    /// The provider reported a typed operational failure.
+    ProviderFailure(RelationProviderFailureKind),
+    /// The provider reported that it could not certify a complete ordered prefix.
+    ProviderIncomplete(RelationProviderIncompletenessKind),
+    /// The deterministic operation-wide provider governor was exhausted.
+    BudgetExhausted,
+    /// Operation cancellation was observed at a deterministic boundary.
+    Cancelled,
+    /// A returned batch violated its pinned descriptor or request.
+    ContractViolation,
+}
+
+/// One typed failed provider attempt, including the receipt retained for diagnosis.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RelationExecutionError {
+    /// Stable terminal class.
+    pub kind: RelationExecutionFailureKind,
+    /// Complete evidence for the failed attempt; no rows from it were admitted.
+    pub invocation: Box<RelationInvocationReceipt>,
+}
+
+impl fmt::Display for RelationExecutionError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "external relation invocation <{}> ended as {:?}: {}",
+            self.invocation.request_iri,
+            self.kind,
+            self.invocation.detail.as_deref().unwrap_or("no detail")
+        )
+    }
+}
+
+impl std::error::Error for RelationExecutionError {}
+
+/// One validated provider tuple admitted to the native evaluator.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ResolvedRelationTuple<E> {
+    pub(crate) arguments: Vec<TermValue>,
+    pub(crate) annotation: E,
+    pub(crate) source: ProviderTupleSource,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct RelationCallCacheKey {
+    descriptor_key: String,
+    bounds: Vec<Option<String>>,
+    limit: usize,
+    ordering_criterion: String,
+    ordering_direction: RelationOrderDirection,
+}
+
+#[derive(Debug, Clone)]
+struct CachedRelationBatch<E> {
+    rows: Vec<ResolvedRelationTuple<E>>,
+    response_hash: String,
+}
+
+fn hash_canonical(canonical: &str) -> String {
+    blake3::hash(canonical.as_bytes()).to_hex().to_string()
+}
+
+fn request_iri(
+    query_contract_hash: &str,
+    descriptor: &RelationProviderDescriptor,
+    bounds: &[Option<TermValue>],
+    limit: usize,
+) -> String {
+    let mut canonical = "gmeow-external-relation-request-v1".to_owned();
+    push_frame(&mut canonical, query_contract_hash);
+    push_frame(&mut canonical, &descriptor.canonical_key());
+    push_frame(&mut canonical, &limit.to_string());
+    for bound in bounds {
+        match bound {
+            Some(value) => {
+                push_frame(&mut canonical, "bound");
+                push_frame(&mut canonical, &term_display(value));
+            }
+            None => push_frame(&mut canonical, "unbound"),
+        }
+    }
+    format!(
+        "https://blackcatinformatics.ca/.well-known/genid/external-request/{}",
+        hash_canonical(&canonical)
+    )
+}
+
+fn term_conforms_to_column(term: &TermValue, column: &ColumnKind) -> bool {
+    match (term, column) {
+        (TermValue::Iri(_), ColumnKind::Iri)
+        | (TermValue::Blank { .. }, ColumnKind::BlankNode)
+        | (TermValue::Triple { .. }, ColumnKind::TripleTerm)
+        | (TermValue::Literal { .. }, ColumnKind::Literal { datatype: None }) => true,
+        (
+            TermValue::Literal { datatype, .. },
+            ColumnKind::Literal {
+                datatype: Some(expected),
+            },
+        ) => datatype == expected,
+        _ => false,
+    }
+}
+
+fn invocation_status_wire(status: RelationInvocationStatus) -> &'static str {
+    match status {
+        RelationInvocationStatus::Complete => "complete",
+        RelationInvocationStatus::CacheHit => "cache-hit",
+        RelationInvocationStatus::Failed => "failed",
+        RelationInvocationStatus::Incomplete => "incomplete",
+        RelationInvocationStatus::BudgetExhausted => "budget-exhausted",
+        RelationInvocationStatus::Cancelled => "cancelled",
+        RelationInvocationStatus::ContractViolation => "contract-violation",
+    }
+}
+
+fn canonical_invocation(out: &mut String, invocation: &RelationInvocationReceipt) {
+    for value in [
+        invocation.request_iri.as_str(),
+        invocation.provider_iri.as_str(),
+        invocation.artifact_generation.as_str(),
+        invocation.model_iri.as_str(),
+        invocation.relation_iri.as_str(),
+        invocation.ordering.criterion_iri.as_str(),
+        invocation.ordering.direction.wire(),
+        invocation.annotation_dimension_iri.as_str(),
+        invocation_status_wire(invocation.status),
+    ] {
+        push_frame(out, value);
+    }
+    push_frame(out, &invocation.limit.to_string());
+    for bound in &invocation.bounds {
+        match bound {
+            Some(value) => {
+                push_frame(out, "bound");
+                push_frame(out, &term_display(value));
+            }
+            None => push_frame(out, "unbound"),
+        }
+    }
+    push_frame(out, invocation.response_hash.as_deref().unwrap_or(""));
+    push_frame(out, &invocation.delivered_rows.to_string());
+    push_frame(out, &invocation.admitted_rows.to_string());
+    push_frame(
+        out,
+        if invocation.contributed {
+            "true"
+        } else {
+            "false"
+        },
+    );
+    push_frame(out, invocation.detail.as_deref().unwrap_or(""));
+}
+
+/// Stateful, operation-local executor for an immutable provider set.
+///
+/// The state is deliberately borrowed by one query and has no global registration or
+/// cache. Only validated complete batches enter `cache`; cache reuse precedes budget
+/// charging, and row accounting is by unique relation tuple across the whole operation.
+pub(crate) struct RelationExecution<'set, 'provider, 'algebra, A>
+where
+    A: TupleAnnotationAlgebra,
+{
+    providers: &'set QueryRelationProviders<'provider, A::Element>,
+    algebra: &'algebra A,
+    query_contract_hash: String,
+    cache: BTreeMap<RelationCallCacheKey, CachedRelationBatch<A::Element>>,
+    admitted_annotations: BTreeMap<(String, Vec<String>), String>,
+    invocations: Vec<RelationInvocationReceipt>,
+    metrics: RelationAccessMetrics,
+}
+
+impl<'set, 'provider, 'algebra, A> RelationExecution<'set, 'provider, 'algebra, A>
+where
+    A: TupleAnnotationAlgebra,
+{
+    pub(crate) fn new(
+        providers: &'set QueryRelationProviders<'provider, A::Element>,
+        algebra: &'algebra A,
+        query_contract_hash: impl Into<String>,
+    ) -> Result<Self, RelationContractError> {
+        providers.validate_algebra(algebra)?;
+        Ok(Self {
+            providers,
+            algebra,
+            query_contract_hash: query_contract_hash.into(),
+            cache: BTreeMap::new(),
+            admitted_annotations: BTreeMap::new(),
+            invocations: Vec::new(),
+            metrics: RelationAccessMetrics::default(),
+        })
+    }
+
+    fn receipt(
+        descriptor: &RelationProviderDescriptor,
+        call: &RelationCall,
+        status: RelationInvocationStatus,
+        response_hash: Option<String>,
+        delivered_rows: u64,
+        admitted_rows: u64,
+        detail: Option<String>,
+    ) -> RelationInvocationReceipt {
+        RelationInvocationReceipt {
+            request_iri: call.request_iri.clone(),
+            provider_iri: descriptor.provider_iri.clone(),
+            artifact_generation: descriptor.artifact_generation.clone(),
+            model_iri: descriptor.model_iri.clone(),
+            relation_iri: descriptor.relation_iri.clone(),
+            bounds: call.bounds.clone(),
+            limit: call.limit,
+            ordering: call.ordering.clone(),
+            annotation_dimension_iri: descriptor.annotation_dimension.iri().to_owned(),
+            status,
+            response_hash,
+            delivered_rows,
+            admitted_rows,
+            contributed: false,
+            detail,
+        }
+    }
+
+    fn fail(
+        &mut self,
+        kind: RelationExecutionFailureKind,
+        receipt: RelationInvocationReceipt,
+    ) -> RelationExecutionError {
+        self.invocations.push(receipt.clone());
+        RelationExecutionError {
+            kind,
+            invocation: Box::new(receipt),
+        }
+    }
+
+    fn validate_batch(
+        &self,
+        descriptor: &RelationProviderDescriptor,
+        call: &RelationCall,
+        batch: &RelationBatch<A::Element>,
+    ) -> Result<(), String> {
+        if batch.artifact_generation != descriptor.artifact_generation {
+            return Err(format!(
+                "provider returned artifact generation <{}>, expected <{}>",
+                batch.artifact_generation, descriptor.artifact_generation
+            ));
+        }
+        if batch.rows.len() > call.limit {
+            return Err(format!(
+                "provider returned {} rows beyond pushed limit {}",
+                batch.rows.len(),
+                call.limit
+            ));
+        }
+        let mut unique = BTreeSet::new();
+        for (row_index, row) in batch.rows.iter().enumerate() {
+            if row.arguments.len() != descriptor.arity() {
+                return Err(format!(
+                    "provider row {row_index} has arity {}, expected {}",
+                    row.arguments.len(),
+                    descriptor.arity()
+                ));
+            }
+            for (position, ((argument, column), bound)) in row
+                .arguments
+                .iter()
+                .zip(&descriptor.argument_schema)
+                .zip(&call.bounds)
+                .enumerate()
+            {
+                if !term_conforms_to_column(argument, column) {
+                    return Err(format!(
+                        "provider row {row_index} argument {position} does not conform to {}",
+                        column_kind_key(column)
+                    ));
+                }
+                if let Some(expected) = bound
+                    && term_display(argument) != term_display(expected)
+                {
+                    return Err(format!(
+                        "provider row {row_index} argument {position} violates pushed bound {}",
+                        term_display(expected)
+                    ));
+                }
+            }
+            let key = row.arguments.iter().map(term_display).collect::<Vec<_>>();
+            if !unique.insert(key) {
+                return Err(format!(
+                    "provider row {row_index} duplicates an earlier tuple"
+                ));
+            }
+        }
+        for (position, pair) in batch.rows.windows(2).enumerate() {
+            if call.ordering.compare_rows(&pair[0], &pair[1]) == Ordering::Greater {
+                return Err(format!(
+                    "provider rows {} and {} violate the declared total order",
+                    position,
+                    position + 1
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    fn response_hash(
+        &self,
+        descriptor: &RelationProviderDescriptor,
+        batch: &RelationBatch<A::Element>,
+    ) -> String {
+        let mut canonical = "gmeow-external-relation-response-v1".to_owned();
+        push_frame(&mut canonical, &descriptor.canonical_key());
+        push_frame(&mut canonical, &batch.artifact_generation);
+        for row in &batch.rows {
+            push_frame(&mut canonical, &row.order_key);
+            for argument in &row.arguments {
+                push_frame(&mut canonical, &term_display(argument));
+            }
+            push_frame(
+                &mut canonical,
+                &self.algebra.canonical_element(&row.annotation),
+            );
+        }
+        hash_canonical(&canonical)
+    }
+
+    pub(crate) fn resolve(
+        &mut self,
+        relation_iri: &str,
+        bounds: Vec<Option<TermValue>>,
+    ) -> Result<Vec<ResolvedRelationTuple<A::Element>>, RelationExecutionError> {
+        let (descriptor, limit, provider) = {
+            let registration = self
+                .providers
+                .registration(relation_iri)
+                .expect("provider resolution is called only for a registered relation");
+            (
+                registration.descriptor.clone(),
+                registration.per_call_limit,
+                registration.provider,
+            )
+        };
+        let call = RelationCall {
+            request_iri: request_iri(&self.query_contract_hash, &descriptor, &bounds, limit),
+            query_contract_hash: self.query_contract_hash.clone(),
+            relation_iri: descriptor.relation_iri.clone(),
+            bounds,
+            limit,
+            ordering: descriptor.ordering.clone(),
+        };
+        if call.bounds.len() != descriptor.arity() {
+            let receipt = Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::ContractViolation,
+                None,
+                0,
+                0,
+                Some(format!(
+                    "request has {} bound slots for arity {}",
+                    call.bounds.len(),
+                    descriptor.arity()
+                )),
+            );
+            return Err(self.fail(RelationExecutionFailureKind::ContractViolation, receipt));
+        }
+        let cache_key = RelationCallCacheKey {
+            descriptor_key: descriptor.canonical_key(),
+            bounds: call
+                .bounds
+                .iter()
+                .map(|bound| bound.as_ref().map(term_display))
+                .collect(),
+            limit: call.limit,
+            ordering_criterion: call.ordering.criterion_iri.clone(),
+            ordering_direction: call.ordering.direction,
+        };
+
+        if self.providers.cancellation.is_cancelled() {
+            let receipt = Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::Cancelled,
+                None,
+                0,
+                0,
+                Some("cancellation observed before provider call".to_owned()),
+            );
+            return Err(self.fail(RelationExecutionFailureKind::Cancelled, receipt));
+        }
+        if let Some(cached) = self.cache.get(&cache_key) {
+            let rows = cached.rows.clone();
+            let response_hash = cached.response_hash.clone();
+            self.metrics.cache_hits = self.metrics.cache_hits.saturating_add(1);
+            self.invocations.push(Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::CacheHit,
+                Some(response_hash),
+                0,
+                0,
+                None,
+            ));
+            return Ok(rows);
+        }
+        if self.metrics.provider_calls >= self.providers.budget.max_calls {
+            let receipt = Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::BudgetExhausted,
+                None,
+                0,
+                0,
+                Some(format!(
+                    "provider call budget {} exhausted",
+                    self.providers.budget.max_calls
+                )),
+            );
+            return Err(self.fail(RelationExecutionFailureKind::BudgetExhausted, receipt));
+        }
+
+        self.metrics.provider_calls = self.metrics.provider_calls.saturating_add(1);
+        if call.bounds.iter().any(Option::is_some) {
+            self.metrics.bound_calls = self.metrics.bound_calls.saturating_add(1);
+        }
+        let batch = match provider.call(&call, self.providers.cancellation) {
+            Ok(batch) => batch,
+            Err(RelationProviderError::Failure { kind, detail }) => {
+                let receipt = Self::receipt(
+                    &descriptor,
+                    &call,
+                    RelationInvocationStatus::Failed,
+                    None,
+                    0,
+                    0,
+                    Some(detail),
+                );
+                return Err(self.fail(RelationExecutionFailureKind::ProviderFailure(kind), receipt));
+            }
+            Err(RelationProviderError::Incomplete { kind, detail }) => {
+                let receipt = Self::receipt(
+                    &descriptor,
+                    &call,
+                    RelationInvocationStatus::Incomplete,
+                    None,
+                    0,
+                    0,
+                    Some(detail),
+                );
+                return Err(self.fail(
+                    RelationExecutionFailureKind::ProviderIncomplete(kind),
+                    receipt,
+                ));
+            }
+        };
+        let delivered = u64::try_from(batch.rows.len()).unwrap_or(u64::MAX);
+        self.metrics.delivered_rows = self.metrics.delivered_rows.saturating_add(delivered);
+        if self.providers.cancellation.is_cancelled() {
+            let receipt = Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::Cancelled,
+                None,
+                delivered,
+                0,
+                Some("cancellation observed after provider call".to_owned()),
+            );
+            return Err(self.fail(RelationExecutionFailureKind::Cancelled, receipt));
+        }
+        if let Err(detail) = self.validate_batch(&descriptor, &call, &batch) {
+            let receipt = Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::ContractViolation,
+                None,
+                delivered,
+                0,
+                Some(detail),
+            );
+            return Err(self.fail(RelationExecutionFailureKind::ContractViolation, receipt));
+        }
+
+        let mut new_keys = Vec::new();
+        for row in &batch.rows {
+            let arguments = row.arguments.iter().map(term_display).collect::<Vec<_>>();
+            let key = (descriptor.relation_iri.clone(), arguments);
+            let annotation = self.algebra.canonical_element(&row.annotation);
+            match self.admitted_annotations.get(&key) {
+                Some(existing) if existing != &annotation => {
+                    let receipt = Self::receipt(
+                        &descriptor,
+                        &call,
+                        RelationInvocationStatus::ContractViolation,
+                        None,
+                        delivered,
+                        0,
+                        Some(
+                            "the same provider tuple was returned with two annotation values"
+                                .to_owned(),
+                        ),
+                    );
+                    return Err(self.fail(RelationExecutionFailureKind::ContractViolation, receipt));
+                }
+                Some(_) => {}
+                None => new_keys.push((key, annotation)),
+            }
+        }
+        let new_count = u64::try_from(new_keys.len()).unwrap_or(u64::MAX);
+        if self.metrics.admitted_rows.saturating_add(new_count) > self.providers.budget.max_rows {
+            let receipt = Self::receipt(
+                &descriptor,
+                &call,
+                RelationInvocationStatus::BudgetExhausted,
+                None,
+                delivered,
+                0,
+                Some(format!(
+                    "admitting {new_count} new rows would exceed provider row budget {}",
+                    self.providers.budget.max_rows
+                )),
+            );
+            return Err(self.fail(RelationExecutionFailureKind::BudgetExhausted, receipt));
+        }
+        for (key, annotation) in new_keys {
+            self.admitted_annotations.insert(key, annotation);
+        }
+        self.metrics.admitted_rows = self.metrics.admitted_rows.saturating_add(new_count);
+        let response_hash = self.response_hash(&descriptor, &batch);
+        let rows = batch
+            .rows
+            .into_iter()
+            .map(|row| ResolvedRelationTuple {
+                source: ProviderTupleSource {
+                    provider_iri: descriptor.provider_iri.clone(),
+                    artifact_generation: descriptor.artifact_generation.clone(),
+                    model_iri: descriptor.model_iri.clone(),
+                    request_iri: call.request_iri.clone(),
+                    relation_iri: descriptor.relation_iri.clone(),
+                    arguments: row.arguments.iter().map(term_display).collect(),
+                    annotation_dimension_iri: descriptor.annotation_dimension.iri().to_owned(),
+                },
+                arguments: row.arguments,
+                annotation: row.annotation,
+            })
+            .collect::<Vec<_>>();
+        self.invocations.push(Self::receipt(
+            &descriptor,
+            &call,
+            RelationInvocationStatus::Complete,
+            Some(response_hash.clone()),
+            delivered,
+            new_count,
+            None,
+        ));
+        self.cache.insert(
+            cache_key,
+            CachedRelationBatch {
+                rows: rows.clone(),
+                response_hash,
+            },
+        );
+        Ok(rows)
+    }
+
+    pub(crate) fn is_provider_relation(&self, relation_iri: &str) -> bool {
+        self.providers.registration(relation_iri).is_some()
+    }
+
+    pub(crate) fn relation_names(&self) -> impl Iterator<Item = &str> {
+        self.providers.relation_names()
+    }
+
+    pub(crate) fn relation_arity(&self, relation_iri: &str) -> Option<usize> {
+        self.providers
+            .registration(relation_iri)
+            .map(|registration| registration.descriptor.arity())
+    }
+
+    pub(crate) fn merge_preservation(
+        &self,
+        target: &mut PreservationClaim,
+    ) -> gmeow_errors::Result<()> {
+        let invoked = self
+            .invocations
+            .iter()
+            .filter(|invocation| {
+                matches!(
+                    invocation.status,
+                    RelationInvocationStatus::Complete | RelationInvocationStatus::CacheHit
+                )
+            })
+            .map(|invocation| invocation.relation_iri.as_str())
+            .collect::<BTreeSet<_>>();
+        for relation in invoked {
+            let descriptor = &self
+                .providers
+                .registration(relation)
+                .expect("an invocation always names a registered relation")
+                .descriptor;
+            target
+                .polarities
+                .extend(descriptor.preservation.polarities.iter().copied());
+            target.unsupported_constructs.extend(
+                descriptor
+                    .preservation
+                    .unsupported_constructs
+                    .iter()
+                    .cloned(),
+            );
+        }
+        let widened = target.polarities.iter().any(|polarity| {
+            matches!(
+                polarity,
+                gmeow_logic_compile::ir::PreservationKind::SoundUnder
+                    | gmeow_logic_compile::ir::PreservationKind::CompleteOver
+                    | gmeow_logic_compile::ir::PreservationKind::Unsupported
+            )
+        });
+        if widened {
+            target
+                .polarities
+                .remove(&gmeow_logic_compile::ir::PreservationKind::Exact);
+        }
+        target.validate()
+    }
+
+    pub(crate) fn finish(
+        mut self,
+        answer: AnnotatedAnswerSet<A::Element>,
+        source: WorldSourceIdentity,
+        engine_descriptor_hash: String,
+    ) -> RelationQueryResult<A::Element> {
+        let contributing_requests = answer
+            .answers
+            .iter()
+            .flat_map(|answer| &answer.derivations)
+            .flat_map(|derivation| &derivation.provider_sources)
+            .map(|source| source.request_iri.clone())
+            .collect::<BTreeSet<_>>();
+        let mut contributing_providers = BTreeSet::new();
+        for invocation in &mut self.invocations {
+            invocation.contributed = contributing_requests.contains(&invocation.request_iri);
+            if invocation.contributed {
+                contributing_providers.insert((
+                    invocation.provider_iri.clone(),
+                    invocation.artifact_generation.clone(),
+                ));
+            }
+        }
+        let mut canonical = "gmeow-external-relation-query-receipt-v1".to_owned();
+        for value in [
+            self.query_contract_hash.as_str(),
+            self.providers.manifest_hash(),
+            source.generation.as_str(),
+            source.source_contract.as_str(),
+            engine_descriptor_hash.as_str(),
+        ] {
+            push_frame(&mut canonical, value);
+        }
+        for invocation in &self.invocations {
+            canonical_invocation(&mut canonical, invocation);
+        }
+        for (provider, generation) in &contributing_providers {
+            push_frame(&mut canonical, provider);
+            push_frame(&mut canonical, generation);
+        }
+        for value in [
+            self.metrics.provider_calls,
+            self.metrics.cache_hits,
+            self.metrics.delivered_rows,
+            self.metrics.admitted_rows,
+            self.metrics.bound_calls,
+        ] {
+            push_frame(&mut canonical, &value.to_string());
+        }
+        for row in &answer.answers {
+            for (variable, value) in &row.binding {
+                push_frame(&mut canonical, variable);
+                push_frame(&mut canonical, value);
+            }
+            push_frame(
+                &mut canonical,
+                &self.algebra.canonical_element(&row.annotation),
+            );
+        }
+        let receipt_hash = hash_canonical(&canonical);
+        RelationQueryResult {
+            answer,
+            receipt: RelationQueryReceipt {
+                query_contract_hash: self.query_contract_hash,
+                provider_manifest_hash: self.providers.manifest_hash().to_owned(),
+                source,
+                engine_descriptor_hash,
+                invocations: self.invocations,
+                contributing_providers,
+                metrics: self.metrics,
+                receipt_hash,
+            },
+        }
+    }
+
+    pub(crate) fn failure_receipt(
+        &self,
+        source: WorldSourceIdentity,
+        engine_descriptor_hash: String,
+        terminal_kind: impl Into<String>,
+        detail: impl Into<String>,
+    ) -> RelationQueryFailureReceipt {
+        let terminal_kind = terminal_kind.into();
+        let detail = detail.into();
+        let mut canonical = "gmeow-external-relation-query-failure-v1".to_owned();
+        for value in [
+            self.query_contract_hash.as_str(),
+            self.providers.manifest_hash(),
+            source.generation.as_str(),
+            source.source_contract.as_str(),
+            engine_descriptor_hash.as_str(),
+            terminal_kind.as_str(),
+            detail.as_str(),
+        ] {
+            push_frame(&mut canonical, value);
+        }
+        for invocation in &self.invocations {
+            canonical_invocation(&mut canonical, invocation);
+        }
+        for value in [
+            self.metrics.provider_calls,
+            self.metrics.cache_hits,
+            self.metrics.delivered_rows,
+            self.metrics.admitted_rows,
+            self.metrics.bound_calls,
+        ] {
+            push_frame(&mut canonical, &value.to_string());
+        }
+        RelationQueryFailureReceipt {
+            query_contract_hash: self.query_contract_hash.clone(),
+            provider_manifest_hash: self.providers.manifest_hash().to_owned(),
+            source,
+            engine_descriptor_hash,
+            invocations: self.invocations.clone(),
+            metrics: self.metrics,
+            terminal_kind,
+            detail,
+            receipt_hash: hash_canonical(&canonical),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::sync::Mutex;
+
     use super::*;
     use gmeow_logic_compile::ir::PreservationKind;
+
+    use crate::provenance::ZWeightSemiring;
 
     struct NoopProvider;
 
@@ -696,6 +1491,34 @@ mod tests {
                 artifact_generation: "https://example.org/index/generation/1".to_owned(),
                 rows: Vec::with_capacity(call.limit),
             })
+        }
+    }
+
+    struct StaticProvider {
+        response: Result<RelationBatch<i64>, RelationProviderError>,
+        calls: Mutex<Vec<RelationCall>>,
+    }
+
+    impl StaticProvider {
+        fn complete(rows: Vec<RelationTuple<i64>>) -> Self {
+            Self {
+                response: Ok(RelationBatch {
+                    artifact_generation: "https://example.org/index/generation/1".to_owned(),
+                    rows,
+                }),
+                calls: Mutex::new(Vec::new()),
+            }
+        }
+    }
+
+    impl ExternalRelationProvider<i64> for StaticProvider {
+        fn call(
+            &self,
+            call: &RelationCall,
+            _cancellation: &dyn RelationCancellation,
+        ) -> Result<RelationBatch<i64>, RelationProviderError> {
+            self.calls.lock().unwrap().push(call.clone());
+            self.response.clone()
         }
     }
 
@@ -813,5 +1636,171 @@ mod tests {
 
         assert!(RelationProviderBudget::new(0, 1).is_err());
         assert!(RelationProviderBudget::new(1, 0).is_err());
+    }
+
+    fn relation_row(query: &str, document: &str, score: i64, order: &str) -> RelationTuple<i64> {
+        RelationTuple {
+            arguments: vec![
+                TermValue::simple_literal(query),
+                TermValue::iri(format!("https://example.org/document/{document}")),
+            ],
+            annotation: score,
+            order_key: order.to_owned(),
+        }
+    }
+
+    #[test]
+    fn complete_batches_are_validated_hashed_and_cached_before_budget_charge() {
+        let provider = StaticProvider::complete(vec![
+            relation_row("cat", "one", 7, "001"),
+            relation_row("cat", "two", 5, "002"),
+        ]);
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &provider,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(1, 2).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        let bounds = vec![Some(TermValue::simple_literal("cat")), None];
+        let first = execution
+            .resolve("https://example.org/relation/name-like", bounds.clone())
+            .unwrap();
+        let second = execution
+            .resolve("https://example.org/relation/name-like", bounds)
+            .unwrap();
+
+        assert_eq!(first, second);
+        assert_eq!(provider.calls.lock().unwrap().len(), 1);
+        assert_eq!(execution.metrics.provider_calls, 1);
+        assert_eq!(execution.metrics.cache_hits, 1);
+        assert_eq!(execution.metrics.delivered_rows, 2);
+        assert_eq!(execution.metrics.admitted_rows, 2);
+        assert_eq!(execution.metrics.bound_calls, 1);
+        assert_eq!(execution.invocations.len(), 2);
+        assert_eq!(
+            execution.invocations[0].status,
+            RelationInvocationStatus::Complete
+        );
+        assert_eq!(
+            execution.invocations[1].status,
+            RelationInvocationStatus::CacheHit
+        );
+        assert_eq!(
+            execution.invocations[0].response_hash,
+            execution.invocations[1].response_hash
+        );
+        assert!(
+            execution.invocations[0]
+                .response_hash
+                .as_ref()
+                .is_some_and(|hash| hash.len() == 64)
+        );
+    }
+
+    #[test]
+    fn malformed_provider_rows_are_typed_non_results_and_never_cached() {
+        let provider = StaticProvider::complete(vec![
+            relation_row("cat", "two", 5, "002"),
+            relation_row("cat", "one", 7, "001"),
+        ]);
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &provider,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(2, 8).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        let error = execution
+            .resolve(
+                "https://example.org/relation/name-like",
+                vec![Some(TermValue::simple_literal("cat")), None],
+            )
+            .expect_err("unordered rows must fail");
+        assert_eq!(error.kind, RelationExecutionFailureKind::ContractViolation);
+        assert_eq!(
+            error.invocation.status,
+            RelationInvocationStatus::ContractViolation
+        );
+        assert_eq!(execution.metrics.admitted_rows, 0);
+        assert_eq!(execution.metrics.cache_hits, 0);
+    }
+
+    #[test]
+    fn provider_failure_and_row_budget_exhaustion_are_not_empty_complete_relations() {
+        let failed = StaticProvider {
+            response: Err(RelationProviderError::Failure {
+                kind: RelationProviderFailureKind::Unavailable,
+                detail: "lexical index offline".to_owned(),
+            }),
+            calls: Mutex::new(Vec::new()),
+        };
+        let failed_registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &failed,
+        )
+        .unwrap();
+        let failed_set = QueryRelationProviders::new(
+            vec![failed_registration],
+            RelationProviderBudget::new(1, 8).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&failed_set, &ZWeightSemiring, "query-contract").unwrap();
+        let error = execution
+            .resolve("https://example.org/relation/name-like", vec![None, None])
+            .expect_err("provider failure must cross the boundary");
+        assert_eq!(
+            error.kind,
+            RelationExecutionFailureKind::ProviderFailure(RelationProviderFailureKind::Unavailable)
+        );
+        assert_eq!(error.invocation.status, RelationInvocationStatus::Failed);
+
+        let oversized = StaticProvider::complete(vec![
+            relation_row("cat", "one", 7, "001"),
+            relation_row("cat", "two", 5, "002"),
+        ]);
+        let oversized_registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &oversized,
+        )
+        .unwrap();
+        let oversized_set = QueryRelationProviders::new(
+            vec![oversized_registration],
+            RelationProviderBudget::new(1, 1).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&oversized_set, &ZWeightSemiring, "query-contract").unwrap();
+        let error = execution
+            .resolve(
+                "https://example.org/relation/name-like",
+                vec![Some(TermValue::simple_literal("cat")), None],
+            )
+            .expect_err("row governor must reject the complete batch atomically");
+        assert_eq!(error.kind, RelationExecutionFailureKind::BudgetExhausted);
+        assert_eq!(
+            error.invocation.status,
+            RelationInvocationStatus::BudgetExhausted
+        );
+        assert_eq!(execution.metrics.admitted_rows, 0);
     }
 }
