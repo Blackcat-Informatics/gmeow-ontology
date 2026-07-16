@@ -386,7 +386,11 @@ fn lower_negated_conjecture(
             )));
         }
     };
-    out.extend(entail::negate(&shape, minter));
+    // `negate` refuses a subproperty shape (decided by reachability, not refutation), but
+    // the conjecture lowering only ever builds `GroundType`/`SubClassOf` here, so this
+    // never fires — surface any invariant violation as a lowering gap rather than panic.
+    let negation = entail::negate(&shape, minter).map_err(|d| gap(d.to_string()))?;
+    out.extend(negation);
     Ok(())
 }
 
