@@ -437,6 +437,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "physical/term_key.rs",
         "the pure content-key fold for physical/term_dag.rs — a term-identity encoder for the same DAG substrate, with no backward-dispatch consumer yet",
     ),
+    (
+        "physical/lower.rs",
+        "the three-consumer lowering (logic:/math:/lang:) INTO physical/term_dag.rs — a term-arena ingestion surface for the unification/proof rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
+    ),
 ];
 
 /// Frame `value` under `tag` into `hasher` with a domain tag and length prefixes, so
