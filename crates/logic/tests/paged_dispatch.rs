@@ -6,7 +6,7 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
 
-use gmeow_logic::annotation::{AnnotationContract, AnnotationRequest};
+use gmeow_logic::annotation::{AnnotationContract, AnnotationRequest, TupleAnnotationAlgebra};
 use gmeow_logic::dispatch::{
     FallibleViewQueryError, dispatch_query_annotated_fallible_view, dispatch_query_fallible_view,
     dispatch_query_view,
@@ -251,6 +251,7 @@ fn annotated_paged_dispatch_preserves_source_lineage_and_completeness() {
             PROFILE,
             &Budget::default(),
             &contract,
+            ZWeightSemiring.identity(),
         )
     );
 }

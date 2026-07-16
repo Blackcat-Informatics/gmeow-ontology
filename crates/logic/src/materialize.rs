@@ -814,6 +814,7 @@ fn public_annotation_derivations<E: Clone>(
                 })
                 .collect(),
             tuple_sources: Vec::new(),
+            provider_sources: Vec::new(),
             annotation: derivation.annotation.clone(),
         })
         .collect()
