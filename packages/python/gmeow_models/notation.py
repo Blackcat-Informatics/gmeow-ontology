@@ -219,7 +219,7 @@ class NotationSystemUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage", "curie": "gmeow:NotationSystemUsage", "definitionDigest": "blake3:c74db86230e47d8b88d990d0e01a01eafa0b62796e29c62eca142437b14e0089", "iri": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage", "curie": "gmeow:NotationSystemUsage", "definitionDigest": "blake3:18402509689e952bf306ac3e85b952510161fec6f66bb675965d1231a5876e06", "iri": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

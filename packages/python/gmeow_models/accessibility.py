@@ -53,7 +53,7 @@ class AccessibilityAssertion(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion", "curie": "gmeow:AccessibilityAssertion", "definitionDigest": "blake3:734ea3b3f0c36052b6e0c73d63958127a2bda755a6d4698094fd9e763fddfdc2", "iri": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion", "curie": "gmeow:AccessibilityAssertion", "definitionDigest": "blake3:70d7bb00ed392d1f7f5faefc40a42db0e9555b3d0b49f84009ca48001224c09d", "iri": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
