@@ -40,7 +40,7 @@ use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
-use gmeow_docs::i18n::parse_po;
+use gmeow_docs::i18n_compile::{language_from_po, parse_po};
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
@@ -121,14 +121,14 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::
                     ),
                 })
             })?;
-            let parsed = parse_po(text);
-            let lang = parsed.language.trim().to_string();
+            let lang = language_from_po(text)?.unwrap_or_default();
+            let lang = lang.trim().to_string();
             // A catalog with no BCP-47 language header, or the English carrier itself,
             // is not a translation crossing.
             if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
                 continue;
             }
-            for entry in &parsed.entries {
+            for entry in &parse_po(text, false)? {
                 // The header entry (empty msgctxt) is not a crossing; a malformed
                 // msgctxt without the `<term-iri>|<predicate>` separator is skipped.
                 if entry.msgctxt.is_empty() {

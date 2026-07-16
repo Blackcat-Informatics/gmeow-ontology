@@ -231,3 +231,128 @@ fn translation_axis_does_not_credit_copied_english() {
     );
     std::fs::remove_dir_all(dir).ok();
 }
+
+const XLIT_TERM: &str = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
+
+#[test]
+fn fuzzy_entry_does_not_count_toward_coverage() {
+    // Control: a fully-reviewed fixture (label+definition+example in fr & zh) is 1.0.
+    let (dir, iri) = literal_fixture("fuzzygate", true);
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
+    let full = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri.clone(),
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ));
+    assert_eq!(
+        full.score, 1.0,
+        "control: every literal reviewed in fr+cmn → 1.0, got {}",
+        full.score
+    );
+
+    // Flag the fr rdfs:label entry `#, fuzzy`: machine-seeded/unreviewed, so it must
+    // NOT count. The graph is unchanged, so only the on-disk catalog drives the drop.
+    let fr = std::fs::read_to_string(dir.join("i18n/fr.po")).unwrap();
+    let fuzzed = fr.replace(
+        &format!("msgctxt \"{XLIT_TERM}|rdfs:label\""),
+        &format!("#, fuzzy\nmsgctxt \"{XLIT_TERM}|rdfs:label\""),
+    );
+    assert_ne!(
+        fr, fuzzed,
+        "the fixture must contain the fr label entry to flag"
+    );
+    std::fs::write(dir.join("i18n/fr.po"), fuzzed).unwrap();
+
+    let gated = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri,
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ));
+    assert!(
+        gated.score < full.score,
+        "a #, fuzzy entry must not count toward coverage: gated {} vs full {}",
+        gated.score,
+        full.score
+    );
+    assert!(
+        gated.findings.iter().any(
+            |f| f.code == "slice-quality.translation.incomplete" && f.message.contains("fuzzy")
+        ),
+        "an advisory narrates the machine-seeded (fuzzy) entry awaiting review"
+    );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn removing_fuzzy_flag_raises_coverage() {
+    // Seed the fr label as `#, fuzzy` (machine-seeded, unreviewed) in an otherwise
+    // fully-translated fixture; a human then promotes it by deleting the flag.
+    let (dir, iri) = literal_fixture("fuzzyremove", true);
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
+
+    let fr = std::fs::read_to_string(dir.join("i18n/fr.po")).unwrap();
+    let seeded = fr.replace(
+        &format!("msgctxt \"{XLIT_TERM}|rdfs:label\""),
+        &format!("#, fuzzy\nmsgctxt \"{XLIT_TERM}|rdfs:label\""),
+    );
+    std::fs::write(dir.join("i18n/fr.po"), &seeded).unwrap();
+    let before = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri.clone(),
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ))
+    .score;
+
+    // The single action that moves coverage upward: deleting the `#, fuzzy` flag.
+    std::fs::write(dir.join("i18n/fr.po"), seeded.replace("#, fuzzy\n", "")).unwrap();
+    let after = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri,
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ))
+    .score;
+
+    assert!(
+        after > before,
+        "removing the #, fuzzy flag must raise measured coverage: before {before}, after {after}"
+    );
+    assert_eq!(
+        after, 1.0,
+        "with every entry reviewed the score is a perfect 1.0, got {after}"
+    );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn zh_po_without_language_header_still_gets_cmn_integrity() {
+    // A zh.po with NO `Language:` header and a copied-English (non-Han) translation:
+    // the axis must fall back to the `cmn` tag so the integrity guard still rejects
+    // the copied English rather than crediting it as coverage.
+    let (dir, iri) = literal_fixture("cmnfallback", false);
+    std::fs::write(
+        dir.join("i18n/zh.po"),
+        format!(
+            "msgctxt \"{XLIT_TERM}|rdfs:label\"\nmsgid \"L\"\nmsgstr \"Label\"\n\n\
+             msgctxt \"{XLIT_TERM}|skos:definition\"\nmsgid \"D\"\nmsgstr \"Definition\"\n"
+        ),
+    )
+    .unwrap();
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
+    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri,
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ));
+    assert!(
+        tr.findings
+            .iter()
+            .any(|f| f.code == "slice-quality.translation.integrity-rejected"),
+        "copied English in a header-less zh.po is rejected via the cmn fallback, not credited"
+    );
+    std::fs::remove_dir_all(&dir).ok();
+}
