@@ -5957,6 +5957,13 @@ logic:LawClaim
     skos:definition "A claim that a logic:Correspondence satisfies a particular logic:CorrespondenceLaw (named by logic:lawClaimed), together with the discharge state of that claim: a logic:DischargeVerdict via logic:lawDischargeVerdict and, when applicable, the logic:DischargeCondition under which it was checked via logic:lawDischargeCondition. It reuses the foundation's executable discharge vocabulary rather than a parallel status enum: a law proved within a certified fragment is logic:ObligationDischarged under logic:DischargeCertifiedFragment; a refuted law is logic:ObligationViolated with its countermodel; an authored-but-unchecked or inconclusive law is logic:ObligationUnknown, carried forward. The overclaim gate fires when a correspondence claims a law its lowered legs do not satisfy (design/LOGIC-CORRESPONDENCE.md, the preservation-is-the-lens-law-framework section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:RecoveryCase
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Recovery Case"@x-gmeow-english ;
+    skos:definition "A first-class executable query-class case that decides whether a logic:Correspondence genuinely recovers its source. Its logic:recoveryTransform is an ordered universally quantified source-to-view logic:Formula. The native correspondence executor instantiates the complete source pattern, computes the declared view, derives the candidate inverse, and compares the recovered source graph with the original. A recovery case is neutral evidence rather than a positive assertion: it may discharge a genuine section/retraction or deliberately refute a lossy mapping by retaining a source distinction absent from the view. Every logic:mnemomorphic true correspondence that claims logic:SectionLaw requires executable complete recovery evidence: an atomic one-triple leg may synthesize its complete case, while a composite leg requires an authored logic:RecoveryCase. A structural inverse or a declared boolean alone is never proof (design/LOGIC-CORRESPONDENCE.md, genuine recovery cases)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Dialect
     a owl:Class ;
     rdfs:subClassOf logic:ConversionTarget ;
@@ -6083,6 +6090,23 @@ logic:hasLawClaim
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "has law claim"@x-gmeow-english ;
     skos:definition "Relates a logic:Correspondence to a logic:LawClaim it makes — a claimed logic:CorrespondenceLaw with its discharge state. Multi-valued: a correspondence may claim several laws, each capped by its logic:MorphismClass rung. Range logic:LawClaim (domain stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:recoveryCase
+    a owl:ObjectProperty ;
+    rdfs:range logic:RecoveryCase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recovery case"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to one of the logic:RecoveryCase nodes whose complete source pattern is executed to decide its source-recovery claim. Multi-valued and conjunctive: every attached case must recover for a mnemomorphic Section Law to discharge; one countermodel refutes the claim. A lossy correspondence may attach a refuting case so changing only its rung or logic:mnemomorphic flag cannot manufacture a proof. Domain logic:Correspondence, range logic:RecoveryCase."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:recoveryTransform
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RecoveryCase ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recovery transform"@x-gmeow-english ;
+    skos:definition "The exactly-one ordered source-to-view logic:Formula executed for a logic:RecoveryCase. The supported discharge fragment is a universally quantified implication whose antecedent and consequent are positive conjunctions of binary RDF atoms: the antecedent is the complete source graph pattern and the consequent is the projected view pattern. The order is semantic — reversing the implication changes which information must be recovered — while conjunction order remains immaterial under the formula's canonical identity. Domain logic:RecoveryCase, range logic:Formula."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:lawClaimed
@@ -10101,6 +10125,7 @@ logic:candidateNoOverTyping
 [ a logic:ClosureEntry ; logic:onClass logic:ContradictionWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/witnessIndividual" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContradictionWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/witnessWorld" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContradictionWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/witnessPremise" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass logic:RecoveryCase ; logic:closureKey "https://blackcatinformatics.ca/logic/recoveryTransform" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ClosureAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/closureEntailedAtom" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:SectionAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/dischargesSectionObligation" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:CounterfactualAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/selectedByEntrenchment" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -10162,6 +10187,9 @@ logic:ContradictionWitness rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:allValuesFrom xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:allValuesFrom xsd:string ] .
 
+logic:RecoveryCase rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:recoveryTransform ; owl:allValuesFrom logic:Formula ] .
+
 # Global at-most-one semantics for the carriers legacy SHACL constrained with maxCount 1.
 logic:candidateSourceHash a owl:FunctionalProperty .
 logic:candidateExtractionProvenance a owl:FunctionalProperty .
@@ -10197,6 +10225,7 @@ logic:conjectureLifecycleState a owl:FunctionalProperty .
 logic:verdictProvenance a owl:FunctionalProperty .
 logic:witnessIndividual a owl:FunctionalProperty .
 logic:witnessWorld a owl:FunctionalProperty .
+logic:recoveryTransform a owl:FunctionalProperty .
 
 # Flagship acceptance witnesses: each required carrier is canonical, typed, and retains its
 # exact failure class through the generated validation-shape projection.
