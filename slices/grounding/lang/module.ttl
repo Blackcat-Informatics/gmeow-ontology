@@ -5703,6 +5703,182 @@ gmeow:gmnDenMathHodgeLaplacian
     lang:denotationContext gmeow:gmnMathGlyphContext ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:gmnFormMathSheafLaplacian
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN sheaf-Laplacian key `sheaf_laplacian`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `sheaf_laplacian` for math:SheafLaplacian; the capital-L glyph remains non-executable display notation because it is overloaded with the graph Laplacian, the Lagrangian, and a lower-triangular factor."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathSheafLaplacian
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN sheaf-Laplacian key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `sheaf_laplacian` to the class math:SheafLaplacian; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathSheafLaplacian ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:SheafLaplacian ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathEntropy
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN entropy key `entropy`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `entropy` for math:Entropy; the capital-H glyph remains non-executable display notation because it is overloaded with enthalpy, the Hamiltonian, and a hypothesis, and cannot carry the distribution/base/unit frame."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathEntropy
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN entropy key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `entropy` to the class math:Entropy; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathEntropy ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:Entropy ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathMutualInformation
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN mutual-information key `mutual_information`"@x-gmeow-english ;
+    skos:definition "The binary prefix GMN named-key form `mutual_information` for math:MutualInformation; the capital-I glyph remains non-executable display notation because it is confusable with an identity matrix, an index, and Fisher information, and cannot carry the joint-distribution frame of I(X;Y)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathMutualInformation
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN mutual-information key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `mutual_information` to the class math:MutualInformation; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathMutualInformation ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:MutualInformation ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathKullbackLeibler
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN KL-divergence key `kl_divergence`"@x-gmeow-english ;
+    skos:definition "The binary prefix GMN named-key form `kl_divergence` for math:KullbackLeiblerDivergence; the capital-D glyph remains non-executable display notation because it is overloaded with a derivative and a determinant, and cannot carry the directed double-bar frame of D(P‖Q)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathKullbackLeibler
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN KL-divergence key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `kl_divergence` to the class math:KullbackLeiblerDivergence; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathKullbackLeibler ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:KullbackLeiblerDivergence ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathNerve
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN nerve key `nerve`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `nerve` for math:NerveComplex; the capital-N glyph remains non-executable display notation because it is overloaded with the natural numbers, a count, a normal subgroup, and a null space, and cannot carry the cover frame of N(𝒰)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathNerve
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN nerve key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `nerve` to the class math:NerveComplex; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathNerve ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:NerveComplex ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathVectorBinding
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN vector-binding key `vsa_bind`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `vsa_bind` for math:VectorBinding; the circled-asterisk glyph remains non-executable display notation because it is overloaded with convolution and the tensor product, and cannot carry the vector-space/basis/capacity/recovery-loss contract."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 60 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathVectorBinding
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN vector-binding key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `vsa_bind` to the class math:VectorBinding; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathVectorBinding ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:VectorBinding ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathVectorBundling
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN vector-bundling key `vsa_bundle`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `vsa_bundle` for math:VectorBundling; the circled-plus glyph remains non-executable display notation because it is overloaded with the direct sum and XOR addition, and cannot carry the capacity bound on how many items may be superposed."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 60 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathVectorBundling
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN vector-bundling key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `vsa_bundle` to the class math:VectorBundling; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathVectorBundling ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:VectorBundling ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathVectorUnbinding
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN vector-unbinding key `vsa_unbind`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `vsa_unbind` for math:VectorUnbinding; the circled-slash glyph remains non-executable display notation because it is overloaded with circled division and an annihilated element, and cannot carry the mandatory recovery-loss contract of unbinding."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 60 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathVectorUnbinding
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN vector-unbinding key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `vsa_unbind` to the class math:VectorUnbinding; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathVectorUnbinding ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:VectorUnbinding ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:gmnFormLogicForall
     a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -6162,6 +6338,7 @@ gmeow:gmnCandidateMathSheafLaplacian
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The bare capital L denotes the graph Laplacian, the Lagrangian, a length, and a lower-triangular factor, and the sheaf Laplacian is defined over a declared cellular sheaf and its coboundary maps a flat glyph cannot carry; the `sheaf_laplacian` key keeps the operator's sheaf/complex frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathSheafLaplacian ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6185,6 +6362,7 @@ gmeow:gmnCandidateMathEntropy
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The bare capital H denotes entropy, enthalpy, the Hamiltonian, and a hypothesis, and the entropy functional carries a mandatory distribution/base/unit frame a flat glyph cannot hold; the `entropy` key keeps the information measure inspectable and framed, and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathEntropy ;
     gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6201,6 +6379,7 @@ gmeow:gmnCandidateMathMutualInformation
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The bare capital I is confusable with an identity matrix, an index, and Fisher information, and mutual information is written I(X;Y) over a joint distribution with a mandatory base; the `mutual_information` key keeps the two-argument frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathMutualInformation ;
     gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6217,6 +6396,7 @@ gmeow:gmnCandidateMathKullbackLeibler
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The bare capital D denotes a derivative, a determinant, and a divergence, and the KL divergence is written D(P‖Q) with a double-bar separator and a mandatory base a flat glyph cannot carry; the `kl_divergence` key keeps the directed reference-distribution frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathKullbackLeibler ;
     gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6239,6 +6419,7 @@ gmeow:gmnCandidateMathNerve
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The bare capital N denotes the natural numbers, a count or sample size, a normal subgroup, and a null space, and the nerve is written N(𝒰) over a declared cover whose overlaps a flat glyph cannot carry; the `nerve` key keeps the cover/clustering frame of the Mapper output explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathNerve ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6263,6 +6444,7 @@ gmeow:gmnCandidateMathVectorBinding
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The circled asterisk ⊛ already denotes convolution and the circled times ⊗ denotes the tensor/Kronecker product, and vector-symbolic binding is written a ⊛ b over a declared vector space, basis, capacity, and recovery-loss contract that a flat glyph cannot carry — recovery being approximate unless an exact algebra proves otherwise; the `vsa_bind` key keeps that frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathVectorBinding ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6279,6 +6461,7 @@ gmeow:gmnCandidateMathVectorBundling
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The circled plus ⊕ already denotes the direct sum of spaces and modulo-two (XOR) addition, and vector-symbolic bundling is written a ⊕ b over a declared vector space, basis, and capacity bound on how many items may be superposed before crosstalk overwhelms retrieval — a frame a flat glyph cannot carry; the `vsa_bundle` key keeps that frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathVectorBundling ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6295,6 +6478,7 @@ gmeow:gmnCandidateMathVectorUnbinding
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The circled slash ⊘ already denotes circled division and an empty/annihilated element, and unbinding is written c ⊘ b (the inverse of binding under the declared law) whose retrieval carries a mandatory recovery-loss contract — recovery being approximate unless an exact algebra proves otherwise — that a flat glyph cannot express; the `vsa_unbind` key keeps that fidelity frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathVectorUnbinding ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
