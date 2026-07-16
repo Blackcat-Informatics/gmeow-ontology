@@ -225,14 +225,21 @@ pub(crate) fn annotated_query_contract_hash(
     profile: &str,
     budget: &Budget,
     annotation: &AnnotationContract,
+    algebra_identity: &str,
 ) -> String {
     let base_contract = query_contract_hash(profile, budget);
     let annotation_frame = annotation.canonical_key();
-    blake3::hash(
-        format!("gmeow-annotated-query-contract-v1:{base_contract}:{annotation_frame}").as_bytes(),
-    )
-    .to_hex()
-    .to_string()
+    let mut hasher = blake3::Hasher::new();
+    for value in [
+        "gmeow-annotated-query-contract-v2",
+        base_contract.as_str(),
+        annotation_frame.as_str(),
+        algebra_identity,
+    ] {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+    hasher.finalize().to_hex().to_string()
 }
 
 /// Resolve `program` against `world` with the native physical core.
@@ -394,7 +401,12 @@ where
     profile_gate::reject_cut(program)?;
     profile_gate::check_builtin_profile(program, profile)?;
 
-    let contract_hash = annotated_query_contract_hash(profile, budget, annotation.contract);
+    let contract_hash = annotated_query_contract_hash(
+        profile,
+        budget,
+        annotation.contract,
+        annotation.algebra.identity(),
+    );
     match crate::physical::resolve_native_annotated_under(
         &contract_hash,
         foreign,
@@ -440,7 +452,12 @@ where
 {
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
-        annotated_query_contract_hash(profile, budget, annotation.contract),
+        annotated_query_contract_hash(
+            profile,
+            budget,
+            annotation.contract,
+            annotation.algebra.identity(),
+        ),
     );
     let source = RdfViewFactSource::new(view, profile, identity.source.clone());
     let answer = dispatch_query_annotated(&source, world, program, profile, budget, annotation)?;
@@ -478,7 +495,12 @@ where
 {
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
-        annotated_query_contract_hash(profile, budget, annotation.contract),
+        annotated_query_contract_hash(
+            profile,
+            budget,
+            annotation.contract,
+            annotation.algebra.identity(),
+        ),
     );
     if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
         return Err(Box::new(FallibleViewQueryError::Operational {
@@ -562,6 +584,14 @@ mod tests {
     impl crate::annotation::TupleAnnotationAlgebra for FloatingScore {
         type Element = f64;
 
+        fn identity(&self) -> &str {
+            "https://example.org/algebra/floating-score-v1"
+        }
+
+        fn canonical_element(&self, element: &Self::Element) -> String {
+            format!("{:016x}", element.to_bits())
+        }
+
         fn zero(&self) -> Self::Element {
             0.0
         }
@@ -603,6 +633,14 @@ mod tests {
 
     impl crate::annotation::TupleAnnotationAlgebra for PeakAlgebra {
         type Element = i64;
+
+        fn identity(&self) -> &str {
+            &self._runtime_identity
+        }
+
+        fn canonical_element(&self, element: &Self::Element) -> String {
+            element.to_string()
+        }
 
         fn zero(&self) -> Self::Element {
             0
@@ -663,6 +701,34 @@ mod tests {
             query_contract_hash(
                 "<https://blackcatinformatics.ca/logic/PositiveHornProfile>",
                 &unlimited,
+            )
+        );
+    }
+
+    #[test]
+    fn annotated_query_contract_hash_covers_algebra_identity() {
+        let contract = AnnotationContract::exact();
+        let budget = Budget::default();
+        let left = annotated_query_contract_hash(
+            HORN_PROFILE,
+            &budget,
+            &contract,
+            "https://example.org/algebra/left",
+        );
+        let right = annotated_query_contract_hash(
+            HORN_PROFILE,
+            &budget,
+            &contract,
+            "https://example.org/algebra/right",
+        );
+        assert_ne!(left, right);
+        assert_eq!(
+            left,
+            annotated_query_contract_hash(
+                HORN_PROFILE,
+                &budget,
+                &contract,
+                "https://example.org/algebra/left",
             )
         );
     }

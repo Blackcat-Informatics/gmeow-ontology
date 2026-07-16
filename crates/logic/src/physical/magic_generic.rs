@@ -864,6 +864,7 @@ where
                     rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
                     sources: Vec::new(),
                     tuple_sources: Vec::new(),
+                    provider_sources: Vec::new(),
                     annotation: value,
                 }],
             },
@@ -941,6 +942,7 @@ where
                     rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
                     sources: Vec::new(),
                     tuple_sources: Vec::new(),
+                    provider_sources: Vec::new(),
                     annotation: seed.clone(),
                 }]
             });
@@ -961,6 +963,7 @@ where
                                 arguments: arguments.clone(),
                             })
                             .collect(),
+                        provider_sources: Vec::new(),
                         annotation: product.clone(),
                     });
                 }
@@ -1066,6 +1069,14 @@ mod tests {
 
     impl TupleAnnotationAlgebra for SumProduct {
         type Element = f64;
+
+        fn identity(&self) -> &str {
+            "https://blackcatinformatics.ca/logic/algebra/test-sum-product-v1"
+        }
+
+        fn canonical_element(&self, element: &Self::Element) -> String {
+            format!("{:016x}", element.to_bits())
+        }
 
         fn zero(&self) -> Self::Element {
             0.0

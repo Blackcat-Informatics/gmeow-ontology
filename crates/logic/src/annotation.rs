@@ -29,6 +29,12 @@ pub trait TupleAnnotationAlgebra {
     /// The opaque value carried beside each tuple.
     type Element: Clone + PartialEq + std::fmt::Debug;
 
+    /// Stable semantic identity of this algebra, included in query/provider contracts.
+    fn identity(&self) -> &str;
+
+    /// Canonical, deterministic encoding of one element for content-addressed receipts.
+    fn canonical_element(&self, element: &Self::Element) -> String;
+
     /// No derivation.
     fn zero(&self) -> Self::Element;
     /// Asserted/unit evidence.
@@ -303,6 +309,9 @@ pub struct AnnotationDerivation<E> {
     /// Direct arity-generic premises in authored body order. Binary derivations
     /// keep using `sources`; n-ary derivations use this lossless positional carrier.
     pub tuple_sources: Vec<AnnotatedTupleKey>,
+    /// Query-scoped external tuples that contribute to this derivation, including
+    /// provider/artifact/model/request identity and the explicit annotation dimension.
+    pub provider_sources: Vec<crate::external_relation::ProviderTupleSource>,
     /// The premise product contributed by this firing.
     pub annotation: E,
 }

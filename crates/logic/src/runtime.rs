@@ -255,6 +255,7 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("annotation.rs", include_str!("annotation.rs")),
     ("dispatch.rs", include_str!("dispatch.rs")),
+    ("external_relation.rs", include_str!("external_relation.rs")),
     ("facts.rs", include_str!("facts.rs")),
     ("profile_gate.rs", include_str!("profile_gate.rs")),
     ("provenance.rs", include_str!("provenance.rs")),
@@ -611,8 +612,14 @@ impl EngineContract {
         profile: &str,
         budget: &Budget,
         annotation: &AnnotationContract,
+        algebra_identity: &str,
     ) -> String {
-        crate::dispatch::annotated_query_contract_hash(profile, budget, annotation)
+        crate::dispatch::annotated_query_contract_hash(
+            profile,
+            budget,
+            annotation,
+            algebra_identity,
+        )
     }
 
     /// Reproduce the invocation identity used by selected view materialization.

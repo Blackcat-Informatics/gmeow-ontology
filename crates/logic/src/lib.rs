@@ -40,6 +40,8 @@ pub mod entrenchment;
 /// set the core raises on the shared diagnostic substrate, one per subsystem.
 pub mod error;
 pub mod explain;
+/// Query-scoped annotated external relations and their deterministic receipts.
+pub mod external_relation;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.
 pub(crate) mod facts;
