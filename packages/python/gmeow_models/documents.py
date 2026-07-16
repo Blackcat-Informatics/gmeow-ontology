@@ -69,7 +69,7 @@ class ContentSegment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ContentSegment", "curie": "gmeow:ContentSegment", "definitionDigest": "blake3:00c5063882ab9e91d1eddbc035a0148837c5151b582ce9dc13397c8985ca80cf", "iri": "https://blackcatinformatics.ca/gmeow/ContentSegment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ContentSegment", "curie": "gmeow:ContentSegment", "definitionDigest": "blake3:232c4d5200609865e830a3359adf022e5c7d4c913b2b39d8e6c7505163113cdb", "iri": "https://blackcatinformatics.ca/gmeow/ContentSegment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -117,7 +117,7 @@ class MediaObject(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MediaObject", "curie": "gmeow:MediaObject", "definitionDigest": "blake3:591fa32c9c0a610e2d5072bc13f396479b266cc00d24425c83e29ccbc8e02b79", "iri": "https://blackcatinformatics.ca/gmeow/MediaObject"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MediaObject", "curie": "gmeow:MediaObject", "definitionDigest": "blake3:d5d32492d6a578fe3526c0699c41f425bb731d76a4be13ac4be82921dd1444a6", "iri": "https://blackcatinformatics.ca/gmeow/MediaObject"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -165,7 +165,7 @@ class ReadingOrder(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ReadingOrder", "curie": "gmeow:ReadingOrder", "definitionDigest": "blake3:9bc677f398bb7c7b09890039ff50f558deb9b54f34c3d615d3b9614cc3266b96", "iri": "https://blackcatinformatics.ca/gmeow/ReadingOrder"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ReadingOrder", "curie": "gmeow:ReadingOrder", "definitionDigest": "blake3:7c966f30f886043450a3b07b367fb2e61ad295132b9b012939c035efb6f65d42", "iri": "https://blackcatinformatics.ca/gmeow/ReadingOrder"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

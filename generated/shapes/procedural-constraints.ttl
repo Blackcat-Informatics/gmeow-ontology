@@ -1902,7 +1902,7 @@
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:message "A ProximityMeasurement must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+        sh:message "A ProximityMeasurement must yield at least one math:Quantity result." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/observationResult> ?v0 . } }""" ;
     ] .
 

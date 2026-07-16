@@ -162,7 +162,7 @@ class Appellation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Appellation", "curie": "gmeow:Appellation", "definitionDigest": "blake3:efc04c8259bb33980854029fe9e76b2b94e7cbb961b69541c7aa6a7c8b0e7574", "iri": "https://blackcatinformatics.ca/gmeow/Appellation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Appellation", "curie": "gmeow:Appellation", "definitionDigest": "blake3:7acad8e1f32bb1f05395d2a3a0f02e2532cedd3d2a06c5937153e8a2c0f6a950", "iri": "https://blackcatinformatics.ca/gmeow/Appellation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -259,7 +259,7 @@ class NameUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NameUsage", "curie": "gmeow:NameUsage", "definitionDigest": "blake3:29d040c18c831ad8b833485e02b1bbff95e9fbde8091f4b1032e4b58d37e78a7", "iri": "https://blackcatinformatics.ca/gmeow/NameUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NameUsage", "curie": "gmeow:NameUsage", "definitionDigest": "blake3:755d1972f915e890dba46fbc149dbe1416c89e2d83bdf9d827775720d654e7be", "iri": "https://blackcatinformatics.ca/gmeow/NameUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

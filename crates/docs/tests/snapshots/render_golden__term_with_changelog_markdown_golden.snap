@@ -2,38 +2,32 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Authoring Packet
+# Accessibility Assertion
 
-`gmeow:AuthoringPacket` · Class
+`gmeow:AccessibilityAssertion` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AuthoringPacket` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AuthoringPacket` |
+| CURIE | `gmeow:AccessibilityAssertion` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AccessibilityAssertion` |
 | Category | Class |
-| Slice | [GMEOW Guides Module](../../slices/guides/index.md) |
+| Slice | [GMEOW Accessibility Module](../../slices/accessibility/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](../../badges/stereotype/abstractindividualtype.svg)
+![completeness: Docs 8/17](../../badges/completeness/8.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: CBox](../../badges/box/boxcbox.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A self\-contained authoring brief for one batch of a slice's terms: a reified value structure that gathers, for each covered term, its definition and axioms, its bounded graph neighbourhood and definitional\-dependency closure, a handful of same\-slice exemplar coats that passed the SHACL validation gate \(a term with any shape violation is never surfaced\), and its cross\-ontology and cross\-lingual grounding — the mapped external entity plus fr/zh labels JOINed from the slice's translation catalogs\. It is authoring context assembled for a human or agent, not an axiom over the modelled world; it is an abstract information structure \(a value structure\), and every instance is a deterministic projection of gmeow\.gts\.
+A reified claim that a location or connection has a positive accessibility feature, a barrier, or a limited status for a given facet\. Bears provenance \(vantage, confidence, temporal scope\) and suppression \(displayable false — Principle 10\)\. The flat shortcuts are gmeow:hasAccessibilityFeature and gmeow:hasBarrier; promote to AccessibilityAssertion when the claim itself must be a node\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AuthoringPacket ;
-    gmeow:exemplarShortfall "..." ;  # xsd:integer
-    gmeow:packetAxis "..." ;  # rdfs:Literal
-    gmeow:packetBatch "..." ;  # xsd:integer
-    gmeow:packetCoversTerm "..." ;  # rdfs:Resource
-    gmeow:packetDigest "..." ;  # rdfs:Literal
-    gmeow:packetExemplar "..." ;  # rdfs:Resource
-    gmeow:packetExternalAbsent "..." ;  # xsd:integer
-    gmeow:packetExternalMapped "..." .  # xsd:integer
-# … +7 more properties carried by this class (see the class page for the full list)
+<subject> a gmeow:AccessibilityAssertion ;
+    gmeow:assertionFacet <...> ;  # gmeow:AccessibilityFacet
+    gmeow:assertionPolarity <...> ;  # gmeow:AccessibilityPolarity
+    gmeow:assertionSubject <...> .  # gmeow:Entity
 ```
 
 ## Example in multiple syntaxes
@@ -41,16 +35,10 @@ A self\-contained authoring brief for one batch of a slice's terms: a reified va
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AuthoringPacket ;
-    gmeow:exemplarShortfall "..." ;  # xsd:integer
-    gmeow:packetAxis "..." ;  # rdfs:Literal
-    gmeow:packetBatch "..." ;  # xsd:integer
-    gmeow:packetCoversTerm "..." ;  # rdfs:Resource
-    gmeow:packetDigest "..." ;  # rdfs:Literal
-    gmeow:packetExemplar "..." ;  # rdfs:Resource
-    gmeow:packetExternalAbsent "..." ;  # xsd:integer
-    gmeow:packetExternalMapped "..." .  # xsd:integer
-# … +7 more properties carried by this class (see the class page for the full list)
+<subject> a gmeow:AccessibilityAssertion ;
+    gmeow:assertionFacet <...> ;  # gmeow:AccessibilityFacet
+    gmeow:assertionPolarity <...> ;  # gmeow:AccessibilityPolarity
+    gmeow:assertionSubject <...> .  # gmeow:Entity
 ```
 
 **JSON\-LD**
@@ -232,32 +220,17 @@ A self\-contained authoring brief for one batch of a slice's terms: a reified va
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AuthoringPacket"
+          "@id": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"
         }
       ],
-      "https://blackcatinformatics.ca/gmeow/exemplarShortfall": {
-        "@value": "..."
+      "https://blackcatinformatics.ca/gmeow/assertionFacet": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
       },
-      "https://blackcatinformatics.ca/gmeow/packetAxis": {
-        "@value": "..."
+      "https://blackcatinformatics.ca/gmeow/assertionPolarity": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
       },
-      "https://blackcatinformatics.ca/gmeow/packetBatch": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/packetCoversTerm": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/packetDigest": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/packetExemplar": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/packetExternalAbsent": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/packetExternalMapped": {
-        "@value": "..."
+      "https://blackcatinformatics.ca/gmeow/assertionSubject": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
       }
     }
   ]
@@ -266,47 +239,50 @@ A self\-contained authoring brief for one batch of a slice's terms: a reified va
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/authoringpacket.svg)
+![Term neighborhood](../../diagrams/terms/accessibilityassertion.svg)
 
 ## Super\-classes
 
-- [`logic:AbstractIndividual`](../abstractindividual/index.md)
+- [`logic:Relator`](../relator/index.md)
 
-## Usage Advice
+## Examples using this term
 
-- **Example:** ex:packetGroundingLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetSourceSlice \<…/slices/logic\> ; gmeow:packetBatch 0 ; gmeow:packetCoversTerm logic:Rule , logic:ConfInconsistent \.
-- **Use when:** Use to give an author or reviewer everything needed to author or review one subdomain batch \(~25 terms\) of a slice in one place, and to drive downstream glossary\-coverage and candidate\-review tooling that reasons over which terms are grounded in which language or external ontology\.
-- **Avoid when:** Do not author packet individuals by hand or treat a packet as a source of truth: a packet is a derived projection, regenerated from the slices and the bundle\. Do not read fr/zh labels 'through' a term\-equivalence record — translations are JOINed from the per\-slice \.po catalogs, never carried on the equivalence\. Do not silently omit a missing translation or a short exemplar set; record the absence explicitly\.
-- **How to use:** Produced by the slice\-brief projection as a single consolidated sparse fold at generated/briefs/authoring\-packets\.nt \(all slices' packets in one file\), and on demand for a single slice by \`gmeow slice brief \<dir\>\`\. Partition a slice's terms with \-\-axis / \-\-batch, then read each covered term's definition, axioms, neighbours, exemplars, and grounding coverage\. The RDF projection is sparse: it materializes only the present fr/zh/external incidences and summarizes coverage in the per\-attribute margins \(gmeow:packetFrPresent / packetFrAbsent, packetZhPresent / packetZhAbsent, packetExternalMapped / packetExternalAbsent\) — read those counts to see how much grounding is missing, or the on\-demand JSON / text view for the explicit per\-term absences\.
+- [Location Access](../../slices/accessibility/index.md) — `examples/location-access.ttl`
 
 ## Profiles
 
-- `claims` · `full`
+- `full`
 
 ## Formal & academic
 
 ## Description\-Logic axioms
 
 ```text
-gmeow:AuthoringPacket ⊑ logic:AbstractIndividual
+gmeow:AccessibilityAssertion ⊑ logic:Relator
 ```
+
+## Alignments
+
+- `closeMatch` → [http://www\.w3\.org/ns/sosa/Observation](http://www\.w3\.org/ns/sosa/Observation) — *approximate match (close) — not an exact equivalence.*
+- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
-`logic:AbstractIndividualType` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
-[TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
+[CBox (`gmeow:boxCBox`)](../../four-boxes/index.md)
 
 ## Documentation coverage
 
-- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **8 of 17 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✗ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
 
-- **Status:** stable
+- **Status:** experimental
 
 ## Changelog
 
@@ -315,8 +291,8 @@ gmeow:AuthoringPacket ⊑ logic:AbstractIndividual
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AuthoringPacket>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AuthoringPacket@blake3:57f4a640b36a4d10460415037fe34e50b58dab1f50fc8477fab160c240d8c416`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AccessibilityAssertion@blake3:734ea3b3f0c36052b6e0c73d63958127a2bda755a6d4698094fd9e763fddfdc2`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

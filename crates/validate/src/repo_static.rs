@@ -1614,6 +1614,12 @@ mod tests {
         // when it is missing/unreadable) — an empty directory satisfies the requirement
         // without pinning any hand-authored shapes.ttl.
         fs::create_dir_all(root.join("slices")).unwrap();
+        // `shapes/gmeow-shapes.ttl` is the drained root validation anchor: it MUST exist
+        // (its consumers enumerate it) and declare zero hand-authored shapes.
+        write(
+            &root.join("shapes/gmeow-shapes.ttl"),
+            "# Drained root validation anchor: every obligation lives in the logic: canon.\n",
+        );
     }
 
     #[test]
@@ -2029,16 +2035,14 @@ mod tests {
             !report.errors.is_empty(),
             "the blanket declarative-shape gate must red on the live legacy corpus"
         );
-        for legacy in [
-            "slices/core/inhabitation/shapes.ttl",
-            "shapes/gmeow-shapes.ttl",
-        ] {
-            assert!(
-                report.errors.iter().any(|e| e.contains(legacy)),
-                "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
-                report.errors.len()
-            );
-        }
+        // `shapes/gmeow-shapes.ttl` is fully drained (zero hand-authored shapes) and is no
+        // longer a known-legacy unbacked file; `slices/core/inhabitation/shapes.ttl` still is.
+        let legacy = "slices/core/inhabitation/shapes.ttl";
+        assert!(
+            report.errors.iter().any(|e| e.contains(legacy)),
+            "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
+            report.errors.len()
+        );
     }
 
     #[test]

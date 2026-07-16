@@ -216,7 +216,7 @@ class AtomicConstraint(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AtomicConstraint", "curie": "gmeow:AtomicConstraint", "definitionDigest": "blake3:d7840267748ff3ff5ee3888fb4e1bc3a1bf1e436a1351771e601a4a4cdd66e15", "iri": "https://blackcatinformatics.ca/gmeow/AtomicConstraint"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AtomicConstraint", "curie": "gmeow:AtomicConstraint", "definitionDigest": "blake3:13515734fe29c1f17d93600a1fb8036a99efc59c857e99447947f635ffc05ba3", "iri": "https://blackcatinformatics.ca/gmeow/AtomicConstraint"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -267,7 +267,7 @@ class Copyright(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Copyright", "curie": "gmeow:Copyright", "definitionDigest": "blake3:82c7e548e3d00167cd8fa479e02b8e5270d609405d54184a95f4f82fd265da8f", "iri": "https://blackcatinformatics.ca/gmeow/Copyright"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Copyright", "curie": "gmeow:Copyright", "definitionDigest": "blake3:d36e66bce0041ce504315288af79f667a1c64767dc09d7fa94e6b681d817077b", "iri": "https://blackcatinformatics.ca/gmeow/Copyright"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -470,7 +470,7 @@ class LogicalConstraint(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LogicalConstraint", "curie": "gmeow:LogicalConstraint", "definitionDigest": "blake3:8c7bf82623b3dd65da58aa634884bf3fbe5e29335924366590c0956c5bd551e8", "iri": "https://blackcatinformatics.ca/gmeow/LogicalConstraint"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LogicalConstraint", "curie": "gmeow:LogicalConstraint", "definitionDigest": "blake3:2253d663f845dc89f25955a0b5df85c7731362e1656c875b9ac5159e4b1336e1", "iri": "https://blackcatinformatics.ca/gmeow/LogicalConstraint"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

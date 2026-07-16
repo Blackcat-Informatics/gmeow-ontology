@@ -176,7 +176,7 @@ class Contribution(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Contribution", "curie": "gmeow:Contribution", "definitionDigest": "blake3:b7638524e2e88c4eecd9bc72e6f34a540b7280b3f4cb5270cc170f9162eb689f", "iri": "https://blackcatinformatics.ca/gmeow/Contribution"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Contribution", "curie": "gmeow:Contribution", "definitionDigest": "blake3:f0ccc99636092672117e966deb40ad6b8682cceb87ebe9f435785b7c3cf4c37b", "iri": "https://blackcatinformatics.ca/gmeow/Contribution"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -282,7 +282,7 @@ class Expression(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Expression", "curie": "gmeow:Expression", "definitionDigest": "blake3:6e6e65fcf9abe0ebe8a472b8bfcbf499288b2409239d9c01ba81b9d69a47bd09", "iri": "https://blackcatinformatics.ca/gmeow/Expression"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Expression", "curie": "gmeow:Expression", "definitionDigest": "blake3:239c069da34bd32ba53057821f88dd46b47c825fafad1a51493db777d0dfe5dc", "iri": "https://blackcatinformatics.ca/gmeow/Expression"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -333,7 +333,7 @@ class Item(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Item", "curie": "gmeow:Item", "definitionDigest": "blake3:1c129e66168cc7239a4b423caf50481facc627e8d9c85f1abb3eb467f9e4e034", "iri": "https://blackcatinformatics.ca/gmeow/Item"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Item", "curie": "gmeow:Item", "definitionDigest": "blake3:c40dfbad333218e68a55f35c0124d3724205a269e9b1d40e758855d977611c15", "iri": "https://blackcatinformatics.ca/gmeow/Item"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -382,7 +382,7 @@ class Manifestation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Manifestation", "curie": "gmeow:Manifestation", "definitionDigest": "blake3:98178eaf575ee45ffabfc45f61f8ef86c16b8b444c77c3e76d6472f55b53e90c", "iri": "https://blackcatinformatics.ca/gmeow/Manifestation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Manifestation", "curie": "gmeow:Manifestation", "definitionDigest": "blake3:b48d0f694135ca128d84876906a6631a2e144a7266b300d7599a1260a50facb5", "iri": "https://blackcatinformatics.ca/gmeow/Manifestation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

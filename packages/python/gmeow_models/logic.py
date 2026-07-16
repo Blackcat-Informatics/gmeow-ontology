@@ -67,7 +67,7 @@ class FlagshipScenario(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FlagshipScenario", "curie": "gmeow:FlagshipScenario", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/gmeow/FlagshipScenario"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FlagshipScenario", "curie": "gmeow:FlagshipScenario", "definitionDigest": "blake3:a597a3414f4a52ef80d07ab987a9fc01c96dec502846a01ed9934d3594736ebc", "iri": "https://blackcatinformatics.ca/gmeow/FlagshipScenario"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
