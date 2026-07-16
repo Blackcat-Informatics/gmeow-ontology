@@ -123,14 +123,14 @@ class Assessment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Assessment", "curie": "gmeow:Assessment", "definitionDigest": "blake3:3752364fe29e21b78d296ee66648c0f348b709f7bc176c04aea0d561d44c1a24", "iri": "https://blackcatinformatics.ca/gmeow/Assessment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Assessment", "curie": "gmeow:Assessment", "definitionDigest": "blake3:883e201ebd1dd2c5bb721927604ca2960f6ab3a548dd63df55c4f3920627bbe0", "iri": "https://blackcatinformatics.ca/gmeow/Assessment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     assessmentCriterion: list[Criterion] | None = Field(default=None, description="The criterion applied. Functional: a 21-axis scoring pass is 21 Assessments (zeros included — a zero is a score, not an absence). Plays the observationMethod role without the subproperty axiom (claimModality pattern). An assessment names a criterion or a rubric, or both (SHACL).", alias="gmeow:assessmentCriterion")
-    assessmentRubric: list[str] | None = Field(default=None, description="The rubric under which this assessment was made — version-pinning context for the score. Functional. Plays the observationMethod role without the subproperty axiom (claimModality pattern).", alias="gmeow:assessmentRubric")
+    assessmentRubric: list[str] | None = Field(default=None, description="Within gmeow:Assessment, values are node references constrained to gmeow:Rubric. The rubric under which this assessment was made — version-pinning context for the score. Functional. Plays the observationMethod role without the subproperty axiom (claimModality pattern).", alias="gmeow:assessmentRubric")
     assessmentScoreValue: float = Field(description="The numeric score, on the scale the criterion or rubric declares. Functional and mandatory (SHACL). A datatype twin of observationResult (which is entity-valued — the claimModality pattern); zeros are scores, never absences (false positives are worse than zeros).", alias="gmeow:assessmentScoreValue")
     assessmentTarget: str = Field(description="What is being scored — a work, an expression, a content segment, a chunk (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one assessment, one target.", alias="gmeow:assessmentTarget")
     vantage: list[str] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
@@ -175,7 +175,7 @@ class ComplianceAssessment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment", "curie": "gmeow:ComplianceAssessment", "definitionDigest": "blake3:8b256a90f3a3700f4fd20ad0add17a06d5fbe3c5bc279a18355360e84aac8a98", "iri": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment", "curie": "gmeow:ComplianceAssessment", "definitionDigest": "blake3:455539876a2e2f0763990678f1175045cbb23291d539cedb9de710f374d68b9d", "iri": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -229,7 +229,7 @@ class Condition(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Condition", "curie": "gmeow:Condition", "definitionDigest": "blake3:deed5198fd2b21fce2c7a98e79974faa4a0fd76d1f97c6ae36c2d6a8d515608f", "iri": "https://blackcatinformatics.ca/gmeow/Condition"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Condition", "curie": "gmeow:Condition", "definitionDigest": "blake3:aa17ceb619458b0f4562031b352df9422d8b1d06aabf68465e751aed9b2f78c4", "iri": "https://blackcatinformatics.ca/gmeow/Condition"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -331,7 +331,7 @@ class ConditionExpression(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionExpression", "curie": "gmeow:ConditionExpression", "definitionDigest": "blake3:5bb58632598d43495ebd5e6534f1851676e1824aa5c7817af9e17fd57a4e852f", "iri": "https://blackcatinformatics.ca/gmeow/ConditionExpression"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionExpression", "curie": "gmeow:ConditionExpression", "definitionDigest": "blake3:e244f21e496288f8403f2866cb613e66ad59f5b624d1de21edb9163a754bc11e", "iri": "https://blackcatinformatics.ca/gmeow/ConditionExpression"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -379,7 +379,7 @@ class ConditionGroup(Condition):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionGroup", "curie": "gmeow:ConditionGroup", "definitionDigest": "blake3:6ec115a143e1a143fc5e78a1164c98766aaf9941ffa2336a3a0a19ef5edd1f77", "iri": "https://blackcatinformatics.ca/gmeow/ConditionGroup"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionGroup", "curie": "gmeow:ConditionGroup", "definitionDigest": "blake3:a11376d86750da9faca6395e7b9a707257a74622a9d4f85924eeb022c4664229", "iri": "https://blackcatinformatics.ca/gmeow/ConditionGroup"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -473,14 +473,14 @@ class Criterion(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Criterion", "curie": "gmeow:Criterion", "definitionDigest": "blake3:7cc5704103ccf92b0658659c87be545aab29014912f726d756a8d384c17c86f9", "iri": "https://blackcatinformatics.ca/gmeow/Criterion"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Criterion", "curie": "gmeow:Criterion", "definitionDigest": "blake3:bafbf9ef1403399a28112f3635f11cdafd976642ddababc47db78fb240f6abf3", "iri": "https://blackcatinformatics.ca/gmeow/Criterion"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    penaltyPole: list[str] = Field(min_length=1, description="The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the logic:criterionPoleDistinctness axiom, projected to SHACL).", alias="gmeow:penaltyPole")
-    rewardPole: list[str] = Field(min_length=1, description="The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the logic:criterionPoleDistinctness axiom, projected to SHACL).", alias="gmeow:rewardPole")
+    penaltyPole: list[str] = Field(min_length=1, description="Within gmeow:Criterion, values are node references constrained to gmeow:CriterionPole. The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the logic:criterionPoleDistinctness axiom, projected to SHACL).", alias="gmeow:penaltyPole")
+    rewardPole: list[str] = Field(min_length=1, description="Within gmeow:Criterion, values are node references constrained to gmeow:CriterionPole. The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the logic:criterionPoleDistinctness axiom, projected to SHACL).", alias="gmeow:rewardPole")
 
 
 class Exemplar(ConfiguredBaseModel):
@@ -526,7 +526,7 @@ class Exemplar(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Exemplar", "curie": "gmeow:Exemplar", "definitionDigest": "blake3:f357996550da676a3adab8e243af3f0f17fe1e78d805fba7581dc420352bc541", "iri": "https://blackcatinformatics.ca/gmeow/Exemplar"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Exemplar", "curie": "gmeow:Exemplar", "definitionDigest": "blake3:6de758542ab923123b6b9eec955a19904c7f1daf5bc530b7416294fdbdab6b0c", "iri": "https://blackcatinformatics.ca/gmeow/Exemplar"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -693,7 +693,7 @@ class PrecedenceTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure", "curie": "gmeow:PrecedenceTenure", "definitionDigest": "blake3:fd665954e1ad134ad460614f65747f18593825ccd79ea084395044d249e551f5", "iri": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure", "curie": "gmeow:PrecedenceTenure", "definitionDigest": "blake3:86d60886091d98e03e7278d2408b8d7d77e3f4f3f9e2d8d0637716001066da24", "iri": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -701,7 +701,7 @@ class PrecedenceTenure(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     precedenceHigher: list[Norm] = Field(min_length=1, description="The norm that prevails during this tenure. Functional.", alias="gmeow:precedenceHigher")
     precedenceLower: list[Norm] = Field(min_length=1, description="The norm that yields during this tenure. Functional, and distinct from precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL).", alias="gmeow:precedenceLower")
-    precedenceScope: list[str] = Field(min_length=1, description="The normative system within which this precedence holds. Functional and mandatory (SHACL): precedence is always scoped — a system orders its own norms; it cannot order the world's.", alias="gmeow:precedenceScope")
+    precedenceScope: list[str] = Field(min_length=1, description="Within gmeow:PrecedenceTenure, values are node references constrained to gmeow:NormativeSystem. The normative system within which this precedence holds. Functional and mandatory (SHACL): precedence is always scoped — a system orders its own norms; it cannot order the world's.", alias="gmeow:precedenceScope")
 
 
 class ScoreAnchor(ConfiguredBaseModel):
@@ -742,7 +742,7 @@ class ScoreAnchor(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreAnchor", "curie": "gmeow:ScoreAnchor", "definitionDigest": "blake3:f004a83bf6a1593e3ebb3bd0f584376f0a220051b2e3c2df585bf6a652de72a4", "iri": "https://blackcatinformatics.ca/gmeow/ScoreAnchor"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreAnchor", "curie": "gmeow:ScoreAnchor", "definitionDigest": "blake3:cca80c6c21f098971d585d1be5345e1d5d07ea224c9e4c414701d7b8bf57af8d", "iri": "https://blackcatinformatics.ca/gmeow/ScoreAnchor"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -788,7 +788,7 @@ class ScoreScale(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreScale", "curie": "gmeow:ScoreScale", "definitionDigest": "blake3:246ccbe2f42371307bdd663be917fa905e6480d6969592e7529a9e22a1046416", "iri": "https://blackcatinformatics.ca/gmeow/ScoreScale"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreScale", "curie": "gmeow:ScoreScale", "definitionDigest": "blake3:15a1714b1e67514d41fe7a901bc236305e0ee0af231c0a7fc532c1044ceafb4f", "iri": "https://blackcatinformatics.ca/gmeow/ScoreScale"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

@@ -9,6 +9,11 @@ gmeow:AboutnessTargetNodeKindConstraintProceduralConstraintShape
     logic:formalizes gmeow:AboutnessTargetShape ;
     logic:preservationKind logic:ValidationOnly .
 
+gmeow:ActObservationDisjointnessAxiomConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql, http://www.w3.org/ns/shacl#target (raw sh:SPARQLTarget select)), so the projection validates without entailing" ;
+    logic:formalizes lang:ActObservationDisjointnessAxiom ;
+    logic:preservationKind logic:ValidationOnly .
+
 gmeow:AffectClassifierLabelNotEmotionTypeConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:AffectClassifierLabel ,
@@ -210,6 +215,11 @@ gmeow:CancelledOrderSuppressionConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:CancelledOrderSuppressionShape ,
         gmeow:Order ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:CapabilityGapFragmentClassificationConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql, http://www.w3.org/ns/shacl#target (raw sh:SPARQLTarget select)), so the projection validates without entailing" ;
+    logic:formalizes gmeow:isReasonerFragmentGap ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:CascadeSeverityConstraintProceduralConstraintShape
@@ -517,6 +527,11 @@ gmeow:FrameDimensionCountConstraintProceduralConstraintShape
 gmeow:FrameRealmPresentConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:FrameProfileShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:FregeDisjointnessAxiomConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql, http://www.w3.org/ns/shacl#target (raw sh:SPARQLTarget select)), so the projection validates without entailing" ;
+    logic:formalizes lang:FregeDisjointnessAxiom ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:GateFatalUpsetConstraintProceduralConstraintShape
@@ -1191,6 +1206,11 @@ gmeow:TransactionPartiesConstraintProceduralConstraintShape
     logic:formalizes gmeow:TransactionHasPartiesShape ;
     logic:preservationKind logic:ValidationOnly .
 
+gmeow:UnitBearingQuantityValueConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes gmeow:MeasuredQuantityShape ;
+    logic:preservationKind logic:ValidationOnly .
+
 gmeow:UsesScaleFunctionalConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:UsesScaleTargetShape ;
@@ -1213,146 +1233,211 @@ gmeow:WithdrawnStandpointSuppressionConstraintProceduralConstraintShape
 
 lang:AmbiguousDenotationRoutingConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation ;
     logic:formalizes lang:AmbiguityRoutingShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:ConfidenceModelConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:ConfidenceAsProbability ;
     logic:formalizes lang:ConfidenceNotProbabilityShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:DenotationKindMatchConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:DenotationKindMismatch ;
     logic:formalizes lang:DenotationKindMatchShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:DenotationNonSurfaceConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:SurfaceLevelDenotation ;
     logic:formalizes lang:DenotationNonSurfaceShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:DependencyLeavesAnalysisConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:DanglingDependency ;
     logic:formalizes lang:DependencyIntegrityShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:FeatureValueDispositionConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes lang:FeatureValue ;
+    gmeow:enforcesFailureClass lang:GmnUndispositionedTerm ;
+    logic:formalizes lang:GmnLangCoverageShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:FlagshipScenarioFailureClassConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes lang:FlagshipScenario ;
+    gmeow:enforcesFailureClass lang:UnwiredFlagshipScenario ;
+    logic:formalizes lang:FlagshipScenarioShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+lang:FormHeadNodeKindConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:StringOnlyForm ;
+    logic:formalizes lang:FormHeadStructuralShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:FormSlotAcyclicDependencyConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes lang:FormSlot ;
+    gmeow:enforcesFailureClass lang:DanglingDependency ;
+    logic:formalizes lang:DependencyIntegrityShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:FormSlotIndexUniquenessConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes lang:ComposedForm ;
+    gmeow:enforcesFailureClass lang:DuplicateSlotIndex ;
+    logic:formalizes lang:SlotIndexUniqueShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:FregeDisjointDenotationConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:FregeConflation ;
     logic:formalizes lang:FregeDisjointShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:FregeDisjointSenseConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:FregeConflation ;
     logic:formalizes lang:FregeDisjointShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnCodepointCanonicalConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
     logic:formalizes lang:GmnCodepointCanonicalShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnCompactionOverclaimConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes gmeow:GmnCompaction ;
+    gmeow:enforcesFailureClass lang:GmnCompactionOverclaim ;
+    logic:formalizes lang:GmnCompactionOverclaimShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnConfusableGlyphConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnConfusableGlyph ;
     logic:formalizes lang:GmnConfusableGlyphShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+lang:GmnDictionaryAliasInjectivityConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision ;
+    logic:formalizes lang:GmnDictionaryAliasInjectivityShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+lang:GmnExportRingBindingConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnUnringedExportCrossing ;
+    logic:formalizes lang:GmnExportRingBindingShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnGlyphCollisionConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnGlyphCollision ;
     logic:formalizes lang:GmnGlyphCollisionShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnScriptCodepointPresenceConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
     logic:formalizes lang:GmnScriptCodepointPresenceShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnScriptGlyphCoverageConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes lang:Grapheme ;
+    gmeow:enforcesFailureClass lang:GmnUncostedScriptGlyph ;
+    logic:formalizes lang:GmnScriptGlyphCoverageShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GmnVersionOverclaimConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GmnVersionOverclaim ;
     logic:formalizes lang:GmnVersionOverclaimShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:GraphemeRepertoireConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
-    logic:formalizes lang:Grapheme ;
+    gmeow:enforcesFailureClass lang:UngroundedGrapheme ;
+    logic:formalizes lang:GraphemeGroundedShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:IndexicalAnchoredConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnanchoredIndexical ;
     logic:formalizes lang:IndexicalAnchoredShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:MachineTranslationProvenanceConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnattributedTranslation ;
     logic:formalizes lang:TranslationAttributionShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:ReadingClaimVantageConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UngroundedReadingClaim ;
     logic:formalizes lang:ReadingClaimGroundedShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+lang:RealizesNodeKindConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:StringOnlyForm ;
+    logic:formalizes lang:RealizesStructuralShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:RenderingNotIdentityConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:RenderingAsIdentity ;
     logic:formalizes lang:RenderingNotIdentityShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+lang:SlotContiguityConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:NonContiguousSlots ;
+    logic:formalizes lang:SlotContiguityShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:SlotFormNodeKindConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:StringOnlyForm ;
     logic:formalizes lang:SlotFormStructuralShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:SurfaceAnalysisStructureConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:MisdeclaredAnalysis ;
     logic:formalizes lang:SurfaceAnalysisShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+lang:SurfaceMaterialChoiceConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnhashableSurface ;
+    logic:formalizes lang:SurfaceMaterialShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
     logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:UnmarkedSourceProseConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
     logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:UnmarkedTargetOverclaimConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
     logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
     logic:preservationKind logic:ValidationOnly .
 
 lang:UnmarkedTargetProseConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
     logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -1380,6 +1465,16 @@ logic:FormulaConstructorConstraintProceduralConstraintShape
 logic:FreshnessGuardWindowBoundsConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes logic:FreshnessGuardShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+logic:FunctionSymbolConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes logic:FunctionTerm ;
+    logic:preservationKind logic:ValidationOnly .
+
+logic:FunctionTermArityConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes logic:FunctionTerm ;
     logic:preservationKind logic:ValidationOnly .
 
 logic:ImplicationAntecedentConstraintProceduralConstraintShape
@@ -1415,6 +1510,17 @@ logic:TermCarrierIndexConstraintProceduralConstraintShape
 logic:TermCarrierValueConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes logic:TermCarrier ;
+    logic:preservationKind logic:ValidationOnly .
+
+math:AnalyticPropertyBackedConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes math:AnalyticProperty ;
+    logic:preservationKind logic:ValidationOnly .
+
+math:ArgumentSlotContiguityConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass math:NonContiguousArgumentSlots ;
+    logic:formalizes math:ArgumentSlotContiguityShape ;
     logic:preservationKind logic:ValidationOnly .
 
 math:ArgumentSlotIndexNonNegativeConstraintProceduralConstraintShape
@@ -1462,6 +1568,11 @@ math:E8WeylOrderConstraintProceduralConstraintShape
     logic:formalizes math:E8WeylOrderShape ;
     logic:preservationKind logic:ValidationOnly .
 
+math:ExtendedRealValueConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes math:extendedRealValue ;
+    logic:preservationKind logic:ValidationOnly .
+
 math:FlagshipScenarioFailureClassConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     gmeow:enforcesFailureClass math:UnwiredFlagshipScenario ;
@@ -1491,6 +1602,11 @@ math:IntervalKindConflationConstraintProceduralConstraintShape
     logic:formalizes math:IntervalKindConflationShape ;
     logic:preservationKind logic:ValidationOnly .
 
+math:LimitResultOutcomeValueConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes math:LimitResult ;
+    logic:preservationKind logic:ValidationOnly .
+
 math:LogicLoweringDeclaredConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     gmeow:enforcesFailureClass math:UndeclaredLogicLowering ;
@@ -1506,6 +1622,11 @@ math:LorentzianSignatureConstraintProceduralConstraintShape
 math:ManifoldDimensionNonNegativeConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes math:Manifold ;
+    logic:preservationKind logic:ValidationOnly .
+
+math:MeasureResultNonNegativeConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes math:MeasureEvaluation ;
     logic:preservationKind logic:ValidationOnly .
 
 math:MeasureTotalMassValueConstraintProceduralConstraintShape

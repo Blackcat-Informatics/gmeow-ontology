@@ -219,7 +219,7 @@ class NotationSystemUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage", "curie": "gmeow:NotationSystemUsage", "definitionDigest": "blake3:c74db86230e47d8b88d990d0e01a01eafa0b62796e29c62eca142437b14e0089", "iri": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage", "curie": "gmeow:NotationSystemUsage", "definitionDigest": "blake3:18402509689e952bf306ac3e85b952510161fec6f66bb675965d1231a5876e06", "iri": "https://blackcatinformatics.ca/gmeow/NotationSystemUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -227,5 +227,5 @@ class NotationSystemUsage(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     notationUsageInterval: list[TimeInterval] = Field(min_length=1, description="The time interval over which the notation usage is asserted to hold. Functional per relator: one interval per NotationSystemUsage.", alias="gmeow:notationUsageInterval")
     notationUsageNotationSystem: list[NotationSystem] = Field(min_length=1, description="The notation system being used. Functional per relator: one notation system per NotationSystemUsage.", alias="gmeow:notationUsageNotationSystem")
-    notationUsageRole: list[str] = Field(min_length=1, description="The role the notation plays in this usage — transcription, encoding, representation, communication, expression, shorthand, cipher. Functional per relator: one role per NotationSystemUsage.", alias="gmeow:notationUsageRole")
+    notationUsageRole: list[str] = Field(min_length=1, description="Within gmeow:NotationSystemUsage, values are node references constrained to gmeow:NotationUsageRole. The role the notation plays in this usage — transcription, encoding, representation, communication, expression, shorthand, cipher. Functional per relator: one role per NotationSystemUsage.", alias="gmeow:notationUsageRole")
     notationUsageTarget: list[Entity] = Field(min_length=1, description="The entity that uses the notation system — a language, lexical form, expression, work, or information object. Functional per relator: one target per NotationSystemUsage.", alias="gmeow:notationUsageTarget")

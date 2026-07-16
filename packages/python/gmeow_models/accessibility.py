@@ -53,12 +53,12 @@ class AccessibilityAssertion(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion", "curie": "gmeow:AccessibilityAssertion", "definitionDigest": "blake3:734ea3b3f0c36052b6e0c73d63958127a2bda755a6d4698094fd9e763fddfdc2", "iri": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion", "curie": "gmeow:AccessibilityAssertion", "definitionDigest": "blake3:70d7bb00ed392d1f7f5faefc40a42db0e9555b3d0b49f84009ca48001224c09d", "iri": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    assertionFacet: str = Field(description="The accessibility facet being asserted. Functional per relator: one facet per AccessibilityAssertion.", alias="gmeow:assertionFacet")
-    assertionPolarity: str = Field(description="Whether the assertion is a positive feature, a negative barrier, or a limited/partial status. Functional per relator: one polarity per AccessibilityAssertion.", alias="gmeow:assertionPolarity")
+    assertionFacet: str = Field(description="Within gmeow:AccessibilityAssertion, values are node references constrained to gmeow:AccessibilityFacet. The accessibility facet being asserted. Functional per relator: one facet per AccessibilityAssertion.", alias="gmeow:assertionFacet")
+    assertionPolarity: str = Field(description="Within gmeow:AccessibilityAssertion, values are node references constrained to gmeow:AccessibilityPolarity. Whether the assertion is a positive feature, a negative barrier, or a limited/partial status. Functional per relator: one polarity per AccessibilityAssertion.", alias="gmeow:assertionPolarity")
     assertionSubject: Entity = Field(description="The location or connection being assessed. Functional per relator: one subject per AccessibilityAssertion.", alias="gmeow:assertionSubject")
