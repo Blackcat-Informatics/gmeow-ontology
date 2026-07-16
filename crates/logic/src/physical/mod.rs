@@ -64,6 +64,11 @@ pub(crate) mod term_key;
 // inputs authored in any surface intern to the SAME `NodeId` and content key.
 // Consumed by the unification / proof-object rungs to come.
 pub(crate) mod lower;
+// Robinson unification with occurs-check over the `term_dag::TermDag`: a union-find
+// `Subst` over `MetaId`, the single `resolve` identity primitive, and capture-avoiding
+// `apply`/`shift` (locally-nameless de-Bruijn, so the shift IS the capture-avoidance).
+// Consumed by the proof-object / backward-FOL rungs to come.
+pub(crate) mod unify;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
