@@ -7541,7 +7541,26 @@ logic:TermCarrier
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Carrier"@x-gmeow-english ;
-    skos:definition "An ordered slot in an atomic formula's logic:argument list or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker. It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."@x-gmeow-english ;
+    skos:definition "An ordered slot in an atomic formula's logic:argument list, a function term's logic:argument list, or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication (a nested compound function term). It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FunctionTerm
+    a owl:Class ;
+    rdfs:subClassOf logic:ArgumentStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Function Term"@x-gmeow-english ;
+    skos:definition "A compound function-term application node: a single reified function symbol (logic:functionSymbol, a logic:Type individual) applied to a non-empty, ordered list of logic:argument term-carriers, denoting a first-order term such as cons(H, T) or s(X). It mirrors the atomic-predication pattern (logic:relation over ordered logic:argument), but predicates a FUNCTION symbol producing a term rather than a relation producing a truth value; reifying the symbol as a logic:Type individual keeps the object level first-order, so there is no function-variable. An argument carrier may itself carry logic:termApplication, so a nested term such as cons(H, cons(1, nil)) round-trips. It is not itself a logic:Formula: it is a term, referenced from a carrier's logic:termApplication, never asserted as a sentence."@x-gmeow-english ;
+    skos:example "cons(H, cons(1, nil)) is a logic:FunctionTerm whose logic:functionSymbol is ex:cons and whose second logic:argument carries logic:termApplication onto the inner cons(1, nil) function term."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a function term for a nullary constant; a 0-ary function symbol is an individual and is carried by logic:termIri, so an empty-argument function term would give one constant two spellings."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reify the function symbol as a logic:Type individual on logic:functionSymbol, place each operand in a zero-based logic:argument term-carrier, and reference the whole node from an argument carrier's logic:termApplication."@x-gmeow-english ;
+    gmeow:useWhen "Use when an argument is itself a compound term built by applying a function symbol to sub-terms, rather than an IRI, variable, literal, or sequence marker."@x-gmeow-english .
+
+logic:ArgumentStructure
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Argument Structure"@x-gmeow-english ;
+    skos:definition "A node that applies a reified operator to an ordered list of logic:argument term-carriers: an atomic-predication logic:Formula (operator = logic:relation) or a logic:FunctionTerm (operator = logic:functionSymbol). It is the shared rdfs:domain of logic:argument, so the ordered argument-carrier machinery is reused across both without asserting that a function term is a formula or that a formula is a term."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:SequenceMarker
@@ -8016,13 +8035,23 @@ logic:relation
     skos:definition "Relates an atomic-predication logic:Formula to the relation it predicates, over its ordered logic:argument terms. The relation is reified as a logic:Type individual per the HiLog reflection (see logic:instanceOf and logic:orderedType): predicating over a reified relation individual keeps the object level first-order rather than admitting a predicate variable, so no separate relation or predicate class is minted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:functionSymbol
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:FunctionTerm ;
+    rdfs:range logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "function symbol"@x-gmeow-english ;
+    skos:definition "Relates a logic:FunctionTerm to the single function symbol it applies, over its ordered logic:argument terms. The symbol is reified as a logic:Type individual, exactly mirroring how logic:relation reifies an atomic predication's relation (the HiLog reflection — see logic:instanceOf and logic:orderedType): applying a reified function-symbol individual keeps the object level first-order rather than admitting a function variable, so no separate function-symbol class is minted. Functional: a function term applies exactly one symbol."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:argument
     a owl:ObjectProperty ;
-    rdfs:domain logic:Formula ;
+    rdfs:domain logic:ArgumentStructure ;
     rdfs:range logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "argument"@x-gmeow-english ;
-    skos:definition "Relates an atomic-predication logic:Formula to one of its argument term-carriers. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker), so a variadic argument list — including sequence markers — round-trips with its order and term kinds intact. It is not a direct link to the term value and carries no ordering by triple position."@x-gmeow-english ;
+    skos:definition "Relates a logic:ArgumentStructure — an atomic-predication logic:Formula (over logic:relation) or a logic:FunctionTerm (over logic:functionSymbol) — to one of its argument term-carriers. The SAME property carries both, so a function term's operands reuse the predication argument machinery. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication), so a variadic argument list — including sequence markers and nested compound function terms — round-trips with its order and term kinds intact. It is not a direct link to the term value and carries no ordering by triple position."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:quantifiedVariable
@@ -8090,7 +8119,17 @@ logic:termSequenceMarker
     rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term sequence marker"@x-gmeow-english ;
-    skos:definition "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    skos:definition "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the five mutually exclusive term-value properties."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termApplication
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
+    rdfs:range logic:FunctionTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term application"@x-gmeow-english ;
+    skos:definition "Carries a compound function-term value on an argument term-carrier: the argument is the logic:FunctionTerm this property points at (a function symbol applied to ordered sub-terms), rather than a single atomic value. The fifth of the five mutually exclusive term-value properties; exactly one is present on each carrier. Because a logic:FunctionTerm's own logic:argument carriers may again bear logic:termApplication, a nested compound term round-trips recursively. It is not an IRI constant, variable, literal, or sequence marker — those are single-node values, while this points at a sub-tree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # The ontology-level well-formedness surface mirrors the Rust frontend's typed checks. The
@@ -8155,7 +8194,8 @@ logic:ImplicationAntecedentConstraint
 logic:TermCarrierValueConstraint
     a logic:ChoiceGroupConstraint ;
     logic:choiceMode "exactly-one" ;
-    logic:choicePredicate logic:termIri ,
+    logic:choicePredicate logic:termApplication ,
+        logic:termIri ,
         logic:termLiteral ,
         logic:termSequenceMarker ,
         logic:termVariable ;
@@ -8163,12 +8203,44 @@ logic:TermCarrierValueConstraint
     logic:onClass logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Carrier Value Constraint"@x-gmeow-english ;
-    skos:definition "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, or sequence marker. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."@x-gmeow-english ;
-    skos:example "A carrier with both logic:termIri ex:a and logic:termVariable 'a' violates this constraint even though the spellings resemble one another."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not collapse IRI, variable, literal, and sequence-marker values into a shared string field; their kinds affect formula meaning."@x-gmeow-english ;
+    skos:definition "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, sequence marker, or compound function-term application. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."@x-gmeow-english ;
+    skos:example "A carrier with both logic:termIri ex:a and logic:termVariable 'a' violates this constraint even though the spellings resemble one another; a carrier with both logic:termApplication and logic:termVariable violates it too."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse IRI, variable, literal, sequence-marker, and application values into a shared field; their kinds affect formula meaning."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ;
-    gmeow:howToUse "Reject a carrier unless exactly one of the four term-value predicates has exactly one value."@x-gmeow-english ;
+    gmeow:howToUse "Reject a carrier unless exactly one of the five term-value predicates has exactly one value."@x-gmeow-english ;
     gmeow:useWhen "Use whenever an RDF argument or quantifier-binding carrier is reconstructed as a typed IR term."@x-gmeow-english .
+
+logic:FunctionSymbolConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:FunctionTerm ;
+    logic:onClass logic:FunctionTerm ;
+    logic:requires logic:functionSymbol ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:FunctionTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Function Symbol Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:FunctionTerm to carry a logic:functionSymbol. Paired with the owl:FunctionalProperty declaration on logic:functionSymbol (which caps it at one), it makes a function term bear EXACTLY one reified function symbol. It is not the argument-list check: a function term's operands are separate logic:argument term-carriers."@x-gmeow-english ;
+    skos:example "A logic:FunctionTerm with two logic:argument carriers but no logic:functionSymbol violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a function symbol from an argument; a symbol-less function term is malformed, not defaulted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require exactly one logic:Type-valued logic:functionSymbol on each function term before constructing Term::App."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating a compound function-term node reached through a carrier's logic:termApplication."@x-gmeow-english .
+
+logic:FunctionTermArityConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:FunctionTerm ;
+    logic:onClass logic:FunctionTerm ;
+    logic:requires logic:argument ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:FunctionTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Function Term Arity Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:FunctionTerm to carry at least one logic:argument term-carrier: a nullary application is forbidden, because a 0-ary function symbol is a constant and belongs on a carrier's logic:termIri, so an empty-argument function term would give one constant two spellings. It is not the ordinal check: zero-based uniqueness and contiguity of the argument carriers are verified across all siblings by the typed-IR frontend."@x-gmeow-english ;
+    skos:example "A logic:FunctionTerm with a logic:functionSymbol but no logic:argument violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a function term to wrap a constant; carry the constant IRI directly on logic:termIri instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require one or more logic:argument carriers on each function term, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating a compound function-term node reached through a carrier's logic:termApplication."@x-gmeow-english .
 
 logic:TermCarrierIndexConstraint
     a logic:GuardedImplicationConstraint ;

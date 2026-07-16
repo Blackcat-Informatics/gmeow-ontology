@@ -3146,3 +3146,134 @@ fn derive_value_keyed_general_class_inclusion() {
         vk.properties
     );
 }
+
+// ── Compound function-term applications (logic:termApplication / logic:FunctionTerm) ──────────
+
+#[test]
+fn compound_function_term_parses_into_nested_term_app() {
+    use crate::ir::{Formula, Term};
+    // An atomic predication `p(H, cons(H, cons(1, nil)))` — its second argument carries
+    // logic:termApplication onto a logic:FunctionTerm whose own second argument is again a
+    // logic:termApplication, so the parser must reconstruct a NESTED Term::App with argument
+    // order and kinds intact. The atom carries a compound function term, so it exceeds the
+    // function-free Horn fragment and stays a logic:Formula (never routed to axioms).
+    let (prog, diags) = parse(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:consOuter ] .
+         ex:consOuter a logic:FunctionTerm ;
+            logic:functionSymbol ex:cons ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:consInner ] .
+         ex:consInner a logic:FunctionTerm ;
+            logic:functionSymbol ex:cons ;
+            logic:argument [ logic:termIndex 0 ; logic:termLiteral \"1\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termIri ex:nil ] .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "a well-formed compound term must not be flagged malformed: {diags:?}"
+    );
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "the function-term argument keeps the atom in LogicProgram.formulas: {:?}",
+        prog.formulas
+    );
+
+    let ex = "https://example.org/test/";
+    let cons = format!("{ex}cons");
+    let expected_inner = Term::App {
+        symbol: cons.clone(),
+        args: vec![
+            Term::Literal {
+                lexical: "1".to_owned(),
+                datatype: None,
+            },
+            Term::Iri(format!("{ex}nil")),
+        ],
+    };
+    let expected_outer = Term::App {
+        symbol: cons,
+        args: vec![Term::Var("H".to_owned()), expected_inner],
+    };
+
+    let Formula::Atom { relation, args } = &prog.formulas[0] else {
+        panic!("expected an atomic predication, got {:?}", prog.formulas[0]);
+    };
+    assert_eq!(*relation, Term::Iri(format!("{ex}p")), "relation preserved");
+    assert_eq!(args.len(), 2, "atom arity preserved");
+    assert_eq!(
+        args[0],
+        Term::Var("H".to_owned()),
+        "argument 0 order preserved"
+    );
+    assert_eq!(
+        args[1], expected_outer,
+        "argument 1 is the nested cons(H, cons(1, nil)) application"
+    );
+}
+
+#[test]
+fn nullary_function_term_is_rejected() {
+    // A logic:FunctionTerm with a symbol but ZERO logic:argument carriers is a nullary
+    // application. A 0-ary function symbol is a constant (logic:termIri), so this is malformed
+    // rather than a degenerate term — mirrors logic:FunctionTermArityConstraint.
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:empty ] .
+         ex:empty a logic:FunctionTerm ; logic:functionSymbol ex:f .",
+        "at least one argument",
+    );
+}
+
+#[test]
+fn function_term_without_symbol_is_rejected() {
+    // A logic:FunctionTerm bearing arguments but no logic:functionSymbol is malformed —
+    // mirrors logic:FunctionSymbolConstraint (exactly one reified symbol required).
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:ft ] .
+         ex:ft a logic:FunctionTerm ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
+        "exactly one logic:functionSymbol",
+    );
+}
+
+#[test]
+fn cyclic_function_term_is_rejected() {
+    // A logic:FunctionTerm reachable from its own logic:argument expansion is an infinite
+    // term; the parser's path guard rejects it rather than recursing forever.
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:loop ] .
+         ex:loop a logic:FunctionTerm ;
+            logic:functionSymbol ex:f ;
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:loop ] .",
+        "cyclic",
+    );
+}
+
+#[test]
+fn term_application_carrier_excludes_other_value_kinds() {
+    // logic:termApplication is the fifth mutually exclusive term-value kind: a carrier bearing
+    // both logic:termApplication and logic:termIri violates the exactly-one rule (mirrors the
+    // extended logic:TermCarrierValueConstraint).
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:ft ; logic:termIri ex:b ] .
+         ex:ft a logic:FunctionTerm ;
+            logic:functionSymbol ex:f ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
+        "requires exactly one term-value property",
+    );
+}
