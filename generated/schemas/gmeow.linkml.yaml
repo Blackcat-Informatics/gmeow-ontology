@@ -10869,7 +10869,7 @@ slots:
   isReasonerFragmentGap:
     slot_uri: https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap
     title: is reasoner fragment gap
-    range: string
+    range: boolean
     domain: GapShape
     multivalued: true
   isReferencedBy:

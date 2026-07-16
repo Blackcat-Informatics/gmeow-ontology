@@ -6613,7 +6613,7 @@ type GTSSegment {
 type GapShape {
   id: String
   iri: String
-  isReasonerFragmentGap: [String!]
+  isReasonerFragmentGap: [Boolean!]
 }
 
 type GateVerdict {

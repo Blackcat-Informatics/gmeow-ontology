@@ -327,6 +327,19 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/orderStatus> <https://blackcatinformatics.ca/gmeow/orderStatusCancelled> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/CapabilityGapFragmentClassificationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CapabilityGap> .
+}""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:CapabilityGap must reference via gmeow:gapShape a gmeow:GapShape carrying a gmeow:isReasonerFragmentGap boolean value — the reasoner-fragment classification consumed by this integrity guard is missing." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gapShape> ?gs . ?gs <https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap> ?frag . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/CascadeSeverityConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Cascade> ;
