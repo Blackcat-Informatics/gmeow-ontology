@@ -358,6 +358,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "foundation.rs",
         "native OntoUML foundation-discipline evaluator — forward evaluator/classifier, not backward dispatch",
     ),
+    (
+        "goal_directed.rs",
+        "the pub façade that runs shipped goal-directed demonstrators through the backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls resolve_fol), not part of what dispatch_query decides",
+    ),
     ("lib.rs", "crate-root module wiring, not the decision path"),
     (
         "logic_diagnostics.rs",

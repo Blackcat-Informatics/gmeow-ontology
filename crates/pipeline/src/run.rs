@@ -186,6 +186,14 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-statements",
             ],
         ),
+        // The production consumer of the native proof-carrying full-FOL backward engine:
+        // it evaluates the shipped goal-directed demonstrator corpus, proof-checks every
+        // answer, and attaches graph/goal-directed (folded into gmeow.gts by stage-snapshot).
+        st(
+            "stage-goal-directed",
+            "goal_directed",
+            &["stage-compile-logic"],
+        ),
         st(
             "stage-gts-compose",
             "gts_compose",
@@ -266,6 +274,9 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
+                // The proof-carrying backward engine's checked answers + proof derivations,
+                // folded into graph/goal-directed of gmeow.gts.
+                "stage-goal-directed",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",

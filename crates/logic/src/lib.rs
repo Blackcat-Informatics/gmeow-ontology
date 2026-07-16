@@ -44,6 +44,11 @@ pub mod explain;
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.
 pub(crate) mod facts;
 pub mod foundation;
+/// The goal-directed (backward) demonstrator façade — the single thin `pub` surface over
+/// the proof-carrying full-FOL backward engine (`crate::physical::resolve_fol` +
+/// `crate::physical::proof::check`), evaluating shipped structured demonstrators into
+/// proof-checked answers the pipeline folds into `graph/goal-directed` of `gmeow.gts`.
+pub mod goal_directed;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
 // gmeow-errors Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;

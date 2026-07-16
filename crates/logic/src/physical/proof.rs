@@ -385,6 +385,66 @@ pub(crate) fn derivation_iri(dag: &TermDag, proof: NodeId) -> gmeow_errors::Resu
     }
 }
 
+/// The content-addressed derivation IRI of a STRUCTURED (function-symbol) proof, reusing
+/// the canonical [`crate::provenance::mint_derivation_id`] recipe over the resolver's own
+/// content-addressed term keys.
+///
+/// [`derivation_iri`] projects a FLAT proof by reifying each source fact to a binary
+/// [`crate::provenance::mint_nary_reifier`] IRI; that path hard-fails on a structured term
+/// ([`reify`] requires atomic-leaf arguments). A goal-directed proof over function-symbol
+/// terms (Peano / lists / …) has no binary reifier, so each source fact is content-addressed
+/// by the resolver's canonical term key ([`TermDag::key`]) — the SAME injective, bottom-up,
+/// alpha-invariant key the well-founded model uses for set membership, so it is ground,
+/// canonical, and byte-stable run-to-run. The minting recipe (rule IRI + sorted sources) is
+/// unchanged, so a structured derivation IRI shares the derivation namespace and
+/// order-independence of a flat one, and no numeric [`NodeId`] handle is ever serialized.
+pub(crate) fn structured_derivation_iri(
+    dag: &TermDag,
+    proof: NodeId,
+) -> gmeow_errors::Result<String> {
+    match classify(dag, proof).map_err(|e| {
+        proof_err(format!(
+            "cannot project structured proof to a derivation IRI: {e:?}"
+        ))
+    })? {
+        // An asserted (RDF-grounded) premise still carries a genuine binary reifier IRI.
+        ProofShape::Assert { goal: _, reifier } => {
+            let reifier_iri = atom_iri(dag, reifier)?;
+            Ok(provenance::mint_derivation_id(
+                provenance::ASSERT_RULE_IRI,
+                &[reifier_iri.as_str()],
+            ))
+        }
+        ProofShape::ByRule {
+            goal: _,
+            rule,
+            subproofs,
+        } => {
+            let rule_iri = atom_iri(dag, rule)?;
+            let mut sources = Vec::with_capacity(subproofs.len());
+            for sub in &subproofs {
+                sources.push(structured_source_key(dag, *sub)?);
+            }
+            let refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+            Ok(provenance::mint_derivation_id(&rule_iri, &refs))
+        }
+    }
+}
+
+/// The content-addressed source key of a premise subproof for a structured derivation: an
+/// asserted premise's genuine binary reifier IRI, or (for a structured premise with no binary
+/// reifier) the canonical term key of the fact it concludes.
+fn structured_source_key(dag: &TermDag, subproof: NodeId) -> gmeow_errors::Result<String> {
+    match classify(dag, subproof).map_err(|e| {
+        proof_err(format!(
+            "cannot project structured premise to a source key: {e:?}"
+        ))
+    })? {
+        ProofShape::Assert { goal: _, reifier } => atom_iri(dag, reifier),
+        ProofShape::ByRule { goal, .. } => Ok(dag.key(goal).to_owned()),
+    }
+}
+
 /// The content-addressed reifier IRI of the fact a premise subproof proves.
 fn source_reifier(dag: &TermDag, subproof: NodeId) -> gmeow_errors::Result<String> {
     match classify(dag, subproof)

@@ -42,6 +42,7 @@ pub mod export;
 pub mod fold_arena;
 pub mod frame_shapes;
 pub mod gate_verdict;
+pub mod goal_directed;
 // The governance-floors export leaf: the two slice-quality floor TSVs projected as
 // lossy views of the ontology-resident gmeow:AxisFloorCommitment / gmeow:SliceTierFloor
 // individuals (Principle 17 — the ontology is canonical, these TSVs are its projection).
@@ -114,6 +115,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
+    registry.register(
+        "goal_directed",
+        Arc::new(goal_directed::GoalDirectedStage::new()),
+    );
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
     registry.register(
         "math_producers",
