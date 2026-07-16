@@ -664,6 +664,10 @@ fn hybrid_query_unscored(_: AnnotationFactRef<'_>) -> Option<i64> {
     None
 }
 
+/// Stable per-site diagnostic code every `--candidates` parse failure lowers to
+/// (the Diag substrate replaces a bare `String` error — Phase-6 honest invariant).
+const CANDIDATES_DIAG_CODE: &str = "gmeow-cli.hybrid-query.candidates";
+
 /// Parse one non-blank, non-comment `--candidates` line into a provider row.
 ///
 /// The line format is `<arg1-iri> <arg2-iri> annotation order-key`,
@@ -673,32 +677,45 @@ fn hybrid_query_unscored(_: AnnotationFactRef<'_>) -> Option<i64> {
 /// integer; `order-key` is the provider's own lexical rank token for the
 /// pushed-down total order (the final field, taken verbatim — it may not
 /// itself contain whitespace).
-fn parse_candidate_line(line: &str, line_no: usize) -> Result<RelationTuple<i64>, String> {
+fn parse_candidate_line(line: &str, line_no: usize) -> Result<RelationTuple<i64>, Diag> {
     let fields: Vec<&str> = line.split_whitespace().collect();
     let [arg1, arg2, annotation, order_key] = fields.as_slice() else {
-        return Err(format!(
-            "line {line_no}: expected 4 whitespace-separated fields \
-             `<arg1-iri> <arg2-iri> annotation order-key`, got {} field(s)",
-            fields.len()
+        return Err(error_diag(
+            CANDIDATES_DIAG_CODE,
+            format!(
+                "line {line_no}: expected 4 whitespace-separated fields \
+                 `<arg1-iri> <arg2-iri> annotation order-key`, got {} field(s)",
+                fields.len()
+            ),
         ));
     };
-    let parse_iri = |field: &str| -> Result<String, String> {
+    let parse_iri = |field: &str| -> Result<String, Diag> {
         let trimmed = field.strip_prefix('<').and_then(|s| s.strip_suffix('>'));
         let Some(trimmed) = trimmed else {
-            return Err(format!(
-                "line {line_no}: {field:?} must be a bracketed absolute IRI, \
-                 e.g. <https://example.org/x>"
+            return Err(error_diag(
+                CANDIDATES_DIAG_CODE,
+                format!(
+                    "line {line_no}: {field:?} must be a bracketed absolute IRI, \
+                     e.g. <https://example.org/x>"
+                ),
             ));
         };
-        purrdf::iri::parse(trimmed)
-            .map_err(|e| format!("line {line_no}: invalid IRI {trimmed:?}: {e}"))?;
+        purrdf::iri::parse(trimmed).map_err(|e| {
+            error_diag(
+                CANDIDATES_DIAG_CODE,
+                format!("line {line_no}: invalid IRI {trimmed:?}: {e}"),
+            )
+        })?;
         Ok(trimmed.to_owned())
     };
     let arg1 = parse_iri(arg1)?;
     let arg2 = parse_iri(arg2)?;
-    let annotation: i64 = annotation
-        .parse()
-        .map_err(|e| format!("line {line_no}: invalid annotation integer {annotation:?}: {e}"))?;
+    let annotation: i64 = annotation.parse().map_err(|e| {
+        error_diag(
+            CANDIDATES_DIAG_CODE,
+            format!("line {line_no}: invalid annotation integer {annotation:?}: {e}"),
+        )
+    })?;
     Ok(RelationTuple {
         arguments: vec![TermValue::iri(arg1), TermValue::iri(arg2)],
         annotation,
@@ -708,7 +725,7 @@ fn parse_candidate_line(line: &str, line_no: usize) -> Result<RelationTuple<i64>
 
 /// Parse a whole `--candidates` file: one tuple per non-blank, non-`#`-comment
 /// line (see [`parse_candidate_line`] for the line grammar).
-fn parse_candidates_file(text: &str) -> Result<Vec<RelationTuple<i64>>, String> {
+fn parse_candidates_file(text: &str) -> Result<Vec<RelationTuple<i64>>, Diag> {
     let mut rows = Vec::new();
     for (offset, raw_line) in text.lines().enumerate() {
         let line = raw_line.trim();
@@ -860,8 +877,12 @@ pub fn hybrid_query(
         Err(detail) => {
             return fail(
                 reporter,
-                "gmeow-cli.hybrid-query.candidates",
-                format!("cannot parse {}: {detail}", candidates.display()),
+                CANDIDATES_DIAG_CODE,
+                format!(
+                    "cannot parse {}: {}",
+                    candidates.display(),
+                    detail.message()
+                ),
             );
         }
     };
