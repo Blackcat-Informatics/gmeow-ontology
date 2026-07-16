@@ -42,6 +42,20 @@ const ATOMIC_SEED_SUBJECT: &str =
 const ATOMIC_SEED_OBJECT: &str = "https://blackcatinformatics.ca/logic/recovery-seed/atomic/object";
 const RECOVERY_SEED_BASE: &str = "https://blackcatinformatics.ca/logic/recovery-seed/var/";
 
+/// Common prefix of every generated recovery-execution IRI ([`VIEW_PREDICATE`],
+/// [`ATOMIC_SEED_SUBJECT`], [`ATOMIC_SEED_OBJECT`], [`RECOVERY_SEED_BASE`]-derived bindings).
+/// An authored recovery-case formula or atomic leg predicate that collides with this namespace
+/// could make a generated seed/binding IRI equal an authored constant, collapsing two distinct
+/// terms into one in the seed graph and letting a lossy correspondence FALSELY discharge.  The
+/// guard below rejects that at lowering time, before any seed graph is built, so the generated
+/// IRIs stay disjoint from authored constants by construction.
+const RECOVERY_RESERVED_NS: &str = "https://blackcatinformatics.ca/logic/recovery";
+
+/// Whether an authored IRI collides with the reserved recovery-execution namespace.
+fn is_reserved_recovery_iri(iri: &str) -> bool {
+    iri.starts_with(RECOVERY_RESERVED_NS)
+}
+
 /// A comparable RDF atom: subject, predicate, object as canonical term keys.
 pub type Atom = (String, String, String);
 
@@ -429,6 +443,38 @@ fn collect_patterns(formula: &Formula, side: &str) -> gmeow_errors::Result<Vec<T
     }
 }
 
+/// Reject every authored IRI (predicate, or a subject/object `PatternTerm::Iri`) that falls
+/// inside the reserved recovery-execution namespace.  Called on both the source and view
+/// patterns before any seed/binding IRI is generated, so a collision is a hard authoring
+/// error rather than a silent seed-graph collapse.
+fn reject_reserved_recovery_iris(
+    patterns: &[TriplePattern],
+    side: &str,
+) -> gmeow_errors::Result<()> {
+    for pattern in patterns {
+        if is_reserved_recovery_iri(&pattern.predicate) {
+            return Err(exec_error(format!(
+                "{side} atom predicate <{}> uses the reserved recovery-execution namespace \
+                 `{RECOVERY_RESERVED_NS}`; author IRIs outside that namespace so generated seed \
+                 bindings stay fresh",
+                pattern.predicate
+            )));
+        }
+        for (position, term) in [("subject", &pattern.subject), ("object", &pattern.object)] {
+            if let PatternTerm::Iri(iri) = term
+                && is_reserved_recovery_iri(iri)
+            {
+                return Err(exec_error(format!(
+                    "{side} {position} <{iri}> uses the reserved recovery-execution namespace \
+                     `{RECOVERY_RESERVED_NS}`; author IRIs outside that namespace so generated \
+                     seed bindings stay fresh"
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn variables(patterns: &[TriplePattern]) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
     for pattern in patterns {
@@ -488,6 +534,8 @@ pub fn lower_recovery_case(case: &RecoveryCaseIr) -> gmeow_errors::Result<Recove
     };
     let source_patterns = collect_patterns(source, "source")?;
     let view_patterns = collect_patterns(view, "view")?;
+    reject_reserved_recovery_iris(&source_patterns, "source")?;
+    reject_reserved_recovery_iris(&view_patterns, "view")?;
     if source_patterns.is_empty() || view_patterns.is_empty() {
         return Err(exec_error(
             "recoveryTransform source and view patterns must be non-empty",
@@ -632,6 +680,20 @@ pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
     let (Some(get_path), Some(recovered_path)) = (atomic_path(get), atomic_path(&recovered)) else {
         return DischargeVerdict::ObligationUnknown;
     };
+    // The atomic get/put predicates are authored constants.  If either collides with the
+    // reserved recovery-execution namespace (`RECOVERY_RESERVED_NS`), the synthesized atomic
+    // seed (`ATOMIC_SEED_SUBJECT`/`ATOMIC_SEED_OBJECT`) or its `VIEW_PREDICATE` carrier could
+    // collapse with an authored term and FALSELY discharge.  `ObligationUnknown` is not
+    // acceptable here — the gates below treat Unknown as "honest and passes", which would let
+    // the collision through silently.  `ObligationViolated` fails closed: it reds the Law,
+    // Round-trip, and Mnemomorphism gates exactly like a genuine put∘get counterexample, and is
+    // diagnosable because the gates' fixed-template refutation clause already names the failing
+    // correspondence IRI.
+    if is_reserved_recovery_iri(get_path.predicate)
+        || is_reserved_recovery_iri(recovered_path.predicate)
+    {
+        return DischargeVerdict::ObligationViolated;
+    }
     let source_atom = if get_path.inverse {
         (
             ATOMIC_SEED_OBJECT.to_owned(),
@@ -1044,6 +1106,40 @@ mod tests {
         let countermodel = bad.countermodel.expect("loss has a countermodel");
         assert_eq!(countermodel.missing.len(), 1, "{countermodel:#?}");
         assert!(countermodel.spurious.is_empty(), "{countermodel:#?}");
+    }
+
+    #[test]
+    fn recovery_case_colliding_with_the_reserved_recovery_namespace_never_discharges() {
+        // The view predicate is authored as the SAME IRI the executor generates internally
+        // (`VIEW_PREDICATE`).  Without the reserved-namespace guard this collision would make
+        // the mechanically synthesized view carrier indistinguishable from the authored view
+        // atom in the seed graph, and the atom-set comparison in `discharge_section_law` could
+        // FALSELY discharge a lossy correspondence.  The guard must reject it before any seed
+        // is built.
+        let subject = Term::var("subject").expect("subject variable");
+        let object = Term::var("object").expect("object variable");
+        let source = atom(
+            "https://example.org/sourceKind",
+            subject.clone(),
+            object.clone(),
+        );
+        let view = atom(VIEW_PREDICATE, subject, object);
+        let case = RecoveryCaseIr::new(
+            "https://example.org/recovery/reserved-namespace-collision",
+            Formula::Forall {
+                vars: vec!["subject".to_owned(), "object".to_owned()],
+                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
+            },
+        )
+        .expect("recovery case");
+
+        let outcome = discharge_recovery_case(&case);
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationViolated,
+            "a recovery case whose view predicate collides with the generated VIEW_PREDICATE \
+             must never discharge: {outcome:#?}"
+        );
     }
 
     #[test]
