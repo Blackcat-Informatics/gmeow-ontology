@@ -1,0 +1,27 @@
+{
+  "per_composition": [],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/writingSystemOverclaim",
+      "law": {
+        "reason": "claims logic:SectionLaw as ObligationDischarged but the executed put ∘ get section-law discharge refutes it (put ∘ get ≠ id; ObligationViolated); the claim must degrade to ObligationUnknown",
+        "status": "red"
+      },
+      "mnemomorphism": {
+        "reason": "declared mnemomorphic but the witness does not recover the source: the executed put ∘ get section-law discharge refutes it (put ∘ get ≠ id; ObligationViolated)",
+        "status": "red"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "preservation": {
+        "reason": "logic:SectionRetraction is not a non-injective rung; ExactPreservation is not constrained by the non-invertibility rule",
+        "status": "not_applicable"
+      },
+      "round_trip": {
+        "reason": "logic:SectionRetraction claims a full round-trip but the executed put ∘ get section-law discharge refutes it (put ∘ get ≠ id; ObligationViolated)",
+        "status": "red"
+      }
+    }
+  ]
+}

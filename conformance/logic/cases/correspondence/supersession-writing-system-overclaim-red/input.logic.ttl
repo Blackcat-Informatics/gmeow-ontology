@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Mutation case for the supersession ledger: promoting the genuinely lossy WritingSystem
+# split to SectionRetraction + mnemomorphic MUST remain red.  The view retains the Script
+# classification but drops writingSystemType and textDirection, so executed put(get(source))
+# returns a graph missing those two source atoms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://gmeow.example/corr/> .
+
+ex:writingSystemOverclaim a logic:Correspondence ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg ex:writingSystemGet ;
+    logic:recoveryCase ex:writingSystemRefutation .
+
+ex:writingSystemGet gmeow:path ex:writingSystemStep .
+
+ex:writingSystemRefutation a logic:RecoveryCase ;
+    logic:recoveryTransform ex:writingSystemRefutationFormula .
+
+ex:writingSystemRefutationFormula a logic:Formula ;
+    logic:quantifiedVariable
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "kind" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "direction" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:and
+            [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:WritingSystem ] ] ,
+            [ a logic:Formula ; logic:relation gmeow:writingSystemType ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "kind" ] ] ,
+            [ a logic:Formula ; logic:relation gmeow:textDirection ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "direction" ] ]
+        ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:Script ] ]
+    ] .

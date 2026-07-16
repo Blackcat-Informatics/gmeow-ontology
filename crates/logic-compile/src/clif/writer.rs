@@ -548,13 +548,16 @@ fn path_shape_predications(shape: &crate::ir::PathShapeIr) -> Vec<String> {
 }
 
 /// The set of correspondence node IRIs whose flat axioms are owned by the correspondence
-/// channel (the correspondence individuals + the singleton `correspondence-program` node).
-/// Their law-claim / caveat child nodes are matched by IRI prefix in [`is_correspondence_owned`].
+/// channel (the correspondence individuals, named recovery cases, and singleton
+/// `correspondence-program` node). Their projected formula / law-claim / caveat children are
+/// matched by IRI prefix in [`is_correspondence_owned`].
 fn correspondence_subjects(program: &LogicProgram) -> Vec<String> {
     let mut subjects: Vec<String> = program
         .correspondences
         .iter()
-        .map(|c| c.iri.clone())
+        .flat_map(|c| {
+            std::iter::once(c.iri.clone()).chain(c.recovery_cases.iter().map(|r| r.iri.clone()))
+        })
         .collect();
     // The `project_correspondence` wrapper node (one per build).
     subjects.push(format!(
@@ -565,7 +568,7 @@ fn correspondence_subjects(program: &LogicProgram) -> Vec<String> {
 }
 
 /// Whether `subject` is a correspondence node (exact match) or one of its child nodes (the
-/// `project_correspondence` law-claim IRIs are minted as `<corr-iri>/lawclaim/<i>`, so an
+/// `project_correspondence` law-claim IRIs are minted as `<corr-iri>/law-claim/<i>`, so an
 /// IRI-prefix test catches them).
 fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
     // Zero-allocation prefix test: a child node is `<corr-iri>/…`, so strip the parent IRI

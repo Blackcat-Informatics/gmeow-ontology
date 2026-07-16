@@ -491,6 +491,14 @@ fn discharge_correspondence_laws(
         if corr.grounding {
             law_bearing = law_bearing.as_grounding();
         }
+        law_bearing = law_bearing
+            .with_recovery_cases(corr.recovery_cases.clone())
+            .map_err(|e| {
+                stage_err(format!(
+                    "law-bearing correspondence <{}> recovery cases: {e}",
+                    corr.iri
+                ))
+            })?;
         rebuilt.push(law_bearing);
     }
 
