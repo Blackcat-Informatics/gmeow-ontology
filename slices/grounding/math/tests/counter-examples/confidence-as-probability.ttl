@@ -8,7 +8,7 @@
 # (math:ConfidenceAsProbability).
 # Single violation: it carries a gmeow:hasReferenceFrame so the framing gate
 # math:ProbabilityValueFramedShape (P3) stays SATISFIED (the sh:or hasReferenceFrame arm
-# holds even though the probabilityModel arm is empty), it carries no gmeow:quantityValue
+# holds even though the probabilityModel arm is empty), it carries no math:quantityValue
 # so the range gate math:ProbabilityValueRangeShape (P1) is vacuously satisfied, and it is
 # not typed math:OddsValue / math:LogOddsValue so math:ProbabilityScaleDisjointShape (P2)
 # stays satisfied — EXACTLY ONE finding, no sibling probability shape also fires.
@@ -25,3 +25,4 @@ ex:confidenceAsProbability a math:ProbabilityValue ;
     logic:confidence "0.8"^^xsd:decimal .
 
 ex:extractionFrame a gmeow:ReferenceFrame .
+<http://example.org/math/confidenceAsProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

@@ -141,4 +141,4 @@ class Highlight(Annotation):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    annotationTargetSpan: list[str] | None = Field(default=None, description="An optional anchored span within the annotation target — a text quote, position, or fragment selector. Non-functional: an annotation may reference multiple spans (e.g. several disjoint highlights in the same document). Reuses EvidenceSpan and its selector properties; no second selector model is minted.", alias="gmeow:annotationTargetSpan")
+    annotationTargetSpan: list[str] | None = Field(default=None, description="Within gmeow:Highlight, values are node references constrained to gmeow:EvidenceSpan. An optional anchored span within the annotation target — a text quote, position, or fragment selector. Non-functional: an annotation may reference multiple spans (e.g. several disjoint highlights in the same document). Reuses EvidenceSpan and its selector properties; no second selector model is minted.", alias="gmeow:annotationTargetSpan")

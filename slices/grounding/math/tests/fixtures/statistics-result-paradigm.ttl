@@ -48,3 +48,5 @@ ex:bayesMass a math:ProbabilityValue , math:RationalValue ;
     gmeow:hasReferenceFrame ex:posteriorFrame .
 
 ex:posteriorFrame a gmeow:ReferenceFrame .
+<http://example.org/math/bayesMass> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/freqLevel> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

@@ -163,3 +163,9 @@ ex:testTypeII a math:TypeIIErrorRate ;
     rdfs:label "beta = 0.20 — the false-negative rate, complement of the power"@x-gmeow-english .
 ex:testTypeI a math:TypeIErrorRate ;
     rdfs:label "alpha = 0.05 — the false-positive rate the threshold controls"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/pVal0015> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/pVal002> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/pVal0038> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/pVal003> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/pVal0047> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/pVal040> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

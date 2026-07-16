@@ -107,7 +107,7 @@ GMEOW answers each challenge with a deliberate architectural choice:
   *(Addresses lossless capture and cross-system coreference; now spans 13+ realms from
   terrestrial to celestial to biological-sequence to fictional.)*
 - **Observation & measurement as first-class claims.** Built on frame-relativity, a universal
-  `gmeow:Observation` (SOSA/SensorThings) and `gmeow:Quantity`/`MeasuredValue` (QUDT) make
+  `gmeow:Observation` (SOSA/SensorThings) and `math:Quantity` (QUDT) make
   every measurement an attributed, unit-bearing, frame-aware claim — with ontic *determinacy*
   held apart from epistemic *confidence*, and data quality recorded against W3C DQV / ISO 19157.
   This is what turns GMEOW from a person-metadata vocabulary into one that scientific

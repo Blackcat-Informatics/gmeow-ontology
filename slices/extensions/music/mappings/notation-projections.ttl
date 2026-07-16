@@ -19,7 +19,7 @@
 @prefix afo: <https://w3id.org/afo/onto/1.1#> .
 
 # Music notation projection layer and maximal alignment.
-# Compiled by `gmeow regenerate` (mappings) to:
+# Compiled by `gmeow-dev sync --mode update --outputs generated` (mappings) to:
 #   - mappings/gmeow-music.sssom.tsv (TermEquivalence rows)
 #   - projections/functions.fno.ttl (ProjectionFunction declarations)
 #   - projections/music-*.edoal.ttl (ProjectionMapping cells)

@@ -210,7 +210,7 @@ class Holding(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     holdingAgent: list[Agent] | None = Field(default=None, description="The agent that holds the asset. Functional: a holding is held by exactly one agent.", alias="gmeow:holdingAgent")
-    holdingAsset: list[str] | None = Field(default=None, description="The financial asset that is held. Functional: a holding is of exactly one asset.", alias="gmeow:holdingAsset")
+    holdingAsset: list[str] | None = Field(default=None, description="Within gmeow:Holding, values are node references constrained to gmeow:Asset. The financial asset that is held. Functional: a holding is of exactly one asset.", alias="gmeow:holdingAsset")
 
 
 class Invoice(ConfiguredBaseModel):

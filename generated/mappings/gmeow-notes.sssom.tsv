@@ -1,7 +1,7 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/notes
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: "Notes & annotation alignments (annotation target span). W3C Web Annotation: GMEOW Annotation is a relator with provenance, confidence, temporal scope and suppression; oa:Annotation is a flatter body/target/motivation construct \u2014 closeMatch, not exactMatch. schema.org: GMEOW Note/Comment are information objects with full provenance; schema:NoteDigitalDocument / schema:Comment are flat document types \u2014 closeMatch. ActivityStreams: as:Note is a flat social-media note; GMEOW Note carries the full provenance stack \u2014 closeMatch. SIOC: sioc:Post / sioc:Reply are community-discussion items; GMEOW Comment is a reply note with threading \u2014 closeMatch. FOAF: foaf:maker is the flat authorship shortcut; GMEOW uses reified Participation / wasAttributedTo \u2014 closeMatch."

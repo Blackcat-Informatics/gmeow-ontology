@@ -202,7 +202,7 @@ class Myth(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hasMythTelling: list[str] | None = Field(default=None, description="Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10).", alias="gmeow:hasMythTelling")
+    hasMythTelling: list[str] | None = Field(default=None, description="Within gmeow:Myth, values are node references constrained to gmeow:CreativeWork. Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10).", alias="gmeow:hasMythTelling")
 
 
 class NarrationUsage(ConfiguredBaseModel):

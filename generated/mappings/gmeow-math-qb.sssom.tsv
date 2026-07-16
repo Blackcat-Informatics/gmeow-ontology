@@ -1,0 +1,14 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/math-qb
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Bridge from the native matrix/data model to the RDF Data Cube dataset carrier; cube serialization remains a generated projection."
+# curie_map:
+#   math: https://blackcatinformatics.ca/math/
+#   qb: http://purl.org/linked-data/cube#
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+math:DatasetMatrix	skos:relatedMatch	qb:DataSet	semapv:ManualMappingCuration	0.75	A matrix can be serialized as a Data Cube dataset, but the cube carrier does not imply matrix shape or algebra.

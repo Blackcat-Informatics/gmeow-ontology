@@ -22,7 +22,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::facts::skolem_iri;
 use crate::reason::InferredAxiom;
-use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm, TermValue};
+use purrdf::{RdfDataset, RdfLiteral, RdfQuad, RdfTerm, TermValue};
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -445,6 +445,27 @@ pub struct DlCoverage {
     pub unsupported: Vec<String>,
 }
 
+/// One native DL coverage defect. This is reasoner-domain evidence, not an RDF
+/// representation-conversion loss, so it is owned by GMEOW rather than PurRDF's
+/// transcode [`purrdf::LossLedger`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DlGap {
+    /// Stable machine-readable gap code.
+    pub code: String,
+    /// Human-readable explanation of the undecided construct.
+    pub message: String,
+}
+
+impl DlGap {
+    /// Construct a native DL coverage gap.
+    pub fn new(code: impl Into<String>, message: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            message: message.into(),
+        }
+    }
+}
+
 /// The verdict of a native DL consistency run.
 ///
 /// `consistent` is `false` iff at least one [`InconsistencyWitness`] was found.
@@ -459,7 +480,7 @@ pub struct DlVerdict {
     pub unsatisfiable_classes: Vec<UnsatClass>,
     pub inconsistencies: Vec<InconsistencyWitness>,
     pub coverage: DlCoverage,
-    pub gaps: Vec<RdfLoss>,
+    pub gaps: Vec<DlGap>,
 }
 
 /// Strip a decoded object display form (`<iri>`) back to the bare IRI.
@@ -2914,7 +2935,7 @@ pub fn unsatisfiable_from_inferred(inferred: &[InferredAxiom]) -> Vec<UnsatClass
 /// byte-identical whether a consumer reads `DlVerdict::gaps` directly or
 /// reconstructs them from a typed result's
 /// `preservation.unsupported_constructs`.
-pub fn gaps_from_unsupported<I, S>(unsupported: I) -> Vec<RdfLoss>
+pub fn gaps_from_unsupported<I, S>(unsupported: I) -> Vec<DlGap>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
@@ -2923,7 +2944,7 @@ where
         .into_iter()
         .map(|name| {
             let name = name.as_ref();
-            RdfLoss::new(
+            DlGap::new(
                 format!("reason.dl-gap.{name}"),
                 format!(
                     "{name} is present in the bundle but was not decided by the native DL path"

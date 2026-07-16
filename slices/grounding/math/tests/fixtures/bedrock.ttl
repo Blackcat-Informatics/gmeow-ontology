@@ -107,7 +107,9 @@ ex:totalEnergyExpr a math:DimensionalExpression ;
 # (mass) is unique among the fixture quantities, so it has no commensurable peer.
 ex:sampleMassQ a math:Quantity ;
     math:hasDimension math:massDimension ;
-    gmeow:unit <http://qudt.org/vocab/unit/KiloGM> .
+    math:quantityValue "1"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/KiloGM> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI .
 
 # Q11 — two ordered intervals, each naming both endpoints and both endpoint
 # inclusions. A half-open bounded interval [0, 1) (lower closed, upper open) and an

@@ -207,7 +207,7 @@ single `gmeow:confidence` of the old DSL destroys the distinctions:
 - `logic:Determinacy` — whether the *target relationship* is ontically crisp or vague. "Similar but
   not quite" is `determinacy = vague` + `class = affine`, **not** low-confidence equivalence.
 
-Every correspondence is **standpoint-indexed** (`logic:accordingTo`, the typed context algebra of
+Every correspondence is **standpoint-indexed** (`gmeow:accordingTo`, the typed context algebra of
 [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)). An unindexed correspondence holds in
 `gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills the silent-universality bug where
 a curated alignment is applied where it was never validated.

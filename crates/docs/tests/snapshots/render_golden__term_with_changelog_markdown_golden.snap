@@ -2,29 +2,30 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Changelog Entry
+# Capacity
 
-`gmeow:ChangelogEntry` · Class
+`gmeow:Capacity` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:ChangelogEntry` |
-| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
+| CURIE | `gmeow:Capacity` |
+| IRI | `https://blackcatinformatics.ca/gmeow/Capacity` |
 | Category | Class |
-| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
+| Slice | [GMEOW Locations Module](../../slices/places/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
 
 ## Definition
 
-A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
+A measurement of the maximum number of entities a location can hold\. The location is the observedFeature; the result is a dimensionless math:Quantity, while the entity kind being counted follows from the capacity claim and the location's place type rather than a pseudo\-unit\. A contested capacity \(e\.g\., fire code vs\. venue claim\) is modelled as multiple co\-existing Capacity measurements, each standpoint\-indexed and confidence\-weighted, never collapsing to a single winner \(P9\)\. A superseded capacity \(e\.g\., after renovation\) is suppressed via displayable false, never deleted \(P10\)\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:ChangelogEntry .
+<subject> a gmeow:Capacity ;
+    gmeow:capacityOf <...> .  # gmeow:Location
 ```
 
 ## Example in multiple syntaxes
@@ -32,7 +33,8 @@ A reified record of one change to a vocabulary term in a given release — a fir
 **Turtle**
 
 ```turtle
-<subject> a gmeow:ChangelogEntry .
+<subject> a gmeow:Capacity ;
+    gmeow:capacityOf <...> .  # gmeow:Location
 ```
 
 **JSON\-LD**
@@ -214,9 +216,12 @@ A reified record of one change to a vocabulary term in a given release — a fir
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
+          "@id": "https://blackcatinformatics.ca/gmeow/Capacity"
         }
-      ]
+      ],
+      "https://blackcatinformatics.ca/gmeow/capacityOf": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      }
     }
   ]
 }
@@ -224,34 +229,40 @@ A reified record of one change to a vocabulary term in a given release — a fir
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+![Term neighborhood](../../diagrams/terms/capacity.svg)
 
 ## Super\-classes
 
-- [`gmeow:InformationObject`](../informationobject/index.md)
+- [`gmeow:Measurement`](../measurement/index.md)
 
 ## Usage Advice
 
-- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
-- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
-- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
-- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
+- **Example:** ex:cap a gmeow:Capacity ; gmeow:capacityOf ex:hall ; gmeow:observationResult ex:scalar500 \.
+- **Use when:** Use to reify the maximum number of entities a location can hold, as a Measurement; contested capacities coexist as standpoint\-indexed instances\.
+- **Avoid when:** Avoid collapsing fire\-code vs venue\-claim capacities into one \(Principle 9\) and avoid deleting a post\-renovation capacity — suppress with gmeow:displayable false \(Principle 10\)\.
+- **How to use:** Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a math:Quantity carrying math:dimensionless and its count value, and index competing claims with gmeow:accordingTo\.
 
 ## Profiles
 
-- `full` · `music`
+- `claims` · `dreaming` · `full` · `memory` · `music` · `narrative`
 
 ## Formal & academic
 
 ## Description\-Logic axioms
 
 ```text
-gmeow:ChangelogEntry ⊑ gmeow:InformationObject
+gmeow:Capacity ⊑ gmeow:Measurement
 ```
+
+## Alignments
+
+- `closeMatch` → [https://brickschema\.org/schema/Brick\#Capacity](https://brickschema\.org/schema/Brick\#Capacity) — *approximate match (close) — not an exact equivalence.*
+- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -264,17 +275,17 @@ gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 
 ## Stability
 
-- **Status:** experimental
+- **Status:** stable
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/Capacity>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/Capacity@blake3:baf828a60c143915f8fb95b21088185151d52316c413490990545d35d3c40863`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

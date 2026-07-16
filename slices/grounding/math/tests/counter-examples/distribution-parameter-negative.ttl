@@ -15,9 +15,10 @@
 ex:stddevRole a math:DistributionParameterRole ;
     math:requiresPositiveValue true .
 
-ex:negativeQuantity a gmeow:Quantity ;
-    gmeow:quantityValue "-1" .
+ex:negativeQuantity a math:Quantity ;
+    math:quantityValue "-1" .
 
 ex:negativeParameter a math:DistributionParameter ;
     math:parameterRole ex:stddevRole ;
     math:parameterQuantity ex:negativeQuantity .
+<http://example.org/math/negativeQuantity> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

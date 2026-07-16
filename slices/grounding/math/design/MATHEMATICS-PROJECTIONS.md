@@ -13,7 +13,7 @@
 > ([`MATHEMATICS-STATISTICS.md`](MATHEMATICS-STATISTICS.md)).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
@@ -24,6 +24,32 @@ lossy view of it. This charter names each consumer, states what the GMEOW canoni
 that consumer, states what the projection loses, and binds the whole to the same loss-ledger
 discipline `logic:` applies to OWL, Datalog, SHACL, and the correspondence lowerings
 (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`).
+
+## Shipped grounding laws versus projections
+
+External term grounding is ontology content, not a disposable output view. The
+canonical `mappings/equivalences.ttl` catalog (including symbol-level OpenMath
+correspondences), the logic-owned SUMO catalog's broad Quantity bridge, the six-row
+`mappings/quantity-bridges.ttl` catalog, and the 13-row
+`mappings/statistical-bridges.ttl` catalog compile to content-addressed
+`logic:GroundingCorrespondence` records in the shipped
+`graph/correspondence-laws` graph. The quantity catalog owns the direct SOSA,
+OM 1.8, IVOA ObsCore, LOINC, and QUDT bridges for `math:Quantity` and
+`math:quantityValue`; downstream observation slices retain their domain roles
+and qualifiers but do not re-author those terms. The observation-facing rows
+still fan out into `gmeow-observations.sssom.tsv` as a generated consumer-output
+grouping; that derived grouping does not transfer canonical ownership out of
+`math:`. The statistical catalog covers
+RDF Data Cube, STATO, OBCS, SIO, and OBI terms and is validation-only; no target
+TBox enters the mathematical closure. The OBI data-transformation row is deliberately only
+`skos:relatedMatch`: OBI_0200000 denotes an executed planned process, whereas
+`math:DataTransformation` may denote a mathematical transformation specification.
+
+By contrast, a cube document, MathML tree, OpenMath payload, D-SI certificate,
+or other consumer serialization is a generated codec/projection with an
+explicit loss judgment. A target may participate in both roles—one narrow
+term bridge and one lossy document projection—but the two records are never
+conflated.
 
 ## The canonical/consumer table
 
@@ -45,14 +71,22 @@ The rule that governs every row:
 
 External vocabularies are aligned by reference and projected to, never copied into the canon. The
 mechanism is the repository's established one, not a bespoke predicate: an external link is a
-`gmeow:TermEquivalence` record in the slice's `mappings/equivalences.ttl`
+`gmeow:TermEquivalence` record in a canonical file under the slice's `mappings/`
 (`gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`, a `semapv:` justification, and a
-confidence), lowered as a `logic:Correspondence` — the ninth `logic:` IR node kind. There is **no**
+confidence), marked `logic:GroundingCorrespondence`, and lowered as a shipped
+`logic:Correspondence` — the ninth `logic:` IR node kind. There is **no**
 free-standing `authorityLink` property in the mathematics slice; a Wikidata QID, a QUDT unit IRI, or
 an OpenMath symbol is a `skos:exactMatch`/`skos:closeMatch` alignment carrying its preservation
 judgment in the loss ledger. This keeps the mathematics slice consistent with how every other GMEOW
 slice records external identity, and makes "GMEOW subsumes vocabulary V" a checkable
 section/retraction law rather than a claim.
+
+OpenMath targets use the official content-dictionary symbol IRIs (for example
+`http://www.openmath.org/cd/arith1#plus` and
+`http://www.openmath.org/cd/limit1#limit`), not an HTML dictionary page standing
+in for a symbol. A page-level `skos:relatedMatch` remains only where the GMEOW
+class spans several symbols and no unique symbol target is honest (`math:Interval`
+and `math:SpecialFunction`).
 
 ## Per-target contracts
 

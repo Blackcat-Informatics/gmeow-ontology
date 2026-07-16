@@ -13,7 +13,7 @@
 > charters and gates through [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
