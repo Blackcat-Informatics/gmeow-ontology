@@ -52,8 +52,8 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
     let expected = vec![
         "sync",
         "check-lint",
+        "rust-build",
         "rust-gate",
-        "gts-frame-profile-gate",
         "validate",
         "constitution-check",
         "crate-check",
@@ -86,6 +86,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "reason-crosscheck",
         "mappings",
         "bench-golden-gate",
+        "gts-frame-profile-gate",
     ] {
         assert!(
             !targets.contains(&redundant),
@@ -98,12 +99,31 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
 fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     let source = makefile();
 
-    assert!(target_recipe(&source, "check").contains("cargo xtask check"));
+    assert!(
+        target_recipe(&source, "check").contains("CHECK_SYNC_MODE=update cargo xtask check"),
+        "local check owns update-mode synchronization"
+    );
+    assert!(
+        target_recipe(&source, "check-full").contains("CHECK_SYNC_MODE=update cargo xtask check"),
+        "forced-full local check owns update-mode synchronization"
+    );
     assert!(target_recipe(&source, "sync").contains("$(GMEOW_DEV) sync"));
+    assert!(
+        target_recipe(&source, "check-sync")
+            .contains("sync --mode $(CHECK_SYNC_MODE) --outputs generated"),
+        "aggregate sync must select its explicit update/check operation"
+    );
+    assert!(
+        source.contains("CHECK_SYNC_MODE ?= check"),
+        "direct and CI check-sync invocations must remain read-only by default"
+    );
     assert_eq!(
-        source.matches("sync:").count(),
+        source
+            .lines()
+            .filter(|line| line.starts_with("sync:"))
+            .count(),
         1,
-        "sync has one Make authority"
+        "standalone update-mode sync has one Make authority"
     );
 
     assert_eq!(
@@ -130,6 +150,7 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         "mappings",
         "bench-golden-gate",
         "bench-soak",
+        "gts-frame-profile-gate",
     ] {
         let recipe = target_recipe(&source, target);
         assert!(!recipe.trim().is_empty(), "{target} must remain runnable");
@@ -139,4 +160,5 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     assert!(target_recipe(&source, "bench-soak").contains("--soak 3"));
     assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-gate"));
     assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-gate\"]"));
+    assert!(xtask().contains("const AFTER_RUST_BUILD: &[&str] = &[\"rust-build\"]"));
 }
