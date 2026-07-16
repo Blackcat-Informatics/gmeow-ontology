@@ -143,5 +143,44 @@ mod tests {
             has_derivation,
             "a proof-derivation IRI is in graph/goal-directed"
         );
+
+        // The structured member/append demonstrator's cons-list answer atom rode through.
+        let has_structured = quads.iter().any(|q| {
+            matches!(&q.object, purrdf::RdfTerm::Literal(l)
+                if l.lexical_form == "member(a,cons(a,cons(b,cons(c,nil))))")
+        });
+        assert!(
+            has_structured,
+            "a structured cons-list membership answer is in graph/goal-directed"
+        );
+
+        // The three-valued SLG-WFS negation demonstrator: an `undefined` loop verdict AND both
+        // founded verdicts reached the graph — SLG-WFS is observable (non-dark).
+        let verdict_pred = "https://blackcatinformatics.ca/gmeow/goalDirectedVerdict";
+        let verdict_values: Vec<&str> = quads
+            .iter()
+            .filter(|q| q.predicate == verdict_pred)
+            .filter_map(|q| match &q.object {
+                purrdf::RdfTerm::Literal(l) => Some(l.lexical_form.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            verdict_values.contains(&"undefined"),
+            "an undefined WFS verdict is in graph/goal-directed: {verdict_values:?}"
+        );
+        assert!(
+            verdict_values.contains(&"true") && verdict_values.contains(&"false"),
+            "founded true/false WFS verdicts are in graph/goal-directed: {verdict_values:?}"
+        );
+
+        // The order-sorted (ℤ ⊑ ℝ) demonstrator's subsort-unified answer atom rode through.
+        let has_subsort = quads.iter().any(
+            |q| matches!(&q.object, purrdf::RdfTerm::Literal(l) if l.lexical_form == "p(one)"),
+        );
+        assert!(
+            has_subsort,
+            "the order-sorted subsort-unified answer p(one) is in graph/goal-directed"
+        );
     }
 }
