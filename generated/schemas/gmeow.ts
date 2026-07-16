@@ -6043,7 +6043,7 @@ export interface GTSSegment extends Manifestation {
 }
 
 export interface GapShape {
-    isReasonerFragmentGap?: boolean[],
+    isReasonerFragmentGap?: string[],
 }
 
 export interface GateVerdict {
