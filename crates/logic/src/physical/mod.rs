@@ -49,7 +49,14 @@ mod incremental_grounding;
 // module's `Id<Term>` alias (one definition, not two — greenfield).
 pub(crate) mod id;
 mod magic;
+// The persistent hash-consed structured-term DAG: content-addressed, binder-aware
+// (locally-nameless de-Bruijn) function-symbol / proof-object nodes. It grows the
+// `facts::TermInterner` seam that `id::TermRef` documents; distinct from the per-round
+// `arena::RowArena`. The DAG (`term_dag`) and its content-key fold (`term_key`) land
+// ahead of the unification / proof-object consumers on the next rungs.
 mod magic_generic;
+pub(crate) mod term_dag;
+pub(crate) mod term_key;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
