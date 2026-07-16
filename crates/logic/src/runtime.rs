@@ -280,6 +280,16 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("physical/cursor.rs", include_str!("physical/cursor.rs")),
     ("physical/generic.rs", include_str!("physical/generic.rs")),
     ("physical/id.rs", include_str!("physical/id.rs")),
+    // The structured full-FOL rung, and the term-arena / unification / proof substrate it
+    // consumes in production. Since `magic::resolve_native_under` routes a structured
+    // (`QTerm::Struct`) program into `resolve_fol`, and `resolve_fol` imports `term_dag`,
+    // `term_key`, `lower`, `unify`, and `proof`, a change to any of them can change a decided
+    // structured `AnswerSet` — so they are part of the backward decision surface.
+    ("physical/lower.rs", include_str!("physical/lower.rs")),
+    ("physical/proof.rs", include_str!("physical/proof.rs")),
+    ("physical/term_dag.rs", include_str!("physical/term_dag.rs")),
+    ("physical/term_key.rs", include_str!("physical/term_key.rs")),
+    ("physical/unify.rs", include_str!("physical/unify.rs")),
     (
         "physical/incremental.rs",
         include_str!("physical/incremental.rs"),
@@ -295,6 +305,10 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     ("physical/mod.rs", include_str!("physical/mod.rs")),
     ("physical/plan.rs", include_str!("physical/plan.rs")),
+    (
+        "physical/resolve_fol.rs",
+        include_str!("physical/resolve_fol.rs"),
+    ),
     (
         "physical/seminaive.rs",
         include_str!("physical/seminaive.rs"),
@@ -378,6 +392,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "foundation.rs",
         "native OntoUML foundation-discipline evaluator — forward evaluator/classifier, not backward dispatch",
+    ),
+    (
+        "goal_directed.rs",
+        "the pub façade that runs shipped goal-directed demonstrators through the backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls resolve_fol), not part of what dispatch_query decides",
     ),
     ("lib.rs", "crate-root module wiring, not the decision path"),
     (

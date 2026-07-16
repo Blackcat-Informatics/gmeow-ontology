@@ -2076,6 +2076,21 @@ pub enum Term {
     /// **sequence** of terms, not a single term. A distinct variant so the AST cannot
     /// confuse a single-term variable with a sequence one.
     SequenceMarker(String),
+    /// A compound **function-term application** `f(t₀, …, tₙ)` — a function symbol applied
+    /// to one or more argument terms (`cons(H, T)`, `s(X)`). `symbol` is the IRI of the
+    /// reified function symbol (a `logic:Type` individual, mirroring how [`Formula::Atom`]
+    /// reifies its relation), so the object level stays first-order: there is no
+    /// function-variable slot. `args` is a non-empty, ordered list of sub-terms and MAY
+    /// itself contain a nested [`Term::App`], so a nested term like `cons(H, cons(1, nil))`
+    /// round-trips. A *nullary* application is not admitted — a 0-ary function symbol is a
+    /// constant and is spelled [`Term::Iri`], so admitting an empty-`args` application would
+    /// give one constant two canonical identities.
+    App {
+        /// The reified function symbol's IRI (a `logic:Type` individual, never a variable).
+        symbol: String,
+        /// The ordered, non-empty argument terms (each may itself be an [`Term::App`]).
+        args: Vec<Term>,
+    },
 }
 
 impl Term {
@@ -2133,9 +2148,37 @@ impl Term {
         Ok(Self::SequenceMarker(name))
     }
 
+    /// A compound function-term application, rejecting an empty/whitespace-only symbol IRI
+    /// and a nullary argument list. A 0-ary application collides with a bare [`Self::Iri`]
+    /// constant, so arity ≥ 1 is enforced to keep one constant from acquiring two canonical
+    /// identities; an empty symbol collides with absence.
+    pub fn app(symbol: impl Into<String>, args: Vec<Term>) -> gmeow_errors::Result<Self> {
+        let symbol = symbol.into();
+        if symbol.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::App symbol must be a non-empty function-symbol IRI".to_owned(),
+            }));
+        }
+        if args.is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::App requires at least one argument; a nullary application is a \
+                 constant and must be a Term::Iri"
+                    .to_owned(),
+            }));
+        }
+        Ok(Self::App { symbol, args })
+    }
+
     /// `true` for a marker that binds a sequence rather than a single term.
     fn is_sequence_marker(&self) -> bool {
         matches!(self, Self::SequenceMarker(_))
+    }
+
+    /// `true` for a compound function-term application (`f(t₀, …, tₙ)`). Such a term exceeds
+    /// the function-free Horn/Datalog fragment, so an atom carrying one is not a trivial
+    /// triple (see [`Formula::is_trivially_horn`]).
+    fn is_application(&self) -> bool {
+        matches!(self, Self::App { .. })
     }
 
     /// The canonical key fragment for this term under a binding environment `env`
@@ -2151,6 +2194,18 @@ impl Term {
                 format!("L{SEP}{lexical}{SEP}{}", datatype.as_deref().unwrap_or(""))
             }
             Self::SequenceMarker(n) => format!("S{SEP}{}", resolve_binding(env, n)),
+            // A function-term application keys as its symbol plus its arity plus each
+            // argument's env-aware key (in order): the arity prefix keeps `f(a, b)` from
+            // ever colliding with a differently-nested term, and the recursive `key_in`
+            // makes a bound variable inside an argument alpha-normalize like anywhere else.
+            Self::App { symbol, args } => {
+                let mut inner = String::new();
+                for a in args {
+                    inner.push(SEP);
+                    inner.push_str(&a.key_in(env));
+                }
+                format!("A{SEP}{symbol}{SEP}{}{inner}", args.len())
+            }
         }
     }
 }
@@ -2301,15 +2356,19 @@ impl Formula {
 
     /// `true` when this formula is a *trivially-Horn* leaf that belongs in
     /// [`LogicProgram::axioms`], not [`LogicProgram::formulas`]: a [`Formula::Atom`] that
-    /// is exactly a binary predication (an IRI relation with two non-sequence-marker
-    /// args) — i.e. an ordinary triple. Such a node has a Horn home and must not enter the
+    /// is exactly a binary predication (an IRI relation with two *flat* args — neither a
+    /// sequence marker nor a compound function-term application) — i.e. an ordinary triple.
+    /// A function term exceeds the function-free Datalog fragment, so an atom carrying one is
+    /// a genuine formula, not a triple. Such a node has a Horn home and must not enter the
     /// formula collection, where it would give one fact two distinct content keys.
     pub(crate) fn is_trivially_horn(&self) -> bool {
         match self {
             Self::Atom { relation, args } => {
                 matches!(relation, Term::Iri(_))
                     && args.len() == 2
-                    && !args.iter().any(Term::is_sequence_marker)
+                    && !args
+                        .iter()
+                        .any(|a| a.is_sequence_marker() || a.is_application())
             }
             _ => false,
         }
@@ -2339,17 +2398,19 @@ impl Formula {
         let Term::Iri(predicate) = relation else {
             return None;
         };
-        // A triple subject is an IRI or a variable — never a literal or a sequence marker.
+        // A triple subject is an IRI or a variable — never a literal, a sequence marker, or a
+        // compound function term (`is_trivially_horn` already excludes an application-bearing
+        // atom, so the `App` arm is a defensive, never-taken guard, not a live path).
         let subject = match &args[0] {
             Term::Iri(iri) => iri.clone(),
             Term::Var(name) => format!("?{name}"),
-            Term::Literal { .. } | Term::SequenceMarker(_) => return None,
+            Term::Literal { .. } | Term::SequenceMarker(_) | Term::App { .. } => return None,
         };
         let (obj, obj_is_literal) = match &args[1] {
             Term::Iri(iri) => (iri.clone(), false),
             Term::Var(name) => (format!("?{name}"), false),
             Term::Literal { lexical, .. } => (lexical.clone(), true),
-            Term::SequenceMarker(_) => return None,
+            Term::SequenceMarker(_) | Term::App { .. } => return None,
         };
         LogicAxiom::ground(subject, predicate.clone(), obj, obj_is_literal).ok()
     }
