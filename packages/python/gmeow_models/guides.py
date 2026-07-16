@@ -11,6 +11,14 @@ from __future__ import annotations
 from enum import StrEnum
 
 
+class GroundingAttributeEnum(StrEnum):
+    groundingEn = "gmeow:groundingEn"
+    groundingExemplar = "gmeow:groundingExemplar"
+    groundingExternalMapped = "gmeow:groundingExternalMapped"
+    groundingFr = "gmeow:groundingFr"
+    groundingZh = "gmeow:groundingZh"
+
+
 class LearningPathEnum(StrEnum):
     pathAuditAiOrGraphRag = "gmeow:pathAuditAiOrGraphRag"
     pathModelAContestedClaim = "gmeow:pathModelAContestedClaim"
