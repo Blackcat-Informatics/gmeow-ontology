@@ -74,4 +74,4 @@ class InquiryTenure(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    tenureQuestion: list[str] | None = Field(default=None, description="The question the tenure records the agent as holding open over its interval. Functional: one tenure, one question; an agent holding five questions open bears five tenures. Sharing is at the Question: two agents inquiring into the same question hold distinct tenures pointing at one Question individual.", alias="gmeow:tenureQuestion")
+    tenureQuestion: list[str] | None = Field(default=None, description="Within gmeow:InquiryTenure, values are node references constrained to gmeow:Question. The question the tenure records the agent as holding open over its interval. Functional: one tenure, one question; an agent holding five questions open bears five tenures. Sharing is at the Question: two agents inquiring into the same question hold distinct tenures pointing at one Question individual.", alias="gmeow:tenureQuestion")

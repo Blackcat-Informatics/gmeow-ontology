@@ -21,7 +21,7 @@ of the lossless YAML-LD-star / JSON-LD-star sibling. Only the flat term surface
 is carried (label, definition, the documentation advisories, and the IS-A /
 domain / range / sub-property links); the OWL axioms, the RDF-star
 statement/reification layer, and the full alignment graph stay in the canonical
-GTS/OWL source. The lossiness is declared **in-band** in the bundle's root
+grounding-slice sources carried by GTS. The lossiness is declared **in-band** in the bundle's root
 `index.md`, mirroring how the OBO Graphs view declares its own loss.
 
 ## The seam: gmeow produces, `gts` validates

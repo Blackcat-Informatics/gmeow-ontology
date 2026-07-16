@@ -11,14 +11,15 @@
 # quality ladder (a persistent logic:Quality per arterial role, dated standpoint-
 # indexed observations, a unit-independent true quantity); the down-projection get
 # leg is the archetype_node_id path witness (events → items[at0004] → value) as a
-# gmeow:SeqPath. This structural case confirms the witness RESOLVES and its lawful
-# auto-derived inverse (put = get.invert()) is well-formed — the round-trip and
-# mnemomorphism gates PASS on the canonical IR. The actual data recovery (u∘d=id
-# against the real RM slice) is proven separately by
+# gmeow:SeqPath. The attached logic:RecoveryCase carries the COMPLETE three-edge source
+# path and an information-preserving view, so the native executor actually runs put∘get
+# and compares all source atoms — the round-trip and mnemomorphism gates PASS on behavior,
+# not structural inversion. The larger RM data recovery remains proven separately by
 # crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix qudt:  <http://qudt.org/vocab/unit/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://gmeow.example/openehr/bp/> .
@@ -47,15 +48,22 @@ ex:obsSys1 a gmeow:Observation ;
     gmeow:observationOf     ex:sysBP ;
     gmeow:observationResult ex:measSys1 ;
     gmeow:observedAt        "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
-    logic:accordingTo       ex:clinicStandpointDE ;
+    gmeow:accordingTo       ex:clinicStandpointDE ;
     logic:confidence        "0.98"^^xsd:decimal ;    # device-calibration confidence
     logic:evidenceStrength  "device-measured" ;      # provenance warrant (≠ confidence)
     logic:determinacy       logic:Crisp .            # the relationship is crisp (≠ how sure)
 
-ex:measSys1 a gmeow:Quantity ;
+ex:measSys1 a math:Quantity ;
     gmeow:trueQuantity  ex:bpMagnitude ;             # the frame-independent magnitude (P11)
-    gmeow:quantityValue "1.0"^^xsd:decimal ;
+    math:hasDimension   ex:pressureDimension ;
+    math:quantityValue "1.0"^^xsd:decimal ;
     gmeow:unit          qudt:MilliM_HG .
+
+ex:pressureDimension a math:DerivedDimension ;
+    math:baseDimensionExponent
+        [ a math:DimensionExponent ; math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ; math:exponentNumerator -1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ] .
 
 ex:bpMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
 
@@ -67,18 +75,52 @@ ex:bpSection a logic:Correspondence ;
     logic:morphismClass logic:SectionRetraction ;
     logic:morphismKind  logic:InstitutionMorphism ;
     logic:mnemomorphic  "true"^^xsd:boolean ;
-    logic:accordingTo   ex:clinicStandpointDE ;
+    gmeow:accordingTo   ex:clinicStandpointDE ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:getLeg        ex:bpGet .
+    logic:getLeg        ex:bpGet ;
+    logic:recoveryCase  ex:bpPathRecovery .
 
 # The get-leg body: a SeqPath whose steps ARE the archetype_node_id path witness
-# (events → items[at0004] → value). The lawful put is its structural inverse,
-# auto-derived; the round-trip gate confirms the resolved get body inverts cleanly
-# (put == get.invert()) and PASSES — i.e. the witness is resolvable and its inverse
-# well-formed. It does NOT by itself execute the recovery over data (that is the
-# roundtrip.rs reconstruction test).
+# (events → items[at0004] → value). The path itself supplies routing; the recovery case
+# below supplies and executes the complete graph that routing must preserve.
 ex:bpGet gmeow:path ex:bpGetSeq .
 ex:bpGetSeq a gmeow:SeqPath ; gmeow:pathSteps ex:bpc1 .
 ex:bpc1 gmeow:pathItem ex:rmEvents      ; gmeow:pathNext ex:bpc2 .
 ex:bpc2 gmeow:pathItem ex:rmItemsAt0004 ; gmeow:pathNext ex:bpc3 .
 ex:bpc3 gmeow:pathItem ex:rmValue .
+
+# A SeqPath's endpoint pair does not contain its intermediate event/item witnesses.  This
+# first-class case therefore declares the COMPLETE recoverable path graph; every variable rides
+# the view and the executed inverse reconstructs all three source atoms.
+ex:bpPathRecovery a logic:RecoveryCase ;
+    logic:recoveryTransform ex:bpPathRecoveryFormula .
+ex:bpPathRecoveryFormula a logic:Formula ;
+    logic:quantifiedVariable
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "root" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "event" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "item" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "value" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:and
+            [ a logic:Formula ; logic:relation ex:rmEvents ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "root" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "event" ] ] ,
+            [ a logic:Formula ; logic:relation ex:rmItemsAt0004 ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "event" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "item" ] ] ,
+            [ a logic:Formula ; logic:relation ex:rmValue ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "item" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "value" ] ]
+        ] ;
+        logic:consequent [ a logic:Formula ; logic:and
+            [ a logic:Formula ; logic:relation ex:viewEvents ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "root" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "event" ] ] ,
+            [ a logic:Formula ; logic:relation ex:viewItemsAt0004 ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "event" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "item" ] ] ,
+            [ a logic:Formula ; logic:relation ex:viewValue ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "item" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "value" ] ]
+        ]
+    ] .

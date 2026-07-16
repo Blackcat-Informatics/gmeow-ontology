@@ -3,8 +3,8 @@
 
 //! Integration tests for the deterministic Typst renderer and in-memory PDF
 //! compiler. All tests run over a SMALL hand-built fixture model (a few terms,
-//! one slice) so the whole suite compiles fonts once and stays well under the
-//! 25 s per-test budget.
+//! one slice) so the suite isolates renderer behavior without rebuilding the
+//! whole documentation catalog.
 
 use std::collections::BTreeMap;
 

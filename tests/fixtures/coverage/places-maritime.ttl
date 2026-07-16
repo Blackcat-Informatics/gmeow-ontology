@@ -5,6 +5,7 @@
 
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000-01/rdf-schema#> .
@@ -69,13 +70,15 @@ ex:jurisdictionB a gmeow:JurisdictionTenure ;
 
 # --- 3D depth bounds using maritime reference frame ---------------------------- #
 
-ex:depth0 a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "0"^^xsd:decimal ;
+ex:depth0 a math:Quantity ;
+    math:hasDimension math:lengthDimension ;
+    math:quantityValue "0"^^xsd:decimal ;
     gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameDepthBelowSeaLevel .
 
-ex:depth200 a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "200"^^xsd:decimal ;
+ex:depth200 a math:Quantity ;
+    math:hasDimension math:lengthDimension ;
+    math:quantityValue "200"^^xsd:decimal ;
     gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameDepthBelowSeaLevel .
 

@@ -4,13 +4,12 @@
 //! The native reasoning commands: `reason`, `verify`, `reason-verify`, `explain`,
 //! and the `certify` static profile check.
 //!
-//! All run over the folded `gmeow.gts` snapshot, whose default graph ALREADY
-//! carries the pipeline's reasoned closure and whose `graph/reasoning` carries the
-//! typed verdict-and-provenance result. The lanes therefore REUSE that shipped
-//! result by default (contract-hash-checked) instead of recomputing the closure
-//! the pipeline just shipped; `--fresh` forces a full re-reasoning pass with the
-//! Java/Docker-free Rust EL/DL engine (`gmeow_logic`). `certify` statically
-//! certifies a `.logic` program against its declared semantic profile.
+//! All read the folded `gmeow.gts` snapshot. The default lane reuses its shipped
+//! `graph/reasoning` typed verdict (contract-hash-checked); fresh lanes first project
+//! the snapshot back to the exact object-level EDB the pipeline authority used, so
+//! shipped mapping/correspondence/report graphs remain meta-level and never enter
+//! closure. `certify` statically certifies a `.logic` program against its declared
+//! semantic profile.
 
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -34,6 +33,17 @@ fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i
     Ok(bundle.dataset)
 }
 
+/// Recover the exact object-level reasoning EDB from a full shipped snapshot. The
+/// shared pipeline projector is the authority for the graph boundary, keeping CLI
+/// fresh reasoning byte-for-byte aligned with `stage-reason` rather than reasoning
+/// over every ontology-resident meta/report graph.
+fn snapshot_reasoning_dataset(
+    snapshot: &purrdf::RdfDataset,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
+    gmeow_pipeline::stages::carrier::snapshot_reasoning_edb(snapshot)
+        .map_err(|e| fail(format!("cannot project snapshot reasoning EDB: {e}")))
+}
+
 /// Re-derive the SHIPPED typed reasoning result from the snapshot's
 /// `graph/reasoning` projection — the SAME reverse parse the pipeline cache uses —
 /// and refuse a verdict minted under a different reasoning contract than this
@@ -43,7 +53,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
     if graph.quad_count() == 0 {
         return Err(error::reasoning(
-            "the snapshot carries no graph/reasoning verdict; run `make regenerate` \
+            "the snapshot carries no graph/reasoning verdict; run `make sync` \
              (or re-reason with --fresh)",
         ));
     }
@@ -62,7 +72,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     if result.provenance.contract_hash != current {
         return Err(error::reasoning(format!(
             "the shipped graph/reasoning verdict was minted under reasoning contract \
-             {shipped} but this binary implements {current}; run `make regenerate` to \
+             {shipped} but this binary implements {current}; run `make sync` to \
              re-mint the bundle (or re-reason with --fresh)",
             shipped = result.provenance.contract_hash,
         )));
@@ -86,7 +96,11 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         Err(code) => return code,
     };
     let (result, phase) = if fresh {
-        match reason_all(dataset.as_ref()) {
+        let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
+            Ok(edb) => edb,
+            Err(code) => return code,
+        };
+        match reason_all(edb.as_ref()) {
             Ok(r) => (r, "reason-native"),
             Err(e) => return fail(format!("native reasoning failed: {e}")),
         }
@@ -145,51 +159,6 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
 }
 
-/// Discover the `(name, sparql)` verify SELECT queries in the working tree:
-/// `queries/verify/*.rq` plus each slice's `queries/verify/*.rq`.
-fn discover_verify_queries(root: &Path) -> Vec<(String, String)> {
-    let mut files: Vec<PathBuf> = Vec::new();
-    collect_rq(&root.join("queries").join("verify"), &mut files);
-    collect_slice_verify(&root.join("slices"), &mut files);
-    files.sort();
-    files
-        .into_iter()
-        .filter_map(|p| {
-            let name = p.to_string_lossy().into_owned();
-            std::fs::read_to_string(&p).ok().map(|text| (name, text))
-        })
-        .collect()
-}
-
-/// Collect `*.rq` directly under `dir`.
-fn collect_rq(dir: &Path, out: &mut Vec<PathBuf>) {
-    if let Ok(entries) = std::fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().and_then(|e| e.to_str()) == Some("rq") {
-                out.push(path);
-            }
-        }
-    }
-}
-
-/// Collect `queries/verify/*.rq` under every slice directory below `slices`.
-fn collect_slice_verify(slices: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(slices) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            let verify = path.join("queries").join("verify");
-            if verify.is_dir() {
-                collect_rq(&verify, out);
-            }
-            collect_slice_verify(&path, out);
-        }
-    }
-}
-
 /// `gmeow-dev verify [--mode --fresh …]` — reasoned-graph negative tests. By
 /// default the queries run against the shipped closure + verdict already folded
 /// into the snapshot (contract-hash-checked, no second chase); `--fresh`
@@ -206,9 +175,13 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         Ok(d) => d,
         Err(code) => return code,
     };
-    let queries = discover_verify_queries(&root);
+    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
+        Ok(edb) => edb,
+        Err(code) => return code,
+    };
+    let queries = gmeow_logic::verify::embedded_verify_queries();
     let report = if fresh {
-        match verify_reasoned(dataset.as_ref(), &queries) {
+        match verify_reasoned(edb.as_ref(), &queries) {
             Ok(r) => r,
             Err(e) => return fail(format!("native verify failed: {e}")),
         }
@@ -217,7 +190,7 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             Ok(r) => r,
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         };
-        match verify_with_reasoning_result(dataset.as_ref(), &result, &queries) {
+        match verify_with_reasoning_result(edb.as_ref(), &result, &queries) {
             Ok(r) => r,
             Err(e) => return fail(format!("native verify failed: {e}")),
         }
@@ -265,10 +238,10 @@ fn evaluate_reason_verify_once<F>(
     produce_result: F,
 ) -> gmeow_errors::Result<ReasonVerifyEvaluation>
 where
-    F: FnOnce(&purrdf::RdfDataset) -> gmeow_errors::Result<ReasoningResult>,
+    F: FnOnce() -> gmeow_errors::Result<ReasoningResult>,
 {
     let result_started = Instant::now();
-    let result = produce_result(dataset)?;
+    let result = produce_result()?;
     let result_ms = elapsed_ms(result_started);
 
     if !result.is_decided_consistent() {
@@ -308,20 +281,24 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         Ok(d) => d,
         Err(code) => return code,
     };
+    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
+        Ok(edb) => edb,
+        Err(code) => return code,
+    };
     let snapshot_ms = elapsed_ms(snapshot_started);
-    let queries = discover_verify_queries(&root);
+    let queries = gmeow_logic::verify::embedded_verify_queries();
     let (evaluation, result_phase) = if fresh {
         (
-            evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
-                reason_all(edb)
+            evaluate_reason_verify_once(edb.as_ref(), &queries, || {
+                reason_all(edb.as_ref())
                     .map_err(|e| error::reasoning(format!("native reason+verify failed: {e}")))
             }),
             "reason-native",
         )
     } else {
         (
-            evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
-                shipped_reasoning_result(edb)
+            evaluate_reason_verify_once(edb.as_ref(), &queries, || {
+                shipped_reasoning_result(dataset.as_ref())
                     .map_err(|e| error::reasoning(format!("cannot reuse the shipped verdict: {e}")))
             }),
             "reason-result-shipped",
@@ -383,6 +360,10 @@ pub fn reason_crosscheck(timings_json: Option<&Path>) -> i32 {
         Ok(d) => d,
         Err(code) => return code,
     };
+    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
+        Ok(edb) => edb,
+        Err(code) => return code,
+    };
     let snapshot_ms = elapsed_ms(snapshot_started);
     // Reason FRESH: the cross-check needs the COMPLETE native subsumption closure.
     // The shipped `graph/reasoning` projection persists a reduced subsumption set
@@ -390,13 +371,13 @@ pub fn reason_crosscheck(timings_json: Option<&Path>) -> i32 {
     // reusing it would under-report native and false-flag those as OracleOnly. A
     // fresh `reason_all` is the full world-partitioned closure the comparison needs.
     let reason_started = Instant::now();
-    let result = match reason_all(dataset.as_ref()) {
+    let result = match reason_all(edb.as_ref()) {
         Ok(r) => r,
         Err(e) => return fail(format!("reason-crosscheck: native reasoning failed: {e}")),
     };
     let reason_ms = elapsed_ms(reason_started);
     let oracle_started = Instant::now();
-    let outcome = match run_entail_crosscheck(&result, dataset.as_ref()) {
+    let outcome = match run_entail_crosscheck(&result, edb.as_ref()) {
         Ok(o) => o,
         Err(e) => return fail(format!("reason-crosscheck failed: {e}")),
     };
@@ -496,17 +477,22 @@ pub fn reason_gate(timings_json: Option<&Path>) -> i32 {
         Ok(dataset) => dataset,
         Err(code) => return code,
     };
+    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
+        Ok(edb) => edb,
+        Err(code) => return code,
+    };
     let snapshot_ms = elapsed_ms(snapshot_started);
-    let queries = discover_verify_queries(&root);
-    let evaluation = match evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
-        reason_all(edb).map_err(|e| error::reasoning(format!("native reason gate failed: {e}")))
+    let queries = gmeow_logic::verify::embedded_verify_queries();
+    let evaluation = match evaluate_reason_verify_once(edb.as_ref(), &queries, || {
+        reason_all(edb.as_ref())
+            .map_err(|e| error::reasoning(format!("native reason gate failed: {e}")))
     }) {
         Ok(evaluation) => evaluation,
         Err(message) => return fail(message),
     };
 
     let oracle_started = Instant::now();
-    let outcome = match run_entail_crosscheck(&evaluation.result, dataset.as_ref()) {
+    let outcome = match run_entail_crosscheck(&evaluation.result, edb.as_ref()) {
         Ok(outcome) => outcome,
         Err(e) => return fail(format!("reason gate cross-check failed: {e}")),
     };
@@ -568,7 +554,11 @@ pub fn explain() -> i32 {
         Ok(d) => d,
         Err(code) => return code,
     };
-    let result = match reason_all(dataset.as_ref()) {
+    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
+        Ok(edb) => edb,
+        Err(code) => return code,
+    };
+    let result = match reason_all(edb.as_ref()) {
         Ok(r) => r,
         Err(e) => return fail(format!("explain failed: {e}")),
     };
@@ -700,9 +690,9 @@ mod tests {
     fn reason_verify_orchestration_invokes_the_result_producer_once() {
         let dataset = purrdf::RdfDataset::union(&[]);
         let calls = Cell::new(0usize);
-        let evaluation = evaluate_reason_verify_once(&dataset, &[], |edb| {
+        let evaluation = evaluate_reason_verify_once(&dataset, &[], || {
             calls.set(calls.get() + 1);
-            reason_all(edb)
+            reason_all(&dataset)
         })
         .expect("empty dataset reasons and verifies");
 

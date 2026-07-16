@@ -52,7 +52,7 @@ acoustically characterised.
 
 ### gmeow:CoordinateMatrix
 
-The generalisation of `ScalarQuantity` to vectors, matrices, and tensors: a serialised
+The generalisation of `math:Quantity` to vectors, matrices, and tensors: a serialised
 `gmeow:matrixValue` literal, a `gmeow:matrixShape` descriptor ("4×1", "256×1",
 "640×480×3"), a unit, a determinacy, and exactly one frame via
 `gmeow:coordinateMatrixFrame`. Used for colourspace tuples, audio spectra, thermal images,

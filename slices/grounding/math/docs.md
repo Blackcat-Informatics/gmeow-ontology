@@ -4,18 +4,24 @@
 # Mathematics — the `math:` grounding layer
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/math` · **tier: core**
-> The grounding vocabulary of the primitive mathematical objects — numbers, sets, and functions —
-> that every other mathematical charter quantifies, indexes, maps, and measures over. A peer of the
-> `logic:` reasoning layer.
+> The grounding vocabulary for mathematical references, expression ASTs, category-theoretic
+> structure, quantities/dimensions, numbers, sets, functions, probability, and statistics. A peer of
+> the `logic:` reasoning layer and `lang:` realization layer.
 
-This slice is the home of **GMEOW Mathematics (`math:`)**. Its single discipline is that
-**exactness is explicit**: a number declares the system it lives in, an exact value and an
-approximation of it are distinct objects, and a named constant is an exact individual anchored to an
-external authority rather than a decimal literal. A set is given extensionally by its elements or
-intensionally by a condition that denotes a `logic:` formula — never both silently — and a function
-declares its domain and codomain.
+This slice is the home of **GMEOW Mathematics (`math:`)**. Its discipline is that mathematical
+identity and structure are explicit: a local concept is distinct from its symbol, notation,
+rendering, and external identifier; a computable expression is a typed AST with strict ordered
+slots; category-theoretic objects are first-class; a dimensioned quantity and its numeric value have
+one canonical authority; and numeric exactness is never implied by an approximate literal.
 
-The bedrock realized here covers four regions:
+The grounding surface realized here includes:
+
+- **References, expressions, and ACT** — concepts, symbols, notations, theories, contexts, and
+  definitions; literal/symbol/variable/application/binding AST nodes; strict zero-based contiguous
+  argument slots; and first-class categories, morphisms, functors, and natural transformations.
+- **Quantities and dimensions** — the sole `math:Quantity` class and `math:quantityValue` property,
+  exact-rational dimension vectors, homogeneity laws, and observation qualifiers applied from their
+  owning slices without quantity aliases.
 
 - **Number systems and exactness** — the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ
   (`math:NaturalNumber` … `math:ComplexNumber`), the algebraic/transcendental cross-cut, named
@@ -36,12 +42,13 @@ The bedrock realized here covers four regions:
   projections), and `math:PartialFunction`, `math:FunctionSpace`, `math:functionComposition`,
   `math:inverseFunction`.
 
-The object-layer parents (`math:Set`, `math:Function`, `math:Operation`, `math:Relation`,
-`math:MathematicalExpression`) are minted here as the ground the bedrock builds on; the full
-expression grammar and proof/theory layer belong to the mathematical-core surface.
+The object-layer parents and the reference, expression, proof/theory, probability, statistics, and
+applied-category-theory surfaces are all authored in this grounding slice; the design files below
+factor their contracts without creating separate semantic owners.
 
 Every well-formedness violation is a typed, queryable object: `math:MathConformanceFailure` and its
-subclasses, each raised by a SHACL shape that names it through `gmeow:enforcesFailureClass`. The
+subclasses, each wired from a canonical EL-safe axiom or `logic:Constraint` through
+`gmeow:enforcesFailureClass` and projected to the applicable validation surface. The
 preservation-polarity vocabulary is reused verbatim from the `logic:` loss ledger, and each named
 constant and number system is anchored to Wikidata (with OEIS locators for the constants) as a
 `gmeow:TermEquivalence` alignment.
@@ -54,24 +61,24 @@ The normative design is a set of charters under [`design/`](./design/):
 | --- | --- | --- | --- |
 | [`design/MATHEMATICS.md`](./design/MATHEMATICS.md) | manifesto | realized | vision, doctrine, the grounding-layer posture |
 | [`design/MATHEMATICS-NUMBERS-AND-SETS.md`](./design/MATHEMATICS-NUMBERS-AND-SETS.md) | charter | realized | the bedrock: number systems and exactness, arithmetic, sets, relations and functions |
-| [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | realized (interning/`math:normalForm` pending) | the mathematical core: the reference, expression-AST, object, and statement/proof layers |
+| [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | realized (reference layer, typed AST, strict slot contiguity, ACT core; content-addressed interning pending) | the mathematical core: the reference, expression-AST, object, ACT, and statement/proof layers |
 | [`design/MATHEMATICS-MEASURE-AND-DIMENSION.md`](./design/MATHEMATICS-MEASURE-AND-DIMENSION.md) | charter | realized (incl. the native ℚ⁷ homogeneity gate) | measurable spaces, measures, integration, dimensional analysis, units |
 | [`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md) | charter | realized | the structure hierarchy, homomorphism laws, E8, homomorphic encryption, secret sharing |
 | [`design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](./design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | charter | realized | calculus binders, topology with first-order laws and the second-order compactness boundary, manifolds |
 | [`design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md) | charter | realized (exact-rational numeric core; heavy computation design-only) | inner products, exact Gram/norm layer, PCA, embeddings, tensor graphs, residual meaning |
-| [`design/MATHEMATICS-PROBABILITY.md`](./design/MATHEMATICS-PROBABILITY.md) | charter | **design-only** — no probability classes, shapes, fixtures, or failure classes are authored yet | probability spaces, random variables, distributions with mandatory parameterization, dependency models, the `logic:probabilityModel` seam |
-| [`design/MATHEMATICS-STATISTICS.md`](./design/MATHEMATICS-STATISTICS.md) | charter | **partial** — the R-bridge model/estimand/estimate stub is realized; the inference apparatus (p-values, intervals, hypotheses, estimators, diagnostics, sampling frames) is not | statistical models, estimation, inference, the process/result/claim split |
+| [`design/MATHEMATICS-PROBABILITY.md`](./design/MATHEMATICS-PROBABILITY.md) | charter | realized | probability spaces, random variables, distributions with mandatory parameterization, dependency models, the `logic:probabilityModel` seam |
+| [`design/MATHEMATICS-STATISTICS.md`](./design/MATHEMATICS-STATISTICS.md) | charter | realized (external computational engines remain projections) | statistical models, estimation, inference, p-values, interval paradigms, diagnostics, and the process/result/claim split |
 | [`design/MATHEMATICS-BRIDGES.md`](./design/MATHEMATICS-BRIDGES.md) | charter | vocabulary realized (ingest-run spine + native unliftable gate); the R/ONNX/proof lifters themselves are design-only | executable-artifact ingestion: R, ONNX, and proof-assistant lifts |
-| [`design/MATHEMATICS-PROJECTIONS.md`](./design/MATHEMATICS-PROJECTIONS.md) | contract | **design-only** — no emitters and no projection failure classes are authored yet | outbound lossy lowerings (MathML, OpenMath, Data Cube, STATO, QUDT) and inbound refusal contracts |
+| [`design/MATHEMATICS-PROJECTIONS.md`](./design/MATHEMATICS-PROJECTIONS.md) | contract | partially realized — shipped grounding correspondences and projection-failure records are live; full document/codec emitters remain design | outbound lossy lowerings (MathML, OpenMath, Data Cube, STATO, QUDT) and inbound refusal contracts |
 | [`design/MATHEMATICS-RUNTIME.md`](./design/MATHEMATICS-RUNTIME.md) | runtime | **design-only** (self-declared) | ingestion as projection run backwards, expression interning, the solver-profile handoff, acceptance gates |
-| [`design/MATHEMATICS-CONFORMANCE.md`](./design/MATHEMATICS-CONFORMANCE.md) | enforcement | realized for the structural half; the probability/statistics/projection rows await their layers | the gate matrix — each hard rule, its gate kind, and the `math:` failure class it raises |
+| [`design/MATHEMATICS-CONFORMANCE.md`](./design/MATHEMATICS-CONFORMANCE.md) | enforcement | realized across the canonical structural, probability, statistics, and grounding-correspondence surfaces; codec-only rows remain pending | the gate matrix — each hard rule, its gate kind, and the `math:` failure class it raises |
 | [`design/MATHEMATICS-REFERENCES.md`](./design/MATHEMATICS-REFERENCES.md) | references | realized (alignment lanes authored in `mappings/equivalences.ttl`) | the external-authority landscape (OpenMath, Wikidata, OEIS, DLMF, QUDT, xsd) and the anchoring posture |
 
 ## The gates
 
-Each bedrock hard rule is enforced by a SHACL shape in [`shapes.ttl`](./shapes.ttl) and demonstrated
-by a positive fixture (it validates) and a negative counter-example (it raises exactly the named
-failure) under the native slicetest harness:
+Each bedrock hard rule is authored as an EL-safe axiom or `logic:Constraint` in
+[`module.ttl`](./module.ttl), projected to the applicable validation surface, and demonstrated by a
+positive fixture and a negative counter-example under the native slicetest harness:
 
 | Rule | Shape | Failure class |
 | --- | --- | --- |
@@ -182,6 +189,13 @@ binder AST its operators consume, using the canonical reserved names (no near-sy
   structured `math:MetricSignature` (p, q). The **Lorentzian** metric is the math object a physics slice
   needs for spacetime, and it stays here on the math side of the boundary — spacetime, worldlines, and
   the SR/GR regimes are physics.
+- **Conformal geometry and compactification** — `math:Compactification` (the structured record naming
+  four roles: `math:originalSpace`, `math:compactifyingMap`, `math:compactifiedSpace`, and
+  `math:boundaryAtInfinity`), its conformal (Penrose-style) specialization
+  `math:ConformalCompactification` (additionally carrying a `math:conformalFactor` Ω), and
+  `math:BoundaryAtInfinity` (the ideal points at infinity). The conformal case is the general home for
+  embedding a `math:LorentzianManifold`'s radial infinity as a finite boundary; the metric and its
+  rescaling stay math-side.
 
 The distinguished hard rule is the **named complement**: a `math:Complement` names its `math:ambientSpace`
 and its `math:complementSemantics` (set-theoretic, orthogonal, complex-linear, topological, or
@@ -199,8 +213,10 @@ homogeneity.
 | A manifold declares its dimension and structure kind | `math:ManifoldShape` | `math:UnderspecifiedManifold` |
 | A chart names its domain, coordinate map, and target space | `math:ChartShape` | `math:UnderspecifiedChart` |
 | A chart's/tangent space's dimension matches its manifold | `math:ChartDimensionShape` / `math:TangentSpaceDimensionShape` (SHACL-SPARQL) | `math:DimensionMismatch` |
+| A compactification names all four roles (+ a conformal one its conformal factor) | `math:CompactificationShape` / `math:ConformalCompactificationShape` | `math:UnderspecifiedCompactification` |
 | A complement names its ambient space and complement-semantics | `math:ComplementShape` | `math:UnqualifiedComplement` |
-| An argument slot has exactly one index and expression; slot indexes are unique | `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` | `math:MalformedArgumentSlot` |
+| An argument slot has exactly one index and expression; indexes are unique, non-negative, zero-based, and contiguous | derived `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` / `math:ArgumentSlotContiguityConstraint` | `math:MalformedArgumentSlot` / `math:NonContiguousArgumentSlots` |
+| A symbol-reference AST leaf resolves to exactly one local mathematical symbol | derived exact-one SymbolReference shape | `math:UnresolvedSymbolReference` |
 | A variable occurrence resolves to a declaration | `math:VariableOccurrenceShape` | `math:UnscopedVariableOccurrence` |
 
 ## Linear algebra, learning & representation — the operational objects of AI

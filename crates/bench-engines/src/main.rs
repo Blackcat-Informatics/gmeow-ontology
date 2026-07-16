@@ -361,7 +361,7 @@ fn main() -> gmeow_errors::Result<()> {
     //    verdict-agreement against the committed baseline; ANY divergence is a
     //    cost-regression gmeow:Finding routed through the SHARED divergence ledger
     //    (content-addressed identity), and hard-fails the run. This is the richer
-    //    honesty surface behind the primary on-gate `check-generated` cost-ledger
+    //    honesty surface behind the primary on-gate strict-sync cost-ledger
     //    drift gate. Run BEFORE the artifact is assembled (it borrows the records). ──
     if let Some(baseline_path) = &check_cost {
         run_cost_regression_check(baseline_path, &case_records)?;

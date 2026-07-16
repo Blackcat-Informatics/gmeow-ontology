@@ -125,7 +125,7 @@ pub fn snapshot_bytes(root: &Path) -> Result<Vec<u8>, i32> {
     let path = root.join(GTS_SNAPSHOT_REL);
     std::fs::read(&path).map_err(|e| {
         fail(format!(
-            "cannot read {} ({e}); run `make regenerate` first",
+            "cannot read {} ({e}); run `make sync` first",
             path.display()
         ))
     })
@@ -139,7 +139,7 @@ pub fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
 }
 
 /// Reject a non-positive `--jobs` before it reaches the native `usize` boundary
-/// (mirrors the Python `_validate_jobs`). `None` means "capped CPU count".
+/// (mirrors the Python `_validate_jobs`). `None` means every available CPU.
 pub fn resolve_jobs(jobs: Option<usize>) -> Result<usize, i32> {
     match jobs {
         Some(0) => Err(fail("number of jobs must be at least 1")),

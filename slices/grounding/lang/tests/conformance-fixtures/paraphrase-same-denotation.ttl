@@ -18,8 +18,10 @@ ex:english a lang:SignSystem .
 # The original clause, "the applicant must submit the form", and its paraphrase,
 # "applicants are required to hand in the form" — both English composed forms.
 ex:origClause a lang:ComposedForm ; lang:inSignSystem ex:english .
+ex:plainClause a lang:ComposedForm ; lang:inSignSystem ex:english .
 
 ex:paraPlain a lang:Paraphrase ;
     lang:paraphraseOf ex:origClause ;
+    lang:paraphraseForm ex:plainClause ;
     lang:paraphraseSamenessKind lang:sameDenotation ;
     lang:paraphrasePreservation logic:ValidationOnly .

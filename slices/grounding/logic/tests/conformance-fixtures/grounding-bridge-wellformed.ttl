@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive mapping-DSL fixture. It carries every explicit grounding judgment and
+# a representative graph spanning the logic:-native OWL/RDFS and SHACL-guard terms.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .
+
+ex:bridge a gmeow:TermEquivalence , logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Restriction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject owl:Restriction ;
+    gmeow:sssomFile "fixture.sssom.tsv" ;
+    logic:sourceEndpoint logic:Restriction ;
+    logic:targetEndpoint owl:Restriction ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    logic:morphismClass logic:WellBehavedLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+ex:finiteStatusGuard logic:termIn ex:status , ex:active , ex:pending .
+ex:codeGuard logic:termRegex ex:code , "^[A-Z]{2}$" .
+ex:directClaimGuard logic:directType ex:focus , ex:ReviewedClaim .
+ex:reviewedTarget logic:sparqlTarget ex:focus , "SELECT ?this WHERE { ?this ex:reviewed true }" .
+ex:Cat logic:subClassOf ex:Animal .
+ex:HumanBeing logic:equivalentClass ex:Person .
+ex:Continuant logic:disjointWith ex:Occurrent .
+ex:biologicalParentOf logic:subPropertyOf ex:parentOf .
+ex:hasBirthMother logic:equivalentProperty ex:birthMotherRelation .
+ex:parentOf logic:inverseOf ex:childOf .
+ex:memberOf logic:domain ex:Agent ; logic:range ex:Organization .
+ex:identifiedBy a logic:inverseFunctionalProperty .
+ex:connectedTo a logic:reflexiveProperty .
+ex:someMemberRestriction a logic:Restriction ; logic:onProperty ex:member ; logic:someValuesFrom ex:Person .
+ex:onlyMemberRestriction a logic:Restriction ; logic:onProperty ex:member ; logic:allValuesFrom ex:Person .
+ex:activeRestriction a logic:Restriction ; logic:onProperty ex:status ; logic:hasValue ex:active .
+ex:minMemberRestriction a logic:Restriction ; logic:onProperty ex:member ; logic:minCardinality 1 .
+ex:maxLeadRestriction a logic:Restriction ; logic:onProperty ex:lead ; logic:maxCardinality 1 .
+ex:birthMotherRestriction a logic:Restriction ; logic:onProperty ex:birthMother ; logic:cardinality 1 .
+ex:reviewerRestriction a logic:Restriction ; logic:onProperty ex:reviewer ; logic:qualifiedCardinality 2 ; logic:onClass ex:Person .
+ex:minScoreRestriction a logic:Restriction ; logic:onProperty ex:score ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:decimal .
+ex:maxScoreRestriction a logic:Restriction ; logic:onProperty ex:score ; logic:maxQualifiedCardinality 3 ; logic:onDataRange xsd:decimal .
+ex:trafficLightState a logic:Enumeration ; logic:oneOf ( ex:red ex:amber ex:green ) .
+ex:adultAge a logic:Datarange ; logic:onDatatype xsd:integer ; logic:withRestrictions ( [ xsd:minInclusive 18 ] ) .
+ex:groundingSurface rdfs:seeAlso
+    logic:GroundingCorrespondence , logic:sourceEndpoint , logic:targetEndpoint ,
+    logic:termIn , logic:termRegex , logic:directType , logic:sparqlTarget ,
+    logic:Restriction , logic:Enumeration , logic:Datarange ,
+    logic:subClassOf , logic:equivalentClass , logic:disjointWith ,
+    logic:subPropertyOf , logic:equivalentProperty , logic:inverseOf ,
+    logic:domain , logic:range , logic:inverseFunctionalProperty ,
+    logic:reflexiveProperty , logic:onProperty , logic:someValuesFrom ,
+    logic:allValuesFrom , logic:hasValue , logic:minCardinality ,
+    logic:maxCardinality , logic:cardinality , logic:qualifiedCardinality ,
+    logic:minQualifiedCardinality , logic:maxQualifiedCardinality ,
+    logic:onDataRange , logic:oneOf , logic:onDatatype , logic:withRestrictions .

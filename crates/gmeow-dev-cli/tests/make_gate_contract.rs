@@ -1,12 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Structural contract for the aggregate Make gate.
-//!
-//! The standalone targets remain complete developer entry points. `make check`
-//! composes their non-overlapping equivalents so one invocation does not repeat
-//! clippy, issue-reference linting, native reasoning, mapping compilation, or the
-//! first iteration of the deterministic engine soak.
+//! Structural contract for the aggregate task DAG and its thin Make entrypoints.
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
@@ -23,26 +18,8 @@ fn makefile() -> String {
     std::fs::read_to_string(repo_root().join("Makefile")).expect("read repo Makefile")
 }
 
-fn logical_assignment<'a>(source: &'a str, name: &str) -> Vec<&'a str> {
-    let prefix = format!("{name} :=");
-    let mut lines = source.lines();
-    let first = lines
-        .find(|line| line.starts_with(&prefix))
-        .unwrap_or_else(|| panic!("missing {name} assignment"));
-    let mut words = Vec::new();
-    let mut line = first[prefix.len()..].trim();
-    loop {
-        let continued = line.ends_with('\\');
-        words.extend(line.trim_end_matches('\\').split_whitespace());
-        if !continued {
-            break;
-        }
-        line = lines
-            .next()
-            .expect("continued Make assignment has a line")
-            .trim();
-    }
-    words
+fn xtask() -> String {
+    std::fs::read_to_string(repo_root().join("crates/xtask/src/main.rs")).expect("read xtask DAG")
 }
 
 fn target_header_index(source: &str, target: &str) -> usize {
@@ -71,14 +48,13 @@ fn target_recipe(source: &str, target: &str) -> String {
 
 #[test]
 fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
-    let source = makefile();
-    let targets = logical_assignment(&source, "CHECK_TARGETS");
+    let source = xtask();
     let expected = vec![
+        "sync",
         "check-lint",
         "rust-gate",
         "gts-frame-profile-gate",
         "validate",
-        "check-generated",
         "constitution-check",
         "crate-check",
         "audit",
@@ -92,8 +68,14 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "coherence-gate-teeth",
         "slice-quality-gate",
         "bench-soak",
+        "compliance-report",
     ];
-    assert_eq!(targets, expected, "aggregate gate inventory changed");
+    let targets = source
+        .lines()
+        .filter_map(|line| line.split("name: \"").nth(1))
+        .filter_map(|tail| tail.split('"').next())
+        .collect::<Vec<_>>();
+    assert_eq!(targets, expected, "aggregate DAG inventory changed");
 
     let unique: BTreeSet<_> = targets.iter().copied().collect();
     assert_eq!(unique.len(), targets.len(), "aggregate repeats a target");
@@ -115,6 +97,14 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
 #[test]
 fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     let source = makefile();
+
+    assert!(target_recipe(&source, "check").contains("cargo xtask check"));
+    assert!(target_recipe(&source, "sync").contains("$(GMEOW_DEV) sync"));
+    assert_eq!(
+        source.matches("sync:").count(),
+        1,
+        "sync has one Make authority"
+    );
 
     assert_eq!(
         target_header(&source, "lint"),
@@ -147,8 +137,6 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
 
     assert!(target_recipe(&source, "reason-gate").contains("$(GMEOW_DEV) reason-gate"));
     assert!(target_recipe(&source, "bench-soak").contains("--soak 3"));
-    assert!(
-        target_header(&source, "coherence-gate-teeth").contains("reason-gate"),
-        "standalone teeth proof must retain the clean-bundle prerequisite"
-    );
+    assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-gate"));
+    assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-gate\"]"));
 }

@@ -39,6 +39,13 @@ const GM_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
 const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GM_SUBJECT_LABEL: &str = "https://blackcatinformatics.ca/gmeow/subjectLabel";
 const GM_OBJECT_LABEL: &str = "https://blackcatinformatics.ca/gmeow/objectLabel";
+const LOGIC_GROUNDING_CORRESPONDENCE: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+const LOGIC_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
+const LOGIC_MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
+const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+const LOGIC_SOURCE_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
+const LOGIC_TARGET_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
 const GM_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
 const GM_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GM_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
@@ -77,12 +84,28 @@ const SSSOM_ALWAYS: &[&str] = &[
 /// `logic:Correspondence` transpiler materializes one typed node per cell from THE SAME
 /// extraction the SSSOM renderer reads — no second, drifting read of the store.
 #[derive(Debug, Clone)]
-pub(crate) struct EquivalenceCell {
-    pub(crate) subject: String,
-    pub(crate) predicate: String,
-    pub(crate) obj: String,
-    pub(crate) confidence: Option<f64>,
+pub struct EquivalenceCell {
+    pub subject: String,
+    pub predicate: String,
+    pub obj: String,
+    pub confidence: Option<f64>,
     pub(crate) justification: Option<String>,
+    /// Optional authored law-spine rung. Absent cells retain the predicate-derived SSSOM
+    /// default; grounding bridges author this explicitly so a commitment shift can never
+    /// be flattened into an ordinary lens.
+    pub(crate) morphism_class: Option<String>,
+    /// Optional authored satisfaction/commitment qualifier.
+    pub(crate) morphism_kind: Option<String>,
+    /// Optional authored per-correspondence preservation judgment.
+    pub(crate) preservation: Option<String>,
+    /// Explicit source endpoint of a grounding correspondence. Ordinary SSSOM cells may
+    /// omit it; grounding cells must carry it and it must agree with `alignSubject`.
+    pub(crate) source_endpoint: Option<String>,
+    /// Explicit target endpoint of a grounding correspondence. Ordinary SSSOM cells may
+    /// omit it; grounding cells must carry it and it must agree with `alignObject`.
+    pub(crate) target_endpoint: Option<String>,
+    /// Whether the frontend cell is explicitly a `logic:GroundingCorrespondence`.
+    pub(crate) grounding: bool,
     comment: String,
     /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
     /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
@@ -91,7 +114,7 @@ pub(crate) struct EquivalenceCell {
     lossy_drops: Vec<String>,
     sssom_file: String,
     subject_label: String,
-    object_label: String,
+    pub object_label: String,
 }
 
 /// Per-file SSSOM header metadata (`gmeow:MappingSet`).
@@ -390,7 +413,7 @@ pub fn alignment_terms(view: &DslView) -> BTreeSet<String> {
 /// Every `gmeow:TermEquivalence` cell discovered over `view`, in extraction order — the
 /// frontend transpiler's input. Shares [`extract_equivalences`] with the SSSOM renderer,
 /// so the typed correspondence set and the rendered TSV read the store identically.
-pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
+pub fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
     let mut out = Vec::new();
     extract_equivalences(view, &mut out);
     out
@@ -523,6 +546,10 @@ fn fixed_template_values(binding: &ProfileBinding) -> Vec<String> {
 
 fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
     let _ = RDF_TYPE; // documented surface; subjects_of_type uses it internally.
+    let grounding: BTreeSet<String> = view
+        .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
+        .into_iter()
+        .collect();
     for subject in view.subjects_of_type(GM_TERM_EQUIVALENCE) {
         let (Some(subject_iri), Some(predicate_iri), Some(object_iri_v), Some(sssom_file)) = (
             view.object_iri(&subject, GM_ALIGN_SUBJECT),
@@ -543,6 +570,12 @@ fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
             obj: object_iri_v,
             confidence,
             justification: view.object_iri(&subject, GM_JUSTIFICATION),
+            morphism_class: view.object_iri(&subject, LOGIC_MORPHISM_CLASS),
+            morphism_kind: view.object_iri(&subject, LOGIC_MORPHISM_KIND),
+            preservation: view.object_iri(&subject, LOGIC_PRESERVATION_KIND),
+            source_endpoint: view.object_iri(&subject, LOGIC_SOURCE_ENDPOINT),
+            target_endpoint: view.object_iri(&subject, LOGIC_TARGET_ENDPOINT),
+            grounding: grounding.contains(&subject),
             comment: view
                 .object_literal(&subject, GM_COMMENT)
                 .unwrap_or_default(),
@@ -720,7 +753,9 @@ fn sssom_header(
         lines.push(format!("# mapping_set_version: {version}"));
         lines.push(format!("# license: {}", meta.license));
     }
-    lines.push("# mapping_tool: gmeow regenerate (mappings)".to_owned());
+    lines.push(
+        "# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)".to_owned(),
+    );
     lines.push(format!("# mapping_tool_version: {version}"));
     lines.push(format!("# mapping_date: {release_date}"));
     if let Some(meta) = meta
@@ -870,7 +905,7 @@ mod tests {
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: \"Demo set with wrap\"

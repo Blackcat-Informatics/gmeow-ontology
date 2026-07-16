@@ -17,9 +17,9 @@
 //! | `logic_compile_check` (ignored)   | `test_logic_cli::…_compile_check_*`     |
 //!
 //! The whole-pipeline / whole-gate commands (`logic compile --check`, `feedback`,
-//! `regenerate`) exceed the 25s per-test budget, so they ride an OFF-GATE
-//! `#[ignore]` lane behind `GMEOW_DEV_CLI_HEAVY=1` — the default `cargo nextest` /
-//! `make check` never runs them; a maintainer opts in explicitly.
+//! synchronization) duplicate dedicated repository gates, so they ride an explicit
+//! `#[ignore]` maintainer lane behind `GMEOW_DEV_CLI_HEAVY=1`; focused CLI behavior
+//! stays on the default lane.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -339,7 +339,7 @@ fn extract_reference_only_target_is_refused() {
         .stdout(predicate::str::contains("import-ok"));
 }
 
-// ── OFF-GATE lane: whole-pipeline / whole-gate commands exceed the 25s budget ──
+// ── Maintainer lane: whole-pipeline / whole-gate command parity ────────────────
 
 /// Whether the heavy off-gate lane is enabled (`GMEOW_DEV_CLI_HEAVY=1`).
 fn heavy_enabled() -> bool {
@@ -362,7 +362,7 @@ fn wikidata_existence_live_lookup() {
 }
 
 #[test]
-#[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
+#[ignore = "maintainer lane: duplicates the whole compile/check pipeline"]
 fn logic_compile_check_no_drift() {
     if !heavy_enabled() {
         return;
@@ -376,7 +376,7 @@ fn logic_compile_check_no_drift() {
 }
 
 #[test]
-#[ignore = "off-gate: whole-ontology SHACL over the sources; exceeds the 25s budget"]
+#[ignore = "maintainer lane: duplicates whole-ontology validation"]
 fn validate_passes_on_the_clean_repo() {
     if !heavy_enabled() {
         return;
@@ -389,7 +389,7 @@ fn validate_passes_on_the_clean_repo() {
 }
 
 #[test]
-#[ignore = "off-gate: reads the whole bundle + corpus; exceeds the 25s budget"]
+#[ignore = "maintainer lane: exhaustive whole-bundle and corpus audit"]
 fn up_projection_audit_runs() {
     if !heavy_enabled() {
         return;
@@ -402,7 +402,7 @@ fn up_projection_audit_runs() {
 }
 
 #[test]
-#[ignore = "off-gate: folds every gate surface; exceeds the 25s budget"]
+#[ignore = "maintainer lane: folds every repository gate surface"]
 fn feedback_writes_artifacts() {
     if !heavy_enabled() {
         return;
@@ -509,5 +509,42 @@ fn shape_equivalence_reports_not_equiv_and_exits_nonzero_when_divergent() {
         .assert()
         .failure()
         .stdout(predicate::str::contains("[NOT-EQUIV"));
+    std::fs::remove_dir_all(&root).ok();
+}
+
+/// `shape-migrate`'s namespace guard must accept every authoring namespace
+/// (`gmeow_logic_compile::frontend::AUTHORING_NAMESPACES`), not just `gmeow:`: a legacy shape
+/// targeting a `math:` class is eligible for injection and must NOT be skipped as
+/// non-dogfooded. Regression for the injector consuming the single exported authority instead
+/// of a stale local mirror of it.
+#[test]
+fn shape_migrate_does_not_skip_a_math_namespace_target_class() {
+    let root = tempdir();
+    // The shared projected surface (irrelevant `gmeow:Foo` shape) — `OracleCtx::load` requires
+    // all three generated shape-union members to exist.
+    write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
+    let slice_dir = root.join("slices").join("demo-math");
+    std::fs::create_dir_all(&slice_dir).expect("mk slices/demo-math");
+    std::fs::write(
+        slice_dir.join("shapes.ttl"),
+        "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+         @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+         math:PointShape a sh:NodeShape ;\n\
+             sh:targetClass math:Point ;\n\
+             sh:property [ sh:path math:coordinate ; sh:minCount 1 ] .\n",
+    )
+    .expect("write legacy math shape");
+    Command::cargo_bin("gmeow-dev")
+        .expect("gmeow-dev binary")
+        .env("GMEOW_ROOT", &root)
+        .args(["shape-migrate", "--path", "slices/demo-math"])
+        .assert()
+        .stdout(
+            predicate::str::contains("[SKIP non-dogfooded-namespace]")
+                .not()
+                .and(predicate::str::contains(
+                    "https://blackcatinformatics.ca/math/PointShape",
+                )),
+        );
     std::fs::remove_dir_all(&root).ok();
 }

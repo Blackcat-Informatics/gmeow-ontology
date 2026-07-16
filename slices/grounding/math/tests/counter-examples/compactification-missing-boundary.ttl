@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:CompactificationShape: a math:Compactification that names
+# its original space, its compactifying map, and its compactified space but OMITS its
+# math:boundaryAtInfinity (sh:minCount 1, derived from the exact-one
+# math:boundaryAtInfinity restriction). Validation MUST emit
+# shacl.MinCountConstraintComponent (math:UnderspecifiedCompactification). It is a
+# plain math:Compactification (not a math:ConformalCompactification), so no
+# conformal-factor obligation applies and the other three roles are present — the
+# missing boundary at infinity is the single isolated violation: a compactification
+# that adjoins no boundary at infinity is not a compactification. Bound by
+# ex:ecCompactificationMissingBoundary.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:boundarylessCompactification a math:Compactification ;
+    rdfs:label "A compactification asserted without naming its boundary at infinity"@x-gmeow-english ;
+    math:originalSpace ex:radialHalfLine ;
+    math:compactifyingMap ex:radialCompactifyingMap ;
+    math:compactifiedSpace ex:compactifiedRadialInterval .
+
+ex:radialHalfLine a math:TopologicalSpace , math:Set .
+
+ex:radialCompactifyingMap a math:CoordinateMap ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:compactifiedRadialInterval .
+
+ex:compactifiedRadialInterval a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .

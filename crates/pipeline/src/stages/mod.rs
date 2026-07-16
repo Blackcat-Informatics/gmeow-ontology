@@ -46,6 +46,10 @@ pub mod gate_verdict;
 // lossy views of the ontology-resident gmeow:AxisFloorCommitment / gmeow:SliceTierFloor
 // individuals (Principle 17 — the ontology is canonical, these TSVs are its projection).
 pub mod governance_floors;
+// The projection-ceilings export leaf: the two projection-vocabulary ratchet TSVs
+// projected as lossy views of the ontology-resident gmeow:ProjectionCeilingCommitment /
+// gmeow:ProjectionVocabulary individuals (Principle 17).
+pub mod projection_ceilings;
 // The GMN-1 round-trip gate: the executed byte witness behind
 // `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
 // `superset`'s byte-reconstruction discipline over the grounding slices' GMN-0.
@@ -84,6 +88,14 @@ pub mod schemas;
 // Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
 // renderer and the Pydantic package emitter share ONE copy of each rule.
 pub(crate) mod schema_ident;
+// The FRESH shape-union loader: the registry union with the produced
+// `generated/shapes/*.ttl` members sourced from THIS run's consumed products instead
+// of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
+// pydantic, and validate).
+pub mod shape_union_fresh;
+// The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
+// slice batch and folds the union into the carrier as graph/authoring-briefs.
+pub mod slice_brief;
 pub mod source_load;
 pub mod statements;
 // Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
@@ -106,6 +118,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
+    registry.register("slice-brief", Arc::new(slice_brief::SliceBriefStage::new()));
     registry.register(
         "math_producers",
         Arc::new(math_producers::MathProducersStage::new()),
@@ -134,13 +147,17 @@ pub fn register_default(registry: &mut StageRegistry) {
         "governance_floors",
         Arc::new(governance_floors::GovernanceFloorsStage),
     );
+    registry.register(
+        "projection_ceilings",
+        Arc::new(projection_ceilings::ProjectionCeilingsStage),
+    );
     registry.register("result_shapes", Arc::new(result_shapes::ResultShapesStage));
     registry.register(
         "result_shape_composition",
         Arc::new(result_shape_composition::ResultShapeCompositionStage),
     );
-    registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage));
-    registry.register("pydantic", Arc::new(pydantic::PydanticStage));
+    registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage::new()));
+    registry.register("pydantic", Arc::new(pydantic::PydanticStage::new()));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));

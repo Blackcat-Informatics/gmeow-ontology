@@ -4,10 +4,10 @@
 //! openEHR data-axis vertical: the blood-pressure round trip against the REAL GECCO
 //! Blutdruck fixtures.
 //!
-//! This is the *data* sense of the section/retraction round trip (the conformance case
-//! `correspondence/openehr-bloodpressure-section-retraction` is the *structural* sense,
-//! proving `put = get.invert()` over a `gm:SeqPath` witness). This module proves, against
-//! the actual vendored artifacts:
+//! This is the full-fixture sense of the section/retraction round trip. The conformance case
+//! `correspondence/openehr-bloodpressure-section-retraction` executes the bounded, complete
+//! three-edge source query class through get and candidate put; this module proves the larger
+//! RM-slice + complement recovery against the actual vendored artifacts:
 //!
 //!   * `down_projection_is_non_destructive_on_rm_slice_and_fhir_lineage` — the down-projection
 //!     `d` does not mutate the RM slice or the FHIR provenance lineage; it is purely additive;

@@ -16,7 +16,7 @@ baseline the report-only regression scoreboard compares a live run against.
 Timings are non-deterministic, so the committed artifacts must not encode raw
 `f64`s that re-serialize differently across runs. The baseline rounds every
 estimate to an integer ns at the emit boundary, so both `baseline.json` and the
-rendered `leaderboard.md` are formatting-stable and survive the `check-generated`
+rendered `leaderboard.md` are formatting-stable and survive the strict `sync`
 drift gate. The drift gate only *reads* this file — it never runs benchmarks.
 
 ## Refreshing the baseline (maintainer only)
@@ -54,7 +54,7 @@ carries **NO** wall-clock, **NO** peak-RSS, and **NO** total-allocation scalars
 It is the single source of truth for the committed cost ledger
 (`generated/bench/cost-ledger.md`, the `stage-export-cost-ledger` generator), a
 drift-gated projection reproduced byte-for-byte from this file without ever
-running a benchmark. The `check-generated` gate only *reads* this file.
+running a benchmark. The strict `sync` gate only *reads* this file.
 
 ## Refreshing the cost baseline (maintainer only)
 
@@ -62,7 +62,7 @@ There is **one** producer — the Rust `gmeow-bench-engines --emit-cost` path:
 
 ```sh
 make maint-bench-cost-baseline   # emits bench/cost-baseline.json (offline; twice-diffed for byte-stability)
-make regenerate                  # re-projects generated/bench/cost-ledger.md
+make sync                  # re-projects generated/bench/cost-ledger.md
 git add bench/cost-baseline.json generated/bench/cost-ledger.md
 ```
 
@@ -78,5 +78,5 @@ run against the committed baseline and, on **any** deterministic-count divergenc
 baseline), emits a `reason.divergence.corpus-only` `gmeow:Finding` routed through
 the shared divergence ledger (`divergence_diag_ledger` — content-addressed
 `finding_iri` + anchor + antecedents) and hard-fails. The primary on-gate gate is
-the `check-generated` drift on `cost-ledger.md`; this mode is the richer finding
+the strict `sync` drift check on `cost-ledger.md`; this mode is the richer finding
 surface behind it.

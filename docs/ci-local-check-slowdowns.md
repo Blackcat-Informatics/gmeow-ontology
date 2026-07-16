@@ -26,7 +26,7 @@ The current local and CI test hotspots are repeated full-artifact builds:
 - `tests/test_compile_no_drift.py` and
   `tests/test_suppression_conformance.py` repeatedly reload or regenerate the
   same mapping DSL / projection artifacts.
-- `make check` runs `validate`, `check-generated`, `constitution-check`, and
+- `make check` runs `sync`, `validate`, `constitution-check`, and
   `lint-alignment`, then `compliance-report` runs those in-process gates again.
   In CI, the `ontology` job shows `validate` around 18 minutes and
   `compliance-report` around 16-17 minutes on successful runs.
@@ -114,7 +114,7 @@ Focused module timings:
    pass instead of repeatedly in Python.
 
 6. Keep mapping-compiler parity on the native generator DAG (`make
-   check-generated`) and avoid reintroducing a duplicate Python parser/emitter
+   sync`) and avoid reintroducing a duplicate Python parser/emitter
    test surface.
 
 7. Stop rerunning full gates inside `compliance-report` during routine local

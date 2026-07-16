@@ -31,15 +31,16 @@
 //! construct is carried and flagged in the loss ledger, never silently minted (the
 //! legalization floor — LOGIC-IR.md § Lowering).
 //!
-//! # Decidability without an execution engine (F3 is off this path)
+//! # Derivation is not discharge
 //!
-//! The round-trip law `put ∘ get = id_S` is decided **structurally over the leg bodies**,
-//! not by running a leg on data: the lawful `put` body is the structural inverse
-//! [`crate::ir::LegPath::invert`] of the resolved `get` body, and the conformance Round-trip
-//! gate verifies `put == get.invert()` over the normalized canonical path form (a graph-iso
-//! over the canonical IR, `LOGIC-CONFORMANCE.md`). No leg is run on data, so the F3 executor
-//! stays off this path — yet a `put` whose *body* is the wrong path genuinely fails (it is
-//! NOT a string compare of mint IRIs; the leg IRI is only the leg's content-addressed name).
+//! [`crate::ir::LegPath::invert`] supplies a deterministic candidate `put` body; it does
+//! **not** prove `put ∘ get = id_S`.  The native authority in
+//! `gmeow_logic::correspondence_exec` executes the correspondence's complete
+//! `logic:RecoveryCase` source pattern through get and candidate put, then compares the
+//! recovered RDF atom set with the source.  Atomic one-triple paths admit a complete
+//! synthesized case; composite paths without an authored complete case remain
+//! `ObligationUnknown`.  Thus this module constructs the candidate while the executor
+//! decides recovery — structural inversion alone never upgrades a claim.
 
 use sha2::{Digest, Sha256};
 
@@ -92,9 +93,9 @@ pub enum PutDerivation {
 /// The content-addressed `put` leg IRI (the leg's NAME) for a correspondence:
 /// `<get_leg>/put#<sha8>` where the hash folds ONLY the get-side identity the derivation
 /// reads — the IRI, relation, morphism class/kind, the `mnemomorphic` bit, and the `get_leg`.
-/// This is a stable *name* for the minted leg; it is NOT what the round-trip gate checks.
-/// The gate composes the leg BODIES (`put == get.invert()` over canonical path form), so a
-/// matching mint IRI never substitutes for a matching body.
+/// This is a stable *name* for the minted leg; it is NOT recovery evidence.  The gate executes
+/// the complete authored recovery cases (or the complete synthesized atomic case), so a
+/// matching mint IRI never substitutes for recovered source atoms.
 pub fn derived_put_iri(get_leg: &str, c: &Correspondence) -> String {
     let key = format!(
         "{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}",
@@ -263,8 +264,9 @@ impl CorrespondenceProgram {
         let mut rebuilt = Vec::with_capacity(correspondences.len());
         let mut outcomes = Vec::new();
         // The leg registry grows as we mint puts: a derived put leg is registered with its
-        // BODY — the structural inverse of the resolved get body — so the round-trip gate
-        // can later compose `put == get.invert()` over real path bodies, not IRI strings.
+        // BODY — the deterministic inverse candidate of the resolved get body.  The native
+        // recovery executor decides whether that candidate genuinely recovers; construction
+        // itself carries no proof.
         let mut legs = leg_programs;
 
         for c in correspondences {
@@ -293,7 +295,7 @@ impl CorrespondenceProgram {
                             body: get_body.invert(),
                         });
                     }
-                    rebuilt.push(Correspondence::new(
+                    let mut rebuilt_correspondence = Correspondence::new(
                         c.iri.clone(),
                         c.relation,
                         c.morphism_class,
@@ -311,7 +313,17 @@ impl CorrespondenceProgram {
                         // Preserve the authored per-correspondence preservation judgment so
                         // the derived program the gates run over still sees the rung.
                         c.preservation,
-                    )?);
+                    )?;
+                    if let (Some(source), Some(target)) = (&c.source_endpoint, &c.target_endpoint) {
+                        rebuilt_correspondence = rebuilt_correspondence
+                            .with_endpoints(source.clone(), target.clone())?;
+                    }
+                    if c.grounding {
+                        rebuilt_correspondence = rebuilt_correspondence.as_grounding();
+                    }
+                    rebuilt_correspondence =
+                        rebuilt_correspondence.with_recovery_cases(c.recovery_cases.clone())?;
+                    rebuilt.push(rebuilt_correspondence);
                 }
                 PutDerivation::Unsupported { .. } => {
                     // No lawful put: keep the put-less cell; the residue rides the outcome.

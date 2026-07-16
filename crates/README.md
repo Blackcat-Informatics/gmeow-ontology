@@ -16,7 +16,7 @@ manifest points Cargo at that README.
 
 | Area | Crates | Purpose |
 | --- | --- | --- |
-| Foundation values | `gmeow-iri`, `gmeow-xsd`, `gmeow-rdf-events`, `gmeow-sparql-algebra`, `gmeow-sparql-results`, `gmeow-test-budget` | Small reusable value types, event streams, parsers, result encoders, and gate helpers. |
+| Foundation values | `gmeow-iri`, `gmeow-xsd`, `gmeow-rdf-events`, `gmeow-sparql-algebra`, `gmeow-sparql-results` | Small reusable value types, event streams, parsers, and result encoders. |
 | RDF kernel and adapters | `gmeow-rdf-core`, `gmeow-rdf`, `gmeow-rdf-capi`, `gmeow-rdf-wasm` | The native RDF 1.2 data model, codecs, loss ledgers, C ABI, and wasm packaging. |
 | Ontology and validation engines | `gmeow-slice`, `gmeow-slicetest`, `gmeow-shacl`, `gmeow-validate`, `gmeow-diagnostics` | Slice discovery, slice-local test execution, SHACL, validation lints, and diagnostic rendering. |
 | Logic engines | `gmeow-logic-compile`, `gmeow-logic`, `gmeow-conformance`, `gmeow-sparql-eval`, `gmeow-sparql-conformance` | Logic IR, projections, reasoning, conformance suites, and native SPARQL evaluation. |
@@ -46,7 +46,7 @@ Use Make targets from the repository root:
 
 ```bash
 make rust-docs       # Build public Rust API docs; fail on broken/redundant links.
-make rust-test       # Run nextest, doctests, and the 25 s test-budget gate.
+make rust-test       # Run nextest and doctests.
 make crate-check     # Verify Rust crate layering and acyclic crate DAGs.
 make rdf-core-hygiene # Prove the RDF core leaves do not regain oxigraph-family dependencies.
 make wasm            # Build the wasm package lane.

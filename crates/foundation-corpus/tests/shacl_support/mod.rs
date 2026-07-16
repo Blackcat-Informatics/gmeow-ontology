@@ -66,7 +66,7 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
         .unwrap_or_else(|e| {
             panic!(
                 "no generated shapes under generated/shapes/ — \
-                 run `gmeow regenerate frame-shapes` (P11 enforcement lives there): {e}"
+                 run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there): {e}"
             )
         })
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -80,7 +80,7 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
     assert!(
         !paths.is_empty(),
         "no generated shapes under generated/shapes/ — \
-         run `gmeow regenerate frame-shapes` (P11 enforcement lives there)"
+         run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there)"
     );
     paths.sort();
     paths
