@@ -10115,8 +10115,8 @@ logic:ContradictionWitness rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:allValuesFrom xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:allValuesFrom xsd:string ] .
 
-logic:RecoveryCase rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:recoveryTransform ; owl:allValuesFrom logic:Formula ] .
+logic:RecoveryCase logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:recoveryTransform ; logic:allValuesFrom logic:Formula ] .
 
 # Global at-most-one semantics for the carriers legacy SHACL constrained with maxCount 1.
 logic:candidateSourceHash a owl:FunctionalProperty .
