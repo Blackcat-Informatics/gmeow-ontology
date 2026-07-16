@@ -1,0 +1,4 @@
+<http://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/entailment-mini/type-not-entailed/w> .
+<http://example.org/B> <http://www.w3.org/2002/07/owl#disjointWith> <https://blackcatinformatics.ca/logic/entail/reserved#complement-16eca0c68a680c05> <https://gmeow.example/entailment-mini/type-not-entailed/w> .
+<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/A> <https://gmeow.example/entailment-mini/type-not-entailed/w> .
+<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/entail/reserved#complement-16eca0c68a680c05> <https://gmeow.example/entailment-mini/type-not-entailed/w> .

@@ -56,6 +56,19 @@ External correctness corpora (conformance/logic/cases/external/)
     catalog (github.com/OntoUML/ontouml-models) is CC BY-SA 4.0 (ReferenceOnly under
     the native license policy) and is NEVER committed; it is graded live only in the
     non-required Lane-B lane, each model's own license audited.
+  - entailment-mini, entailment-mini-divergence — self-authored by Blackcat
+    Informatics® Inc., CC BY 4.0, a set of W3C OWL test-ontology-style entailment
+    tests (PositiveEntailmentTest / NegativeEntailmentTest) carrying BOTH an inline
+    RDF/XML premise and an inline RDF/XML conclusion. Each is graded by the native
+    entailment-by-refutation reduction (A ⊨ C iff premise ∪ ¬C is inconsistent) over
+    the DL consistency engine. The agreeing Lane-A subset (entailment-mini) is graded
+    with a real native verdict agreeing with the declared outcome; the
+    entailment-mini-divergence lane holds conclusions outside the soundly-refutable
+    single-EDB fragment (a multi-triple conjunction, or a role assertion whose
+    negation is not EL-expressible) pinned as honest, structured capability gaps. No
+    third-party test-suite documents are vendored here; the upstream W3C entailment
+    suites express premise/conclusion as reference documents graded live only in the
+    non-required Lane-B lane.
   - w3c-owl2-el — W3C OWL 2 conformance test cases (ConsistencyTest /
     InconsistencyTest, OWL 2 EL profile subset). Original suite maintained by
     the W3C OWL Working Group and archived at:

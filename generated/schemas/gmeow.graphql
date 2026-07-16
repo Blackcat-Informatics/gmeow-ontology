@@ -1877,6 +1877,14 @@ enum GTSProfileEnum {
   gtsProfileOpaque
 }
 
+enum GapShapeEnum {
+  GapShapeExistentialWitness
+  GapShapeMalformed
+  GapShapeNativeCoverage
+  GapShapeRoleAssertion
+  GapShapeVendoringMultiGoal
+}
+
 enum GateVerdictEnum {
   gateCollected
   gateFatal
@@ -5149,6 +5157,14 @@ type CalibrationStatus {
   iri: String
 }
 
+type CapabilityGap {
+  id: String
+  iri: String
+  capabilityGapCase: [String!]
+  capabilityGapCorpus: [String!]
+  gapShape: [String!]
+}
+
 type Capacity {
   id: String
   iri: String
@@ -6593,6 +6609,12 @@ type GTSSegment {
   gtsSegmentIndex: Int
   gtsSegmentOf: GTSDocument
   usesTransformCodec: [TransformCodec!]
+}
+
+type GapShape {
+  id: String
+  iri: String
+  isReasonerFragmentGap: [String!]
 }
 
 type GateVerdict {

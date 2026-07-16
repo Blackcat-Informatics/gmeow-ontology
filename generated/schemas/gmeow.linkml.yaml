@@ -609,6 +609,13 @@ classes:
   CalibrationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/CalibrationStatus
     title: Calibration Status
+  CapabilityGap:
+    class_uri: https://blackcatinformatics.ca/gmeow/CapabilityGap
+    title: Capability Gap
+    slots:
+    - capabilityGapCase
+    - capabilityGapCorpus
+    - gapShape
   Capacity:
     class_uri: https://blackcatinformatics.ca/gmeow/Capacity
     title: Capacity
@@ -1888,6 +1895,11 @@ classes:
     - gtsSegmentIndex
     - gtsSegmentOf
     - usesTransformCodec
+  GapShape:
+    class_uri: https://blackcatinformatics.ca/gmeow/GapShape
+    title: Gap Shape
+    slots:
+    - isReasonerFragmentGap
   GateVerdict:
     class_uri: https://blackcatinformatics.ca/gmeow/GateVerdict
     title: Gate Verdict
@@ -5993,6 +6005,18 @@ slots:
     range: uriorcurie
     domain: AffectClassifierOutput
     multivalued: true
+  capabilityGapCase:
+    slot_uri: https://blackcatinformatics.ca/gmeow/capabilityGapCase
+    title: capability gap case
+    range: string
+    domain: CapabilityGap
+    multivalued: true
+  capabilityGapCorpus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/capabilityGapCorpus
+    title: capability gap corpus
+    range: string
+    domain: CapabilityGap
+    multivalued: true
   capacityOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/capacityOf
     title: capacity of
@@ -8743,6 +8767,12 @@ slots:
     range: string
     domain: Appellation
     multivalued: true
+  gapShape:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gapShape
+    title: gap shape
+    range: uriorcurie
+    domain: CapabilityGap
+    multivalued: true
   genderValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/genderValue
     title: gender value
@@ -10835,6 +10865,12 @@ slots:
     title: is OSI approved
     range: boolean
     domain: License
+    multivalued: true
+  isReasonerFragmentGap:
+    slot_uri: https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap
+    title: is reasoner fragment gap
+    range: string
+    domain: GapShape
     multivalued: true
   isReferencedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/isReferencedBy
@@ -20748,6 +20784,24 @@ enums:
       gtsProfileOpaque:
         meaning: https://blackcatinformatics.ca/gmeow/gtsProfileOpaque
         title: opaque profile
+  GapShapeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GapShape
+    permissible_values:
+      GapShapeExistentialWitness:
+        meaning: https://blackcatinformatics.ca/gmeow/GapShapeExistentialWitness
+        title: Gap Shape Existential Witness
+      GapShapeMalformed:
+        meaning: https://blackcatinformatics.ca/gmeow/GapShapeMalformed
+        title: Gap Shape Malformed
+      GapShapeNativeCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/GapShapeNativeCoverage
+        title: Gap Shape Native Coverage
+      GapShapeRoleAssertion:
+        meaning: https://blackcatinformatics.ca/gmeow/GapShapeRoleAssertion
+        title: Gap Shape Role Assertion
+      GapShapeVendoringMultiGoal:
+        meaning: https://blackcatinformatics.ca/gmeow/GapShapeVendoringMultiGoal
+        title: Gap Shape Vendoring Multi Goal
   GateVerdictEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GateVerdict
     permissible_values:
