@@ -239,6 +239,17 @@ impl TermDag {
         self.nodes.len()
     }
 
+    /// Whether `id` was minted by THIS DAG (its slot is in range).
+    ///
+    /// A [`NodeId`] is meaningful only within the DAG that minted it, so a caller holding a
+    /// [`NodeId`] of unknown provenance (e.g. the structured backward resolver
+    /// [`crate::physical::resolve_fol`] guarding a `QTerm::Struct` node against a fresh
+    /// dispatch DAG) tests membership here rather than risking the per-DAG [`Self::data`]
+    /// panic.
+    pub(crate) fn contains_node(&self, id: NodeId) -> bool {
+        id.index() < self.nodes.len()
+    }
+
     // ── Constructors ──────────────────────────────────────────────────────────────
 
     /// Intern an atomic term surface into the leaf dictionary, returning its [`TermId`]

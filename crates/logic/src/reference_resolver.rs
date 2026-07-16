@@ -185,7 +185,7 @@ impl<'a> ResolveState<'a> {
                     match chase_var(v.as_str(), subst, 0) {
                         QTerm::Const(c) => Some((v, c)),
                         // An unbound goal variable produces no binding row.
-                        QTerm::Var(_) | QTerm::Num(_) => None,
+                        QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
                     }
                 })
                 .collect();
@@ -245,7 +245,7 @@ impl<'a> ResolveState<'a> {
     ) -> gmeow_errors::Result<()> {
         let lookup = |name: &str| match chase_var(name, subst, 0) {
             QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
-            QTerm::Var(_) | QTerm::Num(_) => None,
+            QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
         match crate::physical::eval_builtin(builtin, &lookup) {
             crate::physical::BuiltinOutcome::Filter(true) => {
@@ -259,7 +259,7 @@ impl<'a> ResolveState<'a> {
                 // the caller reads.  A free (unaliased) target chases to itself.
                 let root = match chase_var(&var, subst, 0) {
                     QTerm::Var(root) => root,
-                    QTerm::Const(_) | QTerm::Num(_) => var,
+                    QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => var,
                 };
                 new_subst.insert(root, crate::physical::emit_integer_surface(value));
                 self.resolve_conjunct(rest, &new_subst, seen)
@@ -373,11 +373,11 @@ impl<'a> ResolveState<'a> {
         let subj_term: Option<TermValue> = match &atom.args[0] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             // A bare number is never an EDB subject in oracle-resolved programs.
-            QTerm::Var(_) | QTerm::Num(_) => None,
+            QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
         let obj_term: Option<TermValue> = match &atom.args[1] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
-            QTerm::Var(_) | QTerm::Num(_) => None,
+            QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
 
         // Collect matching DerivedQuads into a Vec to release the iterator borrow.
@@ -480,6 +480,10 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
             (QTerm::Num(_), _) | (_, QTerm::Num(_)) => {
                 unreachable!("Num normalized to Const above")
             }
+            // A structured (compound) term is never produced on the flat SLD oracle path
+            // (structured programs route to the full-FOL resolver); it unifies with nothing
+            // here.
+            (QTerm::Struct(_), _) | (_, QTerm::Struct(_)) => return None,
             (QTerm::Var(hv), QTerm::Var(gv)) => {
                 // Both unbound variables: we alias the head variable to the goal
                 // variable. We represent this by storing a sentinel string so that
@@ -503,7 +507,7 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
 /// unbound variable.
 fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
     match t {
-        QTerm::Const(_) | QTerm::Num(_) => t.clone(),
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
         QTerm::Var(v) => chase_var(v, subst, 0),
     }
 }
@@ -545,7 +549,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     fn rename_term(t: &QTerm, suffix: &str) -> QTerm {
         match t {
             QTerm::Var(v) => QTerm::Var(format!("{}{}", v, suffix)),
-            QTerm::Const(_) | QTerm::Num(_) => t.clone(),
+            QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
         }
     }
 
@@ -604,6 +608,8 @@ fn term_canonical_or_wildcard(t: &QTerm) -> String {
         QTerm::Var(_) => String::new(),
         // A bare number canonicalizes to its decimal text for memo-keying purposes.
         QTerm::Num(n) => n.to_string(),
+        // A structured term never reaches the flat oracle; a wildcard-empty key for exhaustiveness.
+        QTerm::Struct(_) => String::new(),
     }
 }
 

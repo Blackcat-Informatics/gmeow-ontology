@@ -308,6 +308,10 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
             hasher.update(&[2]);
             hasher.update(&value.to_le_bytes());
         }
+        QTerm::Struct(sn) => {
+            hasher.update(&[3]);
+            hasher.update(&(sn.node().index() as u64).to_le_bytes());
+        }
     }
 }
 

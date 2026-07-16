@@ -75,6 +75,13 @@ pub(crate) mod unify;
 // goal. `derivation_iri`/`reify` project a proof/term node to the SAME content-addressed
 // provenance IRI a `RuleApplication` mints. Consumed by the backward-FOL rung to come.
 pub(crate) mod proof;
+// The structured (full-FOL) backward resolver: SLG tabling over compound (function-symbol)
+// terms with three-valued SLG-WFS well-founded negation. It stands on `term_dag` (the
+// hash-consed arena), `unify` (order-sorted occurs-checked unification), and `proof`
+// (checkable proof objects), and every answer it yields is proof-carrying. `dispatch::
+// dispatch_query`'s physical entry (`magic::resolve_native_under`) routes a program carrying
+// any `QTerm::Struct` argument here; flat programs stay on the byte-identical binary path.
+pub(crate) mod resolve_fol;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
