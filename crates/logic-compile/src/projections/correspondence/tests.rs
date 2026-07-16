@@ -203,6 +203,52 @@ fn projection_round_trips_to_equal_content_key() {
     );
 }
 
+/// Fidelity oracle for the dogfooded affine cell: the hand-authored
+/// `slices/grounding/logic/examples/affine-correspondence.ttl` re-derives (via
+/// `parse_correspondence`, the cache-hit inverse the production lane now uses) to the
+/// EXACT same [`CorrespondenceProgram`] as the `affine_triangle_worked_example` Rust
+/// literal — so its `project_correspondence` is byte-identical and `graph/correspondence`
+/// keeps byte-parity now that the stage reads the authored TTL instead of the literal.
+#[test]
+fn authored_affine_cell_matches_worked_example_oracle() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/logic/examples/affine-correspondence.ttl");
+    let source = std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read authored affine cell {path:?}: {e}"));
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+        .expect("parse authored affine correspondence cell");
+    let authored = parse_correspondence(&dataset).expect("re-derive authored affine program");
+
+    let oracle = affine_triangle_worked_example();
+
+    // (a) Field-for-field program identity (both types derive PartialEq).
+    assert_eq!(
+        authored, oracle,
+        "the authored affine cell must re-derive to the worked-example program"
+    );
+
+    // (b) Byte-parity of the backing projection: the authored program projects to the
+    // SAME `graph/correspondence` N-Triples as the former hardcoded literal.
+    assert_eq!(
+        project_correspondence(&authored),
+        project_correspondence(&oracle),
+        "the authored affine cell must project byte-identically to graph/correspondence"
+    );
+
+    // (c) Round-trip: projecting the worked example and re-parsing its N-Triples yields
+    // the same program (the cache-hit inverse), which the authored cell also equals.
+    let reparsed = parse_correspondence(&parse_nt(&project_correspondence(&oracle)))
+        .expect("re-derive the projected worked example");
+    assert_eq!(
+        reparsed, oracle,
+        "project → parse must round-trip the worked-example program"
+    );
+    assert_eq!(
+        authored, reparsed,
+        "the authored cell and the projected round-trip must be the same program"
+    );
+}
+
 /// Standpoint indexing has one canonical RDF spelling across the ontology and the
 /// correspondence carrier: the declared `gmeow:accordingTo` annotation property.
 #[test]
