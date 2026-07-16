@@ -243,12 +243,16 @@ execution:
   emit `owl:equivalentClass`; a caveated overlap may not emit `sssom exactMatch`. Overclaiming is a
   build failure, treated identically to dropping a fact silently (the preservation-overclaim rule
   below).
-- **Round-trip gate** — `iso` and `section/retraction` claims must pass canonical-IR identity:
-  `put ∘ get = id` (and, for iso, `get ∘ put = id`) over the declared query class.  A first-class
-  `logic:RecoveryCase` supplies an ordered, universally quantified source→view formula.  The native
-  executor instantiates its complete positive-conjunctive binary RDF source pattern, runs get and
-  candidate put, and compares the recovered atom set; an atomic one-triple leg may synthesize the
-  complete case, while a composite leg without one remains `ObligationUnknown`.
+- **Round-trip gate** — `iso` and `section/retraction` claims are discharged **behaviourally**, not by
+  canonical-IR identity.  A first-class `logic:RecoveryCase` supplies an ordered, universally quantified
+  source→view formula; the native executor lowers it to get/put `CONSTRUCT`s, instantiates its complete
+  positive-conjunctive binary RDF source pattern as a deterministic seed, runs get then candidate put,
+  and compares the recovered **RDF atom set** to the source — `put ∘ get = id_source` over the declared
+  query class.  An atomic one-triple leg may synthesize the complete case, while a composite leg without
+  one remains `ObligationUnknown`.  In this fragment every view variable is bound by the source, so the
+  declared view is exactly `im(get)`: an `iso` cell that discharges the section direction is bijective on
+  its declared corpus, so `get ∘ put = id_view` is entailed rather than executed as a separate leg, and
+  iso rung-strength is enforced by the injective-rung and overclaim gates.
 - **Mnemomorphism gate** — if a correspondence is declared `mnemomorphic`, its retained witness must
   actually recover the source (the in-band complement reconstructs `S ∖ im(get)`); missing or
   fabricated atoms yield `ObligationViolated` and a countermodel.  The discharge is explicitly
