@@ -392,12 +392,29 @@ fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     subjects
 }
 
+/// Collect the IRIs / blank-node ids of every `logic:RecoveryCase` node reached as the
+/// object of some `logic:recoveryCase` edge — i.e. every recovery case OWNED by a
+/// correspondence. A `logic:RecoveryCase` node typed but never reached this way is
+/// authored recovery evidence with no owner, so it must not be silently dropped.
+fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
+    let recovery_case_pred = logic_iri("recoveryCase");
+    default_graph_quads(store)
+        .into_iter()
+        .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
+        .map(|quad| term_str(&quad.object))
+        .collect()
+}
+
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
     // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
+
+    // Recovery cases owned by some correspondence (via `logic:recoveryCase`); a
+    // `logic:RecoveryCase` typing not in this set is orphaned evidence (see step 2 below).
+    let owned_recovery_cases = collect_owned_recovery_cases(store);
 
     // Class-expression restrictions authored in logic: (`C logic:subClassOf
     // [ a logic:Restriction ; logic:onProperty P ; logic:someValuesFrom D ]`) lift
@@ -531,7 +548,26 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // `extract_formulas`. Keeping it as a generic class-membership axiom as well would give
         // the same authored node two IR homes; the CL writer would then emit a constructorless
         // duplicate under the source IRI alongside the content-addressed formula tree.
-        if matches!(o_local, "Formula" | "TermCarrier" | "RecoveryCase") {
+        if matches!(o_local, "Formula" | "TermCarrier") {
+            continue;
+        }
+        // A `logic:RecoveryCase` type triple is owned by the correspondence that reaches it
+        // via `logic:recoveryCase`, exactly like Formula/TermCarrier above. A RecoveryCase that
+        // is NOT reached that way is unowned recovery evidence — an authoring error, not
+        // something to swallow — so it is hard-failed here instead of silently vanishing.
+        if o_local == "RecoveryCase" {
+            let case_iri = subject_str(&quad.subject);
+            if !owned_recovery_cases.contains(&case_iri) {
+                diagnostics.push(Diagnostic::error(
+                    "ORPHAN_RECOVERY_CASE",
+                    format!(
+                        "{case_iri:?} is typed logic:RecoveryCase but is not referenced by any \
+                         logic:Correspondence via logic:recoveryCase; unowned recovery evidence \
+                         must not disappear silently"
+                    ),
+                    Some(case_iri),
+                ));
+            }
             continue;
         }
         // A `logic:Constraint` / constraint-sugar type triple is consumed by the constraint +

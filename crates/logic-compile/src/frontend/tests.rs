@@ -154,6 +154,29 @@ fn recovery_case_requires_named_identity() {
     );
 }
 
+#[test]
+fn orphan_recovery_case_is_hard_failed() {
+    // `ex:case` is typed `logic:RecoveryCase` but no `logic:Correspondence` reaches it via
+    // `logic:recoveryCase`: unowned recovery evidence must be a hard Severity::Error finding,
+    // not silently vanish from the parsed program.
+    let (program, diagnostics) = parse(
+        "ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:relation ex:source ;
+            logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:Source ]
+         ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "ORPHAN_RECOVERY_CASE"
+                && diagnostic.severity == Severity::Error
+                && diagnostic.message.contains("/case")
+        }),
+        "unowned RecoveryCase must be hard-failed: {diagnostics:#?}"
+    );
+}
+
 // ── Minimal graph + reasoning contracts ───────────────────────────────
 
 #[test]
