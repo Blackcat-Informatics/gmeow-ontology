@@ -105,12 +105,12 @@ class MessageParticipant(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MessageParticipant", "curie": "gmeow:MessageParticipant", "definitionDigest": "blake3:1ab4fbfb4600e350ceeaa7e5db2cd9ec8f3d4d090defb802c676dfd90bc02547", "iri": "https://blackcatinformatics.ca/gmeow/MessageParticipant"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MessageParticipant", "curie": "gmeow:MessageParticipant", "definitionDigest": "blake3:1a47cb2c1ddf14fd65f8b6ce33367dcfbe3c3293055404b4112d38084aa20ea0", "iri": "https://blackcatinformatics.ca/gmeow/MessageParticipant"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    participantAddress: str | None = Field(default=None, description="The normalized email address that appears in this participant occurrence.", alias="gmeow:participantAddress")
-    participantMessage: str = Field(description="The message a participant occurrence belongs to.", alias="gmeow:participantMessage")
-    participantRole: str = Field(description="The header or envelope role of this address occurrence.", alias="gmeow:participantRole")
+    participantAddress: list[str] | None = Field(default=None, description="Within gmeow:MessageParticipant, values are node references constrained to gmeow:EmailAddress. The normalized email address that appears in this participant occurrence.", alias="gmeow:participantAddress")
+    participantMessage: list[str] | None = Field(default=None, description="Within gmeow:MessageParticipant, values are node references constrained to gmeow:EmailMessage. The message a participant occurrence belongs to.", alias="gmeow:participantMessage")
+    participantRole: list[MessageParticipantRoleEnum] | None = Field(default=None, description="The header or envelope role of this address occurrence.", alias="gmeow:participantRole")

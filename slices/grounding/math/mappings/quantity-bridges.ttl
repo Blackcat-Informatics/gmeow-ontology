@@ -1,0 +1,104 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
+@prefix math:    <https://blackcatinformatics.ca/math/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv:  <https://w3id.org/semapv/vocab/> .
+@prefix sosa:    <http://www.w3.org/ns/sosa/> .
+@prefix om:      <http://www.wurvoc.org/vocabularies/om-1.8/> .
+@prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
+@prefix loinc:   <http://loinc.org/rdf/> .
+@prefix qudt:    <http://qudt.org/schema/qudt/> .
+
+# Quantity and numeric-value grounding is authored once by the math: owner.
+# Observation-domain mappings retain the acts, roles, result edges, units,
+# uncertainty, and provenance they own; they do not re-author these math terms.
+# The SOSA / OM / IVOA / LOINC rows continue to fan out into the generated
+# gmeow-observations.sssom.tsv consumer grouping. That derived file grouping does
+# not change canonical row ownership, which remains this math: catalog.
+
+gmeow:eqMathQuantitySosaResult a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sosa:Result ;
+    logic:sourceEndpoint math:Quantity ;
+    logic:targetEndpoint sosa:Result ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "A math:Quantity can fill the SOSA result role, but sosa:Result is role-defined and includes non-quantitative results. This is a validation-only commitment-shifting bridge, not a type equivalence." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathQuantityOmMeasure a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject om:Measure ;
+    logic:sourceEndpoint math:Quantity ;
+    logic:targetEndpoint om:Measure ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "OM 1.8 Measure is the older value-and-unit carrier corresponding to the dimensioned math:Quantity surface; the local quantity additionally carries an explicit math:Dimension and observation qualifiers remain external to this correspondence." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathQuantityIvoaObservable a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject obscore:observable ;
+    logic:sourceEndpoint math:Quantity ;
+    logic:targetEndpoint obscore:observable ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "IVOA ObsCore observable names the measured physical-quantity field of an astronomical dataset, while math:Quantity is the domain-independent dimensioned value object. The role/context shift makes this a validation-only bridge view." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathQuantityLoincQuantity a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject loinc:Quantity ;
+    logic:sourceEndpoint math:Quantity ;
+    logic:targetEndpoint loinc:Quantity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "LOINC Quantity is a clinical numeric-result kind with a unit; math:Quantity is domain-independent and carries an explicit dimension. The clinical commitment is a validation-only bridge view rather than mathematical identity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathQuantityQudtValue a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:QuantityValue ;
+    logic:sourceEndpoint math:Quantity ;
+    logic:targetEndpoint qudt:QuantityValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "QUDT QuantityValue is the close value-and-unit carrier; math:Quantity additionally requires an explicit dimension, while observation provenance, determinacy, and uncertainty remain qualifiers supplied by their owning slices." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathQuantityValueQudt a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:quantityValue ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:quantityValue ;
+    logic:sourceEndpoint math:quantityValue ;
+    logic:targetEndpoint qudt:quantityValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Both properties carry the concrete numeric magnitude of their quantity object; closeMatch remains validation-only because the surrounding GMEOW quantity contract also requires dimension and keeps observation qualifiers in their owning slices." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

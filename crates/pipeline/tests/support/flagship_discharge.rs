@@ -189,6 +189,25 @@ pub fn shared_shapes_path() -> PathBuf {
     repo_root().join("generated/shapes/validation-shapes.ttl")
 }
 
+/// Every enforcing SHACL surface that may own one slice's conformance rules.
+///
+/// Generated validation, constraint, and procedural projections are always canonical and
+/// therefore always participate. A residual hand-authored `shapes.ttl` is composed alongside
+/// them while migration is incomplete; its mere presence must never shadow already-migrated
+/// rules from the generated surface.
+pub fn enforcing_shape_paths(spec: &SliceSpec) -> Vec<PathBuf> {
+    let mut paths = vec![
+        repo_root().join("generated/shapes/validation-shapes.ttl"),
+        repo_root().join("generated/shapes/constraint-shapes.ttl"),
+        repo_root().join("generated/shapes/procedural-constraints.ttl"),
+    ];
+    let residual = spec.slice_root.join("shapes.ttl");
+    if residual.is_file() {
+        paths.push(residual);
+    }
+    paths
+}
+
 /// The shared in-memory source catalog, discovered ONCE exactly as the mappings stage
 /// discovers it, so producers ingest the real composed-source universe.
 pub fn repo_catalog() -> purrdf::slice::SliceCatalog {
@@ -495,20 +514,10 @@ pub fn run_flagship_discharge_with_counterexample(
 ) {
     let flagships = parse_manifest(spec, expected_count);
 
-    // Parse the enforcing SHACL surface once. A slice still being migrated reads its local
-    // `shapes.ttl`; a fully migrated slice reads the canonical generated validation and
-    // procedural projections instead (Principle 17). Deleting a proven-redundant local file must
-    // not delete the negative-test channel that its projection now owns.
-    let legacy_shapes = spec.slice_root.join("shapes.ttl");
-    let shape_paths = if legacy_shapes.is_file() {
-        vec![legacy_shapes]
-    } else {
-        vec![
-            repo_root().join("generated/shapes/validation-shapes.ttl"),
-            repo_root().join("generated/shapes/constraint-shapes.ttl"),
-            repo_root().join("generated/shapes/procedural-constraints.ttl"),
-        ]
-    };
+    // Parse the enforcing SHACL surface once. Generated projections remain authoritative even
+    // while a residual local shapes file exists: partial migration is compositional, never an
+    // either/or switch (Principle 17).
+    let shape_paths = enforcing_shape_paths(spec);
     let shapes_text = shape_paths
         .iter()
         .map(|path| {

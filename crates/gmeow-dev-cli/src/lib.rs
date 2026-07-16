@@ -23,6 +23,7 @@ mod dev_project;
 mod dev_reason;
 mod dev_shapes;
 mod dev_slice_quality;
+mod dev_sync;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
@@ -31,9 +32,44 @@ pub mod feedback_bundle;
 
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use gmeow_cli_core::ConsoleMode;
-pub use gmeow_cli_core::ExportFormat;
+/// Whether synchronization updates the worktree or verifies it read-only.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum SyncMode {
+    Update,
+    Check,
+}
+
+impl SyncMode {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Update => "update",
+            Self::Check => "check",
+        }
+    }
+}
+
+/// Which projections the unified synchronization phase materializes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum SyncOutput {
+    /// Complete pipeline: committed/generated, runtime dist, and external docs.
+    All,
+    /// Complete pipeline with only committed/generated outputs materialized.
+    Generated,
+    /// External site/book/print/snippet/model docs plus required fresh inputs.
+    Docs,
+}
+
+impl SyncOutput {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::All => "all",
+            Self::Generated => "generated",
+            Self::Docs => "docs",
+        }
+    }
+}
 
 use dev_common::{project_root, snapshot_bytes};
 
@@ -60,29 +96,30 @@ pub enum Commands {
     Version,
     /// Show a summary of the bundled GMEOW ontology snapshot.
     Info,
-    /// Rebuild all checked-in generated artifacts from canonical sources.
-    Regenerate {
+    /// Run the canonical one-pass pipeline, strict gates, and output projections.
+    Sync {
+        /// Update locally or verify read-only. Defaults to check in CI, update elsewhere.
+        #[arg(long = "mode", value_enum)]
+        mode: Option<SyncMode>,
+        /// Projection set. All outputs are made by default.
+        #[arg(long = "outputs", value_enum, default_value_t = SyncOutput::All)]
+        outputs: SyncOutput,
         #[arg(short = 'j', long = "jobs")]
         jobs: Option<usize>,
-        #[arg(long = "check")]
-        check: bool,
         #[arg(long = "metadata")]
         metadata: bool,
         #[arg(long = "list-paths")]
         list_paths: bool,
+        #[arg(long = "lang")]
+        lang: Option<String>,
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
+        /// Stream live DAG stages and synchronization boundaries.
+        #[arg(short = 'v', long = "verbose")]
+        verbose: bool,
     },
     /// Project the flat consumer tree back out of gmeow.gts.
     Fanout {
-        #[arg(short = 'j', long = "jobs")]
-        jobs: Option<usize>,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
-    /// Drift-check every committed artifact against its canonical source.
-    #[command(name = "check-generated")]
-    CheckGenerated {
         #[arg(short = 'j', long = "jobs")]
         jobs: Option<usize>,
         #[arg(long = "timings-json")]
@@ -182,9 +219,6 @@ pub enum Commands {
         #[arg(long = "from-passing-check")]
         from_passing_check: bool,
     },
-    /// Cross-check competency queries across two engines.
-    #[command(name = "crosscheck-queries")]
-    CrosscheckQueries,
     /// Reason over the ontology (native EL/DL, Docker-free).
     Reason {
         #[arg(long = "mode", default_value = "native")]
@@ -404,19 +438,6 @@ pub enum Commands {
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
     },
-    /// Export documentation projections (site, mdbook, PDF, snippets) from
-    /// canonical repository sources.
-    #[command(name = "export-docs")]
-    ExportDocs {
-        #[arg(long, default_value = "all")]
-        format: ExportFormat,
-        #[arg(long = "directory", short = 'd')]
-        directory: PathBuf,
-        #[arg(long = "force")]
-        force: bool,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
-    },
     /// Prove legacy `shapes.ttl` blocks are reproduced by the projected validation shapes.
     #[command(name = "shape-equivalence")]
     ShapeEquivalence {
@@ -513,6 +534,31 @@ pub enum Commands {
         #[arg(long = "all-axes")]
         all_axes: bool,
     },
+    /// Emit `gmeow:ProjectionCeilingCommitment` TTL at the CURRENT measured
+    /// ungrounded residue for every (slice, guarded-vocabulary) pair with nonzero
+    /// residue, so a human can grandfather the existing residue into
+    /// `slices/core/slice-quality-rubric/module.ttl`. Uses the SAME shared counter
+    /// (`gmeow_slice_quality::measure_repo_residues`) the ratchet gate reads — seed
+    /// and gate can never diverge. EMIT-ONLY, GRANDFATHER-ONCE: this seeds the
+    /// ceiling ABox at whatever residue is live the moment it is run; re-running it
+    /// to "refresh" a ceiling whose measured residue has since risen is a banned
+    /// auto-calibration (the correct response to a risen residue is the gate reading,
+    /// never a re-seed that raises the ceiling to match). Lowering a ceiling later,
+    /// after a genuine measured migration grounds constructs out of the residue, is
+    /// always a deliberate hand-edit of the individual, never a seeder re-run. The
+    /// TTL goes to stdout for the human to commit.
+    #[command(name = "slice-quality-seed-ceilings")]
+    SliceQualitySeedCeilings {},
+    /// Report-only migration dashboard for the projection-vocabulary ratchet: for
+    /// every (slice, guarded-vocabulary) cell with either a live measured residue
+    /// or a committed ceiling, print measured/ceiling/headroom. `measured` is a
+    /// LIVE scan through the same shared counter the ratchet gate reads — it is
+    /// NEVER persisted as a `SoundUnder` projection (a scan result is entailed by
+    /// no resident individual). Always exits 0; never gates `make check`. A
+    /// ceiling is never tuned to this report's numbers — lowering one is always a
+    /// deliberate hand-edit after a genuine measured migration.
+    #[command(name = "slice-quality-projection-debt")]
+    SliceQualityProjectionDebt {},
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -666,7 +712,7 @@ fn info() -> i32 {
 /// stdio. Reads the on-disk `generated/dist/gmeow.gts` snapshot from the working
 /// tree (like every other dev command) and passes the repository root so the
 /// [`McpMode::Dev`](gmeow_pipeline::mcp::McpMode::Dev) repo-reading maintenance
-/// tools (validate/reason/regenerate/constitution) are exposed alongside the
+/// tools (validate/reason/sync/constitution) are exposed alongside the
 /// consumer surface. Blocks on the JSON-RPC loop until EOF.
 fn mcp() -> i32 {
     use gmeow_pipeline::mcp::{McpMode, McpServer};
@@ -692,25 +738,28 @@ pub fn run() -> i32 {
     match cli.command {
         Commands::Version => version(),
         Commands::Info => info(),
-        Commands::Regenerate {
+        Commands::Sync {
+            mode,
+            outputs,
             jobs,
-            check,
             metadata,
             list_paths,
+            lang,
             timings_json,
-        } => dev_build::regenerate(
+            verbose,
+        } => dev_sync::sync(
+            mode,
+            outputs,
             jobs,
-            check,
+            lang.as_deref(),
+            timings_json.as_deref(),
             metadata,
             list_paths,
-            timings_json.as_deref(),
+            verbose,
             console,
         ),
         Commands::Fanout { jobs, timings_json } => {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
-        }
-        Commands::CheckGenerated { jobs, timings_json } => {
-            dev_build::check_generated(jobs, timings_json.as_deref(), console)
         }
         Commands::ReleaseBundle {
             out,
@@ -788,7 +837,6 @@ pub fn run() -> i32 {
         Commands::ComplianceReport { from_passing_check } => {
             dev_project::compliance_report(from_passing_check)
         }
-        Commands::CrosscheckQueries => dev_gates::crosscheck_queries(),
         Commands::Reason {
             mode,
             fresh,
@@ -893,12 +941,6 @@ pub fn run() -> i32 {
         Commands::Describe { term, gts, lang } => {
             dev_project::describe(&term, gts.as_deref(), lang.as_deref())
         }
-        Commands::ExportDocs {
-            format,
-            directory,
-            force,
-            lang,
-        } => dev_project::export_docs(&format, &directory, force, lang.as_deref()),
         Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
         Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
         Commands::ShapeMigrate { path, apply, prune } => {
@@ -936,6 +978,10 @@ pub fn run() -> i32 {
         Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
         Commands::SliceQualitySeedFloors { axis, all_axes } => {
             dev_slice_quality::slice_quality_seed_floors(axis.as_deref(), all_axes)
+        }
+        Commands::SliceQualitySeedCeilings {} => dev_slice_quality::slice_quality_seed_ceilings(),
+        Commands::SliceQualityProjectionDebt {} => {
+            dev_slice_quality::slice_quality_projection_debt()
         }
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())

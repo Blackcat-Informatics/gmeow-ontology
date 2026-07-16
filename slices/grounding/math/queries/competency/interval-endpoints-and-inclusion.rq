@@ -1,0 +1,23 @@
+# Competency question: "For an ordered interval, what are its two endpoints and,
+# for each end, is that endpoint included (closed) or excluded (open)?"  This
+# exercises the discipline that a math:Interval names BOTH endpoints — a finite
+# numeric literal or a signed extended-real pole for an unbounded end — and BOTH
+# endpoint inclusions (math:closedEndpoint / math:openEndpoint), so which of [0, 1],
+# [0, 1), or (0, 1) is meant is data, never convention. Endpoints are projected as
+# strings (STR) so a finite literal and a pole IRI share one column, exactly as the
+# measure-mass question projects an extended-real total mass. Scoped to the fixture
+# namespace; over the fixture the answer is exactly the two intervals {halfOpenUnit →
+# 0 closed, 1 open; positiveReals → 0 open, +∞ (math:PositiveInfinity) open}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?interval ?lower ?lowerIncl ?upper ?upperIncl WHERE {
+    ?interval a math:Interval ;
+              math:lowerEndpoint ?lowerRaw ;
+              math:upperEndpoint ?upperRaw ;
+              math:lowerInclusion ?lowerIncl ;
+              math:upperInclusion ?upperIncl .
+    FILTER(STRSTARTS(STR(?interval), "http://example.org/math/"))
+    BIND(STR(?lowerRaw) AS ?lower)
+    BIND(STR(?upperRaw) AS ?upper)
+}
+ORDER BY ?interval

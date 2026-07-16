@@ -1,0 +1,20 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/logic-dul
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Commitment-shifting bridge views from the logic foundation onto DOLCE+DnS Ultralite. DUL axioms are linked by reference and are never imported as GMEOW's semantic authority."
+# curie_map:
+#   dul: http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   logic: https://blackcatinformatics.ca/logic/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:InformationObject	skos:closeMatch	dul:InformationObject	semapv:ManualMappingCuration	0.9	The kernel sort is grounded here because external foundation ownership belongs to the logic grounding slice.
+logic:Endurant	skos:closeMatch	dul:Object	semapv:ManualMappingCuration	0.8	DUL Object is the closest endurant-facing category, without collapsing the two foundations.
+logic:Event	skos:closeMatch	dul:Event	semapv:ManualMappingCuration	0.9	
+logic:Individual	skos:closeMatch	dul:Entity	semapv:ManualMappingCuration	0.85	Both are top-level entity categories, but their partitions and identity commitments differ.
+logic:Quality	skos:closeMatch	dul:Quality	semapv:ManualMappingCuration	0.9	
+logic:Situation	skos:closeMatch	dul:Situation	semapv:ManualMappingCuration	0.9	

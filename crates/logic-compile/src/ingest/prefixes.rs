@@ -36,6 +36,7 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("vann", "http://purl.org/vocab/vann/"),
     ("void", "http://rdfs.org/ns/void#"),
     ("dcat", "http://www.w3.org/ns/dcat#"),
+    ("sh", "http://www.w3.org/ns/shacl#"),
     ("dqv", "http://www.w3.org/ns/dqv#"),
     ("sssom", "https://w3id.org/sssom/"),
     ("semapv", "https://w3id.org/semapv/vocab/"),
@@ -80,6 +81,7 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
         "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
     ),
     ("bfo", "http://purl.obolibrary.org/obo/"),
+    ("ro", "http://purl.obolibrary.org/obo/RO_"),
     ("sumo", "https://www.ontologyportal.org/SUMO.owl#"),
     ("cyc", "http://sw.opencyc.org/2012/05/10/concept/en/"),
     ("foaf", "http://xmlns.com/foaf/0.1/"),
@@ -340,6 +342,10 @@ mod tests {
         assert_eq!(
             sssom_id("http://purl.obolibrary.org/obo/BFO_0000001", table),
             "bfo:BFO_0000001"
+        );
+        assert_eq!(
+            sssom_id("http://purl.obolibrary.org/obo/RO_0002131", table),
+            "ro:0002131"
         );
     }
 

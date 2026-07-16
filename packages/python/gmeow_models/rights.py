@@ -216,14 +216,14 @@ class AtomicConstraint(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AtomicConstraint", "curie": "gmeow:AtomicConstraint", "definitionDigest": "blake3:13515734fe29c1f17d93600a1fb8036a99efc59c857e99447947f635ffc05ba3", "iri": "https://blackcatinformatics.ca/gmeow/AtomicConstraint"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AtomicConstraint", "curie": "gmeow:AtomicConstraint", "definitionDigest": "blake3:d7840267748ff3ff5ee3888fb4e1bc3a1bf1e436a1351771e601a4a4cdd66e15", "iri": "https://blackcatinformatics.ca/gmeow/AtomicConstraint"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    constraintOperator: list[str] = Field(min_length=1, description="The comparison operator of an atomic constraint — one of the gmeow:ConstraintOperator values (odrl:operator). Functional.", alias="gmeow:constraintOperator")
-    leftOperand: list[str] = Field(min_length=1, description="The dimension an atomic constraint tests — one of the gmeow:LeftOperand values (odrl:leftOperand). Functional.", alias="gmeow:leftOperand")
+    constraintOperator: list[ConstraintOperatorEnum] | None = Field(default=None, description="The comparison operator of an atomic constraint — one of the gmeow:ConstraintOperator values (odrl:operator). Functional.", alias="gmeow:constraintOperator")
+    leftOperand: list[LeftOperandEnum] | None = Field(default=None, description="The dimension an atomic constraint tests — one of the gmeow:LeftOperand values (odrl:leftOperand). Functional.", alias="gmeow:leftOperand")
     rightOperand: list[str] | None = Field(default=None, description="The value an atomic constraint tests against (odrl:rightOperand), e.g. \"2030-01-01\", \"EU\", \"5\". For an IRI-valued operand use gmeow:rightOperandReference.", alias="gmeow:rightOperand")
 
 
@@ -267,16 +267,16 @@ class Copyright(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Copyright", "curie": "gmeow:Copyright", "definitionDigest": "blake3:d36e66bce0041ce504315288af79f667a1c64767dc09d7fa94e6b681d817077b", "iri": "https://blackcatinformatics.ca/gmeow/Copyright"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Copyright", "curie": "gmeow:Copyright", "definitionDigest": "blake3:82c7e548e3d00167cd8fa479e02b8e5270d609405d54184a95f4f82fd265da8f", "iri": "https://blackcatinformatics.ca/gmeow/Copyright"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    copyrightHolder: list[Agent] = Field(min_length=1, description="The agent that holds a copyright (schema:copyrightHolder; dcterms:rightsHolder). A specialisation of gmeow:wasAttributedTo — the canonical rights-holder attribution. Non-functional: joint copyright has several co-equal holders.", alias="gmeow:copyrightHolder")
+    copyrightHolder: list[Agent] | None = Field(default=None, description="The agent that holds a copyright (schema:copyrightHolder; dcterms:rightsHolder). A specialisation of gmeow:wasAttributedTo — the canonical rights-holder attribution. Non-functional: joint copyright has several co-equal holders.", alias="gmeow:copyrightHolder")
     copyrightNotice: list[str] | None = Field(default=None, description="The human-readable copyright notice (schema:copyrightNotice), e.g. \"© 2026 Blackcat Informatics® Inc.\"", alias="gmeow:copyrightNotice")
     copyrightStatus: list[CopyrightStatusEnum] | None = Field(default=None, description="The copyright status of a work — one of the gmeow:CopyrightStatus values (in-copyright / public-domain / no-known-copyright / not-evaluated), aligned to RightsStatements.org and PREMIS. Functional.", alias="gmeow:copyrightStatus")
-    copyrightWork: list[str] = Field(min_length=1, description="The work a copyright protects. Functional: one copyright relator is about one work.", alias="gmeow:copyrightWork")
+    copyrightWork: list[str] | None = Field(default=None, description="Within gmeow:Copyright, values are node references constrained to gmeow:InformationObject. The work a copyright protects. Functional: one copyright relator is about one work.", alias="gmeow:copyrightWork")
     copyrightYear: list[str] | None = Field(default=None, description="The year copyright was asserted (schema:copyrightYear). Typed rdfs:Literal in the TBox to stay OWL 2 DL (xsd:gYear is not an OWL 2 datatype); data carries an xsd:gYear value.", alias="gmeow:copyrightYear")
 
 
@@ -424,7 +424,7 @@ class License(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     licenseFamily: list[LicenseFamilyEnum] | None = Field(default=None, description="The family a licence belongs to — one of the gmeow:LicenseFamily values. Functional.", alias="gmeow:licenseFamily")
-    licensedWork: list[str] | None = Field(default=None, description="The work a licence grants rights in. Functional.", alias="gmeow:licensedWork")
+    licensedWork: list[str] | None = Field(default=None, description="Within gmeow:License, values are node references constrained to gmeow:InformationObject. The work a licence grants rights in. Functional.", alias="gmeow:licensedWork")
     licensee: list[Agent] | None = Field(default=None, description="The party receiving a licence (odrl:assignee). A specialisation of gmeow:hasParty. Absent on an open / public licence offered to everyone.", alias="gmeow:licensee")
     licensor: list[Agent] = Field(min_length=1, description="The party granting a licence (odrl:assigner). A specialisation of gmeow:hasParty. Non-functional: a licence may be granted jointly.", alias="gmeow:licensor")
     spdxLicenseId: list[str] | None = Field(default=None, description="The SPDX License List short identifier of a licence — the canonical machine-readable licence id (e.g. \"MIT\", \"Apache-2.0\", \"CC-BY-4.0\", \"GPL-3.0-only\"). The bridge to the SPDX / SBOM world (spdx:licenseId); the SPDX List also assigns each id a stable IRI under http://spdx.org/licenses/. Functional: a licence has one canonical SPDX id (a compound choice is an SPDX licence expression in the same literal).", alias="gmeow:spdxLicenseId")
@@ -470,14 +470,14 @@ class LogicalConstraint(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LogicalConstraint", "curie": "gmeow:LogicalConstraint", "definitionDigest": "blake3:2253d663f845dc89f25955a0b5df85c7731362e1656c875b9ac5159e4b1336e1", "iri": "https://blackcatinformatics.ca/gmeow/LogicalConstraint"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LogicalConstraint", "curie": "gmeow:LogicalConstraint", "definitionDigest": "blake3:8c7bf82623b3dd65da58aa634884bf3fbe5e29335924366590c0956c5bd551e8", "iri": "https://blackcatinformatics.ca/gmeow/LogicalConstraint"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    constraintLogic: str = Field(description="The boolean operator combining a logical constraint's members — one of the gmeow:ConstraintLogic values (odrl:and / or / xone / andSequence). Functional.", alias="gmeow:constraintLogic")
-    logicConstraintMember: list[str] = Field(min_length=2, description="A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.", alias="gmeow:logicConstraintMember")
+    constraintLogic: list[ConstraintLogicEnum] | None = Field(default=None, description="The boolean operator combining a logical constraint's members — one of the gmeow:ConstraintLogic values (odrl:and / or / xone / andSequence). Functional.", alias="gmeow:constraintLogic")
+    logicConstraintMember: list[str] | None = Field(default=None, description="Within gmeow:LogicalConstraint, values are node references constrained to gmeow:Constraint. A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.", alias="gmeow:logicConstraintMember")
 
 
 class Mark(ConfiguredBaseModel):
@@ -661,7 +661,6 @@ class Prohibition(Rule):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    ruleAction: Any = Field(description="The regulated action of a rule — one of the open gmeow:RightsAction values (odrl:action). Functional: a rule regulates exactly one action; several actions are several rules.", alias="gmeow:ruleAction")
 
 
 class RightsStatement(ConfiguredBaseModel):

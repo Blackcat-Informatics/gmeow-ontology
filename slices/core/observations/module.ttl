@@ -5,6 +5,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
@@ -30,27 +31,10 @@ gmeow:Magnitude
         gmeow:Entity ;
     skos:definition "The frame-independent true quantity a measurement is of — the magnitude that exists prior to any unit or reference frame (the pressure itself, not its reading in mmHg). The domain grounding of logic:trueQuantity (Principle 17): a measured value points at its Magnitude via gmeow:trueQuantity, and the Magnitude carries only its gmeow:dimension (the generic quality it is a magnitude of), never a value, unit, or frame — those are the frame-relative facets carried on the measured value (Principle 11). The same Magnitude round-trips across unit systems without re-identification."@x-gmeow-english ;
     skos:example "ex:bpMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid putting a value, unit, or reference frame on the Magnitude (those belong on the measured value — the Magnitude is frame-independent by construction) and avoid minting one where a plain framed gmeow:Quantity suffices; reach for it when the unit-independent magnitude must be named in its own right."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting a value, unit, or reference frame on the Magnitude (those belong on the measured value — the Magnitude is frame-independent by construction) and avoid minting one where a plain framed math:Quantity suffices; reach for it when the unit-independent magnitude must be named in its own right."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the Magnitude, set gmeow:dimension to the generic quality it is a magnitude of, and point the framed measured value at it via gmeow:trueQuantity; keep value, unit, and frame on the measured value, not here."@x-gmeow-english ;
     gmeow:useWhen "Use to name the frame-independent magnitude a measurement is of — the YAMATO true quantity, distinct from the value+unit+frame measured value — so the same quantity is shared across readings in different unit systems."@x-gmeow-english .
-
-gmeow:MeasuredValue
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    rdfs:label "Measured Value"@x-gmeow-english ;
-    rdfs:subClassOf logic:Object ,
-        gmeow:Entity ;
-    owl:equivalentClass gmeow:Quantity ;
-    skos:definition "An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (ScalarQuantity alias precedent). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards."@x-gmeow-english ;
-    skos:example "ex:reading22 a gmeow:MeasuredValue ; gmeow:quantityValue 22.5 ; gmeow:unit qudt:DEG_C ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid modelling it as a separate class from its equivalents (owl:equivalentClass — they denote one thing) and avoid it for currency-framed money (gmeow:MonetaryAmount); pick a single alias per export for consistency."@x-gmeow-english ;
-    gmeow:docsConcern gmeow:concernFrames ,
-        gmeow:concernProvenanceEvidence ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the value gmeow:MeasuredValue, fill gmeow:quantityValue / gmeow:quantityUncertainty, name gmeow:unit and gmeow:hasDeterminacy, and link gmeow:isResultOf; consumers reading any of the three equivalent names see the same value."@x-gmeow-english ;
-    gmeow:useWhen "Use as the metrology-flavoured name for the value×unit/frame×determinacy×provenance bundle — the same construct as gmeow:Quantity / gmeow:ScalarQuantity — when aligning with sensor or metrology standards that say 'measured value'."@x-gmeow-english .
 
 gmeow:Measurement
     a logic:SubKind ,
@@ -62,7 +46,7 @@ gmeow:Measurement
     skos:example "ex:tempReading a gmeow:Measurement ; gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a bare standpoint assertion with no assigned value (use gmeow:StandpointClaim) or a raw sensor reading you want typed as such (gmeow:SensoryObservation); specialize further to gmeow:TemporalMeasurement or a spatial coordinate measurement where the slice provides one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the act gmeow:Measurement, make gmeow:observationResult a gmeow:ScalarQuantity (value + gmeow:unit + gmeow:hasDeterminacy + gmeow:quantityUncertainty), and let domain slices deepen it with their own measurement subclasses and seeds."@x-gmeow-english ;
+    gmeow:howToUse "Type the act gmeow:Measurement, make gmeow:observationResult a math:Quantity carrying math:quantityValue plus the applicable gmeow:unit, gmeow:hasDeterminacy, and gmeow:quantityUncertainty qualifiers, and let domain slices deepen it with their own measurement subclasses and seeds."@x-gmeow-english ;
     gmeow:useWhen "Use when an observation assigns a value to its feature — a dating, a coordinate fix, a scalar reading — so the claim inherits the observation roles while signalling it is a quantified/qualified measurement carrying unit, uncertainty, and determinacy."@x-gmeow-english .
 
 gmeow:MonetaryAmount
@@ -78,7 +62,7 @@ gmeow:MonetaryAmount
         ] ;
     skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
     skos:example "ex:price a gmeow:MonetaryAmount ; gmeow:monetaryValue 19.99 ; gmeow:currency ex:usd ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a unit-bearing physical quantity (use gmeow:Quantity with gmeow:unit) and avoid stating a bare amount without gmeow:currency — a value without its currency frame is ill-formed (Principle 11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a unit-bearing physical quantity (use math:Quantity with math:quantityValue and gmeow:unit) and avoid stating a bare amount without gmeow:currency — a value without its currency frame is ill-formed (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the amount, set gmeow:monetaryValue (xsd:decimal) and the required gmeow:currency reference frame; the generated frame-relativity shape (gmeow:requiresFrame) enforces exactly the currency the amount is denominated in."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:currency ;
@@ -145,43 +129,10 @@ gmeow:Quality
         gmeow:Entity ;
     skos:definition "A persistent quality of a bearer — a patient's systolic blood pressure, a road's width — that endures while its measured values change over time. The domain grounding of the foundational logic:Quality (Principle 17): it inheres in its gmeow:bearer, instantiates a generic quality via logic:genericQuality, and may play a quality-role in a bearer-context via logic:qualityRole over logic:Role. Dated gmeow:Observations attach to it via gmeow:observationOf rather than minting a fresh free-floating result each time, so 'how did this value change over time?' is a first-class query (Principle 9, the unified observation construct)."@x-gmeow-english ;
     skos:example "ex:sysBP a gmeow:Quality ; gmeow:bearer ex:patientP ; logic:genericQuality gmeow:pressure ; logic:qualityRole gmeow:systolicRole ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a one-off reading with no enduring identity (wrap that as a gmeow:Quantity result of a single observation) and avoid asserting raw gufo:inheresIn — name the bearer with gmeow:bearer, the by-reference inherence prop (Principle 5)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a one-off reading with no enduring identity (wrap that as a math:Quantity result of a single observation) and avoid asserting raw gufo:inheresIn — name the bearer with gmeow:bearer, the by-reference inherence prop (Principle 5)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one persistent Quality per enduring quality of a bearer, set gmeow:bearer, logic:genericQuality, and (where a role applies) logic:qualityRole; attach each dated reading as a gmeow:Observation with gmeow:observationOf this quality and gmeow:observedAt the time."@x-gmeow-english ;
     gmeow:useWhen "Use when a quality endures across multiple dated observations and you want its value-history as a first-class series — a vital sign, a measured dimension, a monitored property — rather than disconnected per-reading results."@x-gmeow-english .
-
-gmeow:Quantity
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    rdfs:label "Quantity"@x-gmeow-english ;
-    rdfs:subClassOf logic:Object ,
-        gmeow:Entity ;
-    owl:equivalentClass gmeow:ScalarQuantity ;
-    skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (ScalarQuantity alias precedent). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:unit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@x-gmeow-english ;
-    skos:example "ex:distance a gmeow:Quantity ; gmeow:quantityValue 12.4 ; gmeow:unit qudt:M ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating it as a distinct class from gmeow:ScalarQuantity / gmeow:MeasuredValue (they are owl:equivalentClass — pick one name per export) and avoid it for currency-framed money (use gmeow:MonetaryAmount)."@x-gmeow-english ;
-    gmeow:docsConcern gmeow:concernFrames ,
-        gmeow:concernProvenanceEvidence ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the value gmeow:Quantity, set gmeow:quantityValue, name gmeow:unit / gmeow:hasReferenceFrame and gmeow:hasDeterminacy, and carry provenance with gmeow:isResultOf; choose one of the three equivalent names consistently within a projection."@x-gmeow-english ;
-    gmeow:useWhen "Use as the domain-neutral name for a scalar value bundled with unit/frame, determinacy, and provenance — the same construct as gmeow:ScalarQuantity, preferred when no metrology or observation-result framing is intended."@x-gmeow-english .
-
-gmeow:ScalarQuantity
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    rdfs:label "Scalar Quantity"@x-gmeow-english ;
-    rdfs:subClassOf logic:Object ,
-        gmeow:Entity ;
-    skos:definition "A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly."@x-gmeow-english ;
-    skos:example "ex:temp22 a gmeow:ScalarQuantity ; gmeow:quantityValue 22.5 ; gmeow:unit qudt:DEG_C ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid hanging the bare literal on the observation directly (wrap it here) and avoid using it for money (use gmeow:MonetaryAmount, whose currency frame is required); for the domain-neutral name prefer the equivalent gmeow:Quantity / gmeow:MeasuredValue."@x-gmeow-english ;
-    gmeow:docsConcern gmeow:concernFrames ,
-        gmeow:concernProvenanceEvidence ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the wrapper, set gmeow:quantityValue (and gmeow:quantityUncertainty), name gmeow:unit and gmeow:hasDeterminacy, and link it back with gmeow:isResultOf so it inherits the observation's reference frame via the property chain."@x-gmeow-english ;
-    gmeow:useWhen "Use to wrap a literal scalar reading — temperature, distance, count, probability — as an entity so gmeow:observationResult stays uniformly entity-valued and the value travels with its unit, determinacy, and granularity."@x-gmeow-english .
 
 gmeow:SensoryObservation
     a logic:SubKind ,
@@ -193,7 +144,7 @@ gmeow:SensoryObservation
     skos:example "ex:humidityReading a gmeow:SensoryObservation ; gmeow:vantage ex:hygrometer ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a human judgement or a derived/computed value (use gmeow:Measurement with the matching gmeow:observationType) and for a standpoint assertion (gmeow:StandpointClaim); this kind is specifically instrument-mediated sensing."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the reading gmeow:SensoryObservation, put the sensor or platform in gmeow:vantage (or gmeow:streamSensor / gmeow:streamPlatform when streamed), and attach the value as a gmeow:ScalarQuantity result; group time-ordered readings under a gmeow:Stream."@x-gmeow-english ;
+    gmeow:howToUse "Type the reading gmeow:SensoryObservation, put the sensor or platform in gmeow:vantage (or gmeow:streamSensor / gmeow:streamPlatform when streamed), and attach the value as a math:Quantity result; group time-ordered readings under a gmeow:Stream."@x-gmeow-english ;
     gmeow:useWhen "Use when the observation is a reading taken by a sensor or sensory apparatus of a physical property of the environment — the form that travels in a gmeow:Stream and carries sensor/platform/sampling-feature detail."@x-gmeow-english .
 
 gmeow:StandpointClaim
@@ -319,12 +270,12 @@ gmeow:hasStream
 
 gmeow:isResultOf
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
+    rdfs:domain logic:Individual ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "is result of"@x-gmeow-english ;
     rdfs:range gmeow:Observation ;
     owl:inverseOf gmeow:observationResult ;
-    skos:definition "Relates an entity (typically an observation result such as a quantity, coordinate set, or quality value) back to the Observation that produced it — the explicit provenance axis of the value×unit/frame×determinacy×provenance bundle (ScalarQuantity alias precedent). Domain is gmeow:Entity (universal, matching the range of observationResult) so any result type can carry provenance. Non-functional: a result entity may be produced by multiple observations (e.g. a consensus value derived from several readings), and those claims coexist rather than collapse."@x-gmeow-english ;
+    skos:definition "Relates an individual result (such as a math:Quantity, coordinate set, instant, or quality value) back to the Observation that produced it — the explicit provenance axis qualifying the result. Domain is logic:Individual, matching the broad observationResult range across concrete endurants and abstract values. Non-functional: a result may be produced by multiple observations (for example a consensus value derived from several readings), and those claims coexist rather than collapse."@x-gmeow-english ;
     skos:example "ex:temp22 gmeow:isResultOf ex:reading ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it where you can state gmeow:observationResult instead (prefer the observation-rooted direction and read this as its inverse), and avoid forcing one producer — a consensus value legitimately is the result of several observations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -392,7 +343,7 @@ gmeow:monetaryValue
     rdfs:range xsd:decimal ;
     skos:definition "The numeric value of a monetary amount as an xsd:decimal. Functional: a MonetaryAmount has exactly one numeric value."@x-gmeow-english ;
     skos:example "ex:price gmeow:monetaryValue 19.99 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid stating it without the gmeow:currency frame (a bare amount is ill-formed, Principle 11), avoid it for unit-bearing physical quantities (gmeow:quantityValue), and avoid two values — it is functional."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stating it without the gmeow:currency frame (a bare amount is ill-formed, Principle 11), avoid it for unit-bearing physical quantities (math:quantityValue), and avoid two values — it is functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Put the amount here as xsd:decimal and name the currency frame with gmeow:currency; consumers read magnitude and currency together, and the frame-relativity shape rejects an amount missing its currency."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:MonetaryAmount — the decimal that, paired with gmeow:currency, is a well-formed money value."@x-gmeow-english .
@@ -439,18 +390,17 @@ gmeow:observationOf
     gmeow:useWhen "Use to attach a dated observation to the enduring quality it reads, so a vital sign or monitored property accumulates a queryable value-history instead of disconnected results."@x-gmeow-english .
 
 gmeow:observationResult
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation result"@x-gmeow-english ;
-    rdfs:range gmeow:Entity ;
-    skos:definition "The entity-valued result of an observation — a coordinate set, an instant, a quality value, a quantity, or another entity. For literal scalar readings (e.g. 22.5°C), the observationResult entity carries the literal via a datatype property (e.g. qudt:quantityValue or a module-specific scalar property). Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse."@x-gmeow-english ;
+    rdfs:range logic:Individual ;
+    skos:definition "The individual-valued result of an observation — a concrete entity, coordinate set, instant, abstract quality value, math:Quantity, or another particular. A scalar reading such as 22.5°C is a math:Quantity carrying its literal through math:quantityValue and its dimension through math:hasDimension; observations adds unit/frame, determinacy, provenance, and uncertainty qualifiers. Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse."@x-gmeow-english ;
     skos:example "ex:reading gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid hanging a raw literal here (the range is gmeow:Entity — wrap scalars in a gmeow:ScalarQuantity instead) and avoid forcing a single result in a multi-frame or multi-source merge; it is non-functional so competing results coexist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hanging a raw literal here (wrap scalar results in math:Quantity instead) and avoid forcing a single result in a multi-frame or multi-source merge; competing results coexist."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the Observation at an entity-valued result; for scalar readings make the result a gmeow:ScalarQuantity carrying gmeow:quantityValue, gmeow:unit, and gmeow:hasDeterminacy. The result inherits the observation's reference frame via the isResultOf∘hasReferenceFrame chain."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the value an Observation produces — a coordinate set, instant, quality value, modality, appellation, or a gmeow:ScalarQuantity wrapping a literal reading."@x-gmeow-english .
+    gmeow:howToUse "Point the Observation at an individual-valued result; for scalar readings make the result a math:Quantity carrying math:quantityValue, math:hasDimension, and, where applicable, gmeow:unit and gmeow:hasDeterminacy. The result inherits the observation's reference frame via the isResultOf∘hasReferenceFrame chain."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the value an Observation produces — a coordinate set, instant, quality value, modality, appellation, or a math:Quantity wrapping a literal reading."@x-gmeow-english .
 
 gmeow:observationType
     a owl:ObjectProperty ;
@@ -573,31 +523,16 @@ gmeow:pressure
 gmeow:quantityUncertainty
     a owl:DatatypeProperty ,
         owl:FunctionalProperty ;
-    rdfs:domain gmeow:ScalarQuantity ;
+    rdfs:domain math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "quantity uncertainty"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The uncertainty (e.g. ±1 sigma) of a scalar quantity, in the same unit as the quantity value."@x-gmeow-english ;
+    skos:definition "The epistemic uncertainty (for example ±1σ) of a math:Quantity, expressed in the same unit as its math:quantityValue. This observation qualifier does not own the quantity or its value property; math: is their canonical grounding surface."@x-gmeow-english ;
     skos:example "ex:temp22 gmeow:quantityUncertainty 0.3 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with ontic determinacy (gmeow:hasDeterminacy — whether the value is crisp, vague, fuzzy) or with resolution (gmeow:hasGranularity); uncertainty is how-sure, an axis distinct from those (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "State the spread in the quantity's own unit alongside gmeow:quantityValue; leave the fuzzy/probabilistic arithmetic and confidence intervals to the solver layer (P12), and carry the ontic model separately on gmeow:hasDeterminacy."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the EPISTEMIC spread of a scalar reading — a ±1σ or tolerance figure, expressed in the same unit as gmeow:quantityValue."@x-gmeow-english .
-
-gmeow:quantityValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
-    rdfs:domain gmeow:ScalarQuantity ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    rdfs:label "quantity value"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    rdfs:subPropertyOf logic:measuredValue ;
-    skos:definition "The numeric value of a scalar quantity, as an xsd:decimal. Functional: a scalar quantity has exactly one numeric value. Meaningful only with its unit (gmeow:unit) and reference frame — no silent units, no frameless values (Principle 11). The domain grounding of logic:measuredValue (the frame-relative magnitude of the true quantity)."@x-gmeow-english ;
-    skos:example "ex:temp22 gmeow:quantityValue 22.5 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid publishing or comparing it without its gmeow:unit (no silent units), avoid it for money (use gmeow:monetaryValue, whose currency frame is required), and avoid asserting two values — it is functional."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Put the magnitude here as xsd:decimal, name the unit with gmeow:unit, the spread with gmeow:quantityUncertainty, and the ontic model with gmeow:hasDeterminacy; consumers read magnitude and unit together."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:ScalarQuantity (or its aliases) — the literal that, paired with gmeow:unit, makes the reading meaningful."@x-gmeow-english .
+    gmeow:howToUse "State the spread in the quantity's own unit alongside math:quantityValue; leave fuzzy/probabilistic arithmetic and confidence intervals to the solver layer, and carry the ontic model separately on gmeow:hasDeterminacy."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the epistemic spread of a math:Quantity reading — a ±1σ or tolerance figure, expressed in the same unit as math:quantityValue."@x-gmeow-english .
 
 gmeow:statementAbout
     rdfs:subPropertyOf gmeow:observedFeature .
@@ -672,13 +607,13 @@ gmeow:streamSensor
 gmeow:trueQuantity
     a owl:FunctionalProperty ,
         owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
+    rdfs:domain math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "true quantity"@x-gmeow-english ;
     rdfs:range gmeow:Magnitude ;
     rdfs:subPropertyOf logic:trueQuantity ;
-    skos:definition "Relates a framed measured value (a gmeow:Quantity / gmeow:ScalarQuantity / gmeow:MeasuredValue) to the frame-independent gmeow:Magnitude it is a reading of — the domain grounding of logic:trueQuantity (Principle 17). Functional: a measured value reads exactly one true quantity. The value, unit (gmeow:unit), and reference frame (gmeow:hasReferenceFrame) stay on the measured value; the unit-independent magnitude lives on the Magnitude, so the same true quantity is shared across readings in different units (Principle 11)."@x-gmeow-english ;
-    skos:example "ex:bp120 gmeow:trueQuantity ex:bpMagnitude ; gmeow:quantityValue 120 ; gmeow:unit qudt:MilliM_HG ."@x-gmeow-english ;
+    skos:definition "Relates a framed math:Quantity to the frame-independent gmeow:Magnitude it is a reading of — the observations grounding of logic:trueQuantity (Principle 17). Functional: one framed quantity reads exactly one true magnitude. The math:quantityValue, gmeow:unit, and gmeow:hasReferenceFrame stay on the math:Quantity; the unit-independent magnitude lives on gmeow:Magnitude, so the same true quantity is shared across readings in different units (Principle 11)."@x-gmeow-english ;
+    skos:example "ex:bp120 a math:Quantity ; gmeow:trueQuantity ex:bpMagnitude ; math:quantityValue 120 ; gmeow:unit qudt:MilliM_HG ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid moving the value, unit, or frame onto the Magnitude (they are frame-relative and belong on the measured value) and avoid minting a Magnitude where no unit-independent identity is needed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point a framed measured value at its gmeow:Magnitude via gmeow:trueQuantity; the foundation reads it as logic:trueQuantity, and value, unit, and frame stay on the measured value."@x-gmeow-english ;
@@ -691,13 +626,13 @@ gmeow:unit
     rdfs:label "unit"@x-gmeow-english ;
     rdfs:range qudt:Unit ;
     rdfs:subPropertyOf logic:unit ;
-    skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported) — the unit the value is expressed in, held on the measured value, not on the frame-independent gmeow:Magnitude (Principle 11). The domain grounding of logic:unit and the IRI-valued witness that a framed value exists: a value bearing gmeow:unit but no reference frame (gmeow:hasReferenceFrame) is the logic:MeasurementFrameMissing violation. Domain-free: temporal, spatial, and any other quantified claim use it. The canonical unit carrier on the measurement spine (the successor to the retired gmeow:unit)."@x-gmeow-english ;
+    skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported) — the unit the value is expressed in, held on the framed math:Quantity or other measured value, not on the frame-independent gmeow:Magnitude (Principle 11). The domain grounding of logic:unit and the IRI-valued witness that a framed value exists: a value bearing gmeow:unit but no reference frame (gmeow:hasReferenceFrame) is the logic:MeasurementFrameMissing violation. Domain-free because temporal, spatial, and other quantified claims also use it."@x-gmeow-english ;
     skos:example "ex:duration gmeow:unit qudt:SEC ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid putting it on the frame-independent gmeow:Magnitude (the unit is frame-relative — keep it on the measured value), avoid inventing local unit individuals or importing QUDT axioms (reference QUDT units by IRI, Principle 5), and avoid a unit-bearing value with no reference frame (a value without its frame is ill-formed, Principle 11)."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernFrames ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the measured value at its QUDT unit IRI and ensure it also carries a gmeow:hasReferenceFrame so the value is well-framed; keep the numeric magnitude on gmeow:quantityValue and let consumers read magnitude, unit, and frame together."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the QUDT unit a measured value is expressed in — the canonical unit carrier on the measurement spine (the successor to gmeow:unit), so a magnitude is never published without its unit and frame (no silent units)."@x-gmeow-english .
+    gmeow:howToUse "Point the measured value at its QUDT unit IRI and ensure it also carries a gmeow:hasReferenceFrame so the value is well-framed; keep the numeric magnitude on math:quantityValue and let consumers read magnitude, unit, and frame together."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the QUDT unit a math:Quantity or other measured value is expressed in, so a framed magnitude is never published with a silent unit."@x-gmeow-english .
 
 gmeow:usageAppellation
     rdfs:subPropertyOf gmeow:observationResult .
@@ -730,7 +665,7 @@ gmeow:versionMember
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims into one structure — realising Governing Principle 9 (Observation ≡ Measurement ≡ Standpoint ≡ IdentityFacet ≡ NameUsage ≡ RightsStatement ≡ KinRelationship). Sits in the foundational provenance/standpoint layer and is consumed by every slice. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference.
 
-Also home to the universal Quantity / MeasuredValue construct (ScalarQuantity alias precedent): a scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS. gmeow:Quantity and gmeow:MeasuredValue are equivalent to gmeow:ScalarQuantity, providing domain-neutral names for the same construct."""@x-gmeow-english ;
+The universal dimensioned quantity and its numeric value are owned by the grounding math: slice as math:Quantity and math:quantityValue. This observations slice qualifies that same object with unit/reference-frame, determinacy, provenance, true-magnitude, and uncertainty properties; it does not mint observation-local quantity aliases or a second value property."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "GMEOW Observations Module"@x-gmeow-english ;
     skos:definition "The GMEOW Observations Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
@@ -749,6 +684,23 @@ gmeow:SensoryObservation rdfs:subClassOf
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/SensoryObservation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 <https://blackcatinformatics.ca/gmeow/Measurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+
+# A unit-bearing math:Quantity is a concrete measured value and therefore carries
+# its numeric magnitude. Reference-frame completeness is already owned by the
+# logic:MeasurementFrameMissing foundation discipline over logic:unit; this
+# constraint supplies only the quantity/value companion that the retired root
+# shape carried, without forcing framed dimensionless probabilities to mint a unit.
+gmeow:UnitBearingQuantityValueConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Unit-bearing quantity value constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A unit-bearing math:Quantity carries a math:quantityValue. The unit is the guard that distinguishes a concrete measured value from an abstract or dimensionless mathematical quantity; reference-frame completeness remains the logic:MeasurementFrameMissing foundation discipline."@x-gmeow-english ;
+    logic:onClass math:Quantity ;
+    logic:trigger gmeow:unit ;
+    logic:requires math:quantityValue ;
+    logic:formalizes gmeow:MeasuredQuantityShape ;
+    logic:message "A unit-bearing math:Quantity must carry a numeric magnitude through math:quantityValue; a unit without a value is incomplete." .
 
 # =========================================================================== #
 # Procedural constraints authored as raw logic:Formula integrity trees, #
@@ -921,37 +873,15 @@ logic:comRubAtom a logic:Formula ; logic:relation gmeow:assessmentRubric ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m4" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/MeasuredValue> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/quantityValue> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/MeasuredValue> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/unit> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Measurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 <https://blackcatinformatics.ca/gmeow/MonetaryAmount> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/monetaryValue> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/Observation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observedAt> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#dateTime> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MeasuredValue> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/quantityValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MeasuredValue> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/unit" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Measurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationMethod" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/monetaryValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
-# --- Wave B1 shape-drain: quantity / monetary / observation cardinality restorations ---
-# The retired gmeow:ScalarQuantityShape targets the three owl:equivalentClass aliases
-# (gmeow:ScalarQuantity, gmeow:Quantity, gmeow:MeasuredValue) directly, because raw-graph
-# SHACL does no equivalence inference; the derive is likewise syntactic, so the closed-world
-# value/cardinality axioms are authored on each alias. gmeow:unit and gmeow:trueQuantity are
-# already owl:FunctionalProperty (their sh:maxCount 1 rides the functional projection), so only
-# the value existence + gmeow:quantityValue exactly-one need restoring here.
-gmeow:ScalarQuantity rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ; owl:allValuesFrom xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:unit ; owl:allValuesFrom owl:Thing ] .
-gmeow:Quantity rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ; owl:allValuesFrom xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:unit ; owl:allValuesFrom owl:Thing ] .
-gmeow:MeasuredValue rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:ScalarQuantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:ScalarQuantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/unit" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:Quantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:Quantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/unit" ; logic:closureValue logic:ClosedWorldClosure ] .
+# The quantity value/unit well-formedness formerly enforced on the retired quantity aliases is
+# now carried by the sole quantity authority math:Quantity (its cardinality axioms plus
+# gmeow:UnitBearingQuantity requiring math:quantityValue), so no alias axioms are authored here.
 
 # gmeow:ObservationTemporalShape — an Observation records at most one observation time.
 gmeow:Observation rdfs:subClassOf

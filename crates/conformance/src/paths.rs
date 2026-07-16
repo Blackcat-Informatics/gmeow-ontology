@@ -36,6 +36,14 @@ pub fn cases_root() -> PathBuf {
     conformance_root().join("cases")
 }
 
+/// The single shared vendored-corpus root — the parent of every vendored corpus
+/// family (`external/` correctness suites, `bench/` performance corpora). This is the
+/// same physical path as [`cases_root`], named as an intentional abstraction so the
+/// two families are one root by design, not two constants that happen to agree.
+pub fn vendored_corpus_root() -> PathBuf {
+    cases_root()
+}
+
 /// The owning case directory for a discovered `profile.json` sentinel file.
 ///
 /// A case lives at `.../cases/<category>/<case>/profile.json`, so the case

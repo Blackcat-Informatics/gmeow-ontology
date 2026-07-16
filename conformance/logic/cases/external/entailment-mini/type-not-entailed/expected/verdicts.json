@@ -1,0 +1,6 @@
+{
+  "https://gmeow.example/entailment-mini/type-not-entailed/w": {
+    "quads": 4,
+    "status": "consistent"
+  }
+}

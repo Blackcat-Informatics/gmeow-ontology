@@ -2,353 +2,14 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [profile.default]
-# Always-on per-test budget: every test on this profile must complete under
-# 25 s real wall time, enforced AFTER the run by the JUnit duration gate
-# (`cargo run -p gmeow-test-budget`, wired into `make rust-test`/`rust-gate`). Tests
-# that are still over budget are carved out of this profile via `default-filter`
-# below and run on the `maint-heavy` profile instead — so the gate has NO
-# legitimate >25 s test to allowlist. Correctness failures stay in the normal
-# profile even when they were discovered during maint-heavy evaluation.
-# The slow-timeout stays at the original 120 s terminate cliff purely as a
-# runaway/hang backstop; the 25 s POLICY is the JUnit gate, not this timeout.
+# Wall-clock duration is not a correctness gate. The JUnit report remains useful
+# as contextual evidence, while correctness failures and the repeated slow-timeout
+# runaway backstop remain hard failures.
 #
-# `default-filter` is the set of tests run when no filter is given on the CLI. Keep
-# this expression as the single source of truth for what the always-on gate excludes;
-# `maint-heavy` re-includes everything. Each excluded group MUST be justified here and
-# in AGENTS.md's test-budget section (the off-gate allowlist). The post-run JUnit
-# budget gate verifies nothing >25 s slipped THROUGH this filter onto the gate.
-#
-# Off-gate groups (reevaluated 2026-06-29 via `make maint-rust-heavy`).
-# Most former exclusions now pass well under the 25 s policy and are back on the
-# default/ci profile. The remaining exclusions are still over budget:
-#   - gmeow-validate deep_surfaces_entailed_inconsistency..._heavy_offgate:
-#     30.705 s locally; the consumer `gmeow validate --deep` AC1 test reasons over
-#     user data merged with the WHOLE bundled TBox via the native chase. Fast
-#     per-commit coverage stays with the tiny-TBox gmeow-logic unit tests plus the
-#     on-gate deep_pass_failure_* / deep_false_* validate tests.
-#   - gmeow-pipeline fold_parity binary:
-#     32.231 s locally; this is the full real-repo terminal sink vs committed
-#     `generated/dist/gmeow.gts` fold-isomorphism oracle.
-#   - gmeow-pipeline end_to_end binary:
-#     82.351 s in CI shard 1; it runs the real production spine through
-#     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
-#     and carrier tests keep the failure modes covered on-gate.
-#   - gmeow-foundation-corpus imported_graph_conforms_to_shapes:
-#     26.065 s in CI shard 2; it validates the importer output unioned with the
-#     WHOLE merged ontology (every slices/*/*/module.ttl) against the ENTIRE SHACL
-#     shape corpus — genuinely-irreducible whole-ontology conformance. The H8
-#     migration folded 9 new sh:sparql constraint shapes (each a full-graph scan)
-#     into that corpus, nudging it just past budget. No coverage class leaves the
-#     gate: the importer's graph-shape parity stays on-gate via the four sibling
-#     SPARQL acceptance tests (scores/roles/trajectory) in the same file, and
-#     whole-ontology SHACL conformance stays on-gate via the ~35 fixture-only
-#     domain conformance_* validate tests (the four whole-ontology-union
-#     conformance binaries join this off-gate group — see next entry — for the
-#     same reason).
-#   - gmeow-validate conformance_{finance,agentic,ai_claims,music_analysis}:
-#     ~8.8 s locally / 24-26 s in CI. These are exactly the domain conformance
-#     binaries whose cases use Case::with_ontology(): each unions its fixture with
-#     the WHOLE merged ontology (every slices/*/*/module.ttl) and validates that
-#     entire graph — not just the fixture — against the ENTIRE shape corpus, so it
-#     carries the same H8 sh:sparql-constraint cost as imported_graph_conforms_to_shapes
-#     above. Measured: fixture-only conformance cases run in ~0.05 s, so the whole
-#     cost is the ontology-union validation and is independent of which fixture is
-#     under test — the four ride the 25 s cliff together and CI jitter alone decides
-#     which trip on a given run, so the whole class is carved out rather than the
-#     cases that happened to trip. No coverage class leaves the gate: the ~35
-#     fixture-only conformance_* domain tests stay on-gate against the same full
-#     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
-#     alongside imported_graph_conforms_to_shapes.
-#   - gmeow-validate conformance_math_producers: ~20 s per test in CI. Each of the
-#     five tests validates a native math-flagship producer's emitted graph, merged
-#     with the WHOLE base ontology, against the ENTIRE shape corpus via
-#     validate_with_ontology() — the identical whole-ontology-union cost as the four
-#     domain conformance binaries above, so it joins the same off-gate group. No
-#     coverage leaves the per-commit gate: the five producers' pinned falsifiable
-#     values are still RUN and asserted on-gate by
-#     crates/pipeline/tests/math_flagship_discharge.rs (which executes each producer),
-#     and this binary is the extra cross-crate proof that the producer output also
-#     validates SHACL-clean — reevaluated on maint-heavy.
-#   - gmeow-validate conformance_affect_producer_union: the 8 whole-ontology-union
-#     affect twins (four Case::with_ontology() exclusivity/label-rule twins + four
-#     .shape_union() projected-cardinality twins), split out of the mixed
-#     conformance_affect_producer binary so its ~10 cheap fixture-only + pure-Rust
-#     producer tests stay on-gate. Same whole-ontology-union H8 sh:sparql cost as the
-#     domain conformance binaries above. A DETERMINISTIC cost-partition bench
-#     (gmeow-cost-measure allocation accounting, run via make maint-bench-instructions)
-#     measured a single twin's whole-graph scan at ~34.8 GB / 54.2M allocations of
-#     churn — ~63x the one-time corpus setup (~0.55 GB) and ~25,000x the fixture-only
-#     path (~1.4 MB) — so the per-twin scan is IRREDUCIBLE: a setup cache can amortize
-#     only the ~2% setup (never the scan) and folding the twins into one test raises
-#     the per-test maximum to setup + 8x the scan. It rides the same 25 s cliff as its
-#     siblings, so it joins this off-gate group; the cheap producer coverage stays
-#     on the per-commit gate.
-#   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
-#     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
-#     the native chase over it twice (once benign, once with an injected
-#     disjoint-class clash). This exclusion is budget-exempt, NOT gate-exempt: the
-#     test still runs on every `make check` via the dedicated `coherence-gate-teeth`
-#     target, which invokes it with `--ignore-default-filter` plus an explicit `-E`
-#     selector (overriding this `default-filter`) and does not feed its JUnit output
-#     into the 25 s budget gate.
-#   - gmeow-pipeline fanout_parity binary + stages::superset::tests::
-#     project_bundle_reconstructs_the_committed_tree_and_gate_is_clean:
-#     20.4 s / 17.5 s / 16.8 s locally (24-30+ s in CI). These reconstruct the
-#     whole `generated/` tree from the committed `gmeow.gts` bundle alone and
-#     assert the superset gate is clean / the fanout is byte-reproducible and
-#     idempotent — irreducibly O(bundle size), the same whole-committed-bundle
-#     class as `fold_parity`/`end_to_end` above. The total-prose-lift surface
-#     (a `lang:SurfaceForm` per distinct English literal) grew the bundle ~30 %,
-#     nudging these three past budget; the cost is bundle-size, not fixture-
-#     dependent. No coverage class leaves the gate: the superset reconstruction
-#     gate and the fanout reproduction both run on every `make check` via
-#     `make check-generated` (the `stage:superset`/`pipeline-reconcile` and
-#     `fanout` stages, which hard-fail on any drift), and the whole class stays
-#     on-gate on `maint-heavy`.
-#   - gmeow-dev-cli cli_parity::build_writes_serializations + gmeow-cli
-#     cli::export_respects_language_selector + cli::project_schema_org_view_filter:
-#     6-8 s standalone but 25.5-27.5 s under full-parallelism CI contention. Each
-#     drives the CLI to serialize / export / project-a-view over the WHOLE bundle,
-#     so they are irreducibly O(bundle size) — the same whole-committed-bundle class
-#     as fanout_parity / end_to_end above. The lang: projection surface (OntoLex /
-#     CoNLL-U / SemAF forward projections) plus the native-chase logic growth nudged
-#     these three past budget on bundle-size alone, not fixture cost. Coverage stays:
-#     the written serializations are drift-gated on every `make check` via
-#     `make check-generated`, and all three stay on-gate on `maint-heavy`.
-#   - gmeow-pipeline projections::tests::up_project_recovers_message_superclass_via_prp_dom
-#     + projections::tests::up_project_never_fabricates_subkind_or_sibling:
-#     6.2 s each standalone but 26.9-27.3 s under full-parallelism contention. Each
-#     folds the WHOLE committed `gmeow.gts` bundle and drives the real inverse-ingest
-#     `up_project` over its mappings/cells archives (nextest's process-per-test model
-#     means each pays the full fold despite the in-process `sioc_run` cache) —
-#     irreducibly O(bundle size), the same whole-committed-bundle class as
-#     fanout_parity / end_to_end above. The lang: GMN dialect graft grew the bundle
-#     and nudged both past budget on bundle-size alone, not fixture cost. Coverage
-#     stays: the up-projection surface keeps its fixture-scale on-gate tests in the
-#     same module (up_project_lifts_consumer_vocab_to_gmeow,
-#     harvest_reasoned_types_needs_world_colocation), and both bundle-scale tests
-#     stay on-gate on `maint-heavy`.
-#   - gmeow-docs extract_roundtrip::rendered_tree_is_disk_faithful: 32.6 s. It
-#     drives the real `render::write_site` over the WHOLE (primed) documentation
-#     site — writing every page to disk and reading each back to prove the on-disk
-#     bytes equal the in-memory Site — so it is irreducibly O(site size), the same
-#     whole-bundle class as the parity/superset tests above. The site render itself
-#     is primed (not in the test's time); the cost is the per-file disk write+read
-#     round-trip over the whole tree, which the lang: graft + correspondence-laws
-#     surface grew past budget on page-count alone, not fixture cost. Coverage
-#     stays: the write contract runs on every `make check` (the docs fanout is
-#     drift-gated via `make check-generated`) and the test stays on-gate on
-#     `maint-heavy`.
-#   - gmeow-docs render_golden::render_site_is_byte_stable (33.1 s),
-#     mdbook_render::book_bodies_are_rewrite_of_single_authority (34.5 s),
-#     extract_roundtrip::english_carrier_tree_matches_render_site (32.6 s), and
-#     gmeow-pipeline stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site
-#     (32.9 s): each renders (and re-renders / re-packs / round-trips) the WHOLE
-#     documentation site, so all four are irreducibly O(site size), the same
-#     whole-site class as `rendered_tree_is_disk_faithful` above. Bringing the
-#     grounding-language vocabulary (`math:`/`logic:`/`lang:`, ~1.9k terms) into the
-#     documented-term set grew the rendered site ~40% and nudged these four past the
-#     25 s cliff on page-count alone, not fixture cost. Coverage stays: byte-stable
-#     rendering and the docs archive are drift-gated on every `make check` via
-#     `make check-generated`, the render/mdbook/roundtrip contracts keep their
-#     fixture-scale unit coverage on-gate, and all four stay on-gate on `maint-heavy`.
-#   - gmeow-docs mdbook_render::book_term_chapter_with_dropped_link_golden (30.7 s),
-#     book_no_relative_link_to_dropped_page (30.4 s), book_toml_golden (26.6 s), and
-#     book_zero_term_slice_renders_valid_chapter (26.4 s): each reads the WHOLE primed
-#     documentation model and renders the complete mdBook surface before making its
-#     focused assertion, so the typed-IR vocabulary/prose growth pushed this existing
-#     whole-site class over budget under CI contention. Focused link, TOML, and zero-term
-#     render helpers remain on-gate, committed docs remain byte-drift-gated, and the four
-#     exhaustive renders run on `maint-heavy`.
-#   - gmeow-cli cli::project_unknown_view_fails + cli::describe_env_language_rejected_if_unknown
-#     + cli::describe_json_format_is_valid_card_json
-#     + bundle_smoke::describe_names_a_known_term
-#     + gmeow-dev-cli cli_parity::project_view_over_the_snapshot:
-#     3-5 s standalone but 27.5-32.2 s under full-parallelism CI contention. Each
-#     drives the CLI to load / describe / project-a-view over the WHOLE committed
-#     bundle before it reaches its (fast) reject/parity assertion, so they are
-#     irreducibly O(bundle size) — the identical whole-committed-bundle class as
-#     the build_writes_serializations / export / project_schema_org_view siblings
-#     above. The lang: total-prose-lift + GMN-graft surface plus the conjecture-
-#     library logic:/math: term growth grew the bundle and nudged these
-#     siblings over the same 25 s cliff on bundle-size alone, not fixture cost;
-#     the math shape-migration grounding then tipped the two remaining
-#     describe-over-the-whole-bundle members (`describe_json_format_is_valid_card_json`
-#     at 25.2 s, `bundle_smoke::describe_names_a_known_term` at 25.5-25.9 s under
-#     contention) over the same cliff, so the whole class is carved out rather
-#     than the cases that happened to trip on a given run.
-#     Coverage stays: the CLI project/describe surface keeps its fixture-scale
-#     reject/parity coverage on-gate in the same binaries, the serializations are
-#     drift-gated via `make check-generated`, and all three stay on-gate on
-#     `maint-heavy`.
-#   - gmeow-cli self_sufficiency::transpile_wheel_mode_equals_repo_mode +
-#     self_sufficiency::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak +
-#     self_sufficiency::project_wheel_mode_equals_repo_mode +
-#     self_sufficiency::describe_wheel_mode_equals_repo_mode:
-#     31-53 s locally for the transpile/project cases; `describe` is 6.3-7.6 s
-#     standalone but took 28.0 s in an isolated full `make rust-test` even after
-#     assignment to a dedicated test group. Each drives `gmeow transpile`/
-#     `gmeow project`/`gmeow describe` over the WHOLE embedded bundle —
-#     `transpile`'s parity test runs it TWICE
-#     (blinded-cwd leg + repo-cwd leg), the leak/fan-out test folds the full
-#     multi-vocab MAXIMAL(G) output — the same whole-committed-bundle class as
-#     the `build_writes_serializations` / `export_respects_language_selector` /
-#     `project_schema_org_view_filter` trio above, irreducibly O(bundle size).
-#     Coverage stays: the SAME wheel-mode==repo-mode parity law stays on-gate
-#     at fixture scale via `self_sufficiency::validate_wheel_mode_equals_repo_mode`
-#     (the cheapest subcommand, no bundle-scale output), and all four exhaustive
-#     whole-bundle tests stay on-gate on `maint-heavy`.
-#   - gmeow-pipeline release_verify_roundtrip binary:
-#     ~75 s per test locally. `fold_release_bundle`/`verify_release_bundle` each
-#     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` — the
-#     identical "whole committed bundle" cost class as `fold_parity`/
-#     `fanout_parity`/`end_to_end` above, irreducibly O(bundle size). Coverage
-#     stays: the real crypto-through-the-built-binary requirement (accept a
-#     valid signature, reject an invalid one) runs on-gate via
-#     `crates/gmeow-cli/tests/bundle_smoke.rs`, which builds a small in-process
-#     signed `.gts` rather than replaying the shipped bundle; `release.rs`'s own
-#     unit tests cover the fold/verify pair's logic against a tiny synthetic
-#     snapshot; and the full committed-bundle round-trip stays on-gate on
-#     `maint-heavy`.
-#   - gmeow-pipeline quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate:
-#     86.2 s. It builds the full self-description carrier, which scores every one of
-#     the ~81 slices via `slice_quality::score_slice` to attach the
-#     `graph/quality-assessment` named graph — irreducibly O(slice count), the same
-#     whole-repo class as `end_to_end`/`fold_parity`. Coverage stays: the
-#     attach↔fanout-path bijection and the N-Triples fold form are proven on-gate by
-#     the fast sibling units
-#     `stages::carrier::quality_assessment_tests::quality_assessment_fanout_path_is_registered_and_folds_as_ntriples`
-#     and `stages::superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
-#     the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
-#     `make check` via `make check-generated`, and the exhaustive real-carrier proof
-#     stays on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo:
-#     ~100 s locally. Proves the B3 entailment join is non-vacuous
-#     against the REAL ontology by running the real `source_load` → `statements` /
-#     `compile_logic` → `mappings` → `reason` stage chain (a full native-chase
-#     reasoning pass over the whole EDB) and asserting `term_entailments` is
-#     genuinely non-empty — irreducibly O(bundle size), the same whole-repo class
-#     as `end_to_end`/`quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`.
-#     Coverage stays: the join logic itself (reifier-bound quoted-triple resolution,
-#     term matching, hard-fail-on-missing-artifact) is proven on-gate by the fast
-#     fixture-only siblings
-#     `term_entailments_from_explanations_populates_matching_term_only` and
-#     `term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
-#     same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo:
-#     ~105 s locally. The symmetric real-repo non-vacuity proof for
-#     the diagnostics digest — runs the real `source_load` → `validate` /
-#     `compile_logic` chain (whole-ontology SHACL validation + logic compile) and
-#     asserts the folded finding `total` is non-zero and that a documented term carries
-#     a diagnostic, the same whole-repo cost class as the conformance-union binaries
-#     above. Coverage stays: the documented-term attribution join is proven on-gate by
-#     the fast synthetic sibling
-#     `diagnostics_digest_joins_on_documented_term_attribution_not_abox_focus`
-#     in the same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo:
-#     ~100 s locally. The symmetric real-repo non-vacuity proof for the per-term
-#     projection-loss digest — runs the real `compile_logic` → `mappings` chain and
-#     asserts a documented core term carries a projection-loss row. Coverage stays: the
-#     attribution/join logic is proven on-gate by the fast synthetic sibling
-#     `term_loss_digest_attributes_term_projection_loss_nodes_to_documented_source_terms`,
-#     and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
-#   - gmeow-slicetest run_structural_file::core/slice-quality-rubric/tests/structural.ttl:
-#     19-42 s depending on contention (was 41.1 s before a
-#     same-scope dataset cache landed in `run_structural_cell`, which halved the standalone
-#     cost). The slice-quality rubric module (`slices/core/slice-quality-rubric/module.ttl`)
-#     is the largest, most prose-dense module in the repo — it is the self-describing quality
-#     rubric itself, documenting every axis in full natural-language prose — and each new axis
-#     (13 now, after the GMN-1 Coverage axis) both grows that file and adds another structural
-#     cell that re-unions + re-plans a SPARQL ASK over it, so the cost is irreducibly
-#     O(module size x cell count) under this shared dev box's contention, the same
-#     under-contention class as the CLI/up_project siblings above. No coverage leaves the
-#     gate: the assertions are still RUN and asserted correct on every `make check` via
-#     `make maint-rust-heavy`, every other slice's `structural.ttl` stays on-gate (this
-#     exclusion is scoped to this one file's datatest case, not the whole class), and the
-#     rubric's axis-shape invariants stay drift-gated via `make check-generated`.
-#   - gmeow-pipeline stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle
-#     (27.1 s) and gmeow-pipeline mcp::tests::json_rpc_protocol_conformance_round_trip
-#     (25.3 s): both drive the WHOLE committed `gmeow.gts`. The governance-floor test
-#     reconstructs every axis floor from the bundle alone — irreducibly O(bundle size),
-#     the same whole-committed-bundle class as the superset/reconstruction siblings
-#     above. The MCP conformance round-trip dispatches EVERY advertised tool over the
-#     bundle; the AI-agent docs surface added five consumer tools (validate_local runs
-#     the full SHACL surface, and counter_examples/entailments/docs_search/
-#     competency_questions each query the whole `graph/documentation` projection), and
-#     the graph/documentation teaching-content projection grew the bundle — so both
-#     rode past the 25 s cliff on bundle-size / tool-surface growth, not fixture cost.
-#     Coverage stays: the axis-floor bytes are drift-gated on every `make check` via
-#     `make check-generated`; each new MCP tool keeps its own focused on-gate test
-#     (validate_local parity+correspondence, counter_examples/entailments/
-#     competency_questions/docs_search surface tests, and the tools/list mode-gating
-#     golden), so every tool is still exercised on-gate; and both whole-bundle sweeps
-#     stay on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::mappings::tests::
-#     projection_report_unions_logic_and_correspondence_rows (26.768 s in the
-#     failing CI shard) + product_routing::compiler_products_are_first_class_dag_artifacts
-#     (26.026 s in the same shard): both run the real compile-logic -> mappings chain
-#     over the WHOLE authored repository. They overlapped for ~9 s in the two-slot
-#     `engine` group, but their cost is still irreducibly O(ontology/projection size),
-#     and both exceeded the hard 25 s policy. No coverage class leaves the gate:
-#     compile_logic_stage_emits_every_product proves the compiler products and channel,
-#     loss_ledger_and_diagnostics_reach_the_shipped_bundle proves the routed bundle
-#     graphs, focused projection-report units cover report construction, and
-#     `make check-generated` byte-gates the final committed union. The exhaustive
-#     real-repository cross-stage sweeps remain on `maint-heavy`.
-#   - gmeow-cli cli::describe_resolves_grounding_curies (40.6 s) +
-#     cli::describe_resolves_grounding_full_iris (27.4 s) +
-#     self_sufficiency::describe_grounding_terms_wheel_mode_equals_repo_mode (59.4 s) +
-#     gmeow-docs describe::tests::every_grounding_namespace_has_describable_terms_that_render (47.5 s):
-#     each drives `gmeow describe` over the WHOLE embedded bundle. The CLI pair spawn the shipped
-#     binary once per grounding namespace, and each spawn pays the full bundle cold-start — the same
-#     whole-committed-bundle O(bundle size) class as the already-off-gate single-spawn sibling
-#     cli::describe_env_language_rejected_if_unknown (3-5 s standalone / 27-32 s under CI contention),
-#     so splitting into single-spawn tests would not keep them under the cliff either. The
-#     self_sufficiency case runs describe in both the wheel-mode and repo-mode legs (the grounding-term
-#     twin of the already-off-gate self_sufficiency::describe_wheel_mode_equals_repo_mode), and the docs
-#     sweep re-folds the whole bundle once per grounding namespace to prove a term renders in each.
-#     Bringing the merged lang:/math:/logic: grounding vocabulary into the described-term set grew the
-#     bundle, so all four ride the same 25 s cliff on bundle size, not fixture cost. No coverage class
-#     leaves the gate: cross-namespace resolution (CURIE / full-IRI / bare-local + the ambiguity
-#     hard-fail) stays on-gate via the fixture-scale resolver unit tests in crates/docs (describe.rs)
-#     and crates/pipeline (the export.rs MCP ambiguity test), the registry-vs-table coherence stays
-#     on-gate via the lpg_prefixes coherence gate, and all four whole-bundle describe tests stay
-#     on-gate on `maint-heavy`.
-#   - gmeow-cli cli::describe_known_term_renders_prose (28.7 s),
-#     cli::describe_unknown_language_fails_with_available_list (25.9 s),
-#     cli::describe_toon_format_emits_toon (25.4 s), and gmeow-docs
-#     describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle
-#     (25.8 s): each loads/folds the WHOLE shipped bundle before its fast render, reject,
-#     format, or language assertion. The typed-IR vocabulary enlarged that shared bundle,
-#     pushing these siblings over the CI budget under contention. Fixture-scale describe,
-#     language, and TOON coverage remains on-gate; all four bundle-scale cases run on
-#     `maint-heavy`.
-#   - gmeow-pipeline stages::export::tests::export_produces_structurally_valid_artifacts
-#     (23.014 s in the snapshot-review run, 25.579 s under the full-gate shard): this
-#     folds the WHOLE committed bundle and renders all 14 export artifacts, so its cost
-#     is irreducibly O(bundle/vocabulary size) and now rides the policy cliff on normal
-#     contention. Focused export renderer/schema tests stay on-gate, and every committed
-#     export remains byte-drift-gated by `make check-generated`; the exhaustive structural
-#     sweep remains on `maint-heavy`.
-#   - gmeow-pipeline mcp::tests::verify_graph_*_heavy_offgate (~50 s each): the
-#     `verify_graph` MCP tool reasons over the WHOLE committed `gmeow.gts` unioned with a
-#     small overlay, then runs the native reasoned-graph verify pass (flatten the whole
-#     bundle default graph + evaluate every embedded bad-example query) — irreducibly the
-#     `make verify` cost, the same whole-committed-bundle O(bundle size) class as the
-#     conformance round-trip above, not fixture cost. No coverage leaves the gate: the
-#     fast ceiling-rejection path stays on-gate (verify_graph_rejects_an_oversized_overlay,
-#     which refuses before any reasoning), the tool's declaration/dispatch stays covered by
-#     the on-gate tools/list mode-gating golden, and the four whole-bundle judgment cases
-#     (bad-example firing, canon isolation, budget-cut attestation, grounded judgment
-#     N-Quads) run on `maint-heavy`.
-#   - gmeow-pipeline mcp::tests::explain_quad_*_heavy_offgate: the `explain_quad` MCP tool
-#     reasons over the WHOLE committed `gmeow.gts` under the mid-chase governor, then
-#     reconstructs a single quad's proof — the same O(bundle size) whole-committed-bundle
-#     class as verify_graph, not fixture cost. No coverage leaves the gate: the
-#     disambiguation helper (cross-world ambiguity / wrong-world / not-in-closure), the
-#     canonical object-N3 surface, and the bad-object-kind hard fail run as FAST on-gate
-#     unit tests over synthetic rows; only the derived/asserted/not-in-closure/judgment
-#     cases that require a real whole-bundle reason run on `maint-heavy`.
+# The default filter keeps exhaustive whole-repository proofs in the maintainer
+# lane when focused tests and dedicated drift gates cover their per-commit
+# contracts. Membership is architectural, never triggered by crossing an elapsed
+# threshold. The maint-heavy profile below re-includes everything.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -356,6 +17,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
+    | (package(gmeow-conformance) & binary(full_divergence_gate) & test(/_heavy_offgate/))
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & binary(fanout_parity))
@@ -390,256 +52,92 @@ default-filter = '''
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
-# Output ergonomics: surface the slowest tests in the final summary every
-# run (previously invisible until they hit the slow-timeout terminate cliff).
-# Passing runs stay quiet; a failing test's captured output shows inline AND is
-# recapped at the end so it is not lost in a parallel run.
 final-status-level = "slow"
 success-output = "never"
 failure-output = "immediate-final"
 
 [profile.ci]
 inherits = "default"
+# Use the runner's natural CPU width. No fixed global or test-group cap throttles
+# either CI or a 32+ CPU development server.
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Maintainer lane: runs EVERYTHING, including the heavy tests the default/ci
-# profiles carve out via `default-filter`. Used by `make maint-rust-heavy` so the
-# off-gate parity / full-fold / codec coverage still runs (locally + on a CI schedule),
-# just not on the per-commit gate. `default-filter = 'all()'` overrides the inherited
-# exclusion; the JUnit budget gate is NOT applied to this profile.
 [profile.maint-heavy]
 inherits = "default"
+# Exhaustive architectural lane: every test excluded by the default filter runs.
 default-filter = 'all()'
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Engine memory cap. Native whole-bundle chase tests are RAM-heavy: nextest runs
-# EACH test in its own process, so an in-process guard cannot cap how many multi-GB
-# chase PROCESSES run at once. On the 16 GB CI runner the available CPU count is four
-# (4), so up to 4 concurrent chases could OOM-thrash. This group caps concurrent engine
-# tests to 2; the fast leaf-crate tests (rdf/shacl/validate/docs/diagnostics) and
-# the ~360 fast gmeow-logic unit tests stay fully parallel.
-[test-groups]
-engine = { max-threads = 2 }
-mapping-stage = { max-threads = 1 }
-
+# Overrides only extend the runaway backstop for exhaustive paths or reserve the
+# whole host for tests that create their own full-width worker pool. There are no
+# fixed one- or two-thread scheduling ceilings.
 [[profile.default.overrides]]
-# The whole gmeow-conformance datatest harness plus every gmeow-logic test that
-# drives a native materialization/reasoning path. Matched by module so membership is by design,
-#   not by a test name happening to contain another module's substring.
-# foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/materialize|reason|verify|certify|oracle/))'
-test-group = 'engine'
-
-[[profile.default.overrides]]
-# gmeow-pipeline's executor / parity tests exercise full-DAG paths. Keep them
-# serialized with engine work so full-DAG reasoning does not contend with
-# concurrent chases. The over-budget full-fold / end-to-end binaries are
-# off-gated via `default-filter`, but this override still applies in maint-heavy.
-# fanout_parity stays ON-gate (~8 s standalone, not irreducible) but joins the
-# serialized group: unserialized it piled onto concurrent native chases in the
-# shared shard and rode the 25 s cliff over on CI jitter (measured 27.9 s while a
-# 20 s entailment chase ran alongside). Serializing it against engine work removes
-# the contention without off-gating the fanout write-idempotence coverage — the
-# bias is fix-not-off-gate for a test this cheap standalone.
 filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
-test-group = 'engine'
+slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
+
+# The off-gate `gmeow-dev logic compile --mode M` byte-parity tests each drive the
+# WHOLE pipeline (run_full) to prove the CLI's per-mode render matches the committed
+# artifact — the same order of magnitude as the pipeline whole-run parity lanes above,
+# so they get the same extended runaway backstop rather than the 60s default that only
+# fits focused unit tests.
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & test(/dev_logic::compile_tests::mode_(owl_dl|datalog|report)_matches/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
-# migrates the OWL/EL/DL reasoning pytest cluster: each test drives the native
-# closure over a scoped set of authored slice modules. These
-# are now on-gate and under budget after the 2026-06-29 reevaluation, but they
-# still share the `engine` group so multi-module closures do not OOM-thrash
-# alongside other chases on the 16 GB runner. The longer timeout is only a
-# runaway cliff; the JUnit budget gate still enforces the 25 s policy.
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
-test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The whole-ontology coherence-gate teeth tests (crates/logic/tests/coherence_gate.rs)
-# drive the native DL consistency path (dl_consistency -> reason_closure -> native chase),
-# once over a minimal injected clash and once over the WHOLE committed gmeow.gts bundle.
-# They share the `engine` memory group so the full-bundle chase does not OOM-thrash
-# alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
-# gate still enforces the 25 s policy.
-#
-# The whole-bundle chase is irreducibly O(bundle size × DL-rule-set) and measures
-# ~520 s locally (was ~95 s). The cost is the DL rule set applied over the whole
-# ~720k-quad bundle — dominated by the merged-in top-sortal disjointness axioms (the
-# kernel's mutual owl:AllDisjointClasses TBox), which force a disjointness/owl:Nothing
-# propagation across the whole individual set. This is NOT the validation-shape work:
-# the SHACL/ShEx projection is a sidecar that never reaches the reasoner (only ~510
-# shape-touching quads land in the core-prefixes projection graph, and SHACL shapes
-# are not DL axioms), so deriving the closed-world validation fragment added no
-# measurable chase cost. Raise the runaway cliff to 1200 s (300 s × 4) so this
-# budget-exempt gate has margin over local + CI runtime jitter; the cliff is a
-# terminate-after backstop, not the expected runtime.
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
-test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The slice-quality e2e logic-slice scorer (crates/slice-quality/tests/score_slice_e2e.rs
-# scores_the_logic_slice_green_vs_advisory) drives `score_slice` over the WHOLE real logic
-# slice — running the reasoner/closure analysis that backs its `slice-quality.reasoner.*`
-# axes. It is ~8 s standalone (measured 8.3 s), NOT irreducible, so the bias is fix-not-off-gate
-# (the same class as `fanout_parity` above): unserialized it piled onto concurrent native
-# chases in the shared CI shard and rode the 25 s cliff over on jitter (measured 25.9 s under
-# full-parallelism contention). Serialize it under the `engine` memory group so the slice-closure
-# reasoning does not contend with the other chases — this removes the contention WITHOUT
-# off-gating the logic-slice-scoring coverage (it stays on every `make check`). The other three
-# tests in the binary use the tiny rubric fixture and stay fully parallel.
 filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
-test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The affect-producer whole-ontology-union twin conformance tests (gmeow-validate
-# conformance_affect_producer_union, the twin_* cases) each drive the SMT-backed affect twin
-# decision procedure over the whole-ontology shape union — single-threaded solver work ~20 s
-# standalone (measured 19-21 s running the binary alone) that rode the 25 s per-test budget cliff
-# (25.1-32 s) under full-parallelism contention. The union binary is off-gated via `default-filter`
-# (it runs only on maint-heavy; the cheap fixture-only + pure-Rust producer coverage stays on the
-# per-commit gate in conformance_affect_producer), but this override still applies there
-# (maint-heavy inherits the default overrides): serialize the twins under the `engine` memory group
-# so concurrent solver/chase work cannot starve them of cores, and keep the longer terminate cliff
-# so a contended maint-heavy run is not killed prematurely. On the default gate the filter matches
-# nothing that runs (the binary is filtered out), so this is a no-op there.
 filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
-test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# Bundle-scale pipeline tests that fold the WHOLE committed gmeow.gts / run the full DAG:
-# product_routing::compiler_products_are_first_class_dag_artifacts (full-DAG artifact routing),
-# stages::export::tests::export_produces_structurally_valid_artifacts,
-# stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle,
-# and
-# stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (ON-gate: it parses the
-# built dist/gmeow.jsonld once and asserts the re-serialization is a byte-fixed-point —
-# ~7 s standalone after dropping the second parse + double canonicalization — but it still
-# holds the whole 290 MB artifact in memory, so it stays serialized here),
-# and stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows (whole
-# projection-report union). The product-routing and projection-report sweeps are off-gated via
-# `default-filter` after both exceeded 25 s in the failing CI shard; this override serializes them on
-# `maint-heavy`. The remaining on-gate bundle folds use the same group so they do not contend with
-# concurrent chases.
 filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
-test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The consumer `gmeow validate --deep` AC1 test reasons over the user data merged
-# with the WHOLE bundled TBox via the native chase (~50s full-fold). It is
-# off-gated via `default-filter` (so it runs only on maint-heavy), but the override
-# still applies there (maint-heavy inherits default): serialize under the `engine`
-# memory group so the full-fold chase does not OOM-thrash, and grant the long
-# terminate cliff the other full-fold reasoning tests use.
 filter = 'package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/)'
-test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# Full-carrier round-trip tests decode the committed `gmeow.gts` and re-emit /
-# extract it back through the native gmeow-gts codecs. All are on-gate
-# (the blob-input `gts_sink` serialization test rejoined the gate at ~0.3 s once
-# its docs-model seam removed the whole-ontology discovery). Keep a longer runaway
-# cliff because they are codec / I-O-bound and not protected by the `engine`
-# memory group.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The docs "try-it" goldens (crates/pipeline/src/stages/carrier.rs, mod
-# docs_try_it_golden) each drive the native chase (reason_over_dataset)
-# to reason the reduced authored-default-world seed — and the reduced-vs-full-EDB
-# equivalence golden reasons the full object-level EDB as well. They are on-gate
-# lib unit tests, so keep them in the `engine` memory group (like the chase-driving
-# binaries above): otherwise they over-parallelize with the other chases and
-# OOM-thrash on the 16 GB runner. Each fixture is tiny, so the JUnit budget gate's
-# 25 s policy still holds; the longer terminate cliff is only a runaway backstop.
 filter = 'package(gmeow-pipeline) & test(/stages::carrier::docs_try_it_golden/)'
-test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The B3 real-repo non-vacuity proof (F1) drives a full native-chase
-# reasoning pass over the WHOLE object-level EDB via the real `ReasonStage`. It is
-# off-gated via `default-filter` (runs only on `maint-heavy`), but the override
-# still applies there: serialize under the `engine` memory group so it does not
-# OOM-thrash alongside other chases, with a runaway-cliff timeout well over its
-# measured ~100 s.
 filter = 'package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/)'
-test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The B1 real-repo non-vacuity proof runs the whole-ontology SHACL
-# validate + logic-compile chain (no reasoning chase, so no `engine` memory group — the
-# same class as the off-gate `conformance_*` validate binaries). It is off-gated via
-# `default-filter` (runs only on `maint-heavy`); grant a runaway cliff well over its
-# measured ~105 s so CI jitter never trips the terminate backstop.
 filter = 'package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The big-cell example-conformance datatest cases (the grounding lanes: math ~156
-# cells, lang ~90, logic ~34) fan their cells across an
-# available_parallelism()-wide worker pool (`run_conformance_file` in
-# crates/slicetest/src/exec.rs), each cell a whole-surface SHACL run. Solo the
-# cost scales down with pool width (math measured ~12 s with four dedicated
-# cores, ~1 s at full machine width), but nextest schedules the ~150 sibling
-# slicetest cases concurrently, so on a few-core runner every worker gets a
-# fraction of a core and the wall time balloons far past the 25 s budget (math
-# measured 73 s at four cores under default sibling parallelism) —
-# pure scheduler oversubscription, not test cost. `threads-required` makes the
-# pool's core appetite visible to nextest: each of these cases reserves every
-# runner slot and gets the dedicated cores its pool sized itself for. Only these
-# three lanes queue for the whole runner; the small-cell slice cases stay fully
-# parallel.
 filter = 'package(gmeow-slicetest) & test(/run_conformance_file::grounding\//)'
 threads-required = "num-cpus"
 
 [[profile.default.overrides]]
-# The ON-gate whole-ontology-union conformance tests that route through the
-# sharded validator (`validate_dataset_sharded` in
-# crates/validate/tests/conformance_support/mod.rs), which fans the focus stream
-# across an available_parallelism()-wide worker pool: the two profiles
-# open-value-guard orphan cases, the three consumer-advisory annotation tests,
-# and creative_works' frameless-Expression frame-requirement case (the whole
-# on-gate sharded-union family, not just the members that happened to trip on a
-# given run). Solo each is comfortably under budget (~10 s), but under nextest's
-# default sibling parallelism every concurrent member spawns its own full-width
-# pool, the workers oversubscribe the runner's cores, and the family rides the
-# 25 s cliff (measured 29.5 s at four cores) — the same worker-pool
-# oversubscription mechanism as the slicetest lanes above. Reserve every runner
-# slot so each pool gets the cores it sized itself for; only these six tests
-# queue for the whole runner, and the fixture-only conformance cases (including
-# the shared conformance_support:: unit tests compiled into these binaries) stay
-# fully parallel.
 filter = 'package(gmeow-validate) & ( (binary(consumer_advisory_shape) & !test(/conformance_support::/)) | (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'
 threads-required = "num-cpus"
 
 [[profile.default.overrides]]
-# The MCP validate_local parity+correspondence test folds the WHOLE shipped
-# bundle and drives the Tier-1 validation surface once per candidate
-# counter-example fixture before its parity assertion. It is solo-fast (well
-# under budget) but rode the 25 s cliff under full-parallelism contention — the
-# same solo-fast, fix-not-off-gate class as fanout_parity above — so serialize
-# it under the `engine` memory group so its bundle-scale validation does not
-# contend with concurrent chases and full-DAG work in the same shard.
-filter = 'package(gmeow-pipeline) & test(/mcp::tests::validate_local_enrichment_parity_and_correspondence/)'
-test-group = 'engine'
+filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# Mapping-stage integration tests run the full `compile_mappings` registry check.
-# They are now on-gate and under budget, but concurrent full mapping compiles are
-# redundant and can contend for the same cache/filesystem work. Keep them
-# serialized; the JUnit budget gate still enforces the 25 s policy.
-filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
-test-group = 'mapping-stage'
-slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+filter = 'package(gmeow-pipeline) & test(/mcp::tests::verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/)'
+threads-required = "num-cpus"

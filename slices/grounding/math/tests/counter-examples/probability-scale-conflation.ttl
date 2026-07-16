@@ -6,7 +6,7 @@
 # owl:disjointWith the closed unit interval, so the sh:not [ sh:class math:OddsValue ]
 # fires — shacl.NotConstraintComponent (math:ProbabilityScaleConflation).
 # Single violation: it carries a gmeow:hasReferenceFrame so math:ProbabilityValueFramedShape
-# (P3) stays SATISFIED, it carries NO gmeow:quantityValue so the range gate
+# (P3) stays SATISFIED, it carries NO math:quantityValue so the range gate
 # math:ProbabilityValueRangeShape (P1) is vacuously satisfied, and NO logic:confidence so
 # math:ConfidenceAsProbabilityConstraint (P10) stays silent — EXACTLY ONE finding, no sibling fires.
 # Back-reference: math:OddsValue owl:disjointWith math:ProbabilityValue / math:ProbabilityScaleConflation (slices/grounding/math/module.ttl).
@@ -19,3 +19,4 @@ ex:conflatedScale a math:ProbabilityValue , math:OddsValue ;
     gmeow:hasReferenceFrame ex:forecastFrame .
 
 ex:forecastFrame a gmeow:ReferenceFrame .
+<http://example.org/math/conflatedScale> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

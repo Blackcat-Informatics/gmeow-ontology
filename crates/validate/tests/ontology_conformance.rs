@@ -168,7 +168,7 @@ ex:customRealm a gmeow:FrameRealm .
         .messages(&[
             "exactly one starting entity (gmeow:observedFeature)",
             "exactly one target entity (gmeow:proximityTo)",
-            "exactly one scalar quantity result",
+            "at least one math:Quantity result",
         ])
 )]
 #[case::wellformed_expertise_fixture_conforms(Case::file("shapes", "expertise-wellformed"))]

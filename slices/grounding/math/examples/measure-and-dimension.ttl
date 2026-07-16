@@ -43,6 +43,32 @@ ex:uniformProbability a math:ProbabilityMeasure ;
     math:totalMass 1 ;
     math:hasDimension math:dimensionless .
 
+# --- Subset measure evaluations μ(A) vs μ(B) — comparable, not whole-space mass -- #
+# The whole-space mass of the volume measure is math:totalMass +∞ (μ(X)). To speak of
+# the mass of a NAMED bounded subset, each evaluation μ(A) is reified as a
+# math:MeasureEvaluation naming the measure, the measurable subset, and the resulting
+# mass. Two subsets of the SAME measure evaluate to two different finite masses, so
+# μ(regionA) and μ(regionB) can be compared side by side — none of them the whole-space
+# +∞. Every result is non-negative, so no math:MeasureResultNonNegativeConstraint fires.
+
+ex:regionA a math:MeasurableSet ;
+    rdfs:label "bounded region A (a measurable subset of the configuration space)"@x-gmeow-english .
+
+ex:regionB a math:MeasurableSet ;
+    rdfs:label "bounded region B (a larger measurable subset of the configuration space)"@x-gmeow-english .
+
+ex:volumeOfRegionA a math:MeasureEvaluation ;
+    rdfs:label "μ(region A) = 2"@x-gmeow-english ;
+    math:evaluatedMeasure ex:volumeMeasure ;
+    math:measuredSubset ex:regionA ;
+    math:measureResult "2.0"^^xsd:double .
+
+ex:volumeOfRegionB a math:MeasureEvaluation ;
+    rdfs:label "μ(region B) = 5"@x-gmeow-english ;
+    math:evaluatedMeasure ex:volumeMeasure ;
+    math:measuredSubset ex:regionB ;
+    math:measureResult "5.0"^^xsd:double .
+
 # --- The measurable energy-density function (the integrand) ------------------ #
 
 ex:energyDensityFn a math:MeasurableFunction ;
@@ -116,12 +142,14 @@ ex:restEnergy a math:Quantity ;
     rdfs:label "rest energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "8.187e-14"^^xsd:double .
 
 ex:kineticEnergy a math:Quantity ;
     rdfs:label "kinetic energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "1.5e-13"^^xsd:double .
 
 # --- A homogeneous dimensional expression (their sum) ------------------------ #

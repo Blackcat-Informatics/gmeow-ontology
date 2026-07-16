@@ -89,6 +89,29 @@
             }
           ],
           "message": {
+            "text": "axisGmnGlyphOptimality: Disposition every audited grounding-plane symbol candidate exactly once as an adopted glyph, named key, structured constructor, or semantic rejection; add its cited rationale, candidate rendering, ASCII fallback, spoken label, and decision basis; and make adopted signs executable through a scoped lang:Denotation-backed glyph registry binding whose measured token cost does not lose to the fallback."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fa9bfc0244f2f6c9"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."
           },
           "partialFingerprints": {
@@ -187,6 +210,29 @@
             "gmeowFindingHash/v2": "e10f17bfc4beacc8"
           },
           "ruleId": "slice-quality.documentation.no-docs"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "GMN glyph optimality cannot be audited because the slice directory has no resolvable slices/ path prefix; scoring fails closed at 0.0 until the canonical grounding authority is available"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "709523250ac5999e"
+          },
+          "ruleId": "slice-quality.gmn-glyph-optimality.audit-graph-unavailable"
         },
         {
           "level": "warning",
@@ -392,6 +438,29 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "66c1dad6093d5344"
+          },
+          "ruleId": "slice-quality.grade"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisGmnGlyphOptimality: Registered (score 0.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6d9ad1155d8ff77c"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -674,6 +743,13 @@
               },
               "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",
               "id": "slice-quality.documentation.no-docs"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-gmn-glyph-optimality-audit-graph-unavailable",
+              "id": "slice-quality.gmn-glyph-optimality.audit-graph-unavailable"
             },
             {
               "defaultConfiguration": {

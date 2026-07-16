@@ -225,7 +225,7 @@ class TemporalFrame(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     frameKind: list[FrameKindEnum] | None = Field(default=None, description="Relates a reference frame to its structural frame kind.", alias="gmeow:frameKind")
     frameRealm: list[FrameRealmEnum] | None = Field(default=None, description="Relates a reference frame to the realm it describes.", alias="gmeow:frameRealm")
-    frameTimeScale: list[str] | None = Field(default=None, description="The time scale of a temporal frame (functional: a frame has exactly one scale).", alias="gmeow:frameTimeScale")
+    frameTimeScale: list[str] | None = Field(default=None, description="Within gmeow:TemporalFrame, values are node references constrained to gmeow:TimeScale. The time scale of a temporal frame (functional: a frame has exactly one scale).", alias="gmeow:frameTimeScale")
 
 
 class TemporalMeasurement(ConfiguredBaseModel):

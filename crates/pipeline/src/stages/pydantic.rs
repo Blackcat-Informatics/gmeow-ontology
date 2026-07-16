@@ -47,7 +47,7 @@
 //! [`render_models_python_from_shapes`] over the FRESH shape union
 //! ([`crate::stages::shape_union_fresh`] — the generated members are THIS run's
 //! consumed product bytes, never a stale disk read); the standalone
-//! `gmeow-dev export-docs --format pydantic` entry ([`render_models_python`]) reads
+//! `gmeow-dev sync --mode update --outputs docs` entry ([`render_models_python`]) reads
 //! the committed union. The carrier folds the stage output into the `models-python`
 //! blob and writes the package tree to [`PACKAGE_DISK_PREFIX`] on disk.
 
@@ -359,7 +359,7 @@ fn is_pep440_public_version(raw: &str) -> bool {
 
 /// Render the `gmeow_models` package as a `{package-relative-path: bytes}` map
 /// (keys `gmeow_models/...`), the public entry point for
-/// `gmeow-dev export-docs --format pydantic` (writes the tree to disk) — the same
+/// `gmeow-dev sync --mode update --outputs docs` (writes the tree to disk) — the same
 /// bytes the pipeline stage folds into the `models-python` blob.
 pub fn render_models_python_package(
     root: &Path,
@@ -368,7 +368,7 @@ pub fn render_models_python_package(
 }
 
 /// Render the Pydantic package from the COMMITTED (on-disk) shape union — the
-/// standalone `make docs` / `export-docs` entry, which runs post-pipeline against
+/// standalone `make sync SYNC_OUTPUTS=docs` entry, which runs post-pipeline against
 /// the fanout-refreshed committed files. The in-DAG [`PydanticStage`] must NOT use
 /// this: it routes through [`crate::stages::shape_union_fresh::load_shapes_fresh`]
 /// so the union's generated members are THIS run's product bytes (the
@@ -1241,14 +1241,16 @@ fn build_model(
                 py_name.push('_');
             }
             let is_envelope = matches!(key.as_str(), "@id" | "@type" | "@annotation");
-            // The property's definition (its alias is the property CURIE) and its
-            // SHACL-derived Field constraints (pattern/min/max/length/items).
+            // The property's definition (its alias is the property CURIE), refined
+            // by any class-local node target carried by this property's schema, and
+            // its SHACL-derived Field constraints (pattern/min/max/length/items).
             let description = if is_envelope {
                 None
             } else {
-                curie_index
+                let property_definition = curie_index
                     .get(key.as_str())
-                    .and_then(|t| t.definition.clone())
+                    .and_then(|t| t.definition.clone());
+                class_local_field_description(route, pv, property_definition)
             };
             let constraints = if is_envelope {
                 Vec::new()
@@ -1285,6 +1287,61 @@ fn build_model(
         extra,
         jse,
         fields,
+    })
+}
+
+/// Refine a property's global definition with any node target imposed by this
+/// particular class shape. JSON Schema represents an unshaped RDF node target as a
+/// small `{"@id": ...}` object whose `$comment` names the target class; retaining
+/// that target in `Field(description=...)` prevents a class-local restriction such as
+/// `ConceptCategorization -> observationResult only Concept` from being flattened into
+/// the property's much broader global range prose.
+fn class_local_field_description(
+    route: &ClassRoute,
+    property_schema: &Value,
+    property_definition: Option<String>,
+) -> Option<String> {
+    fn scan(value: &Value, targets: &mut BTreeSet<String>) {
+        match value {
+            Value::Object(object) => {
+                if let Some(comment) = object.get("$comment").and_then(Value::as_str)
+                    && let Some(target) =
+                        comment.strip_suffix(" has no NodeShape; node reference only")
+                    && !target.is_empty()
+                {
+                    targets.insert(target.to_owned());
+                }
+                for child in object.values() {
+                    scan(child, targets);
+                }
+            }
+            Value::Array(array) => {
+                for child in array {
+                    scan(child, targets);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut targets = BTreeSet::new();
+    scan(property_schema, &mut targets);
+    if targets.is_empty() {
+        return property_definition;
+    }
+
+    let class = if route.curie.is_empty() {
+        route.class_name.as_str()
+    } else {
+        route.curie.as_str()
+    };
+    let local = format!(
+        "Within {class}, values are node references constrained to {}.",
+        targets.into_iter().collect::<Vec<_>>().join(" or ")
+    );
+    Some(match property_definition {
+        Some(global) if !global.is_empty() => format!("{local} {global}"),
+        _ => local,
     })
 }
 
@@ -1740,7 +1797,7 @@ fn render_base() -> Vec<u8> {
 ///
 /// # Bump policy
 ///
-/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make regenerate` — never
+/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make sync` — never
 /// hand-edit this file or set `version` in `pyproject.toml` directly.
 fn render_about(version: &str) -> Vec<u8> {
     let mut out = String::new();
@@ -1750,7 +1807,7 @@ fn render_about(version: &str) -> Vec<u8> {
             "This is the ontology's owl:versionInfo (ontology/gmeow.ttl), verbatim.".to_owned(),
             "pyproject.toml's [tool.hatch.version] reads __version__ from here. To".to_owned(),
             "release a new wheel version, bump owl:versionInfo in ontology/gmeow.ttl".to_owned(),
-            "and run `make regenerate` — never hand-edit this file or set `version`".to_owned(),
+            "and run `make sync` — never hand-edit this file or set `version`".to_owned(),
             "in pyproject.toml directly.".to_owned(),
         ],
     ));
@@ -1867,7 +1924,7 @@ fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
         "The wheel version ({version}) is the ontology's `owl:versionInfo`\n\
          (`ontology/gmeow.ttl`), stamped verbatim into `gmeow_models/__about__.py` and\n\
          read by `pyproject.toml`'s `[tool.hatch.version]`. To release a new version,\n\
-         bump `owl:versionInfo` and `make regenerate` — never hand-edit `__about__.py`\n\
+         bump `owl:versionInfo` and `make sync` — never hand-edit `__about__.py`\n\
          or set `version` in `pyproject.toml` directly.\n\n",
     ));
     out.push_str("## Usage\n\n");
@@ -2039,6 +2096,188 @@ mod tests {
         n
     }
 
+    /// The canonical logic restriction vocabulary must reach the functional-model
+    /// surface without relying on a pre-generated OWL/RDFS copy.  These three lang
+    /// classes are intentionally restriction-only Pydantic targets: losing the
+    /// `logic:subClassOf [ a logic:Restriction ; ... ]` derivation removes their
+    /// JSON-Schema `$defs` and therefore their Python models/re-exports.
+    #[test]
+    fn logic_authored_lang_restrictions_remain_exported() {
+        let source = r#"
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# The package's universal @annotation field references this infrastructure model.
+gmeow:Annotation a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty gmeow:annotationTarget ;
+        logic:allValuesFrom gmeow:Entity ] .
+
+lang:WordForm a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:lexemeOf ;
+        logic:allValuesFrom lang:Lexeme ] .
+
+lang:Grammar a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:grammarFor ;
+        logic:allValuesFrom lang:SignSystem ] .
+
+lang:GrammarRule a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty lang:grammarRuleOf ;
+        logic:allValuesFrom lang:Grammar ] .
+"#;
+        let ontology = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("parse canonical logic restriction fixture");
+        let validation_shapes =
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .expect("derive validation shapes from logic restrictions");
+        let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+            .with_validation_shapes(validation_shapes);
+        let shacl =
+            gmeow_logic_compile::projections::shapes::project_validation_shapes_shacl(&program);
+        let shape_dataset = purrdf::parse_dataset(shacl.as_bytes(), "text/turtle", None)
+            .expect("parse projected SHACL");
+        let prefixes = purrdf::shapes::text_ingest::extract_prefixes(&shacl);
+        let shapes = purrdf::shapes::shapes::from_dataset_with_prefixes(&shape_dataset, &prefixes)
+            .expect("type projected SHACL");
+
+        let rendered = render_models_python_from_shapes(&repo_root(), &shapes)
+            .expect("render Pydantic models from logic-derived shapes");
+        let init = utf8(&rendered.artifacts, "gmeow_models/__init__.py");
+        let lang = utf8(&rendered.artifacts, "gmeow_models/lang.py");
+        for (iri, class) in [
+            (
+                "https://blackcatinformatics.ca/lang/Grammar",
+                "Lang_Grammar",
+            ),
+            (
+                "https://blackcatinformatics.ca/lang/GrammarRule",
+                "Lang_GrammarRule",
+            ),
+            (
+                "https://blackcatinformatics.ca/lang/WordForm",
+                "Lang_WordForm",
+            ),
+        ] {
+            let dotted = format!("gmeow_models.lang.{class}");
+            assert_eq!(
+                rendered.dotted_paths.get(iri).map(String::as_str),
+                Some(dotted.as_str()),
+                "{iri} must retain its importable Pydantic model"
+            );
+            assert!(
+                lang.contains(&format!("class {class}(")),
+                "lang module must define {class}"
+            );
+            assert!(
+                init.contains(&format!("\"{class}\"")),
+                "package __init__ must re-export {class}"
+            );
+        }
+    }
+
+    /// A class-local exact-one dimension restriction must survive the complete
+    /// canonical logic -> derived SHACL -> JSON Schema -> Pydantic path.  The
+    /// committed generated schemas are deliberately not involved here: this test
+    /// proves the fresh projection used by `make sync` without requiring generated
+    /// artifacts to be refreshed during a focused source-only review fix.
+    #[test]
+    fn logic_authored_exact_one_dimension_is_a_required_scalar() {
+        let source = r#"
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# The package's universal @annotation field references this infrastructure model.
+gmeow:Annotation a owl:Class ;
+    logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty gmeow:annotationTarget ;
+        logic:allValuesFrom gmeow:Entity ] .
+
+math:Dimension a owl:Class .
+math:hasDimension a owl:ObjectProperty .
+math:dimensionless a math:Dimension .
+
+math:OddsValue a owl:Class ;
+    logic:subClassOf
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:minQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass math:Dimension ] .
+
+math:LogOddsValue a owl:Class ;
+    logic:subClassOf
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:hasValue math:dimensionless ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:minQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty math:hasDimension ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass math:Dimension ] .
+"#;
+        let ontology = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("parse canonical exact-one dimension fixture");
+        let validation_shapes =
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .expect("derive validation shapes from exact-one dimension restrictions");
+        let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+            .with_validation_shapes(validation_shapes);
+        let shacl =
+            gmeow_logic_compile::projections::shapes::project_validation_shapes_shacl(&program);
+        let shape_dataset = purrdf::parse_dataset(shacl.as_bytes(), "text/turtle", None)
+            .expect("parse projected exact-one dimension SHACL");
+        let prefixes = purrdf::shapes::text_ingest::extract_prefixes(&shacl);
+        let shapes = purrdf::shapes::shapes::from_dataset_with_prefixes(&shape_dataset, &prefixes)
+            .expect("type projected exact-one dimension SHACL");
+
+        let rendered = render_models_python_from_shapes(&repo_root(), &shapes)
+            .expect("render Pydantic models from exact-one dimension shapes");
+        let math = utf8(&rendered.artifacts, "gmeow_models/math.py");
+        for class_name in ["Math_LogOddsValue", "Math_OddsValue"] {
+            let marker = format!("class {class_name}(");
+            let start = math
+                .find(&marker)
+                .unwrap_or_else(|| panic!("missing {class_name}"));
+            let rest = &math[start..];
+            let end = rest.find("\nclass ").unwrap_or(rest.len());
+            let class_body = &rest[..end];
+            assert!(
+                class_body.contains("hasDimension: str = Field("),
+                "{class_name}.hasDimension must be a required scalar projected from its exact-one canonical restriction"
+            );
+        }
+    }
+
     /// The whole package, rendered over the real repo, is deterministic and
     /// structurally well-formed: one model per compiled `$def`, the package
     /// scaffolding is present, and the value-vocabulary / field / identity
@@ -2146,6 +2385,15 @@ mod tests {
         assert!(
             all_text.contains(", description=\""),
             "expected Field(description=...) from property definitions"
+        );
+        assert!(
+            all_text.lines().any(|line| {
+                line.contains("observationResult:")
+                    && line.contains(
+                        "Within gmeow:ConceptCategorization, values are node references constrained to gmeow:Concept."
+                    )
+            }),
+            "ConceptCategorization.observationResult must retain its class-local Concept target in the Pydantic field description"
         );
         // Package README + enriched __init__ docstring are self-explaining.
         let readme = utf8(a, "gmeow_models/README.md");

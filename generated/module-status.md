@@ -11,7 +11,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
 | affect | core | core | 5 | 27 | 52 | 0 | 5 | 22/79 | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 5 | - | full |
-| aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
+| aggregation | extension | extensions | 3 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 34/34 | full |
 | archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 1 | - | full |
@@ -26,7 +26,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | coreference | core | core | 3 | 0 | 6 | 0 | 1 | 6/6 | full |
 | creative-works | core | core | 4 | 16 | 42 | 0 | 1 | 58/58 | full |
 | deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
-| diagnostics | core | core | 3 | 14 | 50 | 3 | 1 | 50/64 | full |
+| diagnostics | core | core | 3 | 17 | 55 | 8 | 1 | 52/72 | full |
 | documentation | core | core | 5 | 13 | 43 | 0 | 1 | 56/56 | full |
 | documents | core | core | 7 | 22 | 37 | 0 | 1 | 59/59 | full |
 | dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
@@ -42,21 +42,21 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 18/18 | full |
-| guides | core | core | 1 | 2 | 9 | 0 | 1 | 0/11 | full |
+| guides | core | core | 1 | 5 | 34 | 0 | 1 | 2/39 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 16 | 35 | 0 | 6 | 0/51 | full |
 | inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 29/44 | full |
-| lang | core | grounding | 7 | 12 | 30 | 54 | 3 | 42/42 | full |
+| lang | core | grounding | 7 | 15 | 40 | 79 | 4 | 55/55 | full |
 | language | core | core | 3 | 2 | 3 | 0 | 1 | 5/5 | full |
 | languages | extension | extensions | 6 | 11 | 22 | 0 | 1 | - | full |
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | grounding | 0 | 223 | 423 | 398 | 9 | 50/646 | full |
-| math | core | grounding | 2 | 0 | 0 | 0 | 21 | 0/0 | full |
+| logic | core | grounding | 0 | 230 | 439 | 400 | 11 | 82/669 | full |
+| math | core | grounding | 2 | 0 | 0 | 0 | 25 | 0/0 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | model-serving | extension | extensions | 6 | 4 | 13 | 0 | 4 | - | full |
@@ -66,20 +66,20 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
 | notation | core | core | 6 | 8 | 17 | 0 | 2 | 25/25 | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
-| observations | core | core | 6 | 14 | 25 | 0 | 2 | 39/39 | full |
+| observations | core | core | 7 | 11 | 24 | 0 | 2 | 35/35 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 51/51 | full |
 | pipeline | core | core | 2 | 6 | 18 | 0 | 1 | 3/24 | full |
-| places | core | core | 7 | 46 | 140 | 0 | 1 | 186/186 | full |
+| places | core | core | 8 | 46 | 140 | 0 | 1 | 186/186 | full |
 | procedures | extension | extensions | 3 | 9 | 26 | 0 | 1 | - | full |
 | profiles | core | core | 3 | 1 | 4 | 0 | 1 | 4/5 | full |
 | provenance | core | core | 3 | 4 | 10 | 0 | 1 | 11/14 | full |
-| quality | core | core | 2 | 2 | 2 | 0 | 1 | 4/4 | full |
+| quality | core | core | 3 | 2 | 2 | 0 | 1 | 4/4 | full |
 | rights | core | core | 4 | 22 | 48 | 0 | 1 | 70/70 | full |
 | risk | extension | extensions | 2 | 8 | 19 | 0 | 1 | - | full |
-| sensory | extension | extensions | 3 | 4 | 6 | 0 | 1 | - | full |
+| sensory | extension | extensions | 4 | 4 | 6 | 0 | 1 | - | full |
 | sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 1 | - | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 8/8 | full |
-| slice-quality-rubric | core | core | 5 | 8 | 18 | 0 | 1 | 26/26 | full |
+| slice-quality-rubric | core | core | 6 | 10 | 30 | 0 | 1 | 40/40 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
 | standpoint | core | core | 3 | 11 | 22 | 0 | 1 | 23/33 | full |
@@ -89,4 +89,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1471/2310 core class/property terms.
+**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1530/2392 core class/property terms.

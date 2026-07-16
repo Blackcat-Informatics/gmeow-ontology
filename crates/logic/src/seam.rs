@@ -8,7 +8,13 @@
 //! IRI identifies the world, while [`DerivedQuad`] carries the fact and its provenance.
 //! Query answers never mutate the source snapshot.
 
-use purrdf::TermValue;
+use std::cell::Cell;
+
+use purrdf::{DatasetView, GraphMatch, QuadIds, TermRef, TermValue};
+
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+const SNAPSHOT_SOURCE_CONTRACT: &str =
+    "https://blackcatinformatics.ca/gmeow/contract/world-fact-snapshot-v2";
 
 // ── Newtype wrappers ────────────────────────────────────────────────────────────────────────────
 
@@ -30,6 +36,9 @@ impl std::fmt::Display for DerivationId {
         f.write_str(&self.0)
     }
 }
+
+/// One owned provenance-lookup result.
+pub type DerivationRecord = (DerivationId, String, Vec<String>);
 
 // ── BudgetStatus ───────────────────────────────────────────────────────────────────────────────
 
@@ -133,38 +142,199 @@ pub struct DerivedQuad {
     pub budget_status: BudgetStatus,
 }
 
+/// Stable identity of the RDF source consulted by one query operation.
+///
+/// `generation` identifies an immutable source snapshot. `source_contract`
+/// identifies the caller/provider contract under which that snapshot is exposed.
+/// Both are explicit: GMEOW never guesses a durable generation from an address or
+/// silently treats a changed provider as the same world.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorldSourceIdentity {
+    /// Caller/provider identity for the immutable RDF snapshot.
+    pub generation: String,
+    /// Stable identity of the source/provider contract.
+    pub source_contract: String,
+}
+
+impl WorldSourceIdentity {
+    /// Construct an explicit source identity.
+    #[must_use]
+    pub fn new(generation: impl Into<String>, source_contract: impl Into<String>) -> Self {
+        Self {
+            generation: generation.into(),
+            source_contract: source_contract.into(),
+        }
+    }
+}
+
+/// One source-side RDF pattern, always scoped by the separately supplied world.
+///
+/// Owned terms make extraction plans independent of a particular dataset's local
+/// term ids. A [`RdfViewFactSource`] resolves them into the selected view's id space
+/// immediately before the indexed probe.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct WorldFactPattern {
+    /// Optional subject constraint.
+    pub subject: Option<TermValue>,
+    /// Optional predicate-IRI constraint.
+    pub predicate: Option<String>,
+    /// Optional object constraint.
+    pub object: Option<TermValue>,
+}
+
+impl WorldFactPattern {
+    /// An unconstrained scan of one named world.
+    pub const ANY: Self = Self {
+        subject: None,
+        predicate: None,
+        object: None,
+    };
+
+    /// Construct a pattern from optional owned RDF values.
+    #[must_use]
+    pub fn new(
+        subject: Option<TermValue>,
+        predicate: Option<String>,
+        object: Option<TermValue>,
+    ) -> Self {
+        Self {
+            subject,
+            predicate,
+            object,
+        }
+    }
+
+    /// Whether this pattern includes every row another pattern can match.
+    #[must_use]
+    pub fn subsumes(&self, other: &Self) -> bool {
+        self.subject
+            .as_ref()
+            .is_none_or(|value| other.subject.as_ref() == Some(value))
+            && self
+                .predicate
+                .as_ref()
+                .is_none_or(|value| other.predicate.as_ref() == Some(value))
+            && self
+                .object
+                .as_ref()
+                .is_none_or(|value| other.object.as_ref() == Some(value))
+    }
+}
+
+/// Deterministic structural evidence about source access performed by one dispatch.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct WorldSourceMetrics {
+    /// Number of world-pattern probes issued by the engine.
+    pub pattern_probes: u64,
+    /// Number of cardinality estimates pushed into the backing RDF view.
+    pub cardinality_probes: u64,
+    /// Sum of the source's upper-bound cardinality estimates for planned probes.
+    ///
+    /// This is structural planning evidence, not an exact count of delivered rows.
+    pub estimated_primary_quads: u64,
+    /// Primary RDF quads delivered to the engine.
+    pub primary_quads: u64,
+    /// RDF 1.2 `rdf:reifies` virtual quads delivered to the engine.
+    pub reifier_quads: u64,
+    /// RDF 1.2 annotation virtual quads delivered to the engine.
+    pub annotation_quads: u64,
+}
+
+impl WorldSourceMetrics {
+    /// Total delivered RDF rows across the primary and RDF 1.2 virtual tables.
+    #[must_use]
+    pub const fn delivered_quads(self) -> u64 {
+        self.primary_quads + self.reifier_quads + self.annotation_quads
+    }
+}
+
 // ── WorldFactSource trait ────────────────────────────────────────────────────────────────────────
 
 /// Read-only access to the facts, provenance, and contradiction witnesses of a world.
+///
+/// The hot read operation is visitor-shaped so a view-backed source can resolve a
+/// borrowed [`DatasetView`] row, present a temporary [`DerivedQuad`], and release it
+/// without collecting a world-sized vector. This object-safe seam is the actual
+/// external/provider boundary; the underlying RDF scan remains statically dispatched
+/// through [`DatasetView`].
 pub trait WorldFactSource {
+    /// Stable identity of the immutable source snapshot and provider contract.
+    fn identity(&self) -> &WorldSourceIdentity;
+
     /// World-indexed quad lookup.
     ///
     /// Mode: `W` is ground (the world IRI is always known at call time); `S`, `P`, `O` may be
     /// unbound variables that unify against the store, or ground terms that act as filters.
     ///
-    /// Returns the set of quads (as [`DerivedQuad`] references) in world `world` that unify
-    /// with the (possibly partial) `(subject, predicate, object)` pattern.
-    fn in_world<'a>(
-        &'a self,
+    /// Calls `visitor` for every quad in `world` that unifies with `pattern`.
+    /// Implementations must push the pattern into their indexed backing view; they
+    /// must not satisfy a selective request by first materializing the whole world.
+    fn visit_world(
+        &self,
+        world: &str,
+        pattern: &WorldFactPattern,
+        visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+    ) -> gmeow_errors::Result<()>;
+
+    /// Estimate the primary RDF rows a world-pattern probe can admit.
+    ///
+    /// `None` means the source has no cardinality contract. Implementations with a
+    /// backing RDF index should push the complete `(S,P,O,G)` pattern into that
+    /// index's estimate operation; callers use the value only to order independent
+    /// source probes, never as a semantic count or an absence test.
+    fn estimate_world(
+        &self,
+        _world: &str,
+        _pattern: &WorldFactPattern,
+    ) -> gmeow_errors::Result<Option<usize>> {
+        Ok(None)
+    }
+
+    /// Collect a pattern result into owned, dataset-independent values.
+    ///
+    /// This compatibility helper is intentionally not used by the physical EDB
+    /// loader. Consumers that can process rows incrementally should call
+    /// [`visit_world`](Self::visit_world).
+    fn in_world(
+        &self,
         world: &str,
         subject: Option<&TermValue>,
         predicate: Option<&str>,
         object: Option<&TermValue>,
-    ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a>;
+    ) -> gmeow_errors::Result<Vec<DerivedQuad>> {
+        let pattern = WorldFactPattern::new(
+            subject.cloned(),
+            predicate.map(str::to_owned),
+            object.cloned(),
+        );
+        let mut quads = Vec::new();
+        self.visit_world(world, &pattern, &mut |quad| {
+            quads.push(quad.clone());
+            Ok(())
+        })?;
+        Ok(quads)
+    }
+
+    /// Structural source-access evidence accumulated so far.
+    fn metrics(&self) -> WorldSourceMetrics {
+        WorldSourceMetrics::default()
+    }
 
     /// Provenance lookup for explanations.
     ///
     /// Mode: any argument may be unbound; all are output if unbound. When `quad_id` is ground
     /// this is a direct provenance lookup; when unbound it enumerates all derivations.
     ///
-    /// Returns an iterator of `(derivation_id, rule_iri, source_quad_ids)` triples for
-    /// derivations that match the (possibly partial) pattern.
-    fn derived_by<'a>(
-        &'a self,
+    /// Returns owned `(derivation_id, rule_iri, source_quad_ids)` triples for
+    /// derivations that match the (possibly partial) pattern. Ownership lets a
+    /// paged/provider-backed source release each borrowed row before returning;
+    /// failures are explicit and cannot be confused with semantic absence.
+    fn derived_by(
+        &self,
         quad_id: Option<&DerivationId>,
         rule: Option<&str>,
         sources: Option<&[String]>,
-    ) -> Box<dyn Iterator<Item = (&'a DerivationId, &'a str, &'a [String])> + 'a>;
+    ) -> gmeow_errors::Result<Vec<DerivationRecord>>;
 
     /// Within-world inconsistency as a statement graph.
     ///
@@ -174,7 +344,343 @@ pub trait WorldFactSource {
     ///
     /// Contradictions are never bare failures; a witness graph is always emitted (see
     /// LOGIC-RUNTIME.md §"Contradiction witnesses").
-    fn contradiction_witness<'a>(&'a self, world: &str) -> Box<dyn Iterator<Item = String> + 'a>;
+    fn contradiction_witness<'a>(&'a self, _world: &str) -> Box<dyn Iterator<Item = String> + 'a> {
+        Box::new(std::iter::empty())
+    }
+}
+
+/// A zero-copy world source over any PurRDF resident, paged, or succinct-pack view.
+///
+/// The source never owns or freezes the dataset. It resolves caller-owned RDF values
+/// into the selected view's local id space, pushes the complete `(S,P,O,G)` pattern
+/// through [`DatasetView::quads_for_pattern`], and owns only each row that actually
+/// crosses into the logic engine. RDF 1.2 reifier and annotation side tables are
+/// exposed as their virtual quads when present.
+pub struct RdfViewFactSource<'view, V: DatasetView> {
+    view: &'view V,
+    profile: String,
+    identity: WorldSourceIdentity,
+    metrics: Cell<WorldSourceMetrics>,
+}
+
+impl<'view, V: DatasetView> RdfViewFactSource<'view, V> {
+    /// Bind an explicit source identity and semantic profile to a borrowed RDF view.
+    #[must_use]
+    pub fn new(view: &'view V, profile: impl Into<String>, identity: WorldSourceIdentity) -> Self {
+        Self {
+            view,
+            profile: profile.into(),
+            identity,
+            metrics: Cell::new(WorldSourceMetrics::default()),
+        }
+    }
+
+    fn deliver(
+        &self,
+        world: &str,
+        quad: QuadIds<V::Id>,
+        kind: VirtualQuadKind,
+        visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+    ) -> gmeow_errors::Result<()> {
+        let predicate = match self.view.resolve(quad.p) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            _ => {
+                return Err(source_error(
+                    "RDF view yielded a non-IRI predicate; the source contract is invalid",
+                ));
+            }
+        };
+        let subject = term_value(self.view, quad.s)?;
+        let object = term_value(self.view, quad.o)?;
+        let derived = asserted_quad(world, subject, predicate, object, &self.profile)?;
+        visitor(&derived)?;
+
+        let mut metrics = self.metrics.get();
+        match kind {
+            VirtualQuadKind::Primary => metrics.primary_quads += 1,
+            VirtualQuadKind::Reifier => metrics.reifier_quads += 1,
+            VirtualQuadKind::Annotation => metrics.annotation_quads += 1,
+        }
+        self.metrics.set(metrics);
+        Ok(())
+    }
+
+    fn provenance_row(&self, quad: QuadIds<V::Id>) -> gmeow_errors::Result<Option<DerivedQuad>> {
+        let Some(graph) = quad.g else {
+            return Ok(None);
+        };
+        let world = match self.view.resolve(graph) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            _ => {
+                return Err(source_error(
+                    "RDF view yielded a non-IRI named graph; the world source contract is invalid",
+                ));
+            }
+        };
+        let predicate = match self.view.resolve(quad.p) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            _ => {
+                return Err(source_error(
+                    "RDF view yielded a non-IRI predicate; the source contract is invalid",
+                ));
+            }
+        };
+        Ok(Some(asserted_quad(
+            &world,
+            term_value(self.view, quad.s)?,
+            predicate,
+            term_value(self.view, quad.o)?,
+            &self.profile,
+        )?))
+    }
+}
+
+impl<V: DatasetView> WorldFactSource for RdfViewFactSource<'_, V> {
+    fn identity(&self) -> &WorldSourceIdentity {
+        &self.identity
+    }
+
+    fn visit_world(
+        &self,
+        world: &str,
+        pattern: &WorldFactPattern,
+        visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+    ) -> gmeow_errors::Result<()> {
+        let mut metrics = self.metrics.get();
+        metrics.pattern_probes += 1;
+        self.metrics.set(metrics);
+
+        let Some(graph) = self.view.term_id_by_value(&TermValue::iri(world)) else {
+            return Ok(());
+        };
+        let subject = match &pattern.subject {
+            Some(value) => match self.view.term_id_by_value(value) {
+                Some(id) => Some(id),
+                None => return Ok(()),
+            },
+            None => None,
+        };
+        let predicate = match &pattern.predicate {
+            Some(value) => match self.view.term_id_by_value(&TermValue::iri(value)) {
+                Some(id) => Some(id),
+                None => return Ok(()),
+            },
+            None => None,
+        };
+        let object = match &pattern.object {
+            Some(value) => match self.view.term_id_by_value(value) {
+                Some(id) => Some(id),
+                None => return Ok(()),
+            },
+            None => None,
+        };
+
+        for quad in
+            self.view
+                .quads_for_pattern(subject, predicate, object, GraphMatch::Named(graph))
+        {
+            self.deliver(world, quad, VirtualQuadKind::Primary, visitor)?;
+        }
+
+        let matches = |quad: &QuadIds<V::Id>| {
+            quad.g == Some(graph)
+                && subject.is_none_or(|id| quad.s == id)
+                && predicate.is_none_or(|id| quad.p == id)
+                && object.is_none_or(|id| quad.o == id)
+        };
+        let object_can_be_triple = pattern
+            .object
+            .as_ref()
+            .is_none_or(|value| matches!(value, TermValue::Triple { .. }));
+        if object_can_be_triple
+            && pattern
+                .predicate
+                .as_deref()
+                .is_none_or(|value| value == RDF_REIFIES)
+        {
+            for quad in self.view.reifier_quads().filter(|quad| matches(quad)) {
+                self.deliver(world, quad, VirtualQuadKind::Reifier, visitor)?;
+            }
+        }
+        if self.view.capabilities().annotations {
+            if let Some(reifier) = subject {
+                for (annotation_predicate, annotation_object, annotation_graph) in
+                    self.view.annotations_of_with_graph(reifier)
+                {
+                    let quad = QuadIds {
+                        s: reifier,
+                        p: annotation_predicate,
+                        o: annotation_object,
+                        g: annotation_graph,
+                    };
+                    if matches(&quad) {
+                        self.deliver(world, quad, VirtualQuadKind::Annotation, visitor)?;
+                    }
+                }
+            } else {
+                for quad in self.view.annotation_quads().filter(|quad| matches(quad)) {
+                    self.deliver(world, quad, VirtualQuadKind::Annotation, visitor)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn estimate_world(
+        &self,
+        world: &str,
+        pattern: &WorldFactPattern,
+    ) -> gmeow_errors::Result<Option<usize>> {
+        let Some(graph) = self.view.term_id_by_value(&TermValue::iri(world)) else {
+            return Ok(Some(0));
+        };
+        let subject = match &pattern.subject {
+            Some(value) => match self.view.term_id_by_value(value) {
+                Some(id) => Some(id),
+                None => return Ok(Some(0)),
+            },
+            None => None,
+        };
+        let predicate = match &pattern.predicate {
+            Some(value) => match self.view.term_id_by_value(&TermValue::iri(value)) {
+                Some(id) => Some(id),
+                None => return Ok(Some(0)),
+            },
+            None => None,
+        };
+        let object = match &pattern.object {
+            Some(value) => match self.view.term_id_by_value(value) {
+                Some(id) => Some(id),
+                None => return Ok(Some(0)),
+            },
+            None => None,
+        };
+        let estimate =
+            self.view
+                .cardinality_estimate(subject, predicate, object, GraphMatch::Named(graph));
+        let mut metrics = self.metrics.get();
+        metrics.cardinality_probes += 1;
+        metrics.estimated_primary_quads = metrics
+            .estimated_primary_quads
+            .saturating_add(u64::try_from(estimate).unwrap_or(u64::MAX));
+        self.metrics.set(metrics);
+        Ok(Some(estimate))
+    }
+
+    fn metrics(&self) -> WorldSourceMetrics {
+        self.metrics.get()
+    }
+
+    fn derived_by(
+        &self,
+        quad_id: Option<&DerivationId>,
+        rule: Option<&str>,
+        sources: Option<&[String]>,
+    ) -> gmeow_errors::Result<Vec<DerivationRecord>> {
+        let mut rows = Vec::new();
+        let mut admit = |quad| -> gmeow_errors::Result<()> {
+            let Some(derived) = self.provenance_row(quad)? else {
+                return Ok(());
+            };
+            if quad_id.is_some_and(|candidate| candidate != &derived.derivation_id)
+                || rule.is_some_and(|candidate| candidate != derived.rule_iri)
+                || sources.is_some_and(|candidate| candidate != derived.source_quad_ids)
+            {
+                return Ok(());
+            }
+            rows.push((
+                derived.derivation_id,
+                derived.rule_iri,
+                derived.source_quad_ids,
+            ));
+            Ok(())
+        };
+        for quad in self.view.quads() {
+            admit(quad)?;
+        }
+        for quad in self.view.reifier_quads() {
+            admit(quad)?;
+        }
+        if self.view.capabilities().annotations {
+            for quad in self.view.annotation_quads() {
+                admit(quad)?;
+            }
+        }
+        Ok(rows)
+    }
+}
+
+#[derive(Clone, Copy)]
+enum VirtualQuadKind {
+    Primary,
+    Reifier,
+    Annotation,
+}
+
+fn source_error(detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason {
+        detail: detail.into(),
+    })
+}
+
+fn term_value<V: DatasetView>(view: &V, id: V::Id) -> gmeow_errors::Result<TermValue> {
+    match view.resolve(id) {
+        TermRef::Iri(iri) => Ok(TermValue::iri(iri)),
+        TermRef::Blank { label, scope } => Ok(TermValue::Blank {
+            label: label.to_owned(),
+            scope,
+        }),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let TermRef::Iri(datatype) = view.resolve(datatype) else {
+                return Err(source_error(
+                    "RDF view yielded a literal whose datatype is not an IRI",
+                ));
+            };
+            Ok(TermValue::Literal {
+                lexical_form: lexical.to_owned(),
+                datatype: datatype.to_owned(),
+                language: language.map(str::to_owned),
+                direction,
+            })
+        }
+        TermRef::Triple { s, p, o } => Ok(TermValue::Triple {
+            s: Box::new(term_value(view, s)?),
+            p: Box::new(term_value(view, p)?),
+            o: Box::new(term_value(view, o)?),
+        }),
+    }
+}
+
+fn asserted_quad(
+    world: &str,
+    subject: TermValue,
+    predicate: String,
+    object: TermValue,
+    profile: &str,
+) -> gmeow_errors::Result<DerivedQuad> {
+    let reifier = crate::provenance::mint_reifier(&subject, &predicate, &object)
+        .map_err(|error| source_error(format!("mint_reifier failed: {error}")))?;
+    let derivation_id = DerivationId(crate::provenance::mint_derivation_id(
+        crate::provenance::ASSERT_RULE_IRI,
+        &[reifier.as_str()],
+    ));
+    Ok(DerivedQuad {
+        graph: world.to_owned(),
+        subject,
+        predicate,
+        object,
+        graph_component: world.to_owned(),
+        derivation_id,
+        rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
+        source_quad_ids: vec![reifier],
+        profile: profile.to_owned(),
+        budget_status: BudgetStatus::Ok,
+    })
 }
 
 // ── WorldFactSnapshot ──────────────────────────────────────────────────────────────────────────
@@ -190,6 +696,8 @@ pub trait WorldFactSource {
 /// This snapshot is the native evaluator's asserted-fact input.
 pub struct WorldFactSnapshot {
     quads: Vec<DerivedQuad>,
+    identity: WorldSourceIdentity,
+    metrics: Cell<WorldSourceMetrics>,
 }
 
 impl WorldFactSnapshot {
@@ -227,111 +735,127 @@ impl WorldFactSnapshot {
             let subject = quad.s.clone();
             let object = quad.o.clone();
 
-            let reifier =
-                crate::provenance::mint_reifier(&subject, &predicate, &object).map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Reason {
-                        detail: format!("WorldFactSnapshot: mint_reifier failed: {e}"),
-                    })
-                })?;
-
-            let derivation_id = DerivationId(crate::provenance::mint_derivation_id(
-                crate::provenance::ASSERT_RULE_IRI,
-                &[reifier.as_str()],
-            ));
-
-            derived.push(DerivedQuad {
-                graph: world.to_owned(),
-                subject,
-                predicate,
-                object,
-                graph_component: world.to_owned(),
-                derivation_id,
-                rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
-                source_quad_ids: vec![reifier],
-                profile: profile.to_owned(),
-                budget_status: BudgetStatus::Ok,
-            });
+            derived.push(asserted_quad(world, subject, predicate, object, profile)?);
         }
 
-        Ok(Self { quads: derived })
+        let identity = snapshot_identity(&derived)?;
+        Ok(Self {
+            quads: derived,
+            identity,
+            metrics: Cell::new(WorldSourceMetrics::default()),
+        })
     }
 }
 
 impl WorldFactSource for WorldFactSnapshot {
+    fn identity(&self) -> &WorldSourceIdentity {
+        &self.identity
+    }
+
     /// `in_world(+W, ?S, ?P, ?O)` — return quads in `world` matching the optional pattern.
     ///
     /// Filters `self.quads` by world equality and each provided optional term filter.
-    fn in_world<'a>(
-        &'a self,
+    fn visit_world(
+        &self,
         world: &str,
-        subject: Option<&TermValue>,
-        predicate: Option<&str>,
-        object: Option<&TermValue>,
-    ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a> {
-        let world = world.to_owned();
-        let subject = subject.cloned();
-        let predicate = predicate.map(str::to_owned);
-        let object = object.cloned();
+        pattern: &WorldFactPattern,
+        visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
+    ) -> gmeow_errors::Result<()> {
+        let mut metrics = self.metrics.get();
+        metrics.pattern_probes += 1;
+        let mut delivered = 0_u64;
+        for quad in &self.quads {
+            if quad.graph != world
+                || pattern
+                    .subject
+                    .as_ref()
+                    .is_some_and(|subject| &quad.subject != subject)
+                || pattern
+                    .predicate
+                    .as_ref()
+                    .is_some_and(|predicate| &quad.predicate != predicate)
+                || pattern
+                    .object
+                    .as_ref()
+                    .is_some_and(|object| &quad.object != object)
+            {
+                continue;
+            }
+            if let Err(error) = visitor(quad) {
+                metrics.primary_quads = metrics.primary_quads.saturating_add(delivered);
+                self.metrics.set(metrics);
+                return Err(error);
+            }
+            delivered += 1;
+        }
+        metrics.primary_quads = metrics.primary_quads.saturating_add(delivered);
+        self.metrics.set(metrics);
+        Ok(())
+    }
 
-        Box::new(self.quads.iter().filter(move |dq| {
-            if dq.graph != world {
-                return false;
-            }
-            if let Some(ref s) = subject
-                && &dq.subject != s
-            {
-                return false;
-            }
-            if let Some(ref p) = predicate
-                && &dq.predicate != p
-            {
-                return false;
-            }
-            if let Some(ref o) = object
-                && &dq.object != o
-            {
-                return false;
-            }
-            true
-        }))
+    fn metrics(&self) -> WorldSourceMetrics {
+        self.metrics.get()
+    }
+
+    fn estimate_world(
+        &self,
+        world: &str,
+        pattern: &WorldFactPattern,
+    ) -> gmeow_errors::Result<Option<usize>> {
+        let estimate = self
+            .quads
+            .iter()
+            .filter(|quad| {
+                quad.graph == world
+                    && pattern
+                        .subject
+                        .as_ref()
+                        .is_none_or(|subject| &quad.subject == subject)
+                    && pattern
+                        .predicate
+                        .as_ref()
+                        .is_none_or(|predicate| &quad.predicate == predicate)
+                    && pattern
+                        .object
+                        .as_ref()
+                        .is_none_or(|object| &quad.object == object)
+            })
+            .count();
+        let mut metrics = self.metrics.get();
+        metrics.cardinality_probes += 1;
+        metrics.estimated_primary_quads = metrics
+            .estimated_primary_quads
+            .saturating_add(u64::try_from(estimate).unwrap_or(u64::MAX));
+        self.metrics.set(metrics);
+        Ok(Some(estimate))
     }
 
     /// `derived_by(?QuadId, ?Rule, ?Sources)` — provenance enumeration.
     ///
     /// Enumerates `self.quads` as `(derivation_id, rule_iri, source_quad_ids)` triples.
-    /// Filters by `quad_id` (when `Some`, match `derivation_id`) and `rule` (when `Some`,
-    /// match `rule_iri`).
-    ///
-    /// **`sources` is ignored as an input filter.** In this monotonic-fragment
-    /// implementation, `sources` is OUTPUT-ONLY (provenance enumeration, not input
-    /// filtering).  Callers that need to filter by source must do so on the returned
-    /// iterator.
-    fn derived_by<'a>(
-        &'a self,
+    /// Filters every bound component and returns owned provenance rows.
+    fn derived_by(
+        &self,
         quad_id: Option<&DerivationId>,
         rule: Option<&str>,
-        _sources: Option<&[String]>,
-    ) -> Box<dyn Iterator<Item = (&'a DerivationId, &'a str, &'a [String])> + 'a> {
-        let quad_id = quad_id.cloned();
-        let rule = rule.map(|r| r.to_owned());
-
-        Box::new(self.quads.iter().filter_map(move |dq| {
-            if let Some(ref qid) = quad_id
-                && &dq.derivation_id != qid
-            {
-                return None;
-            }
-            if let Some(ref r) = rule
-                && dq.rule_iri.as_str() != r.as_str()
-            {
-                return None;
-            }
-            Some((
-                &dq.derivation_id,
-                dq.rule_iri.as_str(),
-                dq.source_quad_ids.as_slice(),
-            ))
-        }))
+        sources: Option<&[String]>,
+    ) -> gmeow_errors::Result<Vec<DerivationRecord>> {
+        Ok(self
+            .quads
+            .iter()
+            .filter(|dq| {
+                quad_id.is_none_or(|candidate| candidate == &dq.derivation_id)
+                    && rule.is_none_or(|candidate| candidate == dq.rule_iri)
+                    && sources.is_none_or(|candidate| candidate == dq.source_quad_ids)
+            })
+            .map(|dq| {
+                (
+                    dq.derivation_id.clone(),
+                    dq.rule_iri.clone(),
+                    dq.source_quad_ids.clone(),
+                )
+            })
+            .collect())
     }
 
     /// `contradiction_witness(+W, ?WitnessGraph)` — always empty in this implementation.
@@ -342,6 +866,32 @@ impl WorldFactSource for WorldFactSnapshot {
     fn contradiction_witness<'a>(&'a self, _world: &str) -> Box<dyn Iterator<Item = String> + 'a> {
         Box::new(std::iter::empty())
     }
+}
+
+fn snapshot_identity(quads: &[DerivedQuad]) -> gmeow_errors::Result<WorldSourceIdentity> {
+    let mut rows = Vec::with_capacity(quads.len());
+    for quad in quads {
+        rows.push([
+            quad.graph.clone(),
+            crate::provenance::term_n3(&quad.subject)?,
+            quad.predicate.clone(),
+            crate::provenance::term_n3(&quad.object)?,
+            quad.profile.clone(),
+        ]);
+    }
+    rows.sort();
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-world-fact-snapshot-generation-v2");
+    for row in rows {
+        for field in row {
+            hasher.update(&(field.len() as u64).to_le_bytes());
+            hasher.update(field.as_bytes());
+        }
+    }
+    Ok(WorldSourceIdentity::new(
+        format!("urn:blake3:{}", hasher.finalize().to_hex()),
+        SNAPSHOT_SOURCE_CONTRACT,
+    ))
 }
 
 // ── Unit tests ─────────────────────────────────────────────────────────────────────────────────
@@ -498,14 +1048,18 @@ mod tests {
     #[test]
     fn foreign_in_world_all_none_returns_all_asserted_quads() {
         let foreign = small_foreign();
-        let quads: Vec<_> = foreign.in_world(TEST_WORLD, None, None, None).collect();
+        let quads = foreign
+            .in_world(TEST_WORLD, None, None, None)
+            .expect("snapshot scan");
         assert_eq!(quads.len(), 2, "should return both asserted quads");
     }
 
     #[test]
     fn foreign_in_world_predicate_filter() {
         let foreign = small_foreign();
-        let quads: Vec<_> = foreign.in_world(TEST_WORLD, None, Some(P1), None).collect();
+        let quads = foreign
+            .in_world(TEST_WORLD, None, Some(P1), None)
+            .expect("snapshot scan");
         assert_eq!(quads.len(), 1, "P1 filter should return exactly 1 quad");
         assert_eq!(quads[0].predicate, P1);
     }
@@ -514,9 +1068,9 @@ mod tests {
     fn foreign_in_world_subject_filter() {
         let foreign = small_foreign();
         let subj_term = TermValue::iri(S2);
-        let quads: Vec<_> = foreign
+        let quads = foreign
             .in_world(TEST_WORLD, Some(&subj_term), None, None)
-            .collect();
+            .expect("snapshot scan");
         assert_eq!(quads.len(), 1, "S2 filter should return exactly 1 quad");
         assert_eq!(quads[0].subject, subj_term);
     }
@@ -524,20 +1078,22 @@ mod tests {
     #[test]
     fn foreign_in_world_wrong_world_returns_empty() {
         let foreign = small_foreign();
-        let quads: Vec<_> = foreign
+        let quads = foreign
             .in_world("http://world/Other", None, None, None)
-            .collect();
+            .expect("snapshot scan");
         assert!(quads.is_empty(), "wrong world must return no quads");
     }
 
     #[test]
     fn foreign_derived_by_enumerates_with_assert_rule() {
         let foreign = small_foreign();
-        let triples: Vec<_> = foreign.derived_by(None, None, None).collect();
+        let triples = foreign
+            .derived_by(None, None, None)
+            .expect("provenance scan");
         assert_eq!(triples.len(), 2, "should enumerate 2 asserted derivations");
         for (_, rule, _) in &triples {
             assert_eq!(
-                *rule,
+                rule,
                 crate::provenance::ASSERT_RULE_IRI,
                 "rule_iri must be ASSERT_RULE_IRI for asserted facts"
             );
@@ -548,15 +1104,15 @@ mod tests {
     fn foreign_derived_by_rule_filter() {
         let foreign = small_foreign();
         // Filter by ASSERT_RULE_IRI — should return both.
-        let triples: Vec<_> = foreign
+        let triples = foreign
             .derived_by(None, Some(crate::provenance::ASSERT_RULE_IRI), None)
-            .collect();
+            .expect("provenance scan");
         assert_eq!(triples.len(), 2);
 
         // Filter by a different rule IRI — should return none.
-        let triples_none: Vec<_> = foreign
+        let triples_none = foreign
             .derived_by(None, Some("http://example.org/someOtherRule"), None)
-            .collect();
+            .expect("provenance scan");
         assert!(triples_none.is_empty());
     }
 
@@ -565,13 +1121,15 @@ mod tests {
         let foreign = small_foreign();
         // Get the derivation_id of the first quad.
         let first_id = foreign.quads[0].derivation_id.clone();
-        let triples: Vec<_> = foreign.derived_by(Some(&first_id), None, None).collect();
+        let triples = foreign
+            .derived_by(Some(&first_id), None, None)
+            .expect("provenance scan");
         assert_eq!(
             triples.len(),
             1,
             "derivation_id filter must return exactly 1"
         );
-        assert_eq!(triples[0].0, &first_id);
+        assert_eq!(triples[0].0, first_id);
     }
 
     #[test]

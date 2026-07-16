@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)
+# SPDX-License-Identifier: W3C
+@prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .
+@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix ex: <https://gmeow.example/entailment-mini-divergence/multi-triple-conclusion/> .
+
+ex:multi-triple-conclusion a otest:PositiveEntailmentTest ;
+    otest:identifier "multi-triple-conclusion" ;
+    mf:action ex:premise.rdf .

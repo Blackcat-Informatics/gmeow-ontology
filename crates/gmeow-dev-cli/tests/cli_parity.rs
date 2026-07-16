@@ -17,9 +17,9 @@
 //! | `logic_compile_check` (ignored)   | `test_logic_cli::…_compile_check_*`     |
 //!
 //! The whole-pipeline / whole-gate commands (`logic compile --check`, `feedback`,
-//! `regenerate`) exceed the 25s per-test budget, so they ride an OFF-GATE
-//! `#[ignore]` lane behind `GMEOW_DEV_CLI_HEAVY=1` — the default `cargo nextest` /
-//! `make check` never runs them; a maintainer opts in explicitly.
+//! synchronization) duplicate dedicated repository gates, so they ride an explicit
+//! `#[ignore]` maintainer lane behind `GMEOW_DEV_CLI_HEAVY=1`; focused CLI behavior
+//! stays on the default lane.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -339,7 +339,7 @@ fn extract_reference_only_target_is_refused() {
         .stdout(predicate::str::contains("import-ok"));
 }
 
-// ── OFF-GATE lane: whole-pipeline / whole-gate commands exceed the 25s budget ──
+// ── Maintainer lane: whole-pipeline / whole-gate command parity ────────────────
 
 /// Whether the heavy off-gate lane is enabled (`GMEOW_DEV_CLI_HEAVY=1`).
 fn heavy_enabled() -> bool {
@@ -362,7 +362,7 @@ fn wikidata_existence_live_lookup() {
 }
 
 #[test]
-#[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
+#[ignore = "maintainer lane: duplicates the whole compile/check pipeline"]
 fn logic_compile_check_no_drift() {
     if !heavy_enabled() {
         return;
@@ -376,7 +376,7 @@ fn logic_compile_check_no_drift() {
 }
 
 #[test]
-#[ignore = "off-gate: whole-ontology SHACL over the sources; exceeds the 25s budget"]
+#[ignore = "maintainer lane: duplicates whole-ontology validation"]
 fn validate_passes_on_the_clean_repo() {
     if !heavy_enabled() {
         return;
@@ -389,7 +389,7 @@ fn validate_passes_on_the_clean_repo() {
 }
 
 #[test]
-#[ignore = "off-gate: reads the whole bundle + corpus; exceeds the 25s budget"]
+#[ignore = "maintainer lane: exhaustive whole-bundle and corpus audit"]
 fn up_projection_audit_runs() {
     if !heavy_enabled() {
         return;
@@ -402,7 +402,7 @@ fn up_projection_audit_runs() {
 }
 
 #[test]
-#[ignore = "off-gate: folds every gate surface; exceeds the 25s budget"]
+#[ignore = "maintainer lane: folds every repository gate surface"]
 fn feedback_writes_artifacts() {
     if !heavy_enabled() {
         return;

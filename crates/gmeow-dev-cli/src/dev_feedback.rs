@@ -403,10 +403,6 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             }
             Ok(r)
         }),
-        (
-            "engine-cross-check",
-            crate::dev_gates::crosscheck_queries_report,
-        ),
         ("logic-compile", |root| {
             // The `logic:` compile diagnostics surface: parse diagnostics projected
             // into the canonical report; a hard parse/compile failure is surfaced as
@@ -622,7 +618,6 @@ mod tests {
         "box-roles",
         "audit",
         "generated",
-        "engine-cross-check",
         "logic-compile",
         "statement-compile",
         "mapping-compile",

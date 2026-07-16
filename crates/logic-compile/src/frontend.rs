@@ -243,7 +243,17 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
             | "termLiteral"
             | "termLiteralDatatype"
             | "termSequenceMarker"
+            | "termApplication"
+            | "functionSymbol"
     )
+}
+
+/// Recovery-case ownership links are correspondence-calculus structure, not domain
+/// axioms.  Their formula tree is reconstructed into [`RecoveryCaseIr`] by the shared
+/// correspondence reader; retaining these edges in `LogicProgram::axioms` as well would
+/// duplicate one semantic object across the generic projection and correspondence lanes.
+fn is_recovery_case_structural_predicate(prop_local: &str) -> bool {
+    matches!(prop_local, "recoveryCase" | "recoveryTransform")
 }
 
 /// The reserved `logic:` predicate-local names that carry a `logic:Constraint` (or a compact
@@ -390,12 +400,29 @@ fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     subjects
 }
 
+/// Collect the IRIs / blank-node ids of every `logic:RecoveryCase` node reached as the
+/// object of some `logic:recoveryCase` edge — i.e. every recovery case OWNED by a
+/// correspondence. A `logic:RecoveryCase` node typed but never reached this way is
+/// authored recovery evidence with no owner, so it must not be silently dropped.
+fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
+    let recovery_case_pred = logic_iri("recoveryCase");
+    default_graph_quads(store)
+        .into_iter()
+        .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
+        .map(|quad| term_str(&quad.object))
+        .collect()
+}
+
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
     // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
+
+    // Recovery cases owned by some correspondence (via `logic:recoveryCase`); a
+    // `logic:RecoveryCase` typing not in this set is orphaned evidence (see step 2 below).
+    let owned_recovery_cases = collect_owned_recovery_cases(store);
 
     // Class-expression restrictions authored in logic: (`C logic:subClassOf
     // [ a logic:Restriction ; logic:onProperty P ; logic:someValuesFrom D ]`) lift
@@ -467,6 +494,9 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_formula_structural_predicate(p_local) {
             continue;
         }
+        if is_recovery_case_structural_predicate(p_local) {
+            continue;
+        }
         // Rule-aggregation triples (the reduce spec carried on a logic:Rule node) are consumed
         // by extract_rules; they are rule structure, never domain facts, and must not pollute
         // the axiom set or the canonical round-trip.
@@ -526,7 +556,26 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // `extract_formulas`. Keeping it as a generic class-membership axiom as well would give
         // the same authored node two IR homes; the CL writer would then emit a constructorless
         // duplicate under the source IRI alongside the content-addressed formula tree.
-        if o_local == "Formula" {
+        if matches!(o_local, "Formula" | "TermCarrier") {
+            continue;
+        }
+        // A `logic:RecoveryCase` type triple is owned by the correspondence that reaches it
+        // via `logic:recoveryCase`, exactly like Formula/TermCarrier above. A RecoveryCase that
+        // is NOT reached that way is unowned recovery evidence — an authoring error, not
+        // something to swallow — so it is hard-failed here instead of silently vanishing.
+        if o_local == "RecoveryCase" {
+            let case_iri = subject_str(&quad.subject);
+            if !owned_recovery_cases.contains(&case_iri) {
+                diagnostics.push(Diagnostic::error(
+                    "ORPHAN_RECOVERY_CASE",
+                    format!(
+                        "{case_iri:?} is typed logic:RecoveryCase but is not referenced by any \
+                         logic:Correspondence via logic:recoveryCase; unowned recovery evidence \
+                         must not disappear silently"
+                    ),
+                    Some(case_iri),
+                ));
+            }
             continue;
         }
         // A `logic:Constraint` / constraint-sugar type triple is consumed by the constraint +
@@ -1446,6 +1495,24 @@ pub fn derive_validation_shapes(
     let p_qmaxcard = nn(&format!("{owl}maxQualifiedCardinality"));
     let p_qcard = nn(&format!("{owl}qualifiedCardinality"));
     let p_subclass = nn(&format!("{rdfs}subClassOf"));
+    // Canonical `logic:` restriction spelling.  Declarative shape derivation reads the
+    // merged AUTHORED dataset (before the OWL projection is materialized), so a
+    // `logic:subClassOf [ a logic:Restriction ; ... ]` must be read through the same
+    // semantic slots as its legacy RDFS/OWL spelling.  Keep the two spellings in one
+    // view here; the ValidationShapeIr construction below remains the single lowering.
+    let p_logic_on = nn(&logic_iri("onProperty"));
+    let p_logic_some = nn(&logic_iri("someValuesFrom"));
+    let p_logic_all = nn(&logic_iri("allValuesFrom"));
+    let p_logic_hasvalue = nn(&logic_iri("hasValue"));
+    let p_logic_onclass = nn(&logic_iri("onClass"));
+    let p_logic_ondatarange = nn(&logic_iri("onDataRange"));
+    let p_logic_mincard = nn(&logic_iri("minCardinality"));
+    let p_logic_maxcard = nn(&logic_iri("maxCardinality"));
+    let p_logic_card = nn(&logic_iri("cardinality"));
+    let p_logic_qmincard = nn(&logic_iri("minQualifiedCardinality"));
+    let p_logic_qmaxcard = nn(&logic_iri("maxQualifiedCardinality"));
+    let p_logic_qcard = nn(&logic_iri("qualifiedCardinality"));
+    let p_logic_subclass = nn(&logic_iri("subClassOf"));
     let p_disjoint = nn(&format!("{owl}disjointWith"));
     let p_complement = nn(&format!("{owl}complementOf"));
     let p_oneof = nn(&format!("{owl}oneOf"));
@@ -1453,6 +1520,15 @@ pub fn derive_validation_shapes(
     let p_domain = nn(&format!("{rdfs}domain"));
     let p_range = nn(&format!("{rdfs}range"));
     let owl_alldisjoint = Node::iri(format!("{owl}AllDisjointClasses"));
+
+    let restriction_value = |subject: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| {
+        value(store, subject, owl_predicate).or_else(|| value(store, subject, logic_predicate))
+    };
+    let restriction_objects = |subject: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| {
+        let mut out = objects(store, subject, owl_predicate);
+        out.extend(objects(store, subject, logic_predicate));
+        out
+    };
 
     // GMEOW's authoring ground: derive validation shapes for our own domain classes /
     // properties across every dogfooded namespace (Principle 4 / maximal dogfooding) — the
@@ -1507,6 +1583,8 @@ pub fn derive_validation_shapes(
     // expression, not a datatype facet) — the caller then skips it, unchanged.
     let p_ondatatype = nn(&format!("{owl}onDatatype"));
     let p_withrestrictions = nn(&format!("{owl}withRestrictions"));
+    let p_logic_ondatatype = nn(&logic_iri("onDatatype"));
+    let p_logic_withrestrictions = nn(&logic_iri("withRestrictions"));
     let xsd_pattern = nn(&format!("{xsd}pattern"));
     let xsd_minlength = nn(&format!("{xsd}minLength"));
     let xsd_maxlength = nn(&format!("{xsd}maxLength"));
@@ -1515,11 +1593,13 @@ pub fn derive_validation_shapes(
     let xsd_minexclusive = nn(&format!("{xsd}minExclusive"));
     let xsd_maxexclusive = nn(&format!("{xsd}maxExclusive"));
     let datatype_facets = |filler: &Subject| -> Vec<ConstraintComponent> {
-        let Some(list_head) = value(store, filler, &p_withrestrictions) else {
+        let Some(list_head) =
+            restriction_value(filler, &p_withrestrictions, &p_logic_withrestrictions)
+        else {
             return Vec::new();
         };
         let mut comps = Vec::new();
-        if let Some(Node::Iri(dt)) = value(store, filler, &p_ondatatype) {
+        if let Some(Node::Iri(dt)) = restriction_value(filler, &p_ondatatype, &p_logic_ondatatype) {
             comps.push(ConstraintComponent::Datatype(dt));
         }
         // Numeric-bound facets accumulate into a SINGLE `NumericRange` (a min/max pair with per-
@@ -1589,8 +1669,12 @@ pub fn derive_validation_shapes(
     // for a filler that carries no such expression (the caller then leaves it in the canon).
     let p_unionof = nn(&format!("{owl}unionOf"));
     let p_disjointunion = nn(&format!("{owl}disjointUnionOf"));
+    let p_logic_unionof = nn(&logic_iri("unionOf"));
+    let p_logic_disjointunion = nn(&logic_iri("disjointUnionOf"));
+    let p_logic_oneof = nn(&logic_iri("oneOf"));
+    let p_logic_complement = nn(&logic_iri("complementOf"));
     let classify_filler = |fs: &Subject| -> Option<ConstraintComponent> {
-        if let Some(head) = value(store, fs, &p_unionof) {
+        if let Some(head) = restriction_value(fs, &p_unionof, &p_logic_unionof) {
             let branches: Vec<ConstraintComponent> = read_iri_list(store, &head)
                 .into_iter()
                 .filter_map(|c| classify(&c))
@@ -1599,7 +1683,7 @@ pub fn derive_validation_shapes(
                 return Some(ConstraintComponent::Or(branches));
             }
         }
-        if let Some(head) = value(store, fs, &p_disjointunion) {
+        if let Some(head) = restriction_value(fs, &p_disjointunion, &p_logic_disjointunion) {
             let branches: Vec<ConstraintComponent> = read_iri_list(store, &head)
                 .into_iter()
                 .filter_map(|c| classify(&c))
@@ -1611,7 +1695,7 @@ pub fn derive_validation_shapes(
         // An enumerated filler (`owl:oneOf ( a b … )` on an anonymous class) → `sh:in ( a b … )`:
         // every value of the path must be one of the enumerated individuals. IRI members only —
         // a literal member would make the expression a data range, which the facet arm owns.
-        if let Some(head) = value(store, fs, &p_oneof) {
+        if let Some(head) = restriction_value(fs, &p_oneof, &p_logic_oneof) {
             let members = read_iri_list(store, &head);
             if !members.is_empty() {
                 return Some(ConstraintComponent::In(
@@ -1619,11 +1703,11 @@ pub fn derive_validation_shapes(
                 ));
             }
         }
-        match value(store, fs, &p_complement) {
+        match restriction_value(fs, &p_complement, &p_logic_complement) {
             Some(Node::Iri(d)) => classify(&d).map(|cc| ConstraintComponent::Not(Box::new(cc))),
             Some(inner @ Node::Blank { .. }) => {
                 let bs = term_as_subject(&inner)?;
-                let sv = match value(store, &bs, &p_hasvalue)? {
+                let sv = match restriction_value(&bs, &p_hasvalue, &p_logic_hasvalue)? {
                     Node::Iri(i) => ShapeValue::Iri(i),
                     Node::Lit {
                         lexical,
@@ -1652,6 +1736,13 @@ pub fn derive_validation_shapes(
             _ => None,
         }
     };
+    let restriction_card_of =
+        |restr: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| -> Option<u32> {
+            match restriction_value(restr, owl_predicate, logic_predicate) {
+                Some(Node::Lit { lexical: lex, .. }) => lex.trim().parse::<u32>().ok(),
+                _ => None,
+            }
+        };
 
     // Accumulate by SHAPE TARGET: shape IRI → (target, node_components, properties). One shape
     // per target, so every family merges into a single shape rather than colliding.
@@ -1730,7 +1821,7 @@ pub fn derive_validation_shapes(
         if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) {
             continue;
         }
-        for restr in objects(store, class, &p_subclass) {
+        for restr in restriction_objects(class, &p_subclass, &p_logic_subclass) {
             let Some(restr_subj) = term_as_subject(&restr) else {
                 continue;
             };
@@ -1740,15 +1831,15 @@ pub fn derive_validation_shapes(
             // ([`ConstraintComponent::OrProperties`]). Only the exact all-branches-are-bare-
             // existential form is read; any other union member (a named class, a qualified
             // filler) leaves the whole expression in the canon, never a partial disjunction.
-            if value(store, &restr_subj, &p_on).is_none()
-                && let Some(head) = value(store, &restr_subj, &p_unionof)
+            if restriction_value(&restr_subj, &p_on, &p_logic_on).is_none()
+                && let Some(head) = restriction_value(&restr_subj, &p_unionof, &p_logic_unionof)
             {
                 let members = read_list_member_subjects(store, &head);
                 let mut paths: Vec<String> = Vec::with_capacity(members.len());
                 let mut all_bare_existentials = !members.is_empty();
                 for m in &members {
-                    let on_p = value(store, m, &p_on);
-                    let filler = value(store, m, &p_some);
+                    let on_p = restriction_value(m, &p_on, &p_logic_on);
+                    let filler = restriction_value(m, &p_some, &p_logic_some);
                     match (on_p, filler) {
                         (Some(Node::Iri(p)), Some(Node::Iri(f)))
                             if f == owl_thing && !optouts.contains(&p) =>
@@ -1770,7 +1861,7 @@ pub fn derive_validation_shapes(
             }
             // A restriction constrains exactly one property; skip a malformed one with no
             // IRI-valued `owl:onProperty`.
-            let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
+            let Some(Node::Iri(on)) = restriction_value(&restr_subj, &p_on, &p_logic_on) else {
                 continue;
             };
             // Per-property validation-reading opt-out (R3).
@@ -1784,7 +1875,7 @@ pub fn derive_validation_shapes(
             // class-scoped `ClosedWorldClosure` entry paired with `owl:allValuesFrom`; this keeps
             // the SHACL minimum explicit without causing the native reasoner to mint existential
             // witnesses into the shipped closure.
-            match value(store, &restr_subj, &p_some) {
+            match restriction_value(&restr_subj, &p_some, &p_logic_some) {
                 Some(Node::Iri(cv)) => {
                     if let Some(cc) = classify(&cv) {
                         let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
@@ -1819,7 +1910,7 @@ pub fn derive_validation_shapes(
             // owl:allValuesFrom is UNIVERSAL: every value satisfies the inner shape → a bare
             // `sh:class` / `sh:datatype` / `sh:nodeKind` on the path, or the length/pattern facets
             // of a faceted-datatype filler. A non-faceted blank filler → skip.
-            match value(store, &restr_subj, &p_all) {
+            match restriction_value(&restr_subj, &p_all, &p_logic_all) {
                 Some(Node::Iri(cv)) => {
                     if let Some(cc) = classify(&cv) {
                         let min = closed_requirements
@@ -1876,7 +1967,7 @@ pub fn derive_validation_shapes(
 
             // owl:hasValue → `sh:hasValue` (a fixed required value). A blank / quoted-triple
             // fixed value is impossible (a fixed value cannot be an anonymous node) → hard-fail.
-            match value(store, &restr_subj, &p_hasvalue) {
+            match restriction_value(&restr_subj, &p_hasvalue, &p_logic_hasvalue) {
                 None => {}
                 Some(Node::Iri(v)) => {
                     let pc = PropertyConstraintIr::new(
@@ -1925,62 +2016,64 @@ pub fn derive_validation_shapes(
 
             // Cardinality. Qualified (`owl:onClass` + a `qualified*Cardinality`) is distinct from
             // unqualified: it counts only the values satisfying the inner shape.
-            let has_qcard = value(store, &restr_subj, &p_qcard).is_some()
-                || value(store, &restr_subj, &p_qmincard).is_some()
-                || value(store, &restr_subj, &p_qmaxcard).is_some();
+            let has_qcard = restriction_value(&restr_subj, &p_qcard, &p_logic_qcard).is_some()
+                || restriction_value(&restr_subj, &p_qmincard, &p_logic_qmincard).is_some()
+                || restriction_value(&restr_subj, &p_qmaxcard, &p_logic_qmaxcard).is_some();
             if has_qcard {
-                let q_exact = card_of(&restr_subj, &p_qcard);
+                let q_exact = restriction_card_of(&restr_subj, &p_qcard, &p_logic_qcard);
                 let (mut qlo, mut qhi) = (
-                    card_of(&restr_subj, &p_qmincard),
-                    card_of(&restr_subj, &p_qmaxcard),
+                    restriction_card_of(&restr_subj, &p_qmincard, &p_logic_qmincard),
+                    restriction_card_of(&restr_subj, &p_qmaxcard, &p_logic_qmaxcard),
                 );
                 if let Some(n) = q_exact {
                     qlo = Some(n);
                     qhi = Some(n);
                 }
-                match value(store, &restr_subj, &p_onclass) {
+                match restriction_value(&restr_subj, &p_onclass, &p_logic_onclass) {
                     // A qualified cardinality qualifies over EITHER an object filler
                     // (`owl:onClass <Class>`) or a datatype filler (`owl:onDataRange <Datatype>`).
                     // With no `owl:onClass`, fall through to the datatype-qualified peer.
-                    None => match value(store, &restr_subj, &p_ondatarange) {
-                        // `owl:onDataRange <Datatype>` is the datatype-qualified peer of
-                        // `owl:onClass <Class>`. It reads as the datatype every counted value must
-                        // carry, degraded to a PLAIN `sh:datatype` + `sh:minCount`/`sh:maxCount`
-                        // (min→minCount, max→maxCount, exact→both — the same count the onClass arm
-                        // carries). A bare `sh:datatype` is what the JSON-Schema deriver reads; a
-                        // `sh:qualifiedValueShape [ sh:datatype … ]` it would ignore.
-                        Some(Node::Iri(dt)) => {
-                            // `classify` maps a concrete datatype → `sh:datatype`, `rdfs:Literal`
-                            // → the `sh:Literal` node-kind, and `rdfs:Resource` → no component
-                            // (the vacuous universal top) — the datatype analogue of the onClass
-                            // arm's class handling.
-                            let comps: Vec<_> = classify(&dt).into_iter().collect();
-                            let pc = PropertyConstraintIr::new(
-                                &on,
-                                qlo,
-                                qhi,
-                                Some(ConstraintProvenance::OwlRestriction),
-                                comps,
-                            )?;
-                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
-                                .2
-                                .push(pc);
+                    None => {
+                        match restriction_value(&restr_subj, &p_ondatarange, &p_logic_ondatarange) {
+                            // `owl:onDataRange <Datatype>` is the datatype-qualified peer of
+                            // `owl:onClass <Class>`. It reads as the datatype every counted value must
+                            // carry, degraded to a PLAIN `sh:datatype` + `sh:minCount`/`sh:maxCount`
+                            // (min→minCount, max→maxCount, exact→both — the same count the onClass arm
+                            // carries). A bare `sh:datatype` is what the JSON-Schema deriver reads; a
+                            // `sh:qualifiedValueShape [ sh:datatype … ]` it would ignore.
+                            Some(Node::Iri(dt)) => {
+                                // `classify` maps a concrete datatype → `sh:datatype`, `rdfs:Literal`
+                                // → the `sh:Literal` node-kind, and `rdfs:Resource` → no component
+                                // (the vacuous universal top) — the datatype analogue of the onClass
+                                // arm's class handling.
+                                let comps: Vec<_> = classify(&dt).into_iter().collect();
+                                let pc = PropertyConstraintIr::new(
+                                    &on,
+                                    qlo,
+                                    qhi,
+                                    Some(ConstraintProvenance::OwlRestriction),
+                                    comps,
+                                )?;
+                                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                    .2
+                                    .push(pc);
+                            }
+                            // Neither `owl:onClass` nor `owl:onDataRange` — a qualified cardinality
+                            // REQUIRES a qualifying filler; absent → hard-fail. An anonymous
+                            // (blank / literal / quoted-triple) data range is carried in the canon,
+                            // never a bare blank shape — skip (do not emit).
+                            Some(Node::Blank { .. })
+                            | Some(Node::Lit { .. })
+                            | Some(Node::Triple(_)) => {}
+                            None => {
+                                return Err(Diag::of_kind(crate::error::Frontend {
+                                    detail: format!(
+                                        "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
+                                    ),
+                                }));
+                            }
                         }
-                        // Neither `owl:onClass` nor `owl:onDataRange` — a qualified cardinality
-                        // REQUIRES a qualifying filler; absent → hard-fail. An anonymous
-                        // (blank / literal / quoted-triple) data range is carried in the canon,
-                        // never a bare blank shape — skip (do not emit).
-                        Some(Node::Blank { .. })
-                        | Some(Node::Lit { .. })
-                        | Some(Node::Triple(_)) => {}
-                        None => {
-                            return Err(Diag::of_kind(crate::error::Frontend {
-                                detail: format!(
-                                    "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
-                                ),
-                            }));
-                        }
-                    },
+                    }
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
                     Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
@@ -2035,10 +2128,10 @@ pub fn derive_validation_shapes(
             } else {
                 // Unqualified cardinality → sh:minCount / sh:maxCount with OwlRestriction
                 // provenance (the open-world axiom read closed-world).
-                let exact = card_of(&restr_subj, &p_card);
+                let exact = restriction_card_of(&restr_subj, &p_card, &p_logic_card);
                 let (mut lo, mut hi) = (
-                    card_of(&restr_subj, &p_mincard),
-                    card_of(&restr_subj, &p_maxcard),
+                    restriction_card_of(&restr_subj, &p_mincard, &p_logic_mincard),
+                    restriction_card_of(&restr_subj, &p_maxcard, &p_logic_maxcard),
                 );
                 if let Some(n) = exact {
                     lo = Some(n);
@@ -2786,6 +2879,15 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             referenced.insert(term_str(&obj));
         }
     }
+    // A formula reached as a correspondence recovery transform is owned by that
+    // first-class `logic:RecoveryCase`, not a free-standing assertion.  Keep one semantic
+    // home while still validating every node in the shared formula parser below.
+    let recovery_transform_pred = nn(&logic_iri("recoveryTransform"));
+    for case in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("RecoveryCase"))) {
+        for obj in objects(store, &case, &recovery_transform_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -2879,7 +2981,7 @@ fn one_child_subject(
 /// The parser is deliberately strict: every node has exactly one constructor family; singleton
 /// constructors have exactly one child; `and`/`or` have at least two children; `iff` has exactly
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
-fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
+pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
 }
 
@@ -2962,7 +3064,7 @@ fn parse_formula_inner(
                 };
                 let relation =
                     Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
-                let args = parse_term_carriers(store, node, "argument")?;
+                let args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
                 if args.is_empty() {
                     return Err(formula_err(
                         node,
@@ -3071,6 +3173,7 @@ fn parse_term_carriers(
     store: &RdfDataset,
     node: &Subject,
     link: &str,
+    active: &mut Vec<String>,
 ) -> gmeow_errors::Result<Vec<Term>> {
     let mut indexed: Vec<(usize, Term)> = Vec::new();
     for carrier_term in formula_objects(store, node, link) {
@@ -3084,7 +3187,7 @@ fn parse_term_carriers(
             )
         })?;
         let idx = parse_term_index(store, node, &carrier)?;
-        indexed.push((idx, parse_term(store, node, &carrier)?));
+        indexed.push((idx, parse_term(store, node, &carrier, active)?));
     }
     indexed.sort_by_key(|(i, _)| *i);
     validate_contiguous_indices(&indexed, node, link)?;
@@ -3110,7 +3213,9 @@ fn parse_bound_vars(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
             )
         })?;
         let idx = parse_term_index(store, node, &carrier)?;
-        let term = parse_term(store, node, &carrier)?;
+        // A bound-variable carrier must resolve to a plain variable, so it never opens a
+        // function-term recursion; a fresh cycle guard suffices.
+        let term = parse_term(store, node, &carrier, &mut Vec::new())?;
         let Term::Var(name) = term else {
             return Err(formula_err(
                 node,
@@ -3142,12 +3247,14 @@ fn parse_term(
     store: &RdfDataset,
     formula: &Subject,
     carrier: &Subject,
+    active: &mut Vec<String>,
 ) -> gmeow_errors::Result<Term> {
     let fields = [
         "termIri",
         "termVariable",
         "termLiteral",
         "termSequenceMarker",
+        "termApplication",
     ];
     let present: Vec<(&str, Vec<Node>)> = fields
         .iter()
@@ -3273,8 +3380,83 @@ fn parse_term(
             }
             Term::sequence_marker(term_str(value)).map_err(|e| formula_err(formula, e.message()))
         }
+        "termApplication" => {
+            let function_term = term_as_subject(value).ok_or_else(|| {
+                formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} requires a resource-valued logic:termApplication (a logic:FunctionTerm node)",
+                        subject_str(formula),
+                        subject_str(carrier)
+                    ),
+                )
+            })?;
+            parse_function_term(store, formula, &function_term, active)
+        }
         _ => unreachable!("term value property was selected from a closed local array"),
     }
+}
+
+/// Reconstruct a [`Term::App`] from the `logic:FunctionTerm` node a `logic:termApplication`
+/// carrier points at: its single reified `logic:functionSymbol` (an IRI-named `logic:Type`
+/// individual, never a variable — keeping the object level first-order) applied to its ordered
+/// `logic:argument` term-carriers. The argument carriers are read with the same
+/// [`parse_term_carriers`] machinery the atomic-predication arguments use, so an argument may
+/// itself be a `logic:termApplication` and a nested term like `cons(H, cons(1, nil))`
+/// round-trips. `active` is the path of function-term nodes currently being expanded: a node
+/// reached from its own expansion is a cycle (`cons` whose argument is `cons`) and is rejected
+/// rather than recursed into forever.
+fn parse_function_term(
+    store: &RdfDataset,
+    formula: &Subject,
+    function_term: &Subject,
+    active: &mut Vec<String>,
+) -> gmeow_errors::Result<Term> {
+    let node_id = subject_str(function_term);
+    if active.contains(&node_id) {
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:FunctionTerm {} is cyclic: it appears within its own logic:argument expansion",
+                subject_str(formula),
+                node_id
+            ),
+        ));
+    }
+
+    let symbols = formula_objects(store, function_term, "functionSymbol");
+    if symbols.len() != 1 {
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:FunctionTerm {} requires exactly one logic:functionSymbol; found {}",
+                subject_str(formula),
+                node_id,
+                symbols.len()
+            ),
+        ));
+    }
+    let Node::Iri(symbol) = &symbols[0] else {
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:FunctionTerm {} requires an IRI-valued logic:functionSymbol (the reified function symbol, never a variable)",
+                subject_str(formula),
+                node_id
+            ),
+        ));
+    };
+
+    active.push(node_id.clone());
+    let args = parse_term_carriers(store, function_term, "argument", active);
+    let popped = active.pop();
+    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
+    let args = args?;
+
+    // `Term::app` rejects a nullary application (a 0-ary function symbol is a constant and
+    // must be a logic:termIri), so a logic:FunctionTerm with no logic:argument fails here
+    // rather than minting a second spelling for a constant.
+    Term::app(symbol.clone(), args).map_err(|e| formula_err(formula, e.message()))
 }
 
 fn parse_term_index(
@@ -4624,6 +4806,7 @@ pub fn parse_logic_dataset(
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
         .with_correspondences(correspondences)
+        .map_err(|e| LogicParseError(e.message().to_owned()))?
         .with_transaction_programs(transaction_programs)
         .with_formulas(formulas)
         .with_constraints(constraints);

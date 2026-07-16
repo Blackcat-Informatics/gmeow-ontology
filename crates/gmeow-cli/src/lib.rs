@@ -256,6 +256,17 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
+    /// Decide whether a premise RDF graph ENTAILS a conclusion (`A ⊨ C`), natively,
+    /// by refutation over the DL consistency calculus. Prints `entailed`,
+    /// `not-entailed`, or an honest `gap:<shape>` when the conclusion is outside the
+    /// soundly-refutable fragment. Syntax is inferred from each file's extension
+    /// (`.ttl`, `.nt`, `.nq`, `.rdf`/`.owl`/`.xml`, `.trig`).
+    Entails {
+        /// The premise RDF graph `A`.
+        premise: PathBuf,
+        /// The conclusion RDF graph `C`.
+        conclusion: PathBuf,
+    },
     /// GMEOW slice-quality tools: score an external slice directory against the embedded bundle.
     Slice {
         #[command(subcommand)]
@@ -272,6 +283,33 @@ pub enum SliceCommands {
         /// Path to the external slice directory to score.
         dir: PathBuf,
         /// Output serialization: `human` (default), `json`, or `sarif`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
+    /// Assemble and render a `gmeow:AuthoringPacket` authoring brief for a slice
+    /// directory, computed over the slice's OWN sources (module.ttl, mappings/,
+    /// i18n/) with the SINGLE canonical, SHACL-conformance-gated exemplar tiering. The
+    /// committed `generated/briefs/authoring-packets.nt` is the canonical repo projection
+    /// of this brief for in-repo slices; this command is its live, checkout-free twin.
+    Brief {
+        /// Path to the slice directory to brief.
+        dir: PathBuf,
+        /// Restrict to the subdomain axis (defined-term local-name prefix).
+        #[arg(long)]
+        axis: Option<String>,
+        /// The zero-based batch index of the 25-term chunk to cover (out of range
+        /// is a hard error). Omitted with no axis = the whole slice as one packet.
+        #[arg(long)]
+        batch: Option<u32>,
+        /// Output serialization: `human` (default), `json`, or `turtle`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
+    /// Show the committed projection-vocabulary ratchet — the guarded registry and the
+    /// per-(slice, vocabulary) ceilings — straight from the embedded gmeow.gts bundle
+    /// (the commitments view; live measured residue needs a repo checkout).
+    ProjectionCeilings {
+        /// Output serialization: `human` (default) or `tsv`.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
     },
@@ -504,9 +542,22 @@ pub fn run() -> i32 {
                 max_answers,
             ),
         },
+        Commands::Entails {
+            premise,
+            conclusion,
+        } => commands::entails(reporter, &premise, &conclusion),
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {
                 commands::slice_quality(reporter, &dir, &format)
+            }
+            SliceCommands::Brief {
+                dir,
+                axis,
+                batch,
+                format,
+            } => commands::slice_brief(reporter, &dir, axis.as_deref(), batch, &format),
+            SliceCommands::ProjectionCeilings { format } => {
+                commands::slice_projection_ceilings(reporter, &format)
             }
         },
     }

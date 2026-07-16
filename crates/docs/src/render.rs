@@ -925,6 +925,46 @@ fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
         );
         fenced(&mut out, "turtle", &exec.cross_example.join("\n"));
     }
+
+    // Explain a chase-invented existential null (Skolem witness). The reason stage
+    // projects each invented null into `graph/reasoning` as a `gmeow:InventedWitness`
+    // typed node plus a standard-RDF-reification head quad, so the playground can
+    // decompose it — with NO new vocabulary — back into the rule that fired, its
+    // existential ordinal, and the frontier binding that satisfied the antecedent.
+    heading(&mut out, 2, "Explain a chase-invented witness");
+    line(
+        &mut out,
+        "When the reasoner satisfies an existential obligation it *invents* a fresh null — a \
+         Skolem witness with a content-addressed IRI. That witness ships in the queryable asset \
+         alongside the closure that references it, so you can decompose any null into its firing \
+         rule, existential ordinal, and frontier binding entirely in your browser:",
+    );
+    let witness_query = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
+         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\
+         SELECT ?witness ?rule ?ordinal ?frontier WHERE {\n\
+         \x20 ?witness a gmeow:InventedWitness ;\n\
+         \x20          gmeow:existentialOrdinal ?ordinal .\n\
+         \x20 ?r rdf:object ?witness ;\n\
+         \x20    rdf:subject ?frontier ;\n\
+         \x20    gmeow:viaRule ?rule .\n\
+         }";
+    let root = root_href(&Page::SparqlPlayground.dir());
+    let encoded = url_query_encode(witness_query);
+    line(
+        &mut out,
+        &format!(
+            "[Explain a chase-invented witness in the SPARQL playground]\
+             ({root}sparql/index.html?q={encoded}) (runs offline, no server)."
+        ),
+    );
+    fenced(&mut out, "sparql", witness_query);
+    line(
+        &mut out,
+        "To decompose one specific null, pin it by its Skolem IRI: add \
+         `FILTER(?witness = <skolem-iri>)` to the query above, or run `DESCRIBE <skolem-iri>` \
+         to dump every triple that mentions it.",
+    );
+
     let _ = model;
     out
 }
@@ -6415,7 +6455,7 @@ fn term_note(term: &DocTerm) -> String {
 /// ([`llms::LLMS_NOTE_CAP`]); the complete inlined form is [`llms_full_txt`].
 pub fn llms_txt(model: &DocsModel) -> String {
     let prose = vec![format!(
-        "Vocabulary {}. Namespace: {GMEOW_NS}. The OWL source is canonical; this index links into the published documentation.",
+        "Vocabulary {}. Namespace: {GMEOW_NS}. The RDF 1.2 grounding slices are canonical; this index links into the published documentation.",
         model.version
     )];
     let mut sections: Vec<LlmsSection> = Vec::new();
@@ -7461,6 +7501,39 @@ mod tests {
             live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
             Some(exec.playground_trig.as_slice()),
             "the playground asset must be emitted verbatim when supplied"
+        );
+    }
+
+    #[test]
+    fn playground_explains_a_chase_invented_witness() {
+        let model = tiny_model();
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            ..Default::default()
+        };
+        let page = md_playground(&model, &exec);
+
+        // The affordance heading, the copy-pasteable query, and a prefilled `?q=` link.
+        assert!(
+            page.contains("Explain a chase-invented witness"),
+            "witness explain heading present: {page}"
+        );
+        assert!(
+            page.contains("gmeow:InventedWitness"),
+            "the decomposition query text is emitted: {page}"
+        );
+        assert!(
+            page.contains("gmeow:existentialOrdinal"),
+            "the query decomposes the existential ordinal: {page}"
+        );
+        assert!(
+            page.contains("sparql/index.html?q="),
+            "a prefilled `?q=` playground link is emitted: {page}"
+        );
+        // The pin-a-null guidance (FILTER / DESCRIBE by exact Skolem IRI).
+        assert!(
+            page.contains("DESCRIBE <skolem-iri>") && page.contains("FILTER(?witness ="),
+            "guidance to pin a specific null is present: {page}"
         );
     }
 

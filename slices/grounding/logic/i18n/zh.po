@@ -324,3 +324,275 @@ msgstr "聚合比较约束（P6）的紧凑语法糖：包含一个 logic:onClas
 msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:example"
 msgid "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
 msgstr "例如：ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/GroundingCorrespondence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grounding Correspondence"
+msgstr "基础对应"
+
+msgctxt "https://blackcatinformatics.ca/logic/GroundingCorrespondence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A logic:Correspondence owned by one of the three co-foundational grounding slices (logic:, math:, or lang:) and shipped as meta-level correspondence data in graph/correspondence-laws. Unlike an ordinary consumer mapping, every grounding correspondence explicitly declares its logic:morphismClass, logic:morphismKind, and logic:preservationKind, and names both related terms through logic:sourceEndpoint and logic:targetEndpoint. It remains outside object-level closure: external vocabularies are linked by reference and their TBoxes are never silently imported."
+msgstr "由 logic:、math: 或 lang: 三个共同基础切片之一拥有并随 graph/correspondence-laws 发布的 logic:Correspondence。它显式声明映射类别、映射种类、保真等级及两个端点；外部词汇仅按引用连接，其 TBox 不会被静默导入对象层闭包。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source endpoint"
+msgstr "源端点"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the canonical source term or pattern related by a logic:Correspondence. This is an endpoint, not an executable logic:getLeg: a term-level correspondence can name both endpoints while carrying no transaction program. Single-valued when present and paired with exactly one logic:targetEndpoint."
+msgstr "命名 logic:Correspondence 所关联的规范源词项或模式。它是端点而不是可执行的 logic:getLeg；出现时只能有一个，并与恰好一个 logic:targetEndpoint 配对。"
+
+msgctxt "https://blackcatinformatics.ca/logic/targetEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "target endpoint"
+msgstr "目标端点"
+
+msgctxt "https://blackcatinformatics.ca/logic/targetEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the external view term or pattern related by a logic:Correspondence. This is an endpoint, not an executable logic:putLeg. Grounding correspondences use it to retain the exact gUFO, BFO, OBO, SUMO, OWL, or SHACL term in the shipped carrier without importing that target ontology."
+msgstr "命名 logic:Correspondence 所关联的外部视图词项或模式。它是端点而不是可执行的 logic:putLeg；它精确保留 gUFO、BFO、OBO、SUMO、OWL 或 SHACL 引用，而不导入目标本体。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term in value set"
+msgstr "词项属于值集"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The variadic relation used inside a reified logic:Formula to test whether its first term is a member of the remaining finite value-set arguments. The SHACL lowering realizes it as an sh:in list and the procedural SPARQL lowering as FILTER IN; it binds no term and is never interpreted as an RDF membership assertion."
+msgstr "用于具象化 logic:Formula 的可变元关系，检验第一个词项是否属于其余参数组成的有限值集。它降低为 sh:in 或 FILTER IN，不绑定词项，也绝不解释为 RDF 成员断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termRegex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term regular expression"
+msgstr "词项正则表达式"
+
+msgctxt "https://blackcatinformatics.ca/logic/termRegex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The relation used inside a reified logic:Formula to test a term's lexical form against a regular-expression argument. It lowers to SPARQL REGEX and, with an explicit regex-dialect residue, to sh:pattern; it is not an exact-preservation claim because the regex dialects differ."
+msgstr "在具象化 logic:Formula 中用正则表达式检验词项词法形式的关系。它降低为 SPARQL REGEX，或带显式方言残留的 sh:pattern；由于正则方言不同，不能声称精确保真。"
+
+msgctxt "https://blackcatinformatics.ca/logic/directType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct type guard"
+msgstr "直接类型守卫"
+
+msgctxt "https://blackcatinformatics.ca/logic/directType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A guard-only relation inside a reified constraint formula selecting direct instances of a class while excluding instances reached only through subclasses. It is not a data-triple relation; the SHACL lowering consumes it to build a subclass-excluding sh:SPARQLTarget SELECT."
+msgstr "具象化约束公式中的纯守卫关系，用于选择类的直接实例并排除仅经子类推得的实例。它不是数据三元组关系；SHACL 降低会据此生成排除子类的 sh:SPARQLTarget 查询。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sparqlTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL target guard"
+msgstr "SPARQL 目标守卫"
+
+msgctxt "https://blackcatinformatics.ca/logic/sparqlTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A guard-only relation inside a reified constraint formula whose second argument carries the SELECT text defining a focus set. It is not a data-triple relation; the SHACL lowering consumes it as a first-class sh:SPARQLTarget and removes the guard from the violation body."
+msgstr "具象化约束公式中的纯守卫关系，其第二个参数携带定义焦点集合的 SELECT 文本。它不是数据三元组关系；SHACL 降低将其变为一等 sh:SPARQLTarget，并从违规主体中移除该守卫。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Restriction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restriction"
+msgstr "限制"
+
+msgctxt "https://blackcatinformatics.ca/logic/Restriction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A canonical logic: class-expression restriction: a constraint over one logic:onProperty together with one or more value or cardinality constraints. OWL's owl:Restriction is a generated dialect form of this construct, not the canonical authoring term."
+msgstr "规范的 logic: 类表达式限制：针对一个 logic:onProperty，并带有一个或多个值或基数约束。OWL 的 owl:Restriction 是该构造的生成方言形式，而不是规范创作词项。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Enumeration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Enumeration"
+msgstr "枚举"
+
+msgctxt "https://blackcatinformatics.ca/logic/Enumeration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite class expression whose members are named by a logic:oneOf RDF list. It lowers to an OWL nominal (owl:oneOf) and remains first-class in logic: even when a weaker target profile cannot carry nominals."
+msgstr "由 logic:oneOf RDF 列表命名成员的有限类表达式。它降低为 OWL 名词式，即使较弱的目标配置无法承载名词式，它在 logic: 中仍是一等构造。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Datarange|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Datarange"
+msgstr "数据范围"
+
+msgctxt "https://blackcatinformatics.ca/logic/Datarange|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A constrained datatype expression: one logic:onDatatype plus a logic:withRestrictions list of facet constraints. It is the canonical form lowered to OWL 2 datatype restrictions when the target can represent them, not a literal value or an unconstrained datatype name."
+msgstr "受约束的数据类型表达式：一个 logic:onDatatype 加上一组 logic:withRestrictions 分面约束。它是可降低为 OWL 2 数据类型限制的规范形式，不是字面值或无约束的数据类型名称。"
+
+msgctxt "https://blackcatinformatics.ca/logic/subClassOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subclass of"
+msgstr "是其子类"
+
+msgctxt "https://blackcatinformatics.ca/logic/subClassOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical class subsumption: every instance of the subject type is an instance of the object type. It is not a lexical hierarchy hint; it lowers to rdfs:subClassOf on the OWL/RDFS projection surface."
+msgstr "规范类包含关系：主语类型的每个实例也是宾语类型的实例。它不是词汇层级提示；在 OWL/RDFS 投影中降低为 rdfs:subClassOf。"
+
+msgctxt "https://blackcatinformatics.ca/logic/equivalentClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equivalent class"
+msgstr "等价类"
+
+msgctxt "https://blackcatinformatics.ca/logic/equivalentClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical extensional equivalence between two class expressions. It is not similarity or close matching; it lowers to owl:equivalentClass only when the selected projection can preserve the claim."
+msgstr "两个类表达式之间的规范外延等价。它不是相似或近似匹配；只有所选投影能够保留该断言时，才降低为 owl:equivalentClass。"
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "disjoint with"
+msgstr "与其互斥"
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical class disjointness: no individual may instantiate both class expressions. Distinct from logic:disjoint, the mereological relation between individuals; lowers to owl:disjointWith."
+msgstr "规范类互斥：任何个体都不能同时实例化两个类表达式。它不同于个体之间的部分论关系 logic:disjoint，并降低为 owl:disjointWith。"
+
+msgctxt "https://blackcatinformatics.ca/logic/subPropertyOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subproperty of"
+msgstr "是其子属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/subPropertyOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical relation subsumption: every pair related by the subject property is related by the object property. It is not a label hierarchy; it lowers to rdfs:subPropertyOf."
+msgstr "规范关系包含：由主语属性关联的每一对也由宾语属性关联。它不是标签层级，并降低为 rdfs:subPropertyOf。"
+
+msgctxt "https://blackcatinformatics.ca/logic/equivalentProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equivalent property"
+msgstr "等价属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/equivalentProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical extensional equivalence between two properties. It is not a related-property hint; it lowers to owl:equivalentProperty only when the projection preserves the full relation."
+msgstr "两个属性之间的规范外延等价。它不是相关属性提示；只有投影保留完整关系时，才降低为 owl:equivalentProperty。"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverseOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inverse of"
+msgstr "是其逆关系"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverseOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical inverse-relation declaration: P(x,y) holds exactly when Q(y,x) holds. It is not property equivalence because the argument order reverses; it lowers to owl:inverseOf."
+msgstr "规范逆关系声明：P(x,y) 成立当且仅当 Q(y,x) 成立。由于参数顺序反转，它不是属性等价，并降低为 owl:inverseOf。"
+
+msgctxt "https://blackcatinformatics.ca/logic/domain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "domain"
+msgstr "定义域"
+
+msgctxt "https://blackcatinformatics.ca/logic/domain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical domain entailment for a property: using the property entails that its subject instantiates the named type. It is not a closed-world validation constraint; it lowers to rdfs:domain."
+msgstr "属性的规范定义域蕴涵：使用该属性即可推出其主语实例化指定类型。它不是闭世界验证约束，并降低为 rdfs:domain。"
+
+msgctxt "https://blackcatinformatics.ca/logic/range|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "range"
+msgstr "值域"
+
+msgctxt "https://blackcatinformatics.ca/logic/range|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical range entailment for a property: using the property entails that its object instantiates the named type or datatype. It is not a closed-world validation constraint; it lowers to rdfs:range."
+msgstr "属性的规范值域蕴涵：使用该属性即可推出其宾语实例化指定类型或数据类型。它不是闭世界验证约束，并降低为 rdfs:range。"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverseFunctionalProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inverse-functional property"
+msgstr "逆函数型属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverseFunctionalProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic: property-characteristic marker for inverse functionality: P(a,c) and P(b,c) entail a = b. It is not ordinary functionality, which constrains objects per subject; the OWL projection is owl:InverseFunctionalProperty."
+msgstr "logic: 的逆函数性属性标记：P(a,c) 与 P(b,c) 蕴涵 a = b。它不是按主语约束宾语的普通函数性；OWL 投影为 owl:InverseFunctionalProperty。"
+
+msgctxt "https://blackcatinformatics.ca/logic/reflexiveProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reflexive property"
+msgstr "自反属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/reflexiveProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic: property-characteristic marker for reflexivity: every individual in scope relates to itself through the property. It is not evidence that self-edges were explicitly asserted; the OWL projection is owl:ReflexiveProperty."
+msgstr "logic: 的自反性属性标记：范围内每个个体都经该属性关联自身。它不表示自环被显式断言；OWL 投影为 owl:ReflexiveProperty。"
+
+msgctxt "https://blackcatinformatics.ca/logic/onProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "on property"
+msgstr "作用于属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/onProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the property constrained by a logic:Restriction. It is not an assertion using that property; it lowers to owl:onProperty."
+msgstr "命名 logic:Restriction 所约束的属性。它不是使用该属性的数据断言，并降低为 owl:onProperty。"
+
+msgctxt "https://blackcatinformatics.ca/logic/someValuesFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "some values from"
+msgstr "某些值来自"
+
+msgctxt "https://blackcatinformatics.ca/logic/someValuesFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Existential restriction value: at least one value reached through logic:onProperty belongs to the named class or datarange. It does not constrain every filler; it lowers to owl:someValuesFrom."
+msgstr "存在限制值：经 logic:onProperty 到达的至少一个值属于指定类或数据范围。它不约束每个填充值，并降低为 owl:someValuesFrom。"
+
+msgctxt "https://blackcatinformatics.ca/logic/allValuesFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "all values from"
+msgstr "所有值来自"
+
+msgctxt "https://blackcatinformatics.ca/logic/allValuesFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Universal restriction value: every value reached through logic:onProperty belongs to the named class or datarange. It does not assert that any filler exists; it lowers to owl:allValuesFrom."
+msgstr "全称限制值：经 logic:onProperty 到达的每个值都属于指定类或数据范围。它不断言任何填充值存在，并降低为 owl:allValuesFrom。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has value"
+msgstr "具有值"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Value restriction requiring the logic:onProperty relation to contain one named IRI or literal. It is not a range declaration; it lowers to owl:hasValue."
+msgstr "要求 logic:onProperty 关系包含某个指定 IRI 或字面值的值限制。它不是值域声明，并降低为 owl:hasValue。"
+
+msgctxt "https://blackcatinformatics.ca/logic/minCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum cardinality"
+msgstr "最小基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/minCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The inclusive minimum number of logic:onProperty values required by an unqualified logic:Restriction. It does not filter fillers by class or datarange; it lowers to owl:minCardinality."
+msgstr "非限定 logic:Restriction 所要求的 logic:onProperty 值的含端点最小数量。它不按类或数据范围筛选填充值，并降低为 owl:minCardinality。"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "maximum cardinality"
+msgstr "最大基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The inclusive maximum number of logic:onProperty values permitted by an unqualified logic:Restriction. It does not filter fillers by class or datarange; it lowers to owl:maxCardinality."
+msgstr "非限定 logic:Restriction 所允许的 logic:onProperty 值的含端点最大数量。它不按类或数据范围筛选填充值，并降低为 owl:maxCardinality。"
+
+msgctxt "https://blackcatinformatics.ca/logic/cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cardinality"
+msgstr "基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact number of logic:onProperty values required by an unqualified logic:Restriction. It does not filter fillers by class or datarange; it lowers to owl:cardinality."
+msgstr "非限定 logic:Restriction 所要求的 logic:onProperty 值的精确数量。它不按类或数据范围筛选填充值，并降低为 owl:cardinality。"
+
+msgctxt "https://blackcatinformatics.ca/logic/qualifiedCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "qualified cardinality"
+msgstr "限定基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/qualifiedCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact number of logic:onProperty values belonging to the qualifying logic:onClass or logic:onDataRange. It does not count fillers outside that qualifier; it lowers to owl:qualifiedCardinality."
+msgstr "属于限定 logic:onClass 或 logic:onDataRange 的 logic:onProperty 值的精确数量。限定范围外的填充值不计入，并降低为 owl:qualifiedCardinality。"
+
+msgctxt "https://blackcatinformatics.ca/logic/minQualifiedCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum qualified cardinality"
+msgstr "最小限定基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/minQualifiedCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The inclusive minimum number of logic:onProperty values belonging to the qualifying logic:onClass or logic:onDataRange. It does not count fillers outside that qualifier; it lowers to owl:minQualifiedCardinality."
+msgstr "属于限定 logic:onClass 或 logic:onDataRange 的 logic:onProperty 值的含端点最小数量。限定范围外的填充值不计入，并降低为 owl:minQualifiedCardinality。"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxQualifiedCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "maximum qualified cardinality"
+msgstr "最大限定基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxQualifiedCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The inclusive maximum number of logic:onProperty values belonging to the qualifying logic:onClass or logic:onDataRange. It does not count fillers outside that qualifier; it lowers to owl:maxQualifiedCardinality."
+msgstr "属于限定 logic:onClass 或 logic:onDataRange 的 logic:onProperty 值的含端点最大数量。限定范围外的填充值不计入，并降低为 owl:maxQualifiedCardinality。"
+
+msgctxt "https://blackcatinformatics.ca/logic/onDataRange|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "on data range"
+msgstr "作用于数据范围"
+
+msgctxt "https://blackcatinformatics.ca/logic/onDataRange|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the datarange qualifying a cardinality restriction. It is not the base datatype of a logic:Datarange expression; it lowers to owl:onDataRange."
+msgstr "命名限定基数限制的数据范围。它不是 logic:Datarange 表达式的基础数据类型，并降低为 owl:onDataRange。"
+
+msgctxt "https://blackcatinformatics.ca/logic/oneOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "one of"
+msgstr "其中之一"
+
+msgctxt "https://blackcatinformatics.ca/logic/oneOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a logic:Enumeration to the RDF list of its named members. It is not an open suggestion list; it lowers to owl:oneOf, and members may be IRIs or literals according to the enumerated expression."
+msgstr "把 logic:Enumeration 连接到其具名成员的 RDF 列表。它不是开放建议列表；它降低为 owl:oneOf，成员可按枚举表达式为 IRI 或字面值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/onDatatype|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "on datatype"
+msgstr "作用于数据类型"
+
+msgctxt "https://blackcatinformatics.ca/logic/onDatatype|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the base datatype constrained by a logic:Datarange. It is not the qualifier of a cardinality restriction; it lowers to owl:onDatatype."
+msgstr "命名 logic:Datarange 所约束的基础数据类型。它不是基数限制的限定条件，并降低为 owl:onDatatype。"
+
+msgctxt "https://blackcatinformatics.ca/logic/withRestrictions|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "with restrictions"
+msgstr "带有约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/withRestrictions|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a logic:Datarange to the RDF list of datatype-facet restriction records it applies. It is not a list of class restrictions; it lowers to owl:withRestrictions."
+msgstr "把 logic:Datarange 连接到它所应用的数据类型分面限制记录的 RDF 列表。它不是类限制列表，并降低为 owl:withRestrictions。"

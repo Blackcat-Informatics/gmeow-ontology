@@ -12,6 +12,7 @@ use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
 
 const GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-quality";
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const MATH: &str = "https://blackcatinformatics.ca/math/";
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -71,12 +72,13 @@ fn rdf_projection_is_well_formed_and_deterministic() {
         )),
         "grades are emitted under their axis's real gmeow:QualityDimension"
     );
-    // The score is a unit-bundled ScalarQuantity, dimensionless (never PERCENT).
-    assert!(a.contains(&format!("<{GMEOW}ScalarQuantity>")));
-    assert!(a.contains(&format!("<{GMEOW}quantityValue>")));
+    // The score is a dimensionless math:Quantity, with no pseudo-unit witness.
+    assert!(a.contains(&format!("<{MATH}Quantity>")));
+    assert!(a.contains(&format!("<{MATH}quantityValue>")));
+    assert!(a.contains(&format!("<{MATH}hasDimension> <{MATH}dimensionless>")));
     assert!(
-        a.contains("<http://qudt.org/vocab/unit/UNITLESS>"),
-        "a normalized 0..1 score carries the dimensionless UNITLESS unit"
+        !a.contains(&format!("<{GMEOW}unit>")),
+        "a normalized 0..1 score carries math:dimensionless, not a pseudo-unit"
     );
     // The roll-up assessment carries the meet tier as its result.
     let rollup_iri = &report.assessment.rollup.iri;

@@ -126,18 +126,18 @@ make help
   category. Keep the logical core in OWL 2 DL.
 - Author cross-ontology alignments **in the mapping DSL** under `mapping-dsl/`
   (`equivalences/` for 1:1 SSSOM links, `projections/` for the lossy downcasts),
-  then run `make regenerate`. The `mappings/*.sssom.tsv`,
+  then run `make sync`. The `mappings/*.sssom.tsv`,
   `projections/*.edoal.ttl`, `projections/functions.fno.ttl`, and
   `queries/projections/*.rq` are **generated — do not edit them by hand** (CI's
-  `make check-generated` fails on drift). Link by IRI freely; never copy axioms
+  `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` fails on drift). Link by IRI freely; never copy axioms
   from a reference-only (NC/ND/share-alike/copyleft) source — the tooling refuses
   this by design.
 - Statement-level metadata is **RDF 1.2 / RDF\*** in GMEOW's model, and it is the
   **canonical** form (Principles 2–3). Author it once in `dsl/statements/` — the
-  RDF 1.2-shaped Turtle DSL — then run `make regenerate`. The RDF 1.2 / RDF\*
+  RDF 1.2-shaped Turtle DSL — then run `make sync`. The RDF 1.2 / RDF\*
   serialization **and** the OWL 2 axiom-annotation form (`owl:Axiom` +
   `owl:annotatedSource/Property/Target`) are both **generated — do not hand-author
-  either** (CI's `make check-generated` fails on drift). The OWL form is the
+  either** (CI's `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` fails on drift). The OWL form is the
   reasoning-lossless downcast the OWL 2 DL reasoners consume; the logical TBox stays
   OWL 2 DL.
 - If the CLI or build outputs change, update [README.md](README.md).
@@ -159,9 +159,9 @@ Before requesting review, make sure you:
 - [ ] ran `make lint`
 - [ ] ran `make validate` (syntax, term annotations, SHACL)
 - [ ] ran `make reason` after any ontology change (native EL/DL profile)
-- [ ] ran `make regenerate` after any `mapping-dsl/` change, then
+- [ ] ran `make sync` after any `mapping-dsl/` change, then
       `make mappings` and `make wikidata`
-- [ ] ran `make regenerate` after any `dsl/statements/` change
+- [ ] ran `make sync` after any `dsl/statements/` change
 - [ ] ran `make rust-test`
 - [ ] ran `make check` for the full repository gate
 - [ ] updated tests for any behavioural change

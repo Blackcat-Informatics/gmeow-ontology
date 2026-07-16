@@ -239,6 +239,20 @@ impl PreservationKind {
     pub fn iri(&self) -> String {
         format!("{LOGIC_NAMESPACE}{}", self.as_str())
     }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "ExactPreservation" => Self::Exact,
+            "SoundUnderApproximation" => Self::SoundUnder,
+            "CompleteOverApproximation" => Self::CompleteOver,
+            "ValidationOnly" => Self::ValidationOnly,
+            "InconsistencyPreserving" => Self::InconsistencyPreserving,
+            "InconsistencyReflecting" => Self::InconsistencyReflecting,
+            "Unsupported" => Self::Unsupported,
+            _ => return None,
+        })
+    }
 }
 
 impl PreservationKind {
@@ -1690,14 +1704,50 @@ fn opt_axis_key(v: Option<f64>) -> String {
     }
 }
 
+/// One declared query-class case for executed correspondence recovery.
+///
+/// The case is neutral evidence: its transform may discharge a genuine recovery or refute a
+/// lossy one.  It therefore never substitutes for the correspondence's `mnemomorphic` claim;
+/// the native executor decides the claim from the case's behavior.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryCaseIr {
+    /// IRI of the first-class `logic:RecoveryCase` node.
+    pub iri: String,
+    /// The ordered, universally quantified source-to-view transform
+    /// (`logic:recoveryTransform`).  The native correspondence executor accepts the
+    /// positive-conjunctive binary fragment and derives the candidate put direction from it;
+    /// a case may therefore either discharge recovery or produce a countermodel.
+    pub transform: Formula,
+}
+
+impl RecoveryCaseIr {
+    /// Build a recovery case, rejecting an empty identity.  Executability of the formula is
+    /// deliberately checked by the native executor: the IR carries full `logic:Formula`, while
+    /// an out-of-fragment recovery claim must become an explicit violated/unknown discharge,
+    /// never disappear during parsing.
+    pub fn new(iri: impl Into<String>, transform: Formula) -> gmeow_errors::Result<Self> {
+        let iri = iri.into();
+        if iri.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "RecoveryCaseIr.iri must be a non-empty IRI string".to_owned(),
+            }));
+        }
+        Ok(Self { iri, transform })
+    }
+
+    /// Deterministic full-content identity.
+    pub fn content_key(&self) -> String {
+        format!("{}{}{}", self.iri, SEP, self.transform.content_key())
+    }
+}
+
 /// A `logic:Correspondence` IR node — the ninth node kind realized: an asymmetric lens
 /// (the `get`/`put` legs) wrapped in a relation/axes/laws/standpoint envelope.
 ///
 /// Identity is content-addressed: the IRI is the sort key (compared directly on the
-/// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the `law_claims`
-/// are sorted and deduped at construction, so two correspondences differing only in the
-/// order their claims were supplied compare equal).  No `Eq`/`Hash` derive: the
-/// quantitative axes are `f64` (mirrors [`LogicAxiom`]).
+/// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the
+/// `law_claims` and recovery cases are canonicalized at construction). No `Eq`/`Hash` derive:
+/// the quantitative axes are `f64` (mirrors [`LogicAxiom`]).
 #[derive(Debug, Clone, PartialEq)]
 pub struct Correspondence {
     /// IRI string of the correspondence individual (identity).
@@ -1727,7 +1777,7 @@ pub struct Correspondence {
     pub weight: Option<f64>,
     /// `logic:probability` — only under a declared dependency model; in `[0, 1]`.
     pub probability: Option<f64>,
-    /// IRI of the standpoint (`logic:accordingTo`); `None` ⇒ unspecified standpoint
+    /// IRI of the standpoint (`gmeow:accordingTo`); `None` ⇒ unspecified standpoint
     /// (unspecified, not universal).
     pub according_to: Option<String>,
     /// The declared preservation judgment (`logic:preservationKind`) — the loss residue
@@ -1737,6 +1787,25 @@ pub struct Correspondence {
     /// the loss ledger as ONE per-correspondence preservation row (the canonical doc's "one
     /// preservation row per correspondence"), so the dropped construct is never DARK.
     pub preservation: Option<PreservationKind>,
+    /// The source endpoint of a term-level correspondence (`logic:sourceEndpoint`).
+    /// This is distinct from [`Self::get_leg`]: an endpoint names the term or pattern being
+    /// related, while a leg names the executable transaction program that performs a
+    /// projection. `None` for correspondences whose endpoints are expressed only by their
+    /// executable legs.
+    pub source_endpoint: Option<String>,
+    /// The target endpoint of a term-level correspondence (`logic:targetEndpoint`).
+    /// Kept separate from [`Self::put_leg`] for the same reason as
+    /// [`Self::source_endpoint`].
+    pub target_endpoint: Option<String>,
+    /// Whether this correspondence belongs to the co-foundational grounding seam and is
+    /// therefore also projected as a `logic:GroundingCorrespondence`. Ordinary consumer
+    /// mappings remain plain `logic:Correspondence` nodes.
+    pub grounding: bool,
+    /// Executable recovery cases (`logic:recoveryCase`) declaring the complete source graph
+    /// patterns over which this correspondence's recovery law is decided.  Presence does NOT
+    /// assert recoverability: a lossy correspondence may carry a deliberately refuting case.
+    /// Sorted by IRI and unique at construction through [`Self::with_recovery_cases`].
+    pub recovery_cases: Vec<RecoveryCaseIr>,
 }
 
 impl Correspondence {
@@ -1826,7 +1895,65 @@ impl Correspondence {
             probability,
             according_to,
             preservation,
+            source_endpoint: None,
+            target_endpoint: None,
+            grounding: false,
+            recovery_cases: Vec::new(),
         })
+    }
+
+    /// Attach the two term/pattern endpoints of this correspondence.
+    ///
+    /// Endpoints are all-or-nothing: a one-sided term correspondence is not a meaningful
+    /// bridge and would make the shipped correspondence graph impossible to traverse.
+    /// Empty endpoint IRIs are rejected for the same content-identity reason as empty leg
+    /// IRIs in [`Self::new`].
+    pub fn with_endpoints(
+        mut self,
+        source_endpoint: impl Into<String>,
+        target_endpoint: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let source_endpoint = source_endpoint.into();
+        let target_endpoint = target_endpoint.into();
+        if source_endpoint.trim().is_empty() || target_endpoint.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Correspondence endpoints must both be non-empty IRI strings".to_owned(),
+            }));
+        }
+        self.source_endpoint = Some(source_endpoint);
+        self.target_endpoint = Some(target_endpoint);
+        Ok(self)
+    }
+
+    /// Mark this node as a co-foundational grounding correspondence.
+    pub fn as_grounding(mut self) -> Self {
+        self.grounding = true;
+        self
+    }
+
+    /// Attach the executable recovery cases for this correspondence.
+    ///
+    /// Case identity is authored and therefore must be unique.  Two nodes with the same IRI
+    /// are ambiguous even when their formulas happen to match, so duplicates hard-fail rather
+    /// than falling through an order-dependent first-wins path.
+    pub fn with_recovery_cases(
+        mut self,
+        mut recovery_cases: Vec<RecoveryCaseIr>,
+    ) -> gmeow_errors::Result<Self> {
+        recovery_cases.sort_by(|a, b| a.iri.cmp(&b.iri));
+        if let Some(duplicate) = recovery_cases
+            .windows(2)
+            .find(|pair| pair[0].iri == pair[1].iri)
+            .map(|pair| pair[0].iri.clone())
+        {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "Correspondence recovery-case IRI <{duplicate}> is duplicated; case identity must be unique"
+                ),
+            }));
+        }
+        self.recovery_cases = recovery_cases;
+        Ok(self)
     }
 
     /// A deterministic full-content key for canonical equality, folding every field
@@ -1838,10 +1965,31 @@ impl Correspondence {
             .map(LawClaimIr::sort_key)
             .collect::<Vec<_>>()
             .join(",");
+        let endpoints = match (&self.source_endpoint, &self.target_endpoint) {
+            (Some(source), Some(target)) => format!("{SEP}source={source}{SEP}target={target}"),
+            (None, None) => String::new(),
+            _ => unreachable!("Correspondence endpoints are constructed all-or-nothing"),
+        };
+        let grounding = self
+            .grounding
+            .then_some(format!("{SEP}grounding=True"))
+            .unwrap_or_default();
+        let recovery = if self.recovery_cases.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "{SEP}recovery={}",
+                self.recovery_cases
+                    .iter()
+                    .map(RecoveryCaseIr::content_key)
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+        };
         format!(
             "{}{SEP}rel={}{SEP}class={}{SEP}kind={}{SEP}mnemo={}{SEP}det={}{SEP}\
              get={}{SEP}put={}{SEP}conf={}{SEP}ev={}{SEP}w={}{SEP}prob={}{SEP}\
-             at={}{SEP}pres={}{SEP}laws={claims}",
+             at={}{SEP}pres={}{SEP}laws={claims}{endpoints}{grounding}{recovery}",
             self.iri,
             self.relation.as_str(),
             self.morphism_class.as_str(),
@@ -1858,6 +2006,43 @@ impl Correspondence {
             self.preservation.map(|p| p.as_str()).unwrap_or(""),
         )
     }
+}
+
+/// Hard-fail if the same `logic:RecoveryCase` IRI is declared by two DIFFERENT
+/// correspondences in `correspondences`. Called from [`LogicProgram::with_correspondences`]
+/// — the one place a program's whole correspondence set is assembled and therefore the
+/// only place a cross-correspondence collision can be seen at all.
+///
+/// [`Correspondence::with_recovery_cases`] already rejects a duplicate IRI WITHIN one
+/// correspondence at construction, so any duplicate this function finds is necessarily
+/// owned by two distinct correspondences; not deduping (silently keeping the first) would
+/// hide a real authoring error, since the RDF subject would then alias two intended
+/// `logic:recoveryTransform` meanings.
+fn assert_unique_recovery_case_iris(
+    correspondences: &[Correspondence],
+) -> gmeow_errors::Result<()> {
+    let mut cases: Vec<(&str, &str)> = correspondences
+        .iter()
+        .flat_map(|c| {
+            c.recovery_cases
+                .iter()
+                .map(move |case| (case.iri.as_str(), c.iri.as_str()))
+        })
+        .collect();
+    cases.sort_by(|a, b| a.0.cmp(b.0));
+    if let Some(pair) = cases.windows(2).find(|w| w[0].0 == w[1].0) {
+        let (case_iri, first_owner) = pair[0];
+        let (_, second_owner) = pair[1];
+        return Err(Diag::of_kind(crate::error::Ir {
+            detail: format!(
+                "logic:RecoveryCase IRI <{case_iri}> is declared by two different \
+                 correspondences (<{first_owner}> and <{second_owner}>); recovery-case \
+                 identity must be unique across the whole program, not merely within one \
+                 correspondence"
+            ),
+        }));
+    }
+    Ok(())
 }
 
 // --------------------------------------------------------------------------- //
@@ -1891,6 +2076,21 @@ pub enum Term {
     /// **sequence** of terms, not a single term. A distinct variant so the AST cannot
     /// confuse a single-term variable with a sequence one.
     SequenceMarker(String),
+    /// A compound **function-term application** `f(t₀, …, tₙ)` — a function symbol applied
+    /// to one or more argument terms (`cons(H, T)`, `s(X)`). `symbol` is the IRI of the
+    /// reified function symbol (a `logic:Type` individual, mirroring how [`Formula::Atom`]
+    /// reifies its relation), so the object level stays first-order: there is no
+    /// function-variable slot. `args` is a non-empty, ordered list of sub-terms and MAY
+    /// itself contain a nested [`Term::App`], so a nested term like `cons(H, cons(1, nil))`
+    /// round-trips. A *nullary* application is not admitted — a 0-ary function symbol is a
+    /// constant and is spelled [`Term::Iri`], so admitting an empty-`args` application would
+    /// give one constant two canonical identities.
+    App {
+        /// The reified function symbol's IRI (a `logic:Type` individual, never a variable).
+        symbol: String,
+        /// The ordered, non-empty argument terms (each may itself be an [`Term::App`]).
+        args: Vec<Term>,
+    },
 }
 
 impl Term {
@@ -1948,9 +2148,37 @@ impl Term {
         Ok(Self::SequenceMarker(name))
     }
 
+    /// A compound function-term application, rejecting an empty/whitespace-only symbol IRI
+    /// and a nullary argument list. A 0-ary application collides with a bare [`Self::Iri`]
+    /// constant, so arity ≥ 1 is enforced to keep one constant from acquiring two canonical
+    /// identities; an empty symbol collides with absence.
+    pub fn app(symbol: impl Into<String>, args: Vec<Term>) -> gmeow_errors::Result<Self> {
+        let symbol = symbol.into();
+        if symbol.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::App symbol must be a non-empty function-symbol IRI".to_owned(),
+            }));
+        }
+        if args.is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::App requires at least one argument; a nullary application is a \
+                 constant and must be a Term::Iri"
+                    .to_owned(),
+            }));
+        }
+        Ok(Self::App { symbol, args })
+    }
+
     /// `true` for a marker that binds a sequence rather than a single term.
     fn is_sequence_marker(&self) -> bool {
         matches!(self, Self::SequenceMarker(_))
+    }
+
+    /// `true` for a compound function-term application (`f(t₀, …, tₙ)`). Such a term exceeds
+    /// the function-free Horn/Datalog fragment, so an atom carrying one is not a trivial
+    /// triple (see [`Formula::is_trivially_horn`]).
+    fn is_application(&self) -> bool {
+        matches!(self, Self::App { .. })
     }
 
     /// The canonical key fragment for this term under a binding environment `env`
@@ -1966,6 +2194,18 @@ impl Term {
                 format!("L{SEP}{lexical}{SEP}{}", datatype.as_deref().unwrap_or(""))
             }
             Self::SequenceMarker(n) => format!("S{SEP}{}", resolve_binding(env, n)),
+            // A function-term application keys as its symbol plus its arity plus each
+            // argument's env-aware key (in order): the arity prefix keeps `f(a, b)` from
+            // ever colliding with a differently-nested term, and the recursive `key_in`
+            // makes a bound variable inside an argument alpha-normalize like anywhere else.
+            Self::App { symbol, args } => {
+                let mut inner = String::new();
+                for a in args {
+                    inner.push(SEP);
+                    inner.push_str(&a.key_in(env));
+                }
+                format!("A{SEP}{symbol}{SEP}{}{inner}", args.len())
+            }
         }
     }
 }
@@ -2116,15 +2356,19 @@ impl Formula {
 
     /// `true` when this formula is a *trivially-Horn* leaf that belongs in
     /// [`LogicProgram::axioms`], not [`LogicProgram::formulas`]: a [`Formula::Atom`] that
-    /// is exactly a binary predication (an IRI relation with two non-sequence-marker
-    /// args) — i.e. an ordinary triple. Such a node has a Horn home and must not enter the
+    /// is exactly a binary predication (an IRI relation with two *flat* args — neither a
+    /// sequence marker nor a compound function-term application) — i.e. an ordinary triple.
+    /// A function term exceeds the function-free Datalog fragment, so an atom carrying one is
+    /// a genuine formula, not a triple. Such a node has a Horn home and must not enter the
     /// formula collection, where it would give one fact two distinct content keys.
     pub(crate) fn is_trivially_horn(&self) -> bool {
         match self {
             Self::Atom { relation, args } => {
                 matches!(relation, Term::Iri(_))
                     && args.len() == 2
-                    && !args.iter().any(Term::is_sequence_marker)
+                    && !args
+                        .iter()
+                        .any(|a| a.is_sequence_marker() || a.is_application())
             }
             _ => false,
         }
@@ -2154,17 +2398,19 @@ impl Formula {
         let Term::Iri(predicate) = relation else {
             return None;
         };
-        // A triple subject is an IRI or a variable — never a literal or a sequence marker.
+        // A triple subject is an IRI or a variable — never a literal, a sequence marker, or a
+        // compound function term (`is_trivially_horn` already excludes an application-bearing
+        // atom, so the `App` arm is a defensive, never-taken guard, not a live path).
         let subject = match &args[0] {
             Term::Iri(iri) => iri.clone(),
             Term::Var(name) => format!("?{name}"),
-            Term::Literal { .. } | Term::SequenceMarker(_) => return None,
+            Term::Literal { .. } | Term::SequenceMarker(_) | Term::App { .. } => return None,
         };
         let (obj, obj_is_literal) = match &args[1] {
             Term::Iri(iri) => (iri.clone(), false),
             Term::Var(name) => (format!("?{name}"), false),
             Term::Literal { lexical, .. } => (lexical.clone(), true),
-            Term::SequenceMarker(_) => return None,
+            Term::SequenceMarker(_) | Term::App { .. } => return None,
         };
         LogicAxiom::ground(subject, predicate.clone(), obj, obj_is_literal).ok()
     }
@@ -2461,11 +2707,24 @@ impl LogicProgram {
     /// sorted order.  Kept separate from [`Self::new`] so existing call sites are
     /// untouched and the byte-pinned canonical key of a correspondence-free program is
     /// unchanged (the correspondences segment is append-only when present).
-    pub fn with_correspondences(mut self, correspondences: Vec<Correspondence>) -> Self {
+    ///
+    /// `logic:RecoveryCase` IRIs are global RDF subjects, so their uniqueness must hold
+    /// across the WHOLE program, not merely within one correspondence:
+    /// [`Correspondence::with_recovery_cases`] only ever sees its own owning
+    /// correspondence's case list, so a case IRI reused by a SECOND correspondence would
+    /// alias two distinct `logic:recoveryTransform` definitions onto one RDF subject — a
+    /// non-injective projection. This is the one place every correspondence in the
+    /// program is visible together, so the cross-correspondence collision is hard-failed
+    /// here rather than silently accepted.
+    pub fn with_correspondences(
+        mut self,
+        correspondences: Vec<Correspondence>,
+    ) -> gmeow_errors::Result<Self> {
         let mut correspondences = correspondences;
         correspondences.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert_unique_recovery_case_iris(&correspondences)?;
         self.correspondences = correspondences;
-        self
+        Ok(self)
     }
 
     /// Attach the program's full-FOL [`Formula`] nodes, canonicalizing them into sorted

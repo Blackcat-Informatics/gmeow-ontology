@@ -103,7 +103,7 @@ pub fn load_tag_map(
         })
     })?;
 
-    build_tag_map(&dataset)
+    load_tag_map_from_dataset(&dataset)
 }
 
 /// Build the tag map from an already-frozen `RdfDataset`, scanning the carrier
@@ -111,8 +111,12 @@ pub fn load_tag_map(
 /// (``lang:LanguageVariety``) — the only individuals that carry a
 /// ``lang:carrierTag``.
 ///
-/// Extracted for testability. Delegates to [`build_tag_map_for`].
-fn build_tag_map(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<HashMap<String, String>> {
+/// This is the store-native counterpart to [`load_tag_map`]. Consumers that
+/// already hold a parsed dataset should use it directly instead of serializing
+/// the graph to N-Triples only to parse those bytes back into the same IR.
+pub fn load_tag_map_from_dataset(
+    dataset: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<HashMap<String, String>> {
     let lang_class = format!("{NAMESPACE}Language");
     let variety_class = format!("{LANG_NAMESPACE}LanguageVariety");
     build_tag_map_for(dataset, &[&lang_class, &variety_class])

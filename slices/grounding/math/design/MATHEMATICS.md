@@ -15,22 +15,23 @@
 | Document | Genre | Contents |
 |---|---|---|
 | `MATHEMATICS.md` (this) | manifesto | vision, doctrine, lineage; the position of the slice against `logic:` and `observations`; the external-vocabulary-as-projection posture |
-| [`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md) | mathematical core | the mathematical reference layer (concepts, symbols, notations, theories, contexts); the typed expression AST (literals, symbol references, variables, application, binding, indexed argument slots; formula identity independent of rendering; the bound/free discipline; normalization and declared equivalence); the object/structure layer (numbers, sets, functions, spaces, algebraic and category-theoretic structures); and the statement/proof/theory layer (axioms, theorems, proofs, verification results) |
+| [`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md) | mathematical core | the mathematical reference layer (concepts, symbols, notations, theories, contexts); the typed expression AST (literals, symbol references, variables, application, binding, indexed argument slots; framed operator signatures and closed-form-function expression algebra; formula identity independent of rendering; the bound/free discipline; normalization and declared equivalence); the object/structure layer (numbers, sets, functions, spaces, algebraic and category-theoretic structures); and the statement/proof/theory layer (axioms, theorems, proofs, verification results) |
 | [`MATHEMATICS-PROBABILITY.md`](MATHEMATICS-PROBABILITY.md) | probability layer | probability spaces, sample spaces, σ-algebras, events, measures, random variables, distributions and families, mandatory parameterization, dependency models (independence, Bayesian networks, factor graphs, Markov kernels), and the seam into `logic:probabilityModel` |
 | [`MATHEMATICS-STATISTICS.md`](MATHEMATICS-STATISTICS.md) | statistics layer | populations, samples, sampling frames, variables, dataset matrices, models, assumptions, estimators, estimates, hypotheses, tests, p-values, intervals, effect sizes, diagnostics, experimental designs, missingness; the frequentist/Bayesian parity and the provenance-heavy result contract |
 | [`MATHEMATICS-PROJECTIONS.md`](MATHEMATICS-PROJECTIONS.md) | projection contract | the generated lossy lowerings — MathML, OpenMath/OMDoc/MMT content, RDF Data Cube/SDMX, STATO-style method references, QUDT quantity references, Wikidata authority links — each carrying a preservation judgment in the loss ledger |
 | [`MATHEMATICS-RUNTIME.md`](MATHEMATICS-RUNTIME.md) | runtime & ingestion | ingestion as projection run backwards (parser-compilers lifting R/LaTeX/MathML/OpenMath into the canonical AST; DSL/API authoring; both converging on one AST); content-addressed expression interning against ABox density; the solver-profile handoff to external engines with results returned as inference-run observations; and the Rust-first implementation posture and acceptance gates |
 | [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md) | conformance | the gate matrix — every hard rule mapped to its enforcing gate (OWL axiom / SHACL Core / SHACL-SPARQL / source-lint / Rust validator / competency query / projection test) and a named failure class; the reuse of the `logic:` `preservationKind` vocabulary; the positive/negative fixture corpus |
 | [`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md) | references appendix | the classified survey of ~70 external standards, ontologies, formalisms, classification schemes, and engines — each tagged subsume/project/link/reference × license × kind; the primary anchors (mathlib, Wikidata QID, QUDT/DCC); and the original surface GMEOW authors where no external ontology exists; staged for the `metadata/references.ttl` ledger |
-| [`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md) | bedrock objects | number systems and exactness, arithmetic, sets and their construction (extensional/intensional), relations and functions — the primitives every other charter quantifies over |
-| [`MATHEMATICS-MEASURE-AND-DIMENSION.md`](MATHEMATICS-MEASURE-AND-DIMENSION.md) | measure & dimension | measurable spaces, measures, and integration (the probability foundation); dimensional analysis as a cross-cutting homogeneity gate; the quantity/unit/dimension grounding (QUDT/OM/D-SI) |
+| [`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md) | bedrock objects | number systems and exactness (including the signed extended real line and its two infinite poles), arithmetic, sets and their construction (extensional/intensional, and ordered intervals with declared endpoint inclusion), relations and functions (including piecewise functions over interval pieces) — the primitives every other charter quantifies over |
+| [`MATHEMATICS-MEASURE-AND-DIMENSION.md`](MATHEMATICS-MEASURE-AND-DIMENSION.md) | measure & dimension | measurable spaces, measures, and integration (the probability foundation; reified subset measure evaluation μ(A)); dimensional analysis as a cross-cutting homogeneity gate; the quantity/unit/dimension grounding (QUDT/OM/D-SI) |
 | [`MATHEMATICS-ALGEBRA.md`](MATHEMATICS-ALGEBRA.md) | algebra | the structure hierarchy (groups→rings→fields→Lie), homomorphisms as declared laws, root systems and Weyl groups (the E8 flagship), and ring homomorphisms under encryption (the homomorphic-encryption flagship) |
-| [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | analysis & geometry | calculus as AST-native binders, special functions, topology, and differential geometry / manifolds (Lorentzian metrics — the math side of the physical-frame case); the named-complement gate |
+| [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | analysis & geometry | calculus as AST-native binders (including structured limit results and the law-backed analytic properties, smoothness among them carried as an honest second-order boundary), special functions, topology, and differential geometry / manifolds (Lorentzian metrics — the math side of the physical-frame case; conformal compactification and the boundary at infinity); the named-complement gate |
 | [`MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md) | linear algebra & learning | inner-product spaces and decompositions, PCA (the KG-projection flagship), embeddings and latent spaces, and the tensor structure of AI systems (the AI-self-structure flagship) |
 | [`MATHEMATICS-BRIDGES.md`](MATHEMATICS-BRIDGES.md) | ingestion bridges | the parse-into front-ends — R→`math:` (any script), ONNX→`math:`, and proof-as-process — each splitting input across the `logic:` and `math:` grounding layers and hard-failing on the unliftable |
 
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's shapes, competency queries, and the
+> realization implements X, established by canonical `module.ttl` axioms and `logic:Constraint`
+> records, competency queries, and the
 > projection loss ledger. It is not a claim that any particular implementation already realizes X
 > except as those gates demonstrate. The sibling documents named above are companion charters,
 > written to the same voice; together with this manifesto they constitute the complete mathematics
@@ -87,7 +88,7 @@ equation carrying `logic:` modal content; a proof is a `logic:` derivation over 
 The two layers **interlock at a declared bridge, not by merger.** A mathematical expression *denotes*
 into a `logic:` term, formula, type, or proof object, with its denotation kind and lowering
 preservation declared ([`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md)); the shared
-lingua franca is category theory, already present as `Category`/`Functor`/`NaturalTransformation`
+lingua franca is category theory, present as `math:Category`/`math:Functor`/`math:NaturalTransformation`
 and already used by `logic:`'s correspondence calculus. The bridge runs **one way**: `math:` → `logic:`
 (expressions lower into the IR; probability-model objects *satisfy* `logic:probabilityModel`).
 `logic:` never depends back on `math:` — its quantitative facets stay abstract requirements that
@@ -99,7 +100,8 @@ namespace (`https://blackcatinformatics.ca/math/`), peer to **`logic:`**
 (`https://blackcatinformatics.ca/logic/`) — the grounding layers each own a namespace, distinct
 from the general `gmeow:` ontology namespace the domain slices share. Terms this layer *borrows* from
 other slices keep their home namespace — the `observations` spine (`gmeow:Observation`,
-`gmeow:Quantity`, `gmeow:vantage`), `provenance`/`events` (`gmeow:Activity`, `gmeow:wasGeneratedBy`),
+`gmeow:vantage`, and measurement qualifiers over the math-owned `math:Quantity`),
+`provenance`/`events` (`gmeow:Activity`, `gmeow:wasGeneratedBy`),
 and the alignment vocabulary (`gmeow:TermEquivalence`) — and the slice is still *declared* with the
 `gmeow:` slice-manifest vocabulary (`gmeow:Slice`, `gmeow:sliceTier`, `gmeow:sliceDependsOn`). A
 worked example therefore mixes all three namespaces on purpose: a `math:` object *held via* a
@@ -161,10 +163,11 @@ probabilistic facts, it points at an explicit probability-model *object* the mat
 defines; if that object is absent or structurally invalid, the engine reports unsupported or
 not-evaluated rather than silently assuming independence.
 
-**It does not replace `observations`.** The observation spine owns claim acts and scalar-quantity
-bundles — `gmeow:Observation`, `gmeow:Quantity`, `gmeow:ScalarQuantity`, `gmeow:MeasuredValue`,
-with value, unit and reference frame, determinacy, uncertainty, and provenance. The mathematics
-slice gives those scalars mathematical and statistical *meaning* — a probability-measure value, a
+**It does not replace `observations`.** The observation spine owns claim acts and the qualifiers that
+place a measured result in a unit/reference frame with determinacy, uncertainty, provenance, and a
+true-magnitude link. The canonical dimensioned result itself is `math:Quantity`, with its numeric
+value on `math:quantityValue`; observations qualifies that same object rather than minting aliases.
+The mathematics slice also gives quantities mathematical and statistical *meaning* — a probability-measure value, a
 p-value, an effect size, an estimate, a posterior mean, an interval bound, a distribution
 parameter — while still grounding every held result as an observation when it is measured, derived,
 inferred, or asserted from a vantage. A statistical estimate is therefore *both* a structured
@@ -223,7 +226,7 @@ Two influences shape the slice beyond the external vocabularies it supersedes.
 **The expression-as-AST discipline** is the same commitment `logic:` makes when it insists a rule is
 a typed intermediate representation rather than a serialized string. A computable formula is an
 application tree with indexed argument slots — not RDF list ordering, not a rendered string — so
-that argument order is explicit, slots are unique and (in strict canonical mode) contiguous, every
+that argument order is explicit, slots are unique, non-negative, zero-based, and contiguous, every
 variable occurrence is either bound by a binder or explicitly marked free with type and domain
 context, and every symbol reference resolves locally or through a declared external reference. A
 display string exists only as a rendering of an AST or as explicitly non-computable prose. This is

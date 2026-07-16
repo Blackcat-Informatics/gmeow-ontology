@@ -43,6 +43,14 @@ define_diag_kind! {
     message = "empty diagnostics artifact selection: {:?}", raw;
 }
 
+define_diag_kind! {
+    /// A documentation projection could not be reconciled safely to disk.
+    pub struct DocsProjectionFailed { detail: String }
+    code = "gmeow-cli-core.docs-export.io";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
 /// The complete cli-core diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted in the crate appears here exactly
 /// once — [`register_all`] seeds them and the collision test proves the code
@@ -51,6 +59,7 @@ pub const CLI_CORE_DIAG_CODES: &[&str] = &[
     UnknownConsoleMode::CODE,
     UnknownArtifactKind::CODE,
     EmptyArtifactSelection::CODE,
+    DocsProjectionFailed::CODE,
 ];
 
 /// Eagerly intern every cli-core diagnostic code, seeding the process-wide code
@@ -63,6 +72,7 @@ pub fn register_all() -> Vec<Code> {
         UnknownConsoleMode::register(),
         UnknownArtifactKind::register(),
         EmptyArtifactSelection::register(),
+        DocsProjectionFailed::register(),
     ]
 }
 
