@@ -19359,6 +19359,9 @@ enums:
       gmnFormalSemanticsNotationWork:
         meaning: https://blackcatinformatics.ca/gmeow/gmnFormalSemanticsNotationWork
         title: formal-semantics notation conventions
+      gmnInformationTheoryWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnInformationTheoryWork
+        title: information-theory notation reference
       gmnLinguisticNotationWork:
         meaning: https://blackcatinformatics.ca/gmeow/gmnLinguisticNotationWork
         title: linguistic acceptability notation conventions
@@ -21264,6 +21267,9 @@ enums:
       gmnCandidateMathDivision:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathDivision
         title: 'GMN candidate: division sign'
+      gmnCandidateMathEntropy:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathEntropy
+        title: 'GMN candidate: Shannon entropy H'
       gmnCandidateMathEulerMascheroni:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathEulerMascheroni
         title: 'GMN candidate: Euler–Mascheroni as γ'
@@ -21282,24 +21288,45 @@ enums:
       gmnCandidateMathHodgeLaplacian:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian
         title: 'GMN candidate: Hodge Laplacian'
+      gmnCandidateMathKullbackLeibler:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathKullbackLeibler
+        title: 'GMN candidate: Kullback–Leibler divergence D'
       gmnCandidateMathLeftContraction:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction
         title: 'GMN candidate: left contraction'
       gmnCandidateMathMultiplication:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathMultiplication
         title: 'GMN candidate: multiplication as ×'
+      gmnCandidateMathMutualInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathMutualInformation
+        title: 'GMN candidate: mutual information I'
       gmnCandidateMathNegation:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegation
         title: 'GMN candidate: unary negation minus'
+      gmnCandidateMathNerve:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathNerve
+        title: 'GMN candidate: nerve of a cover N'
       gmnCandidateMathPi:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathPi
         title: 'GMN candidate: math:pi as π'
       gmnCandidateMathReversion:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion
         title: 'GMN candidate: Clifford reversion'
+      gmnCandidateMathSheafLaplacian:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathSheafLaplacian
+        title: 'GMN candidate: sheaf Laplacian'
       gmnCandidateMathSubtraction:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathSubtraction
         title: 'GMN candidate: binary subtraction minus'
+      gmnCandidateMathVectorBinding:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathVectorBinding
+        title: 'GMN candidate: vector-symbolic binding ⊛'
+      gmnCandidateMathVectorBundling:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathVectorBundling
+        title: 'GMN candidate: vector-symbolic bundling ⊕'
+      gmnCandidateMathVectorUnbinding:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathVectorUnbinding
+        title: 'GMN candidate: vector-symbolic unbinding ⊘'
   GmnSymbolDispositionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnSymbolDisposition
     permissible_values:

@@ -1322,6 +1322,7 @@ enum CreativeWorkEnum {
   gmnCommonLogicWork
   gmnDescriptionLogicNotationWork
   gmnFormalSemanticsNotationWork
+  gmnInformationTheoryWork
   gmnLinguisticNotationWork
   gmnOpenMathWork
   gmnUnicodeMathWork
@@ -2087,18 +2088,26 @@ enum GmnSymbolCandidateEnum {
   gmnCandidateMathCoboundaryOperator
   gmnCandidateMathDirectSum
   gmnCandidateMathDivision
+  gmnCandidateMathEntropy
   gmnCandidateMathEulerMascheroni
   gmnCandidateMathExponentiation
   gmnCandidateMathExteriorProduct
   gmnCandidateMathGeometricProductDot
   gmnCandidateMathGradeProjection
   gmnCandidateMathHodgeLaplacian
+  gmnCandidateMathKullbackLeibler
   gmnCandidateMathLeftContraction
   gmnCandidateMathMultiplication
+  gmnCandidateMathMutualInformation
   gmnCandidateMathNegation
+  gmnCandidateMathNerve
   gmnCandidateMathPi
   gmnCandidateMathReversion
+  gmnCandidateMathSheafLaplacian
   gmnCandidateMathSubtraction
+  gmnCandidateMathVectorBinding
+  gmnCandidateMathVectorBundling
+  gmnCandidateMathVectorUnbinding
 }
 
 enum GmnSymbolDispositionEnum {
