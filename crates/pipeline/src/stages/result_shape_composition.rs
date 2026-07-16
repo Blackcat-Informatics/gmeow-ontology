@@ -180,6 +180,7 @@ fn parse_result_shape(
             TermKind::Iri => ColumnKind::Iri,
             TermKind::BlankNode => ColumnKind::BlankNode,
             TermKind::Literal => ColumnKind::Literal { datatype },
+            TermKind::TripleTerm => ColumnKind::TripleTerm,
         };
         columns.push(ResultColumn { var, kind, binding });
     }

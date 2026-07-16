@@ -3997,6 +3997,418 @@ logic:decidabilityClass
     rdfs:label "decidability class"@x-gmeow-english ;
     skos:definition "The decidability-class guarantee a logic:EngineContract offers for one of its logic:supportedProfile presets — the termination/complexity token the engine promises for queries read under that preset (e.g. `terminating/PTIME-data` for the positive-Horn and stratified-negation presets, `three-valued/PTIME` for well-founded, `NP-hard` for stable-model, `operational/Turing-complete` for procedural Prolog, `probabilistic/#P-hard` for the probabilistic preset). Single-valued per preset. Domain logic:ReasoningPreset — a supported preset of the contract — (stated in prose). It draws from the SAME value vocabulary as logic:complexityClass but is carried in a DIFFERENT place for a different purpose: logic:complexityClass records the class of a lowering/projection alongside its preservation polarity in the loss ledger, whereas logic:decidabilityClass is the per-preset guarantee published on the runtime engine's capability manifest so a consumer reads it off the pinned contract. Decidability here is a projection guarantee bought by reasoning under a bounded preset, never a canonical-layer promise — the canonical layer is maximally expressive and only semi-decidable. Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17)."@x-gmeow-english .
 
+# ── Query-scoped annotated external relations ──────────────────────────────────
+# The executable contract is authored canonically in crates/logic (Rust,
+# crates/logic/src/external_relation.rs and dispatch.rs). These terms are its
+# lossy documentation projection (Principle 17): they describe operation-local
+# provider inputs and receipts; they do not assert provider tuples into the ontology.
+
+logic:ExternalRelationProviderDescriptor
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Provider Descriptor"@x-gmeow-english ;
+    skos:definition "The immutable declaration of one relation-valued physical EDB source available to a single query execution: it pins the provider, artifact generation, model, relation predicate, positional RDF 1.2 argument schema, annotation dimension and algebra, total ordering, and preservation claim. It describes derived query inputs, never asserted ontology facts, and it has no ambient mutable registry. Authored canonically in crates/logic (Rust); this class is a lossy documentation projection (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationArgument
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Argument"@x-gmeow-english ;
+    skos:definition "One positional entry of an external relation's RDF 1.2 argument schema, carrying its zero-based position, logic:TermKind, and optional literal datatype. The ordered list of these entries determines relation arity and is checked before any provider tuple enters evaluation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationOrdering
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Ordering"@x-gmeow-english ;
+    skos:definition "The total row-order contract pushed to an external relation provider: an identified criterion plus ascending or descending direction, with canonical RDF tuple order breaking equal provider keys. The engine validates the returned sequence rather than silently sorting malformed output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationOrderDirection
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Order Direction"@x-gmeow-english ;
+    skos:definition "The closed value class for the direction of an logic:ExternalRelationOrdering: logic:ExternalRelationAscending or logic:ExternalRelationDescending."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationAscending
+    a owl:NamedIndividual ,
+        logic:ExternalRelationOrderDirection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Ascending"@x-gmeow-english ;
+    skos:definition "The external-relation order direction in which smaller provider order keys precede larger keys; canonical RDF tuple order breaks equal keys. Wire value `ascending`."@x-gmeow-english .
+
+logic:ExternalRelationDescending
+    a owl:NamedIndividual ,
+        logic:ExternalRelationOrderDirection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Descending"@x-gmeow-english ;
+    skos:definition "The external-relation order direction in which larger provider order keys precede smaller keys; canonical RDF tuple order breaks equal keys. Wire value `descending`."@x-gmeow-english .
+
+logic:ExternalRelationBudget
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Budget"@x-gmeow-english ;
+    skos:definition "The deterministic operation-wide governor for external relations, carrying non-zero maximum provider-call and unique-admitted-row counts. Exhaustion is a typed incomplete non-result; it never turns a partial provider execution into a complete empty relation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationInvocation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Invocation"@x-gmeow-english ;
+    skos:definition "The content-addressed evidence for one provider request or query-local cache reuse: it records descriptor identities, positional bounds, pushed limit and ordering, annotation dimension, terminal status, response digest, row counts, and whether a returned tuple contributed to an answer. No incomplete or invalid batch contributes tuples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationQueryReceipt
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Query Receipt"@x-gmeow-english ;
+    skos:definition "The content-addressed success or failure evidence for one provider-aware query, binding its query contract, immutable provider manifest, RDF source generation, engine descriptor, ordered invocation evidence, structural access counters, preservation, and completeness. A success receipt accompanies a complete answer; a failure receipt accompanies a typed non-result and exposes no partial answer set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:TupleAnnotationAlgebra
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Tuple Annotation Algebra"@x-gmeow-english ;
+    skos:definition "The caller-selected algebra that composes annotations inside the native relational fixpoint: multiplication combines positive premises of one derivation and addition combines alternative derivations of the same tuple. Its stable identity and canonical element encoding participate in contract and receipt hashes; an undeclared algebraic approximation is refused rather than demoted to post-hoc scoring."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationAnnotationDimension
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Annotation Dimension"@x-gmeow-english ;
+    skos:definition "The explicitly named semantic dimension of a provider tuple's opaque algebra element. The standard values distinguish similarity, rank, distance, persistence, and epistemic confidence; additional named dimensions remain possible, but none is silently relabelled as another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SimilarityAnnotation
+    a owl:NamedIndividual ,
+        logic:ExternalRelationAnnotationDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Similarity Annotation"@x-gmeow-english ;
+    skos:definition "The external-relation annotation dimension for lexical, vector, or another explicitly declared similarity measure. It is a retrieval score, not epistemic confidence."@x-gmeow-english .
+
+logic:RankAnnotation
+    a owl:NamedIndividual ,
+        logic:ExternalRelationAnnotationDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rank Annotation"@x-gmeow-english ;
+    skos:definition "The external-relation annotation dimension for an explicitly declared ordinal rank. Rank is neither distance nor epistemic confidence."@x-gmeow-english .
+
+logic:DistanceAnnotation
+    a owl:NamedIndividual ,
+        logic:ExternalRelationAnnotationDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Distance Annotation"@x-gmeow-english ;
+    skos:definition "The external-relation annotation dimension for a metric or non-metric distance. A smaller or larger distance may affect provider order, but distance is not epistemic confidence."@x-gmeow-english .
+
+logic:PersistenceAnnotation
+    a owl:NamedIndividual ,
+        logic:ExternalRelationAnnotationDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Persistence Annotation"@x-gmeow-english ;
+    skos:definition "The external-relation annotation dimension for topological persistence or another explicitly identified persistence measure. It is not epistemic confidence."@x-gmeow-english .
+
+logic:EpistemicConfidenceAnnotation
+    a owl:NamedIndividual ,
+        logic:ExternalRelationAnnotationDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Epistemic Confidence Annotation"@x-gmeow-english ;
+    skos:definition "The external-relation annotation dimension used only when the provider genuinely supplies epistemic confidence. Similarity, rank, distance, and persistence values never project to this individual implicitly."@x-gmeow-english .
+
+logic:ExternalRelationInvocationStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Invocation Status"@x-gmeow-english ;
+    skos:definition "The closed terminal-status class for one external relation invocation: complete, cache hit, failed, incomplete, budget exhausted, cancelled, or contract violation. Only complete and cache-hit invocations may supply tuples to an answer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalRelationComplete
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Complete"@x-gmeow-english ;
+    skos:definition "The invocation status for a provider batch that completed and passed generation, arity, RDF 1.2 schema, bound, limit, uniqueness, ordering, annotation, cancellation, and budget validation. Wire value `complete`."@x-gmeow-english .
+
+logic:ExternalRelationCacheHit
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Cache Hit"@x-gmeow-english ;
+    skos:definition "The invocation status for reuse of an identical complete, validated batch from the same query-local cache. Reuse occurs before call or row budget charging. Wire value `cache-hit`."@x-gmeow-english .
+
+logic:ExternalRelationFailed
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Failed"@x-gmeow-english ;
+    skos:definition "The invocation status for an operational provider failure. It is a typed non-result, not a complete relation containing zero rows. Wire value `failed`."@x-gmeow-english .
+
+logic:ExternalRelationIncomplete
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Incomplete"@x-gmeow-english ;
+    skos:definition "The invocation status for a provider that cannot certify the requested ordered prefix, including provider-budget, stale-generation, or uncertified-universe cases. It is not semantic absence. Wire value `incomplete`."@x-gmeow-english .
+
+logic:ExternalRelationBudgetExhausted
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Budget Exhausted"@x-gmeow-english ;
+    skos:definition "The invocation status reached when the query's deterministic external call or unique-row governor would be exceeded. No over-budget batch is partially admitted. Wire value `budget-exhausted`."@x-gmeow-english .
+
+logic:ExternalRelationCancelled
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Cancelled"@x-gmeow-english ;
+    skos:definition "The invocation status when operation cancellation is observed immediately before or after a provider call. A post-call cancellation discards the returned batch before admission. Wire value `cancelled`."@x-gmeow-english .
+
+logic:ExternalRelationContractViolation
+    a owl:NamedIndividual ,
+        logic:ExternalRelationInvocationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Relation Contract Violation"@x-gmeow-english ;
+    skos:definition "The invocation status for provider output or a request that violates the pinned relation descriptor: wrong generation, arity, RDF 1.2 schema, bounds, limit, uniqueness, total order, or annotation consistency. The malformed batch is never cached or admitted. Wire value `contract-violation`."@x-gmeow-english .
+
+logic:externalRelationDescriptor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation descriptor"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationInvocation to the logic:ExternalRelationProviderDescriptor that governed it. The descriptor is immutable for the containing query."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationProvider
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation provider"@x-gmeow-english ;
+    skos:definition "Names the stable IRI identity of the provider bound by an external relation descriptor or invocation receipt. This identity is part of the query-local provider manifest and request content address."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationArtifactGeneration
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation artifact generation"@x-gmeow-english ;
+    skos:definition "Names the immutable index or artifact generation a provider descriptor pins and an invocation actually read. Generation mismatch or mid-call staleness is a typed non-result, never silently accepted data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationModel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation model"@x-gmeow-english ;
+    skos:definition "Names the stable model or deterministic algorithm identity used by an external relation provider. It is kept distinct from provider identity and artifact generation in descriptors, lineage, and receipts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationRequest
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation request"@x-gmeow-english ;
+    skos:definition "Names the engine-minted, content-addressed request IRI for one external relation call, derived from the query contract, descriptor, positional bounds, pushed limit, and ordering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation predicate"@x-gmeow-english ;
+    skos:definition "Names the predicate or relation IRI a provider exposes as a query-scoped physical EDB operator. Returned tuples satisfy this query relation only; this property does not promote them to asserted RDF facts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationArgumentSchema
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation argument schema"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationProviderDescriptor to the ordered RDF list of logic:ExternalRelationArgument entries that types every positional RDF 1.2 value and determines relation arity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationArgumentPosition
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation argument position"@x-gmeow-english ;
+    skos:definition "The zero-based position of an logic:ExternalRelationArgument in its descriptor's ordered schema. Single-valued per argument entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationArgumentKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation argument kind"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationArgument to its logic:TermKind, including native RDF 1.2 triple terms. Single-valued per argument entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationArgumentDatatype
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:anyURI ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation argument datatype"@x-gmeow-english ;
+    skos:definition "The optional absolute datatype IRI required by a literal-valued logic:ExternalRelationArgument. It is absent when any RDF literal datatype conforms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationArity
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation arity"@x-gmeow-english ;
+    skos:definition "The positive number of positional arguments in an external relation descriptor, equal to the length of its logic:externalRelationArgumentSchema list."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationAnnotationDimension
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation annotation dimension"@x-gmeow-english ;
+    skos:definition "Relates a descriptor or invocation to the logic:ExternalRelationAnnotationDimension carried by its tuple algebra element. This explicit edge prevents similarity, rank, distance, persistence, and epistemic confidence from collapsing into one score meaning."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationAnnotationAlgebra
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation annotation algebra"@x-gmeow-english ;
+    skos:definition "Names the stable algebra identity a provider descriptor requires. Provider-aware dispatch hard-fails before execution when it differs from the selected logic:TupleAnnotationAlgebra identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationOrdering
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation ordering"@x-gmeow-english ;
+    skos:definition "Relates a provider descriptor or invocation to the logic:ExternalRelationOrdering pushed into the call and validated over the returned batch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationOrderingCriterion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation ordering criterion"@x-gmeow-english ;
+    skos:definition "Names the absolute IRI identifying the primary provider order-key criterion of an logic:ExternalRelationOrdering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationOrderDirection
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation order direction"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationOrdering to its single logic:ExternalRelationOrderDirection value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationBudget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation budget"@x-gmeow-english ;
+    skos:definition "Relates a provider manifest or query receipt to the logic:ExternalRelationBudget that governed every query-local invocation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationCallBudget
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation call budget"@x-gmeow-english ;
+    skos:definition "The maximum number of distinct provider calls allowed by an logic:ExternalRelationBudget. Query-local cache hits do not consume it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationRowBudget
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation row budget"@x-gmeow-english ;
+    skos:definition "The maximum number of unique validated provider tuples an logic:ExternalRelationBudget permits the whole query to admit. A complete batch that would cross it is rejected atomically."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationCallLimit
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation call limit"@x-gmeow-english ;
+    skos:definition "The non-zero ordered-prefix row limit pushed on one external relation invocation. Provider over-production is a contract violation, not silently truncated output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationBounds
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation bounds"@x-gmeow-english ;
+    skos:definition "The canonical positional encoding of bound and unbound RDF 1.2 arguments pushed to an invocation. The executable receipt retains the native typed values; this literal is their lossy ontology projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationInvocation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation invocation"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationQueryReceipt to each ordered logic:ExternalRelationInvocation it records, including complete calls, cache hits, and terminal failed attempts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationInvocationStatus
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation invocation status"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationInvocation to its single logic:ExternalRelationInvocationStatus terminal value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationResponseHash
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation response hash"@x-gmeow-english ;
+    skos:definition "The canonical response digest of a complete validated provider batch, including descriptor identity, RDF 1.2 arguments, order keys, and algebra-canonical annotation elements. It is absent on non-complete attempts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationDeliveredRows
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation delivered rows"@x-gmeow-english ;
+    skos:definition "The number of rows a provider delivered before validation for an invocation or across a receipt. This structural counter makes demand pushdown inspectable without a wall-clock claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationAdmittedRows
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation admitted rows"@x-gmeow-english ;
+    skos:definition "The number of unique, complete, validated provider rows admitted by an invocation or across a query receipt. Failed, incomplete, cancelled, over-budget, and malformed batches admit zero."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationContributed
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation contributed"@x-gmeow-english ;
+    skos:definition "Whether at least one tuple from an invocation occurs in a final answer derivation. An invoked but unused provider remains in operational evidence without being falsely named as a contributor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationPreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation preservation"@x-gmeow-english ;
+    skos:definition "Relates an external relation descriptor or receipt to every logic:PreservationKind polarity disclosed by that provider input. Invoked provider claims merge into the query answer and cannot weaken or bypass the governing preservation ledger."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationReceiptCompleteness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation receipt completeness"@x-gmeow-english ;
+    skos:definition "Relates an logic:ExternalRelationQueryReceipt to the logic:CompletenessStatus derived from its typed boundary: a success receipt is complete for its pinned fragment, while failure, incompleteness, cancellation, exhaustion, or contract violation is incomplete and never semantic absence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationQueryContractHash
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation query contract hash"@x-gmeow-english ;
+    skos:definition "The content address of the profile, reasoning budget, annotation contract and algebra, and provider manifest governing a provider-aware query. It is distinct from the whole-engine descriptor hash."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationProviderManifestHash
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation provider manifest hash"@x-gmeow-english ;
+    skos:definition "The content address of every immutable query-local provider descriptor, per-call limit, and operation-wide call/row budget. It excludes ambient process state because no global registry participates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:externalRelationReceiptHash
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "external relation receipt hash"@x-gmeow-english ;
+    skos:definition "The canonical digest over an external relation query receipt, including source and engine identities, ordered invocation evidence, structural counters, contributors or terminal failure detail. Identical inputs and budgets produce the same value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # ── The typed logic:ResultShape surface ─────────────────────────────────────────
 # A schema-level type contract on a SPARQL SELECT result set: the declared columns
 # (variable + term-kind + optional datatype + binding requiredness) and the row-set
@@ -4023,7 +4435,7 @@ logic:TermKind
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Kind"@x-gmeow-english ;
-    skos:definition "The closed value class of the logic:columnTermKind facet: the RDF term kind a result column binds. Its individuals are logic:TermKindIri, logic:TermKindLiteral and logic:TermKindBlankNode. The set is closed, so a misspelt value names no declared kind and is rejected (design/LOGIC-SEMANTICS.md, §The result row schema)."@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:columnTermKind facet: the RDF 1.2 term kind a result column binds. Its individuals are logic:TermKindIri, logic:TermKindLiteral, logic:TermKindBlankNode and logic:TermKindTripleTerm. The set is closed, so a misspelt value names no declared kind and is rejected (design/LOGIC-SEMANTICS.md, §The result row schema)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:TermKindIri
@@ -4046,6 +4458,13 @@ logic:TermKindBlankNode
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Kind Blank Node"@x-gmeow-english ;
     skos:definition "The logic:TermKind value for a column whose values are blank nodes. Wire value `blank-node`."@x-gmeow-english .
+
+logic:TermKindTripleTerm
+    a owl:NamedIndividual ,
+        logic:TermKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Kind Triple Term"@x-gmeow-english ;
+    skos:definition "The logic:TermKind value for a column whose values are RDF 1.2 triple terms. Wire value `triple-term`."@x-gmeow-english .
 
 logic:ColumnBinding
     a owl:Class ;
@@ -5962,7 +6381,51 @@ logic:RecoveryCase
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Recovery Case"@x-gmeow-english ;
     skos:definition "A first-class executable query-class case that decides whether a logic:Correspondence genuinely recovers its source. Its logic:recoveryTransform is an ordered universally quantified source-to-view logic:Formula. The native correspondence executor instantiates the complete source pattern, computes the declared view, derives the candidate inverse, and compares the recovered source graph with the original. A recovery case is neutral evidence rather than a positive assertion: it may discharge a genuine section/retraction or deliberately refute a lossy mapping by retaining a source distinction absent from the view. Every logic:mnemomorphic true correspondence that claims logic:SectionLaw requires executable complete recovery evidence: an atomic one-triple leg may synthesize its complete case, while a composite leg requires an authored logic:RecoveryCase. A structural inverse or a declared boolean alone is never proof (design/LOGIC-CORRESPONDENCE.md, genuine recovery cases)."@x-gmeow-english ;
+    logic:formalizes logic:recoveryTransformValuesAreFormulae ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# Canonical value-type axiom for the OWL allValuesFrom projection below:
+# every recovery-transform value attached to a RecoveryCase is a Formula.
+logic:recoveryTransformValuesAreFormulae
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recovery-transform values are formulae"@x-gmeow-english ;
+    skos:definition "For every recovery case and transform value, if the case is a logic:RecoveryCase and bears that value through logic:recoveryTransform, then the value is a logic:Formula. This canonical first-order axiom grounds the OWL all-values-from projection used by validation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "case" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "transform" ] ;
+    logic:forall logic:rtvfImplication .
+
+logic:rtvfImplication
+    a logic:Formula ;
+    logic:antecedent logic:rtvfAntecedent ;
+    logic:consequent logic:rtvfFormulaType .
+
+logic:rtvfAntecedent
+    a logic:Formula ;
+    logic:and logic:rtvfCaseType , logic:rtvfTransform .
+
+logic:rtvfCaseType
+    a logic:Formula ;
+    logic:relation rdf:type ;
+    logic:argument
+        [ logic:termIndex 0 ; logic:termVariable "case" ] ,
+        [ logic:termIndex 1 ; logic:termIri logic:RecoveryCase ] .
+
+logic:rtvfTransform
+    a logic:Formula ;
+    logic:relation logic:recoveryTransform ;
+    logic:argument
+        [ logic:termIndex 0 ; logic:termVariable "case" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "transform" ] .
+
+logic:rtvfFormulaType
+    a logic:Formula ;
+    logic:relation rdf:type ;
+    logic:argument
+        [ logic:termIndex 0 ; logic:termVariable "transform" ] ,
+        [ logic:termIndex 1 ; logic:termIri logic:Formula ] .
 
 logic:Dialect
     a owl:Class ;

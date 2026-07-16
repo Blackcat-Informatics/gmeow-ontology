@@ -86,6 +86,12 @@ pub trait ProvenanceSemiring {
     /// One annotation value.
     type Element: Copy + Eq + std::fmt::Debug;
 
+    /// Stable semantic identity used by annotated query/provider contracts.
+    fn identity(self) -> &'static str;
+
+    /// Canonical element encoding used by deterministic operational receipts.
+    fn canonical_element(self, element: Self::Element) -> String;
+
     /// Additive identity: no derivation.
     fn zero(self) -> Self::Element;
     /// Multiplicative identity: asserted/unit evidence.
@@ -105,6 +111,14 @@ where
     S: ProvenanceSemiring + Copy,
 {
     type Element = S::Element;
+
+    fn identity(&self) -> &str {
+        ProvenanceSemiring::identity(*self)
+    }
+
+    fn canonical_element(&self, element: &Self::Element) -> String {
+        ProvenanceSemiring::canonical_element(*self, *element)
+    }
 
     fn zero(&self) -> Self::Element {
         ProvenanceSemiring::zero(*self)
@@ -202,6 +216,17 @@ pub struct MinProofHeightSemiring;
 impl ProvenanceSemiring for MinProofHeightSemiring {
     type Element = MinProofHeight;
 
+    fn identity(self) -> &'static str {
+        "https://blackcatinformatics.ca/logic/algebra/min-proof-height-v1"
+    }
+
+    fn canonical_element(self, element: Self::Element) -> String {
+        match element {
+            MinProofHeight::Finite(height) => format!("finite:{}", height.get()),
+            MinProofHeight::Infinity => "infinity".to_owned(),
+        }
+    }
+
     fn zero(self) -> Self::Element {
         MinProofHeight::Infinity
     }
@@ -278,6 +303,14 @@ pub struct ZWeightSemiring;
 
 impl ProvenanceSemiring for ZWeightSemiring {
     type Element = i64;
+
+    fn identity(self) -> &'static str {
+        "https://blackcatinformatics.ca/logic/algebra/z-weight-v1"
+    }
+
+    fn canonical_element(self, element: Self::Element) -> String {
+        element.to_string()
+    }
 
     fn zero(self) -> Self::Element {
         0
