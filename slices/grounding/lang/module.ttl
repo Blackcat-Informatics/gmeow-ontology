@@ -4622,6 +4622,14 @@ gmeow:gmnOpenMathWork
     gmeow:title "OpenMath Content Dictionaries"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:gmnInformationTheoryWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "information-theory notation reference"@x-gmeow-english ;
+    skos:definition "The standard information-theory reference cited for the conventional notation of entropy H(P), mutual information I(X;Y), and the Kullback–Leibler divergence D(P‖Q), whose GMN symbol dispositions keep them as framed named keys rather than flattened single glyphs."@x-gmeow-english ;
+    gmeow:title "Cover & Thomas — Elements of Information Theory"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:gmnCommonLogicWork
     a owl:NamedIndividual , gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -6133,6 +6141,61 @@ gmeow:gmnCandidateMathHodgeLaplacian
     gmeow:gmnDispositionRationale "Capital delta is used for finite differences, changes, discriminants, and several Laplacians; the `hlap` key fixes the Hodge operator family." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenMathHodgeLaplacian ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Information-theoretic operators: framed named keys, no adopted glyph --- #
+# The entropy, mutual-information, and KL-divergence functionals each carry a
+# mandatory distribution/base/unit frame that a single flat capital letter cannot
+# hold, and each bare letter is ambiguous with several unrelated meanings. Every
+# disposition is gmnDispositionNamedKey, so no glyph enters the executable GMN
+# glyph table and the pinned gmnGlyphTableVersion is unchanged (gmn1_codec skips
+# every non-adopted-glyph candidate).
+gmeow:gmnCandidateMathEntropy
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Shannon entropy H"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the capital-H notation of math:Entropy."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Entropy ;
+    gmeow:gmnCandidateGlyph "H" ;
+    gmeow:gmnAsciiFallback "entropy" ;
+    gmeow:gmnSpokenLabel "entropy" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The bare capital H denotes entropy, enthalpy, the Hamiltonian, and a hypothesis, and the entropy functional carries a mandatory distribution/base/unit frame a flat glyph cannot hold; the `entropy` key keeps the information measure inspectable and framed, and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathMutualInformation
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: mutual information I"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the capital-I notation of math:MutualInformation."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:MutualInformation ;
+    gmeow:gmnCandidateGlyph "I" ;
+    gmeow:gmnAsciiFallback "mutual_information" ;
+    gmeow:gmnSpokenLabel "mutual information" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The bare capital I is confusable with an identity matrix, an index, and Fisher information, and mutual information is written I(X;Y) over a joint distribution with a mandatory base; the `mutual_information` key keeps the two-argument frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathKullbackLeibler
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Kullback–Leibler divergence D"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the D(P‖Q) notation of math:KullbackLeiblerDivergence."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:KullbackLeiblerDivergence ;
+    gmeow:gmnCandidateGlyph "D" ;
+    gmeow:gmnAsciiFallback "kl_divergence" ;
+    gmeow:gmnSpokenLabel "K L divergence" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The bare capital D denotes a derivative, a determinant, and a divergence, and the KL divergence is written D(P‖Q) with a double-bar separator and a mandatory base a flat glyph cannot carry; the `kl_divergence` key keeps the directed reference-distribution frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # The IPA glyphs remain executable inside phonological surface content but are

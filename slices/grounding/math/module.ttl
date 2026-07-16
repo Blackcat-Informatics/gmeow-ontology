@@ -7472,6 +7472,63 @@ math:Surprisal
     skos:definition "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:LogarithmBase
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Logarithm Base"@x-gmeow-english ;
+    skos:definition "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:InformationUnit
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Information Unit"@x-gmeow-english ;
+    skos:definition "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:JointDistribution
+    a owl:Class ; logic:subClassOf math:Distribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Joint Distribution"@x-gmeow-english ;
+    skos:definition "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:logBaseTwo
+    a owl:NamedIndividual , math:LogarithmBase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logarithm base 2"@x-gmeow-english ;
+    skos:definition "The base-2 logarithm convention: information measured in bits (shannons). The canonical base of Shannon entropy in digital contexts."@x-gmeow-english .
+
+math:logBaseE
+    a owl:NamedIndividual , math:LogarithmBase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logarithm base e"@x-gmeow-english ;
+    skos:definition "The natural-logarithm convention: information measured in nats. The canonical base in analytic and statistical settings, where derivatives of the log-likelihood are simplest."@x-gmeow-english .
+
+math:logBaseTen
+    a owl:NamedIndividual , math:LogarithmBase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logarithm base 10"@x-gmeow-english ;
+    skos:definition "The base-10 logarithm convention: information measured in hartleys (dits, bans). The historical base of Hartley's measure."@x-gmeow-english .
+
+math:bit
+    a owl:NamedIndividual , math:InformationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bit (shannon)"@x-gmeow-english ;
+    skos:definition "The bit, or shannon: the information unit paired with the base-2 logarithm. One bit is the entropy of a uniform distribution over two equiprobable outcomes."@x-gmeow-english .
+
+math:nat
+    a owl:NamedIndividual , math:InformationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "nat"@x-gmeow-english ;
+    skos:definition "The nat, or natural unit of information: the information unit paired with the base-e logarithm."@x-gmeow-english .
+
+math:hartley
+    a owl:NamedIndividual , math:InformationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hartley (dit)"@x-gmeow-english ;
+    skos:definition "The hartley, or dit (ban): the information unit paired with the base-10 logarithm."@x-gmeow-english .
+
 math:VectorSymbolicOperation
     a owl:Class ; logic:subClassOf math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -7734,6 +7791,55 @@ math:generatesFlow
     skos:definition "Relates a vector field, Hamiltonian function, or dynamical system to the flow it generates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Information-measure frame properties (information-theoretic coverage family) --- #
+math:overDistribution
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over distribution"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:referenceDistribution
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "reference distribution"@x-gmeow-english ;
+    skos:definition "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:informationBase
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "information base"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:informationUnit
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "information unit"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:likelihoodModel
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "likelihood model"@x-gmeow-english ;
+    skos:definition "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:scoreParameter
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "score parameter"@x-gmeow-english ;
+    skos:definition "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ofOutcome
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "of outcome"@x-gmeow-english ;
+    skos:definition "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:measureValue
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "measure value"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:sheafBaseComplex
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "sheaf base complex"@x-gmeow-english ;
@@ -7970,6 +8076,13 @@ math:IncompleteCliffordExtension
     skos:definition "The failure raised when a Clifford extension lacks its base algebra, extended algebra, or additional generator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:IncompleteInformationMeasure
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Information Measure"@x-gmeow-english ;
+    skos:definition "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Task-7 conformance-failure classes ------------------------------------- #
 
 math:UnderspecifiedPiecewiseFunction
@@ -8106,6 +8219,80 @@ math:CliffordModuleDecomposition logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:splitJoinVerified ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ,
     [ a owl:Restriction ; owl:onProperty math:splitJoinVerified ; owl:hasValue true ] ;
     gmeow:enforcesFailureClass math:IncompleteCliffordExtension .
+
+# Information-theoretic coverage family: each information measure is defined only
+# relative to a complete, declared frame. Every declarative frame obligation is a
+# qualified-cardinality + allValuesFrom OWL restriction (EL-safe) that derives the
+# paired sh:minCount/maxCount + sh:class property shape; a missing component fails
+# the derived QualifiedMinCount and isolates math:IncompleteInformationMeasure.
+math:Entropy logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:minQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:maxQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:allValuesFrom math:InformationUnit ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:Surprisal logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:ofOutcome ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:ofOutcome ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:ofOutcome ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:MutualInformation logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:JointDistribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:JointDistribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:JointDistribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:minQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:maxQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:allValuesFrom math:InformationUnit ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:KullbackLeiblerDivergence logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:CrossEntropy logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:FisherInformation logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:likelihoodModel ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:likelihoodModel ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:likelihoodModel ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:minQualifiedCardinality 1 ; owl:onClass math:DistributionParameter ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:maxQualifiedCardinality 1 ; owl:onClass math:DistributionParameter ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:allValuesFrom math:DistributionParameter ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
 
 math:Number rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -12249,5 +12436,6 @@ math:IncompleteCliffordAlgebra a logic:Situation .
 math:IncompleteCliffordExtension a logic:Situation .
 math:IncompleteDimensionalityReductionAnalysis a logic:Situation .
 math:IncompleteHamiltonianSystem a logic:Situation .
+math:IncompleteInformationMeasure a logic:Situation .
 math:IncompletePersistentHomologyAnalysis a logic:Situation .
 math:ZeroDenominator a logic:Situation .

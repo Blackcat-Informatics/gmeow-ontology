@@ -1222,3 +1222,14 @@ ex:ecCliffordExtensionNoGenerator a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies two fully framed Clifford algebras but omits the extension generator, isolating math:IncompleteCliffordExtension." .
+
+ex:ecInformationMeasureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/information-measure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Entropy, mutual information, Kullback–Leibler divergence, cross entropy, Fisher information, and surprisal each name a complete frame — distribution(s), logarithm base, and unit, plus the joint distribution, reference distribution, likelihood model with score parameter, or outcome each measure requires — and the entropy of a uniform two-outcome distribution carries its exact reference value of 1/1 bit." .
+
+ex:ecInformationMeasureNoDistribution a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/information-measure-no-distribution.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies an entropy's logarithm base and information unit but omits its probability distribution, isolating math:IncompleteInformationMeasure." .

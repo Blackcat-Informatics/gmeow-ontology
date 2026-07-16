@@ -2452,3 +2452,26 @@ ex:rowCoverageCliffordExtension a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "generator" ; gmeow:cellValueIri covf:cl20e1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "baseSummand" ; gmeow:cellValueIri covf:cl11 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "extensionSummand" ; gmeow:cellValueIri covf:newSummand ] .
+
+ex:cqCoverageInformationMeasure a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/information-measure-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An information measure is recoverable from its probability distribution, logarithm base, and information unit as separate reusable mathematical objects, without a project-specific scoring surrogate that hard-codes the base and unit." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageInformationMeasureShape ;
+    gmeow:cqExpectRow ex:rowCoverageInformationMeasure .
+
+ex:cqCoverageInformationMeasureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "measure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "distribution" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "base" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "unit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageInformationMeasure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri cov:coverageEntropy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "distribution" ; gmeow:cellValueIri cov:uniformTwo ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri math:logBaseTwo ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri math:bit ] .
