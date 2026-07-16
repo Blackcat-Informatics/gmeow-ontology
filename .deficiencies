@@ -559,6 +559,23 @@ OWNER SIGN-OFF (#930 closure, 2026-07-16):
   W3C-tree fetch) remains owned by purrdf#9. This is the explicit HUMAN sign-off the
   completion-adversary exit gate requires for the ABSENT-IN-REPO headline criteria (C1–C5).
 
+GATE PLACEMENT (2026-07-16, moved off-gate — matches repo convention):
+
+- full_divergence_gate soundness/drift tests moved OFF the default make-check lane. The W3C
+  OWL2-Full full-corpus scaling gate (`never_a_wrong_decided_verdict_heavy_offgate`,
+  `native_reproduces_the_frozen_gap_heavy_offgate`) re-runs the live native reasoner over all
+  154 vendored divergence cases; in a debug build that exceeds nextest's default 60s/terminate
+  slow-timeout backstop (observed: each test terminated at >120s across retries under a loaded
+  shared host). Renamed with the `_heavy_offgate` suffix and excluded from the default filter in
+  .config/nextest.toml, so they run in the exhaustive `maint-heavy` lane alongside the other
+  whole-corpus W3C conformance proofs (corpus_conformance_heavy_offgate, w3c_rdfc10_heavy_offgate)
+  — the sanctioned home for exhaustive whole-corpus proofs per the nextest profile's stated
+  philosophy. The FAST coverage-floor test (`full_divergence_corpus_meets_its_coverage_floor`)
+  STAYS on the default gate, so per-commit make check still guards the corpus from being silently
+  emptied. Net: the exhaustive 154-case soundness scaling proof runs off-gate (maint-heavy), not
+  on every commit; the per-commit entailment-reduction contract remains covered on-gate by
+  entailment_mini_gate.
+
 ## 2026-07-14 — issue #1533 (slice authoring factory B: gmeow:AuthoringPacket + brief)
 
 - **Stereotype diverges from the issue's literal wording (user-decided).** The issue
