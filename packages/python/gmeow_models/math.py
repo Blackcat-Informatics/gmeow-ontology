@@ -423,7 +423,9 @@ class Math_CellularSheaf(ConfiguredBaseModel):
     """Cellular Sheaf.
 
     A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction
-    map to each face relation.
+    map to each face relation. Unlike a constant sheaf, its stalks and restriction maps may
+    differ from cell to cell, and it is not merely the underlying cell complex, which
+    carries no stalk data.
 
     Usage:
         >>> from gmeow_models.math import Math_CellularSheaf
@@ -1134,7 +1136,10 @@ class Math_CrossEntropy(ConfiguredBaseModel):
     """Cross Entropy.
 
     The expected negative log likelihood assigned by one declared distribution to outcomes
-    drawn from another.
+    drawn from another. Unlike math:Entropy, it scores a model distribution against a
+    separate data distribution and is therefore never below that data distribution's own
+    entropy; unlike math:KullbackLeiblerDivergence, it keeps that irreducible entropy term
+    rather than subtracting it out.
 
     Usage:
         >>> from gmeow_models.math import Math_CrossEntropy
@@ -1466,7 +1471,9 @@ class Math_Entropy(ConfiguredBaseModel):
     """Information Entropy.
 
     An information measure of uncertainty in a declared probability distribution, with the
-    logarithm base and units forming part of its frame.
+    logarithm base and units forming part of its frame. Unlike math:CrossEntropy or
+    math:KullbackLeiblerDivergence, it scores a single distribution against itself, not one
+    distribution against a separate reference distribution.
 
     Usage:
         >>> from gmeow_models.math import Math_Entropy
@@ -1979,7 +1986,9 @@ class Math_HodgeDecomposition(ConfiguredBaseModel):
     """Hodge Decomposition.
 
     An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and
-    harmonic components under declared inner products.
+    harmonic components under declared inner products. Unlike an arbitrary direct sum, its
+    three components are mutually orthogonal and the harmonic part is uniquely determined,
+    not freely chosen.
 
     Usage:
         >>> from gmeow_models.math import Math_HodgeDecomposition
@@ -2794,7 +2803,9 @@ class Math_MutualInformation(ConfiguredBaseModel):
     """Mutual Information.
 
     The divergence between a joint distribution and the product of its marginals, measuring
-    statistical dependence.
+    statistical dependence. It is not a math:Distance: it vanishes exactly when the
+    variables are independent and is never negative, but it does not obey the triangle
+    inequality.
 
     Usage:
         >>> from gmeow_models.math import Math_MutualInformation
@@ -3967,7 +3978,9 @@ class Math_VectorBinding(ConfiguredBaseModel):
     """Vector Binding.
 
     A vector-symbolic operation combining two representations into a representation of their
-    association.
+    association. Unlike math:VectorBundling, its result is dissimilar to both operands
+    rather than similar to them, and it is undone by math:VectorUnbinding rather than being
+    idempotent.
 
     Usage:
         >>> from gmeow_models.math import Math_VectorBinding
@@ -3999,7 +4012,8 @@ class Math_VectorBundling(ConfiguredBaseModel):
     """Vector Bundling.
 
     A vector-symbolic operation superposing several representations into a
-    similarity-preserving aggregate.
+    similarity-preserving aggregate. Unlike math:VectorBinding, its result stays similar to
+    each superposed operand and is not invertible into its individual factors.
 
     Usage:
         >>> from gmeow_models.math import Math_VectorBundling
@@ -4031,7 +4045,9 @@ class Math_VectorUnbinding(ConfiguredBaseModel):
     """Vector Unbinding.
 
     A vector-symbolic operation approximately or exactly recovering one bound factor when
-    supplied with the other and a declared binding law.
+    supplied with the other and a declared binding law. Unlike math:VectorBundling, it
+    inverts math:VectorBinding rather than superposing, and its recovery is approximate
+    unless an exact algebra is declared, never lossless by default.
 
     Usage:
         >>> from gmeow_models.math import Math_VectorUnbinding

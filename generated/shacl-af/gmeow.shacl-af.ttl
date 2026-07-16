@@ -233,3 +233,15 @@ gmeow:GenComputeRule_clusterRoot_r18
         a sh:SPARQLRule ;
         sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/clusterRoot> $this } WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> $this . }""" ;
     ] .
+
+gmeow:GenSubsumptionRule_9ad64a6f9e82_a33
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/logic/RecoveryCase> subClassOf <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/logic/RecoveryCase> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82> } WHERE { $this a <https://blackcatinformatics.ca/logic/RecoveryCase> . }""" ;
+    ] .
