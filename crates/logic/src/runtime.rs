@@ -245,6 +245,16 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("physical/cursor.rs", include_str!("physical/cursor.rs")),
     ("physical/generic.rs", include_str!("physical/generic.rs")),
     ("physical/id.rs", include_str!("physical/id.rs")),
+    // The structured full-FOL rung, and the term-arena / unification / proof substrate it
+    // consumes in production. Since `magic::resolve_native_under` routes a structured
+    // (`QTerm::Struct`) program into `resolve_fol`, and `resolve_fol` imports `term_dag`,
+    // `term_key`, `lower`, `unify`, and `proof`, a change to any of them can change a decided
+    // structured `AnswerSet` — so they are part of the backward decision surface.
+    ("physical/lower.rs", include_str!("physical/lower.rs")),
+    ("physical/proof.rs", include_str!("physical/proof.rs")),
+    ("physical/term_dag.rs", include_str!("physical/term_dag.rs")),
+    ("physical/term_key.rs", include_str!("physical/term_key.rs")),
+    ("physical/unify.rs", include_str!("physical/unify.rs")),
     (
         "physical/incremental.rs",
         include_str!("physical/incremental.rs"),
@@ -260,6 +270,10 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     ("physical/mod.rs", include_str!("physical/mod.rs")),
     ("physical/plan.rs", include_str!("physical/plan.rs")),
+    (
+        "physical/resolve_fol.rs",
+        include_str!("physical/resolve_fol.rs"),
+    ),
     (
         "physical/seminaive.rs",
         include_str!("physical/seminaive.rs"),
@@ -428,26 +442,6 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "reference_resolver.rs",
         "declarative SLD/Datalog reference oracle — used only inside #[cfg(test)] cross-checks (dispatch.rs::tests, physical/magic.rs::tests), not the production dispatch decision path",
-    ),
-    (
-        "physical/term_dag.rs",
-        "the persistent hash-consed structured-term DAG (function-symbol / proof-object nodes) — a term-arena substrate for the unification/proof rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
-    ),
-    (
-        "physical/term_key.rs",
-        "the pure content-key fold for physical/term_dag.rs — a term-identity encoder for the same DAG substrate, with no backward-dispatch consumer yet",
-    ),
-    (
-        "physical/lower.rs",
-        "the three-consumer lowering (logic:/math:/lang:) INTO physical/term_dag.rs — a term-arena ingestion surface for the unification/proof rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
-    ),
-    (
-        "physical/unify.rs",
-        "Robinson unification + occurs-check over physical/term_dag.rs (union-find Subst, resolve, capture-avoiding apply/shift) — the term-solving substrate for the proof-object / backward-FOL rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
-    ),
-    (
-        "physical/proof.rs",
-        "first-class checkable proof objects over physical/term_dag.rs (by_rule/assert constructors, bottom-up check via unify/apply, derivation_iri/reify provenance projection) — the proof-checking substrate for the backward-FOL rung to come; no reference from dispatch_query's backward goal-resolution join yet",
     ),
 ];
 

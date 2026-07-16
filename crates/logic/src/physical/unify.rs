@@ -95,6 +95,17 @@ impl Subst {
         self.bindings.get(m.index()).copied().flatten()
     }
 
+    /// Bind `m := node` for a RENAMING substitution — the caller's entry point for the
+    /// clause-variable freshening the structured backward resolver
+    /// ([`crate::physical::resolve_fol`]) applies per firing. `node` must be a resolved
+    /// representative that passes the occurs-check against `m`; for renaming, `node` is a
+    /// FRESH (unbound) metavariable node, so the occurs-check is trivially satisfied. This is
+    /// a thin public wrapper over the internal union-find link so a renaming can be
+    /// materialized through [`apply`] without exposing the whole binding machinery.
+    pub(crate) fn bind_renaming(&mut self, m: MetaId, node: NodeId) {
+        self.bind(m, node);
+    }
+
     /// Declare (or overwrite) metavariable `m`'s SORT — the caller's entry point for minting a
     /// sorted metavariable. A metavariable minted by [`TermDag::fresh_meta`] is sortless until
     /// declared here; leaving it undeclared keeps it on the unsorted path.
