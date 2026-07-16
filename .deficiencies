@@ -1290,3 +1290,27 @@ D7. The fold-proving gates fold_parity + conformance_math_producers remain OFF-G
     explicitly (15/15 PASS) and the captured production `cargo xtask check` EXIT 0 covers the fold via
     the superset/sync-check path; the adversary's independent full_parity re-run exceeded a 25-min local
     budget (SIGTERM, no assertion failure). Forward path: promote these gates on-gate (repo-wide decision).
+
+## 2026-07-16 — #1526 / PR #1576 stage-3 finalization (post-merge clarification)
+Squash-merged to main at 562f4ca2c. Completion-adversary STAGE=3 PASS (all 14 acceptance
+criteria DEMONSTRATED-IN-PRODUCTION on the merged tree via live `gmeow hybrid-query`).
+
+- FULL `make check` + `make reason-crosscheck` on the merged-into-main result were NOT run
+  locally at stage 3 (user directed proceeding via ghprsq with CI as the authoritative gate,
+  after stopping the local make check). This REFINES the stage-2 block's "verified at stage3
+  make reason-crosscheck" line: reason-crosscheck was delegated to CI, not executed locally.
+  Stage-3 local verification instead rests on: completion-adversary STAGE=3 PASS, the full
+  workspace nextest suite 6190/6190 green (after the coverage-baseline re-bless), `make sync`
+  green (bundle rewritten, ExternalRelation terms projected into the catalog), `make
+  slice-quality-gate` PASS (140/140 cells), gmeow-docs 233/233, and an observed live end-to-end
+  `gmeow hybrid-query` run. The authoritative full `make check` on the merged result runs in CI.
+
+- The stage-2-recorded "inherited logic/rdfs projection-ceiling red (RecoveryCase, #1573)" was
+  RESOLVED before this merge landed: current origin/main carries #1570's grounding (RecoveryCase
+  69→68, FunctionTerm grounded), so the merged tree's slice-quality-gate is green (140/140). No
+  maintainer ceiling bump was needed; #1526 contributes 0 rdfs residue (proven: 0 rdfs:subClassOf/
+  subPropertyOf edges added to logic/module.ttl).
+
+- Docs coverage-ratchet baseline re-blessed +57 across every docs/missing-* facet (the new
+  external-relation vocabulary terms plus merged origin/main terms lacking full doc facets) —
+  tracked in the baseline, not concealed; the established re-bless-after-merge pattern.
