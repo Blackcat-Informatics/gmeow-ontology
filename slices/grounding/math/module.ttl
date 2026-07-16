@@ -7599,6 +7599,31 @@ math:VectorUnbinding
     skos:definition "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Vector-symbolic frame classes (vector-symbolic coverage family) -------- #
+# A math:VectorSymbolicOperation is defined only relative to a complete, declared
+# frame: the math:VectorSpace it composes representations in, a math:Basis fixing
+# the coordinates, the operand math:Vector(s) it binds, bundles, or unbinds, a
+# capacity descriptor bounding how many items may be superposed before recovery
+# degrades, and a recovery-loss contract stating the exact fidelity of retrieval.
+# Capacity and the recovery-loss contract are the reusable objects that make a
+# vector-symbolic architecture more than an ordinary similarity score, and each is
+# a first-class mathematical object here, never an implicit assumption. Recovery
+# is approximate unless an exact algebra proves otherwise, so the recovery-loss
+# contract's exact rational loss bound is constitutive.
+math:VectorSymbolicCapacity
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector-Symbolic Capacity"@x-gmeow-english ;
+    skos:definition "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RecoveryLossContract
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Recovery-Loss Contract"@x-gmeow-english ;
+    skos:definition "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Clifford and exterior algebra ----------------------------------------- #
 
 math:QuadraticSpace
@@ -7925,6 +7950,67 @@ math:clusteringThreshold
     skos:definition "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Vector-symbolic frame properties (vector-symbolic coverage family) ---- #
+math:overVectorSpace
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over vector space"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:overBasis
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over basis"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:vsaOperand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "vsa operand"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundVector
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bound vector"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:unbindingKey
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "unbinding key"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:recoveredOperand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "recovered operand"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:operationCapacity
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "operation capacity"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:recoveryLossContract
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "recovery-loss contract"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:capacityBound
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "capacity bound"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:lossBound
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "loss bound"@x-gmeow-english ;
+    skos:definition "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- Hodge-decomposition frame properties (Hodge coverage family) --------- #
 math:overSheaf
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -8237,6 +8323,13 @@ math:IncompleteMapperConstruction
     skos:definition "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:IncompleteVectorSymbolicOperation
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Vector-Symbolic Operation"@x-gmeow-english ;
+    skos:definition "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Task-7 conformance-failure classes ------------------------------------- #
 
 math:UnderspecifiedPiecewiseFunction
@@ -8520,6 +8613,78 @@ math:MapperConstruction logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NerveComplex ] ,
     [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:allValuesFrom math:NerveComplex ] ;
     gmeow:enforcesFailureClass math:IncompleteMapperConstruction .
+
+# Vector-symbolic coverage family: a binding, bundling, or unbinding is defined
+# only relative to a complete, declared frame — the vector space it composes in,
+# the basis fixing its coordinates, its operand vectors, its capacity descriptor,
+# and its recovery-loss (fidelity) contract. Every obligation is a
+# qualified-cardinality + allValuesFrom OWL restriction (EL-safe) that derives the
+# paired sh:minCount/maxCount + sh:class property shape; a missing or wrongly typed
+# component fails the derived constraint and isolates
+# math:IncompleteVectorSymbolicOperation. Binding and bundling take two or more
+# operands (a derived QualifiedMinCount of 2 on math:vsaOperand). Omitting the
+# capacity descriptor fails the derived QualifiedMinCount on math:operationCapacity
+# (the capacity-degradation counterexample); omitting the recovery-loss contract
+# fails the derived QualifiedMinCount on math:recoveryLossContract (the
+# non-invertibility counterexample), because recovery is approximate unless an
+# exact algebra proves otherwise.
+math:VectorBinding logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:allValuesFrom math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:minQualifiedCardinality 2 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:allValuesFrom math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:minQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:allValuesFrom math:RecoveryLossContract ] ;
+    gmeow:enforcesFailureClass math:IncompleteVectorSymbolicOperation .
+
+math:VectorBundling logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:allValuesFrom math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:minQualifiedCardinality 2 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:allValuesFrom math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:minQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:allValuesFrom math:RecoveryLossContract ] ;
+    gmeow:enforcesFailureClass math:IncompleteVectorSymbolicOperation .
+
+math:VectorUnbinding logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:allValuesFrom math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundVector ; owl:minQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundVector ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundVector ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:unbindingKey ; owl:minQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:unbindingKey ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:unbindingKey ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveredOperand ; owl:minQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveredOperand ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveredOperand ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:allValuesFrom math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:minQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:allValuesFrom math:RecoveryLossContract ] ;
+    gmeow:enforcesFailureClass math:IncompleteVectorSymbolicOperation .
 
 math:Number rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -12532,8 +12697,10 @@ math:SymplecticForm a logic:AbstractIndividualType .
 math:VectorBinding a logic:AbstractIndividualType .
 math:VectorBundling a logic:AbstractIndividualType .
 math:VectorField a logic:AbstractIndividualType .
+math:VectorSymbolicCapacity a logic:AbstractIndividualType .
 math:VectorSymbolicOperation a logic:AbstractIndividualType .
 math:VectorUnbinding a logic:AbstractIndividualType .
+math:RecoveryLossContract a logic:AbstractIndividualType .
 math:VietorisRipsComplex a logic:AbstractIndividualType .
 
 # Event
@@ -12667,4 +12834,5 @@ math:IncompleteHodgeDecomposition a logic:Situation .
 math:IncompleteInformationMeasure a logic:Situation .
 math:IncompleteMapperConstruction a logic:Situation .
 math:IncompletePersistentHomologyAnalysis a logic:Situation .
+math:IncompleteVectorSymbolicOperation a logic:Situation .
 math:ZeroDenominator a logic:Situation .

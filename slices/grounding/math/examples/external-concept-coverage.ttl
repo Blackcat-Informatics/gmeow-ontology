@@ -205,3 +205,30 @@ cov:mapperClustering a math:ClusteringRule ;
 cov:mapperThreshold a math:RationalValue ;
     math:numerator 1 ; math:denominator 1 .
 cov:mapperNerve a math:NerveComplex .
+
+# Vector-symbolic coverage: a binding is recoverable from its vector space, its
+# basis, its operand vectors, its capacity descriptor, and its recovery-loss
+# (fidelity) contract as separate reusable objects, without a project-specific
+# similarity-score surrogate that flattens the capacity/recovery frame. The algebra
+# is bipolar MAP (elementwise product), which is exactly invertible, so the
+# recovery-loss contract states loss 0/1 and the capacity is the exact rational 2/1.
+cov:vsaBinding a math:VectorBinding ;
+    math:overVectorSpace cov:vsaSpace ;
+    math:overBasis cov:vsaBasis ;
+    math:vsaOperand cov:vsaOperandA , cov:vsaOperandB ;
+    math:operationCapacity cov:vsaCapacity ;
+    math:recoveryLossContract cov:vsaContract .
+cov:vsaSpace a math:VectorSpace .
+cov:vsaBasis a math:Basis .
+cov:vsaOperandA a math:Vector ;
+    math:inBasis cov:vsaBasis .
+cov:vsaOperandB a math:Vector ;
+    math:inBasis cov:vsaBasis .
+cov:vsaCapacity a math:VectorSymbolicCapacity ;
+    math:capacityBound cov:vsaCapacityBound .
+cov:vsaCapacityBound a math:RationalValue ;
+    math:numerator 2 ; math:denominator 1 .
+cov:vsaContract a math:RecoveryLossContract ;
+    math:lossBound cov:vsaLossBound .
+cov:vsaLossBound a math:RationalValue ;
+    math:numerator 0 ; math:denominator 1 .

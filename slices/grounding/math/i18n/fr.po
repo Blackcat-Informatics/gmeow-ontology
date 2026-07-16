@@ -2781,3 +2781,107 @@ msgstr "entrée d'analyse"
 msgctxt "https://blackcatinformatics.ca/math/analysisInput|skos:definition"
 msgid "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."
 msgstr "Relie une activité d'analyse mathématique à l'objet explicite qu'elle analyse ; l'absence de cette relation rend mal formée toute analyse qui exige une entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|rdfs:label"
+msgid "Vector-Symbolic Capacity"
+msgstr "Capacité vectorielle-symbolique"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|skos:definition"
+msgid "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."
+msgstr "Le descripteur de capacité d'une opération vectorielle-symbolique : un objet mathématique de première classe portant la borne math:RationalValue exacte (via math:capacityBound) sur le nombre de représentations qui peuvent être liées ou superposées en un seul vecteur avant que la récupération ne se dégrade en deçà du contrat de perte à la récupération de l'opération. Une sous-classe de math:MathematicalObject. La capacité est déclarée, jamais une conséquence implicite de la dimension ; une opération vectorielle-symbolique qui en manque est mal formée (math:IncompleteVectorSymbolicOperation), car le point où la diaphonie de superposition submerge la récupération reste alors non énoncé."
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|rdfs:label"
+msgid "Recovery-Loss Contract"
+msgstr "Contrat de perte à la récupération"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|skos:definition"
+msgid "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Le contrat de perte à la récupération (fidélité) d'une opération vectorielle-symbolique : un objet mathématique de première classe portant la borne de perte math:RationalValue exacte (via math:lossBound) sur l'écart entre un opérande récupéré et l'original — exactement 0/1 lorsqu'une algèbre exacte rend l'opération inversible, et un rationnel positif énoncé sinon. Une sous-classe de math:MathematicalObject. La récupération est approximative sauf si une algèbre exacte prouve le contraire, donc le contrat est constitutif : un déliage dont la fidélité est laissée implicite ne peut prétendre à l'inversibilité, et une opération vectorielle-symbolique qui manque du contrat est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|rdfs:label"
+msgid "Incomplete Vector-Symbolic Operation"
+msgstr "Opération vectorielle-symbolique incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|skos:definition"
+msgid "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."
+msgstr "L'échec soulevé lorsqu'une opération vectorielle-symbolique manque d'une composante de cadre requise — le math:VectorSpace dans lequel elle compose, la math:Basis fixant ses coordonnées, ses vecteurs opérandes (deux ou plus pour un liage ou un groupage ; le vecteur lié, la clé et l'opérande récupéré pour un déliage), son descripteur de capacité, ou son contrat de perte à la récupération (fidélité). Une opération vectorielle-symbolique n'est définie que relativement à un cadre complet et déclaré ; un liage, un groupage ou un déliage nu dont la capacité ou le contrat de perte à la récupération est implicite est mal formé, car sans la capacité la limite de diaphonie de superposition n'est pas énoncée et sans la borne de perte l'opération ne peut prétendre à l'inversibilité — la récupération est approximative sauf si une algèbre exacte prouve le contraire."
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|rdfs:label"
+msgid "over vector space"
+msgstr "sur l'espace vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique au math:VectorSpace dans lequel elle compose des représentations distribuées — l'espace ambiant dont les vecteurs sont liés, groupés ou déliés. Domaine math:VectorSymbolicOperation, portée math:VectorSpace (énoncé en prose). L'espace fait partie du cadre de l'opération, jamais implicite ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|rdfs:label"
+msgid "over basis"
+msgstr "sur la base"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique à la math:Basis fixant les coordonnées de son espace vectoriel, de sorte que les vecteurs opérandes et résultats aient des composantes non ambiguës et que la loi de liage soit reproductible. Domaine math:VectorSymbolicOperation, portée math:Basis (énoncé en prose). La base fait partie du cadre de l'opération, jamais implicite ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|rdfs:label"
+msgid "vsa operand"
+msgstr "opérande vsa"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|skos:definition"
+msgid "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."
+msgstr "Relie un math:VectorBinding ou un math:VectorBundling à l'un des math:Vector opérandes qu'il compose — un facteur d'un liage ou un terme d'un groupage. Domaine un math:VectorBinding ou math:VectorBundling, portée math:Vector (énoncé en prose). Le liage et le groupage prennent chacun deux opérandes ou plus ; une opération en déclarant moins est mal formée (math:IncompleteVectorSymbolicOperation), car un opérande unique n'est rien à combiner."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|rdfs:label"
+msgid "bound vector"
+msgstr "vecteur lié"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|skos:definition"
+msgid "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie un math:VectorUnbinding au math:Vector composite dont il récupère un opérande — la représentation précédemment liée à laquelle le déliage est appliqué. Domaine math:VectorUnbinding, portée math:Vector (énoncé en prose). Le vecteur lié fait partie du cadre du déliage, jamais implicite ; un déliage qui en manque est mal formé (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|rdfs:label"
+msgid "unbinding key"
+msgstr "clé de déliage"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|skos:definition"
+msgid "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie un math:VectorUnbinding au math:Vector clé (indice) fourni pour récupérer un facteur lié — l'autre opérande du liage d'origine, ou son inverse sous la loi de liage déclarée. Domaine math:VectorUnbinding, portée math:Vector (énoncé en prose). Sans la clé, il n'y a rien avec quoi sonder le vecteur lié, de sorte qu'un déliage qui en manque est mal formé (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|rdfs:label"
+msgid "recovered operand"
+msgstr "opérande récupéré"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|skos:definition"
+msgid "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie un math:VectorUnbinding au math:Vector qu'il produit — l'estimation récupérée de l'opérande lié, exacte lorsqu'une algèbre exacte rend le liage inversible et une approximation bruitée sinon. Domaine math:VectorUnbinding, portée math:Vector (énoncé en prose). L'opérande récupéré est la sortie déclarée du déliage ; un déliage qui en manque est mal formé (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|rdfs:label"
+msgid "operation capacity"
+msgstr "capacité d'opération"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique au descripteur math:VectorSymbolicCapacity bornant le nombre de représentations qui peuvent être liées ou superposées avant que la récupération ne se dégrade. Domaine math:VectorSymbolicOperation, portée math:VectorSymbolicCapacity (énoncé en prose). La capacité est déclarée, jamais une conséquence implicite de la dimension ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
+msgid "recovery-loss contract"
+msgstr "contrat de perte à la récupération"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique au math:RecoveryLossContract énonçant la fidélité exacte de la récupération — perte 0/1 lorsqu'une algèbre exacte la rend inversible, un rationnel positif énoncé sinon. Domaine math:VectorSymbolicOperation, portée math:RecoveryLossContract (énoncé en prose). La récupération est approximative sauf si une algèbre exacte prouve le contraire, donc le contrat est constitutif ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|rdfs:label"
+msgid "capacity bound"
+msgstr "borne de capacité"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|skos:definition"
+msgid "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."
+msgstr "Relie une math:VectorSymbolicCapacity à la math:RationalValue exacte du nombre maximal de représentations qu'elle peut lier ou superposer avant que la récupération ne se dégrade — portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte que la capacité est reproductible. Domaine math:VectorSymbolicCapacity, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|rdfs:label"
+msgid "loss bound"
+msgstr "borne de perte"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
+msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
+msgstr "Relie un math:RecoveryLossContract à la math:RationalValue exacte de sa borne de perte à la récupération — exactement 0/1 lorsqu'une algèbre exacte rend l'opération inversible, et un rationnel positif énoncé sinon — portée comme une paire numérateur/dénominateur exacte, jamais un décimal. Domaine math:RecoveryLossContract, portée math:RationalValue (énoncé en prose)."

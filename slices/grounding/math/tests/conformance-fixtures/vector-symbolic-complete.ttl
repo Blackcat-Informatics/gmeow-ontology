@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# A vector-symbolic operation names a complete, declared frame: the vector space
+# it composes distributed representations in, the basis fixing its coordinates, its
+# operand vectors, a capacity descriptor bounding how many items may be superposed,
+# and a recovery-loss (fidelity) contract stating the exact loss of retrieval. The
+# binding, bundling, and unbinding all conform against the derived frame shapes.
+#
+# ALGEBRA: this is the multiply-add-permute (MAP) architecture over a bipolar
+# {-1, +1} vector space, where binding is elementwise (Hadamard) product. Bipolar
+# MAP binding is an EXACT algebra: each operand vector is its own inverse under the
+# product (vᵢ² = +1), so unbinding the composite by the key recovers the other
+# operand EXACTLY, with recovery loss 0/1. Every coordinate is carried as an exact
+# math:RationalValue (numerator/denominator), never a decimal.
+ex:space a math:VectorSpace .
+ex:basis a math:Basis .
+
+# The two reference operand vectors, given as concrete exact-rational bipolar
+# coordinates over the two-dimensional basis.
+ex:vecA a math:Vector ;
+    math:inBasis ex:basis ;
+    math:hasComponent ex:vecA0 , ex:vecA1 .
+ex:vecA0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue ex:posOne .
+ex:vecA1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue ex:negOne .
+
+ex:vecB a math:Vector ;
+    math:inBasis ex:basis ;
+    math:hasComponent ex:vecB0 , ex:vecB1 .
+ex:vecB0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue ex:negOne .
+ex:vecB1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue ex:negOne .
+
+# The composite bound vector ex:bound = ex:vecA ⊙ ex:vecB = (+1·-1, -1·-1) =
+# (-1, +1), carried exactly.
+ex:bound a math:Vector ;
+    math:inBasis ex:basis ;
+    math:hasComponent ex:bound0 , ex:bound1 .
+ex:bound0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue ex:negOne .
+ex:bound1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue ex:posOne .
+
+# The exact rational coordinate values shared by the reference vectors.
+ex:posOne a math:RationalValue ; math:numerator 1 ; math:denominator 1 .
+ex:negOne a math:RationalValue ; math:numerator -1 ; math:denominator 1 .
+
+# The capacity descriptor: at this two-dimensional bipolar space the bundle can
+# hold exactly two near-orthogonal items before crosstalk overwhelms retrieval,
+# carried as the exact rational 2/1.
+ex:capacity a math:VectorSymbolicCapacity ;
+    math:capacityBound ex:capacityBound .
+ex:capacityBound a math:RationalValue ; math:numerator 2 ; math:denominator 1 .
+
+# The recovery-loss contract: because bipolar MAP binding is an exact algebra, the
+# unbinding recovers the operand EXACTLY, so the loss bound is exactly 0/1.
+ex:exactContract a math:RecoveryLossContract ;
+    math:lossBound ex:zeroLoss .
+ex:zeroLoss a math:RationalValue ; math:numerator 0 ; math:denominator 1 .
+
+# The binding: composes the two reference operands into ex:bound over the declared
+# space and basis, with the capacity descriptor and the exact recovery-loss
+# contract.
+ex:binding a math:VectorBinding ;
+    math:overVectorSpace ex:space ;
+    math:overBasis ex:basis ;
+    math:vsaOperand ex:vecA , ex:vecB ;
+    math:operationCapacity ex:capacity ;
+    math:recoveryLossContract ex:exactContract .
+
+# The bundling: superposes the same two operands into a similarity-preserving
+# aggregate over the declared space and basis, with the capacity descriptor and
+# the exact recovery-loss contract.
+ex:bundling a math:VectorBundling ;
+    math:overVectorSpace ex:space ;
+    math:overBasis ex:basis ;
+    math:vsaOperand ex:vecA , ex:vecB ;
+    math:operationCapacity ex:capacity ;
+    math:recoveryLossContract ex:exactContract .
+
+# The unbinding: recovers ex:vecA from the composite ex:bound given the key
+# ex:vecB. Under the exact bipolar algebra the recovered operand equals ex:vecA
+# exactly, so the recovery-loss contract states loss 0/1.
+ex:unbinding a math:VectorUnbinding ;
+    math:overVectorSpace ex:space ;
+    math:overBasis ex:basis ;
+    math:boundVector ex:bound ;
+    math:unbindingKey ex:vecB ;
+    math:recoveredOperand ex:vecA ;
+    math:operationCapacity ex:capacity ;
+    math:recoveryLossContract ex:exactContract .

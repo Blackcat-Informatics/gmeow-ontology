@@ -1,0 +1,12 @@
+# External-corpus coverage: reusable vector-symbolic-operation frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?binding ?space ?basis ?capacity ?contract
+WHERE {
+  ?binding a math:VectorBinding ;
+           math:overVectorSpace ?space ;
+           math:overBasis ?basis ;
+           math:operationCapacity ?capacity ;
+           math:recoveryLossContract ?contract .
+}
+ORDER BY ?binding

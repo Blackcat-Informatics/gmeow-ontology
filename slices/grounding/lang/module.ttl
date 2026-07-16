@@ -6242,6 +6242,62 @@ gmeow:gmnCandidateMathNerve
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# The three vector-symbolic operators warrant symbol decisions of their own. Their
+# customary glyphs — ⊛ (circled asterisk) or ⊗ for binding, ⊕ for bundling, and ⊘
+# (circled slash) or ⊛⁻¹ for unbinding — are all overloaded with their standard
+# algebraic meanings (convolution/tensor product, direct sum, circled division),
+# and none of them can carry the vector-space + basis + capacity + recovery-loss
+# frame that makes a vector-symbolic operation more than a bare binary operator.
+# Each disposition is gmnDispositionNamedKey, so no glyph enters the executable GMN
+# glyph table and the pinned gmnGlyphTableVersion is unchanged.
+gmeow:gmnCandidateMathVectorBinding
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: vector-symbolic binding ⊛"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the a ⊛ b (or a ⊗ b) notation of math:VectorBinding, the vector-symbolic operation combining two representations into a representation of their association."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:VectorBinding ;
+    gmeow:gmnCandidateGlyph "⊛" ;
+    gmeow:gmnAsciiFallback "vsa_bind" ;
+    gmeow:gmnSpokenLabel "bind" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The circled asterisk ⊛ already denotes convolution and the circled times ⊗ denotes the tensor/Kronecker product, and vector-symbolic binding is written a ⊛ b over a declared vector space, basis, capacity, and recovery-loss contract that a flat glyph cannot carry — recovery being approximate unless an exact algebra proves otherwise; the `vsa_bind` key keeps that frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathVectorBundling
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: vector-symbolic bundling ⊕"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the a ⊕ b notation of math:VectorBundling, the vector-symbolic operation superposing several representations into a similarity-preserving aggregate."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:VectorBundling ;
+    gmeow:gmnCandidateGlyph "⊕" ;
+    gmeow:gmnAsciiFallback "vsa_bundle" ;
+    gmeow:gmnSpokenLabel "bundle" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The circled plus ⊕ already denotes the direct sum of spaces and modulo-two (XOR) addition, and vector-symbolic bundling is written a ⊕ b over a declared vector space, basis, and capacity bound on how many items may be superposed before crosstalk overwhelms retrieval — a frame a flat glyph cannot carry; the `vsa_bundle` key keeps that frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathVectorUnbinding
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: vector-symbolic unbinding ⊘"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the c ⊘ b (or a ⊛⁻¹) notation of math:VectorUnbinding, the vector-symbolic operation approximately or exactly recovering one bound factor given the other and a declared binding law."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:VectorUnbinding ;
+    gmeow:gmnCandidateGlyph "⊘" ;
+    gmeow:gmnAsciiFallback "vsa_unbind" ;
+    gmeow:gmnSpokenLabel "unbind" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The circled slash ⊘ already denotes circled division and an empty/annihilated element, and unbinding is written c ⊘ b (the inverse of binding under the declared law) whose retrieval carries a mandatory recovery-loss contract — recovery being approximate unless an exact algebra proves otherwise — that a flat glyph cannot express; the `vsa_unbind` key keeps that fidelity frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # The IPA glyphs remain executable inside phonological surface content but are
 # semantically rejected as aliases for their denoted phone IRIs. This prevents
 # an identifier-shaped `k` or `t` from overlapping GMN's reference-token grammar.
