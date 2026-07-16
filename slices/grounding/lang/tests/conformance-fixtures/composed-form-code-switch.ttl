@@ -27,10 +27,16 @@ ex:codeSwitchPhrase a lang:ComposedForm ;
 ex:csSlot0 a lang:FormSlot ;
     lang:slotIndex 0 ;
     lang:slotForm ex:enFeeling .
-ex:enFeeling a lang:WordForm ; lang:inSignSystem ex:english .
+ex:lexemeFeeling a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:enFeeling a lang:WordForm ;
+    lang:inSignSystem ex:english ;
+    lang:lexemeOf ex:lexemeFeeling .
 
 # Slot 1 — the embedded French constituent (the code switch).
 ex:csSlot1 a lang:FormSlot ;
     lang:slotIndex 1 ;
     lang:slotForm ex:frDejaVu .
-ex:frDejaVu a lang:WordForm ; lang:inSignSystem ex:french .
+ex:lexemeDejaVu a lang:Lexeme ; lang:inSignSystem ex:french .
+ex:frDejaVu a lang:WordForm ;
+    lang:inSignSystem ex:french ;
+    lang:lexemeOf ex:lexemeDejaVu .

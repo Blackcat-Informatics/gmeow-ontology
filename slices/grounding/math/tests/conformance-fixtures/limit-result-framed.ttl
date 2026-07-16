@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: two structured limit results whose value agrees with the outcome —
+# a divergesToPositiveInfinity result carrying math:PositiveInfinity, and a
+# convergesFinitely result carrying a finite numeric literal. Each names its
+# math:limitOutcome (satisfying the exact-one math:limitOutcome cardinality) and a
+# math:limitResultValue that agrees with that outcome, so both conform to the
+# derived math:LimitResultShape and satisfy math:LimitResultOutcomeValueConstraint.
+# Bound by ex:ecLimitResultFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:divergentResult a math:LimitResult ;
+    rdfs:label "A limit result diverging to +∞"@x-gmeow-english ;
+    math:limitOutcome math:divergesToPositiveInfinity ;
+    math:limitResultValue math:PositiveInfinity .
+
+ex:finiteResult a math:LimitResult ;
+    rdfs:label "A finite convergent limit result"@x-gmeow-english ;
+    math:limitOutcome math:convergesFinitely ;
+    math:limitResultValue "0.5"^^xsd:double .

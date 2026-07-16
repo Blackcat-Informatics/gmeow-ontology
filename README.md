@@ -68,10 +68,12 @@ gh attestation verify <path-to-artifact> --repo Blackcat-Informatics/gmeow-ontol
 
 SPDX SBOMs are also generated for each release and attached as workflow artifacts.
 
-**The engine** underneath is a reasoning-centric, OWL 2 DL, upper-ontology-grounded
+**The engine** underneath is a reasoning-centric, RDF 1.2-native, `logic:`-grounded
 super-vocabulary for modelling *digital existence* — people, organizations, documents,
 agreements, contacts, observations, measurements, locations, rights, identity, and
-contested facts — grounded in **gUFO**, **projected** down to 15+ consumer vocabularies
+contested facts — grounded comprehensively from `logic:`, `math:`, and `lang:` to **gUFO**,
+**BFO/OBO**, **DUL**, **YAMATO**, **OpenCyc**, **SUMO**, **OWL/RDFS**, **SHACL**,
+**Data Cube/STATO/OBCS**, and **OntoLex/WordNet/NIF/Web Annotation**, and **projected** down to 15+ consumer vocabularies
 (schema.org, FOAF, GeoSPARQL, vCard, iCalendar, OWL-Time, ODRL, …) and **aligned by
 reference** to dozens more (PROV-O, ORG, OntoLex-Lemon, Wikidata, BFO, QUDT, FALDO, IVOA,
 CIDOC-CRM, …) — see the [projection](#projection-targets) and
@@ -159,7 +161,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) | Specification | The build dataflow — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout; every `generated/` file is a projection of the bundle |
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
 | [`docs/okf.md`](./docs/okf.md) | Doctrine | The Open Knowledge Format agent surface — bidirectional Markdown-per-concept export (`gmeow okf`) + lift (`gmeow transpile <okf-dir>`); a lossy projection consuming the Rust `gts from-okf` codec |
-| [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The gUFO ↔ BFO 2020 foundational-spine bridge, by reference (Principle 5 applied recursively) |
+| [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The shipped `logic:` grounding correspondence catalogs for gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL, with explicit bridge and preservation policy |
 | [`docs/import-provenance.md`](./docs/import-provenance.md) | Doctrine | How external vocabularies are sourced; the IMPORT_OK vs reference-only license policy and carrier-time |
 | [`docs/CITATIONS.md`](./docs/CITATIONS.md) | Doctrine | The canonical citation ledger, generated bibliography exports, and agent maintenance rule |
 | [`docs/standpoints.md`](./docs/standpoints.md) | Doctrine | Contested facts as coexisting, standpoint-indexed claims — no privileged winner |
@@ -195,7 +197,7 @@ dist/bin/gmeow mcp
 The public `gmeow` CLI is a native Rust binary backed by the bundled
 `generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
 projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
-Documentation projections are regenerated from canonical sources with `make docs`;
+Documentation projections are regenerated from canonical sources with `make sync SYNC_OUTPUTS=docs`;
 they are intentionally not embedded in the logical bundle.
 Repository maintenance stays on `gmeow-dev`:
 if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
@@ -284,13 +286,13 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make reason-verify` | Native reasoning + reasoned-graph verify (consistency), one closure (Docker-free) |
 | `make reason-crosscheck` | Focused `purrdf::entail` **subsumption** cross-check oracle (native ⊇ oracle, Docker-free) |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
-| `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework: mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
-| `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
+| `make sync` | Run one cached synchronization DAG and materialize every output family: committed/generated, runtime `dist/`, and external docs (`SYNC_VERBOSE=1` streams live phases) |
+| `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
-| `make docs` | Regenerate all external documentation projections, including site, book, print, snippets, OKF, and YAML-LD |
+| `make sync SYNC_OUTPUTS=docs` | Regenerate the external site, book, print, snippet, and generated-model documentation projections |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
@@ -313,9 +315,9 @@ slices/<group>/<name>/    A slice: manifest.ttl (IRI + tier + deps + consumer),
                           docs.md. The <group> dir (core/, extensions/) is human
                           organization only — the build reads manifests.
 slices/vocabulary.ttl     The slice-manifest authoring vocabulary (spec layer)
-ontology/gmeow.ttl        Root ontology: metadata + owl:imports (gUFO + slices)
-dsl/mappings/             Mapping DSL: vocabulary, foundational gUFO↔BFO bridge,
-                          per-target projections, transforms.fno.ttl
+ontology/gmeow.ttl        Root ontology: metadata + owl:imports for slices
+dsl/mappings/             Shared mapping vocabulary, cross-cutting sets,
+                          shared equivalences, transforms.fno.ttl
 dsl/statements/           The canonical RDF 1.2 / RDF* statement-metadata source
 shapes/                   Authored SHACL (incl. the slice-manifest shapes)
 queries/                  Authored SPARQL: competency/, verify/, qc/, codecs/
@@ -356,24 +358,37 @@ derivation provenance. The cross-check oracle is the in-process `purrdf::entail`
 70/70 W3C-entailment conformance-tested, run as a *secondary* validator of the exported OWL
 projection, never as the authority over `logic:` semantics.
 
-### Upper-ontology spine
+### Grounding and upper-ontology spine
 
-- **gUFO** (MIT) is imported whole as the foundational categories.
+- **`logic:` is canonical.** Formal and upper-ontology grounding is authored in
+  `slices/grounding/logic/`; external vocabularies are target views, never the source from which
+  GMEOW derives meaning.
+- **gUFO** (MIT) remains vendored as a transition/conformance input and generated projection
+  surface. The complete class catalog is oriented `logic:` → gUFO, including explicit
+  `Unsupported` rows where the richer canonical model must not be flattened.
 - **UMBEL** (CC-BY-3.0) is intended as a *curated, extracted* reference-concept layer — never
   imported whole (it is too large for DL reasoning). Extraction is via ROBOT `extract` (SLME).
-- **DOLCE/DUL** (LGPL) is **link-only** — referenced, never imported.
-- **Foundational bridging (the spine reaches outward).** gUFO's *nature* categories are aligned
-  by reference to **BFO 2020** (ISO/IEC 21838-2) — `skos:closeMatch`, never imported — so GMEOW
-  interoperates with the OBO-Foundry / ISO top-level world. This is Principle 5 applied
-  recursively to the foundational layer; the emitted BFO IRIs are verified against a vendored
-  class snapshot (`imports/targets/bfo.ttl`), kept out of the reasoned closure. DOLCE/SUMO are
-  link-only bridge views, not imported truth sources. Authoring source: `dsl/mappings/foundational/`; full guide:
+- **DOLCE/DUL** is linked by reference, never imported; its six shipped rows are
+  commitment-shifting views, not equivalence axioms.
+- **The shipped logic bridge reaches outward.** BFO 2020, OBO/RO, SUMO, DUL, IAO, PATO,
+  YAMATO, and OpenCyc are explicit
+  `BridgeView` + `CommitmentShiftingBridge` correspondences, so no equivalence can be fabricated.
+  BFO IRIs and labels are verified against `imports/targets/bfo.ttl`; BFO/OBO/SUMO target axioms
+  stay outside object-level closure. OWL/RDFS is a `SoundUnderApproximation` compiler dialect and
+  SHACL Core/AF is `ValidationOnly`. The 140-row core and 23-row additive sources are
+  `slices/grounding/logic/mappings/grounding-bridges.ttl` and
+  `slices/grounding/logic/mappings/foundation-bridges.ttl`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
+- **The peer grounding slices ship their laws too.** `math:` owns Data Cube, STATO, OBCS,
+  SIO/OBI, QUDT, OpenMath, and mathematical identifier correspondences; `lang:` owns
+  OntoLex-Lemon, LexInfo, Global WordNet schema, NIF, Web Annotation, and linguistic identifier
+  correspondences. Domain slices consume the grounding terms and do not re-author these links.
 
 ### Linking & the license policy
 
 Alignments are canonical `logic:Correspondence` objects (authored via the mapping-DSL frontend
-in `dsl/mappings/`), from which SSSOM + EDOAL + FnO + SPARQL are generated lowerings — see
+in the owning slice's `mappings/` directory, or in `dsl/mappings/` when genuinely cross-cutting),
+from which SSSOM + EDOAL + FnO + SPARQL are generated lowerings — see
 [§ The correspondence calculus](#the-correspondence-calculus--alignment-as-a-first-class-logical-construct). Asserting a link (`owl:equivalentClass`,
 `skos:exactMatch`, …) to any external term is always permitted — it copies nothing.
 **Copying** axioms in (via `owl:imports` / ROBOT `extract`) is license-gated: a
@@ -444,7 +459,8 @@ representative, grouped sample:
 
 | Domain | Aligned vocabularies (by reference) |
 |---|---|
-| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), DOLCE/SUMO bridge views |
+| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), OBO/RO, SUMO; DOLCE/YAMATO refinement lineage |
+| **Logic & validation** | OWL/RDFS, SHACL Core/AF, Datalog, N3, Prolog, Common Logic dialects |
 | **Hub & coreference** | **Wikidata**, schema.org, FOAF, ORG, PROV-O |
 | **Identity & language** | GSSO, Homosaurus, FHIR, FOAF, OntoLex-Lemon, LIME, Glottolog, CEFR/ILR/ACTFL |
 | **Geospatial & place** | GeoSPARQL, CIDOC-CRM + CRMgeo, BOT/ifcOWL, LADM, INSPIRE, AIXM, UNCLOS, MRGID, OGC GeoPose, OGC Moving Features |
@@ -458,7 +474,7 @@ representative, grouped sample:
 
 GMEOW is **RDF 1.2 / RDF\*-first** ([Principles 2–3](./CONSTITUTION.md)): statement-level
 metadata — provenance, confidence, temporal scope — is **authored once** as native RDF 1.2 /
-RDF\* content in `dsl/statements/`, the canonical source. From it `gmeow-dev regenerate statements`
+RDF\* content in `dsl/statements/`, the canonical source. From it `gmeow-dev sync --mode update --outputs generated`
 generates two verified artifacts: the **RDF 1.2 / RDF\* serialization** (the lead form, written
 natively by the `gmeow-rdf` Rust codec — no Java, no Docker) and the **OWL 2 axiom-annotation
 form** (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the *generated,
@@ -466,7 +482,7 @@ reasoning-lossless downcast* that the OWL 2 DL reasoners GMEOW gates on actually
 OWL form is the **downgrade for legacy tooling** — the same lossy-compatibility-as-projection
 principle GMEOW applies to schema.org / vCard / FOAF ([Principle 4](./CONSTITUTION.md)), not a
 competing source of truth — and it recedes as RDF-1.2-native reasoners and stores arrive. Both
-downcasts are guarded by `make check-generated`
+downcasts are guarded by `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`
 ([Principle 7](./CONSTITUTION.md)). The **canonical logical core is the RDF-1.2-native `logic:`
 layer** (see *Native logic*, below); the OWL 2 DL form is one generated projection of it — a
 decidable downcast for today's reasoners, never a ceiling on what the canonical model may say.
@@ -485,8 +501,8 @@ GMEOW's logical core is a maximally expressive, RDF-1.2-native `logic:` layer
 a new namespace. **Every prior formalism is a generated, lossy projection of it**, and the
 relations are kept distinct on one lattice
 ([`LOGIC-META-SEMANTICS.md`](./slices/grounding/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
-*built atop* RDF 1.2; it is a *superset of* the definitional formalisms (OWL, RDFS, SKOS, gUFO,
-UFO — lifted in and projected back at exact preservation); it *down-projects lossily to* the
+*built atop* RDF 1.2; it provides typed correspondences to the definitional formalisms (OWL, RDFS,
+SKOS, gUFO, UFO) with preservation stated per construct rather than presumed; it *down-projects lossily to* the
 closed-world validation surfaces (**SHACL Core + ShEx**, derived from a `logic:` validation-shape
 node kind — [`LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md)); and it
 *derives, via the correspondence layer,* the alignment surfaces (SSSOM/EDOAL/FnO). OWL DL/EL,
@@ -693,8 +709,8 @@ provenance/confidence/standpoint layer every other slice already uses:
   result, a procedure, a time, and a vantage — so a sensor reading, a survey, and a model
   output are all first-class and comparable. Standpoint-indexed claims are themselves a
   *specialization* of observation (claim-from-a-vantage), unifying the epistemics spine.
-- **Quantities carry their units and their uncertainty.** A universal `gmeow:Quantity` /
-  `MeasuredValue` (value × unit × determinacy × provenance) aligns to **QUDT**, so "5 nm" and
+- **Quantities carry their units and their uncertainty.** The universal `math:Quantity`
+  (dimension × value × unit/frame × determinacy × provenance) aligns to **QUDT**, so "5 nm" and
   "5 µm" are never confused, and `SpatialMeasurement` + `CoordinateObservation` capture
   position *in an explicit reference frame*.
 - **Frame-relativity is the law, not a convention ([Principle 11](./CONSTITUTION.md)).** Every
@@ -751,7 +767,7 @@ The issue backlog is represented here as current capability:
   manifests, constitution-as-code, annotation-driven co-equal/suppression/frame guards,
   `owl:sameAs` hard gates, and RDF compliance report make constitutional drift a build failure.
 - **Docs-from-the-ontology.** Every slice has a full guide; `gmeow describe` works from the
-  bundled logical graph, while `make docs` source-renders every external documentation
+  bundled logical graph, while `make sync SYNC_OUTPUTS=docs` source-renders every external documentation
   projection; the citation ledger lives in `metadata/references.ttl` and exports to
   CSL, BibTeX, Markdown, and generated docs.
 - **Transpile and projection.** `gmeow transpile` lifts consumer RDF to a pure-GMEOW draft,

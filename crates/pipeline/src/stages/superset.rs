@@ -457,6 +457,11 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // `gmeow:QualityAssessment` observations). RDF travels as RDF, so the assessment
         // triples land in `generated/` too, not only in the bundle graph.
         || path == "generated/quality/gmeow.quality-assessment.nt"
+        // The authoring-packet projection: the on-disk fold of the bundle's
+        // `graph/authoring-briefs` named graph (a gmeow:AuthoringPacket per in-repo slice
+        // batch). RDF travels as RDF, so the packet triples land in `generated/` too, not
+        // only in the bundle graph.
+        || path == "generated/briefs/authoring-packets.nt"
         || path == "generated/diagnostics/shacl.nq"
         || path == "generated/diagnostics/logic-compile.nq"
         // The generated constraint catalog: its committed `.nq` carries the fanout
@@ -739,7 +744,7 @@ fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), gmeow_erro
         let entry = entry.map_err(|e| stage_err(&format!("dir entry in {dir:?}: {e}")))?;
         let path = entry.path();
         // Skip hidden (dot) directories: they are runtime, never committed — e.g.
-        // `generated/.pipeline-cache/` (gitignored persistent stage cache). The gate
+        // `.cache/gmeow-sync/pipeline/` (gitignored opt-in stage cache). The gate
         // reconstructs only committed artifacts.
         if entry.file_name().to_string_lossy().starts_with('.') {
             continue;

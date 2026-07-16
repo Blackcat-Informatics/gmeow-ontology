@@ -2243,8 +2243,8 @@ impl McpServer {
                     &[],
                 ),
                 tool(
-                    "regenerate",
-                    "Run the native pipeline regenerate surface.",
+                    "sync",
+                    "Run the native pipeline update-and-check surface.",
                     &[],
                 ),
                 tool(
@@ -2323,7 +2323,7 @@ impl McpServer {
             "competency_questions" => self.tool_competency_questions(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
-            "regenerate" if self.mode.includes_dev_tools() => self.tool_regenerate(),
+            "sync" if self.mode.includes_dev_tools() => self.tool_sync(),
             "constitution" if self.mode.includes_dev_tools() => self.tool_constitution(),
             "slice_quality" if self.mode.includes_dev_tools() => self.tool_slice_quality(args),
             _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -3188,14 +3188,16 @@ impl McpServer {
         .to_string())
     }
 
-    fn tool_regenerate(&self) -> gmeow_errors::Result<String> {
+    fn tool_sync(&self) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
-        let report = crate::run::run_full(&root, 1, crate::run::RunMode::Regenerate)?;
+        let jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+        let report = crate::run::run_full(&root, jobs, crate::run::RunMode::Update)?;
         Ok(json!({
-            "ok": true,
-            "mode": "regenerate",
+            "ok": report.is_clean(),
+            "mode": "update",
             "produced": report.produced,
             "reproduced": report.reproduced,
+            "drifted": report.drifted,
         })
         .to_string())
     }
@@ -5444,7 +5446,7 @@ mod tests {
         let dev_tools = dev.tools_result().to_string();
         assert!(dev_tools.contains("\"validate\""));
         assert!(dev_tools.contains("\"reason\""));
-        assert!(dev_tools.contains("\"regenerate\""));
+        assert!(dev_tools.contains("\"sync\""));
         assert!(dev_tools.contains("\"constitution\""));
         assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
@@ -6634,7 +6636,7 @@ mod tests {
     /// A normal, well-under-ceiling overlay still succeeds through both the byte gate
     /// and the quad gate — the byte cap must never reject a legitimate small annex.
     #[test]
-    fn verify_graph_accepts_a_normal_small_overlay() {
+    fn verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -10189,8 +10191,8 @@ mod tests {
     /// own quads, built via `SnapshotBuilder`/`emit_gts`, NOT the real committed `gmeow.gts` —
     /// the same tiny-snapshot construction `verify_graph_inconsistent_but_conclusive_never_certifies`
     /// uses): on-gate, not `_heavy_offgate`. Measured at ~0.01-0.03 s standalone and under full
-    /// contention with the genuinely-heavy `*_heavy_offgate` siblings, nowhere near the 25 s
-    /// policy cliff, because — unlike those siblings — this test never touches the real
+    /// contention with the genuinely-heavy `*_heavy_offgate` siblings because — unlike
+    /// those siblings — this test never touches the real
     /// committed bundle.
     #[test]
     fn coherence_certificate_tool_reads_the_carried_bundle() {

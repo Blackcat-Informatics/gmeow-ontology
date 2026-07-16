@@ -1738,7 +1738,7 @@ mod tests {
     /// a curie_map header, a column header, and rows — including the broadMatch
     /// (grief) and closeMatch-to-non-EmotionType (desire) rows that must NOT route.
     const SSSOM: &str = concat!(
-        "# mapping_tool: gmeow regenerate (mappings)\n",
+        "# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)\n",
         "# curie_map:\n",
         "#   gmeow: https://blackcatinformatics.ca/gmeow/\n",
         "#   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/\n",

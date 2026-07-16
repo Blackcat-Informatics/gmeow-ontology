@@ -975,6 +975,13 @@ fn constraint_term(t: &Term, focus: &str) -> gmeow_errors::Result<String> {
         Term::SequenceMarker(n) => Err(proj_err(format!(
             "sequence marker ...{n} has no single-term SPARQL triple form"
         ))),
+        // A compound function term does not name a single node the way a variable/IRI/literal
+        // does; SPARQL is function-free over the graph, so it has no single-term triple token.
+        // Flattening an application into a reifier-node join is a lowering, not a rendering, so
+        // it is refused here (carried as residue) rather than silently mis-projected.
+        Term::App { symbol, .. } => Err(proj_err(format!(
+            "compound function term {symbol}(…) has no single-term SPARQL triple form"
+        ))),
     }
 }
 

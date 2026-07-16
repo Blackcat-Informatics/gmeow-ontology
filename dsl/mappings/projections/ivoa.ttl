@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -69,13 +70,13 @@ gmeow:mapIvoaInstrument a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the instrument node is preserved, but agent roles and platform location are dropped" ] .
 
 gmeow:mapIvoaObservable a gmeow:ProjectionMapping ;
-    rdfs:label "ScalarQuantity → obscore:observable"@x-gmeow-english ;
+    rdfs:label "math:Quantity → obscore:observable"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "qty" ;
         gmeow:atom (
             [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
             [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "qty" ]
-            [ gmeow:subjectVar "qty" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ScalarQuantity ] ) ;
+            [ gmeow:subjectVar "qty" ; gmeow:predicate rdf:type ; gmeow:objectValue math:Quantity ] ) ;
         gmeow:edoalSource gmeow:observationResult ] ;
     gmeow:hasBinding [
         gmeow:profile "ivoa" ; gmeow:toPredicate obscore:observable ; gmeow:relation "<=" ;

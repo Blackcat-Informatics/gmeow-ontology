@@ -33,6 +33,28 @@ use purrdf::{
     parse_dataset, serialize_dataset,
 };
 
+// ── Grounding-correspondence vocabulary ──────────────────────────────────────
+
+pub const TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
+pub const GROUNDING_CORRESPONDENCE: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+pub const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
+pub const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
+pub const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
+pub const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
+pub const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
+pub const MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
+pub const PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+
+pub fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String {
+    assert_eq!(
+        values.len(),
+        1,
+        "{cell} must carry exactly one {field}, found {values:?}"
+    );
+    values.into_iter().next().unwrap()
+}
+
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
 /// Absolute path to the repository root (`crates/validate/../../`).
@@ -97,7 +119,7 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
         .unwrap_or_else(|e| {
             panic!(
                 "no generated shapes under generated/shapes/ — \
-                 run `gmeow regenerate frame-shapes` (P11 enforcement lives there): {e}"
+                 run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there): {e}"
             )
         })
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -111,7 +133,7 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
     assert!(
         !paths.is_empty(),
         "no generated shapes under generated/shapes/ — \
-         run `gmeow regenerate frame-shapes` (P11 enforcement lives there)"
+         run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there)"
     );
     paths.sort();
     paths
@@ -293,11 +315,10 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
 /// The whole-ontology-union tests validate an ~80k-quad graph against the entire
 /// shape corpus (hundreds of node shapes, including every `sh:sparql` constraint —
 /// each a per-focus whole-graph query), and the engine's shape/focus loops are
-/// serial, so one validation run is tens of seconds of single-core work — past
-/// the CI per-test budget on a few-core runner. The unit of independent work is
-/// the (shape, focus) pair, and one hot shape can own most of the wall time
-/// (measured: `gmeow:InternalLanguageTagShape` alone is ~14 s of a ~22 s
-/// per-shape total over this corpus), so sharding must split WITHIN a shape:
+/// serial, so one validation run is substantial single-core work. The unit of
+/// independent work is the (shape, focus) pair, and one hot shape can own most
+/// of the wall time (measured: `gmeow:InternalLanguageTagShape` alone is ~14 s
+/// of a ~22 s per-shape total over this corpus), so sharding must split WITHIN a shape:
 /// every worker runs the SAME full corpus over the SAME projected dataset but
 /// keeps only its round-robin residue of the focus stream via the engine's
 /// focus filter. The partition is exact and deterministic — the engine resolves

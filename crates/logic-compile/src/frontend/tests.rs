@@ -90,6 +90,93 @@ fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
     );
 }
 
+#[test]
+fn recovery_case_owns_its_formula_and_typed_term_carriers() {
+    let (program, diagnostics) = parse(
+        "ex:c a logic:Correspondence ;
+            logic:correspondenceRelation logic:Subsumes ;
+            logic:morphismClass logic:LossyLens ;
+            logic:morphismKind logic:InstitutionMorphism ;
+            logic:recoveryCase ex:case .
+         ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ;
+            logic:forall [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ; logic:relation ex:source ; logic:argument
+                    [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ,
+                    [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Source ] ] ;
+                logic:consequent [ a logic:Formula ; logic:relation ex:view ; logic:argument
+                    [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ,
+                    [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:View ] ]
+            ]
+         ] .",
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.severity != Severity::Error),
+        "unexpected recovery parse diagnostics: {diagnostics:#?}"
+    );
+    assert_eq!(program.correspondences.len(), 1);
+    assert_eq!(program.correspondences[0].recovery_cases.len(), 1);
+    assert!(
+        program.formulas.is_empty(),
+        "a recovery transform must not also become a top-level formula"
+    );
+    assert!(
+        program.axioms.iter().all(|axiom| {
+            axiom.obj != logic_iri("TermCarrier")
+                && axiom.obj != logic_iri("RecoveryCase")
+                && !axiom.predicate.ends_with("recoveryCase")
+                && !axiom.predicate.ends_with("recoveryTransform")
+        }),
+        "recovery/formula structure leaked into generic axioms: {:#?}",
+        program.axioms
+    );
+}
+
+#[test]
+fn recovery_case_requires_named_identity() {
+    let (program, diagnostics) = parse(
+        "ex:c a logic:Correspondence ;
+            logic:correspondenceRelation logic:Subsumes ;
+            logic:morphismClass logic:LossyLens ;
+            logic:morphismKind logic:InstitutionMorphism ;
+            logic:recoveryCase [ a logic:RecoveryCase ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "MALFORMED_CORRESPONDENCE"
+                && diagnostic.message.contains("non-IRI logic:recoveryCase")
+        }),
+        "unnamed recovery evidence must not disappear silently: {diagnostics:#?}"
+    );
+}
+
+#[test]
+fn orphan_recovery_case_is_hard_failed() {
+    // `ex:case` is typed `logic:RecoveryCase` but no `logic:Correspondence` reaches it via
+    // `logic:recoveryCase`: unowned recovery evidence must be a hard Severity::Error finding,
+    // not silently vanish from the parsed program.
+    let (program, diagnostics) = parse(
+        "ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:relation ex:source ;
+            logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:Source ]
+         ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "ORPHAN_RECOVERY_CASE"
+                && diagnostic.severity == Severity::Error
+                && diagnostic.message.contains("/case")
+        }),
+        "unowned RecoveryCase must be hard-failed: {diagnostics:#?}"
+    );
+}
+
 // ── Minimal graph + reasoning contracts ───────────────────────────────
 
 #[test]
@@ -1177,6 +1264,7 @@ fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
          @prefix owl:  <http://www.w3.org/2002/07/owl#> .\n\
          @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix g:    <https://blackcatinformatics.ca/gmeow/> .\n{ttl}"
     );
     parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
@@ -1213,6 +1301,141 @@ fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
         }
     }
     out
+}
+
+#[test]
+fn derive_logic_restrictions_matches_the_lowered_owl_spelling() {
+    let cases = [
+        (
+            "same-path allValuesFrom + maxQualifiedCardinality/onClass",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:item ; owl:allValuesFrom g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:item ;
+                 owl:maxQualifiedCardinality 1 ; owl:onClass g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:item ; logic:allValuesFrom g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:item ;
+                 logic:maxQualifiedCardinality 1 ; logic:onClass g:Item ] ."#,
+        ),
+        (
+            "someValuesFrom",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:someItem ; owl:someValuesFrom g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:someItem ; logic:someValuesFrom g:Item ] ."#,
+        ),
+        (
+            "hasValue",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:state ; owl:hasValue g:active ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:state ; logic:hasValue g:active ] ."#,
+        ),
+        (
+            "unqualified cardinalities",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:minItem ; owl:minCardinality 1 ] ,
+               [ a owl:Restriction ; owl:onProperty g:maxItem ; owl:maxCardinality 2 ] ,
+               [ a owl:Restriction ; owl:onProperty g:exactItem ; owl:cardinality 1 ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:minItem ; logic:minCardinality 1 ] ,
+               [ a logic:Restriction ; logic:onProperty g:maxItem ; logic:maxCardinality 2 ] ,
+               [ a logic:Restriction ; logic:onProperty g:exactItem ; logic:cardinality 1 ] ."#,
+        ),
+        (
+            "qualified cardinalities with class qualifiers",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:exactMember ; owl:qualifiedCardinality 1 ; owl:onClass g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:minMember ; owl:minQualifiedCardinality 1 ; owl:onClass g:Item ] ,
+               [ a owl:Restriction ; owl:onProperty g:maxMember ; owl:maxQualifiedCardinality 2 ; owl:onClass g:Item ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:exactMember ; logic:qualifiedCardinality 1 ; logic:onClass g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:minMember ; logic:minQualifiedCardinality 1 ; logic:onClass g:Item ] ,
+               [ a logic:Restriction ; logic:onProperty g:maxMember ; logic:maxQualifiedCardinality 2 ; logic:onClass g:Item ] ."#,
+        ),
+        (
+            "qualified cardinality with data-range qualifier",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:score ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:score ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ."#,
+        ),
+        (
+            "unionOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:unionOf ( g:Item g:OtherItem ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:unionOf ( g:Item g:OtherItem ) ] ] ."#,
+        ),
+        (
+            "disjointUnionOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:disjointUnionOf ( g:Item g:OtherItem ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:disjointUnionOf ( g:Item g:OtherItem ) ] ] ."#,
+        ),
+        (
+            "oneOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:state ;
+                 owl:allValuesFrom [ owl:oneOf ( g:active g:inactive ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:state ;
+                 logic:allValuesFrom [ logic:oneOf ( g:active g:inactive ) ] ] ."#,
+        ),
+        (
+            "complementOf filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:member ;
+                 owl:allValuesFrom [ owl:complementOf g:ForbiddenItem ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:member ;
+                 logic:allValuesFrom [ logic:complementOf g:ForbiddenItem ] ] ."#,
+        ),
+        (
+            "faceted datatype onDatatype/withRestrictions filler",
+            r#"g:Record a owl:Class ; rdfs:subClassOf
+               [ a owl:Restriction ; owl:onProperty g:code ; owl:allValuesFrom
+                 [ a rdfs:Datatype ; owl:onDatatype xsd:string ;
+                   owl:withRestrictions ( [ xsd:minLength 2 ] ) ] ] ."#,
+            r#"g:Record a owl:Class ; logic:subClassOf
+               [ a logic:Restriction ; logic:onProperty g:code ; logic:allValuesFrom
+                 [ a rdfs:Datatype ; logic:onDatatype xsd:string ;
+                   logic:withRestrictions ( [ xsd:minLength 2 ] ) ] ] ."#,
+        ),
+    ];
+
+    let mut merged_logic_shapes = None;
+    for (name, owl_ttl, logic_ttl) in cases {
+        let owl = shape_dataset(owl_ttl);
+        let logic = shape_dataset(logic_ttl);
+        let owl_shapes = derive_validation_shapes(owl.as_ref())
+            .unwrap_or_else(|error| panic!("derive OWL spelling for {name}: {error}"));
+        let logic_shapes = derive_validation_shapes(logic.as_ref())
+            .unwrap_or_else(|error| panic!("derive canonical logic spelling for {name}: {error}"));
+        assert_eq!(
+            logic_shapes, owl_shapes,
+            "canonical logic: spelling must match its OWL projection for {name}"
+        );
+        if name.starts_with("same-path") {
+            merged_logic_shapes = Some(logic_shapes);
+        }
+    }
+
+    let logic_shapes = merged_logic_shapes.expect("the same-path merge case ran");
+    let record = logic_shapes
+        .iter()
+        .find(|shape| shape.iri.ends_with("/Record-shape"))
+        .expect("logic-authored Record restriction must produce a class shape");
+    assert_eq!(record.properties.len(), 1, "same-path restrictions merge");
+    assert_eq!(
+        record.properties[0].path,
+        "https://blackcatinformatics.ca/gmeow/item"
+    );
 }
 
 #[test]
@@ -2921,5 +3144,136 @@ fn derive_value_keyed_general_class_inclusion() {
             .any(|p| p.path.ends_with("/explanandum") && p.min_count == Some(1)),
         "explanandum minCount 1: {:?}",
         vk.properties
+    );
+}
+
+// ── Compound function-term applications (logic:termApplication / logic:FunctionTerm) ──────────
+
+#[test]
+fn compound_function_term_parses_into_nested_term_app() {
+    use crate::ir::{Formula, Term};
+    // An atomic predication `p(H, cons(H, cons(1, nil)))` — its second argument carries
+    // logic:termApplication onto a logic:FunctionTerm whose own second argument is again a
+    // logic:termApplication, so the parser must reconstruct a NESTED Term::App with argument
+    // order and kinds intact. The atom carries a compound function term, so it exceeds the
+    // function-free Horn fragment and stays a logic:Formula (never routed to axioms).
+    let (prog, diags) = parse(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:consOuter ] .
+         ex:consOuter a logic:FunctionTerm ;
+            logic:functionSymbol ex:cons ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:consInner ] .
+         ex:consInner a logic:FunctionTerm ;
+            logic:functionSymbol ex:cons ;
+            logic:argument [ logic:termIndex 0 ; logic:termLiteral \"1\" ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termIri ex:nil ] .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "a well-formed compound term must not be flagged malformed: {diags:?}"
+    );
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "the function-term argument keeps the atom in LogicProgram.formulas: {:?}",
+        prog.formulas
+    );
+
+    let ex = "https://example.org/test/";
+    let cons = format!("{ex}cons");
+    let expected_inner = Term::App {
+        symbol: cons.clone(),
+        args: vec![
+            Term::Literal {
+                lexical: "1".to_owned(),
+                datatype: None,
+            },
+            Term::Iri(format!("{ex}nil")),
+        ],
+    };
+    let expected_outer = Term::App {
+        symbol: cons,
+        args: vec![Term::Var("H".to_owned()), expected_inner],
+    };
+
+    let Formula::Atom { relation, args } = &prog.formulas[0] else {
+        panic!("expected an atomic predication, got {:?}", prog.formulas[0]);
+    };
+    assert_eq!(*relation, Term::Iri(format!("{ex}p")), "relation preserved");
+    assert_eq!(args.len(), 2, "atom arity preserved");
+    assert_eq!(
+        args[0],
+        Term::Var("H".to_owned()),
+        "argument 0 order preserved"
+    );
+    assert_eq!(
+        args[1], expected_outer,
+        "argument 1 is the nested cons(H, cons(1, nil)) application"
+    );
+}
+
+#[test]
+fn nullary_function_term_is_rejected() {
+    // A logic:FunctionTerm with a symbol but ZERO logic:argument carriers is a nullary
+    // application. A 0-ary function symbol is a constant (logic:termIri), so this is malformed
+    // rather than a degenerate term — mirrors logic:FunctionTermArityConstraint.
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:empty ] .
+         ex:empty a logic:FunctionTerm ; logic:functionSymbol ex:f .",
+        "at least one argument",
+    );
+}
+
+#[test]
+fn function_term_without_symbol_is_rejected() {
+    // A logic:FunctionTerm bearing arguments but no logic:functionSymbol is malformed —
+    // mirrors logic:FunctionSymbolConstraint (exactly one reified symbol required).
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:ft ] .
+         ex:ft a logic:FunctionTerm ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
+        "exactly one logic:functionSymbol",
+    );
+}
+
+#[test]
+fn cyclic_function_term_is_rejected() {
+    // A logic:FunctionTerm reachable from its own logic:argument expansion is an infinite
+    // term; the parser's path guard rejects it rather than recursing forever.
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:loop ] .
+         ex:loop a logic:FunctionTerm ;
+            logic:functionSymbol ex:f ;
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:loop ] .",
+        "cyclic",
+    );
+}
+
+#[test]
+fn term_application_carrier_excludes_other_value_kinds() {
+    // logic:termApplication is the fifth mutually exclusive term-value kind: a carrier bearing
+    // both logic:termApplication and logic:termIri violates the exactly-one rule (mirrors the
+    // extended logic:TermCarrierValueConstraint).
+    assert_malformed_formula_error(
+        "ex:phi a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termApplication ex:ft ; logic:termIri ex:b ] .
+         ex:ft a logic:FunctionTerm ;
+            logic:functionSymbol ex:f ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
+        "requires exactly one term-value property",
     );
 }

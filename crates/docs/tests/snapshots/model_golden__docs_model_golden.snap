@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 82,
-  "term_count": 4774,
-  "dependency_edge_count": 1159,
+  "term_count": 5006,
+  "dependency_edge_count": 1163,
   "term_count_by_category": {
-    "Class": 1489,
+    "Class": 1546,
     "Datatype": 1,
-    "Individual": 695,
-    "Property": 2589
+    "Individual": 747,
+    "Property": 2712
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -268,11 +268,11 @@ expression: summary
       ]
     },
     {
-      "iri": "https://blackcatinformatics.ca/gmeow/VerdictEquivalent",
+      "iri": "https://blackcatinformatics.ca/gmeow/GapShapeExistentialWitness",
       "slug": "",
-      "curie": "gmeow:VerdictEquivalent",
-      "label": "Verdict Equivalent",
-      "definition": "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped.",
+      "curie": "gmeow:GapShapeExistentialWitness",
+      "label": "Gap Shape Existential Witness",
+      "definition": "The gmeow:GapShape for a conclusion carrying a blank-node (existential) subject or object, which needs Skolem-witness semantics outside the ground-refutation fragment the native DL reasoner decides over. A genuine reasoner-fragment gap.",
       "category": "Individual",
       "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
       "parents": [],
@@ -297,18 +297,18 @@ expression: summary
       "stability": "stable",
       "added_in_version": "0.1.0",
       "changelog": [],
-      "content_digest": "blake3:d555d0a0896396726c7c86786c0a2fdac89909a2f8f2111ff2a8ec67ca44a8b7",
+      "content_digest": "blake3:2975cace510b2098d48653aebfe8f0a966ecaf8cce2f23d18799f36912fafb19",
       "profiles": [
         "claims",
         "full"
       ]
     }
   ],
-  "mapping_set_count": 81,
-  "linkage_count": 1875,
-  "example_count": 154,
+  "mapping_set_count": 99,
+  "linkage_count": 2089,
+  "example_count": 161,
   "concern_count": 7,
-  "external_term_count": 1582,
+  "external_term_count": 1775,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -423,8 +423,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 324,
-  "competency_count": 180,
+  "shape_count": 317,
+  "competency_count": 194,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

@@ -89,6 +89,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[
             "https://blackcatinformatics.ca/gmeow/graph/authored-default",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
+            "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
             "https://blackcatinformatics.ca/gmeow/graph/metadata",
             "https://blackcatinformatics.ca/gmeow/graph/provenance",
             "https://blackcatinformatics.ca/gmeow/graph/quality-assessment",
@@ -111,6 +112,14 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
+    // stage-goal-directed — the checked backward-engine answers + proof derivations.
+    entry(
+        &mut t,
+        "stage-goal-directed",
+        &["https://blackcatinformatics.ca/gmeow/graph/goal-directed"],
+        &[],
+    );
+
     // stage-math-producers — the five flagship producer graphs plus the probability-model
     // seam producer graph and the p-value tri-slice producer graph.
     entry(
@@ -125,6 +134,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
         ],
+        &[],
+    );
+
+    // stage-slice-brief — the per-slice authoring-packet corpus (base graph); the snapshot
+    // re-roots the SAME triples into their fanout twin (below).
+    entry(
+        &mut t,
+        "stage-slice-brief",
+        &["https://blackcatinformatics.ca/gmeow/graph/authoring-briefs"],
         &[],
     );
 
@@ -192,6 +210,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             // carrier (R6): a budget-free, proof-carrying coherence artifact the consumer
             // read tool surfaces directly.
             "https://blackcatinformatics.ca/gmeow/graph/attestations",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/briefs/authoring-packets.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/logic-compile.nq",

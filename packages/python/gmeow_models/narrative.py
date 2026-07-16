@@ -25,48 +25,6 @@ class ArcTypeEnum(StrEnum):
     arcTypeRedemption = "gmeow:arcTypeRedemption"
 
 
-class FrameKindEnum(StrEnum):
-    frameKindAnalytical = "gmeow:frameKindAnalytical"
-    frameKindCartesian = "gmeow:frameKindCartesian"
-    frameKindConfigurationSpace = "gmeow:frameKindConfigurationSpace"
-    frameKindCylindrical = "gmeow:frameKindCylindrical"
-    frameKindGeocoding = "gmeow:frameKindGeocoding"
-    frameKindGeodetic = "gmeow:frameKindGeodetic"
-    frameKindGrid = "gmeow:frameKindGrid"
-    frameKindHilbert = "gmeow:frameKindHilbert"
-    frameKindLatentSpace = "gmeow:frameKindLatentSpace"
-    frameKindLinear = "gmeow:frameKindLinear"
-    frameKindLinearSequence = "gmeow:frameKindLinearSequence"
-    frameKindManifold = "gmeow:frameKindManifold"
-    frameKindNarrative = "gmeow:frameKindNarrative"
-    frameKindPhaseSpace = "gmeow:frameKindPhaseSpace"
-    frameKindPolar = "gmeow:frameKindPolar"
-    frameKindScalar = "gmeow:frameKindScalar"
-    frameKindTemporal = "gmeow:frameKindTemporal"
-    frameKindTopological = "gmeow:frameKindTopological"
-
-
-class FrameRealmEnum(StrEnum):
-    frameRealmBiological = "gmeow:frameRealmBiological"
-    frameRealmCelestial = "gmeow:frameRealmCelestial"
-    frameRealmColourspace = "gmeow:frameRealmColourspace"
-    frameRealmCurrency = "gmeow:frameRealmCurrency"
-    frameRealmIndoor = "gmeow:frameRealmIndoor"
-    frameRealmLinguistic = "gmeow:frameRealmLinguistic"
-    frameRealmMathematical = "gmeow:frameRealmMathematical"
-    frameRealmMeasurement = "gmeow:frameRealmMeasurement"
-    frameRealmMusicAnalysis = "gmeow:frameRealmMusicAnalysis"
-    frameRealmMusicalPitch = "gmeow:frameRealmMusicalPitch"
-    frameRealmMusicalTime = "gmeow:frameRealmMusicalTime"
-    frameRealmNarrative = "gmeow:frameRealmNarrative"
-    frameRealmPerceptual = "gmeow:frameRealmPerceptual"
-    frameRealmPsychological = "gmeow:frameRealmPsychological"
-    frameRealmRobotic = "gmeow:frameRealmRobotic"
-    frameRealmTemporal = "gmeow:frameRealmTemporal"
-    frameRealmTerrestrial = "gmeow:frameRealmTerrestrial"
-    frameRealmVirtual = "gmeow:frameRealmVirtual"
-
-
 class MotifKindEnum(StrEnum):
     motifKindLeitmotif = "gmeow:motifKindLeitmotif"
     motifKindRunningGag = "gmeow:motifKindRunningGag"
@@ -110,18 +68,6 @@ class NarrativeTimeAxisEnum(StrEnum):
     axisStoryTime = "gmeow:axisStoryTime"
 
 
-class ProjectionContextEnum(StrEnum):
-    consumerAdviceCatalog = "gmeow:consumerAdviceCatalog"
-    consumerAgentMemory = "gmeow:consumerAgentMemory"
-    consumerFoafExport = "gmeow:consumerFoafExport"
-    consumerInternalArchive = "gmeow:consumerInternalArchive"
-    consumerPublicSite = "gmeow:consumerPublicSite"
-    consumerResearchQueue = "gmeow:consumerResearchQueue"
-    consumerSchemaOrgJsonLd = "gmeow:consumerSchemaOrgJsonLd"
-    consumerWikidata = "gmeow:consumerWikidata"
-    consumerWikipedia = "gmeow:consumerWikipedia"
-
-
 class ArcSample(ConfiguredBaseModel):
     """Arc Sample.
 
@@ -149,16 +95,16 @@ class ArcSample(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ArcSample", "curie": "gmeow:ArcSample", "definitionDigest": "blake3:fc6ae7f5cf6bcd99834def1608601116c3faa5723664657e8da1b25802826ef0", "iri": "https://blackcatinformatics.ca/gmeow/ArcSample"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ArcSample", "curie": "gmeow:ArcSample", "definitionDigest": "blake3:9f53187d3298493fda7f609d66a94e478db3c7825594385a119368385d4677b3", "iri": "https://blackcatinformatics.ca/gmeow/ArcSample"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    samplePosition: list[NarrativePosition] = Field(min_length=1, description="WHERE in the narrative this sample reads — a frame-carried NarrativePosition (narrative-position axis), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample.", alias="gmeow:samplePosition")
-    sampleState: str = Field(description="The read state, by IRI — an affect-slice EmotionType when that slice is loaded, an EmotionML category IRI, or another tradition's term (range intentionally open: soft reference, never extension→extension dependency, P16). Functional: one cell, one state — a blended reading at one position is several samples sharing a vantage. The claimModality axiom pattern applies: this plays the observationResult role without the subproperty (QualityValue ⟂ Entity).", alias="gmeow:sampleState")
-    sampleSubject: str = Field(description="The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one sample, one subject.", alias="gmeow:sampleSubject")
-    vantage: list[str] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
+    samplePosition: list[Any] | None = Field(default=None, description="WHERE in the narrative this sample reads — a frame-carried NarrativePosition (narrative-position axis), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample.", alias="gmeow:samplePosition")
+    sampleState: Any = Field(description="The read state, by IRI — an affect-slice EmotionType when that slice is loaded, an EmotionML category IRI, or another tradition's term (range intentionally open: soft reference, never extension→extension dependency, P16). Functional: one cell, one state — a blended reading at one position is several samples sharing a vantage. The claimModality axiom pattern applies: this plays the observationResult role without the subproperty (QualityValue ⟂ Entity).", alias="gmeow:sampleState")
+    sampleSubject: Any = Field(description="The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one sample, one subject.", alias="gmeow:sampleSubject")
+    vantage: list[Any] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
 
 
 class CharacterArc(ConfiguredBaseModel):
@@ -182,14 +128,13 @@ class CharacterArc(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CharacterArc", "curie": "gmeow:CharacterArc", "definitionDigest": "blake3:23dfff1bd840cfb9c98f9c578ebb8cda5c68d4f77b3ba5537180e0b6d72c0972", "iri": "https://blackcatinformatics.ca/gmeow/CharacterArc"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CharacterArc", "curie": "gmeow:CharacterArc", "definitionDigest": "blake3:0514a9682de84ec2aa5ce9090591a2e38ee9b99b9c94e39f125309ff146c692b", "iri": "https://blackcatinformatics.ca/gmeow/CharacterArc"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    arcSubject: list[str] = Field(min_length=1, description="The entity whose arc is described — a person, organization, or other narrative entity. Functional: one subject per CharacterArc.", alias="gmeow:arcSubject")
-    arcType: list[ArcTypeEnum] = Field(description="The interpretive type of this character arc — a value from the open gmeow:ArcType vocabulary. Functional: one type per CharacterArc.", alias="gmeow:arcType")
+    arcFrame: str = Field(description="The narrative reference frame within which this arc is interpreted. Functional: one frame per CharacterArc; cross-continuity arcs are separate instances linked by counterpartOf.", alias="gmeow:arcFrame")
 
 
 class Motif(ConfiguredBaseModel):
@@ -219,14 +164,14 @@ class Motif(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Motif", "curie": "gmeow:Motif", "definitionDigest": "blake3:e710e618eeb0be087b9196381a32cfb8302d7b6e7648dd4a2b7d3bf118d67568", "iri": "https://blackcatinformatics.ca/gmeow/Motif"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Motif", "curie": "gmeow:Motif", "definitionDigest": "blake3:f9ef47050c365ecf4015fda7071afb4c7d4f0466db2ae3f2e9c94a27fb67b327", "iri": "https://blackcatinformatics.ca/gmeow/Motif"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     motifOccursIn: list[ContentSegment] | None = Field(default=None, description="An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, narration seam), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges.", alias="gmeow:motifOccursIn")
-    label: list[str] = Field(min_length=1, alias="rdfs:label")
+    label: list[Any] = Field(min_length=1, alias="rdfs:label")
 
 
 class Myth(ConfiguredBaseModel):
@@ -251,15 +196,13 @@ class Myth(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Myth", "curie": "gmeow:Myth", "definitionDigest": "blake3:907656b2368977c94d6c6742aa60a7e936ec973fda1e588c0bacafa51aca4950", "iri": "https://blackcatinformatics.ca/gmeow/Myth"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Myth", "curie": "gmeow:Myth", "definitionDigest": "blake3:140f7708a33f37d22eda985dd20b77aabe8943c3263f567d184402131fdc8ea0", "iri": "https://blackcatinformatics.ca/gmeow/Myth"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    affectedConsumerSurface: list[ProjectionContextEnum] | None = Field(default=None, description="The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary.", alias="gmeow:affectedConsumerSurface")
-    hasMythTelling: list[str] | None = Field(default=None, description="Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10).", alias="gmeow:hasMythTelling")
-    recurringRisk: bool | None = Field(default=None, description="A flag indicating that this myth or false claim is a repeat offender — agents and generated reports re-introduce it, so audit tooling can prioritise active correction over one-off debunking.", alias="gmeow:recurringRisk")
+    hasMythTelling: list[str] | None = Field(default=None, description="Within gmeow:Myth, values are node references constrained to gmeow:CreativeWork. Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10).", alias="gmeow:hasMythTelling")
 
 
 class NarrationUsage(ConfiguredBaseModel):
@@ -285,15 +228,15 @@ class NarrationUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrationUsage", "curie": "gmeow:NarrationUsage", "definitionDigest": "blake3:a3594fc4e3999c3e064e94b1e7f105debc602dae0a273d96ceb33953be048c3d", "iri": "https://blackcatinformatics.ca/gmeow/NarrationUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrationUsage", "curie": "gmeow:NarrationUsage", "definitionDigest": "blake3:fdf7999264b90eade28020165625ba2c01ded612bd1471ab143bbe7f482baf26", "iri": "https://blackcatinformatics.ca/gmeow/NarrationUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    narrationMode: list[NarrationModeEnum] = Field(description="The mode(s) of this narration usage. At least one (SHACL): if you reified, you had a reason. NOT functional: a flashback can also be a dream; coexisting critical readings ride the statement layer (Principle 9).", alias="gmeow:narrationMode")
-    narrationSegment: list[ContentSegment] = Field(min_length=1, description="The carrying segment. Functional and mandatory (SHACL).", alias="gmeow:narrationSegment")
-    narrationSubject: str = Field(description="The narrated diegetic entity, event, or situation. Range intentionally open (the narrates convention). Functional and mandatory (SHACL): one relator per (segment, subject) pair — a chapter narrating four events with modes is four NarrationUsages.", alias="gmeow:narrationSubject")
+    narrationMode: list[Any] = Field(min_length=1, description="The mode(s) of this narration usage. At least one (SHACL): if you reified, you had a reason. NOT functional: a flashback can also be a dream; coexisting critical readings ride the statement layer (Principle 9).", alias="gmeow:narrationMode")
+    narrationSegment: list[Any] | None = Field(default=None, description="The carrying segment. Functional and mandatory (SHACL).", alias="gmeow:narrationSegment")
+    narrationSubject: Any = Field(description="The narrated diegetic entity, event, or situation. Range intentionally open (the narrates convention). Functional and mandatory (SHACL): one relator per (segment, subject) pair — a chapter narrating four events with modes is four NarrationUsages.", alias="gmeow:narrationSubject")
 
 
 class NarrativeFrameLink(ConfiguredBaseModel):
@@ -319,15 +262,15 @@ class NarrativeFrameLink(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink", "curie": "gmeow:NarrativeFrameLink", "definitionDigest": "blake3:407e60243d6bd851d75bc94e7176ef2b53fbf0af6cb44c398e1f0957e6b7089f", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink", "curie": "gmeow:NarrativeFrameLink", "definitionDigest": "blake3:85ecbd2d6876a565a4ea8f2894ffb15ac993bebb366da4f74b4e3979dfbd2e69", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    narrativeFrameLinkRelation: list[NarrativeFrameRelationEnum] = Field(description="The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink.", alias="gmeow:narrativeFrameLinkRelation")
-    narrativeFrameLinkSource: list[NarrativeReferenceFrame] = Field(min_length=1, description="The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink.", alias="gmeow:narrativeFrameLinkSource")
-    narrativeFrameLinkTarget: list[NarrativeReferenceFrame] = Field(min_length=1, description="The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink.", alias="gmeow:narrativeFrameLinkTarget")
+    narrativeFrameLinkRelation: NarrativeFrameRelationEnum = Field(description="The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink.", alias="gmeow:narrativeFrameLinkRelation")
+    narrativeFrameLinkSource: NarrativeReferenceFrame = Field(description="The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink.", alias="gmeow:narrativeFrameLinkSource")
+    narrativeFrameLinkTarget: NarrativeReferenceFrame = Field(description="The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink.", alias="gmeow:narrativeFrameLinkTarget")
 
 
 class NarrativePosition(ConfiguredBaseModel):
@@ -386,14 +329,14 @@ class NarrativeReferenceFrame(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame", "curie": "gmeow:NarrativeReferenceFrame", "definitionDigest": "blake3:2a6d296b5a95a74630c83c656cf158017188728f612244bf950ddc78cac73df1", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame", "curie": "gmeow:NarrativeReferenceFrame", "definitionDigest": "blake3:d7e9d5f4913b2421ebbc38fa08069016edc8271883b96b3b4e06b23e3f2b4b17", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    frameKind: list[FrameKindEnum] = Field(description="Relates a reference frame to its structural frame kind.", alias="gmeow:frameKind")
-    frameRealm: list[FrameRealmEnum] = Field(description="Relates a reference frame to the realm it describes.", alias="gmeow:frameRealm")
+    frameKind: str = Field(description="Relates a reference frame to its structural frame kind.", alias="gmeow:frameKind")
+    frameRealm: str = Field(description="Relates a reference frame to the realm it describes.", alias="gmeow:frameRealm")
 
 
 class NarrativeTimeFrame(ConfiguredBaseModel):
@@ -420,7 +363,7 @@ class NarrativeTimeFrame(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame", "curie": "gmeow:NarrativeTimeFrame", "definitionDigest": "blake3:6469d50ab5425964bc68d9d97520a4da3294030376d1ddcbfc5caaef953cdb10", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame", "curie": "gmeow:NarrativeTimeFrame", "definitionDigest": "blake3:a174647df3d9d90b69159fdacf9d7ec61bae7368f5b704b9008fa81eaaef048b", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

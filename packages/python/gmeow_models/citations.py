@@ -80,12 +80,12 @@ class CitationAct(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CitationAct", "curie": "gmeow:CitationAct", "definitionDigest": "blake3:08b067576c727886b70d65919ad30793a74be8a8dcb41c1e8a20b38705f85ac5", "iri": "https://blackcatinformatics.ca/gmeow/CitationAct"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CitationAct", "curie": "gmeow:CitationAct", "definitionDigest": "blake3:a73c5476b1e8f1fcca9f11ff852c9bbdb20ec439362eea976fb07f6aae2257df", "iri": "https://blackcatinformatics.ca/gmeow/CitationAct"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    citationIntent: str = Field(description="The intent with which the citation is made — a value from the open gmeow:CitationIntent vocabulary. Functional per relator: one intent per CitationAct.", alias="gmeow:citationIntent")
-    citedEntity: str = Field(description="The creative work that is cited — a Work, Expression, Manifestation, or Item. Functional per relator: one cited entity per CitationAct.", alias="gmeow:citedEntity")
-    citingEntity: Entity = Field(description="The entity that makes the citation — a claim, a work, a module, a dataset. Functional per relator: one citing entity per CitationAct.", alias="gmeow:citingEntity")
+    citationIntent: list[CitationIntentEnum] | None = Field(default=None, description="The intent with which the citation is made — a value from the open gmeow:CitationIntent vocabulary. Functional per relator: one intent per CitationAct.", alias="gmeow:citationIntent")
+    citedEntity: list[str] | None = Field(default=None, description="Within gmeow:CitationAct, values are node references constrained to gmeow:CreativeWork. The creative work that is cited — a Work, Expression, Manifestation, or Item. Functional per relator: one cited entity per CitationAct.", alias="gmeow:citedEntity")
+    citingEntity: list[Entity] | None = Field(default=None, description="The entity that makes the citation — a claim, a work, a module, a dataset. Functional per relator: one citing entity per CitationAct.", alias="gmeow:citingEntity")

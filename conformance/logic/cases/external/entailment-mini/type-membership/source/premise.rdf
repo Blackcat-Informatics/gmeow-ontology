@@ -1,0 +1,7 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/">
+  <owl:Class rdf:about="A"/>
+  <rdf:Description rdf:about="x"><rdf:type rdf:resource="A"/></rdf:Description>
+  <owl:Class rdf:about="A"/>
+  <owl:Class rdf:about="B"/>
+  <rdf:Description rdf:about="A"><rdfs:subClassOf rdf:resource="B"/></rdf:Description>
+</rdf:RDF>

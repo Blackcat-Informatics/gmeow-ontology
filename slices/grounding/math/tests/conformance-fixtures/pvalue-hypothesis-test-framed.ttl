@@ -71,3 +71,4 @@ ex:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;
     gmeow:hasReferenceFrame ex:samplingFrame .
 
 ex:samplingFrame a gmeow:ReferenceFrame .
+<http://example.org/math/pValueMagnitude> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

@@ -1,0 +1,265 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# FLAGSHIP worked example (qualitative path) — a signed radial field on a
+# compactified Lorentzian 2-plane with a central singularity, modelled with NO
+# equation at all. This is one of two co-equal worked demonstrators that model the
+# SAME target: a signed field that runs to +∞ at the centre (the ideal value R′),
+# declines strictly outward across four ring bands, spends a broad near-zero plateau
+# on Ring 2 that DOMINATES the spatial measure, and runs to −∞ at compactified
+# infinity. This qualitative scene proves the target is fully modellable from the
+# existing math: term surface WITHOUT a closed form — pieces, monotonicity, a plateau
+# bound, structured divergent limits, and comparable subset measures carry the whole
+# story. The sibling scene examples/signed-radial-field-closed-form.ttl gives the
+# EXACT T(x) that entails the same rings; neither is privileged over the other.
+#
+# This is PURE MATH. A downstream consumer slice may read the geometry physically —
+# the central singularity as a gravitational well, the outward decline as a potential,
+# the near-zero plateau as a flat far field, the −∞ end as a repulsive barrier — but
+# that reading lives entirely downstream and is never asserted here: math-side there
+# is only a signed extended-real field over a compactified line.
+#
+# Every individual carries scene-scoped IRIs (the radial-qual/ namespace) so this file
+# and its closed-form sibling load into one universe without any subject clash. It
+# validates cleanly under the global gate.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/> .
+
+# --- The Lorentzian (1,1) 2-plane the field lives on ------------------------- #
+# The radial field is a field on a Lorentzian 2-plane: dimension 2, signature (1,1)
+# — one spacelike and one timelike direction. p + q = 1 + 1 = 2 = the manifold
+# dimension (so the metric-signature dimension gate is satisfied), and exactly one
+# timelike direction (so the Lorentzian timelike-direction gate is satisfied).
+ex:radialPlane a math:LorentzianManifold ;
+    rdfs:label "The Lorentzian (1,1) radial 2-plane"@x-gmeow-english ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:lorentzianStructure ;
+    math:metricTensor ex:radialMetric .
+
+ex:radialMetric a math:MetricTensor ;
+    rdfs:label "The metric tensor of the radial 2-plane"@x-gmeow-english ;
+    math:tensorFieldOn ex:radialPlane ;
+    math:metricSignature ex:radialSignature .
+
+# Signature (1, 1): one spacelike, one timelike — the Lorentzian 2-plane signature.
+ex:radialSignature a math:MetricSignature ;
+    rdfs:label "Metric signature (1, 1)"@x-gmeow-english ;
+    math:signaturePositive 1 ;
+    math:signatureNegative 1 .
+
+# --- The conformal compactification of the radial half-line ----------------- #
+# The unbounded radial half-line is conformally compactified to the bounded open
+# chart x ∈ (0, 1): the centre singularity sits at x = 0 (excluded — the field is
+# unbounded there) and the ideal point at infinity is adjoined at x = 1.
+ex:radialCompactification a math:ConformalCompactification ;
+    rdfs:label "Conformal compactification of the radial half-line onto x ∈ (0, 1)"@x-gmeow-english ;
+    math:originalSpace ex:radialHalfLine ;
+    math:compactifyingMap ex:radialCompactifyingMap ;
+    math:compactifiedSpace ex:compactifiedChart ;
+    math:boundaryAtInfinity ex:radialIdealBoundary ;
+    math:conformalFactor ex:radialConformalFactor .
+
+ex:radialHalfLine a math:TopologicalSpace , math:Set ;
+    rdfs:label "The unbounded radial half-line"@x-gmeow-english .
+
+ex:radialCompactifyingMap a math:CoordinateMap ;
+    rdfs:label "The compactifying embedding onto x ∈ (0, 1)"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:compactifiedChart .
+
+# The bounded chart x ∈ (0, 1): both ends open — the centre singularity (x = 0) and
+# the ideal point at infinity (x = 1) are limit points the field approaches, not
+# members of the chart.
+ex:compactifiedChart a math:Interval ;
+    rdfs:label "The compactified radial chart x ∈ (0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:radialIdealBoundary a math:BoundaryAtInfinity ;
+    rdfs:label "The ideal point at compactified infinity x = 1"@x-gmeow-english .
+
+ex:radialConformalFactor a math:Function ;
+    rdfs:label "The conformal factor rescaling the radial metric"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:positiveReals .
+
+ex:positiveReals a math:Set ;
+    rdfs:label "the positive reals"@x-gmeow-english .
+
+# --- Rings 0–3: four interval bands partitioning the open chart (0, 1) -------- #
+# The four rings tile (0, 1) end to end: (0, 0.1), [0.1, 0.35), [0.35, 0.9),
+# [0.9, 1). Each is BOTH a math:Interval (both endpoints, both inclusions — so the
+# interval endpoint gate is satisfied) and a math:MeasurableSet (so each can be the
+# measured subset of a measure evaluation below). Ring 0 abuts the excluded centre
+# singularity (open lower end); Ring 3 abuts the excluded ideal boundary (open upper
+# end); Ring 2 is the broad plateau band.
+ex:ring0 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 0 — the innermost band (0, 0.1) abutting the centre singularity"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "0.1"^^xsd:double ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:ring1 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 1 — the near band [0.1, 0.35)"@x-gmeow-english ;
+    math:lowerEndpoint "0.1"^^xsd:double ;
+    math:upperEndpoint "0.35"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:ring2 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 2 — the broad near-zero plateau band [0.35, 0.9)"@x-gmeow-english ;
+    math:lowerEndpoint "0.35"^^xsd:double ;
+    math:upperEndpoint "0.9"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:ring3 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 3 — the outer band [0.9, 1) abutting the ideal boundary"@x-gmeow-english ;
+    math:lowerEndpoint "0.9"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+# --- The signed radial field — a piecewise function, NO closed form ---------- #
+# The field is a math:PiecewiseFunction (four ring pieces) with NO math:definingExpression
+# and NO math:ClosedFormFunction typing: the qualitative facility alone suffices. It
+# declares BOTH its frame ends — math:domain the compactified (0, 1) chart-set and
+# math:codomain the signed extended real line math:ExtendedRealLine (a math:NumberSystem,
+# hence a math:Set, so a legitimate codomain) — so the inherited function-frame gate is
+# satisfied. It declines strictly outward (math:strictlyDecreasing) and is non-affine.
+ex:signedRadialFieldQual a math:PiecewiseFunction ;
+    rdfs:label "The signed radial field (qualitative path — no equation)"@x-gmeow-english ;
+    math:domain ex:radialFieldDomain ;
+    math:codomain math:ExtendedRealLine ;
+    math:hasPiece ex:ring0Piece , ex:ring1Piece , ex:ring2Piece , ex:ring3Piece ;
+    math:hasMonotonicity math:strictlyDecreasing ;
+    math:hasAnalyticProperty math:nonAffinity .
+
+ex:radialFieldDomain a math:Set ;
+    rdfs:label "The compactified open chart (0, 1) as the field's domain set"@x-gmeow-english .
+
+ex:ring0Piece a math:FunctionPiece ;
+    rdfs:label "Ring 0 piece — near the centre singularity"@x-gmeow-english ;
+    math:pieceDomain ex:ring0 .
+
+ex:ring1Piece a math:FunctionPiece ;
+    rdfs:label "Ring 1 piece — the near band"@x-gmeow-english ;
+    math:pieceDomain ex:ring1 .
+
+# Ring 2 carries the near-zero plateau: it is bounded in magnitude by a small ε over
+# its own interval (math:hasBound / math:boundOnInterval), backed by math:boundedness.
+ex:ring2Piece a math:FunctionPiece ;
+    rdfs:label "Ring 2 piece — the broad near-zero plateau"@x-gmeow-english ;
+    math:pieceDomain ex:ring2 ;
+    math:hasAnalyticProperty math:boundedness ;
+    math:hasBound "0.01"^^xsd:double ;
+    math:boundOnInterval ex:ring2 .
+
+ex:ring3Piece a math:FunctionPiece ;
+    rdfs:label "Ring 3 piece — the outer band running to −∞"@x-gmeow-english ;
+    math:pieceDomain ex:ring3 .
+
+# --- The two divergent limits: R′ = +∞ at the centre, −∞ at infinity --------- #
+# The central singularity: as x → 0⁺ the field diverges to +∞ — the ideal value R′.
+ex:centreSingularity a math:MathematicalObject ;
+    rdfs:label "The central singularity at x = 0"@x-gmeow-english .
+
+# As a math:BindingExpression the limit binds its approach variable (the compactified
+# radius x it drives to 0⁺) through math:boundVariable and names its body — the field
+# whose limit is taken — through an indexed math:argumentSlot. This is binding structure,
+# not an equation: the qualitative scene stays free of any closed form.
+ex:centreLimit a math:Limit ;
+    rdfs:label "The centre limit: the field → +∞ (R′) as x → 0⁺"@x-gmeow-english ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:signedRadialFieldQual ;
+    math:limitPoint ex:centreSingularity ;
+    math:limitMode math:limitFromRight ;
+    math:boundVariable ex:centreLimitVar ;
+    math:argumentSlot ex:centreLimitSlot0 ;
+    math:hasLimitResult ex:centreLimitResult .
+
+ex:centreLimitVar a math:VariableDeclaration ;
+    rdfs:label "x — the approach variable of the centre limit (x → 0⁺)"@x-gmeow-english .
+
+ex:centreLimitSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:signedRadialFieldQual .
+
+ex:centreLimitResult a math:LimitResult ;
+    rdfs:label "R′ — the positive-infinite value at the centre"@x-gmeow-english ;
+    math:limitOutcome math:divergesToPositiveInfinity ;
+    math:limitResultValue math:PositiveInfinity .
+
+# The asymptote at compactified infinity: as x → 1⁻ the field diverges to −∞.
+ex:infinityLimit a math:Limit ;
+    rdfs:label "The infinity limit: the field → −∞ as x → 1⁻"@x-gmeow-english ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:signedRadialFieldQual ;
+    math:limitPoint ex:radialIdealBoundary ;
+    math:limitMode math:limitFromLeft ;
+    math:boundVariable ex:infinityLimitVar ;
+    math:argumentSlot ex:infinityLimitSlot0 ;
+    math:hasLimitResult ex:infinityLimitResult .
+
+ex:infinityLimitVar a math:VariableDeclaration ;
+    rdfs:label "x — the approach variable of the infinity limit (x → 1⁻)"@x-gmeow-english .
+
+ex:infinityLimitSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:signedRadialFieldQual .
+
+ex:infinityLimitResult a math:LimitResult ;
+    rdfs:label "The negative-infinite asymptote at compactified infinity"@x-gmeow-english ;
+    math:limitOutcome math:divergesToNegativeInfinity ;
+    math:limitResultValue math:NegativeInfinity .
+
+# --- Four subset measure evaluations — Ring 2 strictly dominates the measure -- #
+# A single measure μ on the compactified line (total mass 1 — the length of the whole
+# open chart) evaluates each ring band. The four masses are the ring lengths, so
+# Ring 2 (length 0.55) is STRICTLY the largest: the near-zero plateau is the
+# volume-dominant band. The dominance is data — four comparable finite masses — and
+# is executed as an inequality by the structural cell, never merely asserted in prose.
+ex:radialMeasure a math:Measure ;
+    rdfs:label "The length measure on the compactified radial line"@x-gmeow-english ;
+    math:measureOn ex:radialMeasurableSpace ;
+    math:totalMass 1 .
+
+ex:radialMeasurableSpace a math:MeasurableSpace ;
+    rdfs:label "The compactified radial line as a measurable space"@x-gmeow-english ;
+    math:measurableSpaceOf ex:radialUnderlyingSet , ex:radialSigmaAlgebra .
+
+ex:radialUnderlyingSet a math:Set ;
+    rdfs:label "the underlying point set of the compactified line"@x-gmeow-english .
+
+ex:radialSigmaAlgebra a math:SigmaAlgebra ;
+    rdfs:label "the Borel σ-algebra on the compactified line"@x-gmeow-english .
+
+ex:ring0Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 0) = 0.1"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring0 ;
+    math:measureResult "0.1"^^xsd:double .
+
+ex:ring1Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 1) = 0.25"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring1 ;
+    math:measureResult "0.25"^^xsd:double .
+
+ex:ring2Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 2) = 0.55 — the dominant plateau band"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring2 ;
+    math:measureResult "0.55"^^xsd:double .
+
+ex:ring3Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 3) = 0.1"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring3 ;
+    math:measureResult "0.1"^^xsd:double .

@@ -1149,7 +1149,7 @@ fn shapes_turtle(root: &Path) -> gmeow_errors::Result<String> {
     if !core_prefixes.exists() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
             message: format!(
-                "core prefix set not found (run `make regenerate`): {}",
+                "core prefix set not found (run `make sync`): {}",
                 core_prefixes.display()
             ),
         }));

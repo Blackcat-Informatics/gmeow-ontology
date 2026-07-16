@@ -167,7 +167,7 @@ existing machinery rather than minting a parallel copy.
   calibration), *never* `logic:confidence`; "the relationship is vague" is
   `Determinacy = vague`, not low confidence. Every quantitative hard-fail here is an
   instance of that existing separation.
-- **Vantage is `logic:accordingTo` / `logic:Standpoint`.** Self-report-outranks-
+- **Vantage is `gmeow:accordingTo` / `logic:Standpoint`.** Self-report-outranks-
   attribution, two-critics-coexist, and unspecified-≠-universal are the foundation's
   standpoint indexing (Principle 9), not new machinery.
 

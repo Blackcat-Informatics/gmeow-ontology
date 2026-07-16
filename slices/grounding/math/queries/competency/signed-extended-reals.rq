@@ -1,0 +1,15 @@
+# Competency question: "Which values are the two poles of the signed extended real
+# line, and what number system adjoins them?"  This exercises the bedrock discipline
+# that the extended real line ℝ̄ reuses the number-system machinery — its two poles are
+# situated in it through math:inNumberSystem, exactly as any number is situated in ℕ, ℤ,
+# ℚ, ℝ, or ℂ. Runs over the merged ontology directly (no fixture): the poles and
+# math:ExtendedRealLine live in module.ttl. The answer is exactly the two pole → system
+# pairs {math:NegativeInfinity → ℝ̄, math:PositiveInfinity → ℝ̄}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?pole ?system WHERE {
+    ?pole math:inNumberSystem ?system .
+    ?system a math:NumberSystem .
+    FILTER(?system = math:ExtendedRealLine)
+}
+ORDER BY ?pole

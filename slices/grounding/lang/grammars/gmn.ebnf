@@ -7,21 +7,27 @@
 # (LL(1) prefix decodability via gmeow:gmnDeterminismClass, the sigil-role and
 # operator tables). GMN is newline-delimited: every record occupies one line and
 # opens with a record-initial sigil, so a reader dispatches on the first token.
-# The in-band '@gmn' header pins the dialect coordinates (schema version and the
-# alias-table reference) before any record. Records are sigil-then-braced
+# The in-band '@gmn' header pins the dialect coordinates (schema version,
+# alias-table reference, and glyph-table version) before any record. Records are sigil-then-braced
 # key-value lists; a schema-once tabular batch declares its columns once in an
 # '@claims[...]' header and then streams bare rows. Lexical whitespace rules are
 # carried by the codec, not by these productions.
 
 gmnDoc ::= header line*
-header ::= '@gmn' '{' 'v' ':' integer ',' 'aliases' ':' identifier '}' EOL
+header ::= '@gmn' '{' 'v' ':' integer ',' 'aliases' ':' identifier ',' 'glyphs' ':' integer '}' EOL
 line ::= record | batch
 record ::= sigil recordBody EOL
 sigil ::= '@c' | '@e' | '@s' | '@p' | '@d' | '@m' | '@π' | '@μ' | '@λ' | '@ℒ' | '@err' | '@patch' | '@retract'
 recordBody ::= '{' pairList '}'
 pairList ::= pair (',' pair)*
 pair ::= identifier ':' value
-value ::= identifier | number | list
+value ::= referenceToken | number | list
+referenceToken ::= identifier | glyphToken
+# GENERATOR SEAM: the pipeline replaces this whole production from the canonical
+# Denotation -> Grapheme registry before parsing or shipping the grammar. The
+# sentinel is deliberately not a glyph inventory; exactly one such production is
+# required so replacement is deterministic and a second source cannot drift.
+glyphToken ::= GRAPH_DERIVED_GLYPH_TOKEN
 list ::= '[' value (',' value)* ']'
 batch ::= batchHeader batchRow*
 batchHeader ::= '@claims' '[' columnList ']' EOL

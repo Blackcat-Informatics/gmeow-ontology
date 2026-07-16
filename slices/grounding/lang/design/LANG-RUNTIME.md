@@ -108,8 +108,8 @@ Core work is Rust, per the standing constraints; Python appears nowhere in this 
   the bridge is a function into an existing IR, not a parallel one.
 - Pipeline integration follows the carrier doctrine: lifted forms travel as named graphs in the
   in-memory `PipelineBundle`, and every generated artifact is a projection of `gmeow.gts`. New
-  stages wire through the standard three lockstep sites, and heavy corpus tests respect the
-  per-test budget with off-gate `maint-` lanes for the big sweeps.
+  stages wire through the standard three lockstep sites, and exhaustive corpus sweeps use
+  explicit `maint-` lanes while focused contracts stay on the default lane.
 
 ## Acceptance gates
 
@@ -144,7 +144,7 @@ demo:
    project-wide determinism bar inherited without exception, discharged ON-GATE by execution rather
    than fixture existence. Two legs prove it: an in-process two-run byte replay asserts each
    producer emits identical bytes across two runs, and the drift lane (`run_full(RunMode::Check)`,
-   the `check-generated` host) re-derives every committed artifact fresh-process — the per-reading
+   the strict-sync host) re-derives every committed artifact fresh-process — the per-reading
    `.conllu` files by exact bytes, the corpus graphs through the bundle superset/fold gate. The
    same-process leg is no false green: every corpus payload is asserted to be in the SORTED, DEDUPED
    canonical order the shared N-Triples emitter produces, a property that is a pure function of the

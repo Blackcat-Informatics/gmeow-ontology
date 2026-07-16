@@ -61,7 +61,7 @@ every decision below:
   source checkout, no repo-local query trees. `gmeow-dev` is repository maintenance and
   may read anything in the tree. This razor is enforced *structurally* (see
   [§4](#4-shared-core--cratescli-core-gmeow-cli-core)).
-- **Gate-latency budget culture** ([`docs/rust-test-budget.md`](./rust-test-budget.md)):
+- **Gate-latency optimization culture** ([`docs/rust-test-performance.md`](./rust-test-performance.md)):
   the tool is run thousands of times a session, so startup latency and per-invocation
   cost are first-class. Heavy dependencies (async runtimes, telemetry exporters) stay
   off the hot path — and, where they add no net value, are not linked at all.
@@ -220,7 +220,7 @@ feedback seam, and the public wheel-path `gmeow validate`).
 - **Nested sub-apps:** `box-roles` (`audit`), `logic` (`query`, `compile`), `i18n`
   (`extract`, `sync-english`, `merge`, `export-csv`, `export-xliff`) — modelled with
   clap's nested subcommands.
-- **The heavy path:** `regenerate` and `fanout` call the existing `crates/pipeline`
+- **The heavy path:** `sync` and `fanout` call the existing `crates/pipeline`
   `run_full` **directly in Rust** — no PyO3 hop — and stream the `RunReport` through
   the `Reporter`. This is the *ultra-rich status* surface:
   - **Developers** get live `indicatif` `MultiProgress`: one bar per parallel
@@ -257,7 +257,7 @@ language validation, resource routing, and the grounded-memory triad.
   3. compensation-as-rollback (`revise_belief` is `store_claim`'s compensation,
      P10 suppression-not-erasure);
   4. `ToolCall` provenance + audit-segment recording on every committed write;
-  5. the consumer-vs-dev tool gating (`validate` / `reason` / `regenerate` /
+  5. the consumer-vs-dev tool gating (`validate` / `reason` / `sync` /
      `constitution` are dev-only) via `McpMode`;
   6. snapshot-bound reads for the bundled ontology surfaces (`lookup_term`,
      `llms_txt`, `llms_full`, `doc_card`, `okf_index`).

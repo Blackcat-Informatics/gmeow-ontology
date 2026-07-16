@@ -911,6 +911,22 @@ lang:UngroundedGrapheme
     skos:definition "The failure raised when a lang:Grapheme names a lang:Script through lang:inScript that does not list it in its repertoire through lang:hasGrapheme. A grapheme belongs to the repertoire of the script it declares."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+lang:OrphanWordForm
+    a owl:Class ;
+    logic:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Orphan Word Form"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:WordForm names no lang:Lexeme through lang:lexemeOf. A word form is an inflected realization of a lexeme, not a free-standing surface string, so the missing lexeme is a closed-world validation failure rather than an open-world identity claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnanchoredGrammar
+    a owl:Class ;
+    logic:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unanchored Grammar"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:Grammar names no licensed lang:SignSystem through lang:grammarFor, or a lang:GrammarRule names no owning grammar through lang:grammarRuleOf. A grammar or rule without that anchor governs no reconstructible sign system; this is not a claim that one grammar is uniquely correct."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # =========================================================================== #
 # Properties
 # =========================================================================== #
@@ -1310,6 +1326,9 @@ lang:LexicalConcept
 
 lang:Denotation
     a owl:Class ;
+    logic:mediates lang:denotedForm ,
+        lang:denotationTarget ,
+        lang:denotationContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Denotation"@x-gmeow-english ;
     skos:definition "A meaning assignment as a reified record — the Peircean triad made structural (sign, object, and the interpreting context that connects them), never a bare triple from form to target. Reification is what makes disagreement, revision, and ambiguity representable. Every denotation names its form (lang:denotedForm, a non-surface form), its kind (lang:denotationKind), its target (lang:denotationTarget), and its context (lang:denotationContext); lang:viaSense routes it through a sense where the head lexeme is ambiguous. Disjoint from lang:Form and lang:Sense — the reference corner of the Frege triangle is not a form and not a sense."@x-gmeow-english ;
@@ -1385,6 +1404,7 @@ lang:CommunicativeForce
 
 lang:SenseRelation
     a owl:Class ;
+    logic:mediates lang:relatesSense ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Sense Relation"@x-gmeow-english ;
     skos:definition "A reified relation between two senses, so the relation can be sourced and vantage-held rather than asserted flat: it names the two senses through lang:relatesSense and its kind through lang:senseRelationKind. Only the taxonomic kinds (hypernymy, hyponymy) are minted here, and even they resolve through the logic: subsumption over the denoted logic:Type; the wider WordNet relation inventory (antonymy, meronymy, holonymy, troponymy) is carried as alignment to WordNet-RDF/lexinfo, never as canonical lang: structure."@x-gmeow-english ;
@@ -1407,11 +1427,25 @@ lang:CompositionRule
 # --- Disjointness axioms (the Frege signature rule; act ≠ observation) ------- #
 # DisjointClasses is OWL 2 EL-clean, so these stay within the term profile.
 
-[] a owl:AllDisjointClasses ;
+lang:FregeDisjointnessAxiom
+    a owl:AllDisjointClasses ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    owl:members ( lang:Form lang:Sense lang:Denotation ) .
+    rdfs:label "Frege-triangle disjointness axiom"@x-gmeow-english ;
+    skos:definition "The named OWL disjointness axiom separating lang:Form, lang:Sense, and lang:Denotation. It is the canonical open-world authority behind the retained validation-only overtyping surface; it does not identify a spelling with a sense or a sense with a referent."@x-gmeow-english ;
+    owl:members ( lang:Form lang:Sense lang:Denotation ) ;
+    logic:formalizes lang:Form ;
+    gmeow:enforcesFailureClass lang:FregeConflation ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
-lang:InterpretationAct owl:disjointWith gmeow:Observation .
+lang:ActObservationDisjointnessAxiom
+    a owl:AllDisjointClasses ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "interpretation-act and observation disjointness axiom"@x-gmeow-english ;
+    skos:definition "The named OWL disjointness axiom separating lang:InterpretationAct from gmeow:Observation. It is the canonical open-world authority behind the retained validation-only overtyping surface: the interpretation process is not the claim that records its result."@x-gmeow-english ;
+    owl:members ( lang:InterpretationAct gmeow:Observation ) ;
+    logic:formalizes lang:InterpretationAct ;
+    gmeow:enforcesFailureClass lang:ActObservationConflation ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Denotation-kind individuals (closed per release) ----------------------- #
 
@@ -1837,6 +1871,8 @@ lang:aboutReading
 
 lang:Rendering
     a owl:Class ;
+    logic:mediates lang:renderedContent ,
+        lang:renderingForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Rendering"@x-gmeow-english ;
     skos:definition "A reified record of realizing content as a form: a content object (a lang:Form, a lang:Denotation, a composed form, a document node) rendered into a concrete lang:Form or lang:SurfaceForm under a declared kind and convention. Names the content it renders through lang:renderedContent, the form it produces through lang:renderingForm, its kind through lang:renderingKind (a lang:RenderingKind individual), the convention governing it through lang:renderingConvention, and — where the crossing is judged — a preservation kind through lang:renderingPreservation, which carries a logic:preservationKind rather than a lang: preservation enum. Rendering is the facet layer over a logic:Correspondence whose two sides are content and form; serializing the ontology to Turtle, lifting prose to a docs page, and transliterating a name are all renderings distinguished by kind, never a subclass ladder."@x-gmeow-english ;
@@ -1851,6 +1887,8 @@ lang:RenderingKind
 
 lang:TransliterationMap
     a owl:Class ;
+    logic:mediates lang:transliterationSourceOrthography ,
+        lang:transliterationTargetOrthography ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Transliteration Map"@x-gmeow-english ;
     skos:definition "A form-to-form map across orthographies of one sign system — Hepburn Japanese to Latin, Cyrillic Serbian to Latin Serbian. Names its source and target orthographies through lang:transliterationSourceOrthography and lang:transliterationTargetOrthography and the naming scheme it grafts through lang:transliterationScheme, which references a gmeow:TransliterationScheme individual (the FnO-backed romanization scheme in the core language slice). Transliteration is a rendering-layer map that changes the script surface, not form identity: two orthographic surfaces linked by a transliteration map may realize one and the same form. Its preservation is judged on the carried logic:Correspondence, never restated as a lang: kind."@x-gmeow-english ;
@@ -1865,6 +1903,8 @@ lang:Translation
 
 lang:TranslationUnit
     a owl:Class ;
+    logic:mediates lang:translationSource ,
+        lang:translationTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Translation Unit"@x-gmeow-english ;
     skos:definition "A reified source-form-to-target-form pairing — the atom of a translation. Names its source form through lang:translationSource, its target form through lang:translationTarget, and the sibling unit it aligns with through lang:translationOf, and it carries the law-spine of the crossing by pointing — through lang:translationCorrespondence — at exactly one logic:Correspondence node. That Correspondence, not the unit, holds the logic:preservationKind, the logic:morphismClass, the logic:correspondenceRelation, the logic:mnemomorphic witness enumerating any untranslatable residue, the logic:hasDeterminacy, and any logic:hasLawClaim. A unit whose target is inadequate is marked through lang:translationGap; the enumerated residue itself lives on the carried Correspondence's mnemomorphic witness, never on the unit."@x-gmeow-english ;
@@ -1879,9 +1919,11 @@ lang:TranslationMethod
 
 lang:Paraphrase
     a owl:Class ;
+    logic:mediates lang:paraphraseOf ,
+        lang:paraphraseForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Paraphrase"@x-gmeow-english ;
-    skos:definition "A form-to-form crossing within one sign system under a declared sameness kind — a restatement, a plain-language rewrite, a definitional gloss. Names the form it paraphrases through lang:paraphraseOf, the sameness it claims to preserve through lang:paraphraseSamenessKind (a lang:ParaphraseSamenessKind individual — same denotation, same sense, or same force and content), and, where the crossing is judged, a preservation kind through lang:paraphrasePreservation, which carries a logic:preservationKind. Sameness is never a bare assertion: a paraphrase claim is vantage-held, so that a paraphrase-correctness claim is a gmeow:Observation from a gmeow:vantage rather than a groundless equivalence. Unlike translation, both forms belong to one sign system; unlike rendering, both sides are forms rather than content and form."@x-gmeow-english ;
+    skos:definition "A form-to-form crossing within one sign system under a declared sameness kind — a restatement, a plain-language rewrite, a definitional gloss. Names its source form through lang:paraphraseOf, its produced form through lang:paraphraseForm, the sameness it claims to preserve through lang:paraphraseSamenessKind (a lang:ParaphraseSamenessKind individual — same denotation, same sense, or same force and content), and, where the crossing is judged, a preservation kind through lang:paraphrasePreservation, which carries a logic:preservationKind. Sameness is never a bare assertion: a paraphrase claim is vantage-held, so that a paraphrase-correctness claim is a gmeow:Observation from a gmeow:vantage rather than a groundless equivalence. Unlike translation, both forms belong to one sign system; unlike rendering, both sides are forms rather than content and form."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:ParaphraseSamenessKind
@@ -2113,6 +2155,13 @@ lang:paraphraseOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "paraphrase of"@x-gmeow-english ;
     skos:definition "Relates a lang:Paraphrase to the form it paraphrases. Domain lang:Paraphrase, range lang:Form (stated in prose). Both forms belong to one sign system; the sameness the paraphrase preserves is declared through lang:paraphraseSamenessKind and its degree judged on the paraphrase's logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:paraphraseForm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "paraphrase form"@x-gmeow-english ;
+    skos:definition "Relates a lang:Paraphrase to the produced restatement form. Domain lang:Paraphrase, range lang:Form (stated in prose). The source side is lang:paraphraseOf; keeping both roles explicit makes the form-to-form crossing and its relator mediation queryable without treating the reified paraphrase record as a form."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:paraphraseSamenessKind
@@ -2384,6 +2433,48 @@ gmeow:GmnFixity
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the closed value vocabulary for GMN operator fixity — the placement discipline (prefix, infix, postfix, bracketing) an operator's surface syntax follows."@x-gmeow-english .
 
+gmeow:GmnSymbolCandidate
+    a logic:Kind , owl:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Symbol Candidate"@x-gmeow-english ;
+    skos:definition "An auditable proposal to represent one grounding-plane term in GMN: a first-class decision record naming the target, proposed Unicode rendering, ASCII fallback, spoken label, evidence source, rationale, and exactly one gmeow:GmnSymbolDisposition with exactly one gmeow:GmnDispositionBasis. Candidate records and every target already bound into the executable graph-derived glyph registry jointly form the denominator of the independent glyph-optimality quality axis; a term is never silently omitted from an audit by leaving its rejected proposal in prose, and an executable denotation never bypasses the audit merely because its candidate row was forgotten."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathAddition a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateTarget math:Addition ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a candidate for a purely decorative glyph with no semantic target, and avoid deleting a losing candidate — retain it with the named-key, structured-constructor, or semantic-rejection disposition so the audit has no silent gaps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one record per audited (target, proposed rendering) pair; add its target, proposed NFC glyph, ASCII fallback, spoken label, cited source, rationale, decision basis, and exactly one disposition; adopted or named signs also point at their lang:Denotation through gmeow:gmnCandidateDenotation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the evidence-bearing unit of a GMN symbology audit, including proposals that lose to a named key or structured constructor."@x-gmeow-english .
+
+gmeow:GmnSymbolDisposition
+    a logic:AbstractIndividualType , owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Symbol Disposition"@x-gmeow-english ;
+    skos:definition "The closed decision vocabulary for an audited GMN symbol candidate: adopted glyph, named key, structured constructor, or semantic rejection. These four values distinguish a token-cost loss from an arity/fixity ambiguity and from a genuinely wrong meaning; absence is never a fifth disposition."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateLogicNot gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid free-text disposition labels and avoid treating no decision as a rejection; every audited candidate names exactly one of the four individuals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Point each candidate through gmeow:gmnSymbolDisposition at exactly one seeded value; pair it with the evidence category in gmeow:gmnDispositionBasis."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the value class of the four exhaustive outcomes of a GMN symbol audit."@x-gmeow-english .
+
+gmeow:GmnDispositionBasis
+    a logic:AbstractIndividualType , owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Disposition Basis"@x-gmeow-english ;
+    skos:definition "The closed evidence-category vocabulary explaining a GMN symbol ruling: measured token cost, arity/fixity ambiguity, Unicode confusability, or semantic mismatch. The detailed evidence stays in gmeow:gmnDispositionRationale and gmeow:cites; this value makes the reason machine-auditable."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathAddition gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using the basis as the outcome itself (that is gmeow:gmnSymbolDisposition) and avoid an untyped prose-only reason."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Choose exactly one basis that captures the decisive evidence and spell out the measurement or semantic boundary in gmeow:gmnDispositionRationale with a gmeow:cites anchor."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to classify why a candidate was adopted, keyed, structured, or rejected."@x-gmeow-english .
+
 gmeow:GmnSecurityRing
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -2529,6 +2620,136 @@ gmeow:gmnPrecedence
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to declare the binding strength of a GMN operator so nesting is decidable from data."@x-gmeow-english .
 
+gmeow:gmnArity
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn arity"@x-gmeow-english ;
+    skos:definition "The non-negative operand count of a GMN operator form or symbol candidate. Arity is explicit wherever one glyph can name unary and binary operations (notably minus); it is paired with gmeow:gmnFixity rather than guessed from typography."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormMathAddition gmeow:gmnArity 2 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid inferring arity from a familiar glyph and avoid putting two arities on one operator form; use a structured constructor when the surface cannot disambiguate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set one integer on every audited operator candidate and executable operator form; pair it with fixity and precedence."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make an operator's operand count explicit at the GMN parsing boundary."@x-gmeow-english .
+
+gmeow:gmnDenotationGrapheme
+    a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn denotation grapheme"@x-gmeow-english ;
+    skos:definition "Links an executable GMN lang:Denotation to the single lang:Grapheme that renders its denoted form. Together with lang:denotationTarget, the grapheme's codepoints, and its gmeow:gmnSigilScope, this is the canonical graph join the writer and reader load; removing this edge removes the glyph binding without a hard-coded symbol table."@x-gmeow-english ;
+    skos:example "gmeow:gmnDenMathAddition gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathAddition ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid attaching it to a named-key, structured, or rejected candidate and avoid projecting the glyph directly onto the denoted domain term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach exactly one grapheme to each adopted-glyph denotation; put codepoints and sigil scope on that grapheme and the semantic target on lang:denotationTarget."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the executable join from a sign's denotation record to its scoped glyph."@x-gmeow-english .
+
+gmeow:gmnCandidateTarget
+    a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn candidate target"@x-gmeow-english ;
+    skos:definition "Names the one grounding-plane term an audited gmeow:GmnSymbolCandidate proposes to render. The quality axis joins this target to slice ownership and cross-checks it against every executable target exposed by the graph-derived glyph registry, so neither a candidate nor a working glyph can float outside the slice's complete audit population."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateLogicNot gmeow:gmnCandidateTarget logic:not ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid naming the grapheme or form here; this edge names the semantic term under audit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one target per candidate; use separate candidates for distinct semantic terms even when they propose the same visible symbol."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind a symbol-decision record to the term whose GMN rendering it decides."@x-gmeow-english .
+
+gmeow:gmnSymbolDisposition
+    a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn symbol disposition"@x-gmeow-english ;
+    skos:definition "Names exactly one of the four gmeow:GmnSymbolDisposition outcomes for an audited candidate: adopted glyph, named key, structured constructor, or semantic rejection."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathPi gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a free-text status or multiple outcomes; uncertainty belongs in the rationale, not in an ambiguous disposition set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point every candidate at exactly one seeded disposition individual."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the outcome of a GMN symbol audit in a closed machine-readable vocabulary."@x-gmeow-english .
+
+gmeow:gmnDispositionBasis
+    a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn disposition basis"@x-gmeow-english ;
+    skos:definition "Classifies the decisive evidence for a GMN symbol disposition as token cost, ambiguity, confusability, or semantic mismatch. The basis is exactly one machine-readable category; the detailed argument is gmeow:gmnDispositionRationale."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathSubtraction gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it without a rationale and citation, or as a substitute for the actual disposition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Choose one seeded basis per candidate and record the concrete measurement or boundary in the rationale."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to expose why a symbol proposal won or lost."@x-gmeow-english .
+
+gmeow:gmnCandidateDenotation
+    a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn candidate denotation"@x-gmeow-english ;
+    skos:definition "Links an adopted-glyph or named-key candidate to the lang:Denotation that binds its form to its semantic target. Adopted denotations additionally name a grapheme; named-key denotations deliberately do not."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathPi gmeow:gmnCandidateDenotation gmeow:gmnDenMathPi ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid attaching a sign denotation to a structured-constructor or semantically rejected proposal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point adopted and named candidates at exactly one denotation whose lang:denotationTarget equals the candidate target."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make the candidate-to-sign-to-meaning chain explicit and auditable."@x-gmeow-english .
+
+gmeow:gmnCandidateGlyph
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn candidate glyph"@x-gmeow-english ;
+    skos:definition "The canonical NFC Unicode rendering under consideration in a GMN symbol audit. It is recorded even when it loses, so BPE cost and rejection evidence remain reproducible; an adopted rendering must equal the codepoint-derived grapheme loaded by the executable registry."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateLogicNot gmeow:gmnCandidateGlyph \"¬\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating this audit literal as the executable binding; adopted identity comes from the denotation-to-grapheme graph join."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Record exactly one NFC rendering per candidate, including rejected proposals, and keep the adopted value equal to its grapheme codepoints."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the measured Unicode proposal in a symbol decision record."@x-gmeow-english .
+
+gmeow:gmnAsciiFallback
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ASCII fallback"@x-gmeow-english ;
+    skos:definition "The ASCII rendering that preserves access to an audited GMN symbol when its Unicode glyph is unavailable, unpronounceable by a tool, or deliberately not adopted. Its pinned BPE cost is the comparator for a token-cost disposition."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathAddition gmeow:gmnAsciiFallback \"add\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid an empty, Unicode-bearing, or semantically weaker fallback; use a structured constructor when a flat key cannot preserve arity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Provide one readable ASCII key or constructor name for every candidate and compare its real token cost when token economy decides the outcome."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the accessible non-Unicode spelling of an audited GMN symbol."@x-gmeow-english .
+
+gmeow:gmnSpokenLabel
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn spoken label"@x-gmeow-english ;
+    skos:definition "The short phrase a screen reader or speech interface should voice for an audited GMN symbol. It names the symbol's meaning and arity where necessary rather than reading an opaque Unicode character name."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathMultiplication gmeow:gmnSpokenLabel \"multiply\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid merely copying a codepoint name when it obscures the operator's semantic reading."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Add one concise English speech label to every candidate; distinguish unary and binary readings explicitly."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make the GMN symbol inventory accessible to speech and assistive tooling."@x-gmeow-english .
+
+gmeow:gmnDispositionRationale
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn disposition rationale"@x-gmeow-english ;
+    skos:definition "The evidence-bearing explanation of a symbol ruling, including the measured cost comparison or the exact arity, confusability, or semantic boundary that decides it. It complements the typed basis and citation; neither replaces the other."@x-gmeow-english ;
+    skos:example "gmeow:gmnCandidateMathSubtraction gmeow:gmnDispositionRationale \"The same minus sign denotes unary negation and binary subtraction, so the flat glyph is not injective without an arity-bearing constructor.\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid generic prose such as 'best symbol'; state the measured result or semantic collision that makes the decision falsifiable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write one concise, falsifiable rationale and pair it with one typed basis plus at least one gmeow:cites evidence anchor."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to preserve the human-auditable argument behind a machine-readable disposition."@x-gmeow-english .
+
 gmeow:gmnSigilGlyph
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -2569,13 +2790,13 @@ gmeow:gmnCodepoints
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn codepoints"@x-gmeow-english ;
-    skos:definition "The codepoint-explicit spelling of a GMN glyph — a \"U+2291\"-style literal (space-separated for multi-codepoint glyphs) — a DERIVED convenience projected over lang:Denotation by the GMN writer, NEVER hand-authored on domain terms. Domain any GMEOW term the writer renders, range a string literal (stated in prose). Like gmeow:gmnGlyph, it flattens the canonical denotation record for display and tooling; symbol provenance is carried via the citations vocabulary (gmeow:cites / gmeow:CitationAct), never re-minted here."@x-gmeow-english ;
+    skos:definition "The canonical codepoint-explicit spelling of a lang:Grapheme in the GMN script — a \"U+2291\"-style literal, space-separated for multi-codepoint glyphs. It is authored once on the grapheme so the registry can reconstruct and validate the NFC surface; any same-named value projected onto a denoted domain term is only a derived display convenience. Symbol provenance is carried via the citations vocabulary (gmeow:cites / gmeow:CitationAct), never re-minted here."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid hand-authoring it and avoid deriving glyph identity from it — the codepoint string names the rendering, while identity lives in the projected lang: structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hand-authoring it on denoted domain terms and avoid deriving glyph identity from the literal alone — author it on the lang:Grapheme, whose identity and denotation remain explicit graph structure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Let the GMN writer emit one \"U+xxxx\"-style literal per glyph next to gmeow:gmnGlyph; bump gmeow:gmnGlyphTableVersion when the projected table changes."@x-gmeow-english ;
+    gmeow:howToUse "Author one canonical uppercase \"U+XXXX\" sequence on each GMN lang:Grapheme, let the writer reconstruct its surface from that sequence, and bump gmeow:gmnGlyphTableVersion when the executable table changes."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
-    gmeow:useWhen "Use to read the writer-projected codepoint-explicit spelling of a GMN glyph — the unambiguous form for tooling and confusables checking."@x-gmeow-english .
+    gmeow:useWhen "Use on a GMN lang:Grapheme as the unambiguous canonical spelling consumed by tooling and confusables checks; read projected copies elsewhere only as derived conveniences."@x-gmeow-english .
 
 gmeow:gmnConfusableWith
     a owl:ObjectProperty ;
@@ -2746,7 +2967,7 @@ gmeow:GmnDictionary
     rdfs:label "GMN Dictionary"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "One version of the GMN alias table: the codebook-witnessed bijection between full GMEOW IRIs and their compact GMN-1 aliases that gmeow:gmnCorrNormalToGmn's mnemomorphic claim rests on. A dictionary carries its own gmeow:gmnDictionaryVersion (exactly one) and zero or more gmeow:gmnDictionaryEntry members, each binding one term to one alias string. The dictionary is a BIJECTION over its covered term set: injectivity (no two entries of one dictionary share an alias) is gated by lang:GmnDictionaryAliasInjectivityShape (lang:GmnDictionaryAliasCollision), never merely asserted in prose."@x-gmeow-english ;
-    skos:example "gmeow:gmnDictV1 a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion \"1\" ; gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ."@x-gmeow-english ;
+    skos:example "gmeow:gmnDictV2 a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion \"2\" ; gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid minting a dictionary without a gmeow:gmnDictionaryVersion (an unversioned alias table cannot be resolved) and avoid letting two entries of one dictionary alias the same string — that is the injectivity gate's business, never a hand-checked invariant."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -3020,6 +3241,64 @@ gmeow:gmnFixityBracketing
     gmeow:graphBoxRole gmeow:boxABox ;
     skos:definition "The bracketing fixity: the operator is a paired open/close form written around its operands."@x-gmeow-english .
 
+# --- GMN symbol-disposition and evidence-basis individuals (closed) -------- #
+
+gmeow:gmnDispositionAdoptedGlyph
+    a owl:NamedIndividual , gmeow:GmnSymbolDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "adopted glyph"@x-gmeow-english ;
+    skos:definition "The disposition of a candidate whose Unicode rendering enters the executable scoped glyph registry through a lang:Denotation-to-lang:Grapheme binding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDispositionNamedKey
+    a owl:NamedIndividual , gmeow:GmnSymbolDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "named key"@x-gmeow-english ;
+    skos:definition "The disposition of a meaningful symbol proposal whose ASCII named key wins on measured token cost or Unicode safety; its form has a denotation but no executable grapheme binding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDispositionStructuredConstructor
+    a owl:NamedIndividual , gmeow:GmnSymbolDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "structured constructor"@x-gmeow-english ;
+    skos:definition "The disposition used when a flat glyph cannot preserve arity, fixity, or another structural distinction and GMN therefore carries an explicit constructor rather than an ambiguous sign denotation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDispositionSemanticRejection
+    a owl:NamedIndividual , gmeow:GmnSymbolDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "semantic rejection"@x-gmeow-english ;
+    skos:definition "The disposition of a proposed symbol whose established meaning does not match the target term closely enough to denote it; the rejected proposal remains in the audit but receives no sign denotation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnBasisTokenCost
+    a owl:NamedIndividual , gmeow:GmnDispositionBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "token-cost basis"@x-gmeow-english ;
+    skos:definition "The decision basis saying the pinned cl100k_base BPE cost comparison between the Unicode candidate and ASCII fallback decides the disposition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnBasisAmbiguity
+    a owl:NamedIndividual , gmeow:GmnDispositionBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "ambiguity basis"@x-gmeow-english ;
+    skos:definition "The decision basis saying a flat rendering would collapse distinct arity, fixity, scope, or semantic readings, so structure rather than token count decides."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnBasisConfusability
+    a owl:NamedIndividual , gmeow:GmnDispositionBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "confusability basis"@x-gmeow-english ;
+    skos:definition "The decision basis saying Unicode confusability, bidi/default-ignorable risk, or delimiter collision makes the proposed glyph unsafe even if short."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnBasisSemanticMismatch
+    a owl:NamedIndividual , gmeow:GmnDispositionBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "semantic-mismatch basis"@x-gmeow-english ;
+    skos:definition "The decision basis saying the proposed notation's established meaning does not denote the target term and must be rejected rather than weakened into an approximate alias."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # --- GMN ring-level individuals (the classification axis, ordered by         #
 # gmeow:gmnRingLevelDominates) ------------------------------------------------ #
 # Reflexive-and-transitive closure hand-asserted per level, the logic:levelAtOrAbove
@@ -3263,7 +3542,7 @@ gmeow:gmnGrammar
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN grammar"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The grammar of the GMN-1 notation, licensing the gmeow:gmnModelNotation sign system. Its EBNF rendering is grammars/gmn.ebnf; the file is a rendering of this grammar object, never its identity. The grammar is LL(1) and hence prefix-decodable (gmeow:gmnDeterminismClass): a reader always knows from the next token which production applies, so a GMN stream decodes incrementally without backtracking."@x-gmeow-english ;
+    skos:definition "The grammar of the GMN-1 notation, licensing the gmeow:gmnModelNotation sign system. grammars/gmn.ebnf is its authored structural template: the glyphToken production is a deterministic replacement seam whose right-hand side is rendered solely from the graph-derived executable glyph registry before the grammar is parsed or shipped, so the source file carries no duplicate glyph inventory. The realized grammar is LL(1) and hence prefix-decodable (gmeow:gmnDeterminismClass): a reader always knows from the next token which production applies, so a GMN stream decodes incrementally without backtracking."@x-gmeow-english ;
     lang:grammarFor gmeow:gmnModelNotation ;
     lang:grammarFormalism lang:ebnfFormalism ;
     gmeow:gmnDeterminismClass "LL(1)" .
@@ -3296,25 +3575,25 @@ gmeow:gmnCodebookCurrent
         gmeow:gmnSigilMath ,
         gmeow:gmnSigilLangAst ,
         gmeow:gmnSigilLogic ,
-        gmeow:gmnDictV1 ;
-    gmeow:gmnDictionaryVersion "1" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+        gmeow:gmnDictV2 ;
+    gmeow:gmnDictionaryVersion "2" ;
+    gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnDeclaredRate gmeow:gmnRateTokensPerStatement .
 
-# --- GMN alias dictionary (version 1) ----------------------------------------- #
+# --- GMN alias dictionary (version 2) ----------------------------------------- #
 # The codebook-witnessed bijection gmeow:gmnCorrNormalToGmn's mnemomorphic claim
 # rests on: a version-pinned gmeow:GmnDictionary whose gmeow:GmnDictionaryEntry
 # members each bind one full GMEOW term to one compact alias string. Injectivity
 # (no two entries sharing an alias) is gated structurally by
 # lang:GmnDictionaryAliasInjectivityShape, not merely asserted here.
 
-gmeow:gmnDictV1
+gmeow:gmnDictV2
     a owl:NamedIndividual , gmeow:GmnDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    rdfs:label "GMN dictionary (version 1)"@x-gmeow-english ;
+    rdfs:label "GMN dictionary (version 2)"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "Dictionary version 1 of the GMN alias table (the \"dict-v1\" referenced by the codebook and by every worked example of LANG-GMN.md's @gmn header): the current codebook's alias table, referenced by gmeow:gmnCodebookCurrent through gmeow:references and pinned by gmeow:gmnDictionaryVersion \"1\"."@x-gmeow-english ;
-    gmeow:gmnDictionaryVersion "1" ;
+    skos:definition "Dictionary version 2 of the GMN alias table (the \"dict-v2\" referenced by the codebook and by every worked example of LANG-GMN.md's @gmn header): it retains the version-1 qualifier bindings and adds the measured `den`, `xl`, and `mb` named-key rulings, referenced by gmeow:gmnCodebookCurrent and pinned by gmeow:gmnDictionaryVersion \"2\"."@x-gmeow-english ;
+    gmeow:gmnDictionaryVersion "2" ;
     gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ,
         gmeow:gmnDictV1EntryCodebook ,
         gmeow:gmnDictV1EntryModalNecessary ,
@@ -3329,7 +3608,16 @@ gmeow:gmnDictV1
         gmeow:gmnDictV1EntryEvKindSurvey ,
         gmeow:gmnDictV1EntryEvKindStreaming ,
         gmeow:gmnDictV1EntryBoundaryOpen ,
-        gmeow:gmnDictV1EntryBoundaryClosed .
+        gmeow:gmnDictV1EntryBoundaryClosed ,
+        gmeow:gmnDictV2EntryDenotation ,
+        gmeow:gmnDictV2EntryTranslation ,
+        gmeow:gmnDictV2EntryMorphemeBoundary ,
+        gmeow:gmnDictV2EntryMathDivision ,
+        gmeow:gmnDictV2EntryLogicForall ,
+        gmeow:gmnDictV2EntryLogicExists ,
+        gmeow:gmnDictV2EntryLogicAnd ,
+        gmeow:gmnDictV2EntryLogicOr ,
+        gmeow:gmnDictV2EntryLogicIff .
 
 gmeow:gmnDictV1EntryEnvelope
     a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
@@ -3348,6 +3636,87 @@ gmeow:gmnDictV1EntryCodebook
     skos:definition "The dict-v1 alias binding for gmeow:GmnCodebook: the compact token gcb."@x-gmeow-english ;
     gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
     gmeow:gmnDictionaryEntryAlias "gcb" .
+
+gmeow:gmnDictV2EntryDenotation
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: lang:Denotation to den"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for lang:Denotation: `den`, adopted because the Unicode semantic brackets fragment into more pinned BPE tokens."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm lang:Denotation ;
+    gmeow:gmnDictionaryEntryAlias "den" .
+
+gmeow:gmnDictV2EntryTranslation
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: lang:Translation to xl"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for lang:Translation: `xl`, adopted because the Unicode translation arrow fragments into more pinned BPE tokens."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm lang:Translation ;
+    gmeow:gmnDictionaryEntryAlias "xl" .
+
+gmeow:gmnDictV2EntryMorphemeBoundary
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: lang:MorphemeBoundary to mb"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for lang:MorphemeBoundary: `mb`, kept distinct from the confusable hyphen, soft-hyphen, and mathematical-minus character family."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm lang:MorphemeBoundary ;
+    gmeow:gmnDictionaryEntryAlias "mb" .
+
+gmeow:gmnDictV2EntryMathDivision
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: math:Division to div"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for math:Division: `div`, cheaper than the fragmented division sign under the pinned BPE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:Division ;
+    gmeow:gmnDictionaryEntryAlias "div" .
+
+gmeow:gmnDictV2EntryLogicForall
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: logic:forall to fa"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for logic:forall: `fa`, cheaper than the fragmented universal-quantifier sign under the pinned BPE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:forall ;
+    gmeow:gmnDictionaryEntryAlias "fa" .
+
+gmeow:gmnDictV2EntryLogicExists
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: logic:exists to ex"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for logic:exists: `ex`, cheaper than the fragmented existential-quantifier sign under the pinned BPE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:exists ;
+    gmeow:gmnDictionaryEntryAlias "ex" .
+
+gmeow:gmnDictV2EntryLogicAnd
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: logic:and to and"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for logic:and: `and`, cheaper than the fragmented conjunction sign under the pinned BPE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:and ;
+    gmeow:gmnDictionaryEntryAlias "and" .
+
+gmeow:gmnDictV2EntryLogicOr
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: logic:or to or"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for logic:or: `or`, cheaper than the fragmented disjunction sign under the pinned BPE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:or ;
+    gmeow:gmnDictionaryEntryAlias "or" .
+
+gmeow:gmnDictV2EntryLogicIff
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v2 entry: logic:iff to iff"@x-gmeow-english ;
+    skos:definition "The version-2 named-key binding for logic:iff: `iff`, cheaper than the fragmented biconditional sign under the pinned BPE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:iff ;
+    gmeow:gmnDictionaryEntryAlias "iff" .
 
 # --- GMN-1 factored qualifier-slot aliases --- #
 # The `m` (modality) and `ek` (evidentiality-kind) claim-record slots, and the
@@ -3800,9 +4169,10 @@ lang:GmnNonDecodableGrammar
 # canonical lang:Denotation fact (the gmeow:gmnGlyph / gmeow:gmnCodepoints    #
 # projections flatten it for the writer), carries its codepoint-explicit      #
 # spelling on the lang:Grapheme, and carries its MEASURED token cost through  #
-# gmeow:gmnGlyphTokenCost. A symbol earns a glyph slot only when it costs a   #
-# single token; a dearer symbol stays a named key. Symbols measured out of    #
-# the glyph table (⟦·⟧ denotation brackets, the ⇝ translation leg) are        #
+# gmeow:gmnGlyphTokenCost. A conventional symbol earns a glyph slot when it   #
+# costs no more than its meaningful fallback; a dearer symbol stays a key.    #
+# Symbols measured out of the glyph table (⟦·⟧ denotation brackets, the ⇝     #
+# translation leg) are                                                        #
 # authored as named keys with no grapheme, their disposition read off the     #
 # crate-side token-cost measurement, never pre-committed.                     #
 # =========================================================================== #
@@ -3895,6 +4265,15 @@ gmeow:gmnTokenCostTwo
     math:hasDimension math:dimensionless ;
     math:quantityValue 2 .
 
+gmeow:gmnTokenCostThree
+    a math:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "three tokens"@x-gmeow-english ;
+    skos:definition "A measured token cost of three: the dimensionless math:Quantity carried by the established description-logic ⊑ sign under the pinned cl100k_base vocabulary. The explicit ASCII fallback is_subclass_of is no cheaper, so the conventional glyph is admitted without a token penalty rather than being misreported as a one-token symbol."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 3 .
+
 # --- Shared denotation context ---------------------------------------------- #
 
 gmeow:gmnLangGlyphContext
@@ -3902,6 +4281,421 @@ gmeow:gmnLangGlyphContext
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the GMN linguistic glyph-table context"@x-gmeow-english ;
     skos:definition "The context object the linguistic-plane glyph and alias denotations name through lang:denotationContext: the GMN glyph-table under which the lang: plane's meaning assignments hold. A denotation is never context-free; this is the shared context of the linguistic symbology plane."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnMathGlyphContext
+    a owl:NamedIndividual , gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN mathematical glyph-table context"@x-gmeow-english ;
+    skos:definition "The context under which the GMN math-plane forms denote math: constants and operations. It pins those readings to @μ records so familiar notation never escapes into an unscoped global alias."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnLogicGlyphContext
+    a owl:NamedIndividual , gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN logical glyph-table context"@x-gmeow-english ;
+    skos:definition "The context under which the GMN logic-plane forms denote logic: formula constructors and relations. It pins those readings to @ℒ records rather than treating logical typography as a global RDF alias."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnUnicodeMathWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unicode mathematical and Greek symbol repertoire"@x-gmeow-english ;
+    skos:definition "The Unicode Standard repertoire and character semantics for the mathematical operators and Greek letters used by the GMN grounding glyph inventory, including ¬, ⊑, ×, π, and γ."@x-gmeow-english ;
+    gmeow:title "The Unicode Standard — Mathematical Operators and Greek and Coptic"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnOpenMathWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "OpenMath content dictionaries"@x-gmeow-english ;
+    skos:definition "The OpenMath content-dictionary corpus cited for the denotations of arithmetic operations and named mathematical constants in the GMN math plane."@x-gmeow-english ;
+    gmeow:title "OpenMath Content Dictionaries"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCommonLogicWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Common Logic standard"@x-gmeow-english ;
+    skos:definition "The ISO Common Logic standard cited for the strong-negation meaning represented by the GMN logic-plane ¬ sign; Unicode supplies the character identity while Common Logic supplies the logical reading."@x-gmeow-english ;
+    gmeow:title "ISO/IEC 24707 Common Logic"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDescriptionLogicNotationWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "description-logic subsumption notation"@x-gmeow-english ;
+    skos:definition "The established description-logic notation practice cited for the square-image-of-or-equal-to sign ⊑ as class subsumption. GMN binds that sign to the canonical logic:subClassOf relation; the grounding correspondence from logic:subClassOf to rdfs:subClassOf owns the downstream RDFS spelling, so the glyph never makes an external projection term the semantic source."@x-gmeow-english ;
+    gmeow:title "The Description Logic Handbook — class subsumption notation"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormalSemanticsNotationWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "formal-semantics notation conventions"@x-gmeow-english ;
+    skos:definition "The conventional denotation-bracket and translation-arrow repertoire cited when comparing compact GMN named keys with their familiar display notation."@x-gmeow-english ;
+    gmeow:title "Formal semantics notation conventions"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnLinguisticNotationWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "linguistic acceptability notation conventions"@x-gmeow-english ;
+    skos:definition "The linguistic convention cited for prefixing an unacceptable or ungrammatical form with an asterisk, kept distinct from mathematical multiplication by the @lambda sigil scope."@x-gmeow-english ;
+    gmeow:title "Linguistic acceptability notation conventions"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Executable grounding-plane glyph inventory --------------------------- #
+# Every adopted sign is a scoped Grapheme -> Form -> Denotation -> target chain.
+# GmnGlyphRegistry reads only this graph join; no symbol-to-term table is hard-coded.
+
+gmeow:gmnGlyphLogicNot
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN logical-not glyph"@x-gmeow-english ;
+    skos:definition "The NFC ¬ grapheme (U+00AC) in the @ℒ scope, adopted as the executable GMN sign for logic:not after the pinned BPE measured it at one token."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+00AC" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicNot
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN logical-not operator"@x-gmeow-english ;
+    skos:definition "The prefix unary GMN form rendered by ¬ and denoting logic:not in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnPrecedence 90 ;
+    gmeow:gmnArity 1 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicNot
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN logical not"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ¬ form to logic:not."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicNot ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:not ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicNot ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicNot
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: logic:not as ¬"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering strong formula negation logic:not as ¬ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:not ;
+    gmeow:gmnCandidateGlyph "¬" ;
+    gmeow:gmnAsciiFallback "not" ;
+    gmeow:gmnSpokenLabel "logical not" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The conventional strong-negation sign ¬ and the ASCII key not each cost one pinned cl100k_base token; ¬ is adopted because it preserves the established logical reading without a token penalty, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicNot ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicSubClassOf
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN class-subsumption glyph"@x-gmeow-english ;
+    skos:definition "The NFC ⊑ grapheme (U+2291) in the @ℒ scope, adopted as the executable GMN sign for the canonical class-subsumption relation logic:subClassOf. The RDFS rdfs:subClassOf spelling remains a generated grounding target rather than the glyph's denotation owner."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+2291" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicSubClassOf
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN class-subsumption operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by ⊑ and denoting canonical logic:subClassOf in the logical glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:gmnArity 2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicSubClassOf
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN class subsumption"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ⊑ form to canonical logic:subClassOf. Its grounding correspondence lowers the relation to rdfs:subClassOf without reversing semantic ownership."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicSubClassOf ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:subClassOf ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicSubClassOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicSubClassOf
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: logic:subClassOf as ⊑"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering canonical class subsumption logic:subClassOf as ⊑ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:subClassOf ;
+    gmeow:gmnCandidateGlyph "⊑" ;
+    gmeow:gmnAsciiFallback "is_subclass_of" ;
+    gmeow:gmnSpokenLabel "is a subclass of" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The established description-logic ⊑ sign costs no more than the explicit ASCII fallback is_subclass_of under the pinned cl100k_base vocabulary; ⊑ is adopted without a token penalty, with @ℒ scope and binary infix metadata preserving its class-subsumption reading." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicSubClassOf ;
+    gmeow:cites gmeow:gmnDescriptionLogicNotationWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphMathPi
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN pi glyph"@x-gmeow-english ;
+    skos:definition "The NFC π grapheme (U+03C0) in the @μ scope, adopted as the executable GMN sign for the exact constant math:pi."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+03C0" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilMath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathPi
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN pi constant form"@x-gmeow-english ;
+    skos:definition "The GMN constant form rendered by π and denoting math:pi in the mathematical glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathPi
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN pi"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN π form to the exact constant math:pi."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathPi ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:pi ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathPi ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathPi
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: math:pi as π"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the exact constant math:pi as π in @μ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:pi ;
+    gmeow:gmnCandidateGlyph "π" ;
+    gmeow:gmnAsciiFallback "pi" ;
+    gmeow:gmnSpokenLabel "pi" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "π and pi each cost one pinned cl100k_base token; the conventional exact-constant sign wins without a token penalty and remains scoped to @μ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathPi ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphMathEulerMascheroni
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Euler–Mascheroni glyph"@x-gmeow-english ;
+    skos:definition "The NFC γ grapheme (U+03B3) in the @μ scope, adopted as the executable GMN sign for math:eulerMascheroni."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+03B3" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilMath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathEulerMascheroni
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Euler–Mascheroni constant form"@x-gmeow-english ;
+    skos:definition "The GMN constant form rendered by γ and denoting math:eulerMascheroni in the mathematical glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathEulerMascheroni
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN Euler–Mascheroni"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN γ form to math:eulerMascheroni."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathEulerMascheroni ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:eulerMascheroni ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathEulerMascheroni ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathEulerMascheroni
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Euler–Mascheroni as γ"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering math:eulerMascheroni as γ in @μ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:eulerMascheroni ;
+    gmeow:gmnCandidateGlyph "γ" ;
+    gmeow:gmnAsciiFallback "gamma" ;
+    gmeow:gmnSpokenLabel "Euler Mascheroni constant" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "γ and gamma each cost one pinned cl100k_base token; the conventional constant sign wins without a token penalty, scoped to @μ to avoid the gamma-function reading." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathEulerMascheroni ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphMathAddition
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN addition glyph"@x-gmeow-english ;
+    skos:definition "The NFC + grapheme (U+002B) in the @μ scope, adopted as the executable GMN sign for binary math:Addition."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+002B" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilMath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathAddition
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN addition operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by + and denoting math:Addition."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 60 ;
+    gmeow:gmnArity 2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathAddition
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN addition"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN + form to math:Addition."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathAddition ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:Addition ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathAddition ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathAddition
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: addition as +"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering binary math:Addition as + in @μ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Addition ;
+    gmeow:gmnCandidateGlyph "+" ;
+    gmeow:gmnAsciiFallback "add" ;
+    gmeow:gmnSpokenLabel "plus" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "+ and add each cost one pinned cl100k_base token; the conventional infix sign wins without a token penalty and its binary arity is explicit on the form." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathAddition ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphMathMultiplication
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN multiplication glyph"@x-gmeow-english ;
+    skos:definition "The NFC × grapheme (U+00D7) in the @μ scope, adopted as the executable GMN sign for binary math:Multiplication."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+00D7" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilMath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathMultiplication
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN multiplication operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by × and denoting math:Multiplication."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 70 ;
+    gmeow:gmnArity 2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathMultiplication
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN multiplication"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN × form to math:Multiplication."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathMultiplication ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:Multiplication ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathMultiplication ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathMultiplication
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: multiplication as ×"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering binary math:Multiplication as × in @μ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Multiplication ;
+    gmeow:gmnCandidateGlyph "×" ;
+    gmeow:gmnAsciiFallback "mul" ;
+    gmeow:gmnSpokenLabel "multiply" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "× and mul each cost one pinned cl100k_base token; the conventional infix sign wins without a token penalty and stays distinct from the lang-plane ungrammaticality asterisk." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathMultiplication ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphMathExponentiation
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN exponentiation glyph"@x-gmeow-english ;
+    skos:definition "The NFC ^ grapheme (U+005E) in the @μ scope, adopted as the executable GMN sign for binary math:Exponentiation."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+005E" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilMath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathExponentiation
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN exponentiation operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by ^ and denoting math:Exponentiation."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 80 ;
+    gmeow:gmnArity 2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathExponentiation
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN exponentiation"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ^ form to math:Exponentiation."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathExponentiation ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:Exponentiation ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathExponentiation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathExponentiation
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: exponentiation as ^"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering binary math:Exponentiation as ^ in @μ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Exponentiation ;
+    gmeow:gmnCandidateGlyph "^" ;
+    gmeow:gmnAsciiFallback "pow" ;
+    gmeow:gmnSpokenLabel "to the power of" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "^ and pow each cost one pinned cl100k_base token; ^ is adopted as the conventional plain-text infix power sign with explicit binary arity and precedence." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathExponentiation ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # --- Imported alias planes (cited + versioned) ------------------------------ #
@@ -3998,7 +4792,14 @@ gmeow:gmnScript lang:hasGrapheme
     gmeow:gmnGlyphIpaAe ,
     gmeow:gmnGlyphIpaT ,
     gmeow:gmnGlyphIpaStress ,
-    gmeow:gmnGlyphAsterisk .
+    gmeow:gmnGlyphAsterisk ,
+    gmeow:gmnGlyphLogicNot ,
+    gmeow:gmnGlyphLogicSubClassOf ,
+    gmeow:gmnGlyphMathPi ,
+    gmeow:gmnGlyphMathEulerMascheroni ,
+    gmeow:gmnGlyphMathAddition ,
+    gmeow:gmnGlyphMathMultiplication ,
+    gmeow:gmnGlyphMathExponentiation .
 
 gmeow:phoneVoicelessVelarPlosive
     a lang:Phone ;
@@ -4018,7 +4819,7 @@ gmeow:gmnGlyphIpaK
     gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
 
 gmeow:gmnFormIpaK
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the IPA [k] symbol form"@x-gmeow-english ;
     skos:definition "The IPA-plane notational form the glyph [k] realizes — the sign whose denotation binds it to the voiceless velar plosive phone."@x-gmeow-english ;
@@ -4054,7 +4855,7 @@ gmeow:gmnGlyphIpaAe
     gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
 
 gmeow:gmnFormIpaAe
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the IPA [æ] symbol form"@x-gmeow-english ;
     skos:definition "The IPA-plane notational form the glyph [æ] realizes — the sign whose denotation binds it to the near-open front unrounded vowel phone."@x-gmeow-english ;
@@ -4090,7 +4891,7 @@ gmeow:gmnGlyphIpaT
     gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
 
 gmeow:gmnFormIpaT
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the IPA [t] symbol form"@x-gmeow-english ;
     skos:definition "The IPA-plane notational form the glyph [t] realizes — the sign whose denotation binds it to the voiceless alveolar plosive phone."@x-gmeow-english ;
@@ -4134,7 +4935,7 @@ gmeow:gmnGlyphIpaStress
     gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
 
 gmeow:gmnFormIpaStress
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the IPA primary-stress symbol form"@x-gmeow-english ;
     skos:definition "The IPA-plane notational form the primary-stress mark `ˈ` realizes — the sign whose denotation binds it to the primary-stress suprasegmental."@x-gmeow-english ;
@@ -4176,12 +4977,15 @@ gmeow:gmnGlyphAsterisk
     gmeow:gmnSigilScope gmeow:gmnSigilLangAst .
 
 gmeow:gmnFormUngrammatical
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the GMN ungrammaticality operator"@x-gmeow-english ;
     skos:definition "The GMN operator form the `*` glyph realizes — the sign whose denotation binds it to the ill-formedness it marks."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    lang:inSignSystem gmeow:gmnModelNotation .
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 90 .
 
 gmeow:gmnDenUngrammatical
     a lang:Denotation ;
@@ -4192,7 +4996,8 @@ gmeow:gmnDenUngrammatical
     lang:denotedForm gmeow:gmnFormUngrammatical ;
     lang:denotationKind lang:denotesClass ;
     lang:denotationTarget lang:Ungrammaticality ;
-    lang:denotationContext gmeow:gmnLangGlyphContext .
+    lang:denotationContext gmeow:gmnLangGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphAsterisk .
 
 # --- Named-key rulings (symbols measured out of the glyph table) ------------- #
 # The ⟦·⟧ denotation brackets and the ⇝ translation leg each cost more than one
@@ -4200,7 +5005,7 @@ gmeow:gmnDenUngrammatical
 # terms stay ASCII named keys and no ⟦/⟧/⇝ grapheme enters the script.
 
 gmeow:gmnFormDenotation
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the GMN denotation named key `den`"@x-gmeow-english ;
     skos:definition "The GMN operator form for the denotation relation, rendered as the ASCII named key `den`. The established formal-semantics notation is the ⟦·⟧ bracket pair, but it costs more than one token under the pinned codebook vocabulary, so — read off the measurement — the denotation term stays a named key and ⟦/⟧ never enter the glyph table."@x-gmeow-english ;
@@ -4219,7 +5024,7 @@ gmeow:gmnDenDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnFormTranslationLeg
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the GMN translation-leg named key `xl`"@x-gmeow-english ;
     skos:definition "The GMN operator form for a translation leg, rendered as the ASCII named key `xl`. The established notation is the ⇝ squiggle arrow, but it costs three tokens under the pinned codebook vocabulary, so — read off the measurement — the translation-leg term stays a named key and ⇝ never enters the glyph table."@x-gmeow-english ;
@@ -4252,7 +5057,7 @@ lang:valThirdPerson
     lang:inFeatureInventory lang:udUniversalFeatures .
 
 gmeow:gmnGlossNom
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss NOM"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss NOM, a named-key alias of the Leipzig plane for the nominative case value."@x-gmeow-english ;
@@ -4271,7 +5076,7 @@ gmeow:gmnGlossNomDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGlossAcc
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss ACC"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss ACC, a named-key alias of the Leipzig plane for the accusative case value."@x-gmeow-english ;
@@ -4290,7 +5095,7 @@ gmeow:gmnGlossAccDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGlossPl
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss PL"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss PL, a named-key alias of the Leipzig plane for the plural number value."@x-gmeow-english ;
@@ -4309,7 +5114,7 @@ gmeow:gmnGlossPlDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGlossSg
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss SG"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss SG, a named-key alias of the Leipzig plane for the singular number value."@x-gmeow-english ;
@@ -4328,7 +5133,7 @@ gmeow:gmnGlossSgDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGlossPst
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss PST"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss PST, a named-key alias of the Leipzig plane for the past tense value."@x-gmeow-english ;
@@ -4347,7 +5152,7 @@ gmeow:gmnGlossPstDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGlossPrs
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss PRS"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss PRS, a named-key alias of the Leipzig plane for the present tense value."@x-gmeow-english ;
@@ -4366,7 +5171,7 @@ gmeow:gmnGlossPrsDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGlossThird
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss 3"@x-gmeow-english ;
     skos:definition "The Leipzig interlinear gloss 3, a named-key alias of the Leipzig plane for the third-person value."@x-gmeow-english ;
@@ -4385,7 +5190,7 @@ gmeow:gmnGlossThirdDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnGloss3Sg
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig gloss 3SG"@x-gmeow-english ;
     skos:definition "The Leipzig portmanteau gloss 3SG, a named-key alias of the Leipzig plane condensing the third-person and singular values into one interlinear label."@x-gmeow-english ;
@@ -4404,23 +5209,365 @@ gmeow:gmnGloss3SgDenotation
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 gmeow:gmnFormMorphemeBoundary
-    a lang:WordForm ;
+    a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    rdfs:label "the Leipzig morpheme-boundary named key `-`"@x-gmeow-english ;
-    skos:definition "The Leipzig morpheme-boundary marker, rendered as the ASCII named key `-` (hyphen-minus, U+002D). It stays a named key rather than entering the glyph table because the ASCII hyphen-minus is confusable with U+2010 (hyphen), U+2212 (minus sign), and U+00AD (soft hyphen); an alias that never leaves the named-key plane cannot be silently substituted by one of those look-alikes at serialization or transport."@x-gmeow-english ;
+    rdfs:label "the Leipzig morpheme-boundary named key `mb`"@x-gmeow-english ;
+    skos:definition "The GMN named-key form `mb` for the Leipzig morpheme-boundary marker. The conventional display sign is hyphen-minus (U+002D), but it stays outside the executable glyph table because it is confusable with U+2010 (hyphen), U+2212 (minus sign), and U+00AD (soft hyphen); the ASCII key remains unambiguous at serialization and transport boundaries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     lang:inSignSystem gmeow:leipzigGlossingRules .
 
 gmeow:gmnDenMorphemeBoundary
     a lang:Denotation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    rdfs:label "denotation of the Leipzig morpheme-boundary named key `-`"@x-gmeow-english ;
-    skos:definition "The reified meaning assignment binding the Leipzig morpheme-boundary named key `-` to lang:MorphemeBoundary, the segmentation point between adjacent morphs it marks."@x-gmeow-english ;
+    rdfs:label "denotation of the Leipzig morpheme-boundary named key `mb`"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the GMN `mb` key to lang:MorphemeBoundary, the segmentation point conventionally displayed with a hyphen between adjacent morphs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     lang:denotedForm gmeow:gmnFormMorphemeBoundary ;
     lang:denotationKind lang:denotesClass ;
     lang:denotationTarget lang:MorphemeBoundary ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
+
+# --- Audited named-key and structured-constructor rulings ------------------ #
+# These signs are deliberately absent from gmeow:gmnDenotationGrapheme. Named
+# keys execute through dict-v2; structured/rejected candidates preserve the
+# familiar display symbol only as evidence, never as an ambiguous flat alias.
+
+gmeow:gmnFormMathDivision
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN division named key `div`"@x-gmeow-english ;
+    skos:definition "The binary GMN named-key form `div` for math:Division; the familiar division sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 70 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathDivision
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN division key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `div` named key to math:Division; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathDivision ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:Division ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicForall
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN universal-quantifier key `fa`"@x-gmeow-english ;
+    skos:definition "The prefix GMN named key `fa` for logic:forall; the universal-quantifier glyph remains display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicForall
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN universal-quantifier key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `fa` to logic:forall; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicForall ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:forall ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicExists
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN existential-quantifier key `ex`"@x-gmeow-english ;
+    skos:definition "The prefix GMN named key `ex` for logic:exists; the existential-quantifier glyph remains display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicExists
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN existential-quantifier key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `ex` to logic:exists; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicExists ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:exists ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicAnd
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN conjunction key `and`"@x-gmeow-english ;
+    skos:definition "The GMN named key `and` for logic:and; the conjunction glyph remains display notation because the ASCII key is cheaper under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 40 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicAnd
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN conjunction key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `and` to logic:and; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicAnd ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:and ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicOr
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN disjunction key `or`"@x-gmeow-english ;
+    skos:definition "The GMN named key `or` for logic:or; the disjunction glyph remains display notation because the ASCII key is cheaper under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 30 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicOr
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN disjunction key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `or` to logic:or; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicOr ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:or ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicIff
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN biconditional key `iff`"@x-gmeow-english ;
+    skos:definition "The GMN named key `iff` for logic:iff; the bidirectional-arrow glyph remains display notation because the ASCII key is cheaper under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 10 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicIff
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN biconditional key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `iff` to logic:iff; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicIff ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:iff ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLangUngrammatical
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: ungrammaticality as asterisk"@x-gmeow-english ;
+    skos:definition "The audited adoption of the scoped linguistic asterisk for lang:Ungrammaticality."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget lang:Ungrammaticality ;
+    gmeow:gmnCandidateGlyph "*" ;
+    gmeow:gmnAsciiFallback "ungrammatical" ;
+    gmeow:gmnSpokenLabel "ungrammatical" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The conventional asterisk costs one pinned BPE token, no more than its ASCII fallback, and @lambda scope keeps it distinct from mathematical multiplication." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenUngrammatical ;
+    gmeow:cites gmeow:gmnLinguisticNotationWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLangDenotation
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: denotation brackets"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for familiar semantic denotation brackets."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget lang:Denotation ;
+    gmeow:gmnCandidateGlyph "⟦·⟧" ;
+    gmeow:gmnAsciiFallback "den" ;
+    gmeow:gmnSpokenLabel "denotation" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The two semantic brackets and placeholder fragment into more pinned BPE tokens than the one-token `den` key, so the display notation stays outside the executable glyph registry." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenDenotation ;
+    gmeow:cites gmeow:gmnFormalSemanticsNotationWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLangTranslation
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: translation arrow"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the squiggle translation arrow."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget lang:Translation ;
+    gmeow:gmnCandidateGlyph "⇝" ;
+    gmeow:gmnAsciiFallback "xl" ;
+    gmeow:gmnSpokenLabel "translates to" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The squiggle arrow fragments into more pinned BPE tokens than the one-token `xl` key, so it remains display notation." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenTranslationLeg ;
+    gmeow:cites gmeow:gmnFormalSemanticsNotationWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLangMorphemeBoundary
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: morpheme-boundary hyphen"@x-gmeow-english ;
+    skos:definition "The audited safety ruling that keeps the conventional morpheme-boundary hyphen as display notation and uses the executable `mb` key."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget lang:MorphemeBoundary ;
+    gmeow:gmnCandidateGlyph "-" ;
+    gmeow:gmnAsciiFallback "mb" ;
+    gmeow:gmnSpokenLabel "morpheme boundary" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "Hyphen-minus is visually confusable with Unicode hyphen, mathematical minus, and soft hyphen; the `mb` key preserves an inspectable transport spelling." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMorphemeBoundary ;
+    gmeow:cites gmeow:leipzigWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathDivision
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: division sign"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for math:Division."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Division ;
+    gmeow:gmnCandidateGlyph "÷" ;
+    gmeow:gmnAsciiFallback "div" ;
+    gmeow:gmnSpokenLabel "divided by" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The division sign fragments into more pinned BPE tokens than the one-token `div` key, so the Unicode sign remains display notation." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathDivision ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathSubtraction
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: binary subtraction minus"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for binary math:Subtraction."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Subtraction ;
+    gmeow:gmnCandidateGlyph "−" ;
+    gmeow:gmnAsciiFallback "sub" ;
+    gmeow:gmnSpokenLabel "subtract" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The same minus sign denotes unary negation and binary subtraction; a flat reference glyph cannot carry the arity, so GMN retains an explicit binary constructor." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathNegation
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: unary negation minus"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for unary math:Negation."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Negation ;
+    gmeow:gmnCandidateGlyph "−" ;
+    gmeow:gmnAsciiFallback "neg" ;
+    gmeow:gmnSpokenLabel "negative" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The same minus sign denotes unary negation and binary subtraction; a flat reference glyph cannot carry the arity, so GMN retains an explicit unary constructor." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicForall
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: universal quantifier"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for logic:forall."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:forall ; gmeow:gmnCandidateGlyph "∀" ;
+    gmeow:gmnAsciiFallback "fa" ; gmeow:gmnSpokenLabel "for all" ; gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The universal-quantifier glyph fragments into more pinned BPE tokens than the `fa` key." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicForall ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicExists
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: existential quantifier"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for logic:exists."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:exists ; gmeow:gmnCandidateGlyph "∃" ;
+    gmeow:gmnAsciiFallback "ex" ; gmeow:gmnSpokenLabel "there exists" ; gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The existential-quantifier glyph fragments into more pinned BPE tokens than the `ex` key." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicExists ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicAnd
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: conjunction"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for logic:and."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:and ; gmeow:gmnCandidateGlyph "∧" ;
+    gmeow:gmnAsciiFallback "and" ; gmeow:gmnSpokenLabel "and" ; gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The conjunction glyph fragments into more pinned BPE tokens than the `and` key." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicAnd ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicOr
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: disjunction"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for logic:or."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:or ; gmeow:gmnCandidateGlyph "∨" ;
+    gmeow:gmnAsciiFallback "or" ; gmeow:gmnSpokenLabel "or" ; gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The disjunction glyph fragments into more pinned BPE tokens than the `or` key." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicOr ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicIff
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: biconditional"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for logic:iff."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:iff ; gmeow:gmnCandidateGlyph "↔" ;
+    gmeow:gmnAsciiFallback "iff" ; gmeow:gmnSpokenLabel "if and only if" ; gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The biconditional glyph fragments into more pinned BPE tokens than the `iff` key." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicIff ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# The IPA glyphs remain executable inside phonological surface content but are
+# semantically rejected as aliases for their denoted phone IRIs. This prevents
+# an identifier-shaped `k` or `t` from overlapping GMN's reference-token grammar.
+gmeow:gmnCandidateIpaK
+    a gmeow:GmnSymbolCandidate ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: IPA k as a term alias"@x-gmeow-english ; skos:definition "The explicit rejection of IPA k as a flattened GMN reference alias."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget gmeow:phoneVoicelessVelarPlosive ; gmeow:gmnCandidateGlyph "k" ; gmeow:gmnAsciiFallback "ipa_k" ; gmeow:gmnSpokenLabel "voiceless velar plosive" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionSemanticRejection ; gmeow:gmnDispositionBasis gmeow:gmnBasisSemanticMismatch ;
+    gmeow:gmnDispositionRationale "IPA k is phonological surface content, not an alias for the phone resource IRI; flattening it would overlap the identifier grammar." ; gmeow:cites gmeow:ipaChartWork ; gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateIpaAe
+    a gmeow:GmnSymbolCandidate ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: IPA ae as a term alias"@x-gmeow-english ; skos:definition "The explicit rejection of IPA ae as a flattened GMN reference alias."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget gmeow:phoneNearOpenFrontUnrounded ; gmeow:gmnCandidateGlyph "æ" ; gmeow:gmnAsciiFallback "ipa_ae" ; gmeow:gmnSpokenLabel "near-open front unrounded vowel" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionSemanticRejection ; gmeow:gmnDispositionBasis gmeow:gmnBasisSemanticMismatch ;
+    gmeow:gmnDispositionRationale "IPA ae is phonological surface content, not an alias for the phone resource IRI; its denotation remains in the linguistic plane." ; gmeow:cites gmeow:ipaChartWork ; gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateIpaT
+    a gmeow:GmnSymbolCandidate ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: IPA t as a term alias"@x-gmeow-english ; skos:definition "The explicit rejection of IPA t as a flattened GMN reference alias."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget gmeow:phoneVoicelessAlveolarPlosive ; gmeow:gmnCandidateGlyph "t" ; gmeow:gmnAsciiFallback "ipa_t" ; gmeow:gmnSpokenLabel "voiceless alveolar plosive" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionSemanticRejection ; gmeow:gmnDispositionBasis gmeow:gmnBasisSemanticMismatch ;
+    gmeow:gmnDispositionRationale "IPA t is phonological surface content, not an alias for the phone resource IRI; flattening it would overlap the identifier grammar." ; gmeow:cites gmeow:ipaChartWork ; gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateIpaStress
+    a gmeow:GmnSymbolCandidate ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: IPA stress as a term alias"@x-gmeow-english ; skos:definition "The explicit rejection of the IPA stress mark as a flattened GMN reference alias."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget gmeow:suprasegmentalPrimaryStress ; gmeow:gmnCandidateGlyph "ˈ" ; gmeow:gmnAsciiFallback "primary_stress" ; gmeow:gmnSpokenLabel "primary stress" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionSemanticRejection ; gmeow:gmnDispositionBasis gmeow:gmnBasisSemanticMismatch ;
+    gmeow:gmnDispositionRationale "The IPA stress mark is phonological surface content, not an alias for the suprasegmental resource IRI; its denotation remains in the linguistic plane." ; gmeow:cites gmeow:ipaChartWork ; gmeow:graphBoxRole gmeow:boxABox .
 
 # --- Codebook wiring -------------------------------------------------------- #
 # The current codebook references the two imported alias planes alongside the
@@ -4442,51 +5589,377 @@ gmeow:gmnCodebookCurrent gmeow:references
 # and remain the procedural sh:sparql constraint fragment.
 # =========================================================================== #
 
-lang:Form rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:inSignSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:SignSystem ] .
+# Required paths are closed explicitly, per class and property.  Each named
+# ClosureEntry is a canonical, queryable authority that the retained validation
+# surface can cite while equivalence-before-deletion is completed; paired with
+# the allValuesFrom restrictions below, it projects sh:minCount 1 without asking
+# the open-world reasoner to invent an existential witness.
 
-lang:SurfaceForm rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:analysisLevel ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:AnalysisLevel ] ,
-    [ a owl:Restriction ; owl:onProperty lang:inScript ; owl:minQualifiedCardinality 1 ; owl:onClass lang:Script ] ,
-    [ a owl:Restriction ; owl:onProperty lang:unicodeNormalization ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:collationLocale ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+lang:formInSignSystemClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "form sign-system closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Form to carry lang:inSignSystem; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Form ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/inSignSystem" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass lang:UnsituatedForm .
+
+lang:wordFormLexemeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "word-form lexeme closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:WordForm to carry lang:lexemeOf; its paired universal restriction fixes the value as a lang:Lexeme without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:WordForm ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/lexemeOf" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass lang:OrphanWordForm .
+
+lang:grammarSignSystemClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "grammar sign-system closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Grammar to carry lang:grammarFor; its paired universal restriction fixes the value as a lang:SignSystem without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Grammar ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/grammarFor" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass lang:UnanchoredGrammar .
+
+lang:grammarRuleOwnerClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "grammar-rule owner closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:GrammarRule to carry lang:grammarRuleOf; its paired universal restriction fixes the value as a lang:Grammar without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:GrammarRule ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/grammarRuleOf" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass lang:UnanchoredGrammar .
+
+lang:surfaceAnalysisLevelClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface analysis-level closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceForm to carry lang:analysisLevel; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceForm ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/analysisLevel" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:morphFeatureKeyClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "morph-feature key closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:MorphFeature to carry lang:featureKey; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:MorphFeature ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/featureKey" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:morphFeatureValueClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "morph-feature value closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:MorphFeature to carry lang:featureValue; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:MorphFeature ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/featureValue" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:surfaceScriptClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface script closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceForm to carry lang:inScript; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceForm ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/inScript" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:surfaceNormalizationClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface normalization closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceForm to carry lang:unicodeNormalization; the declaration remains a validation requirement rather than an open-world existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceForm ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/unicodeNormalization" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:surfaceCollationClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface collation closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceForm to carry lang:collationLocale; the declaration remains a validation requirement rather than an open-world existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceForm ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/collationLocale" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:anchorSourceClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "anchor source closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceAnchor to carry lang:anchorSource; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceAnchor ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/anchorSource" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:anchorStartClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "anchor start closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceAnchor to carry the integer-valued lang:anchorStart path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceAnchor ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/anchorStart" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:anchorEndClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "anchor end closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceAnchor to carry the integer-valued lang:anchorEnd path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceAnchor ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/anchorEnd" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:anchorOffsetSpaceClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "anchor offset-space closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:SurfaceAnchor to carry lang:offsetSpace; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:SurfaceAnchor ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/offsetSpace" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:graphemeScriptClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "grapheme script closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Grapheme to carry lang:inScript; its paired universal restriction fixes the value type without creating an existential witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Grapheme ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/inScript" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:denotationFormClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation form closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Denotation to carry lang:denotedForm; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Denotation ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/denotedForm" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:denotationKindClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation kind closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Denotation to carry lang:denotationKind; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Denotation ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/denotationKind" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:denotationTargetClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation target closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Denotation to carry lang:denotationTarget; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Denotation ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/denotationTarget" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:denotationContextClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation context closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Denotation to carry lang:denotationContext; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Denotation ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/denotationContext" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:renderingContentClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering content closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Rendering to carry lang:renderedContent; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Rendering ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/renderedContent" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:renderingConventionClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering convention closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Rendering to carry lang:renderingConvention; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Rendering ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/renderingConvention" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:renderingPreservationClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering preservation closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Rendering to carry lang:renderingPreservation; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Rendering ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/renderingPreservation" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:renderingKindClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering kind closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Rendering to carry lang:renderingKind; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Rendering ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/renderingKind" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:translationSourceClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation source closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:TranslationUnit to carry lang:translationSource; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:TranslationUnit ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/translationSource" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:translationTargetClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation target closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:TranslationUnit to carry lang:translationTarget; the requirement is checked without creating an open-world witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:TranslationUnit ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/translationTarget" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:translationCorrespondenceClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation correspondence closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:TranslationUnit to carry lang:translationCorrespondence; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:TranslationUnit ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/translationCorrespondence" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:translationMethodClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation method closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:TranslationUnit to carry lang:translationMethod; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:TranslationUnit ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/translationMethod" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:paraphraseSamenessClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "paraphrase sameness closure"@x-gmeow-english ;
+    skos:definition "The class-scoped closed-world authority requiring every lang:Paraphrase to carry lang:paraphraseSamenessKind; its paired universal restriction fixes the value type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass lang:Paraphrase ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/paraphraseSamenessKind" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+lang:Form logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:allValuesFrom lang:SignSystem ] ,
+    [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:SignSystem ] .
+
+lang:WordForm logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:lexemeOf ; logic:allValuesFrom lang:Lexeme ] .
+
+lang:Grammar logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:grammarFor ; logic:allValuesFrom lang:SignSystem ] .
+
+lang:GrammarRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:grammarRuleOf ; logic:allValuesFrom lang:Grammar ] .
+
+lang:SurfaceForm logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:analysisLevel ; logic:allValuesFrom lang:AnalysisLevel ] ,
+    [ a logic:Restriction ; logic:onProperty lang:analysisLevel ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:AnalysisLevel ] ,
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] ,
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:minQualifiedCardinality 1 ; logic:onClass lang:Script ] ,
+    [ a logic:Restriction ; logic:onProperty lang:unicodeNormalization ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty lang:unicodeNormalization ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:collationLocale ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty lang:collationLocale ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 lang:FormSlot rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty lang:slotIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .
 
-lang:MorphFeature rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:featureKey ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:FeatureKey ] ,
-    [ a owl:Restriction ; owl:onProperty lang:featureValue ; owl:minQualifiedCardinality 1 ; owl:onClass lang:FeatureValue ] .
+lang:MorphFeature logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:featureKey ; logic:allValuesFrom lang:FeatureKey ] ,
+    [ a logic:Restriction ; logic:onProperty lang:featureKey ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:FeatureKey ] ,
+    [ a logic:Restriction ; logic:onProperty lang:featureValue ; logic:allValuesFrom lang:FeatureValue ] ,
+    [ a logic:Restriction ; logic:onProperty lang:featureValue ; logic:minQualifiedCardinality 1 ; logic:onClass lang:FeatureValue ] .
 
-lang:SurfaceAnchor rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:anchorSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:anchorStart ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty lang:anchorEnd ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty lang:offsetSpace ; owl:minQualifiedCardinality 1 ; owl:onClass lang:OffsetSpace ] .
+lang:SurfaceAnchor logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:anchorSource ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:anchorSource ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:anchorStart ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty lang:anchorStart ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty lang:anchorEnd ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty lang:anchorEnd ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty lang:offsetSpace ; logic:allValuesFrom lang:OffsetSpace ] ,
+    [ a logic:Restriction ; logic:onProperty lang:offsetSpace ; logic:minQualifiedCardinality 1 ; logic:onClass lang:OffsetSpace ] .
 
-lang:Grapheme rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:inScript ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:Script ] .
+lang:Grapheme logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] ,
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:Script ] .
 
-lang:Denotation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:denotedForm ; owl:minQualifiedCardinality 1 ; owl:onClass lang:Form ] ,
-    [ a owl:Restriction ; owl:onProperty lang:denotationKind ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:DenotationKind ] ,
-    [ a owl:Restriction ; owl:onProperty lang:denotationTarget ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:denotationContext ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+lang:Denotation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:denotedForm ; logic:allValuesFrom lang:Form ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotedForm ; logic:minQualifiedCardinality 1 ; logic:onClass lang:Form ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotationKind ; logic:allValuesFrom lang:DenotationKind ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotationKind ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:DenotationKind ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotationTarget ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotationTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotationContext ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:denotationContext ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
-lang:Paraphrase rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:paraphraseSamenessKind ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:ParaphraseSamenessKind ] .
+lang:Paraphrase logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:paraphraseOf ; logic:allValuesFrom lang:Form ] ,
+    [ a logic:Restriction ; logic:onProperty lang:paraphraseForm ; logic:allValuesFrom lang:Form ] ,
+    [ a logic:Restriction ; logic:onProperty lang:paraphraseSamenessKind ; logic:allValuesFrom lang:ParaphraseSamenessKind ] ,
+    [ a logic:Restriction ; logic:onProperty lang:paraphraseSamenessKind ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:ParaphraseSamenessKind ] .
 
-lang:Rendering rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:renderedContent ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:renderingConvention ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:renderingPreservation ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:renderingKind ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:RenderingKind ] .
+lang:Rendering logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:renderedContent ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderedContent ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderingConvention ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderingConvention ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderingPreservation ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderingPreservation ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderingKind ; logic:allValuesFrom lang:RenderingKind ] ,
+    [ a logic:Restriction ; logic:onProperty lang:renderingKind ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:RenderingKind ] .
 
-lang:TranslationUnit rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:translationSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:translationTarget ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:translationCorrespondence ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] ,
-    [ a owl:Restriction ; owl:onProperty lang:translationMethod ; owl:minQualifiedCardinality 1 ; owl:onClass lang:TranslationMethod ] .
+lang:TranslationUnit logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:translationSource ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationSource ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationTarget ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationCorrespondence ; logic:allValuesFrom logic:Correspondence ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationCorrespondence ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationMethod ; logic:allValuesFrom lang:TranslationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty lang:translationMethod ; logic:minQualifiedCardinality 1 ; logic:onClass lang:TranslationMethod ] .
 
 lang:TransliterationMap rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty lang:transliterationSourceOrthography ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -4504,8 +5977,10 @@ lang:GmnImportedPlane rdfs:subClassOf
 gmeow:GmnEnvelope rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gmnSchemaVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnDictionaryVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnDictionaryVersion ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnGlyphTableVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnSecurityRing ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:GmnSecurityRing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnSecurityRing ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GmnSecurityRing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:accordingTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:wasGeneratedBy ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -4514,6 +5989,12 @@ gmeow:GmnEnvelope rdfs:subClassOf
 gmeow:GmnCompaction rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gmnCompacts ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:GmnSecurityRing logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnRingLevel ; logic:allValuesFrom gmeow:GmnRingLevel ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnRingLevel ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:GmnRingLevel ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnRingLevel ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:GmnRingLevel ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnRingCompartment ; logic:allValuesFrom gmeow:GmnCompartment ] .
 
 lang:FlagshipScenario rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty lang:demonstratedByExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
@@ -4528,6 +6009,78 @@ lang:FlagshipScenario rdfs:subClassOf
 # record carrying logic:formalizes, expanded by the frontend to a canonical    #
 # logic:Constraint and lowered to a sh:SPARQLConstraint.                       #
 # =========================================================================== #
+
+# The GMN alias table is injective within each dictionary: if two member
+# entries share an alias, they denote the same term. The hand-authored SHACL is
+# retained as a ValidationOnly finding surface while this canonical formula is
+# also projected through the logic compiler.
+lang:GmnDictionaryAliasInjectivityConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN dictionary alias-injectivity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    skos:definition "A closed-world integrity constraint requiring entries in one gmeow:GmnDictionary that share a gmeow:gmnDictionaryEntryAlias to name the same gmeow:gmnDictionaryEntryTerm; one alias never reads back as two terms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes lang:GmnDictionaryAliasInjectivityShape ;
+    gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision ;
+    logic:message "Two entries of one GMN dictionary alias different terms with the same alias string; the alias table is not injective." ;
+    logic:integrity lang:gdaiForall .
+lang:gdaiForall a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "entry1" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "entry2" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "alias" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "term1" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "term2" ] ;
+    logic:forall lang:gdaiImpl .
+lang:gdaiImpl a logic:Formula ; logic:antecedent lang:gdaiGuard ; logic:consequent lang:gdaiSameTerm .
+lang:gdaiGuard a logic:Formula ;
+    logic:and lang:gdaiType , lang:gdaiMember1 , lang:gdaiMember2 , lang:gdaiAlias1 , lang:gdaiAlias2 , lang:gdaiTerm1 , lang:gdaiTerm2 .
+lang:gdaiType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GmnDictionary ] .
+lang:gdaiMember1 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntry ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry1" ] .
+lang:gdaiMember2 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntry ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry2" ] .
+lang:gdaiAlias1 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntryAlias ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry1" ] , [ logic:termIndex 1 ; logic:termVariable "alias" ] .
+lang:gdaiAlias2 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntryAlias ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry2" ] , [ logic:termIndex 1 ; logic:termVariable "alias" ] .
+lang:gdaiTerm1 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntryTerm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry1" ] , [ logic:termIndex 1 ; logic:termVariable "term1" ] .
+lang:gdaiTerm2 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntryTerm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry2" ] , [ logic:termIndex 1 ; logic:termVariable "term2" ] .
+lang:gdaiSameTerm a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "term1" ] , [ logic:termIndex 1 ; logic:termVariable "term2" ] .
+
+# An envelope emitted by the mentation export process is admitted only when it
+# names the GMN security ring governing the serialization boundary.
+lang:GmnExportRingBindingConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN export-ring binding constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    skos:definition "A closed-world integrity constraint requiring every gmeow:GmnEnvelope generated by a gmeow:processExport activity to name a gmeow:gmnSecurityRing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes lang:GmnExportRingBindingShape ;
+    gmeow:enforcesFailureClass lang:GmnUnringedExportCrossing ;
+    logic:message "A GMN envelope generated by an export activity declares no security ring." ;
+    logic:integrity lang:gerbForall .
+lang:gerbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] ;
+    logic:forall lang:gerbImpl .
+lang:gerbImpl a logic:Formula ; logic:antecedent lang:gerbGuard ; logic:consequent lang:gerbHasRing .
+lang:gerbGuard a logic:Formula ; logic:and lang:gerbEnvelope , lang:gerbGenerated , lang:gerbExport .
+lang:gerbEnvelope a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GmnEnvelope ] .
+lang:gerbGenerated a logic:Formula ; logic:relation gmeow:wasGeneratedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] .
+lang:gerbExport a logic:Formula ; logic:relation gmeow:mentalProcessType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termIri gmeow:processExport ] .
+lang:gerbHasRing a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ring" ] ;
+    logic:exists lang:gerbRing .
+lang:gerbRing a logic:Formula ; logic:relation gmeow:gmnSecurityRing ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ring" ] .
 
 # lang:ReadingClaimGroundedShape — a gmeow:Observation that is a claim about a
 # lang:Reading (through lang:aboutReading) names its gmeow:vantage: the claim
@@ -4567,6 +6120,86 @@ lang:SlotFormNodeKindConstraint
     logic:formalizes lang:SlotFormStructuralShape ;
     logic:message "A lang:slotForm value must be a resource (a blank node or IRI), never a literal." .
 
+# The sibling lang:realizes and lang:formHead paths carry the same structural
+# obligation as lang:slotForm: every present value is a resource rather than a
+# string. These are canonical formula-sugar records; the retained SHACL blocks
+# are validation-only projections until the equivalence oracle can compare a
+# path-node-kind formula to its SPARQL lowering directly.
+lang:RealizesNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    logic:valuePath lang:realizes ;
+    logic:nodeKind "BlankNodeOrIRI" ;
+    logic:formalizes lang:RealizesStructuralShape ;
+    gmeow:enforcesFailureClass lang:StringOnlyForm ;
+    logic:message "A lang:realizes value must be a resource (a blank node or IRI), never a literal." .
+
+lang:FormHeadNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    logic:valuePath lang:formHead ;
+    logic:nodeKind "BlankNodeOrIRI" ;
+    logic:formalizes lang:FormHeadStructuralShape ;
+    gmeow:enforcesFailureClass lang:StringOnlyForm ;
+    logic:message "A lang:formHead value must be a resource (a blank node or IRI), never a literal." .
+
+# A surface must carry its material either inline or by content-addressed blob.
+# The four remaining field obligations are ordinary OWL restrictions above; this
+# disjunctive requiredness record is the canonical authority for the only
+# non-declarative part of lang:SurfaceMaterialShape.
+lang:SurfaceMaterialChoiceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    logic:onClass lang:SurfaceForm ;
+    logic:anyOf lang:surfaceText , lang:surfaceBlob ;
+    logic:formalizes lang:SurfaceMaterialShape ;
+    gmeow:enforcesFailureClass lang:UnhashableSurface ;
+    logic:message "A lang:SurfaceForm must carry its bytes inline through lang:surfaceText or by reference through lang:surfaceBlob." .
+
+# Zero-based contiguity without aggregation: every observed non-zero slot index
+# has an observed predecessor whose index plus one equals it. Together with the
+# exact-one integer slotIndex OWL restriction and the uniqueness constraint,
+# this is equivalent over finite RDF graphs to indexes {0,...,n-1}. The formula
+# is canonical; termSum lowers to a checked arithmetic BIND and termEqual to a
+# FILTER, so this is not an uninterpreted proxy for the legacy aggregate query.
+lang:SlotContiguityConstraint
+    a logic:Constraint ;
+    rdfs:label "zero-based contiguous slot-index constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    skos:definition "A first-order integrity constraint over finite RDF graphs: every slot index of a lang:ComposedForm is zero or has an observed predecessor whose index plus one equals it. Combined with exact-one integer indexes and sibling-index uniqueness, this is exactly zero-based contiguity, not a structural proxy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes lang:SlotContiguityShape ;
+    gmeow:enforcesFailureClass lang:NonContiguousSlots ;
+    logic:message "A composed form's slot indexes are not zero-based and contiguous." ;
+    logic:integrity lang:sctForall .
+lang:sctForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:sctImpl .
+lang:sctImpl a logic:Formula ; logic:antecedent lang:sctGuard ; logic:consequent lang:sctAllSlots .
+lang:sctGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:ComposedForm ] .
+lang:sctAllSlots a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "slot" ] , [ logic:termIndex 1 ; logic:termVariable "index" ] ;
+    logic:forall lang:sctSlotImpl .
+lang:sctSlotImpl a logic:Formula ; logic:antecedent lang:sctSlotGuard ; logic:consequent lang:sctZeroOrPredecessor .
+lang:sctSlotGuard a logic:Formula ; logic:and lang:sctSlotEdge , lang:sctIndexEdge .
+lang:sctSlotEdge a logic:Formula ; logic:relation lang:formSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "slot" ] .
+lang:sctIndexEdge a logic:Formula ; logic:relation lang:slotIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "slot" ] , [ logic:termIndex 1 ; logic:termVariable "index" ] .
+lang:sctZeroOrPredecessor a logic:Formula ; logic:or lang:sctZero , lang:sctPredecessorExists .
+lang:sctZero a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "index" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
+lang:sctPredecessorExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "previousSlot" ] , [ logic:termIndex 1 ; logic:termVariable "previousIndex" ] , [ logic:termIndex 2 ; logic:termVariable "successorIndex" ] ;
+    logic:exists lang:sctPredecessorBody .
+lang:sctPredecessorBody a logic:Formula ; logic:and lang:sctPreviousSlotEdge , lang:sctPreviousIndexEdge , lang:sctSuccessorSum , lang:sctSuccessorEqual .
+lang:sctPreviousSlotEdge a logic:Formula ; logic:relation lang:formSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "previousSlot" ] .
+lang:sctPreviousIndexEdge a logic:Formula ; logic:relation lang:slotIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "previousSlot" ] , [ logic:termIndex 1 ; logic:termVariable "previousIndex" ] .
+lang:sctSuccessorSum a logic:Formula ; logic:relation logic:termSum ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "successorIndex" ] , [ logic:termIndex 1 ; logic:termVariable "previousIndex" ] , [ logic:termIndex 2 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+lang:sctSuccessorEqual a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "successorIndex" ] , [ logic:termIndex 1 ; logic:termVariable "index" ] .
+
 # No two distinct lang:formSlot cells of one composed form may share the same
 # lang:slotIndex (a self-join uniqueness constraint).
 lang:FormSlotIndexUniquenessConstraint
@@ -4574,7 +6207,7 @@ lang:FormSlotIndexUniquenessConstraint
     logic:onClass lang:ComposedForm ;
     logic:siblingPredicate lang:formSlot ;
     logic:sharedPredicate lang:slotIndex ;
-    logic:formalizes lang:ComposedForm ;
+    logic:formalizes lang:SlotIndexUniqueShape ;
     logic:message "No two distinct lang:formSlot cells of one lang:ComposedForm may share the same lang:slotIndex." .
 
 # A lang:FeatureValue must be dispositioned in the symbology plane: it must be the
@@ -4584,7 +6217,7 @@ lang:FeatureValueDispositionConstraint
     logic:onClass lang:FeatureValue ;
     logic:inversePredicate lang:denotationTarget ;
     logic:subjectClass lang:Denotation ;
-    logic:formalizes lang:FeatureValue ;
+    logic:formalizes lang:GmnLangCoverageShape ;
     logic:message "A lang:FeatureValue must be the lang:denotationTarget of some lang:Denotation; an undispositioned feature value is ill-formed." .
 
 # A gmeow:gmnCodepoints value must be canonical: space-separated U+XXXX groups of 4-6 uppercase
@@ -4600,13 +6233,24 @@ lang:GmnCodepointCanonicalConstraint
 # A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf the
 # conformance-failure root (a transitive reachability constraint).
 lang:FlagshipScenarioFailureClassConstraint
-    a logic:TransitiveReachabilityConstraint ;
-    logic:onClass lang:FlagshipScenario ;
-    logic:viaPredicate lang:enforcesFailureClass ;
-    logic:pathPredicate rdfs:subClassOf ;
-    logic:reachTarget lang:LangConformanceFailure ;
-    logic:formalizes lang:FlagshipScenario ;
-    logic:message "A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+    a logic:Constraint ;
+    logic:integrity lang:fsrForall ;
+    logic:formalizes lang:FlagshipScenarioShape ;
+    gmeow:enforcesFailureClass lang:UnwiredFlagshipScenario ;
+    logic:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+lang:fsrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] ;
+    logic:forall lang:fsrImpl .
+lang:fsrImpl a logic:Formula ; logic:antecedent lang:fsrGuard ; logic:consequent lang:fsrReach .
+lang:fsrGuard a logic:Formula ; logic:and lang:fsrType , lang:fsrEdge , lang:fsrNs .
+lang:fsrType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FlagshipScenario ] .
+lang:fsrEdge a logic:Formula ; logic:relation gmeow:enforcesFailureClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
+lang:fsrNs a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/lang/" ] .
+lang:fsrReach a logic:Formula ; logic:relation logic:transitiveReach ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri rdfs:subClassOf ] , [ logic:termIndex 2 ; logic:termIri lang:LangConformanceFailure ] .
 
 # A lang:FormSlot may not depend (transitively) on itself along lang:dependsOn — a
 # dependency cycle is ill-formed (an acyclicity constraint).
@@ -4614,7 +6258,7 @@ lang:FormSlotAcyclicDependencyConstraint
     a logic:AcyclicConstraint ;
     logic:onClass lang:FormSlot ;
     logic:pathPredicate lang:dependsOn ;
-    logic:formalizes lang:FormSlot ;
+    logic:formalizes lang:DependencyIntegrityShape ;
     logic:message "A lang:FormSlot may not depend on itself transitively along lang:dependsOn; a dependency cycle is ill-formed." .
 
 # Every lang:Grapheme in the GMN script (lang:inScript gmeow:gmnScript) carries a
@@ -4628,7 +6272,7 @@ lang:GmnScriptGlyphCoverageConstraint
     logic:trigger lang:inScript ;
     logic:triggerValue gmeow:gmnScript ;
     logic:requires gmeow:gmnGlyphTokenCost ;
-    logic:formalizes lang:Grapheme ;
+    logic:formalizes lang:GmnScriptGlyphCoverageShape ;
     logic:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." .
 
 # =========================================================================== #
@@ -4646,7 +6290,7 @@ lang:GraphemeRepertoireConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a lang:Grapheme is in the repertoire of the lang:Script it declares (the script lists it through lang:hasGrapheme)."@x-gmeow-english ;
-    logic:formalizes lang:Grapheme ;
+    logic:formalizes lang:GraphemeGroundedShape ;
     logic:message "A grapheme is not in the repertoire of the script it declares." ;
     logic:integrity lang:grForall .
 lang:grForall a logic:Formula ;
@@ -4769,7 +6413,7 @@ lang:GmnCompactionOverclaimConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:GmnCompaction that links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation overclaims — compaction is get-leg-only (validation-only)."@x-gmeow-english ;
-    logic:formalizes gmeow:GmnCompaction ;
+    logic:formalizes lang:GmnCompactionOverclaimShape ;
     logic:severity "Violation" ;
     logic:message "A gmeow:GmnCompaction links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation; compaction is validation-only." ;
     logic:integrity lang:gmnCoForall .
@@ -5374,12 +7018,206 @@ lang:gcpHas a logic:Formula ;
 lang:gcpCp a logic:Formula ; logic:relation gmeow:gmnCodepoints ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .
 
-# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/accordingTo> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/contentDigest> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> ; owl:someValuesFrom <https://blackcatinformatics.ca/logic/Correspondence> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] .
-<https://blackcatinformatics.ca/gmeow/GmnEnvelope> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+# Typed failure identity is canonical constraint metadata.  The projected
+# procedural shapes preserve it beside logic:formalizes so a legacy SHACL block
+# can be removed without losing its queryable diagnostic class.
+lang:ReadingClaimVantageConstraint gmeow:enforcesFailureClass lang:UngroundedReadingClaim .
+lang:SlotFormNodeKindConstraint gmeow:enforcesFailureClass lang:StringOnlyForm .
+lang:FormSlotIndexUniquenessConstraint gmeow:enforcesFailureClass lang:DuplicateSlotIndex .
+lang:FeatureValueDispositionConstraint gmeow:enforcesFailureClass lang:GmnUndispositionedTerm .
+lang:GmnCodepointCanonicalConstraint gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint .
+lang:FlagshipScenarioFailureClassConstraint gmeow:enforcesFailureClass lang:UnwiredFlagshipScenario .
+lang:FormSlotAcyclicDependencyConstraint gmeow:enforcesFailureClass lang:DanglingDependency .
+lang:GmnScriptGlyphCoverageConstraint gmeow:enforcesFailureClass lang:GmnUncostedScriptGlyph .
+lang:GraphemeRepertoireConstraint gmeow:enforcesFailureClass lang:UngroundedGrapheme .
+lang:ConfidenceModelConstraint gmeow:enforcesFailureClass lang:ConfidenceAsProbability .
+lang:GmnConfusableGlyphConstraint gmeow:enforcesFailureClass lang:GmnConfusableGlyph .
+lang:GmnGlyphCollisionConstraint gmeow:enforcesFailureClass lang:GmnGlyphCollision .
+lang:GmnCompactionOverclaimConstraint gmeow:enforcesFailureClass lang:GmnCompactionOverclaim .
+lang:GmnVersionOverclaimConstraint gmeow:enforcesFailureClass lang:GmnVersionOverclaim .
+lang:UnmarkedSourceProseConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:UnmarkedSourceOverclaimConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:UnmarkedTargetProseConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:UnmarkedTargetOverclaimConstraint gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation .
+lang:SurfaceAnalysisStructureConstraint gmeow:enforcesFailureClass lang:MisdeclaredAnalysis .
+lang:DependencyLeavesAnalysisConstraint gmeow:enforcesFailureClass lang:DanglingDependency .
+lang:DenotationNonSurfaceConstraint gmeow:enforcesFailureClass lang:SurfaceLevelDenotation .
+lang:AmbiguousDenotationRoutingConstraint gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation .
+lang:DenotationKindMatchConstraint gmeow:enforcesFailureClass lang:DenotationKindMismatch .
+lang:IndexicalAnchoredConstraint gmeow:enforcesFailureClass lang:UnanchoredIndexical .
+lang:FregeDisjointSenseConstraint gmeow:enforcesFailureClass lang:FregeConflation .
+lang:FregeDisjointDenotationConstraint gmeow:enforcesFailureClass lang:FregeConflation .
+lang:RenderingNotIdentityConstraint gmeow:enforcesFailureClass lang:RenderingAsIdentity .
+lang:MachineTranslationProvenanceConstraint gmeow:enforcesFailureClass lang:UnattributedTranslation .
+lang:GmnScriptCodepointPresenceConstraint gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint .
+
+# Declarative shape failures ride the OWL class antecedent itself.  Where
+# several obligations share one target, the aggregate class shape carries one
+# representative diagnostic and each sibling obligation is record-anchored by
+# the exact logic:formalizes metadata above.
+lang:InterpretationAct gmeow:enforcesFailureClass lang:ActObservationConflation .
+lang:SurfaceAnchor gmeow:enforcesFailureClass lang:UnanchoredOffset .
+lang:Denotation gmeow:enforcesFailureClass lang:UnderspecifiedDenotation .
+lang:FormSlot gmeow:enforcesFailureClass lang:NonContiguousSlots .
+lang:Form gmeow:enforcesFailureClass lang:UnsituatedForm .
+gmeow:GmnCompaction gmeow:enforcesFailureClass lang:GmnCompactionWithoutProvenance .
+gmeow:GmnDictionary gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision .
+gmeow:GmnEnvelope gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField .
+lang:GmnImportedPlane gmeow:enforcesFailureClass lang:GmnUnattributedPlane .
+gmeow:GmnSecurityRing gmeow:enforcesFailureClass lang:GmnRingLatticeMalformed .
+lang:Paraphrase gmeow:enforcesFailureClass lang:UndeclaredParaphraseKind .
+lang:ProjectionEmission gmeow:enforcesFailureClass lang:MissingPreservationKind .
+lang:Rendering gmeow:enforcesFailureClass lang:UnderspecifiedRendering .
+lang:ComposedForm gmeow:enforcesFailureClass lang:NonContiguousSlots .
+lang:SurfaceForm gmeow:enforcesFailureClass lang:UnhashableSurface .
+lang:TranslationUnit gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit .
+lang:TransliterationMap gmeow:enforcesFailureClass lang:UnanchoredTransliteration .
+lang:MorphFeature gmeow:enforcesFailureClass lang:UntypedMorphology .
+
+# =========================================================================== #
+# Foundation stereotyping — identity-bearing language objects and forms are    #
+# kinds/subkinds; controlled value vocabularies are abstract-individual types; #
+# interpretation acts are events; reified crossings are relators; and typed    #
+# conformance failures are situations.                                         #
+# =========================================================================== #
+
+# Kind
+
+lang:Analysis a logic:Kind .
+lang:CompositionRule a logic:Kind .
+lang:DiscourseReferent a logic:Kind .
+lang:FeatureInventory a logic:Kind .
+lang:Form a logic:Kind .
+lang:FormSlot a logic:Kind .
+lang:GmnImportedPlane a logic:Kind .
+lang:Grammar a logic:Kind .
+lang:GrammarRule a logic:Kind .
+lang:Grapheme a logic:Kind .
+lang:IndexicalAnchor a logic:Kind .
+lang:Intension a logic:Kind .
+lang:LanguageVariety a logic:Kind .
+lang:LexicalConcept a logic:Kind .
+lang:MorphFeature a logic:Kind .
+lang:MorphemeBoundary a logic:Kind .
+lang:Orthography a logic:Kind .
+lang:Phone a logic:Kind .
+lang:ProjectionEmission a logic:Kind .
+lang:Reading a logic:Kind .
+lang:Script a logic:Kind .
+lang:Sense a logic:Kind .
+lang:SignSystem a logic:Category .
+lang:SurfaceAnchor a logic:Kind .
+lang:Translation a logic:Kind .
+lang:Ungrammaticality a logic:Kind .
+
+# SubKind
+
+lang:ComposedForm a logic:SubKind .
+lang:CovertForm a logic:SubKind .
+lang:Lexeme a logic:SubKind .
+lang:Morph a logic:SubKind .
+lang:Morpheme a logic:SubKind .
+lang:OrthographicWord a logic:SubKind .
+lang:SurfaceForm a logic:SubKind .
+lang:SyntacticWord a logic:SubKind .
+lang:UnanalyzedProse a logic:SubKind .
+lang:WordForm a logic:SubKind .
+
+# AbstractIndividualType
+
+lang:AnalysisLevel a logic:AbstractIndividualType .
+lang:CommunicativeForce a logic:AbstractIndividualType .
+lang:CompositionLevel a logic:AbstractIndividualType .
+lang:DenotationKind a logic:AbstractIndividualType .
+lang:FeatureKey a logic:AbstractIndividualType .
+lang:FeatureValue a logic:AbstractIndividualType .
+lang:FormRole a logic:AbstractIndividualType .
+lang:GrammarFormalism a logic:AbstractIndividualType .
+lang:IndexicalAnchorKind a logic:AbstractIndividualType .
+lang:Modality a logic:AbstractIndividualType .
+lang:OffsetSpace a logic:AbstractIndividualType .
+lang:ParaphraseSamenessKind a logic:AbstractIndividualType .
+lang:PartOfSpeech a logic:AbstractIndividualType .
+lang:RenderingKind a logic:AbstractIndividualType .
+lang:SenseRelationKind a logic:AbstractIndividualType .
+lang:SignSystemKind a logic:AbstractIndividualType .
+lang:TranslationMethod a logic:AbstractIndividualType .
+
+# Event
+
+lang:CommunicativeAct a logic:Event .
+lang:InterpretationAct a logic:Event .
+
+# Relator
+
+lang:Denotation a logic:Relator .
+lang:Paraphrase a logic:Relator .
+lang:Rendering a logic:Relator .
+lang:SenseRelation a logic:Relator .
+lang:TranslationUnit a logic:Relator .
+lang:TransliterationMap a logic:Relator .
+
+# Situation
+
+lang:ActObservationConflation a logic:Situation .
+lang:AssertedRollup a logic:Situation .
+lang:ConfidenceAsProbability a logic:Situation .
+lang:DanglingDependency a logic:Situation .
+lang:DenotationKindMismatch a logic:Situation .
+lang:DuplicateSlotIndex a logic:Situation .
+lang:ExactPreservationViolated a logic:Situation .
+lang:FabricatedEquivalence a logic:Situation .
+lang:FregeConflation a logic:Situation .
+lang:GmnCompactionOverclaim a logic:Situation .
+lang:GmnCompactionWithoutProvenance a logic:Situation .
+lang:GmnConfusableGlyph a logic:Situation .
+lang:GmnDictionaryAliasCollision a logic:Situation .
+lang:GmnGlyphCollision a logic:Situation .
+lang:GmnMalformedNumber a logic:Situation .
+lang:GmnMissingEnvelopeField a logic:Situation .
+lang:GmnNonCanonicalCodepoint a logic:Situation .
+lang:GmnNonCanonicalOrder a logic:Situation .
+lang:GmnNonDecodableGrammar a logic:Situation .
+lang:GmnRingLatticeMalformed a logic:Situation .
+lang:GmnUnattributedPlane a logic:Situation .
+lang:GmnUncostedScriptGlyph a logic:Situation .
+lang:GmnUncoveredTerm a logic:Situation .
+lang:GmnUndeclaredDialectVersion a logic:Situation .
+lang:GmnUndispositionedTerm a logic:Situation .
+lang:GmnUnringedExportCrossing a logic:Situation .
+lang:GmnVersionOverclaim a logic:Situation .
+lang:InlineBlobPayload a logic:Situation .
+lang:LangConformanceFailure a logic:Situation .
+lang:MisdeclaredAnalysis a logic:Situation .
+lang:MissingPreservationKind a logic:Situation .
+lang:NonContiguousSlots a logic:Situation .
+lang:OrphanWordForm a logic:Situation .
+lang:ProjectionSilentDisambiguation a logic:Situation .
+lang:RenderingAsIdentity a logic:Situation .
+lang:SilentDisambiguation a logic:Situation .
+lang:SilentIngestDrop a logic:Situation .
+lang:SilentPromotion a logic:Situation .
+lang:StringOnlyForm a logic:Situation .
+lang:SurfaceLeakInContentKey a logic:Situation .
+lang:SurfaceLevelDenotation a logic:Situation .
+lang:UnanchoredGrammar a logic:Situation .
+lang:UnanchoredIndexical a logic:Situation .
+lang:UnanchoredOffset a logic:Situation .
+lang:UnanchoredTransliteration a logic:Situation .
+lang:UnattributedEngineClaim a logic:Situation .
+lang:UnattributedTranslation a logic:Situation .
+lang:UndeclaredLoweringStage a logic:Situation .
+lang:UndeclaredParaphraseKind a logic:Situation .
+lang:UndeclaredUnsupportedConstruct a logic:Situation .
+lang:UnderspecifiedDenotation a logic:Situation .
+lang:UnderspecifiedRendering a logic:Situation .
+lang:UnderspecifiedTranslationUnit a logic:Situation .
+lang:UngroundedGrapheme a logic:Situation .
+lang:UngroundedReadingClaim a logic:Situation .
+lang:UnhashableSurface a logic:Situation .
+lang:UnmarkedSurfaceTranslation a logic:Situation .
+lang:UnrecordedEpistemicLoss a logic:Situation .
+lang:UnroutedAmbiguousDenotation a logic:Situation .
+lang:UnsituatedForm a logic:Situation .
+lang:UntypedMorphology a logic:Situation .
+lang:UnwiredFlagshipScenario a logic:Situation .

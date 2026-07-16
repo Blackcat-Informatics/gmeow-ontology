@@ -9,7 +9,7 @@
 # sometimes machine-inferred, a contested mark is claimed by rival parties. Each
 # gmeow:StatementMetadata cell carries that provenance / confidence / standpoint on
 # the rights base triple, RDF-1.2-first (Principle 2). Compiled by
-# the `gmeow regenerate` statements generator to statements/gmeow.rdf12.ttl (+ the OWL downcast),
+# the `gmeow-dev sync --mode update --outputs generated` statements generator to statements/gmeow.rdf12.ttl (+ the OWL downcast),
 # verified mutually lossless.
 # =============================================================================
 

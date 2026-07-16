@@ -44,6 +44,8 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const COMPARISON_BASE: &str = "https://blackcatinformatics.ca/gmeow/conformance-comparison/";
 /// The content-addressed instance-IRI base for a reified `gmeow:CorpusAgreementTally`.
 const TALLY_BASE: &str = "https://blackcatinformatics.ca/gmeow/corpus-agreement-tally/";
+/// The content-addressed instance-IRI base for a reified `gmeow:CapabilityGap`.
+const CAPABILITY_GAP_BASE: &str = "https://blackcatinformatics.ca/gmeow/capability-gap/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 /// The ASCII unit separator joining a content-address key's fields — it cannot occur
@@ -222,6 +224,41 @@ pub fn emit_agreement_tally_nq(tally: &AgreementTally) -> String {
     format!("{}\n", lines.join("\n"))
 }
 
+/// Emit one reified `gmeow:CapabilityGap` individual as N-Quads in [`CONFORMANCE_GRAPH`]
+/// — the ontology image of one committed divergence case's structured
+/// [`gmeow_logic::entail::CapabilityGapShape`], the RDF twin of the agreement-matrix
+/// "Capability gaps (by shape)" breakdown. Keyed by a content-addressed
+/// (blake3-of-corpus|case|shape-token) IRI, so re-emitting the same case is byte-stable.
+/// Returns `(iri, block)`; the caller sorts blocks by IRI so a multi-case fold is
+/// byte-stable regardless of input order (mirrors [`comparison_block`]).
+pub fn emit_capability_gap_nq(
+    corpus: &str,
+    case: &str,
+    shape: gmeow_logic::entail::CapabilityGapShape,
+) -> (String, String) {
+    let key = [corpus, case, shape.as_token()].join(KEY_SEP);
+    let hash = blake3::hash(key.as_bytes()).to_hex();
+    let iri = format!("{CAPABILITY_GAP_BASE}{hash}");
+    let subject = format!("<{iri}>");
+    let graph = format!("<{CONFORMANCE_GRAPH}>");
+    let mut lines: Vec<String> = Vec::new();
+    let mut triple = |p: String, o: String| lines.push(format!("{subject} {p} {o} {graph} ."));
+    triple(format!("<{RDF_TYPE}>"), format!("<{GMEOW}CapabilityGap>"));
+    triple(
+        format!("<{GMEOW}capabilityGapCorpus>"),
+        format!("\"{}\"", nq_escape(corpus)),
+    );
+    triple(
+        format!("<{GMEOW}capabilityGapCase>"),
+        format!("\"{}\"", nq_escape(case)),
+    );
+    triple(
+        format!("<{GMEOW}gapShape>"),
+        format!("<{GMEOW}{}>", shape.ontology_individual_local()),
+    );
+    (iri, format!("{}\n", lines.join("\n")))
+}
+
 /// One corpus's aggregate native↔published agreement tally: the per-kind counts the
 /// divergence ledger records, plus the case total.
 ///
@@ -293,6 +330,31 @@ mod tests {
                 "line not in the conformance graph: {line}"
             );
         }
+    }
+
+    #[test]
+    fn capability_gap_emitter_is_deterministic_and_names_the_ontology_individual() {
+        let (iri_a, block_a) = emit_capability_gap_nq(
+            "entailment-mini-divergence",
+            "multi-triple-conclusion",
+            gmeow_logic::entail::CapabilityGapShape::VendoringMultiGoal,
+        );
+        let (iri_b, block_b) = emit_capability_gap_nq(
+            "entailment-mini-divergence",
+            "multi-triple-conclusion",
+            gmeow_logic::entail::CapabilityGapShape::VendoringMultiGoal,
+        );
+        assert_eq!(iri_a, iri_b, "the content-addressed IRI must be stable");
+        assert_eq!(block_a, block_b, "repeated calls must be byte-identical");
+        all_lines_in_conformance_graph(&block_a);
+        assert!(
+            block_a.contains(&format!("<{GMEOW}CapabilityGap>")),
+            "must type the individual as gmeow:CapabilityGap: {block_a}"
+        );
+        assert!(
+            block_a.contains(&format!("<{GMEOW}GapShapeVendoringMultiGoal>")),
+            "must point gmeow:gapShape at the correct ontology individual: {block_a}"
+        );
     }
 
     #[test]

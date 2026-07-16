@@ -113,15 +113,13 @@ class FinancialAccount(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialAccount", "curie": "gmeow:FinancialAccount", "definitionDigest": "blake3:274050b96be02257638344da389949a6b7780bb730f67228350722ab664727f3", "iri": "https://blackcatinformatics.ca/gmeow/FinancialAccount"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialAccount", "curie": "gmeow:FinancialAccount", "definitionDigest": "blake3:0b2ea849e2257dbe66598b35b8b0dd7ea295df3814c85bcaba2629ee01cf672c", "iri": "https://blackcatinformatics.ca/gmeow/FinancialAccount"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    accountCurrency: list[ReferenceFrame] | None = Field(default=None, description="The currency(ies) of a financial account, drawn from the open currency reference-frame vocabulary (gmeow:frameRealmCurrency). NON-FUNCTIONAL: a single account may hold balances in several currencies (multi-currency fintech accounts).", alias="gmeow:accountCurrency")
-    accountHolder: list[Agent] = Field(min_length=1, description="Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders.", alias="gmeow:accountHolder")
-    accountType: list[FinancialAccountTypeEnum] | None = Field(default=None, description="The kind of financial account — one of the open gmeow:FinancialAccountType values (bank, credit, investment, wallet). Functional: an account has one canonical type; several types are several accounts.", alias="gmeow:accountType")
+    accountHolder: list[Agent] | None = Field(default=None, description="Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders.", alias="gmeow:accountHolder")
     bic: list[str] | None = Field(default=None, max_length=11, min_length=8, pattern="^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$", description="The Bank Identifier Code (ISO 9362, SWIFT code) of the institution holding the account.", alias="gmeow:bic")
 
 
@@ -145,13 +143,13 @@ class CryptoWallet(FinancialAccount):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CryptoWallet", "curie": "gmeow:CryptoWallet", "definitionDigest": "blake3:1512a6f1a393cc7d403e1bde0a55c7dd1e934c4ef8cc7c0169d9e0c5e3bc218c", "iri": "https://blackcatinformatics.ca/gmeow/CryptoWallet"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CryptoWallet", "curie": "gmeow:CryptoWallet", "definitionDigest": "blake3:9b4672adec88b16047978d83523a1049185227b0e021f3483095b116b80cfbce", "iri": "https://blackcatinformatics.ca/gmeow/CryptoWallet"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    walletScheme: list[WalletSchemeEnum] = Field(description="The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets).", alias="gmeow:walletScheme")
+    walletScheme: list[WalletSchemeEnum] | None = Field(default=None, description="The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets).", alias="gmeow:walletScheme")
 
 
 class FinancialTransaction(ConfiguredBaseModel):
@@ -175,13 +173,13 @@ class FinancialTransaction(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialTransaction", "curie": "gmeow:FinancialTransaction", "definitionDigest": "blake3:f068e3a2096566dd28d3f7eb25af856960679c6596fb95df24f409569ba6a0b1", "iri": "https://blackcatinformatics.ca/gmeow/FinancialTransaction"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialTransaction", "curie": "gmeow:FinancialTransaction", "definitionDigest": "blake3:952f986a91720d8695a9b3b443634b4737ecb90d8342e0b03a420365c3b331cb", "iri": "https://blackcatinformatics.ca/gmeow/FinancialTransaction"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    transactionAmount: list[MonetaryAmount] = Field(min_length=1, description="The monetary amount of a financial transaction, expressed as a MonetaryAmount. Functional: a single transaction occurrence has one canonical amount (disputed amounts are standpoint-indexed claims on separate statements, not additional values on the same transaction).", alias="gmeow:transactionAmount")
+    transactionAmount: list[MonetaryAmount] | None = Field(default=None, description="The monetary amount of a financial transaction, expressed as a MonetaryAmount. Functional: a single transaction occurrence has one canonical amount (disputed amounts are standpoint-indexed claims on separate statements, not additional values on the same transaction).", alias="gmeow:transactionAmount")
 
 
 class Holding(ConfiguredBaseModel):
@@ -205,15 +203,14 @@ class Holding(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Holding", "curie": "gmeow:Holding", "definitionDigest": "blake3:1e6ac979c337e0cf3424746caf7873082cdcc6d59a4760ebe48a0e82c3570b32", "iri": "https://blackcatinformatics.ca/gmeow/Holding"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Holding", "curie": "gmeow:Holding", "definitionDigest": "blake3:c34ea58f3dabfbdd5eb5be93648dce102da52dc795e7df38aa0daa5d21f380cd", "iri": "https://blackcatinformatics.ca/gmeow/Holding"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    holdingAgent: list[Agent] = Field(min_length=1, description="The agent that holds the asset. Functional: a holding is held by exactly one agent.", alias="gmeow:holdingAgent")
-    holdingAsset: list[str] = Field(min_length=1, description="The financial asset that is held. Functional: a holding is of exactly one asset.", alias="gmeow:holdingAsset")
-    holdingQuantity: list[float] = Field(min_length=1, description="The quantity of the asset held, as an xsd:decimal. Functional: a holding has exactly one quantity at a given point in time (competing standpoint-indexed quantities coexist as separate statements).", alias="gmeow:holdingQuantity")
+    holdingAgent: list[Agent] | None = Field(default=None, description="The agent that holds the asset. Functional: a holding is held by exactly one agent.", alias="gmeow:holdingAgent")
+    holdingAsset: list[str] | None = Field(default=None, description="Within gmeow:Holding, values are node references constrained to gmeow:Asset. The financial asset that is held. Functional: a holding is of exactly one asset.", alias="gmeow:holdingAsset")
 
 
 class Invoice(ConfiguredBaseModel):
@@ -235,7 +232,7 @@ class Invoice(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Invoice", "curie": "gmeow:Invoice", "definitionDigest": "blake3:8115e73837790a91311ae36cddd2cdadfd71e48a0a2da907ac2b54ad1e3be005", "iri": "https://blackcatinformatics.ca/gmeow/Invoice"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Invoice", "curie": "gmeow:Invoice", "definitionDigest": "blake3:1b95460e2a57c55dcb9c857f7f6270dd417ed90768cc22b221aeaeb70ece8490", "iri": "https://blackcatinformatics.ca/gmeow/Invoice"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -264,13 +261,13 @@ class JournalEntry(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JournalEntry", "curie": "gmeow:JournalEntry", "definitionDigest": "blake3:92006bb3b3b190741ab46edfd3a5c6bca5de343aec9b599f98cae85f69c984fc", "iri": "https://blackcatinformatics.ca/gmeow/JournalEntry"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JournalEntry", "curie": "gmeow:JournalEntry", "definitionDigest": "blake3:79ba4acbf3e43a5822d87550accb37e38383c09b605bd6819c464286cc283794", "iri": "https://blackcatinformatics.ca/gmeow/JournalEntry"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    journalEntryPostings: list[Any] = Field(min_length=2, description="The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced).", alias="gmeow:journalEntryPostings")
+    journalEntryPostings: list[Any] | None = Field(default=None, description="The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced).", alias="gmeow:journalEntryPostings")
 
 
 class LedgerAccount(ConfiguredBaseModel):
@@ -294,14 +291,14 @@ class LedgerAccount(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LedgerAccount", "curie": "gmeow:LedgerAccount", "definitionDigest": "blake3:4b96beca174990b8a4a8505ff6fa518a7993bb18abeebf3ec2e4d874ea49ac8f", "iri": "https://blackcatinformatics.ca/gmeow/LedgerAccount"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LedgerAccount", "curie": "gmeow:LedgerAccount", "definitionDigest": "blake3:426cb03679ebb7aa4ae77c893597eea53abe8dbe367cc9b755f9a79ebfe8b4d3", "iri": "https://blackcatinformatics.ca/gmeow/LedgerAccount"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    ledgerAccountHolder: list[Agent] = Field(min_length=1, description="The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders.", alias="gmeow:ledgerAccountHolder")
-    ledgerAccountType: list[LedgerAccountTypeEnum] = Field(description="The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type.", alias="gmeow:ledgerAccountType")
+    ledgerAccountHolder: list[Agent] | None = Field(default=None, description="The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders.", alias="gmeow:ledgerAccountHolder")
+    ledgerAccountType: list[LedgerAccountTypeEnum] | None = Field(default=None, description="The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type.", alias="gmeow:ledgerAccountType")
 
 
 class Order(ConfiguredBaseModel):
@@ -323,7 +320,7 @@ class Order(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Order", "curie": "gmeow:Order", "definitionDigest": "blake3:9f7c82d9f87d6696fb578ca93f9575b77ea14b9aa8e36cc8410135ca98037ba2", "iri": "https://blackcatinformatics.ca/gmeow/Order"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Order", "curie": "gmeow:Order", "definitionDigest": "blake3:3479e39fb6a78e9aef29fa9ace247e10bf5c8a19a69056218a245cffa6a9b52b", "iri": "https://blackcatinformatics.ca/gmeow/Order"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -350,13 +347,13 @@ class Posting(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Posting", "curie": "gmeow:Posting", "definitionDigest": "blake3:c83a4c9dc9bc564f948f334cfb55903054ddf6f67f2f5921605f6323b5bf8c68", "iri": "https://blackcatinformatics.ca/gmeow/Posting"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Posting", "curie": "gmeow:Posting", "definitionDigest": "blake3:4b6b169bc28895f6ee48c94141d31a7a59cc786a4b60c80be1f0cfba84372dd4", "iri": "https://blackcatinformatics.ca/gmeow/Posting"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    postingAccount: list[LedgerAccount] = Field(min_length=1, description="The ledger account this posting affects. Functional: a posting affects exactly one ledger account.", alias="gmeow:postingAccount")
-    postingAmount: list[MonetaryAmount] = Field(min_length=1, description="The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount.", alias="gmeow:postingAmount")
-    postingDirection: list[PostingDirectionEnum] = Field(description="The direction of this posting — debit or credit. Functional: a posting is exactly one direction.", alias="gmeow:postingDirection")
-    postingJournalEntry: list[JournalEntry] = Field(min_length=1, description="The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry.", alias="gmeow:postingJournalEntry")
+    postingAccount: list[LedgerAccount] | None = Field(default=None, description="The ledger account this posting affects. Functional: a posting affects exactly one ledger account.", alias="gmeow:postingAccount")
+    postingAmount: list[MonetaryAmount] | None = Field(default=None, description="The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount.", alias="gmeow:postingAmount")
+    postingDirection: list[PostingDirectionEnum] | None = Field(default=None, description="The direction of this posting — debit or credit. Functional: a posting is exactly one direction.", alias="gmeow:postingDirection")
+    postingJournalEntry: list[JournalEntry] | None = Field(default=None, description="The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry.", alias="gmeow:postingJournalEntry")

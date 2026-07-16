@@ -116,6 +116,10 @@ fn resolve_operand<'a>(term: &QTerm, lookup: &impl Fn(&str) -> Option<Cow<'a, st
             Some(n) => Operand::Num(n),
             None => Operand::NonNumeric,
         },
+        // A structured (function-symbol) operand is never a number; it is routed to the
+        // full-FOL resolver upstream, so on the flat builtin path it is a non-numeric filter
+        // failure, never a gap.
+        QTerm::Struct(_) => Operand::NonNumeric,
     }
 }
 
@@ -193,6 +197,8 @@ pub(crate) fn eval<'a>(
                     Some(t) => BuiltinOutcome::Filter(t == value),
                     None => BuiltinOutcome::Filter(false),
                 },
+                // A structured target can never equal a computed integer: filter false.
+                QTerm::Struct(_) => BuiltinOutcome::Filter(false),
             }
         }
         QBuiltin::Compare { lhs, op, rhs } => {

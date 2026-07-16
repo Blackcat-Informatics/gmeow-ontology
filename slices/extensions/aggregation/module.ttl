@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -22,7 +23,7 @@ gmeow:SpatialAggregation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Spatial Aggregation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement that aggregates entities located within a spatial region, yielding a scalar result such as a count, density, or average. The aggregation region is the observedFeature; the result is a ScalarQuantity. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core."@x-gmeow-english ;
+    skos:definition "A measurement that aggregates entities located within a spatial region, yielding one or more results such as a count, density, centroid, or average. The aggregation region is the observedFeature. Dimensioned numeric results use math:Quantity; results with an existing canonical carrier, such as gmeow:MonetaryAmount for currency-framed averages, retain that type. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SpatialBin
@@ -117,7 +118,7 @@ gmeow:minimumPopulation
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Spatial aggregation and statistical summarisation over places — count, sum, average, density, centroid, and binning. Realises the Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
 
-Every aggregation is a gmeow:Measurement (the universal observation stack), so vantage, observedFeature, observationResult, confidence, granularity, and temporal scope are inherited without duplication (Principle 4). The aggregation region is the observedFeature; the result is a gmeow:ScalarQuantity. The actual arithmetic — counting, density computation, centroid calculation, binning — is performed by the solver layer (Principle 12), never materialised as asserted triples in the OWL core.
+Every aggregation is a gmeow:Measurement (the universal observation stack), so vantage, observedFeature, observationResult, confidence, granularity, and temporal scope are inherited without duplication (Principle 4). The aggregation region is the observedFeature. Dimensioned numeric results use math:Quantity; domain-specific results retain their canonical carrier (for example gmeow:MonetaryAmount for a currency-framed average), and multiple frame- or standpoint-indexed results may coexist. The actual arithmetic — counting, density computation, centroid calculation, binning — is performed by the solver layer (Principle 12), never materialised as asserted triples in the OWL core.
 
 Privacy (k-anonymity, coarsening, suppression) is handled by the existing projection layer: gmeow:coarsenTo, gmeow:displayable false, and gmeow:hasSensitivity govern whether and at what granularity an aggregation result may be published (Principle 10). K-anonymity thresholds ("publish only if count >= K") remain a solver-layer computation (Principle 12)."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
@@ -147,18 +148,18 @@ gmeow:SpatialAggregation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:minimumPopulation ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] .
 
-# The observationResult value is a scalar quantity (gmeow:ScalarQuantity / gmeow:Quantity /
-# gmeow:MeasuredValue, the three owl:equivalentClass aliases) — the value-class-disjunction of the
-# retired gmeow:SpatialAggregationShape sh:or, carried in the logic: canon (no single OWL antecedent
-# reproduces a disjunctive value class on a path).
+# The observationResult value is a math:Quantity (the sole quantity authority) or a
+# gmeow:MonetaryAmount (domain-specific results retain their canonical carrier) — the value-class
+# disjunction of the retired gmeow:SpatialAggregationShape sh:or, carried in the logic: canon (no
+# single OWL antecedent reproduces a disjunctive value class on a path).
 gmeow:SpatialAggregationResultTypeConstraint
     a logic:Constraint ;
     rdfs:label "Spatial aggregation result-type constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:SpatialAggregation yields exactly one scalar quantity result — a gmeow:ScalarQuantity, gmeow:Quantity, or gmeow:MeasuredValue."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SpatialAggregation yields a result that is a math:Quantity or a gmeow:MonetaryAmount."@x-gmeow-english ;
     logic:formalizes gmeow:SpatialAggregationShape ;
-    logic:message "A SpatialAggregation must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+    logic:message "A SpatialAggregation result must be a math:Quantity or a gmeow:MonetaryAmount." ;
     logic:integrity logic:spaggForall .
 logic:spaggForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
@@ -169,10 +170,8 @@ logic:spaggType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-r
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SpatialAggregation ] .
 logic:spaggResult a logic:Formula ; logic:relation gmeow:observationResult ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
-logic:spaggOr a logic:Formula ; logic:or logic:spaggScalar , logic:spaggQuantity , logic:spaggMeasured .
-logic:spaggScalar a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ScalarQuantity ] .
+logic:spaggOr a logic:Formula ; logic:or logic:spaggQuantity , logic:spaggMonetary .
 logic:spaggQuantity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Quantity ] .
-logic:spaggMeasured a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:MeasuredValue ] .
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:Quantity ] .
+logic:spaggMonetary a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:MonetaryAmount ] .

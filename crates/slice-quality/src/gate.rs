@@ -348,6 +348,200 @@ pub fn axis_floor_monotonicity(
     out
 }
 
+// -----------------------------------------------------------------------------
+// The projection-vocabulary RATCHET — the inverse-polarity twin of the raise-only
+// floor gate above. Three HARD-FAIL invariants, all pure comparisons over a
+// `(slice IRI, vocab prefix) -> u64` residue/ceiling map:
+//
+// 1. **Count gate (working tree, [`evaluate_projection_ceiling`]):** for every
+//    (slice, vocab) with `measured(working) > 0`,
+//    `measured(working) <= effectiveCeiling(working)`, where `effectiveCeiling` is
+//    the committed `gmeow:ceilingCount` if present, else that vocab's
+//    `gmeow:vocabularyDefaultCeiling` (`0`) — so a slice's first UNGROUNDED use of
+//    a previously-absent vocab reds immediately.
+// 2. **Monotonicity (base∩working, [`projection_ceiling_monotonicity`]):** for
+//    every (slice, vocab) with a committed ceiling in BOTH the merge-base and the
+//    working tree, `ceilingCount(working) <= ceilingCount(base)` — a RAISE is a
+//    hard violation; a deletion (base-only) is allowed because dropping a ceiling
+//    only ever tightens the effective ceiling to the vocab default.
+// 3. **Grandfather (new ceilings only, driven by the `gmeow-dev` CLI — no pure
+//    comparator lives in this crate because it needs the base FILESET, not just
+//    the base ceiling map): for every (slice, vocab) whose committed ceiling is
+//    NEW in working (absent at base), `ceilingCount(working) <= measured(base)`,
+//    where `measured(base)` is reconstructed by feeding the SAME
+//    [`crate::counting::residue`] counter the merge-base bytes over the SAME
+//    ratchet surface set ([`crate::ratchet_surface_paths`]) — a surface absent at
+//    base contributes 0, a surface present-but-unreadable at base is a HARD-FAIL
+//    (never silently 0). This closes the "author N ungrounded constructs and
+//    commit an N-ceiling in the same PR" loophole invariants 1-2 alone cannot see.
+//
+// **Back-ref integrity** (binds invariant 1's `measured`): a construct is excluded
+// from the residue as "grounded" ONLY if its `logic:formalizes`/`logic:grounds`
+// back-ref RESOLVES to an existing `logic:` axiom — a dangling back-ref does not
+// ground ([`crate::counting`]'s `CountMode::FullResidue`). A parse/read failure
+// anywhere on this gate's path is a HARD-FAIL, never a silent fall-back to residue
+// zero.
+// -----------------------------------------------------------------------------
+
+/// The verdict for one (slice, vocab) cell's projection-CEILING check — the
+/// inverse-polarity twin of [`AxisRatchetVerdict`]: a ceiling is lower-only, so
+/// this passes iff the measured residue does NOT exceed it (the opposite
+/// direction of [`evaluate_axis_floor`], which passes iff measured meets or
+/// exceeds a raise-only floor).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CeilingVerdict {
+    /// The measured residue is at or below the committed (or default) ceiling.
+    Pass,
+    /// The measured residue exceeds the ceiling — a hard violation.
+    MeasuredAboveCeiling,
+}
+
+impl CeilingVerdict {
+    /// Whether this verdict fails the gate.
+    #[must_use]
+    pub fn is_failure(self) -> bool {
+        !matches!(self, Self::Pass)
+    }
+}
+
+/// Evaluate one (slice, vocab) cell's projection-ceiling check (ratchet invariant
+/// **1**, the count gate): `Pass` iff `measured <= ceiling` — ceilings are
+/// lower-only, the exact inverse of [`evaluate_axis_floor`] (`measured >= floor`).
+/// The caller resolves `ceiling` as the committed `gmeow:ceilingCount` if present,
+/// else the vocab's `gmeow:vocabularyDefaultCeiling` (`0` for every guarded vocab
+/// today), so an absent commitment for a nonzero-residue vocab always reds.
+#[must_use]
+pub fn evaluate_projection_ceiling(measured: u64, ceiling: u64) -> CeilingVerdict {
+    if measured <= ceiling {
+        CeilingVerdict::Pass
+    } else {
+        CeilingVerdict::MeasuredAboveCeiling
+    }
+}
+
+/// The outcome of a projection-ceiling monotonicity diff: hard `violations` that
+/// red the gate.
+#[derive(Debug, Default)]
+pub struct CeilingMonotonicity {
+    /// Hard violations — a committed ceiling RAISED for a (slice, vocab) key
+    /// shared by base and working.
+    pub violations: Vec<String>,
+}
+
+/// Projection-ceiling monotonicity (ratchet invariant **2**, base∩working) — the
+/// exact inverse of [`axis_floor_monotonicity`] (flip `<` → `>`, "LOWERED" →
+/// "RAISED"). Ceilings are LOWER-ONLY: for every (slice, vocab) key present in
+/// BOTH `base` and `working`, `working <= base`; a RAISE is a hard violation.
+///
+/// **Deletions** (base-only) are ALLOWED with no liveness check — unlike a floor
+/// deletion, dropping a ceiling can only ever TIGHTEN the effective ceiling (it
+/// falls back to the vocab's `default_ceiling`, `0` today), so it is never a
+/// loosening the way removing a floor would be.
+///
+/// **Additions** (working-only) are NOT validated here — that is ratchet
+/// invariant **3**, the grandfather gate, which needs the base TTL fileset (not
+/// just the base ceiling map) to reconstruct `measured(base)` and is therefore
+/// driven by the `gmeow-dev` CLI, not this pure comparator.
+///
+/// There is deliberately NO in-repo permit to raise a ceiling — exactly as
+/// [`axis_floor_monotonicity`]'s floor doctrine, a raise is a maintainer-only
+/// decision authorized out-of-band by merging past the resulting red, never by
+/// any tool, flag, or record.
+#[must_use]
+pub fn projection_ceiling_monotonicity(
+    file_label: &str,
+    base: &BTreeMap<(String, String), u64>,
+    working: &BTreeMap<(String, String), u64>,
+) -> CeilingMonotonicity {
+    let mut out = CeilingMonotonicity::default();
+    for ((slice, vocab), before) in base {
+        if let Some(now) = working.get(&(slice.clone(), vocab.clone()))
+            && now > before
+        {
+            out.violations.push(format!(
+                "{file_label}: slice {slice} vocab {vocab} projection ceiling RAISED {before} → {now} — ceilings are lower-only; a raise grants net-new headroom and is a maintainer-only decision authorized out-of-band (merging past this red), never by a tool"
+            ));
+        }
+    }
+    out
+}
+
+/// Registry meta-ratchet (base∩working) — the guarded-vocabulary REGISTRY itself is
+/// lower-only in gate strength: a change that lets more ungrounded authoring through
+/// WITHOUT raising a per-cell ceiling is a hard violation. For every vocabulary
+/// present in BOTH base and working (keyed by prefix), a violation is recorded when
+/// the working registry is WEAKER than base along any axis:
+/// - the vocabulary is DELETED (base-only) — a guard silently dropped;
+/// - a `gmeow:vocabularyNamespace` was REMOVED (the match surface narrowed);
+/// - the `count_kind` was WEAKENED to the non-counting `NonRdfSurface`;
+/// - a `StructuralAxiom` `counted_predicate` was REMOVED (fewer axioms counted);
+/// - the `default_ceiling` was RAISED (more free headroom for unlisted slices);
+/// - the `alignment_predicate` exemption set was EXPANDED (more bridges waved through).
+///
+/// New vocabularies and any STRENGTHENING (wider namespaces, more counted predicates,
+/// lower default ceiling, fewer exemptions) are allowed with no violation.
+#[must_use]
+pub fn registry_ratchet_monotonicity(
+    file_label: &str,
+    base: &[crate::model::ProjectionVocabulary],
+    working: &[crate::model::ProjectionVocabulary],
+) -> Vec<String> {
+    use crate::model::CountKind;
+    let by_prefix = |vs: &[crate::model::ProjectionVocabulary]| {
+        vs.iter()
+            .map(|v| (v.prefix.clone(), v.clone()))
+            .collect::<BTreeMap<_, _>>()
+    };
+    let working_map = by_prefix(working);
+    let mut violations = Vec::new();
+    for b in base {
+        let Some(w) = working_map.get(&b.prefix) else {
+            violations.push(format!(
+                "{file_label}: guarded vocabulary {} DELETED from the registry — dropping a guard weakens the gate; retire it only by an out-of-band maintainer decision, never silently",
+                b.prefix
+            ));
+            continue;
+        };
+        for ns in &b.namespaces {
+            if !w.namespaces.contains(ns) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} namespace NARROWED — {ns} removed; the match surface may only widen",
+                    b.prefix
+                ));
+            }
+        }
+        if b.count_kind != CountKind::NonRdfSurface && w.count_kind == CountKind::NonRdfSurface {
+            violations.push(format!(
+                "{file_label}: guarded vocabulary {} count-kind WEAKENED to countKindNonRdfSurface — it now counts nothing",
+                b.prefix
+            ));
+        }
+        for cp in &b.counted_predicates {
+            if !w.counted_predicates.contains(cp) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} counted-predicate allowlist NARROWED — {cp} removed; fewer structural axioms are now counted",
+                    b.prefix
+                ));
+            }
+        }
+        if w.default_ceiling > b.default_ceiling {
+            violations.push(format!(
+                "{file_label}: guarded vocabulary {} default-ceiling RAISED {} → {} — grants free headroom to every unlisted slice",
+                b.prefix, b.default_ceiling, w.default_ceiling
+            ));
+        }
+        for ap in &w.alignment_predicates {
+            if !b.alignment_predicates.contains(ap) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} alignment-predicate set EXPANDED — {ap} added; a new exemption waves more bridges through",
+                    b.prefix
+                ));
+            }
+        }
+    }
+    violations
+}
+
 /// The `gmeow:sliceQualityTier` a slice's `manifest.ttl` declares, resolved against
 /// the rubric's ladder — `None` when the slice has not opted in.
 ///
@@ -641,6 +835,7 @@ mod tests {
                 }],
                 commitments: vec![],
                 tier_floors: vec![],
+                ..Default::default()
             },
         };
         // Producer not in-repo → not stale.
@@ -687,6 +882,7 @@ mod tests {
                 }],
                 commitments: vec![],
                 tier_floors: vec![],
+                ..Default::default()
             },
         };
         let errs = completeness_gate(&rubric);
@@ -925,6 +1121,7 @@ mod tests {
                 exemptions: vec![],
                 commitments,
                 tier_floors,
+                ..Default::default()
             },
         }
     }
@@ -1017,6 +1214,119 @@ mod tests {
             evaluate_coherence(&rubric).is_empty(),
             "a tier-floor-only slice and an axis-floor-only slice are both skipped: {:#?}",
             evaluate_coherence(&rubric)
+        );
+    }
+
+    // --- Projection-ceiling ratchet fixtures -----------------------------------
+
+    #[test]
+    fn ceiling_pass_at_or_below_ceiling() {
+        assert_eq!(evaluate_projection_ceiling(0, 0), CeilingVerdict::Pass);
+        assert_eq!(evaluate_projection_ceiling(3, 3), CeilingVerdict::Pass);
+        assert_eq!(evaluate_projection_ceiling(2, 5), CeilingVerdict::Pass);
+        assert!(!evaluate_projection_ceiling(3, 3).is_failure());
+    }
+
+    #[test]
+    fn ceiling_fails_above_ceiling() {
+        assert_eq!(
+            evaluate_projection_ceiling(4, 3),
+            CeilingVerdict::MeasuredAboveCeiling
+        );
+        assert!(evaluate_projection_ceiling(4, 3).is_failure());
+        // Default ceiling 0: any nonzero residue on an absent commitment reds.
+        assert_eq!(
+            evaluate_projection_ceiling(1, 0),
+            CeilingVerdict::MeasuredAboveCeiling
+        );
+    }
+
+    fn ck(slice: &str, vocab: &str) -> (String, String) {
+        (slice.to_owned(), vocab.to_owned())
+    }
+
+    #[test]
+    fn ceiling_monotonicity_reds_on_a_raised_shared_key() {
+        let mut base = BTreeMap::new();
+        base.insert(ck("ex:logic", "sh"), 5_u64);
+        let mut working = BTreeMap::new();
+        working.insert(ck("ex:logic", "sh"), 7_u64); // RAISED — hard violation
+        let out = projection_ceiling_monotonicity("module.ttl", &base, &working);
+        assert_eq!(out.violations.len(), 1, "the raise reds: {out:#?}");
+        assert!(
+            out.violations[0].contains("ex:logic")
+                && out.violations[0].contains("sh")
+                && out.violations[0].contains("RAISED")
+                && out.violations[0].contains("5")
+                && out.violations[0].contains("7"),
+            "names the slice, vocab, and old → new: {out:#?}"
+        );
+    }
+
+    #[test]
+    fn ceiling_monotonicity_silent_on_hold_lower_delete_add() {
+        let mut base = BTreeMap::new();
+        base.insert(ck("ex:logic", "sh"), 5_u64); // held
+        base.insert(ck("ex:math", "gufo"), 4_u64); // lowered
+        base.insert(ck("ex:gone", "bfo"), 3_u64); // deleted (base-only, always allowed)
+
+        let mut working = BTreeMap::new();
+        working.insert(ck("ex:logic", "sh"), 5_u64); // hold — clean
+        working.insert(ck("ex:math", "gufo"), 2_u64); // lower — clean
+        working.insert(ck("ex:new", "sssom"), 1_u64); // addition — not this check's concern
+
+        let out = projection_ceiling_monotonicity("module.ttl", &base, &working);
+        assert!(
+            out.violations.is_empty(),
+            "hold, lower, delete, and add are all clean here: {out:#?}"
+        );
+    }
+
+    fn vocab(prefix: &str, ns: &[&str], dc: u64) -> crate::model::ProjectionVocabulary {
+        crate::model::ProjectionVocabulary {
+            prefix: prefix.to_owned(),
+            namespaces: ns.iter().map(|s| (*s).to_owned()).collect(),
+            subsumed_by: "s".to_owned(),
+            owner: "s".to_owned(),
+            count_kind: crate::model::CountKind::TypedAxiom,
+            default_ceiling: dc,
+            preservation: "p".to_owned(),
+            alignment_predicates: Vec::new(),
+            counted_predicates: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn registry_ratchet_reds_on_weakening_and_silent_on_strengthening() {
+        let base = vec![vocab("bfo", &["obo/BFO_"], 0), vocab("gufo", &["g#"], 0)];
+        // gufo deleted; bfo namespace narrowed AND default-ceiling raised.
+        let weaker = vec![vocab("bfo", &[], 1)];
+        let v = registry_ratchet_monotonicity("module.ttl", &base, &weaker);
+        assert!(
+            v.iter()
+                .any(|m| m.contains("gufo") && m.contains("DELETED")),
+            "{v:#?}"
+        );
+        assert!(
+            v.iter()
+                .any(|m| m.contains("bfo") && m.contains("NARROWED")),
+            "{v:#?}"
+        );
+        assert!(
+            v.iter()
+                .any(|m| m.contains("bfo") && m.contains("default-ceiling RAISED")),
+            "{v:#?}"
+        );
+
+        // A new vocab + a WIDER namespace on bfo is pure strengthening — clean.
+        let stronger = vec![
+            vocab("bfo", &["obo/BFO_", "obo/BFO2_"], 0),
+            vocab("gufo", &["g#"], 0),
+            vocab("sumo", &["sumo#"], 0),
+        ];
+        assert!(
+            registry_ratchet_monotonicity("module.ttl", &base, &stronger).is_empty(),
+            "strengthening must not red"
         );
     }
 }

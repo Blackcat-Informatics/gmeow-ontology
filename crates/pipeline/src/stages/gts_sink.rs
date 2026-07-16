@@ -83,6 +83,11 @@ impl GtsSinkStage {
                 // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): opaque
                 // REP_GENERATED fanout members read off this leaf's product.
                 "stage-export-governance-floors".to_string(),
+                // The two projection-vocabulary ratchet TSVs (P17 projection of the
+                // ontology gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary
+                // individuals): opaque REP_GENERATED fanout members read off this leaf's
+                // product.
+                "stage-export-projection-ceilings".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
@@ -350,6 +355,7 @@ mod tests {
             "stage-export-research-objects",
             "stage-export-metadata",
             "stage-export-governance-floors",
+            "stage-export-projection-ceilings",
         ]
         .into_iter()
         .map(|id| StageProduct::from_artifacts(id, BTreeMap::new()))
