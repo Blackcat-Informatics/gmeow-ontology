@@ -838,3 +838,60 @@ The items below are honest scope/mechanism disclosures, not omissions:
   to 448f0bb74 mid-remediation, renaming `make regenerate` -> `make sync` and shipping
   the #1554/#1555 grounding-bridge waves + #1533 AuthoringPacket). The stale-main
   RunMode::Regenerate -> RunMode::Update rename was carried into the Seam-2 CLI path.
+
+================================================================================
+Issue #1383 — genuine correspondence recovery (Mnemomorphism gate) — stage 2
+Recorded 2026-07-16. Exit completion-adversary returned PASS (every acceptance
+criterion DEMONSTRATED-IN-PRODUCTION, incl. a live production mutation flip on the
+WritingSystem case). The disclosures below are honest carve-outs / accepted scope
+decisions, NOT open gaps.
+
+- IS0 REVERSE LEG resolved by HONEST DOC, not by executing it (human-signed-off:
+  "Honest doc + drop inert fold"). The plan's original ask was to "execute both
+  directions" (get∘put=id_view) for logic:Isomorphism. Investigation proved the
+  reverse leg, seeded (as a recovery case must be) from the source, is
+  MATHEMATICALLY ENTAILED by the section direction put∘get=id_source and cannot
+  fail independently; and lower_recovery_case binds every view variable to the
+  source, so the declared view is exactly im(get) — a section-passing iso is
+  bijective on its declared corpus. A genuinely EXECUTED independent-view iso
+  surjectivity check would require extending the recovery-case fragment with
+  view-only witnesses; this was EXPLICITLY NOT UNDERTAKEN (out of #1383's
+  Section/Retraction scope). LOGIC-CONFORMANCE.md was corrected to state the
+  reverse leg is "entailed rather than executed as a separate leg"; the inert
+  two-direction fold was dropped so no hollow "both directions" code ships.
+
+- ATOMIC pure-path mnemomorphic auto-discharge ACCEPTED AS DOCUMENTED
+  (human-signed-off: "Accept as documented"). A mnemomorphic pure-atomic-leg claim
+  with NO authored recovery case discharges from a synthesized one-triple seed —
+  genuine execution scoped to the documented DischargeBoundedCorpus, but nothing
+  forces a richer distinguishing case. Seed freshness was hardened (G2 reserved
+  namespace) so the synthesized seed cannot collide with authored constants.
+
+- get_leg / recoveryCase reconciliation (candidate gap G3) CLOSED AS FALSE POSITIVE
+  with evidence, NOT fixed: when a recovery case is present, get_leg's LegPath body
+  is inert (no gate reads it; derive_put's provisional claim is re-checked against
+  the recovery verdict; get_leg resolves to a TransactionProgram node never rendered
+  as shipped SPARQL). Authored data uses get_leg as a decorative placeholder
+  (sup:XStep) solely to satisfy derive_put's non-None precondition. The
+  required-but-decorative get_leg convention remains in place — pre-existing, not a
+  soundness gap, out of scope.
+
+- FULL LOCAL `make check` NOT COMPLETED in stage 2 (user directed reliance on CI,
+  which builds this PR merged-into-main on push, after stopping the local run).
+  Stage-2 verification rests on: exit completion-adversary PASS (live production
+  demonstrations + a red->pass mutation flip), conformance correspondence suite
+  12/12, gmeow-logic + gmeow-logic-compile 1742/1742, gmeow-pipeline correspondence
+  subset 30/30, docs goldens 85/85, and a full merged-tree compile — all green. The
+  authoritative full `make check` merged-into-main is delegated to CI / stage 3.
+
+- COVERAGE-RATCHET baseline bumped +3 for the recovery-case vocabulary
+  (logic:RecoveryCase / recoveryCase / recoveryTransform) across missing-annotation-
+  coat / competency-rationale / example / fixture-pair / prose-quality / scope-note /
+  test-reach. This re-establishes the doc-facet shortfall the ORIGINAL PR already
+  accepted, on top of main's baseline after the merge — not a new stage-2 regression;
+  carried in the coverage ratchet.
+
+- TWO generated artifacts exceed GitHub's 50MB soft limit (push warnings, not errors;
+  LFS recommended): generated/logic/reasoning-explanations.rdf12.ttl (~55MB) and
+  generated/logic/inferred-closure.rdf12.ttl (~54MB). Pre-existing generated files,
+  not introduced by this stage.
