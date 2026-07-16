@@ -1630,7 +1630,7 @@ logic:supPtDisp a logic:Formula ; logic:relation gmeow:displayable ;
 
 # --- Wave B1 shape-drain: event well-formedness + participation/occurrence suppression ---
 # gmeow:EventHasTypeOrTimeShape (Warning): an event should carry at least a type or some temporal
-# placement — otherwise it is an unanchored occurrence (a stub event may be fleshed out later).
+# placement — otherwise it is an unanchored occurrence carrying neither a kind nor a time.
 gmeow:EventHasTypeOrTimeConstraint
     a logic:DisjunctiveRequirednessConstraint ;
     rdfs:label "Event has type or time constraint"@x-gmeow-english ;

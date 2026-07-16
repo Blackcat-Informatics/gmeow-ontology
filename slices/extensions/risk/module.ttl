@@ -527,7 +527,7 @@ gmeow:CausalLink rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:linkStrength ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
 
 # gmeow:CausalLinkShape — gmeow:linkMechanism carries at most one value per language tag (the
-# localizable-prose #376 convention). A declarative logic: sugar record grounds the sh:uniqueLang
+# localizable-prose per-language-tag uniqueness convention). A declarative logic: sugar record grounds the sh:uniqueLang
 # facet: the frontend derives a sh:uniqueLang property component on the gmeow:CausalLink node shape.
 gmeow:CausalLinkMechanismUniqueLangConstraint
     a logic:UniqueLangConstraint ;
@@ -538,4 +538,4 @@ gmeow:CausalLinkMechanismUniqueLangConstraint
     logic:onClass gmeow:CausalLink ;
     logic:valuePath gmeow:linkMechanism ;
     logic:formalizes gmeow:CausalLinkShape ;
-    logic:message "A CausalLink carries at most one gmeow:linkMechanism per language tag (localizable prose, the #376 convention)." .
+    logic:message "A CausalLink carries at most one gmeow:linkMechanism per language tag (localizable prose, the per-language-tag uniqueness convention)." .

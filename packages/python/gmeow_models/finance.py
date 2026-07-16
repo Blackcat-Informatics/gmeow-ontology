@@ -119,7 +119,9 @@ class FinancialAccount(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    accountHolder: list[Agent] | None = Field(default=None, description="Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders.", alias="gmeow:accountHolder")
+    accountCurrency: list[ReferenceFrame] | None = Field(default=None, description="The currency(ies) of a financial account, drawn from the open currency reference-frame vocabulary (gmeow:frameRealmCurrency). NON-FUNCTIONAL: a single account may hold balances in several currencies (multi-currency fintech accounts).", alias="gmeow:accountCurrency")
+    accountHolder: list[Agent] = Field(min_length=1, description="Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders.", alias="gmeow:accountHolder")
+    accountType: list[FinancialAccountTypeEnum] | None = Field(default=None, description="The kind of financial account — one of the open gmeow:FinancialAccountType values (bank, credit, investment, wallet). Functional: an account has one canonical type; several types are several accounts.", alias="gmeow:accountType")
     bic: list[str] | None = Field(default=None, max_length=11, min_length=8, pattern="^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$", description="The Bank Identifier Code (ISO 9362, SWIFT code) of the institution holding the account.", alias="gmeow:bic")
 
 
@@ -149,7 +151,7 @@ class CryptoWallet(FinancialAccount):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    walletScheme: list[WalletSchemeEnum] | None = Field(default=None, description="The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets).", alias="gmeow:walletScheme")
+    walletScheme: list[WalletSchemeEnum] = Field(description="The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets).", alias="gmeow:walletScheme")
 
 
 class FinancialTransaction(ConfiguredBaseModel):
@@ -179,7 +181,7 @@ class FinancialTransaction(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    transactionAmount: list[MonetaryAmount] | None = Field(default=None, description="The monetary amount of a financial transaction, expressed as a MonetaryAmount. Functional: a single transaction occurrence has one canonical amount (disputed amounts are standpoint-indexed claims on separate statements, not additional values on the same transaction).", alias="gmeow:transactionAmount")
+    transactionAmount: list[MonetaryAmount] = Field(min_length=1, description="The monetary amount of a financial transaction, expressed as a MonetaryAmount. Functional: a single transaction occurrence has one canonical amount (disputed amounts are standpoint-indexed claims on separate statements, not additional values on the same transaction).", alias="gmeow:transactionAmount")
 
 
 class Holding(ConfiguredBaseModel):
@@ -209,8 +211,9 @@ class Holding(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    holdingAgent: list[Agent] | None = Field(default=None, description="The agent that holds the asset. Functional: a holding is held by exactly one agent.", alias="gmeow:holdingAgent")
-    holdingAsset: list[str] | None = Field(default=None, description="Within gmeow:Holding, values are node references constrained to gmeow:Asset. The financial asset that is held. Functional: a holding is of exactly one asset.", alias="gmeow:holdingAsset")
+    holdingAgent: list[Agent] = Field(min_length=1, description="The agent that holds the asset. Functional: a holding is held by exactly one agent.", alias="gmeow:holdingAgent")
+    holdingAsset: list[str] = Field(min_length=1, description="Within gmeow:Holding, values are node references constrained to gmeow:Asset. The financial asset that is held. Functional: a holding is of exactly one asset.", alias="gmeow:holdingAsset")
+    holdingQuantity: list[float] = Field(min_length=1, description="The quantity of the asset held, as an xsd:decimal. Functional: a holding has exactly one quantity at a given point in time (competing standpoint-indexed quantities coexist as separate statements).", alias="gmeow:holdingQuantity")
 
 
 class Invoice(ConfiguredBaseModel):
@@ -267,7 +270,7 @@ class JournalEntry(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    journalEntryPostings: list[Any] | None = Field(default=None, description="The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced).", alias="gmeow:journalEntryPostings")
+    journalEntryPostings: list[Any] = Field(min_length=2, description="The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced).", alias="gmeow:journalEntryPostings")
 
 
 class LedgerAccount(ConfiguredBaseModel):
@@ -297,8 +300,8 @@ class LedgerAccount(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    ledgerAccountHolder: list[Agent] | None = Field(default=None, description="The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders.", alias="gmeow:ledgerAccountHolder")
-    ledgerAccountType: list[LedgerAccountTypeEnum] | None = Field(default=None, description="The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type.", alias="gmeow:ledgerAccountType")
+    ledgerAccountHolder: list[Agent] = Field(min_length=1, description="The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders.", alias="gmeow:ledgerAccountHolder")
+    ledgerAccountType: list[LedgerAccountTypeEnum] = Field(description="The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type.", alias="gmeow:ledgerAccountType")
 
 
 class Order(ConfiguredBaseModel):
@@ -353,7 +356,7 @@ class Posting(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    postingAccount: list[LedgerAccount] | None = Field(default=None, description="The ledger account this posting affects. Functional: a posting affects exactly one ledger account.", alias="gmeow:postingAccount")
-    postingAmount: list[MonetaryAmount] | None = Field(default=None, description="The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount.", alias="gmeow:postingAmount")
-    postingDirection: list[PostingDirectionEnum] | None = Field(default=None, description="The direction of this posting — debit or credit. Functional: a posting is exactly one direction.", alias="gmeow:postingDirection")
-    postingJournalEntry: list[JournalEntry] | None = Field(default=None, description="The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry.", alias="gmeow:postingJournalEntry")
+    postingAccount: list[LedgerAccount] = Field(min_length=1, description="The ledger account this posting affects. Functional: a posting affects exactly one ledger account.", alias="gmeow:postingAccount")
+    postingAmount: list[MonetaryAmount] = Field(min_length=1, description="The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount.", alias="gmeow:postingAmount")
+    postingDirection: list[PostingDirectionEnum] = Field(description="The direction of this posting — debit or credit. Functional: a posting is exactly one direction.", alias="gmeow:postingDirection")
+    postingJournalEntry: list[JournalEntry] = Field(min_length=1, description="The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry.", alias="gmeow:postingJournalEntry")
