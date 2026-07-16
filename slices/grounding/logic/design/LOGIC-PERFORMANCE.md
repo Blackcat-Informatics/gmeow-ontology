@@ -124,6 +124,13 @@ engine, two directions.
 - Budgets transfer unchanged: the demand-transformed program is charged through the same
   committed-derivation counting point, so a backward query's budget semantics are identical to a
   forward materialization's.
+- Query-scoped external relations are **bound-producing physical EDB operators**, not a scratch-
+  graph materialization lane. The current SIPS binding, ordered-prefix limit, and total order are
+  pushed into the provider at the relation atom's authored position; only returned rows that survive
+  the ordinary joins enter the fixpoint. A complete validated batch may be reused within that query,
+  but no provider cache or registration escapes into ambient process state. This retains one planner
+  and one recursive semantics while avoiding the I/O, allocation, and later filtering of copying a
+  candidate universe into RDF first.
 
 ## Incrementality doctrine
 
@@ -266,17 +273,28 @@ Provenance is bounded-cost and in-band, never an afterthought pass.
   predicates are unit-valued control tuples and are excluded from score products, preventing the
   demand transform from counting a scored prefix twice. This bounded direct-edge carrier is not an
   eagerly expanded provenance polynomial.
+- **Provider annotations enter through the same algebra, with their meanings still explicit.** A
+  provider descriptor must name the selected algebra identity and the dimension of its opaque
+  element. Similarity, rank, distance, persistence, and epistemic confidence remain distinct even
+  though all compose through the same checked `⊗`/`⊕` interface. Provider tuple sources remain in
+  derivation lineage, and the query receipt records provider, artifact generation, model, request,
+  response hash, contribution, and preservation. This is in-band provenance, not a later score join.
 - **Algebraic deviations are admitted only by an explicit, structurally checked contract.** An
   exact contract warrants the ordinary semiring laws. A non-semiring algebra must name each
   violated law and the positive query classes for which the caller warrants a complete
   over-approximation; the engine classifies the actual IDB graph as acyclic or recursive and
   refuses an out-of-scope declaration. Annotation recursion must reach a deterministic fixed point
-  within the declared round guard or hard-fail. Negation-as-failure, value-inventing existential
-  heads, and the arity-generic backward surface currently have no declared score algebra and are
-  typed refusals, never silent score erasure.
+  within the declared round guard or hard-fail. Negation-as-failure and value-inventing existential
+  heads currently have no declared score algebra and are typed refusals, never silent score erasure.
 - The Record/Skip capability boundary is unchanged: Skip mode commits the identical fact set in
   the identical order under the identical budget, minus the annotations. Provenance remains a
   capability, not a correctness fork.
+
+External-relation optimization claims use **structural evidence**: distinct provider calls, cache
+hits, bound calls, delivered rows, and unique admitted rows. A fixture may prove that a bound call
+delivers fewer rows than its equivalent all-tuples scratch representation; that is a deterministic
+materialization reduction, not a fabricated wall-clock speedup. Timing claims still require the
+benchmark/perf-ledger discipline below.
 
 ## Grounding-layer computability doctrine
 

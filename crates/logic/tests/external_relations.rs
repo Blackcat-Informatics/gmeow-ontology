@@ -955,3 +955,40 @@ fn fallible_view_keeps_rdf_operational_and_relation_failures_disjoint() {
         Some(PagedQueryError::PageBudgetExceeded { .. })
     ));
 }
+
+#[test]
+fn ontology_projection_covers_the_executable_closed_values() {
+    let ttl = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../slices/grounding/logic/module.ttl"
+    ));
+    for dimension in [
+        RelationAnnotationDimension::Similarity,
+        RelationAnnotationDimension::Rank,
+        RelationAnnotationDimension::Distance,
+        RelationAnnotationDimension::Persistence,
+        RelationAnnotationDimension::EpistemicConfidence,
+    ] {
+        let local = dimension
+            .iri()
+            .strip_prefix("https://blackcatinformatics.ca/logic/")
+            .expect("standard dimension uses the logic namespace");
+        assert!(ttl.contains(&format!("logic:{local}\n")));
+    }
+    for local in [
+        "ExternalRelationComplete",
+        "ExternalRelationCacheHit",
+        "ExternalRelationFailed",
+        "ExternalRelationIncomplete",
+        "ExternalRelationBudgetExhausted",
+        "ExternalRelationCancelled",
+        "ExternalRelationContractViolation",
+        "ExternalRelationAscending",
+        "ExternalRelationDescending",
+    ] {
+        assert!(
+            ttl.contains(&format!("logic:{local}\n")),
+            "ontology projection is missing logic:{local}"
+        );
+    }
+}
