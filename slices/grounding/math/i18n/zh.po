@@ -2030,6 +2030,110 @@ msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:d
 msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
 msgstr "当霍奇分解缺少必需的框架组成部分时引发的失败——它所分解的信号、其恰当、上恰当或调和分量、其边缘算子、其载体层、见证重构的精确残差，或三个精确的成对正交性内积之一。霍奇分解仅相对于完整且已声明的框架才有定义；边缘算子、重构残差或分量正交性为隐式的裸分离是不良构成的。"
 
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|rdfs:label"
+msgid "Metric Space"
+msgstr "度量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|skos:definition"
+msgid "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."
+msgstr "度量空间 (X, d)：集合 X 连同一个距离函数 d，该函数非负、恰好在对角线上为零、对称并满足三角不等式。每个度量空间都诱导一个拓扑（度量球构成一组基），因此它是 math:TopologicalSpace 的子类，但距离函数是构成性的，无法仅从拓扑中恢复。它是 Mapper 构造的滤波函数与聚类规则所定义于其上的源；以已声明度量采样的点云即是一个度量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|rdfs:label"
+msgid "Cover"
+msgstr "覆盖"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|skos:definition"
+msgid "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "空间的覆盖：一族有限的相互重叠的集合（其 math:CoverElement 成员，通过 math:hasCoverElement 命名），其并集包含被覆盖的空间。在 Mapper 构造中，覆盖取自滤波函数的陪域，相邻覆盖元之间的重叠正是产生输出神经边的原因。覆盖是已声明且有限枚举的，绝非隐式的分辨率参数；缺少它的 Mapper 构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|rdfs:label"
+msgid "Cover Element"
+msgstr "覆盖元"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|skos:definition"
+msgid "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."
+msgstr "math:Cover 的单个元素：其族覆盖空间的相互重叠集合之一（通常是一个开集或区间）。math:Set 的子类。两个重叠的覆盖元在它们的逆像中所发现的聚类之间诱导一条边；覆盖元携带具体的外延（对于实值滤波，是一个带端点与包含性的区间），这使覆盖成为确定的，而非自由的分辨率选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|rdfs:label"
+msgid "Clustering Rule"
+msgstr "聚类规则"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|skos:definition"
+msgid "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "应用于每个覆盖元逆像以将其划分为聚类的、已声明且确定的规则——例如在固定距离阈值（math:clusteringThreshold）处的单连接聚类。math:MathematicalObject 的子类，将该规则命名为一等对象，使 Mapper 的节点集可复现，而绝非某未指定聚类步骤的输出。聚类规则被省略或留给约定的 Mapper 构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|rdfs:label"
+msgid "Nerve Complex"
+msgstr "神经复形"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|skos:definition"
+msgid "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."
+msgstr "被覆盖且被聚类的空间的神经：一个单纯复形，其顶点是每个覆盖元逆像中所发现的聚类，其 k-单形记录 k+1 个聚类的非空交。它是 math:SimplicialComplex 的子类；Mapper 构造的输出神经是其一维骨架图连同来自多路聚类重叠的任何更高单形。它是 Mapper 构造的输出，而非计算它所依据的源复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|rdfs:label"
+msgid "Incomplete Mapper Construction"
+msgstr "不完整 Mapper 构造"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|skos:definition"
+msgid "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."
+msgstr "当 Mapper 构造缺少必需的框架组成部分时引发的失败——其源度量空间、其滤波（透镜）函数、滤波陪域的覆盖、应用于每个覆盖元逆像内部的聚类规则，或输出神经复形。Mapper 构造仅相对于完整且已声明的框架才有定义；滤波、覆盖或聚类规则为隐式的裸图是不良构成的，因为没有它们，节点集与边集都不可复现。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|rdfs:label"
+msgid "source metric space"
+msgstr "源度量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|skos:definition"
+msgid "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到它所采样的源度量空间——带有已声明距离函数的点云（或空间），滤波函数与聚类规则皆定义于其上。定义域 math:MapperConstruction，值域 math:MetricSpace（以散文陈述）。源是构造框架的组成部分，绝非隐式；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|rdfs:label"
+msgid "filter function"
+msgstr "滤波函数"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|skos:definition"
+msgid "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到滤波（透镜）函数，该函数将其源度量空间映射到取覆盖所依据的陪域——一个实值高度、一个偏心率或一个密度估计。定义域 math:MapperConstruction，值域 math:Function（以散文陈述）。滤波是构成性的：整个覆盖/聚类流水线通过它被拉回，因此滤波函数被省略的构造没有可拉回的覆盖，是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|rdfs:label"
+msgid "cover scheme"
+msgstr "覆盖方案"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|skos:definition"
+msgid "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到其滤波函数陪域的 math:Cover——一族有限的相互重叠的覆盖元，其逆像被聚类，其重叠产生神经的边。定义域 math:MapperConstruction，值域 math:Cover（以散文陈述）。覆盖是已声明且有限枚举的，绝非隐式的分辨率/增益参数；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
+msgid "clustering rule"
+msgstr "聚类规则关系"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
+msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到应用于每个覆盖元逆像以产生神经顶点的确定性 math:ClusteringRule——例如在固定距离阈值处的单连接聚类。定义域 math:MapperConstruction，值域 math:ClusteringRule（以散文陈述）。该规则是框架的组成部分，使节点集可复现；聚类被省略或留给约定的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|rdfs:label"
+msgid "output nerve"
+msgstr "输出神经"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|skos:definition"
+msgid "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到它所产生的 math:NerveComplex——一个单纯复形（其一维骨架图加上任何更高单形），其顶点是每个覆盖元的聚类，其单形记录聚类重叠。定义域 math:MapperConstruction，值域 math:NerveComplex（以散文陈述）。神经是构造的已声明输出；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|rdfs:label"
+msgid "has cover element"
+msgstr "具有覆盖元"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|skos:definition"
+msgid "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."
+msgstr "将 math:Cover 关联到其 math:CoverElement 成员之一——覆盖族中单个相互重叠的集合。定义域 math:Cover，值域 math:CoverElement（以散文陈述）。枚举覆盖元正是使覆盖成为确定的原因：该族被显式列出，而非由分辨率与增益概括。"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|rdfs:label"
+msgid "clustering threshold"
+msgstr "聚类阈值"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|skos:definition"
+msgid "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."
+msgstr "将 math:ClusteringRule 关联到它合并点所在距离阈值的精确 math:RationalValue——以精确的分子/分母对携带的单连接截断值，绝非小数，因此聚类可复现。定义域 math:ClusteringRule，值域 math:RationalValue（以散文陈述）。"
+
 msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
 msgid "Vector-Symbolic Operation"
 msgstr "向量符号运算"

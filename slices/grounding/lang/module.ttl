@@ -6220,6 +6220,28 @@ gmeow:gmnCandidateMathKullbackLeibler
     gmeow:cites gmeow:gmnInformationTheoryWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# The Mapper construction's output nerve, written N(𝒰) for the nerve of a cover
+# 𝒰, warrants its own symbol decision: the bare capital N is ambiguous with the
+# natural numbers, a count, a normal subgroup, and a null space, and the nerve
+# carries the cover/clustering frame that a flat glyph cannot hold. The
+# disposition is gmnDispositionNamedKey, so no glyph enters the executable GMN
+# glyph table and the pinned gmnGlyphTableVersion is unchanged.
+gmeow:gmnCandidateMathNerve
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: nerve of a cover N"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the N(𝒰) notation of math:NerveComplex, the simplicial complex a Mapper construction outputs as the nerve of its cover-refined clustering."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:NerveComplex ;
+    gmeow:gmnCandidateGlyph "N" ;
+    gmeow:gmnAsciiFallback "nerve" ;
+    gmeow:gmnSpokenLabel "nerve of the cover" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The bare capital N denotes the natural numbers, a count or sample size, a normal subgroup, and a null space, and the nerve is written N(𝒰) over a declared cover whose overlaps a flat glyph cannot carry; the `nerve` key keeps the cover/clustering frame of the Mapper output explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # The IPA glyphs remain executable inside phonological surface content but are
 # semantically rejected as aliases for their denoted phone IRIs. This prevents
 # an identifier-shaped `k` or `t` from overlapping GMN's reference-token grammar.

@@ -2502,3 +2502,30 @@ ex:rowCoverageHodgeDecomposition a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coexact" ; gmeow:cellValueIri cov:hodgeCoexact ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "harmonic" ; gmeow:cellValueIri cov:hodgeHarmonic ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri cov:hodgeBoundary ] .
+
+ex:cqCoverageMapperConstruction a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/mapper-construction-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A Mapper construction is recoverable from its source metric space, its filter (lens) function, its cover, its clustering rule, and its output nerve complex as separate reusable mathematical objects, without a project-specific graph surrogate that flattens the filter/cover/clustering frame into a bare set of nodes and edges." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageMapperConstructionShape ;
+    gmeow:cqExpectRow ex:rowCoverageMapperConstruction .
+
+ex:cqCoverageMapperConstructionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "mapper" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "filter" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cover" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "clustering" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "nerve" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageMapperConstruction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mapper" ; gmeow:cellValueIri cov:mapperConstruction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri cov:mapperSource ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filter" ; gmeow:cellValueIri cov:mapperFilter ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cover" ; gmeow:cellValueIri cov:mapperCover ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clustering" ; gmeow:cellValueIri cov:mapperClustering ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nerve" ; gmeow:cellValueIri cov:mapperNerve ] .

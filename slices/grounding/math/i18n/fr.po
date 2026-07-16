@@ -2030,6 +2030,110 @@ msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:d
 msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
 msgstr "L'échec soulevé lorsqu'une décomposition de Hodge manque d'une composante de cadre requise — le signal qu'elle décompose, sa composante exacte, coexacte ou harmonique, son opérateur de bord, son faisceau support, le résidu exact témoignant de la reconstruction, ou l'un des trois produits scalaires exacts d'orthogonalité par paires. Une décomposition de Hodge n'est définie que relativement à un cadre complet et déclaré ; une simple séparation dont l'opérateur de bord, le résidu de reconstruction ou l'orthogonalité des composantes est implicite est mal formée."
 
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|rdfs:label"
+msgid "Metric Space"
+msgstr "Espace métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|skos:definition"
+msgid "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."
+msgstr "Un espace métrique (X, d) : un ensemble X muni d'une fonction distance d qui est non négative, nulle exactement sur la diagonale, symétrique et vérifie l'inégalité triangulaire. Tout espace métrique induit une topologie (les boules métriques forment une base), c'est donc une sous-classe de math:TopologicalSpace, mais la fonction distance est constitutive et non récupérable à partir de la seule topologie. C'est la source sur laquelle sont définies la fonction filtre et la règle de regroupement d'une construction Mapper ; un nuage de points échantillonné avec une métrique déclarée est un espace métrique."
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|rdfs:label"
+msgid "Cover"
+msgstr "Recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|skos:definition"
+msgid "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Un recouvrement d'un espace : une famille finie d'ensembles qui se chevauchent (ses membres math:CoverElement, nommés via math:hasCoverElement) dont l'union contient l'espace recouvert. Dans une construction Mapper, le recouvrement est pris du codomaine de la fonction filtre, et les chevauchements entre éléments de recouvrement adjacents sont ce qui crée les arêtes du nerf de sortie. Le recouvrement est déclaré et énuméré de façon finie, jamais un paramètre de résolution implicite ; une construction Mapper qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|rdfs:label"
+msgid "Cover Element"
+msgstr "Élément de recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|skos:definition"
+msgid "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."
+msgstr "Un élément unique d'un math:Cover : l'un des ensembles qui se chevauchent (typiquement un ensemble ouvert ou un intervalle) dont la famille recouvre l'espace. Une sous-classe de math:Set. Deux éléments de recouvrement qui se chevauchent induisent une arête entre les groupes trouvés dans leurs images réciproques ; un élément de recouvrement porte l'étendue concrète (pour un filtre réel, un intervalle avec ses bornes et ses inclusions) qui rend le recouvrement déterministe plutôt qu'un choix de résolution libre."
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|rdfs:label"
+msgid "Clustering Rule"
+msgstr "Règle de regroupement"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|skos:definition"
+msgid "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "La règle déclarée et déterministe appliquée à l'image réciproque de chaque élément de recouvrement pour la partitionner en groupes — par exemple un regroupement à liaison simple à un seuil de distance fixé (math:clusteringThreshold). Une sous-classe de math:MathematicalObject nommant la règle comme un objet de première classe afin que l'ensemble des nœuds d'un Mapper soit reproductible, jamais le résultat d'une étape de regroupement non spécifiée. Une construction Mapper dont la règle de regroupement est omise ou laissée à la convention est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|rdfs:label"
+msgid "Nerve Complex"
+msgstr "Complexe nerf"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|skos:definition"
+msgid "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."
+msgstr "Le nerf d'un espace recouvert et regroupé : le complexe simplicial dont les sommets sont les groupes trouvés dans l'image réciproque de chaque élément de recouvrement et dont les k-simplexes enregistrent les intersections non vides de k+1 groupes. C'est une sous-classe de math:SimplicialComplex ; le nerf de sortie d'une construction Mapper est son graphe à un squelette ainsi que tout simplexe supérieur issu de chevauchements de groupes à plusieurs voies. C'est la sortie de la construction Mapper, non le complexe source à partir duquel il est calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|rdfs:label"
+msgid "Incomplete Mapper Construction"
+msgstr "Construction Mapper incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|skos:definition"
+msgid "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."
+msgstr "L'échec soulevé lorsqu'une construction Mapper manque d'une composante de cadre requise — son espace métrique source, sa fonction filtre (lentille), le recouvrement du codomaine du filtre, la règle de regroupement appliquée à l'intérieur de l'image réciproque de chaque élément de recouvrement, ou le complexe nerf de sortie. Une construction Mapper n'est définie que relativement à un cadre complet et déclaré ; un simple graphe dont le filtre, le recouvrement ou la règle de regroupement est implicite est mal formé, car sans eux l'ensemble des nœuds et l'ensemble des arêtes ne sont pas reproductibles."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|rdfs:label"
+msgid "source metric space"
+msgstr "espace métrique source"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|skos:definition"
+msgid "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper à l'espace métrique source qu'elle échantillonne — le nuage de points (ou l'espace) avec une fonction distance déclarée sur laquelle sont définies la fonction filtre et la règle de regroupement. Domaine math:MapperConstruction, portée math:MetricSpace (énoncé en prose). La source fait partie du cadre de la construction, jamais implicite ; une construction qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|rdfs:label"
+msgid "filter function"
+msgstr "fonction filtre"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|skos:definition"
+msgid "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper à la fonction filtre (lentille) qui applique son espace métrique source à un codomaine dont le recouvrement est pris — une hauteur à valeurs réelles, une excentricité ou une estimation de densité. Domaine math:MapperConstruction, portée math:Function (énoncé en prose). Le filtre est constitutif : tout le pipeline recouvrement/regroupement est tiré en arrière à travers lui, de sorte qu'une construction dont la fonction filtre est omise n'a aucun recouvrement à tirer en arrière et est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|rdfs:label"
+msgid "cover scheme"
+msgstr "schéma de recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|skos:definition"
+msgid "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper au math:Cover du codomaine de sa fonction filtre — la famille finie d'éléments de recouvrement qui se chevauchent, dont les images réciproques sont regroupées et dont les chevauchements créent les arêtes du nerf. Domaine math:MapperConstruction, portée math:Cover (énoncé en prose). Le recouvrement est déclaré et énuméré de façon finie, jamais un paramètre implicite de résolution/gain ; une construction qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
+msgid "clustering rule"
+msgstr "règle de regroupement"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
+msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper à la math:ClusteringRule déterministe appliquée à l'image réciproque de chaque élément de recouvrement pour produire les sommets du nerf — par exemple un regroupement à liaison simple à un seuil de distance fixé. Domaine math:MapperConstruction, portée math:ClusteringRule (énoncé en prose). La règle fait partie du cadre afin que l'ensemble des nœuds soit reproductible ; une construction dont le regroupement est omis ou laissé à la convention est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|rdfs:label"
+msgid "output nerve"
+msgstr "nerf de sortie"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|skos:definition"
+msgid "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper au math:NerveComplex qu'elle produit — le complexe simplicial (son graphe à un squelette plus tout simplexe supérieur) dont les sommets sont les groupes par élément de recouvrement et dont les simplexes enregistrent les chevauchements de groupes. Domaine math:MapperConstruction, portée math:NerveComplex (énoncé en prose). Le nerf est la sortie déclarée de la construction ; une construction qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|rdfs:label"
+msgid "has cover element"
+msgstr "a pour élément de recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|skos:definition"
+msgid "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."
+msgstr "Relie un math:Cover à l'un de ses membres math:CoverElement — un unique ensemble qui se chevauche de la famille recouvrante. Domaine math:Cover, portée math:CoverElement (énoncé en prose). Énumérer les éléments de recouvrement est ce qui rend un recouvrement déterministe : la famille est listée explicitement, non résumée par une résolution et un gain."
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|rdfs:label"
+msgid "clustering threshold"
+msgstr "seuil de regroupement"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|skos:definition"
+msgid "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."
+msgstr "Relie une math:ClusteringRule à la math:RationalValue exacte du seuil de distance auquel elle fusionne les points — la coupure à liaison simple portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte que le regroupement est reproductible. Domaine math:ClusteringRule, portée math:RationalValue (énoncé en prose)."
+
 msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
 msgid "Vector-Symbolic Operation"
 msgstr "Opération vectorielle-symbolique"
