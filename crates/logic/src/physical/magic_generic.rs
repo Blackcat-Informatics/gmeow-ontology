@@ -761,23 +761,40 @@ fn ground_generic(
         .collect()
 }
 
+/// The non-provider per-atom join step: for every current partial solution, join every
+/// already-materialized row on `atom`'s relation, extending the binding and appending the
+/// row's key to the lineage.
+///
+/// Shared verbatim by [`generic_solutions`] (which has no provider relations at all) and
+/// the non-provider branch of [`generic_solutions_with_providers`] (which falls back to
+/// this exact join for a body atom that is not a query-scoped external relation) — same
+/// bindings, same row order (`BTreeMap::iter` is deterministic), same short-circuit-free
+/// control flow, no new allocations beyond the `Vec` the join already produced.
+fn join_generic_atom<E: Clone>(
+    atom: &GenericAtom,
+    rows: &BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<E>>,
+    solutions: GenericSolutions,
+) -> GenericSolutions {
+    let mut next = Vec::new();
+    for (binding, sources) in solutions {
+        for (key, row) in rows.iter().filter(|(_, row)| row.relation == atom.relation) {
+            if let Some(merged) = bind_generic(atom, row, &binding) {
+                let mut lineage = sources.clone();
+                lineage.push(key.clone());
+                next.push((merged, lineage));
+            }
+        }
+    }
+    next
+}
+
 fn generic_solutions<E: Clone>(
     rule: &GenericRule,
     rows: &BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<E>>,
-) -> Vec<(BTreeMap<String, TermValue>, Vec<GenericAnnotationKey>)> {
-    let mut solutions = vec![(BTreeMap::new(), Vec::new())];
+) -> GenericSolutions {
+    let mut solutions: GenericSolutions = vec![(BTreeMap::new(), Vec::new())];
     for atom in &rule.body {
-        let mut next = Vec::new();
-        for (binding, sources) in solutions {
-            for (key, row) in rows.iter().filter(|(_, row)| row.relation == atom.relation) {
-                if let Some(merged) = bind_generic(atom, row, &binding) {
-                    let mut lineage = sources.clone();
-                    lineage.push(key.clone());
-                    next.push((merged, lineage));
-                }
-            }
-        }
-        solutions = next;
+        solutions = join_generic_atom(atom, rows, solutions);
         if solutions.is_empty() {
             break;
         }
@@ -903,15 +920,7 @@ where
                 }
             }
         } else {
-            for (binding, sources) in solutions {
-                for (key, row) in rows.iter().filter(|(_, row)| row.relation == atom.relation) {
-                    if let Some(merged) = bind_generic(atom, row, &binding) {
-                        let mut lineage = sources.clone();
-                        lineage.push(key.clone());
-                        next.push((merged, lineage));
-                    }
-                }
-            }
+            next = join_generic_atom(atom, rows, solutions);
         }
         solutions = next;
         if solutions.is_empty() {
