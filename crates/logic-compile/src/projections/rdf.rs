@@ -195,7 +195,9 @@ impl TripleSink {
     /// goldens compare by isomorphism either way). All projected quads live in the
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
     pub(crate) fn serialize(self, banner: &str) -> String {
-        let body = self.serialize_as("text/turtle").unwrap_or_default();
+        let body = self
+            .serialize_as("text/turtle")
+            .expect("constructed triple set must serialize as Turtle");
         let body = format!("{}\n", body.trim_end_matches('\n'));
         format!("{banner}{body}")
     }
