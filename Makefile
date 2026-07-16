@@ -59,6 +59,9 @@ ACCEPTANCE_MIN_RECALL ?=
 FUZZ_TARGETS = nquads gts shacl sssom statements logic query clif cgif xcl
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
+CHECK_PROFILE ?= impact
+CHECK_ARGS ?=
+CHECK_SYNC_MODE ?= check
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
@@ -67,7 +70,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 .PHONY: help \
 	install fmt lint check-lint lint-issue-refs i18n-lint \
-	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck reason-gate rust-build rust-test rust-docs check \
+	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck reason-gate rust-build rust-test rust-docs check check-full check-sync \
 	sync fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
@@ -167,8 +170,14 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(MAKE) lsp-release
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
-check: ## Run the full Docker-free local quality gate.
-	cargo xtask check
+check: ## Synchronize generated outputs, then run the receipt-backed impact gate.
+	CHECK_SYNC_MODE=update cargo xtask check --profile $(CHECK_PROFILE) $(CHECK_ARGS)
+
+check-full: ## Synchronize generated outputs, then physically run every local gate task.
+	CHECK_SYNC_MODE=update cargo xtask check --profile full $(CHECK_ARGS)
+
+check-sync:
+	$(GMEOW_DEV) sync --mode $(CHECK_SYNC_MODE) --outputs generated
 
 i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 	$(GMEOW_DEV) i18n lint
