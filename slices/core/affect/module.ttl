@@ -2441,28 +2441,28 @@ gmeow:EmotionBearerConstraint
     logic:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectComposite> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectScaleProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMax> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/AffectScaleProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMin> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vectorComponent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vectorProfile> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectiveExperience> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/experiencer> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectiveExperience> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/feltAffect> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectiveExperience> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/mentalProcessType> ; owl:hasValue <https://blackcatinformatics.ca/gmeow/processAffectiveExperience> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/appraisalOf> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/appraisalValue> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/intensityBasis> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/metricProfile> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/normFunction> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/weightingPolicy> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectComposite> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMax> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMin> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorComponent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorProfile> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/experiencer> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/feltAffect> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/mentalProcessType> ; logic:hasValue <https://blackcatinformatics.ca/gmeow/processAffectiveExperience> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalOf> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intensityBasis> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/metricProfile> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/normFunction> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/weightingPolicy> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/memberOfLabelSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifiedTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifierScore" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -2486,25 +2486,25 @@ gmeow:EmotionBearerConstraint
 # gmeow:AppraisalShape at-most-one restorations: gmeow:appraisalDimension and gmeow:appraisalValue
 # are Appraisal-scoped at-most-one facets whose paths are NOT globally owl:FunctionalProperty (a PAD
 # triple is three Appraisals sharing a vantage; the magnitude is per-cell), so the sh:maxCount 1
-# rides a class-scoped max-qualified antecedent (owl:onClass owl:Thing degrades to the plain
-# sh:maxCount 1 the oracle compares; the decimal magnitude rides owl:onDataRange).
-gmeow:Appraisal rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
+# rides a class-scoped max-qualified antecedent (logic:onClass owl:Thing degrades to the plain
+# sh:maxCount 1 the oracle compares; the decimal magnitude rides logic:onDataRange).
+gmeow:Appraisal logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # gmeow:ModelInferenceRunShape — a ModelInferenceRun declares exactly one gmeow:modelIdentifier and
 # one pinned gmeow:modelRevision. Both are literal-valued (a repo id, a revision string), so the
-# existence axiom ranges over rdfs:Literal (owl:allValuesFrom owl:Thing would reject the literal);
+# existence axiom ranges over rdfs:Literal (logic:allValuesFrom owl:Thing would reject the literal);
 # the closure entries project sh:minCount 1 and the owl:FunctionalProperty contract the sh:maxCount 1.
-gmeow:ModelInferenceRun rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:modelIdentifier ; owl:allValuesFrom rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:modelRevision ; owl:allValuesFrom rdfs:Literal ] .
+gmeow:ModelInferenceRun logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:modelIdentifier ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:modelRevision ; logic:allValuesFrom rdfs:Literal ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelIdentifier" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelRevision" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # gmeow:DerivedAffectIntensityObservationShape — a DerivedAffectIntensityObservation must NOT carry a
 # stored gmeow:appraisalValue magnitude (the norm is a recomputable derived view, Principle 12): the
-# forbidden-property obligation (sh:maxCount 0) is the reasoner-safe owl:maxQualifiedCardinality 0.
+# forbidden-property obligation (sh:maxCount 0) is the reasoner-safe logic:maxQualifiedCardinality 0.
 # The gmeow:DerivedAffectIntensityNoStoredMagnitudeConstraint carries the same law in the logic: canon.
-gmeow:DerivedAffectIntensityObservation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxQualifiedCardinality 0 ; owl:onClass owl:Thing ] .
+gmeow:DerivedAffectIntensityObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 0 ; logic:onClass owl:Thing ] .

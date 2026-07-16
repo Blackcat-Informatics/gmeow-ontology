@@ -1041,29 +1041,29 @@ gmeow:NarrativeTimeFrameAxisConstraint
     logic:message "A NarrativeTimeFrame must declare exactly one gmeow:narrativeTimeAxis (discourse time or story time) — a work and its fabula are two frames, not one frame with two moods." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/ArcSample> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/samplePosition> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativePosition> ] .
-<https://blackcatinformatics.ca/gmeow/ArcSample> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/sampleState> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ArcSample> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/sampleSubject> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ArcSample> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/CharacterArc> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/arcSubject> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/CharacterArc> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/arcType> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Motif> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/motifOccursIn> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegment> ] .
-<https://blackcatinformatics.ca/gmeow/Myth> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/affectedConsumerSurface> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ProjectionContext> ] .
-<https://blackcatinformatics.ca/gmeow/Myth> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasMythTelling> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
-<https://blackcatinformatics.ca/gmeow/Myth> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/recurringRisk> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
-<https://blackcatinformatics.ca/gmeow/NarrationUsage> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrationMode> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/NarrationUsage> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrationSegment> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegment> ] .
-<https://blackcatinformatics.ca/gmeow/NarrationUsage> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrationSubject> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeFrameLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrativeFrameLinkRelation> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativeFrameRelation> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeFrameLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSource> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeFrameLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTarget> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; owl:hasValue <https://blackcatinformatics.ca/gmeow/frameKindNarrative> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:hasValue <https://blackcatinformatics.ca/gmeow/frameRealmNarrative> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:hasValue <https://blackcatinformatics.ca/gmeow/frameRealmNarrative> ] .
-<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ArcSample> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/samplePosition> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativePosition> ] .
+<https://blackcatinformatics.ca/gmeow/ArcSample> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sampleState> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ArcSample> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sampleSubject> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ArcSample> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CharacterArc> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/arcSubject> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CharacterArc> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/arcType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Motif> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/motifOccursIn> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegment> ] .
+<https://blackcatinformatics.ca/gmeow/Myth> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/affectedConsumerSurface> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ProjectionContext> ] .
+<https://blackcatinformatics.ca/gmeow/Myth> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasMythTelling> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
+<https://blackcatinformatics.ca/gmeow/Myth> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/recurringRisk> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/gmeow/NarrationUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrationMode> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrationUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrationSegment> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegment> ] .
+<https://blackcatinformatics.ca/gmeow/NarrationUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrationSubject> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeFrameLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrativeFrameLinkRelation> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativeFrameRelation> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeFrameLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSource> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeFrameLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTarget> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; logic:hasValue <https://blackcatinformatics.ca/gmeow/frameKindNarrative> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:hasValue <https://blackcatinformatics.ca/gmeow/frameRealmNarrative> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:hasValue <https://blackcatinformatics.ca/gmeow/frameRealmNarrative> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ArcSample> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/samplePosition" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ArcSample> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/sampleState" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ArcSample> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/sampleSubject" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -1086,15 +1086,15 @@ gmeow:NarrativeTimeFrameAxisConstraint
 # gmeow:MythShape — a Myth carries at most one gmeow:recurringRisk boolean (the path is not globally
 # owl:FunctionalProperty; the sh:maxCount 1 rides a class-scoped max-qualified antecedent, onDataRange
 # xsd:boolean degrading to the plain sh:maxCount 1 the oracle compares).
-gmeow:Myth rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:recurringRisk ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] .
+gmeow:Myth logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:recurringRisk ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
 
 # gmeow:MotifShape — a Motif must carry at least one rdfs:label (identity-bearing means nameable).
 # rdfs:label is literal-valued, so the existence axiom ranges over rdfs:Literal (owl:allValuesFrom
 # owl:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject the literal label); the closure
 # entry projects the sh:minCount 1. The at-most-one-per-language-tag facet rides the UniqueLang sugar.
-gmeow:Motif rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:allValuesFrom rdfs:Literal ] .
+gmeow:Motif logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:allValuesFrom rdfs:Literal ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Motif ; logic:closureKey "http://www.w3.org/2000/01/rdf-schema#label" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:MotifLabelUniqueLangConstraint
@@ -1125,8 +1125,8 @@ gmeow:NarrativePositionLocatorConstraint
 # individuals (discourse time or story time): a closed value set (owl:oneOf), projected declaratively
 # to sh:in. The axis PRESENCE (sh:minCount 1) rides gmeow:NarrativeTimeFrameAxisConstraint; the
 # owl:FunctionalProperty contract supplies the sh:maxCount 1.
-gmeow:NarrativeTimeFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:narrativeTimeAxis ; owl:allValuesFrom [ owl:oneOf ( gmeow:axisDiscourseTime gmeow:axisStoryTime ) ] ] .
+gmeow:NarrativeTimeFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:narrativeTimeAxis ; logic:allValuesFrom [ logic:oneOf ( gmeow:axisDiscourseTime gmeow:axisStoryTime ) ] ] .
 
 # gmeow:CharacterArcShape — a CharacterArc reads exactly one gmeow:arcSubject and one gmeow:arcType.
 # The at-least-one existence obligation is carried procedurally (mirroring gmeow:ArcSample's locator

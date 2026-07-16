@@ -894,16 +894,16 @@ gmeow:transcript
         gmeow:boxTBox .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/ContentSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentIndex> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/ContentSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentOf> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ContentSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegmentType> ] .
+<https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentIndex> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentOf> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegmentType> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContentSegment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/segmentOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # A MediaObject carries at most one colourspace per graph/source. The property is
 # DELIBERATELY not owl:FunctionalProperty (a global functional claim would drive
 # incorrect owl:sameAs merges across standpoints); the max-qualified idiom
-# (owl:onClass owl:Thing) is the in-fragment class-scoped form the native reasoner
+# (logic:onClass owl:Thing) is the in-fragment class-scoped form the native reasoner
 # decides, degrading to the unqualified sh:maxCount 1 the retired hand-authored
 # shape enforced.
-gmeow:MediaObject rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:colourspace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:MediaObject logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:colourspace ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .

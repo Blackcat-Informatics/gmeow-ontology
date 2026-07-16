@@ -873,9 +873,9 @@ logic:comRubAtom a logic:Formula ; logic:relation gmeow:assessmentRubric ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m4" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Measurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
-<https://blackcatinformatics.ca/gmeow/MonetaryAmount> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/monetaryValue> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Observation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observedAt> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#dateTime> ] .
+<https://blackcatinformatics.ca/gmeow/Measurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/MonetaryAmount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/monetaryValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Observation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedAt> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#dateTime> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Measurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationMethod" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/monetaryValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
@@ -884,21 +884,21 @@ logic:comRubAtom a logic:Formula ; logic:relation gmeow:assessmentRubric ;
 # gmeow:UnitBearingQuantity requiring math:quantityValue), so no alias axioms are authored here.
 
 # gmeow:ObservationTemporalShape — an Observation records at most one observation time.
-gmeow:Observation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observedAt ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:dateTime ] .
+gmeow:Observation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ] .
 
 # gmeow:MonetaryAmountHasValueShape — every MonetaryAmount carries exactly one value.
-gmeow:MonetaryAmount rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:monetaryValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
+gmeow:MonetaryAmount logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:monetaryValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # gmeow:CoreObservationMethodShape multi-target restorations: gmeow:SensoryObservation and
 # gmeow:StandpointClaim already carry the max-qualified exactly-one method antecedent (here and
 # in the epistemics slice); restore the sh:minCount + value-class the retired shape enforced on
 # each concrete method-bearing observation kind (gmeow:Measurement already carries both above).
-gmeow:SensoryObservation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:allValuesFrom gmeow:ObservationMethod ] .
-gmeow:StandpointClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:allValuesFrom gmeow:ObservationMethod ] .
+gmeow:SensoryObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
+gmeow:StandpointClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:SensoryObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:StandpointClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -906,9 +906,9 @@ gmeow:StandpointClaim rdfs:subClassOf
 # shape carried on gmeow:observationMethod (the max-qualified onClass gmeow:ObservationMethod
 # antecedents project a qualified count; owl:onClass owl:Thing degrades to the plain sh:maxCount 1
 # the oracle compares). One per concrete method-bearing observation kind the shape targeted.
-gmeow:Measurement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:SensoryObservation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:StandpointClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:Measurement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:SensoryObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:StandpointClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .

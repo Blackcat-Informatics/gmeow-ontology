@@ -492,16 +492,16 @@ logic:mictIsHazard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/2
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Hazard ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Cascade> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/cascadeFirstLink> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CausalLink> ] .
-<https://blackcatinformatics.ca/gmeow/Cascade> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/cascadeSeverity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/CausalLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/causalModality> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/CausalLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/linkAntecedent> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
-<https://blackcatinformatics.ca/gmeow/CausalLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/linkConsequent> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
-<https://blackcatinformatics.ca/gmeow/CausalLink> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/linkStrength> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Hazard> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hazardBearer> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Hazard> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/manifestedAsType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
-<https://blackcatinformatics.ca/gmeow/Mitigation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Mitigation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Cascade> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/cascadeFirstLink> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/CausalLink> ] .
+<https://blackcatinformatics.ca/gmeow/Cascade> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/cascadeSeverity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/causalModality> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkAntecedent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
+<https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkConsequent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
+<https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkStrength> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Hazard> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hazardBearer> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Hazard> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/manifestedAsType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
+<https://blackcatinformatics.ca/gmeow/Mitigation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Mitigation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Cascade> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/cascadeFirstLink" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Cascade> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/cascadeSeverity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CausalLink> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/causalModality" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -517,14 +517,14 @@ logic:mictIsHazard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/2
 # one decimal link strength, and exactly one causal modality. gmeow:causalModality is
 # owl:FunctionalProperty, but the functional maximum rides a gmeow:causalModality-keyed
 # subjects-of shape, not the CausalLink node shape — so the exactly-one obligation the shape
-# authored declaratively is restored here as an ordinary owl:maxQualifiedCardinality (min1 comes
+# authored declaratively is restored here as an ordinary logic:maxQualifiedCardinality (min1 comes
 # from the migrated existence closure). gmeow:linkMechanism's per-language-tag uniqueness is
 # grounded declaratively by gmeow:CausalLinkMechanismUniqueLangConstraint below.
-gmeow:CausalLink rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:linkAntecedent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:linkConsequent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:causalModality ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:linkStrength ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
+gmeow:CausalLink logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:linkAntecedent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:linkConsequent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:causalModality ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:linkStrength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # gmeow:CausalLinkShape — gmeow:linkMechanism carries at most one value per language tag (the
 # localizable-prose per-language-tag uniqueness convention). A declarative logic: sugar record grounds the sh:uniqueLang
