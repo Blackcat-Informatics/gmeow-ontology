@@ -1,0 +1,281 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix pato: <http://purl.obolibrary.org/obo/PATO_> .
+@prefix yamato: <http://www.hozo.jp/owl/YAMATO20210808.miz.owl#> .
+@prefix opencyc: <http://sw.opencyc.org/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# These are commitment-shifting bridge views, not imports and not equivalences.
+# The source terms remain canonical; the external ontologies expose independent
+# foundational commitments useful for validation and exchange (Principles 5, 17).
+
+gmeow:mapsetLogicDul a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-dul" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Commitment-shifting bridge views from the logic foundation onto DOLCE+DnS Ultralite. DUL axioms are linked by reference and are never imported as GMEOW's semantic authority." .
+
+gmeow:mapsetLogicIao a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-iao.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-iao" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge view from the kernel information-object sort onto IAO's information content entity." .
+
+gmeow:mapsetLogicPato a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-pato.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-pato" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge view from the logic quality category onto PATO's quality root." .
+
+gmeow:mapsetLogicYamato a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-yamato-20210808" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Version-pinned bridge views onto the YAMATO 2021-08-08 OWL export. Its process/event, role, material-quantity, and quality-value commitments remain distinct, so no identity-strength axiom is emitted." .
+
+gmeow:mapsetLogicOpenCyc a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-opencyc-20120510" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge views onto permanent OpenCyc identifiers from the 2012-05-10 OWL export. OpenCyc's collection and microtheory commitments remain external and validation-only." .
+
+# DUL -------------------------------------------------------------------------
+
+gmeow:eqLogicDulIndividual a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Individual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dul:Entity ;
+    logic:sourceEndpoint logic:Individual ; logic:targetEndpoint dul:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    gmeow:comment "Both are top-level entity categories, but their partitions and identity commitments differ." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicDulEndurant a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Endurant ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dul:Object ;
+    logic:sourceEndpoint logic:Endurant ; logic:targetEndpoint dul:Object ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    gmeow:comment "DUL Object is the closest endurant-facing category, without collapsing the two foundations." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicDulEvent a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dul:Event ;
+    logic:sourceEndpoint logic:Event ; logic:targetEndpoint dul:Event ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicDulQuality a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dul:Quality ;
+    logic:sourceEndpoint logic:Quality ; logic:targetEndpoint dul:Quality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicDulSituation a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Situation ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dul:Situation ;
+    logic:sourceEndpoint logic:Situation ; logic:targetEndpoint dul:Situation ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicDulInformationObject a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject gmeow:InformationObject ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dul:InformationObject ;
+    logic:sourceEndpoint gmeow:InformationObject ; logic:targetEndpoint dul:InformationObject ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-dul.sssom.tsv" ;
+    gmeow:comment "The kernel sort is grounded here because external foundation ownership belongs to the logic grounding slice." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+# OBO foundation-adjacent roots ---------------------------------------------
+
+gmeow:eqLogicIaoInformationObject a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject gmeow:InformationObject ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject iao:0000030 ;
+    logic:sourceEndpoint gmeow:InformationObject ; logic:targetEndpoint iao:0000030 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-iao.sssom.tsv" ;
+    gmeow:comment "IAO information content entity is a close bridge, not an identity assertion over the kernel information-object sort." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicPatoQuality a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject pato:0000001 ;
+    logic:sourceEndpoint logic:Quality ; logic:targetEndpoint pato:0000001 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-pato.sssom.tsv" ;
+    gmeow:comment "PATO's quality root specializes a biomedical quality commitment; it is a validation bridge onto logic:Quality." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+# YAMATO 2021-08-08 ---------------------------------------------------------
+
+gmeow:eqLogicYamatoIndividual a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Individual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:particular ;
+    logic:sourceEndpoint logic:Individual ; logic:targetEndpoint yamato:particular ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoEndurant a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Endurant ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:independent_entity ;
+    logic:sourceEndpoint logic:Endurant ; logic:targetEndpoint yamato:independent_entity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "YAMATO independent_entity is the nearest endurant-facing bridge but carries a role-participation commitment absent from the source category." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoObject a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Object ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:object ;
+    logic:sourceEndpoint logic:Object ; logic:targetEndpoint yamato:object ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoEvent a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:event ;
+    logic:sourceEndpoint logic:Event ; logic:targetEndpoint yamato:event ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "YAMATO distinguishes event from stative process; the bridge preserves that distinction rather than collapsing both to one identity." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoProcess a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Process ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:process ;
+    logic:sourceEndpoint logic:Process ; logic:targetEndpoint yamato:process ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "YAMATO process is stative and therefore a commitment-shifting view, not an equivalent class." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoQuality a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quality ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:quality ;
+    logic:sourceEndpoint logic:Quality ; logic:targetEndpoint yamato:quality ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoQuantity a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Quantity ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:amount_of_matter ;
+    logic:sourceEndpoint logic:Quantity ; logic:targetEndpoint yamato:amount_of_matter ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "YAMATO amount_of_matter is the material-portion category matching logic:Quantity; it is not YAMATO's numerical quantity or measurement-value hierarchy." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoQualityValue a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:QualityValue ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:quality_value ;
+    logic:sourceEndpoint logic:QualityValue ; logic:targetEndpoint yamato:quality_value ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "Both categories locate a quality in a value space; YAMATO additionally commits quality_value to a generically-dependent context with exactly one value dimension and bearer." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicYamatoRole a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject yamato:role ;
+    logic:sourceEndpoint logic:Role ; logic:targetEndpoint yamato:role ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-logic-yamato.sssom.tsv" ;
+    gmeow:comment "YAMATO separates role concepts and holders through its Hozo role model; this row names only the nearest role-class bridge." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+# OpenCyc 2012-05-10 permanent identifiers ----------------------------------
+
+gmeow:eqLogicOpenCycIndividual a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Individual ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject opencyc:Mx4rvVjaApwpEbGdrcN5Y29ycA ;
+    logic:sourceEndpoint logic:Individual ; logic:targetEndpoint opencyc:Mx4rvVjaApwpEbGdrcN5Y29ycA ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:objectLabel "OpenCyc Individual" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicOpenCycCollection a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Collection ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject opencyc:Mx4rvViAzJwpEbGdrcN5Y29ycA ;
+    logic:sourceEndpoint logic:Collection ; logic:targetEndpoint opencyc:Mx4rvViAzJwpEbGdrcN5Y29ycA ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:objectLabel "OpenCyc Collection" ;
+    gmeow:comment "OpenCyc Collection is a type-of-thing/metamodel category, so the shared collection reading does not license equivalence." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicOpenCycEvent a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Event ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject opencyc:Mx4rvViADZwpEbGdrcN5Y29ycA ;
+    logic:sourceEndpoint logic:Event ; logic:targetEndpoint opencyc:Mx4rvViADZwpEbGdrcN5Y29ycA ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:objectLabel "OpenCyc Event" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicOpenCycRole a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Role ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject opencyc:Mx4rvViAA5wpEbGdrcN5Y29ycA ;
+    logic:sourceEndpoint logic:Role ; logic:targetEndpoint opencyc:Mx4rvViAA5wpEbGdrcN5Y29ycA ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:objectLabel "OpenCyc Role" ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicOpenCycInformation a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject gmeow:InformationObject ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject opencyc:Mx4rvkNufpwpEbGdrcN5Y29ycA ;
+    logic:sourceEndpoint gmeow:InformationObject ; logic:targetEndpoint opencyc:Mx4rvkNufpwpEbGdrcN5Y29ycA ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:objectLabel "OpenCyc InformationBearingThing" ;
+    gmeow:comment "Information-bearing thing emphasizes the carrier; the kernel term individuates an information object, so only relatedMatch is warranted." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqLogicOpenCycMicrotheory a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject logic:Module ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject opencyc:Mx4rvViA1ZwpEbGdrcN5Y29ycA ;
+    logic:sourceEndpoint logic:Module ; logic:targetEndpoint opencyc:Mx4rvViA1ZwpEbGdrcN5Y29ycA ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-logic-opencyc.sssom.tsv" ;
+    gmeow:objectLabel "OpenCyc Microtheory" ;
+    gmeow:comment "A microtheory is prior art for context-indexed modules, but its inheritance and truth-context commitments are not the logic:Module semantics." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .

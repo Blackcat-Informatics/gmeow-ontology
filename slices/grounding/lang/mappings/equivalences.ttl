@@ -3,6 +3,7 @@
 
 @prefix gmeow:     <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:      <https://blackcatinformatics.ca/lang/> .
+@prefix logic:     <https://blackcatinformatics.ca/logic/> .
 @prefix skos:      <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv:    <https://w3id.org/semapv/vocab/> .
 @prefix wd:        <http://www.wikidata.org/entity/> .
@@ -38,141 +39,180 @@ gmeow:mapsetBcp47 a gmeow:MappingSet ;
 
 # --- English (a sign system) → Wikidata / Glottolog / ISO 639 / BCP-47 ------ #
 
-gmeow:eqLangEnglishWikidata a gmeow:TermEquivalence ;
+gmeow:eqLangEnglishWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:english ;
     gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject wd:Q1860 ;
+    logic:sourceEndpoint lang:english ; logic:targetEndpoint wd:Q1860 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
     gmeow:objectLabel "English" ;
     gmeow:comment "lang:english is the English natural language; wd:Q1860 (English) is the same language. Identity, so skos:exactMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
 
-gmeow:eqLangEnglishGlottolog a gmeow:TermEquivalence ;
+gmeow:eqLangEnglishGlottolog a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:english ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject glottolog:stan1293 ;
+    logic:sourceEndpoint lang:english ; logic:targetEndpoint glottolog:stan1293 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "Standard English" ;
     gmeow:comment "glottolog:stan1293 (Standard English) is Glottolog's languoid for the standard variety; lang:english is the language more broadly, a close but not identical match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-glottolog.sssom.tsv" .
+    gmeow:sssomFile "gmeow-glottolog.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangEnglishIso639 a gmeow:TermEquivalence ;
+gmeow:eqLangEnglishIso639 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:english ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject lexvo:iso639-3/eng ;
+    logic:sourceEndpoint lang:english ; logic:targetEndpoint lexvo:iso639-3/eng ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "eng (ISO 639-3)" ;
     gmeow:comment "lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng (ISO 639-1 en) — the ISO 639 language-code identity for English. A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
-    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" .
+    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangScriptWikidata a gmeow:TermEquivalence ;
+gmeow:eqLangScriptWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:Script ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q8192 ;
+    logic:sourceEndpoint lang:Script ; logic:targetEndpoint wd:Q8192 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "writing system" ;
     gmeow:comment "lang:Script is a first-class character repertoire (a script); wd:Q8192 (writing system) is Wikidata's class for a system of visual signs for writing. GMEOW distinguishes the bare repertoire (lang:Script) from the orthographic convention (lang:Orthography), so the match to the broader Wikidata class is close, not exact." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangOrthographyWikidata a gmeow:TermEquivalence ;
+gmeow:eqLangOrthographyWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:Orthography ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q43091 ;
+    logic:sourceEndpoint lang:Orthography ; logic:targetEndpoint wd:Q43091 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "orthography" ;
     gmeow:comment "lang:Orthography is the sign-system→script writing convention (which script a sign system is written in, through lang:orthographyFor + lang:usesScript); wd:Q43091 (orthography) is Wikidata's class for the conventions of writing a language. A close match to the convention concept, distinct from the bare repertoire lang:Script." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangEnglishBcp47 a gmeow:TermEquivalence ;
+gmeow:eqLangEnglishBcp47 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:english ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject <https://www.iana.org/assignments/language-subtag-registry> ;
+    logic:sourceEndpoint lang:english ; logic:targetEndpoint <https://www.iana.org/assignments/language-subtag-registry> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "en (BCP-47 primary language subtag)" ;
     gmeow:comment "The IANA Language Subtag Registry defines en as the BCP-47 primary language subtag for English (there is no per-subtag resolvable IRI; the registry is the authoritative resource). A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
-    gmeow:sssomFile "gmeow-bcp47.sssom.tsv" .
+    gmeow:sssomFile "gmeow-bcp47.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- Latin script → Wikidata / Lexvo (ISO 15924) ---------------------------- #
 
-gmeow:eqLangLatinScriptWikidata a gmeow:TermEquivalence ;
+gmeow:eqLangLatinScriptWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:latinScript ;
     gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject wd:Q8229 ;
+    logic:sourceEndpoint lang:latinScript ; logic:targetEndpoint wd:Q8229 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
     gmeow:objectLabel "Latin script" ;
     gmeow:comment "lang:latinScript is the Latin script; wd:Q8229 (Latin script) is the same character repertoire. Identity, so skos:exactMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
 
-gmeow:eqLangLatinScriptIso15924 a gmeow:TermEquivalence ;
+gmeow:eqLangLatinScriptIso15924 a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:latinScript ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject lexvo:script/Latn ;
+    logic:sourceEndpoint lang:latinScript ; logic:targetEndpoint lexvo:script/Latn ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "Latn (ISO 15924)" ;
     gmeow:comment "lexvo:script/Latn is the Lexvo resource for the ISO 15924 script code Latn — the code-scoped identifier for the Latin script. A related resource rather than identity, so skos:relatedMatch." ;
-    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" .
+    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- Parts of speech → Wikidata (identity) ---------------------------------- #
 
-gmeow:eqLangNoun a gmeow:TermEquivalence ;
+gmeow:eqLangNoun a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:noun ;
     gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject wd:Q1084 ;
+    logic:sourceEndpoint lang:noun ; logic:targetEndpoint wd:Q1084 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
     gmeow:objectLabel "noun" ;
     gmeow:comment "lang:noun is the noun part of speech; wd:Q1084 (noun) is the same category. Identity, so skos:exactMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
 
-gmeow:eqLangVerb a gmeow:TermEquivalence ;
+gmeow:eqLangVerb a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:verb ;
     gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject wd:Q24905 ;
+    logic:sourceEndpoint lang:verb ; logic:targetEndpoint wd:Q24905 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
     gmeow:objectLabel "verb" ;
     gmeow:comment "lang:verb is the verb part of speech; wd:Q24905 (verb) is the same category. Identity, so skos:exactMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
 
 # --- Morphological feature keys → Wikidata (concept, close match) ------------ #
 
-gmeow:eqLangFeatNumber a gmeow:TermEquivalence ;
+gmeow:eqLangFeatNumber a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:featNumber ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q104083 ;
+    logic:sourceEndpoint lang:featNumber ; logic:targetEndpoint wd:Q104083 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "grammatical number" ;
     gmeow:comment "lang:featNumber is the Number feature key; wd:Q104083 (grammatical number) is the linguistic category. A concept-scoped match to the feature-inventory key, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangFeatCase a gmeow:TermEquivalence ;
+gmeow:eqLangFeatCase a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:featCase ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q128234 ;
+    logic:sourceEndpoint lang:featCase ; logic:targetEndpoint wd:Q128234 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "grammatical case" ;
     gmeow:comment "lang:featCase is the Case feature key; wd:Q128234 (case) is the linguistic category — categorization of nouns and modifiers by function. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangFeatTense a gmeow:TermEquivalence ;
+gmeow:eqLangFeatTense a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:featTense ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q177691 ;
+    logic:sourceEndpoint lang:featTense ; logic:targetEndpoint wd:Q177691 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "tense" ;
     gmeow:comment "lang:featTense is the Tense feature key; wd:Q177691 (tense) is the linguistic category locating a situation in time. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # =========================================================================== #
 # Meaning-stratum alignments — the Frege triangle, denotation, interpretation.
@@ -185,135 +225,171 @@ gmeow:eqLangFeatTense a gmeow:TermEquivalence ;
 
 # --- lang:Sense → Wikidata word sense + OntoLex LexicalSense ---------------- #
 
-gmeow:eqLangSenseWikidata a gmeow:TermEquivalence ;
+gmeow:eqLangSenseWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:Sense ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q1570700 ;
+    logic:sourceEndpoint lang:Sense ; logic:targetEndpoint wd:Q1570700 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "word sense" ;
     gmeow:comment "lang:Sense is a lexicalized way of meaning; wd:Q1570700 (word sense — one of the meanings of a word) is the same notion at the lexical level. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangSenseOntolex a gmeow:TermEquivalence ;
+gmeow:eqLangSenseOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:Sense ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject ontolex:LexicalSense ;
+    logic:sourceEndpoint lang:Sense ; logic:targetEndpoint ontolex:LexicalSense ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "ontolex:LexicalSense" ;
     gmeow:comment "lang:Sense is what an OntoLex ontolex:LexicalSense approximates — a lexical unit's meaning as a reified sense. GMEOW senses attach through lang:senseOf and bottom out in logic:; OntoLex is the lexicon-interchange projection. closeMatch, not identity." ;
-    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" .
+    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangLexicalConceptOntolex a gmeow:TermEquivalence ;
+gmeow:eqLangLexicalConceptOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:LexicalConcept ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject ontolex:LexicalConcept ;
+    logic:sourceEndpoint lang:LexicalConcept ; logic:targetEndpoint ontolex:LexicalConcept ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "ontolex:LexicalConcept" ;
     gmeow:comment "lang:LexicalConcept is the synset a set of synonymous senses evoke — the OntoLex ontolex:LexicalConcept peer. closeMatch, not identity." ;
-    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" .
+    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangEvokesOntolex a gmeow:TermEquivalence ;
+gmeow:eqLangEvokesOntolex a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:evokes ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject ontolex:evokes ;
+    logic:sourceEndpoint lang:evokes ; logic:targetEndpoint ontolex:evokes ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "ontolex:evokes" ;
     gmeow:comment "lang:evokes relates a sense to the lexical concept it evokes — the OntoLex ontolex:evokes peer. closeMatch." ;
-    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" .
+    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- lang:Denotation → Wikidata denotation ---------------------------------- #
 
-gmeow:eqLangDenotation a gmeow:TermEquivalence ;
+gmeow:eqLangDenotation a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:Denotation ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q1189753 ;
+    logic:sourceEndpoint lang:Denotation ; logic:targetEndpoint wd:Q1189753 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "denotation" ;
     gmeow:comment "lang:Denotation is the reified record of what a form means; wd:Q1189753 (denotation — the literal meaning of a sign) is the semiotic notion GMEOW reifies. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- lang:CommunicativeAct / Force → Wikidata speech act / illocution ------- #
 
-gmeow:eqLangCommunicativeAct a gmeow:TermEquivalence ;
+gmeow:eqLangCommunicativeAct a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:CommunicativeAct ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q25481968 ;
+    logic:sourceEndpoint lang:CommunicativeAct ; logic:targetEndpoint wd:Q25481968 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "speech act" ;
     gmeow:comment "lang:CommunicativeAct records what a use of a form does; wd:Q25481968 (speech act — an utterance that serves a performative function) is the same notion. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangCommunicativeForce a gmeow:TermEquivalence ;
+gmeow:eqLangCommunicativeForce a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:CommunicativeForce ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q1599204 ;
+    logic:sourceEndpoint lang:CommunicativeForce ; logic:targetEndpoint wd:Q1599204 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "illocutionary act" ;
     gmeow:comment "lang:CommunicativeForce is the illocutionary force of a communicative act; wd:Q1599204 (illocutionary act, coined by J. L. Austin) is the same category. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- lang:IndexicalAnchor → Wikidata deixis (related phenomenon) ------------ #
 
-gmeow:eqLangIndexicalAnchor a gmeow:TermEquivalence ;
+gmeow:eqLangIndexicalAnchor a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:IndexicalAnchor ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wd:Q340015 ;
+    logic:sourceEndpoint lang:IndexicalAnchor ; logic:targetEndpoint wd:Q340015 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "deixis" ;
     gmeow:comment "lang:IndexicalAnchor is the deictic centre an interpretation act resolves indexicals against; wd:Q340015 (deixis) is the phenomenon it anchors. A related notion rather than identity, so skos:relatedMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- lang:CompositionRule → compositionality + Montague grammar ------------- #
 
-gmeow:eqLangCompositionRule a gmeow:TermEquivalence ;
+gmeow:eqLangCompositionRule a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:CompositionRule ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q936559 ;
+    logic:sourceEndpoint lang:CompositionRule ; logic:targetEndpoint wd:Q936559 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "principle of compositionality" ;
     gmeow:comment "lang:CompositionRule is a rule of the compositional program building a composed denotation from its constituents; wd:Q936559 (principle of compositionality) is the principle it realizes. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangCompositionRuleMontague a gmeow:TermEquivalence ;
+gmeow:eqLangCompositionRuleMontague a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:CompositionRule ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wd:Q3272938 ;
+    logic:sourceEndpoint lang:CompositionRule ; logic:targetEndpoint wd:Q3272938 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "Montague grammar" ;
     gmeow:comment "The Montagovian program (wd:Q3272938, Montague grammar) is the compositional-semantics framework lang:CompositionRule draws its fragment from. A related framework rather than identity, so skos:relatedMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # --- lang:presupposes / lang:corefersWith → Wikidata concepts --------------- #
 
-gmeow:eqLangPresupposes a gmeow:TermEquivalence ;
+gmeow:eqLangPresupposes a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:presupposes ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wd:Q1076131 ;
+    logic:sourceEndpoint lang:presupposes ; logic:targetEndpoint wd:Q1076131 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "presupposition" ;
     gmeow:comment "lang:presupposes relates a form to the content it presupposes; wd:Q1076131 (presupposition — assumed context surrounding an utterance) is the phenomenon. A related notion (a property vs a concept), so skos:relatedMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLangCorefersWith a gmeow:TermEquivalence ;
+gmeow:eqLangCorefersWith a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject lang:corefersWith ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q63087 ;
+    logic:sourceEndpoint lang:corefersWith ; logic:targetEndpoint wd:Q63087 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "coreference" ;
     gmeow:comment "lang:corefersWith links two referring expressions naming one discourse referent; wd:Q63087 (coreference — when two or more expressions refer to the same thing) is the same relation. A concept-scoped match, so skos:closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # =========================================================================== #
 # Wikidata lexemes — the authority surface for the worked example lexemes and
@@ -326,65 +402,83 @@ gmeow:eqLangCorefersWith a gmeow:TermEquivalence ;
 # lexical category match, and the sense gloss matches the sense claimed.
 # =========================================================================== #
 
-gmeow:eqLexCatWikidata a gmeow:TermEquivalence ;
+gmeow:eqLexCatWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:lexCat ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:L7 ;
+    logic:sourceEndpoint ex:lexCat ; logic:targetEndpoint wd:L7 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "cat (English noun lexeme)" ;
     gmeow:comment "ex:lexCat is the English noun lexeme 'cat'; wd:L7 is the Wikidata lexeme cat (English, noun, lexical category Q1084). The example is a minimal illustrative lexeme, so closeMatch, not identity." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLexChaseWikidata a gmeow:TermEquivalence ;
+gmeow:eqLexChaseWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:lexChase ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:L14462 ;
+    logic:sourceEndpoint ex:lexChase ; logic:targetEndpoint wd:L14462 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "chase (English verb lexeme)" ;
     gmeow:comment "ex:lexChase is the English verb lexeme 'chase'; wd:L14462 is the Wikidata lexeme chase (English, verb, lexical category Q24905). A minimal illustrative lexeme, so closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqLexMouseWikidata a gmeow:TermEquivalence ;
+gmeow:eqLexMouseWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:lexMouse ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:L1119 ;
+    logic:sourceEndpoint ex:lexMouse ; logic:targetEndpoint wd:L1119 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "mouse (English noun lexeme)" ;
     gmeow:comment "ex:lexMouse is the English noun lexeme 'mouse'; wd:L1119 is the Wikidata lexeme mouse (English, noun, lexical category Q1084). A minimal illustrative lexeme, so closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqSenseCatWikidata a gmeow:TermEquivalence ;
+gmeow:eqSenseCatWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:senseCat ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:L7-S1 ;
+    logic:sourceEndpoint ex:senseCat ; logic:targetEndpoint wd:L7-S1 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "cat sense: domesticated feline kept as a house pet" ;
     gmeow:comment "ex:senseCat is the animal sense of the lexeme 'cat'; wd:L7-S1 is the Wikidata sense 'domesticated subspecies of feline animal, commonly kept as a house pet'. A GMEOW sense carries contexts a Wikidata sense flattens, so closeMatch." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqSenseChaseWikidata a gmeow:TermEquivalence ;
+gmeow:eqSenseChaseWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:senseChase ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:L14462-S2 ;
+    logic:sourceEndpoint ex:senseChase ; logic:targetEndpoint wd:L14462-S2 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "chase sense: follow, pursue" ;
     gmeow:comment "ex:senseChase is the pursuit sense of the lexeme 'chase'; wd:L14462-S2 is the Wikidata sense 'follow, pursue'. closeMatch, not identity." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqSenseMouseWikidata a gmeow:TermEquivalence ;
+gmeow:eqSenseMouseWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:senseMouse ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:L1119-S1 ;
+    logic:sourceEndpoint ex:senseMouse ; logic:targetEndpoint wd:L1119-S1 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "mouse sense: any small rodent of the genus Mus" ;
     gmeow:comment "ex:senseMouse is the rodent sense of the lexeme 'mouse'; wd:L1119-S1 is the Wikidata sense 'any small rodent of the genus Mus'. closeMatch, not identity." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
 # =========================================================================== #
 # WordNet / ILI — the sense-inventory alignment surface (NOT an emission target).
@@ -402,32 +496,41 @@ gmeow:mapsetWordnet a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "GMEOW lang:Sense → WordNet synset / interlingual-index (ILI) alignments, pivoted through a curl-validated Wikidata QID for the synset concept (synset offsets are version-unstable; the QID is the stable pivot). A synset is coarser than a GMEOW sense-with-contexts — closeMatch, never identity, and synset membership is never imported as sense identity." .
 
-gmeow:eqSenseCatWordnet a gmeow:TermEquivalence ;
+gmeow:eqSenseCatWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:senseCat ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q146 ;
+    logic:sourceEndpoint ex:senseCat ; logic:targetEndpoint wd:Q146 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "cat (small domesticated carnivorous mammal)" ;
     gmeow:comment "ex:senseCat aligns to the WordNet 'cat' (feline) synset, pivoted through wd:Q146 (cat — small domesticated carnivorous mammal). The synset is coarser than the GMEOW sense, so closeMatch." ;
-    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqSenseChaseWordnet a gmeow:TermEquivalence ;
+gmeow:eqSenseChaseWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:senseChase ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q101574237 ;
+    logic:sourceEndpoint ex:senseChase ; logic:targetEndpoint wd:Q101574237 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "chase (activity where one party tries to catch the other)" ;
     gmeow:comment "ex:senseChase aligns to the WordNet 'chase/pursuit' synset, pivoted through wd:Q101574237 (chase — activity where one party tries to catch the other). The synset is coarser than the GMEOW sense, so closeMatch." ;
-    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
 
-gmeow:eqSenseMouseWordnet a gmeow:TermEquivalence ;
+gmeow:eqSenseMouseWordnet a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject ex:senseMouse ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q39275 ;
+    logic:sourceEndpoint ex:senseMouse ; logic:targetEndpoint wd:Q39275 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "Mus (genus of mammals)" ;
     gmeow:comment "ex:senseMouse aligns to the WordNet 'mouse' (rodent) synset, pivoted through wd:Q39275 (Mus — genus of mammals), matching the sense gloss 'any small rodent of the genus Mus'. The synset is coarser than the GMEOW sense, so closeMatch." ;
-    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" .
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

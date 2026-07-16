@@ -8,8 +8,10 @@
 # observation's gmeow:vantage — the SensoryObservation is an Observation like any
 # other, just produced by an instrument on a gmeow:SensorPlatform at a location.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:greenhouse a gmeow:Place ;
     gmeow:name "Greenhouse Bay 3"@x-gmeow-english ;
@@ -30,6 +32,10 @@ ex:obs a gmeow:SensoryObservation ;
     gmeow:sensoryProperty      ex:humidity ;
     gmeow:sensoryResult        ex:quantity ;
     gmeow:vantage              ex:dht22 ;
+    gmeow:hasReferenceFrame    gmeow:referenceFrameSI ;
     gmeow:observationMethod    gmeow:methodInstrumentalReading .
 
-ex:quantity a gmeow:SensoryQuantity ; rdfs:label "65 %RH"@x-gmeow-english .
+ex:quantity a gmeow:SensoryQuantity ;
+    rdfs:label "relative humidity ratio 0.65"@x-gmeow-english ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.65"^^xsd:decimal .

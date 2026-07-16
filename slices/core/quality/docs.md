@@ -9,7 +9,7 @@
 Data quality is usually bolted on as a separate report format. GMEOW refuses the bolt-on:
 a quality assessment is a *reified observation about an entity*, and so it reuses the
 universal Observation stack wholesale — the assessed entity is the `observedFeature`, the
-quality result is the `observationResult` (typically a `ScalarQuantity`), and the
+quality result is the `observationResult` (typically a `math:Quantity`), and the
 assessment protocol is the `observationMethod`. The result therefore carries unit,
 reference frame, determinacy, and provenance in the same bundle as every other GMEOW
 measurement (Principle 11), and the quality layer stays thin: one SubKind, two
@@ -27,7 +27,7 @@ quality metric is solver-layer work (Principle 12).
 A reified assessment of the quality of an entity or dataset — a `gufo:SubKind` of
 `gmeow:Observation`, so everything the observations slice provides (vantage, method,
 result, frames) applies unchanged. The result is typically a scalar quantity (accuracy in
-metres, completeness as a percentage) or a categorical conformance statement. The
+metres, completeness as a normalized dimensionless ratio) or a categorical conformance statement. The
 EL-visible axiom guarantees every assessment assesses *at least one* entity; closed-world
 cardinality is SHACL's concern, never OWL's.
 

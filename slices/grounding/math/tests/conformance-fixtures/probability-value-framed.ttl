@@ -19,3 +19,4 @@ ex:framedProbability a math:ProbabilityValue , math:RationalValue ;
     gmeow:hasReferenceFrame ex:fairCoinFrame .
 
 ex:fairCoinFrame a gmeow:ReferenceFrame .
+<http://example.org/math/framedProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

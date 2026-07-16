@@ -1885,16 +1885,6 @@ fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
     }
 }
 
-/// The `gmeow:` vocabulary namespace root — the canonical GMEOW IRI stem. A
-/// `gmeow:Quantity` (the superclass of `math:ProbabilityValue`) carries its
-/// magnitude in `gmeow:quantityValue`, distinct from the `math:Quantity`-scoped
-/// `math:quantityValue`.
-const GMEOW_NS_ROOT: &str = "https://blackcatinformatics.ca/gmeow/";
-
-fn gmeow_iri(term: &str) -> String {
-    format!("{GMEOW_NS_ROOT}{term}")
-}
-
 /// Parse a plain decimal literal (optional leading `-`/`+`, an integer part, an
 /// optional `.frac`) into an EXACT [`Rational`]: the value is the digit string with
 /// the point removed over `10^(count of fractional digits)`. Scientific notation
@@ -2029,10 +2019,10 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
 
     // Gate 1 — math:ProbabilityOutOfBounds: a math:ProbabilityValue is ALWAYS in the
     // closed unit interval [0, 1]. Its magnitude is read exactly (a math:RationalValue
-    // numerator/denominator pair, else its gmeow:quantityValue decimal) and compared by
+    // numerator/denominator pair, else its math:quantityValue decimal) and compared by
     // exact-rational order; an unreadable magnitude is skipped, never coerced.
     for node in ds_subjects_of_type(ds, &math_iri("ProbabilityValue")) {
-        let Some(mag) = read_magnitude(ds, &node, &[gmeow_iri("quantityValue")]) else {
+        let Some(mag) = read_magnitude(ds, &node, &[math_iri("quantityValue")]) else {
             continue;
         };
         if mag < zero || mag > one {
@@ -2075,11 +2065,7 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
             && let Some(q) = ds_object_iris_sorted(ds, &p, &math_iri("parameterQuantity"))
                 .into_iter()
                 .next()
-            && let Some(mag) = read_magnitude(
-                ds,
-                &q,
-                &[gmeow_iri("quantityValue"), math_iri("quantityValue")],
-            )
+            && let Some(mag) = read_magnitude(ds, &q, &[math_iri("quantityValue")])
             && mag <= zero
         {
             report.push_error(
@@ -4002,8 +3988,8 @@ mod tests {
         // boundary — the gate is inclusive, so neither fires math:ProbabilityOutOfBounds.
         let ds = dataset_from(&format!(
             "{MATH_PROB_PREFIXES}\
-             ex:zero a math:ProbabilityValue ; gmeow:quantityValue \"0\" .\n\
-             ex:one a math:ProbabilityValue ; gmeow:quantityValue \"1.0\" .\n"
+             ex:zero a math:ProbabilityValue ; math:quantityValue \"0\" .\n\
+             ex:one a math:ProbabilityValue ; math:quantityValue \"1.0\" .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(

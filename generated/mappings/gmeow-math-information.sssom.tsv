@@ -1,0 +1,15 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/math-information
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Narrow bridges from math data and transformation constructs onto SIO and OBI information-science terms."
+# curie_map:
+#   math: https://blackcatinformatics.ca/math/
+#   obi: http://purl.obolibrary.org/obo/OBI_
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+math:DataTransformation	skos:relatedMatch	obi:0200000	semapv:ManualMappingCuration	0.7	OBI_0200000 is a completely executed planned process producing output data from input data; math:DataTransformation is a mathematical transformation specification and need not denote an executed process. The concepts are usefully related but not close enough for interchange, so this is a validation-only commitment-shifting bridge.
+math:DatasetMatrix	skos:relatedMatch	http://semanticscience.org/resource/SIO_000089	semapv:ManualMappingCuration	0.7	SIO dataset is a carrier category broader than the native rectangular matrix construct.

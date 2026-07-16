@@ -147,3 +147,4 @@ ex:pvalueObservation a gmeow:Observation ;
     gmeow:observationResult ex:tTestPValue ;
     gmeow:wasGeneratedBy ex:inferenceRun .
 ex:analystStandpoint a gmeow:Standpoint .
+<https://blackcatinformatics.ca/gmeow/examples/math/statistics/pValueMagnitude> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

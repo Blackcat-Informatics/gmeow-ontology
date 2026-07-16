@@ -9,11 +9,12 @@
 # (2) Dated gmeow:Observations attach to the enduring quality via gmeow:observationOf
 #     + gmeow:observedAt — a value-history series, not free-floating results.
 # (3) Each framed measured value carries gmeow:trueQuantity -> a frame-independent
-#     gmeow:Magnitude, plus gmeow:quantityValue + gmeow:unit + gmeow:hasReferenceFrame;
+#     gmeow:Magnitude, plus math:quantityValue + gmeow:unit + gmeow:hasReferenceFrame;
 #     the unit belongs to the measured value, never the magnitude (P11). A value with a
 #     unit but no frame would be the logic:MeasurementFrameMissing violation — every
 #     value here carries its frame. (Values are structural test data, not clinical.)
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/bp/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -75,20 +76,29 @@ ex:diaObs1 a gmeow:Measurement ;
 ex:sysMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
 ex:diaMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
 
-ex:sysVal1 a gmeow:Quantity ;
+ex:pressureDimension a math:DerivedDimension ;
+    math:baseDimensionExponent
+        [ a math:DimensionExponent ; math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ; math:exponentNumerator -1 ; math:exponentDenominator 1 ] ,
+        [ a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ] .
+
+ex:sysVal1 a math:Quantity ;
     gmeow:trueQuantity      ex:sysMagnitude ;
-    gmeow:quantityValue     "120"^^xsd:decimal ;
+    math:hasDimension       ex:pressureDimension ;
+    math:quantityValue     "120"^^xsd:decimal ;
     gmeow:unit              <http://qudt.org/vocab/unit/MilliM_HG> ;
     gmeow:hasReferenceFrame ex:clinicFrameDE .
 
-ex:sysVal2 a gmeow:Quantity ;
+ex:sysVal2 a math:Quantity ;
     gmeow:trueQuantity      ex:sysMagnitude ;
-    gmeow:quantityValue     "118"^^xsd:decimal ;
+    math:hasDimension       ex:pressureDimension ;
+    math:quantityValue     "118"^^xsd:decimal ;
     gmeow:unit              <http://qudt.org/vocab/unit/MilliM_HG> ;
     gmeow:hasReferenceFrame ex:clinicFrameDE .
 
-ex:diaVal1 a gmeow:Quantity ;
+ex:diaVal1 a math:Quantity ;
     gmeow:trueQuantity      ex:diaMagnitude ;
-    gmeow:quantityValue     "80"^^xsd:decimal ;
+    math:hasDimension       ex:pressureDimension ;
+    math:quantityValue     "80"^^xsd:decimal ;
     gmeow:unit              <http://qudt.org/vocab/unit/MilliM_HG> ;
     gmeow:hasReferenceFrame ex:clinicFrameDE .

@@ -111,6 +111,6 @@ class MessageParticipant(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    participantAddress: list[str] | None = Field(default=None, description="The normalized email address that appears in this participant occurrence.", alias="gmeow:participantAddress")
-    participantMessage: list[str] | None = Field(default=None, description="The message a participant occurrence belongs to.", alias="gmeow:participantMessage")
+    participantAddress: list[str] | None = Field(default=None, description="Within gmeow:MessageParticipant, values are node references constrained to gmeow:EmailAddress. The normalized email address that appears in this participant occurrence.", alias="gmeow:participantAddress")
+    participantMessage: list[str] | None = Field(default=None, description="Within gmeow:MessageParticipant, values are node references constrained to gmeow:EmailMessage. The message a participant occurrence belongs to.", alias="gmeow:participantMessage")
     participantRole: list[MessageParticipantRoleEnum] | None = Field(default=None, description="The header or envelope role of this address occurrence.", alias="gmeow:participantRole")

@@ -2108,6 +2108,96 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
     }
 }
 
+// ── slice brief ──────────────────────────────────────────────────────────────
+
+/// `gmeow slice brief` — assemble and render a `gmeow:AuthoringPacket` for a slice
+/// directory, computed over the slice's OWN sources (module.ttl, mappings/, i18n/).
+///
+/// The per-term exemplar tiers come from the SINGLE canonical library tiering
+/// [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
+/// pipeline stage uses, gated by SHACL per-term conformance against the SAME repo
+/// shape union — so an in-repo slice's live CLI brief and its committed
+/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The repo
+/// root (holding `generated/shapes/`) is resolved by walking up from the slice dir. A
+/// `--batch` out of range returns a typed hard failure through [`fail`] (a non-zero
+/// exit), never a panic or an empty packet.
+pub fn slice_brief(
+    reporter: &dyn Reporter,
+    dir: &Path,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    // Resolve the repo root and load the SHACL shape union the pipeline gates against,
+    // so the CLI's exemplar tiering matches the committed projection in a checkout.
+    let repo_root = match gmeow_slice_brief::resolve_repo_root(dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.repo-root",
+                format!("cannot resolve repo root for {}: {e}", dir.display()),
+            );
+        }
+    };
+    let shapes = match gmeow_slice_brief::load_shape_union(&repo_root) {
+        Ok(s) => s,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.shapes",
+                format!(
+                    "cannot load SHACL shape union from {}: {e}",
+                    repo_root.display()
+                ),
+            );
+        }
+    };
+    let tiers = match gmeow_slice_brief::exemplar_tiers(dir, &shapes) {
+        Ok(t) => t,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.tiers",
+                format!("cannot tier {}: {e}", dir.display()),
+            );
+        }
+    };
+    let packet = match gmeow_slice_brief::assemble_packet(&gmeow_slice_brief::BriefInputs {
+        slice_dir: dir,
+        axis,
+        batch,
+        exemplar_tiers: &tiers,
+        exemplar_target: 3,
+    }) {
+        Ok(p) => p,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.assemble",
+                format!(
+                    "cannot assemble authoring packet for {}: {e}",
+                    dir.display()
+                ),
+            );
+        }
+    };
+    let rendered = match format {
+        "human" => packet.render_text(),
+        "json" => packet.to_json(),
+        "turtle" => packet.to_turtle(),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or turtle"),
+            );
+        }
+    };
+    print!("{rendered}");
+    0
+}
+
 /// `gmeow slice projection-ceilings` — surface the committed projection-vocabulary
 /// ratchet (the guarded registry + the per-(slice, vocabulary) ceilings) straight from
 /// the embedded `gmeow.gts` bundle, dogfooding Principle 17 from the shippable

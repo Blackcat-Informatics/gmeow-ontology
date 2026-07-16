@@ -230,10 +230,11 @@ A **`gmeow:ProximityMeasurement`** is a `gmeow:Measurement` subclass that record
 
 - `gmeow:observedFeature` — the entity measured *from* (inherited from Observation).
 - `gmeow:proximityTo` — the target entity.
-- `gmeow:observationResult` → `gmeow:ScalarQuantity` — the numeric value, unit (QUDT), and reference frame.
+- `gmeow:observationResult` → `math:Quantity` — the numeric value, unit (QUDT), and reference frame.
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://example.org/loc/> .
 
@@ -244,15 +245,16 @@ ex:commute a gmeow:ProximityMeasurement ;
     gmeow:observedFeature ex:office ;
     gmeow:proximityTo ex:home ;
     gmeow:observationResult [
-        a gmeow:ScalarQuantity ;
-        gmeow:quantityValue "12.4"^^xsd:decimal ;
+        a math:Quantity ;
+        math:hasDimension math:lengthDimension ;
+        math:quantityValue "12.4"^^xsd:decimal ;
         gmeow:unit <http://qudt.org/vocab/unit/KM> ;
         gmeow:hasReferenceFrame gmeow:referenceFrameWGS84
     ] ;
     gmeow:vantage ex:commuterApp .
 ```
 
-The `hasReferenceFrame` on the `ScalarQuantity` points to `referenceFrameWGS84`, whose `hasMetricKind` is `metricGeodesic`. A GeoSPARQL solver would resolve this to `geof:distance` with the WGS-84 CRS; a graph solver would use Dijkstra for `metricGraphHops`; a vector store would compute cosine similarity for `metricCosine`.
+The `hasReferenceFrame` on the `math:Quantity` points to `referenceFrameWGS84`, whose `hasMetricKind` is `metricGeodesic`. A GeoSPARQL solver would resolve this to `geof:distance` with the WGS-84 CRS; a graph solver would use Dijkstra for `metricGraphHops`; a vector store would compute cosine similarity for `metricCosine`.
 
 ### Alignment to surface vocabularies
 
@@ -304,7 +306,7 @@ GeoSPARQL 1.0/1.1 has no native pose model, so the `geosparql` profile projects 
 
 ## Spatial Aggregation and Privacy-Preserving Statistics
 
-GMEOW models spatial aggregation as a reified `gmeow:SpatialAggregation` — a `gmeow:Measurement` specialisation that summarises entities located within a `gmeow:Place`. The aggregation function (`gmeow:aggregationFunction`) is a value vocabulary (`gmeow:AggregationFunction`) with seeds for count, sum, average, density, centroid, minimum, and maximum. The aggregation region is the `gmeow:observedFeature`; the result is a `gmeow:ScalarQuantity`. The actual arithmetic is performed by the solver layer (Principle 12), never materialised as asserted triples.
+GMEOW models spatial aggregation as a reified `gmeow:SpatialAggregation` — a `gmeow:Measurement` specialisation that summarises entities located within a `gmeow:Place`. The aggregation function (`gmeow:aggregationFunction`) is a value vocabulary (`gmeow:AggregationFunction`) with seeds for count, sum, average, density, centroid, minimum, and maximum. The aggregation region is the `gmeow:observedFeature`; the result is a `math:Quantity`. The actual arithmetic is performed by the solver layer (Principle 12), never materialised as asserted triples.
 
 For k-anonymity, a `gmeow:minimumPopulation` datatype property on `SpatialAggregation` declares the minimum population size (k) required for disclosure. A result failing this check is suppressed at projection time (coarsen or withhold, Principle 10), never deleted.
 
@@ -312,6 +314,7 @@ The flat shortcut `gmeow:hasCentroid` on `gmeow:Place` provides the geometric ce
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://example.org/loc/> .
 
@@ -319,8 +322,9 @@ ex:cityCensus a gmeow:SpatialAggregation ;
     gmeow:observedFeature ex:metropolis ;
     gmeow:aggregationFunction gmeow:aggCount ;
     gmeow:observationResult [
-        a gmeow:ScalarQuantity ;
-        gmeow:quantityValue "15000"^^xsd:decimal ;
+        a math:Quantity ;
+        math:hasDimension math:dimensionless ;
+        math:quantityValue "15000"^^xsd:decimal ;
         gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> ;
     ] ;
     gmeow:minimumPopulation 5 ;
@@ -424,7 +428,7 @@ A place may have multiple overlays of different types simultaneously (a national
 - **`gmeow:overlayType`** → `gmeow:RegulatoryOverlayType` — the kind of overlay (non-functional, open value vocabulary).
 - **`gmeow:overlayRegulation`** → `gmeow:RightsStatement` — the deontic rules that govern activity within the overlay.
 - **`gmeow:overlayDeterminacy`** → `gmeow:Determinacy` — crisp, vague, fuzzy, or disputed boundary.
-- **`gmeow:overlayLowerBound` / `gmeow:overlayUpperBound`** → `gmeow:ScalarQuantity` — 3D bounds (altitude, depth, elevation) with QUDT unit and reference frame (Principle 11). Optional for 2D overlays.
+- **`gmeow:overlayLowerBound` / `gmeow:overlayUpperBound`** → `math:Quantity` — 3D bounds (altitude, depth, elevation) with QUDT unit and reference frame (Principle 11). Optional for 2D overlays.
 - **`gmeow:duringInterval`** → `gmeow:TimeInterval` — the period during which the overlay is in force (inherited from `TimeScopedRelation`).
 
 ### Value vocabulary: `RegulatoryOverlayType`
@@ -446,14 +450,16 @@ An open value vocabulary (individuals, never subclasses):
 
 ### 3D bounds and frame-relativity
 
-Airspace and maritime overlays often have vertical limits. These are **not** asserted as raw numbers on the overlay; they are `gmeow:ScalarQuantity` values carrying:
+Airspace and maritime overlays often have vertical limits. These are **not** asserted as raw numbers on the overlay; they are `math:Quantity` values carrying:
 
-- `gmeow:quantityValue` — the numeric bound.
+- `math:hasDimension math:lengthDimension` — the bound's physical dimension.
+- `math:quantityValue` — the numeric bound.
 - `gmeow:unit` — the QUDT unit (metres, feet, flight levels).
 - `gmeow:hasReferenceFrame` — the reference frame (e.g. WGS-84 for altitude above MSL, a local datum for depth below chart datum).
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://example.org/loc/> .
 
@@ -461,8 +467,8 @@ ex:noFlyZone a gmeow:RegulatoryOverlay ;
     gmeow:overlayPlace ex:airportApproach ;
     gmeow:overlayAuthority ex:caa ;
     gmeow:overlayType gmeow:overlayTypeRestrictedAirspace ;
-    gmeow:overlayLowerBound [ gmeow:quantityValue "0"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
-    gmeow:overlayUpperBound [ gmeow:quantityValue "3000"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
+    gmeow:overlayLowerBound [ a math:Quantity ; math:hasDimension math:lengthDimension ; math:quantityValue "0"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
+    gmeow:overlayUpperBound [ a math:Quantity ; math:hasDimension math:lengthDimension ; math:quantityValue "3000"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
     gmeow:duringInterval ex:intervalOngoing .
 ```
 

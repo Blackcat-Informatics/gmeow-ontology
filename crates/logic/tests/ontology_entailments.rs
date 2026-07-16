@@ -35,6 +35,8 @@ use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, parse_dataset};
 
 /// The gmeow ontology namespace (`config.NAMESPACE` = `ONTOLOGY_IRI + "/"`).
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The canonical mathematics grounding namespace.
+pub const MATH: &str = "https://blackcatinformatics.ca/math/";
 /// The example/test A-Box namespace used by the migrated competency tests (`tests.EX`).
 pub const EX: &str = "https://example.org/test/";
 /// `rdf:type`.
@@ -45,6 +47,11 @@ pub const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClass
 /// `https://blackcatinformatics.ca/gmeow/<local>`.
 pub fn gmeow(local: &str) -> String {
     format!("{GMEOW}{local}")
+}
+
+/// `https://blackcatinformatics.ca/math/<local>`.
+pub fn math(local: &str) -> String {
+    format!("{MATH}{local}")
 }
 
 /// `https://example.org/test/<local>`.
@@ -275,7 +282,7 @@ fn proximity_measurement_is_a_measurement() {
         iri_quad(&commute, RDF_TYPE, &gmeow("ProximityMeasurement")),
         iri_quad(&commute, &gmeow("proximityTo"), &home),
         iri_quad(&commute, &gmeow("observationResult"), &dist),
-        iri_quad(&dist, RDF_TYPE, &gmeow("ScalarQuantity")),
+        iri_quad(&dist, RDF_TYPE, &math("Quantity")),
     ];
     let closure = scoped_closure(&["core/places"], &abox);
     // The asserted subClassOf is preserved through materialization.
@@ -455,14 +462,14 @@ fn sensor_specialises_agent() {
 }
 
 #[test]
-fn sensory_quantity_inherits_scalar_quantity() {
-    // SensoryQuantity ≡ ScalarQuantity: a SensoryQuantity individual is a ScalarQuantity.
+fn sensory_quantity_specializes_math_quantity() {
+    // SensoryQuantity ⊑ math:Quantity: the domain result keeps the grounding authority.
     let sq1 = ex("sq1");
     let abox = vec![iri_quad(&sq1, RDF_TYPE, &gmeow("SensoryQuantity"))];
     let closure = scoped_closure(&["core/observations", "extensions/sensory"], &abox);
     assert!(
-        has_type(&closure, &sq1, &gmeow("ScalarQuantity")),
-        "sq1 a ScalarQuantity (SensoryQuantity ≡ ScalarQuantity)"
+        has_type(&closure, &sq1, &math("Quantity")),
+        "sq1 a math:Quantity (SensoryQuantity ⊑ math:Quantity)"
     );
 }
 
@@ -832,7 +839,7 @@ fn is_result_of_provenance_chain() {
     let (obs1, q1) = (ex("obs1"), ex("q1"));
     let abox = vec![
         iri_quad(&obs1, RDF_TYPE, &gmeow("Measurement")),
-        iri_quad(&q1, RDF_TYPE, &gmeow("Quantity")),
+        iri_quad(&q1, RDF_TYPE, &math("Quantity")),
         iri_quad(&q1, &gmeow("isResultOf"), &obs1),
     ];
     let closure = scoped_closure(&["core/observations"], &abox);
@@ -868,7 +875,7 @@ fn frame_inheritance_via_quantity() {
         iri_quad(&obs1, RDF_TYPE, &gmeow("Measurement")),
         iri_quad(&obs1, &gmeow("observationResult"), &q1),
         iri_quad(&obs1, &gmeow("hasReferenceFrame"), &frame),
-        iri_quad(&q1, RDF_TYPE, &gmeow("Quantity")),
+        iri_quad(&q1, RDF_TYPE, &math("Quantity")),
         iri_quad(&frame, RDF_TYPE, &gmeow("ReferenceFrame")),
     ];
     let closure = scoped_closure(&["core/observations", "core/places"], &abox);

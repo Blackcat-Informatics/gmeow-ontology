@@ -1440,6 +1440,24 @@ pub fn derive_validation_shapes(
     let p_qmaxcard = nn(&format!("{owl}maxQualifiedCardinality"));
     let p_qcard = nn(&format!("{owl}qualifiedCardinality"));
     let p_subclass = nn(&format!("{rdfs}subClassOf"));
+    // Canonical `logic:` restriction spelling.  Declarative shape derivation reads the
+    // merged AUTHORED dataset (before the OWL projection is materialized), so a
+    // `logic:subClassOf [ a logic:Restriction ; ... ]` must be read through the same
+    // semantic slots as its legacy RDFS/OWL spelling.  Keep the two spellings in one
+    // view here; the ValidationShapeIr construction below remains the single lowering.
+    let p_logic_on = nn(&logic_iri("onProperty"));
+    let p_logic_some = nn(&logic_iri("someValuesFrom"));
+    let p_logic_all = nn(&logic_iri("allValuesFrom"));
+    let p_logic_hasvalue = nn(&logic_iri("hasValue"));
+    let p_logic_onclass = nn(&logic_iri("onClass"));
+    let p_logic_ondatarange = nn(&logic_iri("onDataRange"));
+    let p_logic_mincard = nn(&logic_iri("minCardinality"));
+    let p_logic_maxcard = nn(&logic_iri("maxCardinality"));
+    let p_logic_card = nn(&logic_iri("cardinality"));
+    let p_logic_qmincard = nn(&logic_iri("minQualifiedCardinality"));
+    let p_logic_qmaxcard = nn(&logic_iri("maxQualifiedCardinality"));
+    let p_logic_qcard = nn(&logic_iri("qualifiedCardinality"));
+    let p_logic_subclass = nn(&logic_iri("subClassOf"));
     let p_disjoint = nn(&format!("{owl}disjointWith"));
     let p_complement = nn(&format!("{owl}complementOf"));
     let p_oneof = nn(&format!("{owl}oneOf"));
@@ -1447,6 +1465,15 @@ pub fn derive_validation_shapes(
     let p_domain = nn(&format!("{rdfs}domain"));
     let p_range = nn(&format!("{rdfs}range"));
     let owl_alldisjoint = Node::iri(format!("{owl}AllDisjointClasses"));
+
+    let restriction_value = |subject: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| {
+        value(store, subject, owl_predicate).or_else(|| value(store, subject, logic_predicate))
+    };
+    let restriction_objects = |subject: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| {
+        let mut out = objects(store, subject, owl_predicate);
+        out.extend(objects(store, subject, logic_predicate));
+        out
+    };
 
     // GMEOW's authoring ground: derive validation shapes for our own domain classes /
     // properties across every dogfooded namespace (Principle 4 / maximal dogfooding) — the
@@ -1501,6 +1528,8 @@ pub fn derive_validation_shapes(
     // expression, not a datatype facet) — the caller then skips it, unchanged.
     let p_ondatatype = nn(&format!("{owl}onDatatype"));
     let p_withrestrictions = nn(&format!("{owl}withRestrictions"));
+    let p_logic_ondatatype = nn(&logic_iri("onDatatype"));
+    let p_logic_withrestrictions = nn(&logic_iri("withRestrictions"));
     let xsd_pattern = nn(&format!("{xsd}pattern"));
     let xsd_minlength = nn(&format!("{xsd}minLength"));
     let xsd_maxlength = nn(&format!("{xsd}maxLength"));
@@ -1509,11 +1538,13 @@ pub fn derive_validation_shapes(
     let xsd_minexclusive = nn(&format!("{xsd}minExclusive"));
     let xsd_maxexclusive = nn(&format!("{xsd}maxExclusive"));
     let datatype_facets = |filler: &Subject| -> Vec<ConstraintComponent> {
-        let Some(list_head) = value(store, filler, &p_withrestrictions) else {
+        let Some(list_head) =
+            restriction_value(filler, &p_withrestrictions, &p_logic_withrestrictions)
+        else {
             return Vec::new();
         };
         let mut comps = Vec::new();
-        if let Some(Node::Iri(dt)) = value(store, filler, &p_ondatatype) {
+        if let Some(Node::Iri(dt)) = restriction_value(filler, &p_ondatatype, &p_logic_ondatatype) {
             comps.push(ConstraintComponent::Datatype(dt));
         }
         // Numeric-bound facets accumulate into a SINGLE `NumericRange` (a min/max pair with per-
@@ -1583,8 +1614,12 @@ pub fn derive_validation_shapes(
     // for a filler that carries no such expression (the caller then leaves it in the canon).
     let p_unionof = nn(&format!("{owl}unionOf"));
     let p_disjointunion = nn(&format!("{owl}disjointUnionOf"));
+    let p_logic_unionof = nn(&logic_iri("unionOf"));
+    let p_logic_disjointunion = nn(&logic_iri("disjointUnionOf"));
+    let p_logic_oneof = nn(&logic_iri("oneOf"));
+    let p_logic_complement = nn(&logic_iri("complementOf"));
     let classify_filler = |fs: &Subject| -> Option<ConstraintComponent> {
-        if let Some(head) = value(store, fs, &p_unionof) {
+        if let Some(head) = restriction_value(fs, &p_unionof, &p_logic_unionof) {
             let branches: Vec<ConstraintComponent> = read_iri_list(store, &head)
                 .into_iter()
                 .filter_map(|c| classify(&c))
@@ -1593,7 +1628,7 @@ pub fn derive_validation_shapes(
                 return Some(ConstraintComponent::Or(branches));
             }
         }
-        if let Some(head) = value(store, fs, &p_disjointunion) {
+        if let Some(head) = restriction_value(fs, &p_disjointunion, &p_logic_disjointunion) {
             let branches: Vec<ConstraintComponent> = read_iri_list(store, &head)
                 .into_iter()
                 .filter_map(|c| classify(&c))
@@ -1605,7 +1640,7 @@ pub fn derive_validation_shapes(
         // An enumerated filler (`owl:oneOf ( a b … )` on an anonymous class) → `sh:in ( a b … )`:
         // every value of the path must be one of the enumerated individuals. IRI members only —
         // a literal member would make the expression a data range, which the facet arm owns.
-        if let Some(head) = value(store, fs, &p_oneof) {
+        if let Some(head) = restriction_value(fs, &p_oneof, &p_logic_oneof) {
             let members = read_iri_list(store, &head);
             if !members.is_empty() {
                 return Some(ConstraintComponent::In(
@@ -1613,11 +1648,11 @@ pub fn derive_validation_shapes(
                 ));
             }
         }
-        match value(store, fs, &p_complement) {
+        match restriction_value(fs, &p_complement, &p_logic_complement) {
             Some(Node::Iri(d)) => classify(&d).map(|cc| ConstraintComponent::Not(Box::new(cc))),
             Some(inner @ Node::Blank { .. }) => {
                 let bs = term_as_subject(&inner)?;
-                let sv = match value(store, &bs, &p_hasvalue)? {
+                let sv = match restriction_value(&bs, &p_hasvalue, &p_logic_hasvalue)? {
                     Node::Iri(i) => ShapeValue::Iri(i),
                     Node::Lit {
                         lexical,
@@ -1646,6 +1681,13 @@ pub fn derive_validation_shapes(
             _ => None,
         }
     };
+    let restriction_card_of =
+        |restr: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| -> Option<u32> {
+            match restriction_value(restr, owl_predicate, logic_predicate) {
+                Some(Node::Lit { lexical: lex, .. }) => lex.trim().parse::<u32>().ok(),
+                _ => None,
+            }
+        };
 
     // Accumulate by SHAPE TARGET: shape IRI → (target, node_components, properties). One shape
     // per target, so every family merges into a single shape rather than colliding.
@@ -1696,7 +1738,7 @@ pub fn derive_validation_shapes(
         if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) {
             continue;
         }
-        for restr in objects(store, class, &p_subclass) {
+        for restr in restriction_objects(class, &p_subclass, &p_logic_subclass) {
             let Some(restr_subj) = term_as_subject(&restr) else {
                 continue;
             };
@@ -1706,15 +1748,15 @@ pub fn derive_validation_shapes(
             // ([`ConstraintComponent::OrProperties`]). Only the exact all-branches-are-bare-
             // existential form is read; any other union member (a named class, a qualified
             // filler) leaves the whole expression in the canon, never a partial disjunction.
-            if value(store, &restr_subj, &p_on).is_none()
-                && let Some(head) = value(store, &restr_subj, &p_unionof)
+            if restriction_value(&restr_subj, &p_on, &p_logic_on).is_none()
+                && let Some(head) = restriction_value(&restr_subj, &p_unionof, &p_logic_unionof)
             {
                 let members = read_list_member_subjects(store, &head);
                 let mut paths: Vec<String> = Vec::with_capacity(members.len());
                 let mut all_bare_existentials = !members.is_empty();
                 for m in &members {
-                    let on_p = value(store, m, &p_on);
-                    let filler = value(store, m, &p_some);
+                    let on_p = restriction_value(m, &p_on, &p_logic_on);
+                    let filler = restriction_value(m, &p_some, &p_logic_some);
                     match (on_p, filler) {
                         (Some(Node::Iri(p)), Some(Node::Iri(f)))
                             if f == owl_thing && !optouts.contains(&p) =>
@@ -1736,7 +1778,7 @@ pub fn derive_validation_shapes(
             }
             // A restriction constrains exactly one property; skip a malformed one with no
             // IRI-valued `owl:onProperty`.
-            let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
+            let Some(Node::Iri(on)) = restriction_value(&restr_subj, &p_on, &p_logic_on) else {
                 continue;
             };
             // Per-property validation-reading opt-out (R3).
@@ -1750,7 +1792,7 @@ pub fn derive_validation_shapes(
             // class-scoped `ClosedWorldClosure` entry paired with `owl:allValuesFrom`; this keeps
             // the SHACL minimum explicit without causing the native reasoner to mint existential
             // witnesses into the shipped closure.
-            match value(store, &restr_subj, &p_some) {
+            match restriction_value(&restr_subj, &p_some, &p_logic_some) {
                 Some(Node::Iri(cv)) => {
                     if let Some(cc) = classify(&cv) {
                         let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
@@ -1785,7 +1827,7 @@ pub fn derive_validation_shapes(
             // owl:allValuesFrom is UNIVERSAL: every value satisfies the inner shape → a bare
             // `sh:class` / `sh:datatype` / `sh:nodeKind` on the path, or the length/pattern facets
             // of a faceted-datatype filler. A non-faceted blank filler → skip.
-            match value(store, &restr_subj, &p_all) {
+            match restriction_value(&restr_subj, &p_all, &p_logic_all) {
                 Some(Node::Iri(cv)) => {
                     if let Some(cc) = classify(&cv) {
                         let min = closed_requirements
@@ -1842,7 +1884,7 @@ pub fn derive_validation_shapes(
 
             // owl:hasValue → `sh:hasValue` (a fixed required value). A blank / quoted-triple
             // fixed value is impossible (a fixed value cannot be an anonymous node) → hard-fail.
-            match value(store, &restr_subj, &p_hasvalue) {
+            match restriction_value(&restr_subj, &p_hasvalue, &p_logic_hasvalue) {
                 None => {}
                 Some(Node::Iri(v)) => {
                     let pc = PropertyConstraintIr::new(
@@ -1891,62 +1933,64 @@ pub fn derive_validation_shapes(
 
             // Cardinality. Qualified (`owl:onClass` + a `qualified*Cardinality`) is distinct from
             // unqualified: it counts only the values satisfying the inner shape.
-            let has_qcard = value(store, &restr_subj, &p_qcard).is_some()
-                || value(store, &restr_subj, &p_qmincard).is_some()
-                || value(store, &restr_subj, &p_qmaxcard).is_some();
+            let has_qcard = restriction_value(&restr_subj, &p_qcard, &p_logic_qcard).is_some()
+                || restriction_value(&restr_subj, &p_qmincard, &p_logic_qmincard).is_some()
+                || restriction_value(&restr_subj, &p_qmaxcard, &p_logic_qmaxcard).is_some();
             if has_qcard {
-                let q_exact = card_of(&restr_subj, &p_qcard);
+                let q_exact = restriction_card_of(&restr_subj, &p_qcard, &p_logic_qcard);
                 let (mut qlo, mut qhi) = (
-                    card_of(&restr_subj, &p_qmincard),
-                    card_of(&restr_subj, &p_qmaxcard),
+                    restriction_card_of(&restr_subj, &p_qmincard, &p_logic_qmincard),
+                    restriction_card_of(&restr_subj, &p_qmaxcard, &p_logic_qmaxcard),
                 );
                 if let Some(n) = q_exact {
                     qlo = Some(n);
                     qhi = Some(n);
                 }
-                match value(store, &restr_subj, &p_onclass) {
+                match restriction_value(&restr_subj, &p_onclass, &p_logic_onclass) {
                     // A qualified cardinality qualifies over EITHER an object filler
                     // (`owl:onClass <Class>`) or a datatype filler (`owl:onDataRange <Datatype>`).
                     // With no `owl:onClass`, fall through to the datatype-qualified peer.
-                    None => match value(store, &restr_subj, &p_ondatarange) {
-                        // `owl:onDataRange <Datatype>` is the datatype-qualified peer of
-                        // `owl:onClass <Class>`. It reads as the datatype every counted value must
-                        // carry, degraded to a PLAIN `sh:datatype` + `sh:minCount`/`sh:maxCount`
-                        // (min→minCount, max→maxCount, exact→both — the same count the onClass arm
-                        // carries). A bare `sh:datatype` is what the JSON-Schema deriver reads; a
-                        // `sh:qualifiedValueShape [ sh:datatype … ]` it would ignore.
-                        Some(Node::Iri(dt)) => {
-                            // `classify` maps a concrete datatype → `sh:datatype`, `rdfs:Literal`
-                            // → the `sh:Literal` node-kind, and `rdfs:Resource` → no component
-                            // (the vacuous universal top) — the datatype analogue of the onClass
-                            // arm's class handling.
-                            let comps: Vec<_> = classify(&dt).into_iter().collect();
-                            let pc = PropertyConstraintIr::new(
-                                &on,
-                                qlo,
-                                qhi,
-                                Some(ConstraintProvenance::OwlRestriction),
-                                comps,
-                            )?;
-                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
-                                .2
-                                .push(pc);
+                    None => {
+                        match restriction_value(&restr_subj, &p_ondatarange, &p_logic_ondatarange) {
+                            // `owl:onDataRange <Datatype>` is the datatype-qualified peer of
+                            // `owl:onClass <Class>`. It reads as the datatype every counted value must
+                            // carry, degraded to a PLAIN `sh:datatype` + `sh:minCount`/`sh:maxCount`
+                            // (min→minCount, max→maxCount, exact→both — the same count the onClass arm
+                            // carries). A bare `sh:datatype` is what the JSON-Schema deriver reads; a
+                            // `sh:qualifiedValueShape [ sh:datatype … ]` it would ignore.
+                            Some(Node::Iri(dt)) => {
+                                // `classify` maps a concrete datatype → `sh:datatype`, `rdfs:Literal`
+                                // → the `sh:Literal` node-kind, and `rdfs:Resource` → no component
+                                // (the vacuous universal top) — the datatype analogue of the onClass
+                                // arm's class handling.
+                                let comps: Vec<_> = classify(&dt).into_iter().collect();
+                                let pc = PropertyConstraintIr::new(
+                                    &on,
+                                    qlo,
+                                    qhi,
+                                    Some(ConstraintProvenance::OwlRestriction),
+                                    comps,
+                                )?;
+                                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                    .2
+                                    .push(pc);
+                            }
+                            // Neither `owl:onClass` nor `owl:onDataRange` — a qualified cardinality
+                            // REQUIRES a qualifying filler; absent → hard-fail. An anonymous
+                            // (blank / literal / quoted-triple) data range is carried in the canon,
+                            // never a bare blank shape — skip (do not emit).
+                            Some(Node::Blank { .. })
+                            | Some(Node::Lit { .. })
+                            | Some(Node::Triple(_)) => {}
+                            None => {
+                                return Err(Diag::of_kind(crate::error::Frontend {
+                                    detail: format!(
+                                        "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
+                                    ),
+                                }));
+                            }
                         }
-                        // Neither `owl:onClass` nor `owl:onDataRange` — a qualified cardinality
-                        // REQUIRES a qualifying filler; absent → hard-fail. An anonymous
-                        // (blank / literal / quoted-triple) data range is carried in the canon,
-                        // never a bare blank shape — skip (do not emit).
-                        Some(Node::Blank { .. })
-                        | Some(Node::Lit { .. })
-                        | Some(Node::Triple(_)) => {}
-                        None => {
-                            return Err(Diag::of_kind(crate::error::Frontend {
-                                detail: format!(
-                                    "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
-                                ),
-                            }));
-                        }
-                    },
+                    }
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
                     Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
@@ -2001,10 +2045,10 @@ pub fn derive_validation_shapes(
             } else {
                 // Unqualified cardinality → sh:minCount / sh:maxCount with OwlRestriction
                 // provenance (the open-world axiom read closed-world).
-                let exact = card_of(&restr_subj, &p_card);
+                let exact = restriction_card_of(&restr_subj, &p_card, &p_logic_card);
                 let (mut lo, mut hi) = (
-                    card_of(&restr_subj, &p_mincard),
-                    card_of(&restr_subj, &p_maxcard),
+                    restriction_card_of(&restr_subj, &p_mincard, &p_logic_mincard),
+                    restriction_card_of(&restr_subj, &p_maxcard, &p_logic_maxcard),
                 );
                 if let Some(n) = exact {
                     lo = Some(n);

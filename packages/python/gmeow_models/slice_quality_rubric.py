@@ -22,6 +22,7 @@ class QualityAxisEnum(StrEnum):
     axisDocumentation = "gmeow:axisDocumentation"
     axisFlagshipCounterExampleDepth = "gmeow:axisFlagshipCounterExampleDepth"
     axisGmn1Coverage = "gmeow:axisGmn1Coverage"
+    axisGmnGlyphOptimality = "gmeow:axisGmnGlyphOptimality"
     axisMaximalGrounding = "gmeow:axisMaximalGrounding"
     axisMaximalInformation = "gmeow:axisMaximalInformation"
     axisMaximalLinkage = "gmeow:axisMaximalLinkage"
@@ -45,6 +46,7 @@ class QualityTierEnum(StrEnum):
 class SliceQualityDimensionEnum(StrEnum):
     qualityDimensionCounterExampleDepth = "gmeow:qualityDimensionCounterExampleDepth"
     qualityDimensionDocumentation = "gmeow:qualityDimensionDocumentation"
+    qualityDimensionGlyphOptimality = "gmeow:qualityDimensionGlyphOptimality"
     qualityDimensionGrounding = "gmeow:qualityDimensionGrounding"
     qualityDimensionInferentialDensity = "gmeow:qualityDimensionInferentialDensity"
     qualityDimensionLinkage = "gmeow:qualityDimensionLinkage"
