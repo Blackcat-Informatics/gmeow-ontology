@@ -983,7 +983,7 @@ where
                 call.limit
             )));
         }
-        let mut unique = BTreeSet::new();
+        let mut unique: BTreeSet<&Vec<TermValue>> = BTreeSet::new();
         for (row_index, row) in batch.rows.iter().enumerate() {
             if row.arguments.len() != descriptor.arity() {
                 return Err(provider_batch_contract_violation(format!(
@@ -1014,8 +1014,7 @@ where
                     )));
                 }
             }
-            let key = row.arguments.iter().map(term_display).collect::<Vec<_>>();
-            if !unique.insert(key) {
+            if !unique.insert(&row.arguments) {
                 return Err(provider_batch_contract_violation(format!(
                     "provider row {row_index} duplicates an earlier tuple"
                 )));
