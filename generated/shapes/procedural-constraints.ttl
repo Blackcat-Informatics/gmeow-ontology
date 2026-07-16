@@ -173,17 +173,6 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/fullName> ?v0 . } UNION { $this <https://blackcatinformatics.ca/gmeow/hasNamePart> ?v1 . } } }""" ;
     ] .
 
-<https://blackcatinformatics.ca/gmeow/AppraisalDimensionValuePairConstraintProceduralConstraintShape>
-    a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
-        sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d . } } UNION { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v2 . } } }""" ;
-    ] .
-
 <https://blackcatinformatics.ca/gmeow/AppraisalFramedValueConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
@@ -558,6 +547,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/rewardPole> ?v0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/DeceptionCueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DeceptionCueShape> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/deceptionCue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A deception cue observation must be a gmeow:Observation with a gmeow:vantage and a gmeow:observationResult." ;
+        sh:select """SELECT $this WHERE { ?event a <https://blackcatinformatics.ca/gmeow/Event> . ?event <https://blackcatinformatics.ca/gmeow/deceptionCue> $this . FILTER NOT EXISTS { $this a <https://blackcatinformatics.ca/gmeow/Observation> . $this <https://blackcatinformatics.ca/gmeow/vantage> ?v . $this <https://blackcatinformatics.ca/gmeow/observationResult> ?r . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/DeceptionEventConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DeceptionEventShape> ;
@@ -566,7 +566,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:message "A deception event must carry at least one held standpoint (gmeow:heldStandpoint) and one projected standpoint (gmeow:projectedStandpoint), each a gmeow:DoxasticStandpointClaim." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/eventType> <https://blackcatinformatics.ca/gmeow/eventTypeDeception> . { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/heldStandpoint> ?h . ?h a <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/projectedStandpoint> ?p . ?p a <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> . } } }""" ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/eventType> <https://blackcatinformatics.ca/gmeow/eventTypeDeception> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/heldStandpoint> ?h . ?h a <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> . $this <https://blackcatinformatics.ca/gmeow/projectedStandpoint> ?p . ?p a <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityBasisPresentConstraintProceduralConstraintShape>
@@ -1067,7 +1067,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Warning ;
         sh:message "A merger or acquisition event should have at least 2 predecessor organizations and at least 1 successor organization." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/eventType> ?et . FILTER ( ?et IN (<https://blackcatinformatics.ca/gmeow/eventTypeMerger>, <https://blackcatinformatics.ca/gmeow/eventTypeAcquisition>) ) { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?p1 . $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?p2 . FILTER ( ?p1 != ?p2 ) } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?s . } } }""" ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/eventType> ?et . FILTER ( ?et IN (<https://blackcatinformatics.ca/gmeow/eventTypeMerger>, <https://blackcatinformatics.ca/gmeow/eventTypeAcquisition>) ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?p1 . $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?p2 . FILTER ( ?p1 != ?p2 ) $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?s . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/MetricGroupOrderUniquenessConstraintProceduralConstraintShape>
@@ -1287,7 +1287,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:message "A citation with supportsNotability true must have sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage (WP:GNG triad)." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/supportsNotability> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/sourceTier> <https://blackcatinformatics.ca/gmeow/sourceTierSecondary> . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/coverageDepth> <https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage> . } } }""" ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/supportsNotability> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> . $this <https://blackcatinformatics.ca/gmeow/sourceTier> <https://blackcatinformatics.ca/gmeow/sourceTierSecondary> . $this <https://blackcatinformatics.ca/gmeow/coverageDepth> <https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/NoteContentConstraintProceduralConstraintShape>
@@ -1310,6 +1310,17 @@
         sh:severity sh:Violation ;
         sh:message "An Observation must record an observed feature (gmeow:observedFeature)." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?f . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ObservationFeatureUniqueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ObservationShape> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/Observation> . FILTER NOT EXISTS { ?this a ?sub . ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/gmeow/Observation> . FILTER ( ?sub != <https://blackcatinformatics.ca/gmeow/Observation> ) } }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Observation must record exactly one observed feature (gmeow:observedFeature)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?f1 . $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?f2 . FILTER ( ?f1 != ?f2 ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ObservationVantageConstraintProceduralConstraintShape>
@@ -1793,7 +1804,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Warning ;
         sh:message "A split or spin-off event should have at least 1 predecessor organization and at least 2 successor organizations." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/eventType> ?et . FILTER ( ?et IN (<https://blackcatinformatics.ca/gmeow/eventTypeSplit>, <https://blackcatinformatics.ca/gmeow/eventTypeSpinOff>) ) { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?p . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?s1 . $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?s2 . FILTER ( ?s1 != ?s2 ) } } }""" ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/eventType> ?et . FILTER ( ?et IN (<https://blackcatinformatics.ca/gmeow/eventTypeSplit>, <https://blackcatinformatics.ca/gmeow/eventTypeSpinOff>) ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?p . $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?s1 . $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?s2 . FILTER ( ?s1 != ?s2 ) } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/StaleSourceConstraintProceduralConstraintShape>
@@ -2612,7 +2623,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind and its math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/compilesToLogicFormula> ?t . { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/denotationKind> ?c0 . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/logicLoweringPreservation> ?c1 . } } }""" ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/compilesToLogicFormula> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/denotationKind> ?c0 . $this <https://blackcatinformatics.ca/math/logicLoweringPreservation> ?c1 . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/LorentzianSignatureConstraintProceduralConstraintShape>
@@ -2695,7 +2706,7 @@
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
         sh:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
-        sh:select """SELECT $this WHERE { { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/testStatistic> ?ts . } UNION { ?t a <https://blackcatinformatics.ca/math/HypothesisTest> . ?t <https://blackcatinformatics.ca/math/pValue> $this . } } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullHypothesis> ?nh . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullDistribution> ?nd . } } UNION { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/tailDefinition> ?td . } UNION { $this <https://blackcatinformatics.ca/math/alternativeSidedness> ?sd . } } } }""" ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/testStatistic> ?ts . } UNION { ?t a <https://blackcatinformatics.ca/math/HypothesisTest> . ?t <https://blackcatinformatics.ca/math/pValue> $this . } $this <https://blackcatinformatics.ca/math/nullHypothesis> ?nh . $this <https://blackcatinformatics.ca/math/nullDistribution> ?nd . { $this <https://blackcatinformatics.ca/math/tailDefinition> ?td . } UNION { $this <https://blackcatinformatics.ca/math/alternativeSidedness> ?sd . } } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/ParameterRoleOverfilledConstraintProceduralConstraintShape>

@@ -513,11 +513,29 @@ logic:mictIsHazard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/2
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Mitigation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/mitigationMeasure" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # --- Wave B1 shape-drain: causal-link cardinality restorations ---
-# gmeow:CausalLinkShape — exactly one antecedent EventType, one consequent EventType, and at most
-# one decimal link strength. (gmeow:causalModality is owl:FunctionalProperty; its exactly-one rides
-# the functional projection plus the migrated existence closure. gmeow:linkMechanism's
-# sh:uniqueLang facet has no OWL/logic antecedent and is carried as flagged validation-only residue.)
+# gmeow:CausalLinkShape — exactly one antecedent EventType, one consequent EventType, at most
+# one decimal link strength, and exactly one causal modality. gmeow:causalModality is
+# owl:FunctionalProperty, but the functional maximum rides a gmeow:causalModality-keyed
+# subjects-of shape, not the CausalLink node shape — so the exactly-one obligation the shape
+# authored declaratively is restored here as an ordinary owl:maxQualifiedCardinality (min1 comes
+# from the migrated existence closure). gmeow:linkMechanism's per-language-tag uniqueness is
+# grounded declaratively by gmeow:CausalLinkMechanismUniqueLangConstraint below.
 gmeow:CausalLink rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:linkAntecedent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:linkConsequent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:causalModality ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:linkStrength ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
+
+# gmeow:CausalLinkShape — gmeow:linkMechanism carries at most one value per language tag (the
+# localizable-prose #376 convention). A declarative logic: sugar record grounds the sh:uniqueLang
+# facet: the frontend derives a sh:uniqueLang property component on the gmeow:CausalLink node shape.
+gmeow:CausalLinkMechanismUniqueLangConstraint
+    a logic:UniqueLangConstraint ;
+    rdfs:label "CausalLink mechanism unique-language constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CausalLink carries at most one gmeow:linkMechanism per language tag (no two language-tagged values share a tag)."@x-gmeow-english ;
+    logic:onClass gmeow:CausalLink ;
+    logic:valuePath gmeow:linkMechanism ;
+    logic:formalizes gmeow:CausalLinkShape ;
+    logic:message "A CausalLink carries at most one gmeow:linkMechanism per language tag (localizable prose, the #376 convention)." .

@@ -804,6 +804,37 @@ logic:obsFHas a logic:Formula ;
 logic:obsFAtom a logic:Formula ; logic:relation gmeow:observedFeature ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
 
+# The gmeow:ObservationShape also caps gmeow:observedFeature at one per direct Observation (the
+# sh:maxCount 1 obligation): a direct gmeow:Observation records NO two distinct observed features.
+# Projects to a sh:SPARQLConstraint over the subclass-excluded direct-Observation target.
+gmeow:ObservationFeatureUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "Observation single observed-feature constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:Observation records at most one gmeow:observedFeature — no two distinct values."@x-gmeow-english ;
+    logic:formalizes gmeow:ObservationShape ;
+    logic:severity "Violation" ;
+    logic:message "An Observation must record exactly one observed feature (gmeow:observedFeature)." ;
+    logic:integrity logic:obsFUForall .
+logic:obsFUForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:obsFUImpl .
+logic:obsFUImpl a logic:Formula ; logic:antecedent logic:obsFUGuard ; logic:consequent logic:obsFUPhi .
+logic:obsFUGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] .
+logic:obsFUPhi a logic:Formula ; logic:not logic:obsFUExists .
+logic:obsFUExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f1" ] , [ logic:termIndex 1 ; logic:termVariable "f2" ] ;
+    logic:exists logic:obsFUBody .
+logic:obsFUBody a logic:Formula ; logic:and logic:obsFUf1 , logic:obsFUf2 , logic:obsFUDistinct .
+logic:obsFUf1 a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f1" ] .
+logic:obsFUf2 a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f2" ] .
+logic:obsFUDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f1" ] , [ logic:termIndex 1 ; logic:termVariable "f2" ] .
+
 # =========================================================================== #
 # Superseded-observation suppression: the Warning-severity sh:sparql of  #
 # gmeow:SupersededObservationSuppressionShape migrated to a raw logic:Formula    #

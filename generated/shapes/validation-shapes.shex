@@ -172,7 +172,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/CausalLink> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/CausalLink-shape> {
   <https://blackcatinformatics.ca/gmeow/linkStrength> <http://www.w3.org/2001/XMLSchema#decimal> {0,1} ;
-  <https://blackcatinformatics.ca/gmeow/causalModality> NONLITERAL + ;
+  <https://blackcatinformatics.ca/gmeow/linkMechanism> . ;
+  <https://blackcatinformatics.ca/gmeow/causalModality> NONLITERAL ;
   <https://blackcatinformatics.ca/gmeow/linkAntecedent> IRI ;
   <https://blackcatinformatics.ca/gmeow/linkConsequent> IRI ;
 }

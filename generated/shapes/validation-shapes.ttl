@@ -158,7 +158,8 @@
 <https://blackcatinformatics.ca/gmeow/CausalLink-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/CausalLink> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/linkStrength> ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/causalModality> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/linkMechanism> ; sh:uniqueLang true ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/causalModality> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/linkAntecedent> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EventType> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/linkConsequent> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EventType> ] .
 
