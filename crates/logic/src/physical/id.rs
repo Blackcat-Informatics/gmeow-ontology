@@ -129,6 +129,10 @@ pub(crate) enum Pred {}
 pub(crate) enum Rule {}
 /// Brand: a materialized-row handle. See [`RowId`].
 pub(crate) enum Row {}
+/// Brand: a hash-consed structured-term DAG node handle. See [`NodeId`].
+pub(crate) enum Node {}
+/// Brand: a unification metavariable handle. See [`MetaId`].
+pub(crate) enum Meta {}
 
 /// A dense per-interner term handle (was `facts::TermId`).
 pub(crate) type TermId = Id<Term>;
@@ -175,6 +179,24 @@ pub(crate) type PredId = Id<Pred>;
 pub(crate) type RuleId = Id<Rule>;
 /// A dense per-stratum materialized-row handle.
 pub(crate) type RowId = Id<Row>;
+
+/// A dense per-DAG structured-term node handle.
+///
+/// The insertion-ordered slot a [`crate::physical::term_dag::TermDag`] node lives in.
+/// Because bound occurrences are locally-nameless de-Bruijn refs and every node is
+/// content-keyed, alpha-equivalent terms hash-cons to the SAME `NodeId` — structural
+/// `NodeId` equality *is* alpha-equivalence.  Like every [`Id`], it is a runtime handle
+/// only: never serialized, never hashed for provenance (the content key in
+/// [`crate::physical::term_key`] is the persistent identity — see the module doctrine).
+pub(crate) type NodeId = Id<Node>;
+
+/// A dense per-DAG unification-metavariable handle.
+///
+/// Identity-bearing: two occurrences of the same metavariable share one `MetaId` (and so
+/// one [`NodeId`]), while a fresh metavariable mints a new one.  Same runtime-only
+/// doctrine as every [`Id`] — the metavariable's ordinal enters the content key, never a
+/// serialized surface.
+pub(crate) type MetaId = Id<Meta>;
 
 #[cfg(test)]
 mod tests {

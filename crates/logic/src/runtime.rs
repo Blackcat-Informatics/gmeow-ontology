@@ -429,6 +429,14 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "reference_resolver.rs",
         "declarative SLD/Datalog reference oracle — used only inside #[cfg(test)] cross-checks (dispatch.rs::tests, physical/magic.rs::tests), not the production dispatch decision path",
     ),
+    (
+        "physical/term_dag.rs",
+        "the persistent hash-consed structured-term DAG (function-symbol / proof-object nodes) — a term-arena substrate for the unification/proof rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
+    ),
+    (
+        "physical/term_key.rs",
+        "the pure content-key fold for physical/term_dag.rs — a term-identity encoder for the same DAG substrate, with no backward-dispatch consumer yet",
+    ),
 ];
 
 /// Frame `value` under `tag` into `hasher` with a domain tag and length prefixes, so
