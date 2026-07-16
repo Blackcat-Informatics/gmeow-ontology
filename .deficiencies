@@ -1009,3 +1009,50 @@ decisions, NOT open gaps.
   LFS recommended): generated/logic/reasoning-explanations.rdf12.ttl (~55MB) and
   generated/logic/inferred-closure.rdf12.ttl (~54MB). Pre-existing generated files,
   not introduced by this stage.
+
+2026-07-16 — #930 slice-quality-gate projection-ceiling blockers (green-make-check pass)
+
+- DIAGNOSTICS rdfs cell RESOLVED (24/24). The reified CapabilityGap/GapShape
+  vocabulary added `gmeow:GapShape rdfs:subClassOf logic:QualityValue`, a raw
+  structural subsumption to an external (logic:) object that the projection-purity
+  ratchet counts, pushing the diagnostics/rdfs residue 24→25 above its frozen ceiling
+  24. FIXED by dropping that subClassOf edge: gmeow:GapShape stays a closed value
+  class via `a logic:AbstractIndividualType` (rdf:type, uncounted) — the SAME marker
+  the value-vocab/enum projection keys off (crates/pipeline value_vocab.rs), so the
+  GapShapeEnum LinkML/TS/GraphQL/Python projection is unaffected — mirroring the
+  sibling gmeow:CapabilityGap class (also AbstractIndividualType, no QualityValue
+  edge). No validation shape is lost (the QualityValue subsumption drives no
+  sh: shape). diagnostics/rdfs measures 24 after `make sync`.
+
+- The gmeow:CapabilityGapFragmentClassificationConstraint (logic:Constraint making
+  gmeow:isReasonerFragmentGap load-bearing at reason/verify time) is KEPT: it is
+  residue-NEUTRAL. It is authored in slices/core/diagnostics/module.ttl (the
+  diagnostics slice's surface), so it can never contribute to the logic slice's rdfs
+  cell; and its logic:-namespace formula nodes use logic:forall/exists/and/relation,
+  never rdfs:subClassOf/subPropertyOf, so it adds nothing to the diagnostics rdfs cell
+  either. Verified: reverting the whole diagnostics module.ttl to origin/main leaves
+  the logic/rdfs cell unchanged at 69. The task's B2 hypothesis (constraint causes the
+  logic +1) is thereby disproven; the constraint is retained as the genuine #930
+  semantic consumer.
+
+- LOGIC rdfs cell (69 > ceiling 68) is an INHERITED main failure, NOT a #930
+  construct and NOT the constraint. It is caused by the recovery-case vocabulary's
+  `logic:RecoveryCase rdfs:subClassOf [ owl:Restriction ; owl:onProperty
+  logic:recoveryTransform ; owl:allValuesFrom logic:Formula ]`
+  (slices/grounding/logic/module.ttl, from the merged recovery-case landing
+  a77563b3d / #1573). That landing bumped the coverage-ratchet (recorded above) but
+  NOT the logic/rdfs projection-ceiling, so origin/main itself measures logic/rdfs = 69
+  and is red on `slice-quality-gate` (verified: the logic slice source is byte-identical
+  to origin/main, and the branch makes zero edits under slices/grounding/logic/). The
+  residue cannot be honestly removed within #930 scope: the restriction is the
+  canonical EL-safe OWL derive-source (per LOGIC-VALIDATION doctrine, correct as
+  authored) and DRIVES the RecoveryCase-shape `sh:class logic:Formula` SHACL property
+  (range alone yields no sh:class — confirmed against range-only siblings), so deleting
+  it would silently degrade #1573's validation surface (Constitution: no silent
+  capability degradation); there is no logic:-typed axiom for RecoveryCase to
+  logic:formalizes; and raising the ceiling is a lower-only-ratchet violation the gate
+  refuses. RESOLUTION IS A MAINTAINER out-of-band ceiling bump (gmeow:pcc-logic-rdfs
+  gmeow:ceilingCount 68 → 69) authorized by merging past the resulting monotonicity
+  red — the sanctioned grandfathering path for the recovery-case vocabulary's
+  legitimate axiom — OR grounding by the recovery-case vocabulary's owner. Left red on
+  this branch pending that decision.
