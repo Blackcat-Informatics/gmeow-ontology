@@ -1279,5 +1279,49 @@ logic:gateFatalTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
 logic:gateFatalVerdict a logic:Formula ; logic:relation gmeow:findingGateVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gateFatal ] .
 
+# =========================================================================== #
+# Capability-gap fragment-classification constraint (#930): a closed-world      #
+# integrity tree that makes gmeow:isReasonerFragmentGap LOAD-BEARING at         #
+# reason/verify time. Every reified gmeow:CapabilityGap must reference (via      #
+# gmeow:gapShape) a gmeow:GapShape that carries a gmeow:isReasonerFragmentGap    #
+# boolean value; a gap whose gap-shape lacks the reasoner-fragment / vendoring- #
+# format classification is incoherent and is a validation violation. Authored   #
+# in logic: ONLY (no hand-authored sh:NodeShape); projected to a                 #
+# sh:SPARQLConstraint carrying a sh:SPARQLTarget (no targetClass), formalizing   #
+# gmeow:isReasonerFragmentGap. This is the SEMANTIC consumer that closes the     #
+# dark-feature gap in which the boolean was read only by structural schema       #
+# projection (LinkML/TS/GraphQL/Python). (Principle 17; design/LOGIC-VALIDATION.md.) #
+# =========================================================================== #
+
+gmeow:CapabilityGapFragmentClassificationConstraint
+    a logic:Constraint ;
+    rdfs:label "Capability-gap fragment-classification constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint (Principle 17) that makes gmeow:isReasonerFragmentGap load-bearing at reason/verify time: every reified gmeow:CapabilityGap MUST reference via gmeow:gapShape a gmeow:GapShape that carries a gmeow:isReasonerFragmentGap boolean value. A capability gap whose gmeow:gapShape is absent, or whose gap-shape lacks the reasoner-fragment / vendoring-format classification, is incoherent — a divergence case the agreement matrix cannot partition — and is a validation violation. Adding a new gmeow:GapShape individual without the boolean (or mis-pointing a gmeow:CapabilityGap) therefore reddens the verify gate, closing the dark-feature gap in which the boolean was consumed only by structural schema projection (LinkML/TS/GraphQL/Python)."@x-gmeow-english ;
+    logic:formalizes gmeow:isReasonerFragmentGap ;
+    logic:severity "Violation" ;
+    logic:message "A gmeow:CapabilityGap must reference via gmeow:gapShape a gmeow:GapShape carrying a gmeow:isReasonerFragmentGap boolean value — the reasoner-fragment classification consumed by this integrity guard is missing." ;
+    logic:integrity logic:capabilityGapFragmentForall .
+logic:capabilityGapFragmentForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:capabilityGapFragmentImpl .
+logic:capabilityGapFragmentImpl a logic:Formula ; logic:antecedent logic:capabilityGapFragmentTarget ; logic:consequent logic:capabilityGapFragmentClassified .
+logic:capabilityGapFragmentTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CapabilityGap> .
+}""" ] .
+logic:capabilityGapFragmentClassified a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gs" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "frag" ] ;
+    logic:exists logic:capabilityGapFragmentWitness .
+logic:capabilityGapFragmentWitness a logic:Formula ;
+    logic:and logic:capabilityGapFragmentHasShape , logic:capabilityGapFragmentShapeClassified .
+logic:capabilityGapFragmentHasShape a logic:Formula ; logic:relation gmeow:gapShape ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gs" ] .
+logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeow:isReasonerFragmentGap ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gs" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .
