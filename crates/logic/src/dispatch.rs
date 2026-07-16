@@ -871,29 +871,19 @@ where
     A: TupleAnnotationAlgebra,
     F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
 {
-    let RelationAnnotationRequest {
-        annotation,
-        providers,
-    } = request;
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
         external_relation_query_contract_hash(
             profile,
             budget,
-            annotation.contract,
-            annotation.algebra.identity(),
-            providers.manifest_hash(),
+            request.annotation.contract,
+            request.annotation.algebra.identity(),
+            request.providers.manifest_hash(),
         ),
     );
     let source = RdfViewFactSource::new(view, profile, identity.source.clone());
-    let result = dispatch_query_annotated_with_relations(
-        &source,
-        world,
-        program,
-        profile,
-        budget,
-        RelationAnnotationRequest::new(annotation, providers),
-    )?;
+    let result =
+        dispatch_query_annotated_with_relations(&source, world, program, profile, budget, request)?;
     Ok(CompleteRelationViewQuery {
         result,
         evidence: QueryExecutionEvidence {
@@ -926,18 +916,14 @@ where
     A: TupleAnnotationAlgebra,
     F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
 {
-    let RelationAnnotationRequest {
-        annotation,
-        providers,
-    } = request;
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
         external_relation_query_contract_hash(
             profile,
             budget,
-            annotation.contract,
-            annotation.algebra.identity(),
-            providers.manifest_hash(),
+            request.annotation.contract,
+            request.annotation.algebra.identity(),
+            request.providers.manifest_hash(),
         ),
     );
     if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
@@ -952,14 +938,8 @@ where
     }
 
     let source = RdfViewFactSource::new(view, profile, identity.source.clone());
-    let evaluation = dispatch_query_annotated_with_relations(
-        &source,
-        world,
-        program,
-        profile,
-        budget,
-        RelationAnnotationRequest::new(annotation, providers),
-    );
+    let evaluation =
+        dispatch_query_annotated_with_relations(&source, world, program, profile, budget, request);
     let source_metrics = source.metrics();
     match view.operation_status() {
         ViewOperationStatus::Failed { error, evidence } => {
