@@ -11,10 +11,10 @@ expression: summary
     "url": "concerns/concerndisclosure/index.html"
   },
   "last": {
-    "definition": "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence.",
-    "id": "math:ZigzagPersistence",
+    "definition": "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule.",
+    "id": "math:ZeroDenominator",
     "kind": "term",
-    "label": "Zigzag Persistence",
+    "label": "Zero Denominator",
     "missing_coverage": [
       "usage_advice",
       "example",
@@ -23,10 +23,11 @@ expression: summary
       "competency_rationale",
       "worked_instance",
       "annotation_coat",
+      "translation_coverage",
       "test_reach",
       "prose_quality"
     ],
-    "url": "terms/zigzagpersistence/index.html"
+    "url": "terms/zerodenominator/index.html"
   },
-  "record_count": 5307
+  "record_count": 5183
 }

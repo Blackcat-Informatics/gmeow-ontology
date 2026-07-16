@@ -270,16 +270,15 @@ fn meta_ntriples(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>> {
     //     defining triples are owned by their own channels above, so exclude any axiom whose
     //     subject is a correspondence node (or child) or a path-shape node — emitting them twice
     //     with a different lexical form would break idempotence.
-    let corr_subjects = correspondence_subjects(program);
+    let corr_ownership = crate::projections::correspondence::CorrespondenceOwnership::build(
+        &program.correspondences,
+    );
     let path_subjects: std::collections::HashSet<&str> =
         program.path_shapes.iter().map(|p| p.iri.as_str()).collect();
     let axioms: Vec<_> = program
         .axioms
         .iter()
-        .filter(|a| {
-            !is_correspondence_owned(&a.subject, &corr_subjects)
-                && !path_subjects.contains(a.subject.as_str())
-        })
+        .filter(|a| !corr_ownership.owns(&a.subject) && !path_subjects.contains(a.subject.as_str()))
         .cloned()
         .collect();
     let canon_meta = LogicProgram::new(
@@ -452,31 +451,6 @@ fn path_shape_ntriples(shape: &crate::ir::PathShapeIr) -> Vec<String> {
         ));
     }
     out
-}
-
-/// The set of correspondence node IRIs whose flat axioms are owned by the correspondence channel
-/// (the correspondence individuals + the singleton `correspondence-program` node).
-fn correspondence_subjects(program: &LogicProgram) -> Vec<String> {
-    let mut subjects: Vec<String> = program
-        .correspondences
-        .iter()
-        .map(|c| c.iri.clone())
-        .collect();
-    subjects.push(format!(
-        "{}correspondence-program",
-        crate::ir::LOGIC_NAMESPACE
-    ));
-    subjects
-}
-
-/// Whether `subject` is a correspondence node (exact match) or one of its child nodes.
-fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
-    corr_subjects.iter().any(|c| {
-        subject == c
-            || subject
-                .strip_prefix(c.as_str())
-                .is_some_and(|r| r.starts_with('/'))
-    })
 }
 
 /// Parse RDF `bytes` of `media_type` and re-serialize to canonical N-Triples lines. Returns

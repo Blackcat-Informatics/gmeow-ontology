@@ -2,30 +2,38 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Capacity
+# Authoring Packet
 
-`gmeow:Capacity` · Class
+`gmeow:AuthoringPacket` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:Capacity` |
-| IRI | `https://blackcatinformatics.ca/gmeow/Capacity` |
+| CURIE | `gmeow:AuthoringPacket` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AuthoringPacket` |
 | Category | Class |
-| Slice | [GMEOW Locations Module](../../slices/places/index.md) |
+| Slice | [GMEOW Guides Module](../../slices/guides/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](../../badges/stereotype/abstractindividualtype.svg)
 
 ## Definition
 
-A measurement of the maximum number of entities a location can hold\. The location is the observedFeature; the result is a dimensionless math:Quantity, while the entity kind being counted follows from the capacity claim and the location's place type rather than a pseudo\-unit\. A contested capacity \(e\.g\., fire code vs\. venue claim\) is modelled as multiple co\-existing Capacity measurements, each standpoint\-indexed and confidence\-weighted, never collapsing to a single winner \(P9\)\. A superseded capacity \(e\.g\., after renovation\) is suppressed via displayable false, never deleted \(P10\)\.
+A self\-contained authoring brief for one batch of a slice's terms: a reified value structure that gathers, for each covered term, its definition and axioms, its bounded graph neighbourhood and definitional\-dependency closure, a handful of same\-slice exemplar coats that passed the SHACL validation gate \(a term with any shape violation is never surfaced\), and its cross\-ontology and cross\-lingual grounding — the mapped external entity plus fr/zh labels JOINed from the slice's translation catalogs\. It is authoring context assembled for a human or agent, not an axiom over the modelled world; it is an abstract information structure \(a value structure\), and every instance is a deterministic projection of gmeow\.gts\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:Capacity ;
-    gmeow:capacityOf <...> .  # gmeow:Location
+<subject> a gmeow:AuthoringPacket ;
+    gmeow:exemplarShortfall "..." ;  # xsd:integer
+    gmeow:packetAxis "..." ;  # rdfs:Literal
+    gmeow:packetBatch "..." ;  # xsd:integer
+    gmeow:packetCoversTerm "..." ;  # rdfs:Resource
+    gmeow:packetDigest "..." ;  # rdfs:Literal
+    gmeow:packetExemplar "..." ;  # rdfs:Resource
+    gmeow:packetExternalAbsent "..." ;  # xsd:integer
+    gmeow:packetExternalMapped "..." .  # xsd:integer
+# … +7 more properties carried by this class (see the class page for the full list)
 ```
 
 ## Example in multiple syntaxes
@@ -33,8 +41,16 @@ A measurement of the maximum number of entities a location can hold\. The locati
 **Turtle**
 
 ```turtle
-<subject> a gmeow:Capacity ;
-    gmeow:capacityOf <...> .  # gmeow:Location
+<subject> a gmeow:AuthoringPacket ;
+    gmeow:exemplarShortfall "..." ;  # xsd:integer
+    gmeow:packetAxis "..." ;  # rdfs:Literal
+    gmeow:packetBatch "..." ;  # xsd:integer
+    gmeow:packetCoversTerm "..." ;  # rdfs:Resource
+    gmeow:packetDigest "..." ;  # rdfs:Literal
+    gmeow:packetExemplar "..." ;  # rdfs:Resource
+    gmeow:packetExternalAbsent "..." ;  # xsd:integer
+    gmeow:packetExternalMapped "..." .  # xsd:integer
+# … +7 more properties carried by this class (see the class page for the full list)
 ```
 
 **JSON\-LD**
@@ -216,11 +232,32 @@ A measurement of the maximum number of entities a location can hold\. The locati
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/Capacity"
+          "@id": "https://blackcatinformatics.ca/gmeow/AuthoringPacket"
         }
       ],
-      "https://blackcatinformatics.ca/gmeow/capacityOf": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      "https://blackcatinformatics.ca/gmeow/exemplarShortfall": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetAxis": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetBatch": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetCoversTerm": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetDigest": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetExemplar": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetExternalAbsent": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/packetExternalMapped": {
+        "@value": "..."
       }
     }
   ]
@@ -229,40 +266,34 @@ A measurement of the maximum number of entities a location can hold\. The locati
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/capacity.svg)
+![Term neighborhood](../../diagrams/terms/authoringpacket.svg)
 
 ## Super\-classes
 
-- [`gmeow:Measurement`](../measurement/index.md)
+- [`logic:AbstractIndividual`](../abstractindividual/index.md)
 
 ## Usage Advice
 
-- **Example:** ex:cap a gmeow:Capacity ; gmeow:capacityOf ex:hall ; gmeow:observationResult ex:scalar500 \.
-- **Use when:** Use to reify the maximum number of entities a location can hold, as a Measurement; contested capacities coexist as standpoint\-indexed instances\.
-- **Avoid when:** Avoid collapsing fire\-code vs venue\-claim capacities into one \(Principle 9\) and avoid deleting a post\-renovation capacity — suppress with gmeow:displayable false \(Principle 10\)\.
-- **How to use:** Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a math:Quantity carrying math:dimensionless and its count value, and index competing claims with gmeow:accordingTo\.
+- **Example:** ex:packetGroundingLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetSourceSlice \<…/slices/logic\> ; gmeow:packetBatch 0 ; gmeow:packetCoversTerm logic:Rule , logic:ConfInconsistent \.
+- **Use when:** Use to give an author or reviewer everything needed to author or review one subdomain batch \(~25 terms\) of a slice in one place, and to drive downstream glossary\-coverage and candidate\-review tooling that reasons over which terms are grounded in which language or external ontology\.
+- **Avoid when:** Do not author packet individuals by hand or treat a packet as a source of truth: a packet is a derived projection, regenerated from the slices and the bundle\. Do not read fr/zh labels 'through' a term\-equivalence record — translations are JOINed from the per\-slice \.po catalogs, never carried on the equivalence\. Do not silently omit a missing translation or a short exemplar set; record the absence explicitly\.
+- **How to use:** Produced by the slice\-brief projection as a single consolidated sparse fold at generated/briefs/authoring\-packets\.nt \(all slices' packets in one file\), and on demand for a single slice by \`gmeow slice brief \<dir\>\`\. Partition a slice's terms with \-\-axis / \-\-batch, then read each covered term's definition, axioms, neighbours, exemplars, and grounding coverage\. The RDF projection is sparse: it materializes only the present fr/zh/external incidences and summarizes coverage in the per\-attribute margins \(gmeow:packetFrPresent / packetFrAbsent, packetZhPresent / packetZhAbsent, packetExternalMapped / packetExternalAbsent\) — read those counts to see how much grounding is missing, or the on\-demand JSON / text view for the explicit per\-term absences\.
 
 ## Profiles
 
-- `claims` · `dreaming` · `full` · `memory` · `music` · `narrative`
+- `claims` · `full`
 
 ## Formal & academic
 
 ## Description\-Logic axioms
 
 ```text
-gmeow:Capacity ⊑ gmeow:Measurement
+gmeow:AuthoringPacket ⊑ logic:AbstractIndividual
 ```
-
-## Alignments
-
-- `closeMatch` → [https://brickschema\.org/schema/Brick\#Capacity](https://brickschema\.org/schema/Brick\#Capacity) — *approximate match (close) — not an exact equivalence.*
-- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
-- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
-`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:AbstractIndividualType` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -284,11 +315,11 @@ gmeow:Capacity ⊑ gmeow:Measurement
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/Capacity>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/Capacity@blake3:baf828a60c143915f8fb95b21088185151d52316c413490990545d35d3c40863`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AuthoringPacket>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AuthoringPacket@blake3:57f4a640b36a4d10460415037fe34e50b58dab1f50fc8477fab160c240d8c416`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---
 
-**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-source-load`
 Rendered from `gmeow.gts` by the dogfooded build pipeline.

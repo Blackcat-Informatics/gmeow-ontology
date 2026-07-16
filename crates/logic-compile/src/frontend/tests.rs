@@ -90,6 +90,93 @@ fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
     );
 }
 
+#[test]
+fn recovery_case_owns_its_formula_and_typed_term_carriers() {
+    let (program, diagnostics) = parse(
+        "ex:c a logic:Correspondence ;
+            logic:correspondenceRelation logic:Subsumes ;
+            logic:morphismClass logic:LossyLens ;
+            logic:morphismKind logic:InstitutionMorphism ;
+            logic:recoveryCase ex:case .
+         ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ;
+            logic:forall [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ; logic:relation ex:source ; logic:argument
+                    [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ,
+                    [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Source ] ] ;
+                logic:consequent [ a logic:Formula ; logic:relation ex:view ; logic:argument
+                    [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" ] ,
+                    [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:View ] ]
+            ]
+         ] .",
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.severity != Severity::Error),
+        "unexpected recovery parse diagnostics: {diagnostics:#?}"
+    );
+    assert_eq!(program.correspondences.len(), 1);
+    assert_eq!(program.correspondences[0].recovery_cases.len(), 1);
+    assert!(
+        program.formulas.is_empty(),
+        "a recovery transform must not also become a top-level formula"
+    );
+    assert!(
+        program.axioms.iter().all(|axiom| {
+            axiom.obj != logic_iri("TermCarrier")
+                && axiom.obj != logic_iri("RecoveryCase")
+                && !axiom.predicate.ends_with("recoveryCase")
+                && !axiom.predicate.ends_with("recoveryTransform")
+        }),
+        "recovery/formula structure leaked into generic axioms: {:#?}",
+        program.axioms
+    );
+}
+
+#[test]
+fn recovery_case_requires_named_identity() {
+    let (program, diagnostics) = parse(
+        "ex:c a logic:Correspondence ;
+            logic:correspondenceRelation logic:Subsumes ;
+            logic:morphismClass logic:LossyLens ;
+            logic:morphismKind logic:InstitutionMorphism ;
+            logic:recoveryCase [ a logic:RecoveryCase ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "MALFORMED_CORRESPONDENCE"
+                && diagnostic.message.contains("non-IRI logic:recoveryCase")
+        }),
+        "unnamed recovery evidence must not disappear silently: {diagnostics:#?}"
+    );
+}
+
+#[test]
+fn orphan_recovery_case_is_hard_failed() {
+    // `ex:case` is typed `logic:RecoveryCase` but no `logic:Correspondence` reaches it via
+    // `logic:recoveryCase`: unowned recovery evidence must be a hard Severity::Error finding,
+    // not silently vanish from the parsed program.
+    let (program, diagnostics) = parse(
+        "ex:case a logic:RecoveryCase ; logic:recoveryTransform [
+            a logic:Formula ;
+            logic:relation ex:source ;
+            logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:Source ]
+         ] .",
+    );
+    assert!(program.correspondences.is_empty());
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "ORPHAN_RECOVERY_CASE"
+                && diagnostic.severity == Severity::Error
+                && diagnostic.message.contains("/case")
+        }),
+        "unowned RecoveryCase must be hard-failed: {diagnostics:#?}"
+    );
+}
+
 // ── Minimal graph + reasoning contracts ───────────────────────────────
 
 #[test]
