@@ -223,6 +223,16 @@ impl TermDag {
         self.atoms.display_of(id)
     }
 
+    /// The first-seen [`TermValue`] backing an atomic leaf handle.
+    ///
+    /// The inverse of [`Self::intern_atom`]: it recovers the resolved N3-serializable term
+    /// surface a leaf stands for, so a ground structured term can be projected back to its
+    /// content-addressed reifier IRI ([`crate::physical::proof::reify`]). Same per-DAG panic
+    /// contract as [`Self::atom_display`].
+    pub(crate) fn atom_value(&self, id: TermId) -> &TermValue {
+        self.atoms.resolve(id)
+    }
+
     /// The number of distinct nodes interned.
     #[cfg(test)]
     pub(crate) fn len(&self) -> usize {
@@ -231,10 +241,27 @@ impl TermDag {
 
     // ── Constructors ──────────────────────────────────────────────────────────────
 
+    /// Intern an atomic term surface into the leaf dictionary, returning its [`TermId`]
+    /// WITHOUT minting a leaf node.
+    ///
+    /// This exposes the atom handle a caller needs to key content on the term itself — e.g.
+    /// [`crate::physical::proof::RuleCtx`] keys a rule clause by its rule-IRI [`TermId`], and
+    /// [`crate::physical::proof::proof_by_rule`] carries that handle as a `Leaf` proof
+    /// argument via [`Self::intern_leaf_atom`].
+    pub(crate) fn intern_atom(&mut self, tv: &TermValue) -> TermId {
+        self.atoms.intern(tv)
+    }
+
+    /// Intern a leaf node for an already-interned atom handle (the node-level counterpart of
+    /// [`Self::intern_atom`]).
+    pub(crate) fn intern_leaf_atom(&mut self, atom: TermId) -> NodeId {
+        self.intern(NodeData::Leaf(atom))
+    }
+
     /// Intern an atomic leaf (an IRI/literal), returning its node id.
     pub(crate) fn intern_leaf(&mut self, tv: TermValue) -> NodeId {
-        let atom = self.atoms.intern(&tv);
-        self.intern(NodeData::Leaf(atom))
+        let atom = self.intern_atom(&tv);
+        self.intern_leaf_atom(atom)
     }
 
     /// Intern a named free-variable occurrence, returning its node id.

@@ -69,6 +69,12 @@ pub(crate) mod lower;
 // `apply`/`shift` (locally-nameless de-Bruijn, so the shift IS the capture-avoidance).
 // Consumed by the proof-object / backward-FOL rungs to come.
 pub(crate) mod unify;
+// First-class CHECKABLE proof objects: a proof IS a `term_dag::TermDag` node
+// (`by_rule`/`assert` constructors), and `check` re-derives it bottom-up via `unify`/`apply`
+// (the de-Bruijn/Curry-Howard criterion), rejecting any proof that does not prove its stated
+// goal. `derivation_iri`/`reify` project a proof/term node to the SAME content-addressed
+// provenance IRI a `RuleApplication` mints. Consumed by the backward-FOL rung to come.
+pub(crate) mod proof;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,

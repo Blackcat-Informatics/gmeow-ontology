@@ -77,6 +77,15 @@ pub(crate) mod canon {
     /// declared type/domain.
     pub(crate) const SORT_INDIVIDUAL: &str =
         "https://blackcatinformatics.ca/logic/dag/sort/individual";
+    /// The proof constructor operator for a rule-application proof node
+    /// (`by_rule(goal, rule, subproofs…)`, [`crate::physical::proof`]). A proof is itself a
+    /// first-class DAG term, so its constructor is a shared `dag/op/` operator IRI — distinct
+    /// from the `logic:assert` rule sentinel ([`crate::provenance::ASSERT_RULE_IRI`]), which
+    /// tags an asserted fact's *derivation*, not a proof node's *shape*.
+    pub(crate) const BY_RULE: &str = "https://blackcatinformatics.ca/logic/dag/op/byRule";
+    /// The proof constructor operator for an assertion (EDB-membership) proof node
+    /// (`assert(goal, reifier)`, [`crate::physical::proof`]).
+    pub(crate) const ASSERT: &str = "https://blackcatinformatics.ca/logic/dag/op/assert";
 }
 
 /// A lowering diagnostic. Every consumer routes its hard failures through the
