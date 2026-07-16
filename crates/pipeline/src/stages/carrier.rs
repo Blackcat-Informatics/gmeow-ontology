@@ -15,7 +15,7 @@
 //! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
 //! source into its named graph.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use purrdf::RdfDatasetBuilder;
@@ -67,6 +67,25 @@ pub(crate) const GRAPH_QUALITY_ASSESSMENT: &str =
 /// fanout copy serves the superset gate / fanout writer (the correspondence-laws corpus
 /// follows the same twin-graph pattern).
 pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
+/// The per-slice authoring-packet corpus: a `gmeow:AuthoringPacket` for every in-repo
+/// slice batch (definition + axioms + bounded neighbourhood + grounding cross-table),
+/// assembled by [`gmeow_slice_brief::assemble_packet`] and attached by the dedicated
+/// `stage-slice-brief` producer. Folded as its own queryable named graph so a repo-free
+/// consumer reads every slice's authoring briefs straight out of `gmeow.gts` (the
+/// shippable authoring deliverable). Excluded from the reasoned object-level EDB exactly
+/// like `graph/quality-assessment` (it asserts a self-description corpus, not object-level
+/// axioms — `gts_compose` folds only the default graph, so this named graph never pollutes
+/// the composed EDB).
+pub(crate) const GRAPH_AUTHORING_BRIEFS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/authoring-briefs";
+/// The committed on-disk projection of the authoring-packet corpus (PIPELINE_SPINE §5:
+/// RDF travels as RDF, so the `gmeow:AuthoringPacket` triples are reconstructible from
+/// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph).
+/// Its `graph/fanout/<path>` reconstruction graph carries the SAME triples as
+/// [`GRAPH_AUTHORING_BRIEFS`]; the base graph serves the queryable bundle graph, the
+/// fanout copy serves the superset gate / fanout writer (the quality-assessment corpus
+/// follows the same twin-graph pattern).
+pub(crate) const AUTHORING_BRIEFS_PATH: &str = "generated/briefs/authoring-packets.nt";
 /// Internal byte-artifact lane member emitted by `stage-source-load`: the repo-wide
 /// slice-quality diagnostics report rendered as self-contained HTML from the SAME scoring
 /// pass that emits [`QUALITY_ASSESSMENT_PATH`]'s graph. It uses the `pipeline/` prefix so
@@ -209,6 +228,22 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 /// as a named graph in the emitted bundle (never a committed-file reconstruction rep).
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
+
+/// The narrowed authored corpus `stage-compile-logic` reads: the WHOLE merged authored
+/// dataset (`load_authored_dataset` — root ontology + every slice `module.ttl` + every
+/// `imports/*.ttl`) with the pure-documentation predicates in
+/// [`crate::stages::source_load::LOGIC_COMPILE_INPUT_DENYLIST`] removed. It is the SOUND
+/// (denylist) narrowing of the compile-logic input: the five augmentation readers
+/// (`derive_validation_shapes`, `extract_all_constraints`, `extract_correspondences`,
+/// `extract_leg_programs`, `MetaProgram::from_source_dataset`) read the OWL/RDFS/XSD
+/// restriction + `logic:`/`gmeow:` vocabulary + `rdfs:comment` caveats, never the stripped
+/// SKOS/Dublin-Core/PROV/VANN documentation triples, so the graph is reader-identical to
+/// the full corpus (the `logic_compile_input_subgraph_preserves_reader_output` soundness
+/// guard proves it). Attaching it as its own named graph on the `stage-source-load` product
+/// lets compile-logic declare a typed `consumed_entities` edge and drop the whole-corpus
+/// file list from its cache key — a documentation-only edit no longer re-runs the compiler.
+pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
 /// The seven `math:` producer graphs, one per native producer entrypoint — five bound to the
 /// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
@@ -569,14 +604,24 @@ pub(crate) fn build_self_description_dataset(
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let quality = gmeow_slice_quality::assessment_artifacts(root)
         .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
-    build_self_description_dataset_with_quality(root, &quality.nquads)
+    let authored_base = crate::stages::source_load::load_authored_dataset(root)?;
+    build_self_description_dataset_with_quality(root, authored_base.as_ref(), &quality.nquads)
 }
 
 /// Build the self-description named graphs with a caller-supplied slice-quality graph.
 /// `stage-source-load` uses this after scoring once so the same pass can also publish the
 /// diagnostics HTML; tests keep a wrapper that scores and calls this helper directly.
+///
+/// `authored_base` is the WHOLE merged authored dataset
+/// ([`crate::stages::source_load::load_authored_dataset`] — root ontology + slice modules +
+/// imports). It is the EXACT corpus `stage-compile-logic` used to re-parse for its five
+/// augmentation readers; the denylisted narrowing of it is published as
+/// [`GRAPH_LOGIC_COMPILE_INPUTS`] so compile-logic reads a typed entity instead. It is NOT
+/// the same dataset as the local `base` below (the authored DEFAULT graph — imports
+/// excluded, `.po` translations merged), so the two must not be conflated.
 pub(crate) fn build_self_description_dataset_with_quality(
     root: &Path,
+    authored_base: &purrdf::RdfDataset,
     quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
@@ -618,6 +663,17 @@ pub(crate) fn build_self_description_dataset_with_quality(
             provenance_nt.as_bytes(),
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+        // graph/logic-compile-inputs — the SOUND (denylist) narrowing of the WHOLE merged
+        // authored corpus `stage-compile-logic` reads (root ontology + slices + imports,
+        // documentation predicates stripped). Published here so compile-logic declares a
+        // typed `consumed_entities` edge on THIS graph and drops the whole-corpus file list
+        // from its cache key. Built from `authored_base` (the same `load_authored_dataset`
+        // compile-logic used), NOT the `base` authored-default above (which excludes imports
+        // and merges translations), so the five readers see a reader-identical corpus.
+        rooted_in_graph(
+            crate::stages::source_load::logic_compile_input_subgraph(authored_base)?.as_ref(),
+            GRAPH_LOGIC_COMPILE_INPUTS,
         )?,
     ];
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
@@ -774,6 +830,19 @@ fn assemble_carrier(
             .ok_or_else(|| stage_err("quality-assessment fanout path is not an RDF path"))?;
         rooted_in_graph(quality_assessment.as_ref(), &iri)?
     };
+    // graph/authoring-briefs — the per-slice `gmeow:AuthoringPacket` corpus, read off the
+    // DEDICATED stage-slice-brief producer's attached graph (a pure keyed fold,
+    // PIPELINE_SPINE §4 — it was assembled + attached ONCE at the DAG root). The base graph
+    // ships as a queryable bundle graph; its fanout twin re-roots the SAME triples into
+    // their `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/briefs/authoring-packets.nt` (RDF travels as RDF — the packet corpus lands
+    // in `generated/` too, not only as a bundle-internal named graph).
+    let authoring_briefs = producer_graph(upstream, "stage-slice-brief", GRAPH_AUTHORING_BRIEFS)?;
+    let authoring_briefs_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(AUTHORING_BRIEFS_PATH)
+            .ok_or_else(|| stage_err("authoring-briefs fanout path is not an RDF path"))?;
+        rooted_in_graph(authoring_briefs.as_ref(), &iri)?
+    };
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -806,6 +875,8 @@ fn assemble_carrier(
         correspondence_laws_fanout,
         quality_assessment,
         quality_assessment_fanout,
+        authoring_briefs,
+        authoring_briefs_fanout,
     ];
     // graph/math-producers/<name> — the seven `math:` producers' (five flagship producers,
     // the probability-model seam producer, and the p-value tri-slice producer) deterministic
@@ -1107,7 +1178,113 @@ pub(crate) fn assemble_object_level_edb(
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+    without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
+}
+
+/// Remove correspondence-owned recovery evidence from an otherwise object-level dataset.
+///
+/// A recovery case is executable meta-language: its formula seeds a source graph for the
+/// correspondence executor, but the formula tree is not an ontology ABox to saturate.  The
+/// compiled `graph/correspondence` projection is already excluded from the reasoning EDB; this
+/// function applies the same boundary to the canonical source envelope that remains in the
+/// default graph.  Besides avoiding false ontology facts, doing so keeps RDFC-1.0 labels for
+/// unrelated ontology blank nodes stable when recovery evidence grows.
+///
+/// Traversal follows only ownership links.  In particular, `logic:relation` and
+/// `logic:termIri` are deliberately not followed: their objects are ontology vocabulary terms,
+/// not nodes owned by the recovery case.
+fn without_recovery_case_envelopes(
+    dataset: &purrdf::RdfDataset,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    const RECOVERY_CASE: &str = "https://blackcatinformatics.ca/logic/recoveryCase";
+    const OWNERSHIP_LINKS: [&str; 11] = [
+        "https://blackcatinformatics.ca/logic/recoveryTransform",
+        "https://blackcatinformatics.ca/logic/not",
+        "https://blackcatinformatics.ca/logic/and",
+        "https://blackcatinformatics.ca/logic/or",
+        "https://blackcatinformatics.ca/logic/antecedent",
+        "https://blackcatinformatics.ca/logic/consequent",
+        "https://blackcatinformatics.ca/logic/iff",
+        "https://blackcatinformatics.ca/logic/forall",
+        "https://blackcatinformatics.ca/logic/exists",
+        "https://blackcatinformatics.ca/logic/argument",
+        "https://blackcatinformatics.ca/logic/quantifiedVariable",
+    ];
+
+    fn resource(term: &RdfTerm) -> bool {
+        matches!(term, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))
+    }
+
+    let quads: Vec<RdfQuad> = dataset.owned_quads().collect();
+    let reifiers: Vec<purrdf::RdfReifier> = dataset.owned_reifiers().collect();
+    let mut owned: HashSet<(Option<RdfTerm>, RdfTerm)> = quads
+        .iter()
+        .filter(|quad| quad.predicate == RECOVERY_CASE)
+        .filter(|quad| resource(&quad.object))
+        .map(|quad| (quad.graph_name.clone(), quad.object.clone()))
+        .collect();
+
+    loop {
+        let before = owned.len();
+        for quad in &quads {
+            if owned.contains(&(quad.graph_name.clone(), quad.subject.clone()))
+                && OWNERSHIP_LINKS.contains(&quad.predicate.as_str())
+                && resource(&quad.object)
+            {
+                owned.insert((quad.graph_name.clone(), quad.object.clone()));
+            }
+        }
+        // A reifier binds a name to a triple occurrence: when the reified statement
+        // touches recovery-owned territory (its subject or object is owned), the
+        // reifier's own identity is recovery-owned too. Folding that into the SAME
+        // fixed-point closure (rather than a one-shot pass below) makes pruning
+        // transitive across nested reification: RDF 1.2 allows annotating an
+        // annotation by reifying its `~reifier` triple (`<<~r1 :note "x">> :certainty
+        // 0.9 .`), so an outer reifier whose statement subject/object IS an inner
+        // pruned reifier's identity becomes owned here too, and on the next
+        // iteration any annotation keyed on THAT outer reifier is caught below.
+        for reifier in &reifiers {
+            if resource(&reifier.reifier)
+                && !owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
+                && (owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
+                    || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone())))
+            {
+                owned.insert((reifier.graph.clone(), reifier.reifier.clone()));
+            }
+        }
+        if owned.len() == before {
+            break;
+        }
+    }
+
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in quads {
+        let recovery_owned = quad.predicate == RECOVERY_CASE
+            || owned.contains(&(quad.graph_name.clone(), quad.subject.clone()));
+        if !recovery_owned {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in reifiers {
+        let recovery_owned = owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
+            || owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
+            || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone()));
+        if !recovery_owned {
+            builder.push_owned_reifier(&reifier);
+        }
+    }
+    // Every annotation quad keyed on a pruned reifier is dropped here too: `owned`
+    // now includes every reifier identity pruned above (directly, or transitively
+    // through nested reification of an annotation triple), so no dangling
+    // RDF-star metadata can reference a reifier that no longer exists in the EDB.
+    for annotation in dataset.owned_annotations() {
+        if !owned.contains(&(annotation.graph.clone(), annotation.reifier.clone())) {
+            builder.push_owned_annotation(&annotation);
+        }
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze recovery-free reasoning EDB: {e}")))
 }
 
 /// Project a shipped snapshot back to the exact object-level EDB admitted by
@@ -1148,14 +1325,178 @@ pub fn snapshot_reasoning_edb(
             builder.push_owned_annotation(&annotation);
         }
     }
-    builder
+    let admitted = builder
         .freeze()
-        .map_err(|e| stage_err(&format!("freeze snapshot object-level reasoning EDB: {e}")))
+        .map_err(|e| stage_err(&format!("freeze snapshot object-level reasoning EDB: {e}")))?;
+    without_recovery_case_envelopes(admitted.as_ref())
 }
 
 #[cfg(test)]
 mod reasoning_edb_projection_tests {
     use super::*;
+
+    #[test]
+    fn recovery_formula_envelope_is_meta_level_but_referenced_terms_remain() {
+        let trig = b"@prefix ex: <https://example.test/> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            ex:ordinary ex:p [ ex:q ex:o ] .
+            GRAPH <https://blackcatinformatics.ca/gmeow/graph/imports> {
+                ex:Source ex:retained ex:yes .
+                ex:c logic:recoveryCase ex:case .
+                ex:case a logic:RecoveryCase ; logic:recoveryTransform _:root .
+                _:root a logic:Formula ;
+                    logic:quantifiedVariable _:var ;
+                    logic:forall _:implication .
+                _:var a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" .
+                _:implication a logic:Formula ;
+                    logic:antecedent _:source ; logic:consequent _:view .
+                _:source a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument _:sourceSubject, _:sourceClass .
+                _:sourceSubject a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" .
+                _:sourceClass a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Source .
+                _:view a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument _:viewSubject, _:viewClass .
+                _:viewSubject a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" .
+                _:viewClass a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:View .
+            }";
+        let snapshot =
+            parse_dataset(trig, "application/trig", None).expect("parse recovery fixture");
+        let edb = snapshot_reasoning_edb(snapshot.as_ref()).expect("project reasoning EDB");
+        let quads: Vec<RdfQuad> = edb.owned_quads().collect();
+
+        assert!(quads.iter().any(|quad| {
+            quad.subject == RdfTerm::iri("https://example.test/Source")
+                && quad.predicate == "https://example.test/retained"
+        }));
+        assert!(quads.iter().any(|quad| {
+            quad.subject == RdfTerm::iri("https://example.test/ordinary")
+                && matches!(quad.object, RdfTerm::BlankNode(_))
+        }));
+        assert!(quads.iter().all(|quad| {
+            quad.predicate != "https://blackcatinformatics.ca/logic/recoveryCase"
+                && quad.subject != RdfTerm::iri("https://example.test/case")
+        }));
+        assert_eq!(
+            quads
+                .iter()
+                .filter(|quad| matches!(quad.subject, RdfTerm::BlankNode(_)))
+                .count(),
+            1,
+            "only the unrelated ordinary blank node remains"
+        );
+    }
+
+    /// G7: an RDF-star annotation keyed on a reifier that `without_recovery_case_envelopes`
+    /// prunes must be pruned too — including TRANSITIVELY, when the pruned reifier's
+    /// identity is itself reified again (RDF 1.2 permits annotating an annotation by
+    /// reifying its `~reifier` triple). Zero dangling annotation metadata may survive;
+    /// unrelated, ordinary annotations must be untouched.
+    #[test]
+    fn without_recovery_case_envelopes_prunes_annotations_on_pruned_reifiers() {
+        const EX: &str = "https://example.test/";
+        let recovery_case = RdfTerm::iri(format!("{EX}case"));
+
+        // Seeds `owned` directly: the recovery-case object.
+        let seed = RdfQuad::new(
+            RdfTerm::iri(format!("{EX}c")),
+            "https://blackcatinformatics.ca/logic/recoveryCase",
+            recovery_case.clone(),
+        );
+
+        // Reifier r1 reifies a statement whose SUBJECT is the recovery-case node, so r1
+        // is recovery-owned via the subject/object rule (not because r1's own identity
+        // was ever directly asserted as a recoveryCase object).
+        let r1 = RdfTerm::iri(format!("{EX}evidenceStmt"));
+        let r1_statement = RdfTriple::new(
+            recovery_case.clone(),
+            format!("{EX}hasEvidence"),
+            RdfTerm::iri(format!("{EX}blob")),
+        );
+        let r1_reifier = purrdf::RdfReifier::new(r1.clone(), r1_statement).in_graph(None);
+        let r1_annotation = purrdf::RdfAnnotation::new(
+            r1.clone(),
+            format!("{EX}confidence"),
+            RdfTerm::iri(format!("{EX}high")),
+        )
+        .in_graph(None);
+
+        // Reifier r3 reifies the ANNOTATION triple `(r1, metaNote, r1)` — i.e. it
+        // reifies a triple whose subject is r1's own identity term. r3 is only
+        // recovery-owned TRANSITIVELY: r1 becomes owned first (via its statement's
+        // subject), and only then does r3's statement (subject = r1) become owned.
+        let r3 = RdfTerm::iri(format!("{EX}metaStmt"));
+        let r3_statement = RdfTriple::new(
+            r1.clone(),
+            format!("{EX}metaNote"),
+            RdfTerm::iri(format!("{EX}annotated")),
+        );
+        let r3_reifier = purrdf::RdfReifier::new(r3.clone(), r3_statement).in_graph(None);
+        let r3_annotation = purrdf::RdfAnnotation::new(
+            r3.clone(),
+            format!("{EX}derivedNote"),
+            RdfTerm::iri(format!("{EX}something")),
+        )
+        .in_graph(None);
+
+        // An ordinary, unrelated reifier + annotation that never touches recovery-case
+        // territory — must survive untouched.
+        let r2 = RdfTerm::iri(format!("{EX}otherStmt"));
+        let r2_statement = RdfTriple::new(
+            RdfTerm::iri(format!("{EX}ordinarySubj")),
+            format!("{EX}ordinaryPred"),
+            RdfTerm::iri(format!("{EX}ordinaryObj")),
+        );
+        let r2_reifier = purrdf::RdfReifier::new(r2.clone(), r2_statement).in_graph(None);
+        let r2_annotation = purrdf::RdfAnnotation::new(
+            r2.clone(),
+            format!("{EX}note"),
+            RdfTerm::iri(format!("{EX}fine")),
+        )
+        .in_graph(None);
+
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&seed);
+        builder.push_owned_reifier(&r1_reifier);
+        builder.push_owned_annotation(&r1_annotation);
+        builder.push_owned_reifier(&r3_reifier);
+        builder.push_owned_annotation(&r3_annotation);
+        builder.push_owned_reifier(&r2_reifier);
+        builder.push_owned_annotation(&r2_annotation);
+        let dataset = builder.freeze().expect("valid RDF 1.2 fixture");
+
+        let edb = without_recovery_case_envelopes(dataset.as_ref())
+            .expect("prune recovery-case envelope");
+
+        let reifiers: Vec<purrdf::RdfReifier> = edb.owned_reifiers().collect();
+        let annotations: Vec<purrdf::RdfAnnotation> = edb.owned_annotations().collect();
+
+        assert!(
+            !reifiers.iter().any(|r| r.reifier == r1),
+            "recovery-owned reifier r1 must be pruned"
+        );
+        assert!(
+            !reifiers.iter().any(|r| r.reifier == r3),
+            "transitively recovery-owned reifier r3 must be pruned"
+        );
+        assert!(
+            reifiers.iter().any(|r| r.reifier == r2),
+            "unrelated reifier r2 must survive"
+        );
+
+        assert!(
+            !annotations.iter().any(|a| a.reifier == r1),
+            "annotation keyed on pruned reifier r1 must be gone (zero dangling metadata)"
+        );
+        assert!(
+            !annotations.iter().any(|a| a.reifier == r3),
+            "annotation keyed on transitively pruned reifier r3 must be gone"
+        );
+        assert!(
+            annotations.iter().any(|a| a.reifier == r2),
+            "unrelated annotation on r2 must survive"
+        );
+    }
 
     #[test]
     fn shipped_correspondence_and_alignment_targets_never_enter_reasoning() {
@@ -3172,6 +3513,9 @@ impl SnapshotStage {
                 // into gmeow.gts as their own bundle-internal named graphs (Design A — the
                 // producer output ships).
                 "stage-math-producers".to_string(),
+                // The per-slice authoring-packet corpus (graph/authoring-briefs), folded
+                // into gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
+                "stage-slice-brief".to_string(),
                 // The SHACL→JSON-Schema export leaf: its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
                 // bytes, which `build_archive_blobs` folds into the `schemas-archive`
@@ -3307,7 +3651,12 @@ impl Stage for SnapshotStage {
         // denoting a logic:Formula that predicates over a well-framed math:PValue)
         // now ships inside `gmeow.gts` itself (Design A), not only in the
         // illustrative `examples/pvalue-tri-slice.ttl` fixture validated on disk.
-        "snapshot.v27-pvalue-tri-slice-producer"
+        // v28 additionally folds stage-slice-brief's authoring-packets graph
+        // (graph/authoring-briefs, a gmeow:AuthoringPacket per in-repo slice batch) into
+        // gmeow.gts as a bundle-internal named graph, plus its fanout twin into
+        // generated/briefs/authoring-packets.nt (RDF travels as RDF — the shippable
+        // authoring deliverable lands in `generated/` too, not only in the bundle graph).
+        "snapshot.v28-authoring-briefs-producer"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -6015,7 +6364,7 @@ mod logic_graph_golden_tests {
     #[test]
     fn graph_correspondence_fold_byte_golden() {
         let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
-            &gmeow_logic_compile::projections::correspondence::affine_triangle_worked_example(),
+            &crate::stages::compile_logic::affine_worked_example_program(),
         );
 
         let build = || {
@@ -7341,7 +7690,7 @@ mod term_entailments_tests {
         let compile = crate::stages::compile_logic::CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &empty,
+                upstream: &upstream,
             })
             .expect("real compile-logic");
         upstream.insert("stage-compile-logic".to_string(), compile.product);

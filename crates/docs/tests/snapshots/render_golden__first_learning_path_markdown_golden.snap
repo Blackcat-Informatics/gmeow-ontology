@@ -64,5 +64,5 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
 
 ---
 
-**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-source-load`
 Rendered from `gmeow.gts` by the dogfooded build pipeline.

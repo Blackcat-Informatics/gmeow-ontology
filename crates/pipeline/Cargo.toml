@@ -90,6 +90,10 @@ docs-print = { path = "../docs-print" }
 # The slice-quality advisor kernel, exposed as an MCP tool so agents can
 # measure → act → re-measure a slice's quality in one loop.
 gmeow-slice-quality = { path = "../slice-quality" }
+# The `slice_brief` stage assembles a gmeow:AuthoringPacket per in-repo slice batch
+# (definition + axioms + bounded neighbourhood + grounding cross-table), folded into
+# gmeow.gts as the graph/authoring-briefs corpus (the shippable authoring deliverable).
+gmeow-slice-brief = { path = "../slice-brief" }
 # The `lang_form` prose-lift corpus drives the shared `lang:` ingester skeleton
 # (`PlainTextBridge` + the deterministic N-Triples / content-address emitter), so there is
 # one digest and one bridge law-spine across every `lang:` producer.

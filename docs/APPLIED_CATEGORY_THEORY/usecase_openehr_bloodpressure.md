@@ -186,11 +186,12 @@ confirm clause (a)) is the standalone lane `validations/openehr-bloodpressure/` 
 CDR / Java, outside GMEOW's Docker-free gate, so it is a `make -C validations/openehr-bloodpressure`
 probe, not part of `make check`. **Recorded outcome: both compositions validate (PASS) against the
 pinned EHRbase image — reproduce on demand via the lane; it is not re-run by CI.** The in-gate
-structural + data round trip is proven by the conformance case
-`correspondence/openehr-bloodpressure-section-retraction` (structural: the witness resolves and its
-auto-derived inverse is well-formed) and `crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`
-(data: `u` re-lifts the RM slice via the `rmPath` witness, unions with the complement, and the
-reconstruction equals the golden source `blood_pressure.source.ttl`).
+bounded recovery + full fixture round trip is proven by the conformance case
+`correspondence/openehr-bloodpressure-section-retraction` (the complete three-edge source path is
+executed through get and candidate put and every source atom is recovered) and
+`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs` (the larger data proof: `u` re-lifts
+the RM slice via the `rmPath` witness, unions with the complement, and the reconstruction equals the
+golden source `blood_pressure.source.ttl`).
 
 ---
 
@@ -204,15 +205,15 @@ reconstruction equals the golden source `blood_pressure.source.ttl`).
 
 Because `get` was mnemomorphic and the complement carries exactly `S ∖ im(get)`, **nothing the
 retraction needs was discarded** → `u(d(g)) = g` on the canonical IR. Two complementary checks
-back this, and it is worth being precise about what each proves. The **structural** Round-trip /
-Mnemomorphism gates (`take1.md` §15.3–§15.4, conformance case
-`correspondence/openehr-bloodpressure-section-retraction`) confirm the witness *resolves* and its
-lawful auto-derived inverse (`put = get.invert()`) is *well-formed* — they do not execute the
-recovery over data. The **data** proof
-(`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) does execute it: `u` re-lifts the
-RM `DV_QUANTITY` values through the `rmPath` witness (`at0004`/`at0005`), unions them with the parsed
-complement, and asserts the canonicalization equals the golden source `blood_pressure.source.ttl` —
-so corrupting the RM magnitude fails the test. Together they realize the **section/retraction rung**:
+back this, and it is worth being precise about what each proves. The **bounded query-class**
+Round-trip / Mnemomorphism gates (`take1.md` §15.3–§15.4, conformance case
+`correspondence/openehr-bloodpressure-section-retraction`) execute the complete three-edge source
+path through get and candidate put, proving that all declared path atoms recover; the SeqPath's
+structural inverse alone is not accepted as evidence. The **full fixture data** proof
+(`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) re-lifts the RM `DV_QUANTITY`
+values through the `rmPath` witness (`at0004`/`at0005`), unions them with the parsed complement, and
+asserts the canonicalization equals the golden source `blood_pressure.source.ttl` — so corrupting
+the RM magnitude fails the test. Together they realize the **section/retraction rung**:
 `:sysBP-of-P` round-trips via the persistent-quality identity carried in the complement; the framed
 value round-trips via the RM `DV_QUANTITY`; the standpoint/axes round-trip via the Turtle blob keyed
 by `at0004`.
@@ -281,7 +282,7 @@ diastolic) — the "augment" beyond subsumption.
 | Validation (§13.1.1) | **PASS observed via the standalone lane, not CI** — `source` and `augmented` both validate under `Blutdruck.opt` against pinned EHRbase `2.15.0` (`validations/openehr-bloodpressure/`, reproduce on demand); complement in RM-level `feeder_audit`/`links`, the `LINK.target` `DV_EHR_URI` on the `ehr` scheme |
 | Lossless subsumption `u∘d=id` (§13.1.2) | holds — the data test reconstructs `S` from the RM slice re-lifted via the `rmPath` witness ∪ the complement and asserts it equals the golden `blood_pressure.source.ttl`; load-bearing (corrupting an RM magnitude fails) — **section/retraction rung** (`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) |
 | Store-replacement `d∘u≅o` (§13.1.3) | holds for faithful instances — RM slice regenerated incl. the half-open interval read from the OPT (`crates/shacl/src/openehr_opt.rs`, `crates/shacl/tests/bloodpressure_halfopen.rs`) |
-| Round-trip gate (§15.3) | passes on canonical IR — confirms the witness resolves and its auto-derived inverse is well-formed (`correspondence/openehr-bloodpressure-section-retraction`); data recovery proven by the reconstruction test above |
+| Round-trip gate (§15.3) | passes by native execution over the declared complete three-edge source case (`correspondence/openehr-bloodpressure-section-retraction`); full RM-slice + complement recovery is proven by the reconstruction test above |
 | Mnemomorphism gate (§15.4) | passes — witness = `archetype_node_id` path + complement |
 | Loss ledger (§15.6) | **exact** for the RM slice + complement; **under-approximation** for any consumer that drops the complement (RM-only reader) — that reader gets a valid-but-lessened view, declared |
 

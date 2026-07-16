@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use crate::ir::PreservationKind;
+use crate::ir::{Formula, PreservationKind, RecoveryCaseIr, Term};
 
 const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
@@ -200,6 +200,298 @@ fn projection_round_trips_to_equal_content_key() {
         project_correspondence(&re_derived),
         nt,
         "re-projecting the re-derived program is byte-identical"
+    );
+}
+
+/// Recovery evidence has one canonical RDF home under its correspondence.  Its complete
+/// quantified transform survives project → parse → project without also becoming a
+/// top-level formula assertion.
+#[test]
+fn recovery_case_formula_round_trips_byte_identically() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+
+    let atom = |relation: &str, object: &str| {
+        Formula::atom(
+            Term::iri(relation).expect("relation IRI"),
+            vec![
+                Term::var("source").expect("source variable"),
+                Term::iri(object).expect("endpoint IRI"),
+            ],
+        )
+        .expect("binary atom")
+    };
+    let transform = Formula::Forall {
+        vars: vec!["source".to_owned()],
+        body: Box::new(Formula::Implies(
+            Box::new(atom(
+                "https://example.org/sourceKind",
+                "https://example.org/Language",
+            )),
+            Box::new(atom(
+                "https://example.org/viewKind",
+                "https://example.org/SignSystem",
+            )),
+        )),
+    };
+    let case = RecoveryCaseIr::new("https://example.org/recovery/language", transform)
+        .expect("valid recovery case");
+    let correspondence = Correspondence::new(
+        "https://example.org/correspondence/language",
+        CorrespondenceRelation::SubsumedBy,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        Some("https://example.org/get".to_owned()),
+        Some("https://example.org/put".to_owned()),
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("valid correspondence")
+    .with_recovery_cases(vec![case])
+    .expect("unique recovery case");
+    let program = CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::Exact);
+
+    let nt = project_correspondence(&program);
+    assert!(
+        nt.contains("RecoveryCase"),
+        "case type must be projected:\n{nt}"
+    );
+    assert!(
+        nt.contains("recoveryTransform"),
+        "formula ownership edge must be projected:\n{nt}"
+    );
+    let dataset = parse_nt(&nt);
+    let re_derived = parse_correspondence(&dataset).expect("re-derive recovery case");
+    assert_eq!(program.content_key(), re_derived.content_key());
+    assert_eq!(project_correspondence(&re_derived), nt);
+
+    let duplicate_transform = format!(
+        "{nt}<https://example.org/recovery/language> <{}> <https://example.org/recovery/second-transform> .\n",
+        p_recovery_transform()
+    );
+    let duplicate_dataset = parse_nt(&duplicate_transform);
+    let error = parse_correspondence(&duplicate_dataset)
+        .expect_err("a recovery case with two transforms must hard-fail");
+    assert!(error.message().contains("exactly one"), "{error}");
+
+    let untyped = nt
+        .lines()
+        .filter(|line| {
+            !(line.starts_with("<https://example.org/recovery/language> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+                && line.contains("RecoveryCase"))
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let untyped_dataset = parse_nt(&untyped);
+    let error = parse_correspondence(&untyped_dataset)
+        .expect_err("an untyped recovery case must hard-fail");
+    assert!(error.message().contains("not typed"), "{error}");
+}
+
+/// [`CorrespondenceOwnership`] must not over-capture: a resource whose IRI merely shares a
+/// recovery case's IRI as a *string* prefix — but is not a genuine `recoveryTransform`
+/// descendant minted by [`project_correspondence`] — is NEVER treated as correspondence-owned.
+/// Regression for the dialect-writer gap where an "exact-or-slash-prefix" ownership test
+/// classified any slash-suffixed sibling of a recovery-case IRI as owned, silently dropping its
+/// axioms from the generated CGIF/CLIF/XCL dialects. The case's genuine structural children
+/// (the case node itself and its `/transform` formula tree) are still correctly owned.
+#[test]
+fn correspondence_ownership_does_not_over_capture_unrelated_slash_children() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+
+    let case_iri = "https://example.org/recovery/case1".to_owned();
+    let transform = Formula::atom(
+        Term::iri("https://example.org/holds").expect("relation IRI"),
+        vec![Term::iri("https://example.org/a").expect("endpoint IRI")],
+    )
+    .expect("ground atom");
+    let case = RecoveryCaseIr::new(case_iri.clone(), transform).expect("valid recovery case");
+    let correspondence = Correspondence::new(
+        "https://example.org/correspondence/case1owner",
+        CorrespondenceRelation::SubsumedBy,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("valid correspondence")
+    .with_recovery_cases(vec![case])
+    .expect("unique recovery case");
+
+    let ownership = CorrespondenceOwnership::build(std::slice::from_ref(&correspondence));
+
+    // Genuine structural children ARE owned.
+    assert!(
+        ownership.owns(&case_iri),
+        "the recovery case node itself must be owned"
+    );
+    assert!(
+        ownership.owns(&format!("{case_iri}/transform")),
+        "the mint root of the recoveryTransform formula tree must be owned"
+    );
+    assert!(
+        ownership.owns(&format!("{case_iri}/transform/body")),
+        "a genuine descendant under the transform mint root must be owned"
+    );
+
+    // An unrelated resource that shares the case IRI as a string prefix but is NOT a
+    // `/transform` descendant must NOT be swept up.
+    assert!(
+        !ownership.owns(&format!("{case_iri}extra")),
+        "a sibling IRI sharing the case IRI as a bare string prefix must not be owned"
+    );
+    assert!(
+        !ownership.owns(&format!("{case_iri}/unrelated-sibling")),
+        "a slash-suffixed sibling that is not a recoveryTransform descendant must not be owned"
+    );
+    assert!(
+        !ownership.owns(&format!("{case_iri}/../other")),
+        "a path-traversal-style sibling must not be owned"
+    );
+}
+
+/// End-to-end regression: a program carrying a recovery case PLUS an unrelated axiom whose
+/// subject is slash-suffixed under the case IRI must project both the case's own recovery
+/// evidence AND retain the unrelated axiom as a flat axiom in the meta channel — the writer
+/// must not silently drop it as "correspondence-owned".
+#[test]
+fn writer_meta_channel_retains_axiom_sharing_case_iri_as_slash_prefix() {
+    use crate::ir::{
+        ContextualScope, CorrespondenceRelation, LogicAxiom, LogicProgram, MorphismClass,
+        MorphismKind,
+    };
+
+    let case_iri = "https://example.org/recovery/case1".to_owned();
+    let transform = Formula::atom(
+        Term::iri("https://example.org/holds").expect("relation IRI"),
+        vec![Term::iri("https://example.org/a").expect("endpoint IRI")],
+    )
+    .expect("ground atom");
+    let case = RecoveryCaseIr::new(case_iri.clone(), transform).expect("valid recovery case");
+    let correspondence = Correspondence::new(
+        "https://example.org/correspondence/case1owner",
+        CorrespondenceRelation::SubsumedBy,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("valid correspondence")
+    .with_recovery_cases(vec![case])
+    .expect("unique recovery case");
+
+    // A domain resource that is NOT part of the recovery-case structure, but happens to be
+    // named as a slash-child of the case IRI (a plausible naming collision in a large corpus).
+    let sibling_subject = format!("{case_iri}/unrelated-sibling");
+    let sibling_axiom = LogicAxiom::new(
+        sibling_subject.clone(),
+        "https://example.org/marker".to_owned(),
+        "true".to_owned(),
+        true,
+        false,
+        ContextualScope::default(),
+    )
+    .expect("valid axiom");
+
+    let program = LogicProgram::new(vec![sibling_axiom], vec![], vec![], None)
+        .with_correspondences(vec![correspondence])
+        .expect("unique correspondence");
+
+    let cgif = crate::cgif::project_cgif(&program)
+        .expect("project_cgif")
+        .content;
+    assert!(
+        cgif.contains(&sibling_subject),
+        "the unrelated sibling axiom must survive into the CGIF meta channel, not be dropped \
+         as correspondence-owned:\n{cgif}"
+    );
+
+    let clif = crate::clif::project_clif(&program)
+        .expect("project_clif")
+        .content;
+    assert!(
+        clif.contains(&sibling_subject),
+        "the unrelated sibling axiom must survive into the CLIF meta channel, not be dropped \
+         as correspondence-owned:\n{clif}"
+    );
+
+    let xcl = crate::xcl::project_xcl(&program)
+        .expect("project_xcl")
+        .content;
+    assert!(
+        xcl.contains(&sibling_subject),
+        "the unrelated sibling axiom must survive into the XCL meta channel, not be dropped \
+         as correspondence-owned:\n{xcl}"
+    );
+}
+
+/// Fidelity oracle for the dogfooded affine cell: the hand-authored
+/// `slices/grounding/logic/examples/affine-correspondence.ttl` re-derives (via
+/// `parse_correspondence`, the cache-hit inverse the production lane now uses) to the
+/// EXACT same [`CorrespondenceProgram`] as the `affine_triangle_worked_example` Rust
+/// literal — so its `project_correspondence` is byte-identical and `graph/correspondence`
+/// keeps byte-parity now that the stage reads the authored TTL instead of the literal.
+#[test]
+fn authored_affine_cell_matches_worked_example_oracle() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/logic/examples/affine-correspondence.ttl");
+    let source = std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read authored affine cell {path:?}: {e}"));
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+        .expect("parse authored affine correspondence cell");
+    let authored = parse_correspondence(&dataset).expect("re-derive authored affine program");
+
+    let oracle = affine_triangle_worked_example();
+
+    // (a) Field-for-field program identity (both types derive PartialEq).
+    assert_eq!(
+        authored, oracle,
+        "the authored affine cell must re-derive to the worked-example program"
+    );
+
+    // (b) Byte-parity of the backing projection: the authored program projects to the
+    // SAME `graph/correspondence` N-Triples as the former hardcoded literal.
+    assert_eq!(
+        project_correspondence(&authored),
+        project_correspondence(&oracle),
+        "the authored affine cell must project byte-identically to graph/correspondence"
+    );
+
+    // (c) Round-trip: projecting the worked example and re-parsing its N-Triples yields
+    // the same program (the cache-hit inverse), which the authored cell also equals.
+    let reparsed = parse_correspondence(&parse_nt(&project_correspondence(&oracle)))
+        .expect("re-derive the projected worked example");
+    assert_eq!(
+        reparsed, oracle,
+        "project → parse must round-trip the worked-example program"
+    );
+    assert_eq!(
+        authored, reparsed,
+        "the authored cell and the projected round-trip must be the same program"
     );
 }
 

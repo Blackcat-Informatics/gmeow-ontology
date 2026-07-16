@@ -9,9 +9,9 @@
 # correspondences are extracted from the authored surface and run through assert_gates in the
 # logic-compile stage, which enforces rung↔mnemomorphic consistency and the OVERCLAIM law — a
 # lossy mapping that claimed logic:Isomorphism or logic:Equivalence reds the build. The
-# Section-Retraction recoverability rung is an authored, structurally-checked witness (its getLeg
-# is carried and structurally invertible); the genuine over-data Mnemomorphism discharge that
-# executes the recovery and reds a false section is not yet run on this pure-LegPath path.
+# Section-Retraction recoverability rung is backed by first-class logic:RecoveryCase formulae.
+# The native executor instantiates each complete source pattern, runs get then put, and compares
+# the recovered source graph; a structural inverse alone is never accepted as recovery evidence.
 #
 # Honesty note: two claims the earlier prose called "SECTION-RETRACTION" are in truth LOSSY —
 # gmeow:WritingSystem drops writingSystemType/textDirection and gmeow:languageTag drops the
@@ -22,6 +22,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -31,7 +32,7 @@
 <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences>
     a owl:Ontology ;
     rdfs:label "GMEOW lang: graft supersession ledger"@x-gmeow-english ;
-    skos:definition "The supersession ledger of the lang: grafting migration: every removed / deepened / grafted gmeow: term recorded as a logic:Correspondence FROM the old term (logic:supersededTerm) TO its lang:/logic: replacement (logic:supersedingTerm), at its true rung (logic:morphismClass) with its recoverability witness (logic:mnemomorphic). The rung is gate-enforced through assert_gates in the logic-compile stage, which reds an overclaim (a lossy mapping cannot claim logic:Isomorphism or logic:Equivalence) and enforces rung↔mnemomorphic consistency; the Section-Retraction recoverability is an authored, structurally-checked witness (the genuine over-data recovery discharge is not yet run on this path). The ledger is queryable per migrated term, so the preservation rung is reasoned data, not prose."@x-gmeow-english ;
+    skos:definition "The supersession ledger of the lang: grafting migration: every removed / deepened / grafted gmeow: term recorded as a logic:Correspondence FROM the old term (logic:supersededTerm) TO its lang:/logic: replacement (logic:supersedingTerm), at its true rung (logic:morphismClass) with its recoverability witness (logic:mnemomorphic). The rung is gate-enforced through assert_gates in the logic-compile stage, which reds an overclaim (a lossy mapping cannot claim logic:Isomorphism or logic:Equivalence) and enforces rung↔mnemomorphic consistency. Every strong crossing carries a first-class logic:RecoveryCase whose complete source graph is executed through get and put; the WritingSystem split carries a deliberately refuting case that proves its dropped type and direction facets. The ledger is queryable per migrated term, so the preservation rung is reasoned data, not prose."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
     gmeow:graphBoxRole gmeow:boxConfigBox .
 
@@ -51,8 +52,29 @@ sup:langLanguageSignSystem a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:langLanguageSignSystemGet ;
+    logic:recoveryCase sup:langLanguageSignSystemRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langLanguageSignSystemGet gmeow:path sup:langLanguageSignSystemStep .
+sup:langLanguageSignSystemRecovery a logic:RecoveryCase ;
+    rdfs:label "Language to Sign System recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether the Language-to-Sign-System correspondence recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langLanguageSignSystemRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langLanguageSignSystemRecoveryFormula a logic:Formula ;
+    rdfs:label "Language to Sign System recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that maps Language membership to Sign System membership for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:Language ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:SignSystem ] ]
+    ] .
 
 # --- FormalLanguage → formalLanguageKind: collapse (SectionRetraction) ------ #
 # The load-bearing claim: the two-way Formal/Programming distinction is recovered
@@ -69,8 +91,29 @@ sup:langFormalKind a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:langFormalKindGet ;
+    logic:recoveryCase sup:langFormalKindRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langFormalKindGet gmeow:path sup:langFormalKindStep .
+sup:langFormalKindRecovery a logic:RecoveryCase ;
+    rdfs:label "Formal Language kind recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether the Formal Language kind collapse recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langFormalKindRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langFormalKindRecoveryFormula a logic:Formula ;
+    rdfs:label "Formal Language kind recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that maps Formal Language membership to the formal-language kind for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:FormalLanguage ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation lang:signSystemKind ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:formalLanguageKind ] ]
+    ] .
 
 # --- ProgrammingLanguage → programmingLanguageKind: collapse (SectionRetraction)  #
 # lang:programmingLanguageKind refines lang:formalLanguageKind via skos:broader, so the
@@ -87,8 +130,29 @@ sup:langProgrammingKind a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:langProgrammingKindGet ;
+    logic:recoveryCase sup:langProgrammingKindRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langProgrammingKindGet gmeow:path sup:langProgrammingKindStep .
+sup:langProgrammingKindRecovery a logic:RecoveryCase ;
+    rdfs:label "Programming Language kind recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether the Programming Language kind collapse recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langProgrammingKindRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langProgrammingKindRecoveryFormula a logic:Formula ;
+    rdfs:label "Programming Language kind recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that maps Programming Language membership to the programming-language kind for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:ProgrammingLanguage ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation lang:signSystemKind ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:programmingLanguageKind ] ]
+    ] .
 
 # --- WritingSystem → Script + Orthography: split (LossyLens, NOT a section) -- #
 # The (script, orthography) pair recovers the repertoire + binding, but writingSystemType
@@ -104,7 +168,39 @@ sup:langWritingSystemSplit a logic:Correspondence ;
     logic:morphismClass logic:LossyLens ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "false"^^xsd:boolean ;
+    logic:recoveryCase sup:langWritingSystemSplitRefutation ;
     gmeow:graphBoxRole gmeow:boxABox .
+sup:langWritingSystemSplitRefutation a logic:RecoveryCase ;
+    rdfs:label "Writing System split recovery refutation"@x-gmeow-english ;
+    skos:definition "An executable counterexample showing that the Writing System split fails to recover the source type, kind, and text-direction graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langWritingSystemSplitRefutationFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langWritingSystemSplitRefutationFormula a logic:Formula ;
+    rdfs:label "Writing System split refutation transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula whose source preserves Writing System kind and direction while its Script view drops those facets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "kind" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "direction" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:and
+            [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:WritingSystem ] ] ,
+            [ a logic:Formula ; logic:relation gmeow:writingSystemType ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "kind" ] ] ,
+            [ a logic:Formula ; logic:relation gmeow:textDirection ; logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "direction" ] ]
+        ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "system" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:Script ] ]
+    ] .
 
 # --- seed unification langEnglish/French/Mandarin → lang:english/french/mandarin (Isomorphism) #
 sup:langEnglishUnify a logic:Correspondence ;
@@ -118,8 +214,29 @@ sup:langEnglishUnify a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:langEnglishUnifyGet ;
+    logic:recoveryCase sup:langEnglishUnifyRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langEnglishUnifyGet gmeow:path sup:langEnglishUnifyStep .
+sup:langEnglishUnifyRecovery a logic:RecoveryCase ;
+    rdfs:label "English identity unification recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether English identity unification recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langEnglishUnifyRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langEnglishUnifyRecoveryFormula a logic:Formula ;
+    rdfs:label "English identity unification recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that replaces the superseded English identity with its canonical language identity for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:value ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:langEnglish ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:value ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:english ] ]
+    ] .
 
 sup:langFrenchUnify a logic:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
@@ -132,8 +249,29 @@ sup:langFrenchUnify a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:langFrenchUnifyGet ;
+    logic:recoveryCase sup:langFrenchUnifyRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langFrenchUnifyGet gmeow:path sup:langFrenchUnifyStep .
+sup:langFrenchUnifyRecovery a logic:RecoveryCase ;
+    rdfs:label "French identity unification recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether French identity unification recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langFrenchUnifyRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langFrenchUnifyRecoveryFormula a logic:Formula ;
+    rdfs:label "French identity unification recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that replaces the superseded French identity with its canonical language identity for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:value ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:langFrench ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:value ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:french ] ]
+    ] .
 
 sup:langMandarinUnify a logic:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
@@ -146,8 +284,29 @@ sup:langMandarinUnify a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:langMandarinUnifyGet ;
+    logic:recoveryCase sup:langMandarinUnifyRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langMandarinUnifyGet gmeow:path sup:langMandarinUnifyStep .
+sup:langMandarinUnifyRecovery a logic:RecoveryCase ;
+    rdfs:label "Mandarin identity unification recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether Mandarin identity unification recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:langMandarinUnifyRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langMandarinUnifyRecoveryFormula a logic:Formula ;
+    rdfs:label "Mandarin identity unification recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that replaces the superseded Mandarin identity with its canonical language identity for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:value ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:langMandarin ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:value ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "holder" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:mandarin ] ]
+    ] .
 
 # --- languageTag → carrierTag: retract to carriers (LossyLens, NOT a section) - #
 sup:langTagCarrier a logic:Correspondence ;
@@ -204,8 +363,29 @@ sup:notationSymbolicSignSystem a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:notationSymbolicSignSystemGet ;
+    logic:recoveryCase sup:notationSymbolicSignSystemRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:notationSymbolicSignSystemGet gmeow:path sup:notationSymbolicSignSystemStep .
+sup:notationSymbolicSignSystemRecovery a logic:RecoveryCase ;
+    rdfs:label "Symbolic System to Sign System recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether the Symbolic-System-to-Sign-System correspondence recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:notationSymbolicSignSystemRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:notationSymbolicSignSystemRecoveryFormula a logic:Formula ;
+    rdfs:label "Symbolic System to Sign System recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that maps Symbolic System membership to Sign System membership for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:SymbolicSystem ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:SignSystem ] ]
+    ] .
 
 sup:notationNotationSignSystem a logic:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
@@ -218,8 +398,29 @@ sup:notationNotationSignSystem a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg sup:notationNotationSignSystemGet ;
+    logic:recoveryCase sup:notationNotationSignSystemRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:notationNotationSignSystemGet gmeow:path sup:notationNotationSignSystemStep .
+sup:notationNotationSignSystemRecovery a logic:RecoveryCase ;
+    rdfs:label "Notation System to Sign System recovery case"@x-gmeow-english ;
+    skos:definition "An executable recovery case that checks whether the Notation-System-to-Sign-System correspondence recovers its complete source graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    logic:recoveryTransform sup:notationNotationSignSystemRecoveryFormula ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:notationNotationSignSystemRecoveryFormula a logic:Formula ;
+    rdfs:label "Notation System to Sign System recovery transform"@x-gmeow-english ;
+    skos:definition "The source-to-view formula that maps Notation System membership to Sign System membership for executable recovery testing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:NotationSystem ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+            [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "entity" ] ,
+            [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri lang:SignSystem ] ]
+    ] .
 
 # --- ProjectionLoss → logic:PreservationKind (LossyLens) -------------------- #
 sup:notationProjectionLossPreservation a logic:Correspondence ;

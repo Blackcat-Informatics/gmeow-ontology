@@ -1273,11 +1273,9 @@ mod tests {
         PipelineBundle<PipelineHandle>,
         gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
     ) {
-        use gmeow_logic_compile::projections::correspondence::{
-            affine_triangle_worked_example, project_correspondence,
-        };
+        use gmeow_logic_compile::projections::correspondence::project_correspondence;
         use std::sync::Arc;
-        let program = affine_triangle_worked_example();
+        let program = crate::stages::compile_logic::affine_worked_example_program();
         let projection = project_correspondence(&program);
         let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
             .expect("parse projection");

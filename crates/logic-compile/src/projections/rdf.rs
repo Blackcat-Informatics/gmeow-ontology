@@ -196,21 +196,24 @@ impl TripleSink {
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
     pub(crate) fn serialize(self, banner: &str) -> String {
         let body = self
-            .builder
+            .serialize_as("text/turtle")
+            .expect("constructed triple set must serialize as Turtle");
+        let body = format!("{}\n", body.trim_end_matches('\n'));
+        format!("{banner}{body}")
+    }
+
+    /// Serialize the accumulated default graph in `media_type` without a generated banner.
+    /// Kept separate from [`Self::serialize`] so correspondence-owned formula trees can be
+    /// embedded in their deterministic N-Triples carrier without reimplementing the formula
+    /// projection.
+    fn serialize_as(self, media_type: &str) -> Option<String> {
+        self.builder
             .freeze()
             .ok()
             .and_then(|dataset| {
-                serialize_dataset(
-                    dataset.as_ref(),
-                    "text/turtle",
-                    SerializeGraph::DefaultGraph,
-                )
-                .ok()
+                serialize_dataset(dataset.as_ref(), media_type, SerializeGraph::DefaultGraph).ok()
             })
             .and_then(|bytes| String::from_utf8(bytes).ok())
-            .unwrap_or_default();
-        let body = format!("{}\n", body.trim_end_matches('\n'));
-        format!("{banner}{body}")
     }
 }
 
@@ -1119,7 +1122,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
 /// minted child IRIs (path segment + zero-padded index) make the serialization stable;
 /// commutative connectives sort their operands by content key so emission order does not
 /// depend on the stored vector order.
-fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
+pub(crate) fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
     g.add_iri(node, RDF_TYPE, &logic("Formula"));
     match formula {
         Formula::Atom { relation, args } => {
@@ -1155,6 +1158,16 @@ fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
         Formula::Forall { vars, body } => emit_quantifier(g, node, "forall", vars, body),
         Formula::Exists { vars, body } => emit_quantifier(g, node, "exists", vars, body),
     }
+}
+
+/// Project one correspondence-owned [`Formula`] tree at the caller-supplied root IRI as
+/// deterministic N-Triples. This is the same emitter the canonical RDF 1.2 projection uses;
+/// formula ownership changes, never its serialized semantics.
+pub(crate) fn formula_ntriples(node: &str, formula: &Formula) -> String {
+    let mut sink = TripleSink::default();
+    emit_formula(&mut sink, node, formula);
+    sink.serialize_as("application/n-triples")
+        .expect("constructed logic:Formula must serialize as N-Triples")
 }
 
 /// Emit the operands of a commutative connective (`and`/`or`/`iff`), sorted by content

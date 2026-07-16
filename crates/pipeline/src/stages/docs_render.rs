@@ -627,14 +627,40 @@ pub(crate) fn schema_fragments_from_json(
 /// is required (hard-fails on a missing `stage-export-json-schema` upstream
 /// product) so the model reads THIS run's schema bytes, never the previous run's
 /// committed `generated/schemas/*.json` (the stale-disk-fold class). The per-term
-/// content-address provenance is read from the committed manifest (self-healing
-/// on a term-adding build; see `gmeow_docs::model::DocsModel::discover`).
+/// content-address provenance is likewise read from THIS run's `stage-term-manifest`
+/// product (hard-fails on a missing artifact) via
+/// `gmeow_docs::model::DocsModel::discover_with_manifest`, never the committed
+/// `generated/catalog/term-content-manifest.nq`, which lags one regenerate behind
+/// whenever a term's definition digest changes (the same stale-disk-fold class).
 pub fn render_docs_graph(
     root: &Path,
     verdict: ReasoningVerdict,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<String, gmeow_errors::Diag> {
-    let mut model = DocsModel::discover(root).map_err(|e| {
+    // The per-term content manifest, read off THIS run's stage-term-manifest product
+    // (hard-fails on a missing artifact) — never the committed
+    // generated/catalog/term-content-manifest.nq, which is the PREVIOUS run's bytes
+    // until the fanout flushes. A definition-digest change this build mints a fresh
+    // "Definition changed" changelog entry in the product; a disk read here would omit
+    // it, leaving the documentation graph one regenerate behind the manifest (the
+    // stale-disk-fold class). The standalone `make docs` sibling path
+    // (`DocsModel::discover`) stays disk-sourced because it runs post-pipeline against
+    // the fanout-refreshed committed file.
+    let manifest_bytes = upstream
+        .get("stage-term-manifest")
+        .and_then(|p| p.artifact(crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH))
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!(
+                    "stage-term-manifest produced no {} product for the per-term content \
+                     manifest; refusing to fall back to a stale on-disk read (the \
+                     stale-disk-fold class, fail-closed)",
+                    crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH
+                ),
+            })
+        })?;
+    let mut model = DocsModel::discover_with_manifest(root, manifest_bytes).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-docs-render".to_string(),
             message: format!("docs model discovery failed: {e}"),
@@ -772,13 +798,14 @@ pub(crate) fn docs_source_files(
     if four_boxes.is_file() {
         files.push(four_boxes);
     }
-    // The committed term content manifest: the docs model reads it for each term's
-    // content digest, first-seen version, and computed changelog, so a manifest edit
-    // must bust the docs cache (cache soundness).
-    let term_manifest = root.join(crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH);
-    if term_manifest.is_file() {
-        files.push(term_manifest);
-    }
+    // NOTE: the term content manifest is NOT declared here. The in-pipeline
+    // `DocsRenderStage` consumes `stage-term-manifest` as an upstream PRODUCT and
+    // reads the fresh manifest bytes off it (see `render_docs_graph`), so the cache
+    // key already reflects that product edge; declaring the committed on-disk file as
+    // a raw source input would re-introduce the previous run's bytes into the cache
+    // key (the stale-disk-fold class this stage now avoids). The `SnapshotStage`,
+    // which shares this list, embeds the rendered site whose per-term provenance
+    // rides in via the same `stage-term-manifest` fold, so it needs no disk read either.
     walk_files(&root.join("i18n"), &mut files)?;
     walk_files(&root.join("shapes"), &mut files)?;
     // The shared repo-root query tree (`queries/competency/*.rq`, `queries/qc/*.rq`,
@@ -805,9 +832,15 @@ impl DocsRenderStage {
     /// join digest (the term page's "Diagnostics you might hit" surface),
     /// `stage-mappings` so it carries the dynamic per-term projection-loss join
     /// digest (the term page's "how this term degrades under projection" surface),
-    /// and `stage-export-json-schema` so the model's per-term JSON-Schema/OpenAPI
+    /// `stage-export-json-schema` so the model's per-term JSON-Schema/OpenAPI
     /// fragment digest reads THIS run's schema product rather than the previous
-    /// run's committed `generated/schemas/*.json` (the stale-disk-fold class).
+    /// run's committed `generated/schemas/*.json` (the stale-disk-fold class), and
+    /// `stage-term-manifest` so the model's per-term content-address provenance
+    /// (definition digest + first-seen version + computed changelog) reads THIS
+    /// run's freshly-computed manifest product rather than the previous run's
+    /// committed `generated/catalog/term-content-manifest.nq`, which lags one
+    /// regenerate behind whenever a term's definition digest changes (the same
+    /// stale-disk-fold class).
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -816,6 +849,7 @@ impl DocsRenderStage {
                 "stage-gts-compose".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
+                "stage-term-manifest".to_string(),
                 "stage-validate".to_string(),
             ],
         }
@@ -847,6 +881,13 @@ impl Stage for DocsRenderStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v9: the per-term content-address manifest (definition digest + first-seen
+        // version + computed changelog) is read from THIS run's consumed
+        // stage-term-manifest product (DocsModel::discover_with_manifest) instead of
+        // lagging one regenerate behind on the committed
+        // generated/catalog/term-content-manifest.nq disk read; the manifest is
+        // dropped from input_files since it is now a product edge, not a raw source
+        // read (the stale-disk-fold class this fixes for the documentation graph).
         // v8: the per-term JSON-Schema/OpenAPI fragment digest is attached from THIS
         // run's consumed stage-export-json-schema product (schema_fragments_from_
         // upstream) instead of lagging one regenerate behind on the committed
@@ -860,7 +901,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v7"
+        "docs_render.v9"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -1025,6 +1066,22 @@ mod tests {
         upstream.insert(
             "stage-export-json-schema".to_string(),
             StageProduct::from_artifacts("stage-export-json-schema", schema_artifacts),
+        );
+        // The per-term content-address manifest is now read from THIS run's
+        // stage-term-manifest product (a missing artifact must hard-fail, see
+        // `render_docs_graph`); feed the freshly-rendered manifest for the live repo
+        // so the join carries every documented term's content-address exactly as a
+        // real pipeline run would (never the empty digest a stale/absent read gives).
+        let manifest_bytes = crate::stages::term_manifest::render_term_manifest(&repo_root())
+            .expect("render term manifest for the docs-graph render test");
+        let mut manifest_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        manifest_artifacts.insert(
+            crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH.to_string(),
+            manifest_bytes,
+        );
+        upstream.insert(
+            "stage-term-manifest".to_string(),
+            StageProduct::from_artifacts("stage-term-manifest", manifest_artifacts),
         );
         upstream
     }
@@ -1589,10 +1646,14 @@ mod tests {
             })
             .expect("real source-load");
 
+        // compile-logic reads the narrowed graph/logic-compile-inputs corpus off the
+        // source-load product, so its upstream must carry that product.
+        let mut compile_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        compile_upstream.insert("stage-source-load".to_string(), source_load.product.clone());
         let compile = crate::stages::compile_logic::CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &empty,
+                upstream: &compile_upstream,
             })
             .expect("real compile-logic");
 
@@ -1697,7 +1758,7 @@ mod tests {
     /// `slices/grounding/logic/examples/predicate-paths.ttl` and were never ingested, so
     /// `program.path_shapes` was empty and `paths::project_path_shapes` emitted zero rows
     /// — this is the hard-fail gate that catches a regression back to that vacuous state.
-    /// Runs the real `source_load`-free `compile_logic` → `mappings` stage chain directly
+    /// Runs the real `source_load` → `compile_logic` → `mappings` stage chain directly
     /// (each `Stage::run` call is pure in-memory — no disk write; the committed
     /// `generated/` tree is untouched), mirroring the B3 `term_entailments_are_non_vacuous_
     /// on_the_real_repo` chaining pattern in `carrier.rs`.
@@ -1710,10 +1771,20 @@ mod tests {
             .unwrap();
         let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
 
-        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+        // compile-logic reads the narrowed graph/logic-compile-inputs corpus off the
+        // source-load product, so run source-load first and carry it as its upstream.
+        let source_load = crate::stages::source_load::SourceLoadStage::new()
             .run(StageInput {
                 root: &root,
                 upstream: &empty,
+            })
+            .expect("real source-load");
+        let mut compile_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        compile_upstream.insert("stage-source-load".to_string(), source_load.product);
+        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &compile_upstream,
             })
             .expect("real compile-logic");
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();

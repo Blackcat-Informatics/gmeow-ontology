@@ -1021,6 +1021,7 @@ export enum BranchConditionTypeEnum {
 }
 
 export enum BuildDataFlowEnum {
+    pipeline_dataflow_compile_logic_source_load = "pipeline-dataflow-compile-logic-source-load",
     pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic",
     pipeline_dataflow_validate_compile_logic = "pipeline-dataflow-validate-compile-logic",
 }
@@ -1776,6 +1777,7 @@ export enum ExpressionLanguageEnum {
 }
 
 export enum FanoutExtractionEnum {
+    fanout_briefs_authoring_packets = "fanout-briefs-authoring-packets",
     fanout_catalog_constraint_catalog = "fanout-catalog-constraint-catalog",
     fanout_catalog_term_content_manifest = "fanout-catalog-term-content-manifest",
     fanout_diagnostics_logic_compile = "fanout-diagnostics-logic-compile",
@@ -2122,6 +2124,14 @@ export enum GrooveProfileKindEnum {
     grooveProfileKindMeasured = "grooveProfileKindMeasured",
     grooveProfileKindPositionOffsets = "grooveProfileKindPositionOffsets",
     grooveProfileKindSwingRatio = "grooveProfileKindSwingRatio",
+}
+
+export enum GroundingAttributeEnum {
+    groundingEn = "groundingEn",
+    groundingExemplar = "groundingExemplar",
+    groundingExternalMapped = "groundingExternalMapped",
+    groundingFr = "groundingFr",
+    groundingZh = "groundingZh",
 }
 
 export enum GroupOperatorEnum {
@@ -3059,6 +3069,7 @@ export enum PipelineStageEnum {
     stage_mappings = "stage-mappings",
     stage_math_producers = "stage-math-producers",
     stage_reason = "stage-reason",
+    stage_slice_brief = "stage-slice-brief",
     stage_snapshot = "stage-snapshot",
     stage_source_load = "stage-source-load",
     stage_statements = "stage-statements",
@@ -4795,6 +4806,24 @@ export interface AuthorIdentity extends InformationObject {
     canonicalizedIdentity?: Agent[],
 }
 
+export interface AuthoringPacket {
+    exemplarShortfall?: number[],
+    packetAxis?: string[],
+    packetBatch?: number[],
+    packetCoversTerm?: string[],
+    packetDigest?: string[],
+    packetExemplar?: string[],
+    packetExternalAbsent?: number[],
+    packetExternalMapped?: number[],
+    packetFrAbsent?: number[],
+    packetFrPresent?: number[],
+    packetGrounding?: GroundingCoverage[],
+    packetSourceSlice?: string[],
+    packetTermCount?: number[],
+    packetZhAbsent?: number[],
+    packetZhPresent?: number[],
+}
+
 export interface AuthorityLevel {
     strongerThan?: AuthorityLevel[],
 }
@@ -6143,6 +6172,22 @@ export interface GrooveProfile extends Entity {
 }
 
 export interface GrooveProfileKind {
+}
+
+export interface GroundingAttribute {
+}
+
+export interface GroundingCoverage {
+    groundingAlignPredicate?: string[],
+    groundingAttribute?: GroundingAttribute[],
+    groundingConfidence?: number[],
+    groundingConflict?: boolean[],
+    groundingConflictWith?: string[],
+    groundingExternalEntity?: string[],
+    groundingExternalLabel?: string[],
+    groundingPredicate?: string[],
+    groundingTerm?: string[],
+    groundingValue?: string[],
 }
 
 export interface Group extends Entity {
