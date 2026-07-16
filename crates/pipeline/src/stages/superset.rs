@@ -453,6 +453,11 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // `gmeow:QualityAssessment` observations). RDF travels as RDF, so the assessment
         // triples land in `generated/` too, not only in the bundle graph.
         || path == "generated/quality/gmeow.quality-assessment.nt"
+        // The authoring-packet projection: the on-disk fold of the bundle's
+        // `graph/authoring-briefs` named graph (a gmeow:AuthoringPacket per in-repo slice
+        // batch). RDF travels as RDF, so the packet triples land in `generated/` too, not
+        // only in the bundle graph.
+        || path == "generated/briefs/authoring-packets.nt"
         || path == "generated/diagnostics/shacl.nq"
         || path == "generated/diagnostics/logic-compile.nq"
         // The generated constraint catalog: its committed `.nq` carries the fanout
