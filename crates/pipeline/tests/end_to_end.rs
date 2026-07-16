@@ -367,4 +367,41 @@ fn executor_runs_the_spine_end_to_end() {
         has_derivation,
         "a content-addressed proof-derivation IRI is folded into gmeow.gts"
     );
+
+    // The three substantial demonstrators' distinctive results also ride the terminal carrier:
+    // (a) a structured cons-list membership answer;
+    let has_structured_answer = gd_quads.iter().any(|q| {
+        matches!(&q.object, purrdf::RdfTerm::Literal(l)
+            if l.lexical_form == "member(a,cons(a,cons(b,cons(c,nil))))")
+    });
+    assert!(
+        has_structured_answer,
+        "the structured member/cons demonstrator answer is folded into gmeow.gts"
+    );
+    // (b) the SLG-WFS three-valued negation surface, including at least one `undefined` verdict
+    //     alongside a founded `true`/`false` — the observable evidence WFS is non-dark;
+    let wfs_verdicts: Vec<&str> = gd_quads
+        .iter()
+        .filter(|q| q.predicate == "https://blackcatinformatics.ca/gmeow/goalDirectedVerdict")
+        .filter_map(|q| match &q.object {
+            purrdf::RdfTerm::Literal(l) => Some(l.lexical_form.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        wfs_verdicts.contains(&"undefined"),
+        "an undefined SLG-WFS verdict is folded into gmeow.gts: {wfs_verdicts:?}"
+    );
+    assert!(
+        wfs_verdicts.contains(&"true") && wfs_verdicts.contains(&"false"),
+        "founded true/false SLG-WFS verdicts are folded into gmeow.gts: {wfs_verdicts:?}"
+    );
+    // (c) the order-sorted (ℤ ⊑ ℝ) subsort-unified answer.
+    let has_subsort_answer = gd_quads
+        .iter()
+        .any(|q| matches!(&q.object, purrdf::RdfTerm::Literal(l) if l.lexical_form == "p(one)"));
+    assert!(
+        has_subsort_answer,
+        "the order-sorted subsort-unified answer p(one) is folded into gmeow.gts"
+    );
 }
