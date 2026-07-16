@@ -76,7 +76,11 @@ validation outcome (`gmeow:expectedOutcome` conforms/violates, with
 form). The harness validates the example against the slice module + shapes via
 the native SHACL engine (`gmeow_validate`) and compares finding codes. This is
 **slice-scoped** — an example that references cross-slice classes is validated in
-full by `make validate`, not here.
+full by `make validate`, not here. The one data-scope exception is the grounding
+kernel: because `logic:`, `lang:`, and `math:` are co-foundational peers, each of
+their conformance files sees all three grounding modules while enforcing only the
+tested slice's shapes. This exposes peer-owned type witnesses without duplicating
+their canonical declarations (Principles 4 and 19).
 
 ## Competency-question reasoning (the D+C model)
 

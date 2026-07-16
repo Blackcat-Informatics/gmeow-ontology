@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Capacity-degradation counterexample: the vector-symbolic binding supplies a
+# complete frame — vector space, basis, two operand vectors, and an exact
+# recovery-loss contract — but OMITS its required capacity descriptor
+# (math:operationCapacity). Superposing or binding more items than a space can hold
+# degrades recovery (crosstalk overwhelms retrieval), and without a declared
+# math:VectorSymbolicCapacity the point at which the operation stops being reliable
+# is unstated, so the binding is ill-formed: it isolates
+# math:IncompleteVectorSymbolicOperation via the single derived QualifiedMinCount
+# constraint on math:operationCapacity.
+ex:binding a math:VectorBinding ;
+    math:overVectorSpace ex:space ;
+    math:overBasis ex:basis ;
+    math:vsaOperand ex:vecA , ex:vecB ;
+    math:recoveryLossContract ex:exactContract .
+
+# The ambient vector space is fully framed as the math:AlgebraicStructure it is, so
+# the ONLY isolated omission in this counterexample is math:operationCapacity.
+ex:space a math:VectorSpace ;
+    math:underlyingSet ex:vectorSet ;
+    math:structureOperation ex:vectorAddition ;
+    math:satisfiesAxiom ex:additiveAssociativity .
+ex:vectorSet a math:Set .
+ex:vectorAddition a math:Operation .
+ex:additiveAssociativity a math:Axiom .
+ex:basis a math:Basis .
+
+ex:vecA a math:Vector ; math:inBasis ex:basis .
+ex:vecB a math:Vector ; math:inBasis ex:basis .
+
+ex:exactContract a math:RecoveryLossContract ;
+    math:lossBound ex:zeroLoss .
+ex:zeroLoss a math:RationalValue ; math:numerator 0 ; math:denominator 1 .

@@ -1117,6 +1117,49 @@ decisions, NOT open gaps.
   generated/logic/inferred-closure.rdf12.ttl (~54MB). Pre-existing generated files,
   not introduced by this stage.
 
+=============================================================================
+## From #1570 — Close external mathematics concept gaps and ship exact Clifford coverage (recorded 2026-07-16)
+PR #1575; branch paudley/1570-concept-coverage @ cc55c6e32 (merged origin/main); full `cargo xtask check` observed EXIT 0 (all 19 gates); completion-adversary exit gate PASS.
+
+D1. C7 (concise untracked handoff in the private consumer checkout) — HUMAN SIGN-OFF, not verified.
+    The handoff lives OUTSIDE this repository (the consumer checkout is intentionally unnamed) and
+    cannot be observed from here. The user stated verbatim it is "Already done." Discharged by that
+    recorded sign-off only — no production demonstration was possible from this repo.
+    Forward path: the consumer-checkout owner confirms the untracked Markdown handoff exists; nothing
+    to close in this repo.
+
+D2. maint-wikidata-live (OFF-GATE maintainer lane) reports 6 existence-check "bad-syntax" failures on
+    pre-existing lang-slice illustrative lexeme bridges — wd:L7 / wd:L7-S1 (cat), wd:L1119 / (mouse),
+    wd:L14462 / wd:L14462-S2 (chase) — in slices/grounding/lang/mappings/equivalences.ttl. These are
+    NOT introduced by #1570 (git diff origin/main...HEAD adds zero L-IDs), are unrelated to the
+    mathematics scope, and the lane is OFF-GATE (the on-gate `wikidata` check passes in make check).
+    All 474 valid-syntax IDs — including every new math Q-bridge — passed syntax AND live existence,
+    so the user's directive (confirm the new QIDs resolve) is satisfied. Not fixed (out of #1570 scope).
+    Forward path: a lang-slice / maint sweep either corrects the lexeme+sense ID syntax the existence
+    checker rejects, or teaches the checker Lexeme/Sense (L…, L…-S…) ID syntax.
+
+D3. The two gates that most directly PROVE the 8th producer's bundle fold and its SHACL conformance —
+    `fold_parity` (sink_fold_matches_committed_per_named_graph) and `conformance_math_producers` — are
+    architecturally OFF-GATE in the default nextest profile that make check's rust-gate runs
+    (.config/nextest.toml). On-gate coverage rides unit tests + the committed bundle being a projection.
+    The completion-adversary and this session ran both off-gate gates explicitly and both PASS
+    (clifford-12-13 sink=2171 == committed=2171; 15/15 producer conformance), so the criteria are
+    demonstrated — but on the default on-gate surface they are not executed.
+    Forward path: promote fold_parity / conformance_math_producers on-gate, or accept the projection-
+    purity + unit-test on-gate proxy as the standing design (a repo-wide profile decision, not #1570's).
+
+D4. The logic-slice rdfs residue ratchet violation cleared during #1570 was a PRE-EXISTING origin/main
+    drift, not a #1570 regression: my logic slice is byte-identical to origin/main (d7745068f), which
+    itself measures ungrounded rdfs residue 69 above its own committed ceiling of 68 — commit b17f0db02
+    hand-authored logic:RecoveryCase's transform-cardinality restriction as rdfs:subClassOf
+    [owl:Restriction …] without re-seeding the ceiling, and that owl form silently under-projected
+    (never reached owl-dl/gufo/datalog). The user directed "I fix the logic grounding"; fixed in
+    cc55c6e32 by re-authoring in canonical logic:subClassOf [logic:Restriction …] form (residue 69→68,
+    projection now complete). Recorded because the fix touches canonical logic content outside #1570's
+    mathematics scope and remediates an upstream gap opportunistically.
+    Forward path: none open — the drift is grounded and projecting on this branch; the same fix should
+    ride to main via this PR's merge.
+
 2026-07-16 — #930 slice-quality-gate projection-ceiling blockers (green-make-check pass)
 
 - DIAGNOSTICS rdfs cell RESOLVED (24/24). The reified CapabilityGap/GapShape
@@ -1163,3 +1206,32 @@ decisions, NOT open gaps.
   red — the sanctioned grandfathering path for the recovery-case vocabulary's
   legitimate axiom — OR grounding by the recovery-case vocabulary's owner. Left red on
   this branch pending that decision.
+
+=============================================================================
+## From #1570 — stage 3 finalization / main integration (recorded 2026-07-16)
+Merged origin/main (154921ddc); completion-adversary STAGE=3 PASS; full `cargo xtask check` EXIT 0 (19 gates).
+
+D5. Merging current main surfaced that origin/main ITSELF fails make check, and #1570 fixed the
+    blockers to reach a green gate (user-directed, out of #1570's mathematics scope):
+    - logic:FunctionTerm hand-authored `rdfs:subClassOf logic:ArgumentStructure` (#1295) pushed the
+      logic rdfs projection residue to 70>ceiling 68 (RecoveryCase from #1573 was the other +1, ground
+      in stage 2). Grounded to canonical `logic:subClassOf`; VERIFIED derived rdfs:subClassOf (owl-el/
+      owl-dl) + SHACL-AF byte-identical (no #1295/#1573 degradation), now projects to more views.
+      User authorized "Ground FunctionTerm too" over the #930-documented maintainer ceiling-bump path.
+    - #1295 moved logic:argument's rdfs:domain to the new shared logic:ArgumentStructure parent but
+      left the saTypedIrCarrierContract structural ASK asserting the old logic:Formula domain — a stale
+      test origin/main is itself red on. Aligned the ASK to the shipped domain (not weakened).
+    Forward path: none open on this branch; these fixes ride to main via this merge and clear main's
+    own red on slice-quality-gate + rust-gate for the recovery-case/argument-structure vocabularies.
+
+D6. The STAGE-3 completion-adversary flagged a PRE-EXISTING systemic projection-fidelity gap (tracked
+    as #1579): owl:FunctionalProperty constraints do not project to sh:maxCount 1 in the derived SHACL.
+    This is NOT a #1570 regression — the canonical functional constraint is preserved in the logic:
+    layer; it affects pre-existing FunctionalProperties repo-wide. Observed during review; out of #1570
+    scope. Forward path: owned by the projection/#1579 workstream, not #1570.
+
+D7. The fold-proving gates fold_parity + conformance_math_producers remain OFF-GATE in make check's
+    default nextest profile (also noted in the stage-2 block). This session ran conformance_math_producers
+    explicitly (15/15 PASS) and the captured production `cargo xtask check` EXIT 0 covers the fold via
+    the superset/sync-check path; the adversary's independent full_parity re-run exceeded a 25-min local
+    budget (SIGTERM, no assertion failure). Forward path: promote these gates on-gate (repo-wide decision).

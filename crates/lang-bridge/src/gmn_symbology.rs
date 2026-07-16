@@ -155,7 +155,7 @@ mod tests {
         );
     }
 
-    /// Every token-cost disposition shipped by dict-v2 is reproduced from the same pinned
+    /// Every token-cost disposition shipped by dict-v3 is reproduced from the same pinned
     /// tokenizer the quality axis calls. An adopted glyph may tie or beat its fallback,
     /// while a named key must strictly beat the Unicode display notation it replaces.
     #[test]
@@ -181,6 +181,8 @@ mod tests {
             ("⟦·⟧", "den"),
             ("⇝", "xl"),
             ("÷", "div"),
+            ("⊕", "ds"),
+            ("⌟", "lcon"),
             ("∀", "fa"),
             ("∃", "ex"),
             ("∧", "and"),

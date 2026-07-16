@@ -1,0 +1,13 @@
+# External-corpus coverage: reusable persistent-homology frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?analysis ?input ?filtration ?result
+WHERE {
+  ?analysis a math:PersistentHomology ;
+            math:analysisInput ?input ;
+            math:overFiltration ?filtration ;
+            math:analysisOutput ?result .
+  ?filtration a math:Filtration .
+  ?result a math:PersistenceDiagram .
+}
+ORDER BY ?analysis
