@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @s{s: gmeow__examples-2f-math-2f-statistics-2f-analystStandpoint, p: rdf__type, o: gmeow__Standpoint}
 @ℒ{s: gmeow__examples-2f-math-2f-statistics-2f-argMagnitude, p: logic__termIndex, v: 1}
 @ℒ{s: gmeow__examples-2f-math-2f-statistics-2f-argMagnitude, p: logic__termIri, o: gmeow__examples-2f-math-2f-statistics-2f-pValueMagnitude}

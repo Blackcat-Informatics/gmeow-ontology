@@ -1094,6 +1094,7 @@ gmeow:stage-compile-logic
 gmeow:stage-math-producers
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model> ,

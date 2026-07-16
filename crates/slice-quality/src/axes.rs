@@ -1337,7 +1337,7 @@ pub(crate) fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
     None
 }
 
-/// Load the shared `gmeow:gmnDictV2` dictionary from the canonical
+/// Load the shared `gmeow:gmnDictV3` dictionary from the canonical
 /// `slices/grounding/lang/module.ttl` — the SAME dictionary the Task-6 round-trip
 /// gate (`crates/pipeline/src/stages/gmn1_gate.rs`) loads, so this axis's coverage
 /// measurement never diverges against a second, locally-improvised dictionary.
@@ -1401,7 +1401,7 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
                     score: 1.0,
                     findings: vec![advisory(
                         "slice-quality.gmn1-coverage.no-dictionary",
-                        "the shared gmeow:gmnDictV2 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+                        "the shared gmeow:gmnDictV3 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
                     )],
                 };
             };

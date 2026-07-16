@@ -37,11 +37,9 @@ use gmeow_lang_bridge::{
 };
 use gmeow_validate::lint::structural_lint_dataset;
 use gmeow_validate::store::dataset_from_paths;
-use purrdf::shapes::engine::parse_shapes;
-
 mod support;
 use support::flagship_discharge::{
-    SliceSpec, enforcing_shape_paths, local_name, minimal_lint_config, native_failure_classes,
+    SliceSpec, load_scoped_shapes, local_name, minimal_lint_config, native_failure_classes,
     repo_root, shape_class_map, shared_shapes_path, triggered_slice_failures,
 };
 
@@ -215,7 +213,7 @@ fn validator_tier_rows_discharge_via_production_codec() {
 
     // GmnNonDecodableGrammar: the residual class, no normative block — a genuinely undecodable
     // input (an unknown sigil the parse table has no production for).
-    let non_decodable = "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+    let non_decodable = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
     let err = gmn1_read(&Gmn1Document::from_text(non_decodable), &dict)
         .expect_err("an unknown sigil is non-decodable grammar");
     assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
@@ -238,7 +236,7 @@ fn validator_tier_rows_discharge_via_production_codec() {
     // illustrative record (LANG-GMN.md, "A valid record") uses placeholder terms (gate1,
     // hasState) the shipped dictionary does not mint, so the decodable canonical form uses
     // `gmeow__`-direct IRIs — the codec's own reference-position encoding.
-    let canonical = "@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n@c{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: 0.95}\n";
+    let canonical = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: 0.95}\n";
     let model =
         gmn1_read(&Gmn1Document::from_text(canonical), &dict).expect("a canonical record reads Ok");
     round_trip_check(&model, &dict).expect("a canonical record round-trips byte-stably");
@@ -366,16 +364,7 @@ const BUILD_MARKER: &str = "—";
 /// map, mirroring the flagship runner's compositional migration contract.
 fn load_shapes() -> (purrdf::shapes::shapes::Shapes, BTreeMap<String, String>) {
     let spec = lang_spec();
-    let paths = enforcing_shape_paths(&spec);
-    let shapes_text = paths
-        .iter()
-        .map(|path| {
-            std::fs::read_to_string(path)
-                .unwrap_or_else(|error| panic!("read enforcing shape {}: {error}", path.display()))
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-    let shapes = parse_shapes(&shapes_text).expect("slice shapes parse");
+    let (shapes, paths) = load_scoped_shapes(&spec);
     let mut class_paths = paths;
     class_paths.push(shared_shapes_path());
     let map = shape_class_map(&class_paths);
@@ -391,13 +380,52 @@ fn shacl_tier_rows_discharge_by_execution() {
     let spec = lang_spec();
     let (shapes, shape_class) = load_shapes();
     let shape_class: std::collections::HashMap<String, String> = shape_class.into_iter().collect();
-
-    for row in shacl_rows() {
-        let counter = counter_dir().join(row.counter);
-        let triggered: BTreeSet<String> =
-            triggered_slice_failures(&spec, &counter, &shapes, &shape_class)
+    let rows = shacl_rows();
+    // Each row validates an independent counter/worked pair against the same
+    // frozen grounding kernel and scoped lang: shapes. Bound internal
+    // parallelism at six so the 14-row matrix retains CI headroom under the per-test wall
+    // budget without multiplying the large immutable datasets without limit.
+    let workers = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1)
+        .min(rows.len().max(1))
+        .min(6);
+    let mut validations: Vec<(usize, BTreeSet<String>, BTreeSet<String>)> =
+        std::thread::scope(|scope| {
+            let mut handles = Vec::with_capacity(workers);
+            for worker in 0..workers {
+                let rows = &rows;
+                let shapes = &shapes;
+                let shape_class = &shape_class;
+                let spec = &spec;
+                handles.push(scope.spawn(move || {
+                    let mut out = Vec::new();
+                    for (index, row) in rows.iter().enumerate() {
+                        if index % workers != worker {
+                            continue;
+                        }
+                        let counter = counter_dir().join(row.counter);
+                        let triggered =
+                            triggered_slice_failures(spec, &counter, shapes, shape_class)
+                                .into_iter()
+                                .collect();
+                        let worked = worked_dir().join(row.worked);
+                        let clean = triggered_slice_failures(spec, &worked, shapes, shape_class)
+                            .into_iter()
+                            .collect();
+                        out.push((index, triggered, clean));
+                    }
+                    out
+                }));
+            }
+            handles
                 .into_iter()
-                .collect();
+                .flat_map(|handle| handle.join().expect("GMN SHACL worker joins"))
+                .collect()
+        });
+    validations.sort_by_key(|(index, _, _)| *index);
+
+    for (row, (_, triggered, clean)) in rows.iter().zip(validations) {
         assert_eq!(
             triggered,
             set_of(row.trips),
@@ -406,11 +434,6 @@ fn shacl_tier_rows_discharge_by_execution() {
             row.trips
         );
 
-        let worked = worked_dir().join(row.worked);
-        let clean: BTreeSet<String> =
-            triggered_slice_failures(&spec, &worked, &shapes, &shape_class)
-                .into_iter()
-                .collect();
         assert!(
             clean.is_empty(),
             "worked example {} must raise nothing, but raised {clean:?}",

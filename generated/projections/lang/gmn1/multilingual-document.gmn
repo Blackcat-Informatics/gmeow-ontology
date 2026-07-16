@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @λ{s: gmeow__examples-2f-language-2f-hiraganaScript, p: rdf__type, o: lang__Script}
 @c{s: gmeow__examples-2f-language-2f-hiraganaScript, p: rdfs__label, v: r_a33c6d92123d7800}
 @c{s: gmeow__examples-2f-language-2f-japanese, p: rdf__type, o: gmeow__Language}

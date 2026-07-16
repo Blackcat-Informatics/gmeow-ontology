@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gmeow__examples-2f-lexicon-2f-etymology, p: rdf__type, o: gmeow__EtymologicalDerivation}
 @c{s: gmeow__examples-2f-lexicon-2f-etymology, p: gmeow__derivationKind, o: gmeow__derivationBorrowing}
 @c{s: gmeow__examples-2f-lexicon-2f-etymology, p: gmeow__derivationTarget, o: gmeow__examples-2f-lexicon-2f-ontology}

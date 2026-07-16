@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `math_producers` stage: fold the seven `math:` producers' output into the carrier
+//! The `math_producers` stage: fold the eight `math:` producers' output into the carrier
 //! (Design A).
 //!
 //! Each flagship-acceptance scenario in
@@ -14,8 +14,10 @@
 //! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`. A SEVENTH producer,
 //! [`gmeow_math::producers::pvalue_tri_slice`], likewise non-flagship, carries the signature
 //! `lang:` → `logic:` → `math:` p-value round-trip inside `gmeow.gts`.
+//! An EIGHTH producer, [`gmeow_math::producers::clifford_twelve_thirteen`], calculates both
+//! exact `Cl(12)` → `Cl(13)` positive extensions without changing the five-flagship contract.
 //!
-//! This stage RUNS all seven and parses each producer's `.turtle` into its own named carrier
+//! This stage RUNS all eight and parses each producer's `.turtle` into its own named carrier
 //! graph ([`crate::stages::carrier::MATH_PRODUCER_GRAPHS`], in producer order). The snapshot
 //! presenter reads those graphs back via `producer_graph` and folds them into `gmeow.gts`, so
 //! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
@@ -31,10 +33,10 @@ use std::path::Path;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
 
-/// Run the seven producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
+/// Run the eight producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
 /// target graph IRI. The order is the SINGLE source of the producer→graph mapping shared with
 /// the snapshot presenter (both index into `MATH_PRODUCER_GRAPHS`).
-fn producer_turtles() -> [(&'static str, String); 7] {
+fn producer_turtles() -> [(&'static str, String); 8] {
     [
         (
             MATH_PRODUCER_GRAPHS[0],
@@ -64,11 +66,15 @@ fn producer_turtles() -> [(&'static str, String); 7] {
             MATH_PRODUCER_GRAPHS[6],
             gmeow_math::producers::pvalue_tri_slice().turtle,
         ),
+        (
+            MATH_PRODUCER_GRAPHS[7],
+            gmeow_math::producers::clifford_twelve_thirteen().turtle,
+        ),
     ]
 }
 
 /// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream product
-/// (the producers are self-contained native functions) and attaches the seven producer graphs to
+/// (the producers are self-contained native functions) and attaches the eight producer graphs to
 /// its carrier dataset.
 pub struct MathProducersStage {
     consumes: Vec<String>,
@@ -114,7 +120,9 @@ impl Stage for MathProducersStage {
         // non-flagship producer carrying the live logic:probabilityModel crossing triple).
         // v3: additionally fold the p-value tri-slice producer's graph (a seventh,
         // non-flagship producer carrying the signature lang: -> logic: -> math: round-trip).
-        "math_producers.v3"
+        // v4: additionally fold the exact Cl(12) -> Cl(13) producer's graph (an eighth,
+        // non-flagship producer carrying both positive-extension calculations).
+        "math_producers.v4"
     }
     fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // No source files: the producers are self-contained native functions whose bytes ride
@@ -149,11 +157,11 @@ impl Stage for MathProducersStage {
 mod tests {
     use super::*;
 
-    /// The stage attaches EXACTLY the seven producer graphs, each non-empty and carrying its
+    /// The stage attaches EXACTLY the eight producer graphs, each non-empty and carrying its
     /// producer's pinned content — the proof the producer output reaches the carrier (and thence
     /// `gmeow.gts`), not merely a test.
     #[test]
-    fn run_attaches_the_seven_producer_graphs() {
+    fn run_attaches_the_eight_producer_graphs() {
         let stage = MathProducersStage::new();
         let upstream = BTreeMap::new();
         let out = stage

@@ -115,3 +115,420 @@ msgstr "forme de paraphrase"
 msgctxt "https://blackcatinformatics.ca/lang/paraphraseForm|skos:definition"
 msgid "Relates a lang:Paraphrase to the produced restatement form. Domain lang:Paraphrase, range lang:Form (stated in prose). The source side is lang:paraphraseOf; keeping both roles explicit makes the form-to-form crossing and its relator mediation queryable without treating the reified paraphrase record as a form."
 msgstr "Relie une lang:Paraphrase à la forme de reformulation produite. Le domaine est lang:Paraphrase et la portée lang:Form (énoncés en prose). Le côté source est lang:paraphraseOf ; conserver les deux rôles explicites rend interrogeables le passage de forme à forme et sa médiation de relateur sans traiter l’enregistrement de paraphrase réifié comme une forme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator|rdfs:label"
+msgid "GMN candidate: boundary operator"
+msgstr "Candidat GMN : opérateur bord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator|skos:definition"
+msgid "The audited named-key ruling for the conventional partial-sign notation of math:BoundaryOperator."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation conventionnelle par signe de dérivée partielle de math:BoundaryOperator."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator|rdfs:label"
+msgid "GMN candidate: coboundary operator"
+msgstr "Candidat GMN : opérateur de cobord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator|skos:definition"
+msgid "The audited named-key ruling for the conventional delta notation of math:CoboundaryOperator."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation delta conventionnelle de math:CoboundaryOperator."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct|rdfs:label"
+msgid "GMN candidate: exterior product"
+msgstr "Candidat GMN : produit extérieur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct|skos:definition"
+msgid "The audited structured-constructor ruling for the wedge notation of math:ExteriorProduct."
+msgstr "La décision auditée d'utiliser un constructeur structuré pour la notation en coin de math:ExteriorProduct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum|rdfs:label"
+msgid "GMN candidate: direct sum"
+msgstr "Candidat GMN : somme directe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum|skos:definition"
+msgid "The audited named-key ruling for the circled-plus notation associated with math:DirectSumDecomposition."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation plus cerclé associée à math:DirectSumDecomposition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction|rdfs:label"
+msgid "GMN candidate: left contraction"
+msgstr "Candidat GMN : contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction|skos:definition"
+msgid "The audited named-key ruling for the right-floor notation of math:LeftContraction."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation en crochet inférieur droit de math:LeftContraction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection|rdfs:label"
+msgid "GMN candidate: grade projection"
+msgstr "Candidat GMN : projection de degré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection|skos:definition"
+msgid "The audited structured-constructor ruling for the grade-indexed angle-bracket notation of math:GradeProjection."
+msgstr "La décision auditée d'utiliser un constructeur structuré pour la notation indexée entre chevrons de math:GradeProjection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion|rdfs:label"
+msgid "GMN candidate: Clifford reversion"
+msgstr "Candidat GMN : réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion|skos:definition"
+msgid "The audited named-key ruling for the tilde notation of math:Reversion."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation tilde de math:Reversion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot|rdfs:label"
+msgid "GMN candidate: geometric-product dot"
+msgstr "Candidat GMN : point du produit géométrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot|skos:definition"
+msgid "The explicit rejection of a centred dot as a flattened alias for math:GeometricProduct."
+msgstr "Le rejet explicite d'un point centré comme alias aplati de math:GeometricProduct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian|rdfs:label"
+msgid "GMN candidate: Hodge Laplacian"
+msgstr "Candidat GMN : laplacien de Hodge"
+
+ msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian|skos:definition"
+msgid "The audited named-key ruling for the capital-delta notation of math:HodgeLaplacian."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation delta majuscule de math:HodgeLaplacian."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3|rdfs:label"
+msgid "GMN dictionary (version 3)"
+msgstr "dictionnaire GMN (version 3)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3|skos:definition"
+msgid "Dictionary version 3 of the GMN alias table: an immutable successor to version 2 that retains all 24 prior bindings on version-owned entries and adds `boundary`, `coboundary`, `ds`, `lcon`, `rev`, and `hlap` for the audited mathematics named keys."
+msgstr "Version 3 du dictionnaire d’alias GMN : successeur immuable de la version 2, qui conserve les 24 associations antérieures dans des entrées propres à cette version et ajoute `boundary`, `coboundary`, `ds`, `lcon`, `rev` et `hlap` pour les clés mathématiques nommées auditées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope|rdfs:label"
+msgid "dict-v3 entry: gmeow:GmnEnvelope to genv"
+msgstr "entrée dict-v3 : gmeow:GmnEnvelope vers genv"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope|skos:definition"
+msgid "The version-3 alias binding for gmeow:GmnEnvelope: `genv`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:GmnEnvelope : `genv`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook|rdfs:label"
+msgid "dict-v3 entry: gmeow:GmnCodebook to gcb"
+msgstr "entrée dict-v3 : gmeow:GmnCodebook vers gcb"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook|skos:definition"
+msgid "The version-3 alias binding for gmeow:GmnCodebook: `gcb`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:GmnCodebook : `gcb`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation|rdfs:label"
+msgid "dict-v3 entry: lang:Denotation to den"
+msgstr "entrée dict-v3 : lang:Denotation vers den"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation|skos:definition"
+msgid "The version-3 alias binding for lang:Denotation: `den`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour lang:Denotation : `den`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation|rdfs:label"
+msgid "dict-v3 entry: lang:Translation to xl"
+msgstr "entrée dict-v3 : lang:Translation vers xl"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation|skos:definition"
+msgid "The version-3 alias binding for lang:Translation: `xl`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour lang:Translation : `xl`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary|rdfs:label"
+msgid "dict-v3 entry: lang:MorphemeBoundary to mb"
+msgstr "entrée dict-v3 : lang:MorphemeBoundary vers mb"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary|skos:definition"
+msgid "The version-3 alias binding for lang:MorphemeBoundary: `mb`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour lang:MorphemeBoundary : `mb`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision|rdfs:label"
+msgid "dict-v3 entry: math:Division to div"
+msgstr "entrée dict-v3 : math:Division vers div"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision|skos:definition"
+msgid "The version-3 alias binding for math:Division: `div`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour math:Division : `div`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall|rdfs:label"
+msgid "dict-v3 entry: logic:forall to fa"
+msgstr "entrée dict-v3 : logic:forall vers fa"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall|skos:definition"
+msgid "The version-3 alias binding for logic:forall: `fa`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:forall : `fa`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists|rdfs:label"
+msgid "dict-v3 entry: logic:exists to ex"
+msgstr "entrée dict-v3 : logic:exists vers ex"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists|skos:definition"
+msgid "The version-3 alias binding for logic:exists: `ex`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:exists : `ex`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd|rdfs:label"
+msgid "dict-v3 entry: logic:and to and"
+msgstr "entrée dict-v3 : logic:and vers and"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd|skos:definition"
+msgid "The version-3 alias binding for logic:and: `and`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:and : `and`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr|rdfs:label"
+msgid "dict-v3 entry: logic:or to or"
+msgstr "entrée dict-v3 : logic:or vers or"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr|skos:definition"
+msgid "The version-3 alias binding for logic:or: `or`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:or : `or`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff|rdfs:label"
+msgid "dict-v3 entry: logic:iff to iff"
+msgstr "entrée dict-v3 : logic:iff vers iff"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff|skos:definition"
+msgid "The version-3 alias binding for logic:iff: `iff`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:iff : `iff`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary|rdfs:label"
+msgid "dict-v3 entry: necessary modal force to nec"
+msgstr "entrée dict-v3 : gmeow:modalForceNecessary vers nec"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceNecessary: `nec`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForceNecessary : `nec`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual|rdfs:label"
+msgid "dict-v3 entry: actual modal force to act"
+msgstr "entrée dict-v3 : gmeow:modalForceActual vers act"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceActual: `act`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForceActual : `act`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible|rdfs:label"
+msgid "dict-v3 entry: possible modal force to poss"
+msgstr "entrée dict-v3 : gmeow:modalForcePossible vers poss"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForcePossible: `poss`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForcePossible : `poss`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual|rdfs:label"
+msgid "dict-v3 entry: counterfactual modal force to cf"
+msgstr "entrée dict-v3 : gmeow:modalForceCounterfactual vers cf"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceCounterfactual: `cf`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForceCounterfactual : `cf`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect|rdfs:label"
+msgid "dict-v3 entry: direct observation to dir"
+msgstr "entrée dict-v3 : gmeow:methodDirectObservation vers dir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodDirectObservation: `dir`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodDirectObservation : `dir`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental|rdfs:label"
+msgid "dict-v3 entry: instrumental reading to inst"
+msgstr "entrée dict-v3 : gmeow:methodInstrumentalReading vers inst"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodInstrumentalReading: `inst`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodInstrumentalReading : `inst`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote|rdfs:label"
+msgid "dict-v3 entry: remote sensing to rmt"
+msgstr "entrée dict-v3 : gmeow:methodRemoteSensing vers rmt"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodRemoteSensing: `rmt`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodRemoteSensing : `rmt`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational|rdfs:label"
+msgid "dict-v3 entry: computational model to cmp"
+msgstr "entrée dict-v3 : gmeow:methodComputationalModel vers cmp"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodComputationalModel: `cmp`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodComputationalModel : `cmp`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert|rdfs:label"
+msgid "dict-v3 entry: expert judgement to exj"
+msgstr "entrée dict-v3 : gmeow:methodExpertJudgement vers exj"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodExpertJudgement: `exj`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodExpertJudgement : `exj`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey|rdfs:label"
+msgid "dict-v3 entry: survey to srv"
+msgstr "entrée dict-v3 : gmeow:methodSurvey vers srv"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodSurvey: `srv`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodSurvey : `srv`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming|rdfs:label"
+msgid "dict-v3 entry: streaming observation to strm"
+msgstr "entrée dict-v3 : gmeow:methodStreaming vers strm"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodStreaming: `strm`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodStreaming : `strm`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen|rdfs:label"
+msgid "dict-v3 entry: logic:Open to open"
+msgstr "entrée dict-v3 : logic:Open vers open"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen|skos:definition"
+msgid "The version-3 alias binding for logic:Open: `open`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:Open : `open`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed|rdfs:label"
+msgid "dict-v3 entry: logic:Closed to closed"
+msgstr "entrée dict-v3 : logic:Closed vers closed"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed|skos:definition"
+msgid "The version-3 alias binding for logic:Closed: `closed`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:Closed : `closed`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator|rdfs:label"
+msgid "dict-v3 entry: math:BoundaryOperator to boundary"
+msgstr "entrée dict-v3 : math:BoundaryOperator vers boundary"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator|skos:definition"
+msgid "The version-3 named-key binding for math:BoundaryOperator: `boundary`, which disambiguates chain boundaries from partial differentiation."
+msgstr "L’association de clé nommée de version 3 pour math:BoundaryOperator : `boundary`, qui distingue le bord de chaîne de la dérivation partielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator|rdfs:label"
+msgid "dict-v3 entry: math:CoboundaryOperator to coboundary"
+msgstr "entrée dict-v3 : math:CoboundaryOperator vers coboundary"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator|skos:definition"
+msgid "The version-3 named-key binding for math:CoboundaryOperator: `coboundary`, which disambiguates the cochain operator from other delta notations."
+msgstr "L’association de clé nommée de version 3 pour math:CoboundaryOperator : `coboundary`, qui distingue l’opérateur de cochaîne des autres notations delta."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum|rdfs:label"
+msgid "dict-v3 entry: math:DirectSumDecomposition to ds"
+msgstr "entrée dict-v3 : math:DirectSumDecomposition vers ds"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum|skos:definition"
+msgid "The version-3 named-key binding for math:DirectSumDecomposition: `ds`, cheaper than the fragmented circled-plus display sign."
+msgstr "L’association de clé nommée de version 3 pour math:DirectSumDecomposition : `ds`, moins coûteuse que le signe plus cerclé fragmenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction|rdfs:label"
+msgid "dict-v3 entry: math:LeftContraction to lcon"
+msgstr "entrée dict-v3 : math:LeftContraction vers lcon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction|skos:definition"
+msgid "The version-3 named-key binding for math:LeftContraction: `lcon`, cheaper than the fragmented contraction display sign."
+msgstr "L’association de clé nommée de version 3 pour math:LeftContraction : `lcon`, moins coûteuse que le signe de contraction fragmenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion|rdfs:label"
+msgid "dict-v3 entry: math:Reversion to rev"
+msgstr "entrée dict-v3 : math:Reversion vers rev"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion|skos:definition"
+msgid "The version-3 named-key binding for math:Reversion: `rev`, which distinguishes the Clifford involution from other tilde operators."
+msgstr "L’association de clé nommée de version 3 pour math:Reversion : `rev`, qui distingue l’involution de Clifford des autres opérateurs tilde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian|rdfs:label"
+msgid "dict-v3 entry: math:HodgeLaplacian to hlap"
+msgstr "entrée dict-v3 : math:HodgeLaplacian vers hlap"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian|skos:definition"
+msgid "The version-3 named-key binding for math:HodgeLaplacian: `hlap`, which distinguishes the Hodge operator from other capital-delta conventions."
+msgstr "L’association de clé nommée de version 3 pour math:HodgeLaplacian : `hlap`, qui distingue l’opérateur de Hodge des autres conventions delta majuscule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathBoundaryOperator|rdfs:label"
+msgid "the GMN boundary-operator key `boundary`"
+msgstr "la clé GMN d’opérateur de bord `boundary`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathBoundaryOperator|skos:definition"
+msgid "The unary prefix GMN named-key form `boundary` for math:BoundaryOperator; the partial sign remains non-executable display notation because it is ambiguous with partial differentiation."
+msgstr "La forme de clé nommée GMN préfixe unaire `boundary` pour math:BoundaryOperator ; le signe de dérivée partielle demeure une notation d’affichage non exécutable en raison de son ambiguïté avec la dérivation partielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathBoundaryOperator|rdfs:label"
+msgid "denotation of the GMN boundary-operator key"
+msgstr "dénotation de la clé GMN d’opérateur de bord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathBoundaryOperator|skos:definition"
+msgid "The meaning assignment from `boundary` to the class math:BoundaryOperator; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `boundary` à la classe math:BoundaryOperator ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathCoboundaryOperator|rdfs:label"
+msgid "the GMN coboundary-operator key `coboundary`"
+msgstr "la clé GMN d’opérateur de cobord `coboundary`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathCoboundaryOperator|skos:definition"
+msgid "The unary prefix GMN named-key form `coboundary` for math:CoboundaryOperator; delta remains non-executable display notation because it is overloaded across mathematical domains."
+msgstr "La forme de clé nommée GMN préfixe unaire `coboundary` pour math:CoboundaryOperator ; delta demeure une notation d’affichage non exécutable car il est surchargé entre domaines mathématiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathCoboundaryOperator|rdfs:label"
+msgid "denotation of the GMN coboundary-operator key"
+msgstr "dénotation de la clé GMN d’opérateur de cobord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathCoboundaryOperator|skos:definition"
+msgid "The meaning assignment from `coboundary` to the class math:CoboundaryOperator; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `coboundary` à la classe math:CoboundaryOperator ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathDirectSumDecomposition|rdfs:label"
+msgid "the GMN direct-sum key `ds`"
+msgstr "la clé GMN de somme directe `ds`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathDirectSumDecomposition|skos:definition"
+msgid "The binary infix GMN named-key form `ds` for math:DirectSumDecomposition; the circled-plus sign remains display notation because the named key is cheaper under the pinned BPE."
+msgstr "La forme de clé nommée GMN infixe binaire `ds` pour math:DirectSumDecomposition ; le signe plus cerclé demeure une notation d’affichage car la clé nommée est moins coûteuse sous le BPE épinglé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathDirectSumDecomposition|rdfs:label"
+msgid "denotation of the GMN direct-sum key"
+msgstr "dénotation de la clé GMN de somme directe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathDirectSumDecomposition|skos:definition"
+msgid "The meaning assignment from `ds` to the class math:DirectSumDecomposition; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `ds` à la classe math:DirectSumDecomposition ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLeftContraction|rdfs:label"
+msgid "the GMN left-contraction key `lcon`"
+msgstr "la clé GMN de contraction à gauche `lcon`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLeftContraction|skos:definition"
+msgid "The binary infix GMN named-key form `lcon` for math:LeftContraction; the contraction sign remains display notation because the named key is cheaper under the pinned BPE."
+msgstr "La forme de clé nommée GMN infixe binaire `lcon` pour math:LeftContraction ; le signe de contraction demeure une notation d’affichage car la clé nommée est moins coûteuse sous le BPE épinglé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathLeftContraction|rdfs:label"
+msgid "denotation of the GMN left-contraction key"
+msgstr "dénotation de la clé GMN de contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathLeftContraction|skos:definition"
+msgid "The meaning assignment from `lcon` to the class math:LeftContraction; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `lcon` à la classe math:LeftContraction ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathReversion|rdfs:label"
+msgid "the GMN Clifford-reversion key `rev`"
+msgstr "la clé GMN de réversion de Clifford `rev`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathReversion|skos:definition"
+msgid "The unary prefix GMN named-key form `rev` for math:Reversion; tilde remains non-executable display notation because it is confusable with approximation, negation, and programming operators."
+msgstr "La forme de clé nommée GMN préfixe unaire `rev` pour math:Reversion ; le tilde demeure une notation d’affichage non exécutable car il se confond avec l’approximation, la négation et des opérateurs de programmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathReversion|rdfs:label"
+msgid "denotation of the GMN Clifford-reversion key"
+msgstr "dénotation de la clé GMN de réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathReversion|skos:definition"
+msgid "The meaning assignment from `rev` to the class math:Reversion; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `rev` à la classe math:Reversion ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathHodgeLaplacian|rdfs:label"
+msgid "the GMN Hodge-Laplacian key `hlap`"
+msgstr "la clé GMN de laplacien de Hodge `hlap`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathHodgeLaplacian|skos:definition"
+msgid "The unary prefix GMN named-key form `hlap` for math:HodgeLaplacian; capital delta remains non-executable display notation because it is overloaded across several operator families."
+msgstr "La forme de clé nommée GMN préfixe unaire `hlap` pour math:HodgeLaplacian ; le delta majuscule demeure une notation d’affichage non exécutable car il est surchargé entre plusieurs familles d’opérateurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|rdfs:label"
+msgid "denotation of the GMN Hodge-Laplacian key"
+msgstr "dénotation de la clé GMN du laplacien de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|skos:definition"
+msgid "The meaning assignment from `hlap` to the class math:HodgeLaplacian; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `hlap` à la classe math:HodgeLaplacian ; elle ne porte délibérément aucun graphème exécutable."

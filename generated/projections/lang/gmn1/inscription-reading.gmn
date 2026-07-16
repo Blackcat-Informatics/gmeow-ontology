@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gmeow__examples-2f-archaeological-evidence-2f-akkadian, p: rdf__type, o: gmeow__Language}
 @c{s: gmeow__examples-2f-archaeological-evidence-2f-akkadian, p: rdfs__label, v: r_fff2cf55dd6c741a}
 @c{s: gmeow__examples-2f-archaeological-evidence-2f-akkadian, p: gmeow__languageCode, v: akk}

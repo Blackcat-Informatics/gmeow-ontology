@@ -187,6 +187,11 @@ jsonschema = { version = "0.46", default-features = false }
 #   * gmeow-validate — the native structural lint + native SHACL channels
 #     (structural_lint_dataset / shacl_validate_dataset / parse_file_dataset).
 gmeow-validate = { path = "../validate" }
+# Reuse the slice harness's canonical conformance-data scope. In particular,
+# logic:/lang:/math: validation sees the three-module grounding kernel while
+# enforcing shapes remain slice-owned; keeping this in one helper prevents the
+# flagship and declarative conformance lanes from drifting apart.
+gmeow-slicetest = { path = "../slicetest" }
 #   * gmeow-lang-bridge — the FS1 producer `lower::lower_svo` + `flagship_svo_sentence`.
 gmeow-lang-bridge = { path = "../lang-bridge" }
 #   * gmeow-logic-compile — `ir::PreservationKind`, the per-stage preservation record the

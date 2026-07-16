@@ -1,0 +1,13 @@
+# External-corpus coverage: reusable Mapper-construction frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?mapper ?source ?filter ?cover ?clustering ?nerve
+WHERE {
+  ?mapper a math:MapperConstruction ;
+          math:sourceMetricSpace ?source ;
+          math:filterFunction ?filter ;
+          math:coverScheme ?cover ;
+          math:clusteringRule ?clustering ;
+          math:outputNerve ?nerve .
+}
+ORDER BY ?mapper

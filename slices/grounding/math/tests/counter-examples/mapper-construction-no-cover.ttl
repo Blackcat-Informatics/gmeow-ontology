@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Missing-cover counterexample: the Mapper construction supplies a complete
+# frame — source metric space, filter (lens) function, deterministic clustering
+# rule, and output nerve complex — but OMITS its required cover of the filter
+# codomain (math:coverScheme). Without the cover there are no inverse images to
+# cluster and no overlaps to form the nerve's edges, so the construction is
+# ill-formed: it isolates math:IncompleteMapperConstruction via the single derived
+# QualifiedMinCount constraint on math:coverScheme.
+ex:mapper a math:MapperConstruction ;
+    math:sourceMetricSpace ex:source ;
+    math:filterFunction ex:filter ;
+    math:clusteringRule ex:clustering ;
+    math:outputNerve ex:nerve .
+
+ex:source a math:MetricSpace .
+
+ex:filter a math:Function ;
+    math:domain ex:filterDomain ;
+    math:codomain ex:filterCodomain .
+ex:filterDomain a math:Set .
+ex:filterCodomain a math:Set .
+
+ex:clustering a math:ClusteringRule ;
+    math:clusteringThreshold ex:threshold .
+ex:threshold a math:RationalValue ;
+    math:numerator 1 ;
+    math:denominator 1 .
+
+ex:nerve a math:NerveComplex .
