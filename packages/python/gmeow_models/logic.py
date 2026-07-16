@@ -592,7 +592,7 @@ class Logic_FunctionTerm(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/FunctionTerm", "curie": "logic:FunctionTerm", "definitionDigest": "blake3:45ced004e2e444c5551f2b15ac292eaf46f7467696da780b037a6faf295ea950", "iri": "https://blackcatinformatics.ca/logic/FunctionTerm"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/FunctionTerm", "curie": "logic:FunctionTerm", "definitionDigest": "blake3:dd4cdc7710736c32032c54b7929bdcc65390ac65dae9d868b83c66c031a3f8c7", "iri": "https://blackcatinformatics.ca/logic/FunctionTerm"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
