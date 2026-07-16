@@ -1336,16 +1336,29 @@ fn correspondence_recovery_cases_sort_and_key_by_full_content() {
         .with_recovery_cases(vec![case_a.clone(), case_b.clone()])
         .expect("unique cases");
     let ba = corr(&format!("{LOGIC}c"), vec![])
-        .with_recovery_cases(vec![case_b, case_a.clone()])
+        .with_recovery_cases(vec![case_b.clone(), case_a.clone()])
         .expect("unique cases");
     assert_eq!(ab.recovery_cases, ba.recovery_cases);
 
+    // Same case SET (same two IRIs, same cardinality) as `ab` — only `case_a`'s recovery
+    // transform changes (negated). If `content_key()`/`content_id` ignored the transform,
+    // `changed` would collide with `ab` (identical case identities), so this genuinely
+    // proves the transform participates in the content key rather than merely proving that
+    // dropping a case changes the key.
+    let case_a_transform_changed = RecoveryCaseIr::new(
+        case_a.iri.clone(),
+        Formula::Not(Box::new(pred("a", vec![tv("x")]))),
+    )
+    .expect("changed case a");
     let changed = corr(&format!("{LOGIC}c"), vec![])
-        .with_recovery_cases(vec![
-            RecoveryCaseIr::new(case_a.iri, Formula::Not(Box::new(pred("a", vec![tv("x")]))))
-                .expect("changed case"),
-        ])
+        .with_recovery_cases(vec![case_a_transform_changed, case_b.clone()])
         .expect("unique changed case");
+    assert_eq!(
+        ab.recovery_cases.len(),
+        changed.recovery_cases.len(),
+        "the case SET size must stay constant so the key difference is attributable only to \
+         the transform"
+    );
     assert_ne!(ab.content_key(), changed.content_key());
 }
 
