@@ -7341,7 +7341,7 @@ math:CellularSheaf
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cellular Sheaf"@x-gmeow-english ;
-    skos:definition "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."@x-gmeow-english ;
+    skos:definition "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation. Unlike a constant sheaf, its stalks and restriction maps may differ from cell to cell, and it is not merely the underlying cell complex, which carries no stalk data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SheafStalk
@@ -7376,7 +7376,7 @@ math:SheafLaplacian
     a owl:Class ; logic:subClassOf math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Sheaf Laplacian"@x-gmeow-english ;
-    skos:definition "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."@x-gmeow-english ;
+    skos:definition "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data. Unlike a scalar graph Laplacian, it acts on sheaf-valued cochains through the declared restriction maps, not on plain vertex functions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:HodgeLaplacian
@@ -7390,7 +7390,7 @@ math:HodgeDecomposition
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Hodge Decomposition"@x-gmeow-english ;
-    skos:definition "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."@x-gmeow-english ;
+    skos:definition "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products. Unlike an arbitrary direct sum, its three components are mutually orthogonal and the harmonic part is uniquely determined, not freely chosen."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:HarmonicComponent
@@ -7476,14 +7476,14 @@ math:Entropy
     a owl:Class ; logic:subClassOf math:InformationMeasure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Information Entropy"@x-gmeow-english ;
-    skos:definition "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."@x-gmeow-english ;
+    skos:definition "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame. Unlike math:CrossEntropy or math:KullbackLeiblerDivergence, it scores a single distribution against itself, not one distribution against a separate reference distribution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MutualInformation
     a owl:Class ; logic:subClassOf math:InformationMeasure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mutual Information"@x-gmeow-english ;
-    skos:definition "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."@x-gmeow-english ;
+    skos:definition "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence. It is not a math:Distance: it vanishes exactly when the variables are independent and is never negative, but it does not obey the triangle inequality."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:KullbackLeiblerDivergence
@@ -7497,7 +7497,7 @@ math:CrossEntropy
     a owl:Class ; logic:subClassOf math:InformationMeasure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cross Entropy"@x-gmeow-english ;
-    skos:definition "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."@x-gmeow-english ;
+    skos:definition "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another. Unlike math:Entropy, it scores a model distribution against a separate data distribution and is therefore never below that data distribution's own entropy; unlike math:KullbackLeiblerDivergence, it keeps that irreducible entropy term rather than subtracting it out."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:FisherInformation
@@ -7582,21 +7582,21 @@ math:VectorBinding
     a owl:Class ; logic:subClassOf math:VectorSymbolicOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Vector Binding"@x-gmeow-english ;
-    skos:definition "A vector-symbolic operation combining two representations into a representation of their association."@x-gmeow-english ;
+    skos:definition "A vector-symbolic operation combining two representations into a representation of their association. Unlike math:VectorBundling, its result is dissimilar to both operands rather than similar to them, and it is undone by math:VectorUnbinding rather than being idempotent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:VectorBundling
     a owl:Class ; logic:subClassOf math:VectorSymbolicOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Vector Bundling"@x-gmeow-english ;
-    skos:definition "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."@x-gmeow-english ;
+    skos:definition "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate. Unlike math:VectorBinding, its result stays similar to each superposed operand and is not invertible into its individual factors."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:VectorUnbinding
     a owl:Class ; logic:subClassOf math:VectorSymbolicOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Vector Unbinding"@x-gmeow-english ;
-    skos:definition "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."@x-gmeow-english ;
+    skos:definition "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law. Unlike math:VectorBundling, it inverts math:VectorBinding rather than superposing, and its recovery is approximate unless an exact algebra is declared, never lossless by default."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Vector-symbolic frame classes (vector-symbolic coverage family) -------- #
@@ -7777,7 +7777,7 @@ math:DirectSumDecomposition
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Direct-Sum Decomposition"@x-gmeow-english ;
-    skos:definition "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."@x-gmeow-english ;
+    skos:definition "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category. Unlike a mere set partition, its summands are subobjects whose internal sum reconstructs the whole, not disjoint blocks of elements."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:CliffordModuleDecomposition
@@ -12702,6 +12702,16 @@ math:VectorSymbolicOperation a logic:AbstractIndividualType .
 math:VectorUnbinding a logic:AbstractIndividualType .
 math:RecoveryLossContract a logic:AbstractIndividualType .
 math:VietorisRipsComplex a logic:AbstractIndividualType .
+
+# External-corpus Mapper / information-theoretic support structures
+math:ClusteringRule a logic:AbstractIndividualType .
+math:Cover a logic:AbstractIndividualType .
+math:CoverElement a logic:AbstractIndividualType .
+math:InformationUnit a logic:AbstractIndividualType .
+math:JointDistribution a logic:AbstractIndividualType .
+math:LogarithmBase a logic:AbstractIndividualType .
+math:MetricSpace a logic:AbstractIndividualType .
+math:NerveComplex a logic:AbstractIndividualType .
 
 # Event
 
