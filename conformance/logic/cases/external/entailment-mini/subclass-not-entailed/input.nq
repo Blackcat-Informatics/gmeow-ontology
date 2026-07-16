@@ -1,0 +1,6 @@
+<http://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/entailment-mini/subclass-not-entailed/w> .
+<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <https://gmeow.example/entailment-mini/subclass-not-entailed/w> .
+<http://example.org/B> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/entailment-mini/subclass-not-entailed/w> .
+<http://example.org/C> <http://www.w3.org/2002/07/owl#disjointWith> <https://blackcatinformatics.ca/logic/entail/reserved#complement-f5d81236012fe6c9> <https://gmeow.example/entailment-mini/subclass-not-entailed/w> .
+<https://blackcatinformatics.ca/logic/entail/reserved#witness-7fbf10efda045220> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/A> <https://gmeow.example/entailment-mini/subclass-not-entailed/w> .
+<https://blackcatinformatics.ca/logic/entail/reserved#witness-7fbf10efda045220> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/entail/reserved#complement-f5d81236012fe6c9> <https://gmeow.example/entailment-mini/subclass-not-entailed/w> .

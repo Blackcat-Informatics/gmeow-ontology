@@ -121,7 +121,11 @@ depth is **authored** and **cited**.
 
 ### Persistent homology — filtrations, lifetimes, and stability
 
-Core classes: `math:Filtration`, `math:FiltrationStage`, and `math:PersistenceLifetime`.
+Core classes: `math:CellComplex`, `math:SimplicialComplex`, `math:VietorisRipsComplex`,
+`math:CechComplex`, `math:AlphaComplex`, `math:Filtration`, `math:FiltrationStage`,
+`math:PersistentHomology`, `math:PersistenceDiagram`, `math:PersistenceBarcode`,
+`math:PersistenceLandscape`, `math:BettiSummary`, `math:MapperConstruction`,
+`math:MultiparameterPersistence`, `math:ZigzagPersistence`, and `math:PersistenceLifetime`.
 
 Core properties: `math:hasFiltrationStage`, `math:filtrationThreshold`, `math:stageStructure`,
 `math:filtrationIndexKind`, `math:filtrationAmbient`, `math:overFiltration`, `math:persistenceFeature`,
@@ -160,6 +164,27 @@ theorem is what turns the persistence of a feature into a *warranted* credence
 persistence-calibration surface that lands as `logic:confidence` on a latent-meaning claim. Like the
 rest of the topology depth, the content is authored and cited (mathlib/AFP; Edelsbrunner–Harer,
 *Computational Topology*).
+
+The analysis process itself is `math:PersistentHomology`, not the filtration and not a project-local
+TDA umbrella. It names its input, exactly one filtration, and one or more persistence-diagram
+outputs. Barcodes, landscapes, Betti summaries, Mapper constructions, and multi-parameter or zigzag
+specializations remain distinct mathematical result or method classes, so a consumer can state
+exactly which summary it calculated.
+
+### Cellular sheaves and Hodge structure
+
+A `math:CellularSheaf` declares its base `math:CellComplex`, its `math:SheafStalk`s, and the
+`math:SheafRestrictionMap`s transporting data along incidences; sections, cohomology, sheaf
+Laplacians, and Hodge decomposition are separate reusable structures. `math:HodgeDecomposition`
+names harmonic, exact, and coexact components rather than treating those readings as intrinsic
+labels on a vector. A sheaf without a base, stalk, or restriction map is structurally incomplete.
+
+### Hamiltonian systems
+
+A `math:HamiltonianSystem` is framed by exactly one smooth state space, symplectic form,
+Hamiltonian function, and generated flow. These roles are explicit because a scalar field or flow
+alone does not determine the symplectic dynamical system. The frame is mathematical; a physical
+interpretation of the Hamiltonian remains a downstream, vantage-bearing claim.
 
 ## Differential geometry and manifolds
 

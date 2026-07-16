@@ -60,17 +60,18 @@ The normative design is a set of charters under [`design/`](./design/):
 | Document | Genre | Realized state | Contents |
 | --- | --- | --- | --- |
 | [`design/MATHEMATICS.md`](./design/MATHEMATICS.md) | manifesto | realized | vision, doctrine, the grounding-layer posture |
+| [`design/MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md`](./design/MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md) | coverage audit | realized | anonymized, mechanically gated dispositions for 95 topics from a private comparison corpus |
 | [`design/MATHEMATICS-NUMBERS-AND-SETS.md`](./design/MATHEMATICS-NUMBERS-AND-SETS.md) | charter | realized | the bedrock: number systems and exactness, arithmetic, sets, relations and functions |
 | [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | realized (reference layer, typed AST, strict slot contiguity, ACT core; content-addressed interning pending) | the mathematical core: the reference, expression-AST, object, ACT, and statement/proof layers |
 | [`design/MATHEMATICS-MEASURE-AND-DIMENSION.md`](./design/MATHEMATICS-MEASURE-AND-DIMENSION.md) | charter | realized (incl. the native ℚ⁷ homogeneity gate) | measurable spaces, measures, integration, dimensional analysis, units |
-| [`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md) | charter | realized | the structure hierarchy, homomorphism laws, E8, homomorphic encryption, secret sharing |
-| [`design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](./design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | charter | realized | calculus binders, topology with first-order laws and the second-order compactness boundary, manifolds |
-| [`design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md) | charter | realized (exact-rational numeric core; heavy computation design-only) | inner products, exact Gram/norm layer, PCA, embeddings, tensor graphs, residual meaning |
+| [`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md) | charter | realized | the structure hierarchy, homomorphism laws, E8, exact Clifford algebras and extensions, homomorphic encryption, secret sharing |
+| [`design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](./design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | charter | realized | calculus binders, computational topology, cellular sheaves and Hodge structure, Hamiltonian systems, manifolds |
+| [`design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md) | charter | realized (exact-rational numeric core; general heavy computation design-only) | inner products, reduction/reconstruction, information measures, vector-symbolic operations, PCA, embeddings, tensor graphs, residual meaning |
 | [`design/MATHEMATICS-PROBABILITY.md`](./design/MATHEMATICS-PROBABILITY.md) | charter | realized | probability spaces, random variables, distributions with mandatory parameterization, dependency models, the `logic:probabilityModel` seam |
 | [`design/MATHEMATICS-STATISTICS.md`](./design/MATHEMATICS-STATISTICS.md) | charter | realized (external computational engines remain projections) | statistical models, estimation, inference, p-values, interval paradigms, diagnostics, and the process/result/claim split |
 | [`design/MATHEMATICS-BRIDGES.md`](./design/MATHEMATICS-BRIDGES.md) | charter | vocabulary realized (ingest-run spine + native unliftable gate); the R/ONNX/proof lifters themselves are design-only | executable-artifact ingestion: R, ONNX, and proof-assistant lifts |
 | [`design/MATHEMATICS-PROJECTIONS.md`](./design/MATHEMATICS-PROJECTIONS.md) | contract | partially realized — shipped grounding correspondences and projection-failure records are live; full document/codec emitters remain design | outbound lossy lowerings (MathML, OpenMath, Data Cube, STATO, QUDT) and inbound refusal contracts |
-| [`design/MATHEMATICS-RUNTIME.md`](./design/MATHEMATICS-RUNTIME.md) | runtime | **design-only** (self-declared) | ingestion as projection run backwards, expression interning, the solver-profile handoff, acceptance gates |
+| [`design/MATHEMATICS-RUNTIME.md`](./design/MATHEMATICS-RUNTIME.md) | runtime | partially realized — exact Clifford kernel and producer shipped; general ingestion and solver profiles design-only | ingestion as projection run backwards, expression interning, exact bounded calculation, the solver-profile handoff, acceptance gates |
 | [`design/MATHEMATICS-CONFORMANCE.md`](./design/MATHEMATICS-CONFORMANCE.md) | enforcement | realized across the canonical structural, probability, statistics, and grounding-correspondence surfaces; codec-only rows remain pending | the gate matrix — each hard rule, its gate kind, and the `math:` failure class it raises |
 | [`design/MATHEMATICS-REFERENCES.md`](./design/MATHEMATICS-REFERENCES.md) | references | realized (alignment lanes authored in `mappings/equivalences.ttl`) | the external-authority landscape (OpenMath, Wikidata, OEIS, DLMF, QUDT, xsd) and the anchoring posture |
 
@@ -90,11 +91,12 @@ positive fixture and a negative counter-example under the native slicetest harne
 | A set is extensional or intensional, not both | `math:SetExtentShape` | `math:AmbiguousSetExtent` |
 | A function declares its domain and codomain | `math:FunctionFramingShape` | `math:UnframedFunction` |
 
-The five competency questions in [`queries/competency/`](./queries/competency/) demonstrate that the
-term surface answers, over the fixtures, what number system a number is in and whether it is exact,
-whether a set is extensional or intensional and its condition, a function's domain/codomain/image and
-its injectivity/surjectivity/bijectivity, a set's cardinality, and which named constants appear with
-their external anchors.
+The bedrock competency questions in [`queries/competency/`](./queries/competency/) demonstrate that
+the term surface answers, over the fixtures, what number system a number is in and whether it is
+exact, whether a set is extensional or intensional and its condition, a function's
+domain/codomain/image and its injectivity/surjectivity/bijectivity, a set's cardinality, and which
+named constants appear with their external anchors. Further questions in the same registry exercise
+every realized charter, including the cross-corpus coverage frames described below.
 
 ## Algebra — structures, symmetry, and homomorphisms
 
@@ -134,6 +136,13 @@ over their n-ary predication is a relational-core capability, not an algebra-sli
   `math:noiseModel`; encrypt/evaluate/decrypt as `gmeow:Activity` processes. `Dec(E(a) ⊗ E(b)) = a ⊕ b`
   is a `logic:Formula` over the declared ring structure — the purest exercise of the one-way
   `math:` → `logic:` bridge. Shamir secret sharing reuses the field / polynomial-ring machinery.
+- **Clifford structure and exact extension calculation** — `math:QuadraticSpace`,
+  `math:QuadraticForm`, `math:GradedAlgebra`, `math:ExteriorAlgebra`, and
+  `math:CliffordAlgebra`; blades, multivectors, geometric/exterior/contraction products and the
+  standard involutions; and `math:CliffordExtension` with an explicit module decomposition and
+  split/join witness. The native exact kernel and eighth producer calculate `Cl(12,0)`, `Cl(6,6)`,
+  `Cl(13,0)`, and `Cl(7,6)`. Equal dimensions create no E8 relationship: any such relationship must
+  arrive through a declared faithful representation and equivariant map.
 
 Algebra also **dogfoods** GMEOW: `math:Lattice math:formalizes gmeow:tuningSystemJustIntonation` (a
 prime-limit just-intonation tuning is a free abelian lattice), the one-way `math:formalizes` bridge
@@ -182,6 +191,17 @@ binder AST its operators consume, using the canonical reserved names (no near-sy
   `math:HomologyGroup` (⊑ `math:AbelianGroup`, so it carries the full algebra frame). Continuity,
   compactness, and connectedness are declared, not assumed; the defining law that the preimage of an
   open set is open is authored as a first-order `logic:Formula` (`math:continuityLaw`).
+- **Computational topology** — cell, simplicial, and chain complexes with boundary/coboundary
+  operators; Vietoris–Rips, Čech, and alpha complexes; persistent, zigzag, and multiparameter
+  homology; diagrams, barcodes, landscapes, Betti summaries, and Mapper. A
+  `math:PersistentHomology` activity must name its analysis input, filtration, and result.
+- **Cellular sheaves and Hodge structure** — stalks, restriction maps, sections, cohomology,
+  sheaf/Hodge Laplacians, and exact/coexact/harmonic decomposition are explicit objects over a
+  declared base complex. The sheaf and its local-to-global structure cannot be reduced to labels.
+- **Hamiltonian dynamics** — scalar/vector fields, flows, symplectic forms, Hamiltonian functions,
+  flows, and systems. A `math:HamiltonianSystem` declares its state space, symplectic form,
+  Hamiltonian function, and generated flow; application-specific landscape readings remain
+  evidence-bearing observations.
 - **Differential geometry** — the manifold tower `math:Manifold` ⊐ `math:SmoothManifold` ⊐
   `math:ComplexManifold`/`math:RiemannianManifold`/`math:LorentzianManifold`, with `math:Chart`,
   `math:Atlas` (carrying transition maps φᵢ∘φⱼ⁻¹ through the landed function composition),
@@ -245,6 +265,11 @@ spaces, or representation geometry) and it carries two flagships.
   `math:OptimizationProblem`, `math:Embedding`, `math:KnowledgeGraphEmbedding`, `math:LatentSpace`, and
   `math:EmbeddingDimension`. An embedding names its source, target space, function, and model; latent-space
   and dimension semantics are GMEOW-original.
+- **Reduction, information, and vector-symbolic structure** — `math:DimensionalReduction` with
+  UMAP/Isomap, spectral initialization, ordered reduction paths, reconstruction maps, and target
+  dimensions; entropy, cross-entropy, mutual information, KL divergence, Fisher information, and
+  surprisal; and framed vector binding, bundling, and unbinding. These are mathematical structures
+  and analyses, while implementation policy and semantic interpretation remain profiles or claims.
 - **An AI describing its own structure** — `math:TensorComputationGraph`, `math:NeuralLayer`,
   `math:WeightTensor`, `math:ActivationFunction`, `math:AttentionOperation`, and `math:ParameterSpace`. A
   neural network's forward pass **is** a `math:TensorComputationGraph` — a `math:ApplicationExpression` over
@@ -264,6 +289,26 @@ argument-slot uniqueness gate the tensor graph rides), so `native_contract_hash`
 | An embedding names its source, target, function, and model | `math:EmbeddingShape` | `math:UnderspecifiedEmbedding` |
 | A tensor computation graph declares its (AST-reusing) computation nodes | `math:TensorComputationGraphShape` / `math:SlotIndexUniquenessShape` | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
 | A weight tensor names its parameter space | `math:WeightTensorShape` | `math:UnframedWeightTensor` |
+
+## Anonymized external-corpus coverage
+
+[`design/MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md`](./design/MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md)
+is the public, anonymized audit of a private comparison snapshot. Its 95 unique topics each receive
+exactly one reviewed disposition: `REUSE`, `COMPOSE`, `EXTEND`, `MINT`, or `PROFILE`. The ledger is
+pinned to the GMEOW base revision, names only reusable public mathematics, and deliberately excludes
+the source project's identity, paths, revision, and local vocabulary.
+
+Five positive fixtures and six minimal counterexamples exercise the newly shared frames for
+persistent homology, dimensional reduction, Hamiltonian systems, cellular sheaves, and Clifford
+algebras/extensions. Their competency queries prove the required structure is retrievable. The exact
+Clifford producer is additional runtime evidence, not a sixth flagship: the repository's five
+flagship acceptance scenarios remain unchanged.
+
+The crosswalk is a coverage decision ledger, not an imported ontology or dependency. Rows marked
+`PROFILE` stay downstream because they select workflows, storage, security, agent behavior, or
+domain interpretations. Mathematical coincidences, topological readings, and representation claims
+remain framed, provenance-bearing claims; they never become intrinsic ontology axioms by appearing
+in the comparison corpus.
 
 ## The flagship acceptance manifest — the depth bar as a typed contract
 

@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# A Mapper construction names a complete, declared frame: the source metric space
+# it samples, the filter (lens) function it factors through, the cover of the
+# filter's codomain, the deterministic clustering rule applied inside each cover
+# element's inverse image, and the output nerve complex. The construction conforms
+# against the derived frame shapes.
+#
+# DETERMINISM: neither the cover nor the clustering is a free resolution choice.
+# The cover is FINITELY AND EXPLICITLY ENUMERATED as exactly two overlapping,
+# fully specified closed intervals of the (real) filter codomain,
+#   ex:coverLow  = [0, 2]  and  ex:coverHigh = [1, 3],
+# whose overlap [1, 2] is what induces the single edge of the output nerve. The
+# clustering rule is single-linkage at an EXACT rational threshold 1/1 (numerator
+# 1, denominator 1) — never a decimal — so the per-cover-element clusters, and
+# hence the nerve's vertex set, are reproducible from the data alone.
+ex:mapper a math:MapperConstruction ;
+    math:sourceMetricSpace ex:source ;
+    math:filterFunction ex:filter ;
+    math:coverScheme ex:cover ;
+    math:clusteringRule ex:clustering ;
+    math:outputNerve ex:nerve .
+
+# The source metric space: the point cloud with its declared distance function.
+ex:source a math:MetricSpace .
+
+# The filter (lens) function, itself fully framed with a declared domain and
+# codomain (each a math:Set), as every math:Function must be.
+ex:filter a math:Function ;
+    math:domain ex:filterDomain ;
+    math:codomain ex:filterCodomain .
+ex:filterDomain a math:Set .
+ex:filterCodomain a math:Set .
+
+# The cover of the filter codomain: a finite family of exactly two overlapping,
+# fully specified cover elements. Each is both a math:CoverElement and a concrete
+# math:Interval with both endpoints and both inclusions declared, so the cover is
+# enumerated data, not a resolution/gain parameter.
+ex:cover a math:Cover ;
+    math:hasCoverElement ex:coverLow , ex:coverHigh .
+ex:coverLow a math:CoverElement , math:Interval ;
+    math:lowerEndpoint 0 ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperEndpoint 2 ;
+    math:upperInclusion math:closedEndpoint .
+ex:coverHigh a math:CoverElement , math:Interval ;
+    math:lowerEndpoint 1 ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperEndpoint 3 ;
+    math:upperInclusion math:closedEndpoint .
+
+# The deterministic clustering rule: single-linkage at the exact rational
+# threshold 1/1, carried as an exact numerator/denominator pair.
+ex:clustering a math:ClusteringRule ;
+    math:clusteringThreshold ex:threshold .
+ex:threshold a math:RationalValue ;
+    math:numerator 1 ;
+    math:denominator 1 .
+
+# The output nerve complex: the simplicial complex whose vertices are the
+# per-cover-element clusters and whose one edge records the ex:coverLow /
+# ex:coverHigh cluster overlap over [1, 2].
+ex:nerve a math:NerveComplex .

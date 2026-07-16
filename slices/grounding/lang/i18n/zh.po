@@ -115,3 +115,420 @@ msgstr "改写形式"
 msgctxt "https://blackcatinformatics.ca/lang/paraphraseForm|skos:definition"
 msgid "Relates a lang:Paraphrase to the produced restatement form. Domain lang:Paraphrase, range lang:Form (stated in prose). The source side is lang:paraphraseOf; keeping both roles explicit makes the form-to-form crossing and its relator mediation queryable without treating the reified paraphrase record as a form."
 msgstr "将 lang:Paraphrase 关联到所产生的改写形式。其定义域为 lang:Paraphrase，值域为 lang:Form（以文字说明）。源端由 lang:paraphraseOf 表示；显式保留两端角色，使形式到形式的转换及其关系体中介均可查询，同时不会把具体化的改写记录误作形式本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator|rdfs:label"
+msgid "GMN candidate: boundary operator"
+msgstr "GMN 候选：边界算子"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator|skos:definition"
+msgid "The audited named-key ruling for the conventional partial-sign notation of math:BoundaryOperator."
+msgstr "对 math:BoundaryOperator 的常规偏导符号采用具名键之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator|rdfs:label"
+msgid "GMN candidate: coboundary operator"
+msgstr "GMN 候选：上边缘算子"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator|skos:definition"
+msgid "The audited named-key ruling for the conventional delta notation of math:CoboundaryOperator."
+msgstr "对 math:CoboundaryOperator 的常规 delta 记法采用具名键之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct|rdfs:label"
+msgid "GMN candidate: exterior product"
+msgstr "GMN 候选：外积"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct|skos:definition"
+msgid "The audited structured-constructor ruling for the wedge notation of math:ExteriorProduct."
+msgstr "对 math:ExteriorProduct 的楔形记法采用结构化构造器之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum|rdfs:label"
+msgid "GMN candidate: direct sum"
+msgstr "GMN 候选：直和"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum|skos:definition"
+msgid "The audited named-key ruling for the circled-plus notation associated with math:DirectSumDecomposition."
+msgstr "对 math:DirectSumDecomposition 的圈加记法采用具名键之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction|rdfs:label"
+msgid "GMN candidate: left contraction"
+msgstr "GMN 候选：左缩并"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction|skos:definition"
+msgid "The audited named-key ruling for the right-floor notation of math:LeftContraction."
+msgstr "对 math:LeftContraction 的右下角符号采用具名键之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection|rdfs:label"
+msgid "GMN candidate: grade projection"
+msgstr "GMN 候选：次数投影"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection|skos:definition"
+msgid "The audited structured-constructor ruling for the grade-indexed angle-bracket notation of math:GradeProjection."
+msgstr "对 math:GradeProjection 的次数索引尖括号记法采用结构化构造器之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion|rdfs:label"
+msgid "GMN candidate: Clifford reversion"
+msgstr "GMN 候选：Clifford 逆序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion|skos:definition"
+msgid "The audited named-key ruling for the tilde notation of math:Reversion."
+msgstr "对 math:Reversion 的波浪号记法采用具名键之审核裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot|rdfs:label"
+msgid "GMN candidate: geometric-product dot"
+msgstr "GMN 候选：几何积点号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot|skos:definition"
+msgid "The explicit rejection of a centred dot as a flattened alias for math:GeometricProduct."
+msgstr "明确拒绝将居中点号作为 math:GeometricProduct 的扁平化别名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian|rdfs:label"
+msgid "GMN candidate: Hodge Laplacian"
+msgstr "GMN 候选：Hodge 拉普拉斯算子"
+
+ msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian|skos:definition"
+msgid "The audited named-key ruling for the capital-delta notation of math:HodgeLaplacian."
+msgstr "对 math:HodgeLaplacian 的大写 delta 记法采用具名键之审核裁定。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3|rdfs:label"
+msgid "GMN dictionary (version 3)"
+msgstr "GMN 词典（版本 3）"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3|skos:definition"
+msgid "Dictionary version 3 of the GMN alias table: an immutable successor to version 2 that retains all 24 prior bindings on version-owned entries and adds `boundary`, `coboundary`, `ds`, `lcon`, `rev`, and `hlap` for the audited mathematics named keys."
+msgstr "GMN 别名表的版本 3：版本 2 的不可变后继，在版本自有条目中保留此前全部 24 项绑定，并为经审核的数学具名键新增 `boundary`、`coboundary`、`ds`、`lcon`、`rev` 和 `hlap`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope|rdfs:label"
+msgid "dict-v3 entry: gmeow:GmnEnvelope to genv"
+msgstr "dict-v3 条目：gmeow:GmnEnvelope 到 genv"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope|skos:definition"
+msgid "The version-3 alias binding for gmeow:GmnEnvelope: `genv`, retained unchanged from version 2."
+msgstr "gmeow:GmnEnvelope 的版本 3 别名绑定：`genv`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook|rdfs:label"
+msgid "dict-v3 entry: gmeow:GmnCodebook to gcb"
+msgstr "dict-v3 条目：gmeow:GmnCodebook 到 gcb"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook|skos:definition"
+msgid "The version-3 alias binding for gmeow:GmnCodebook: `gcb`, retained unchanged from version 2."
+msgstr "gmeow:GmnCodebook 的版本 3 别名绑定：`gcb`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation|rdfs:label"
+msgid "dict-v3 entry: lang:Denotation to den"
+msgstr "dict-v3 条目：lang:Denotation 到 den"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation|skos:definition"
+msgid "The version-3 alias binding for lang:Denotation: `den`, retained unchanged from version 2."
+msgstr "lang:Denotation 的版本 3 别名绑定：`den`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation|rdfs:label"
+msgid "dict-v3 entry: lang:Translation to xl"
+msgstr "dict-v3 条目：lang:Translation 到 xl"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation|skos:definition"
+msgid "The version-3 alias binding for lang:Translation: `xl`, retained unchanged from version 2."
+msgstr "lang:Translation 的版本 3 别名绑定：`xl`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary|rdfs:label"
+msgid "dict-v3 entry: lang:MorphemeBoundary to mb"
+msgstr "dict-v3 条目：lang:MorphemeBoundary 到 mb"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary|skos:definition"
+msgid "The version-3 alias binding for lang:MorphemeBoundary: `mb`, retained unchanged from version 2."
+msgstr "lang:MorphemeBoundary 的版本 3 别名绑定：`mb`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision|rdfs:label"
+msgid "dict-v3 entry: math:Division to div"
+msgstr "dict-v3 条目：math:Division 到 div"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision|skos:definition"
+msgid "The version-3 alias binding for math:Division: `div`, retained unchanged from version 2."
+msgstr "math:Division 的版本 3 别名绑定：`div`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall|rdfs:label"
+msgid "dict-v3 entry: logic:forall to fa"
+msgstr "dict-v3 条目：logic:forall 到 fa"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall|skos:definition"
+msgid "The version-3 alias binding for logic:forall: `fa`, retained unchanged from version 2."
+msgstr "logic:forall 的版本 3 别名绑定：`fa`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists|rdfs:label"
+msgid "dict-v3 entry: logic:exists to ex"
+msgstr "dict-v3 条目：logic:exists 到 ex"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists|skos:definition"
+msgid "The version-3 alias binding for logic:exists: `ex`, retained unchanged from version 2."
+msgstr "logic:exists 的版本 3 别名绑定：`ex`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd|rdfs:label"
+msgid "dict-v3 entry: logic:and to and"
+msgstr "dict-v3 条目：logic:and 到 and"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd|skos:definition"
+msgid "The version-3 alias binding for logic:and: `and`, retained unchanged from version 2."
+msgstr "logic:and 的版本 3 别名绑定：`and`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr|rdfs:label"
+msgid "dict-v3 entry: logic:or to or"
+msgstr "dict-v3 条目：logic:or 到 or"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr|skos:definition"
+msgid "The version-3 alias binding for logic:or: `or`, retained unchanged from version 2."
+msgstr "logic:or 的版本 3 别名绑定：`or`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff|rdfs:label"
+msgid "dict-v3 entry: logic:iff to iff"
+msgstr "dict-v3 条目：logic:iff 到 iff"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff|skos:definition"
+msgid "The version-3 alias binding for logic:iff: `iff`, retained unchanged from version 2."
+msgstr "logic:iff 的版本 3 别名绑定：`iff`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary|rdfs:label"
+msgid "dict-v3 entry: necessary modal force to nec"
+msgstr "dict-v3 条目：gmeow:modalForceNecessary 到 nec"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceNecessary: `nec`, retained unchanged from version 2."
+msgstr "gmeow:modalForceNecessary 的版本 3 别名绑定：`nec`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual|rdfs:label"
+msgid "dict-v3 entry: actual modal force to act"
+msgstr "dict-v3 条目：gmeow:modalForceActual 到 act"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceActual: `act`, retained unchanged from version 2."
+msgstr "gmeow:modalForceActual 的版本 3 别名绑定：`act`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible|rdfs:label"
+msgid "dict-v3 entry: possible modal force to poss"
+msgstr "dict-v3 条目：gmeow:modalForcePossible 到 poss"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForcePossible: `poss`, retained unchanged from version 2."
+msgstr "gmeow:modalForcePossible 的版本 3 别名绑定：`poss`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual|rdfs:label"
+msgid "dict-v3 entry: counterfactual modal force to cf"
+msgstr "dict-v3 条目：gmeow:modalForceCounterfactual 到 cf"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceCounterfactual: `cf`, retained unchanged from version 2."
+msgstr "gmeow:modalForceCounterfactual 的版本 3 别名绑定：`cf`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect|rdfs:label"
+msgid "dict-v3 entry: direct observation to dir"
+msgstr "dict-v3 条目：gmeow:methodDirectObservation 到 dir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodDirectObservation: `dir`, retained unchanged from version 2."
+msgstr "gmeow:methodDirectObservation 的版本 3 别名绑定：`dir`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental|rdfs:label"
+msgid "dict-v3 entry: instrumental reading to inst"
+msgstr "dict-v3 条目：gmeow:methodInstrumentalReading 到 inst"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodInstrumentalReading: `inst`, retained unchanged from version 2."
+msgstr "gmeow:methodInstrumentalReading 的版本 3 别名绑定：`inst`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote|rdfs:label"
+msgid "dict-v3 entry: remote sensing to rmt"
+msgstr "dict-v3 条目：gmeow:methodRemoteSensing 到 rmt"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodRemoteSensing: `rmt`, retained unchanged from version 2."
+msgstr "gmeow:methodRemoteSensing 的版本 3 别名绑定：`rmt`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational|rdfs:label"
+msgid "dict-v3 entry: computational model to cmp"
+msgstr "dict-v3 条目：gmeow:methodComputationalModel 到 cmp"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodComputationalModel: `cmp`, retained unchanged from version 2."
+msgstr "gmeow:methodComputationalModel 的版本 3 别名绑定：`cmp`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert|rdfs:label"
+msgid "dict-v3 entry: expert judgement to exj"
+msgstr "dict-v3 条目：gmeow:methodExpertJudgement 到 exj"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodExpertJudgement: `exj`, retained unchanged from version 2."
+msgstr "gmeow:methodExpertJudgement 的版本 3 别名绑定：`exj`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey|rdfs:label"
+msgid "dict-v3 entry: survey to srv"
+msgstr "dict-v3 条目：gmeow:methodSurvey 到 srv"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodSurvey: `srv`, retained unchanged from version 2."
+msgstr "gmeow:methodSurvey 的版本 3 别名绑定：`srv`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming|rdfs:label"
+msgid "dict-v3 entry: streaming observation to strm"
+msgstr "dict-v3 条目：gmeow:methodStreaming 到 strm"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodStreaming: `strm`, retained unchanged from version 2."
+msgstr "gmeow:methodStreaming 的版本 3 别名绑定：`strm`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen|rdfs:label"
+msgid "dict-v3 entry: logic:Open to open"
+msgstr "dict-v3 条目：logic:Open 到 open"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen|skos:definition"
+msgid "The version-3 alias binding for logic:Open: `open`, retained unchanged from version 2."
+msgstr "logic:Open 的版本 3 别名绑定：`open`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed|rdfs:label"
+msgid "dict-v3 entry: logic:Closed to closed"
+msgstr "dict-v3 条目：logic:Closed 到 closed"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed|skos:definition"
+msgid "The version-3 alias binding for logic:Closed: `closed`, retained unchanged from version 2."
+msgstr "logic:Closed 的版本 3 别名绑定：`closed`，与版本 2 保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator|rdfs:label"
+msgid "dict-v3 entry: math:BoundaryOperator to boundary"
+msgstr "dict-v3 条目：math:BoundaryOperator 到 boundary"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator|skos:definition"
+msgid "The version-3 named-key binding for math:BoundaryOperator: `boundary`, which disambiguates chain boundaries from partial differentiation."
+msgstr "math:BoundaryOperator 的版本 3 具名键绑定：`boundary`，用于区分链边界与偏微分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator|rdfs:label"
+msgid "dict-v3 entry: math:CoboundaryOperator to coboundary"
+msgstr "dict-v3 条目：math:CoboundaryOperator 到 coboundary"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator|skos:definition"
+msgid "The version-3 named-key binding for math:CoboundaryOperator: `coboundary`, which disambiguates the cochain operator from other delta notations."
+msgstr "math:CoboundaryOperator 的版本 3 具名键绑定：`coboundary`，用于区分上边缘算子与其他 delta 记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum|rdfs:label"
+msgid "dict-v3 entry: math:DirectSumDecomposition to ds"
+msgstr "dict-v3 条目：math:DirectSumDecomposition 到 ds"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum|skos:definition"
+msgid "The version-3 named-key binding for math:DirectSumDecomposition: `ds`, cheaper than the fragmented circled-plus display sign."
+msgstr "math:DirectSumDecomposition 的版本 3 具名键绑定：`ds`，其代价低于被分词拆散的圈加显示符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction|rdfs:label"
+msgid "dict-v3 entry: math:LeftContraction to lcon"
+msgstr "dict-v3 条目：math:LeftContraction 到 lcon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction|skos:definition"
+msgid "The version-3 named-key binding for math:LeftContraction: `lcon`, cheaper than the fragmented contraction display sign."
+msgstr "math:LeftContraction 的版本 3 具名键绑定：`lcon`，其代价低于被分词拆散的缩并显示符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion|rdfs:label"
+msgid "dict-v3 entry: math:Reversion to rev"
+msgstr "dict-v3 条目：math:Reversion 到 rev"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion|skos:definition"
+msgid "The version-3 named-key binding for math:Reversion: `rev`, which distinguishes the Clifford involution from other tilde operators."
+msgstr "math:Reversion 的版本 3 具名键绑定：`rev`，用于区分 Clifford 逆序与其他波浪号算子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian|rdfs:label"
+msgid "dict-v3 entry: math:HodgeLaplacian to hlap"
+msgstr "dict-v3 条目：math:HodgeLaplacian 到 hlap"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian|skos:definition"
+msgid "The version-3 named-key binding for math:HodgeLaplacian: `hlap`, which distinguishes the Hodge operator from other capital-delta conventions."
+msgstr "math:HodgeLaplacian 的版本 3 具名键绑定：`hlap`，用于区分 Hodge 算子与其他大写 delta 约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathBoundaryOperator|rdfs:label"
+msgid "the GMN boundary-operator key `boundary`"
+msgstr "GMN 边界算子键 `boundary`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathBoundaryOperator|skos:definition"
+msgid "The unary prefix GMN named-key form `boundary` for math:BoundaryOperator; the partial sign remains non-executable display notation because it is ambiguous with partial differentiation."
+msgstr "math:BoundaryOperator 的一元前缀 GMN 具名键形式 `boundary`；偏导符号因与偏微分含义歧义而仍是不可执行的显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathBoundaryOperator|rdfs:label"
+msgid "denotation of the GMN boundary-operator key"
+msgstr "GMN 边界算子键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathBoundaryOperator|skos:definition"
+msgid "The meaning assignment from `boundary` to the class math:BoundaryOperator; it deliberately carries no executable grapheme."
+msgstr "从 `boundary` 到类 math:BoundaryOperator 的意义指派；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathCoboundaryOperator|rdfs:label"
+msgid "the GMN coboundary-operator key `coboundary`"
+msgstr "GMN 上边缘算子键 `coboundary`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathCoboundaryOperator|skos:definition"
+msgid "The unary prefix GMN named-key form `coboundary` for math:CoboundaryOperator; delta remains non-executable display notation because it is overloaded across mathematical domains."
+msgstr "math:CoboundaryOperator 的一元前缀 GMN 具名键形式 `coboundary`；delta 因在多个数学领域中过载而仍是不可执行的显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathCoboundaryOperator|rdfs:label"
+msgid "denotation of the GMN coboundary-operator key"
+msgstr "GMN 上边缘算子键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathCoboundaryOperator|skos:definition"
+msgid "The meaning assignment from `coboundary` to the class math:CoboundaryOperator; it deliberately carries no executable grapheme."
+msgstr "从 `coboundary` 到类 math:CoboundaryOperator 的意义指派；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathDirectSumDecomposition|rdfs:label"
+msgid "the GMN direct-sum key `ds`"
+msgstr "GMN 直和键 `ds`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathDirectSumDecomposition|skos:definition"
+msgid "The binary infix GMN named-key form `ds` for math:DirectSumDecomposition; the circled-plus sign remains display notation because the named key is cheaper under the pinned BPE."
+msgstr "math:DirectSumDecomposition 的二元中缀 GMN 具名键形式 `ds`；由于具名键在固定 BPE 下代价更低，圈加符号仍为显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathDirectSumDecomposition|rdfs:label"
+msgid "denotation of the GMN direct-sum key"
+msgstr "GMN 直和键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathDirectSumDecomposition|skos:definition"
+msgid "The meaning assignment from `ds` to the class math:DirectSumDecomposition; it deliberately carries no executable grapheme."
+msgstr "从 `ds` 到类 math:DirectSumDecomposition 的意义指派；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLeftContraction|rdfs:label"
+msgid "the GMN left-contraction key `lcon`"
+msgstr "GMN 左缩并键 `lcon`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLeftContraction|skos:definition"
+msgid "The binary infix GMN named-key form `lcon` for math:LeftContraction; the contraction sign remains display notation because the named key is cheaper under the pinned BPE."
+msgstr "math:LeftContraction 的二元中缀 GMN 具名键形式 `lcon`；由于具名键在固定 BPE 下代价更低，缩并符号仍为显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathLeftContraction|rdfs:label"
+msgid "denotation of the GMN left-contraction key"
+msgstr "GMN 左缩并键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathLeftContraction|skos:definition"
+msgid "The meaning assignment from `lcon` to the class math:LeftContraction; it deliberately carries no executable grapheme."
+msgstr "从 `lcon` 到类 math:LeftContraction 的意义指派；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathReversion|rdfs:label"
+msgid "the GMN Clifford-reversion key `rev`"
+msgstr "GMN Clifford 逆序键 `rev`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathReversion|skos:definition"
+msgid "The unary prefix GMN named-key form `rev` for math:Reversion; tilde remains non-executable display notation because it is confusable with approximation, negation, and programming operators."
+msgstr "math:Reversion 的一元前缀 GMN 具名键形式 `rev`；波浪号因与近似、否定和编程算子混淆而仍是不可执行的显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathReversion|rdfs:label"
+msgid "denotation of the GMN Clifford-reversion key"
+msgstr "GMN Clifford 逆序键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathReversion|skos:definition"
+msgid "The meaning assignment from `rev` to the class math:Reversion; it deliberately carries no executable grapheme."
+msgstr "从 `rev` 到类 math:Reversion 的意义指派；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathHodgeLaplacian|rdfs:label"
+msgid "the GMN Hodge-Laplacian key `hlap`"
+msgstr "GMN Hodge 拉普拉斯键 `hlap`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathHodgeLaplacian|skos:definition"
+msgid "The unary prefix GMN named-key form `hlap` for math:HodgeLaplacian; capital delta remains non-executable display notation because it is overloaded across several operator families."
+msgstr "math:HodgeLaplacian 的一元前缀 GMN 具名键形式 `hlap`；大写 delta 因在多个算子族中过载而仍是不可执行的显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|rdfs:label"
+msgid "denotation of the GMN Hodge-Laplacian key"
+msgstr "GMN Hodge 拉普拉斯键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|skos:definition"
+msgid "The meaning assignment from `hlap` to the class math:HodgeLaplacian; it deliberately carries no executable grapheme."
+msgstr "从 `hlap` 到类 math:HodgeLaplacian 的意义指派；它有意不携带任何可执行字素。"

@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+ex:clifford a math:CliffordAlgebra ;
+    math:underlyingSet ex:carrier ;
+    math:scalarField math:realNumbers ;
+    math:structureOperation ex:product ;
+    math:satisfiesAxiom ex:associativity ;
+    math:hasBasis ex:basis ;
+    math:cliffordInvolution ex:reversion ;
+    math:hasBasisBlade ex:e1 ;
+    math:metricSignature ex:signature ;
+    math:spaceDimension 2 ;
+    math:pseudoscalarSquare 1 .
+ex:carrier a math:Set .
+ex:product a math:GeometricProduct .
+ex:basis a math:Basis .
+ex:reversion a math:Reversion .
+ex:e1 a math:BasisBlade ; math:bladeGrade 1 ; math:generatorIndex 1 ; math:generatorSquare 1 .
+ex:signature a math:MetricSignature ; math:signaturePositive 1 ; math:signatureNegative 0 .
+ex:associativity a math:Axiom .

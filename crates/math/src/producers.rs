@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The seven native producers of the `math:` grounding slice: five flagship-acceptance
+//! The eight native producers of the `math:` grounding slice: five flagship-acceptance
 //! producers, the probability layer's live `logic:probabilityModel` seam producer, and the
-//! signature `lang:` → `logic:` → `math:` p-value tri-slice producer.
+//! signature `lang:` → `logic:` → `math:` p-value tri-slice producer, plus the exact
+//! `Cl(12)` → `Cl(13)` positive-extension producer.
 //!
 //! Each flagship scenario in `slices/grounding/math/examples/flagship-acceptance.ttl`
 //! names a native producer entrypoint (`gmeow:demonstratedByProducer`). This module IS
@@ -34,6 +35,13 @@
 //! chain (a `lang:denotesLogicFormula` denotation whose target is the formula, and the
 //! formula predicating over the specific p-value) inside `gmeow.gts` itself.
 //!
+//! [`clifford_twelve_thirteen`] is the EIGHTH producer, likewise non-flagship. It calculates
+//! both `Cl(12,0)` → `Cl(13,0)` and `Cl(6,6)` → `Cl(7,6)` with the exact sparse Clifford
+//! kernel, including generator laws, pseudoscalar squares, algebra dimensions, and the
+//! `8192 = 4096 + 4096` last-generator split. It exposes no E8 action or equivalence: such a
+//! claim requires a supplied faithful representation/equivariant map, not dimensional
+//! coincidence.
+//!
 //! The graphs are built from constant templates and formatted exact integers/rationals —
 //! there is no `HashMap` iteration, no clock, and no randomness — so two calls to the same
 //! producer return byte-identical Turtle. All arithmetic that pins a value is exact
@@ -42,6 +50,7 @@
 
 use std::fmt::Write as _;
 
+use crate::clifford::{CliffordAlgebra, Multivector};
 use crate::{InnerProductSpace, Rational};
 
 /// The base IRI every producer mints its individuals under. Distinct from the worked
@@ -796,6 +805,244 @@ pub fn pvalue_tri_slice() -> PValueTriSlice {
     }
 }
 
+// ===========================================================================
+// Eighth producer — exact Cl(12) -> Cl(13) positive extensions.
+// ===========================================================================
+
+/// The pinned exact result of [`clifford_twelve_thirteen`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CliffordTwelveThirteen {
+    /// Dimensions of `Cl(12,0)` and `Cl(6,6)`.
+    pub base_dimensions: [u128; 2],
+    /// Dimensions of `Cl(13,0)` and `Cl(7,6)`.
+    pub extension_dimensions: [u128; 2],
+    /// Pseudoscalar squares for the two base algebras.
+    pub base_pseudoscalar_squares: [i8; 2],
+    /// Pseudoscalar squares for the two extensions.
+    pub extension_pseudoscalar_squares: [i8; 2],
+    /// Number of generator-square laws checked across all four algebras.
+    pub generator_laws_verified: usize,
+    /// Number of distinct-generator anticommutation pairs checked across all four algebras.
+    pub anticommutation_pairs_verified: usize,
+    /// Whether both exact `embed(a) + e_(p+1)embed(b)` split/join witnesses round-trip.
+    pub split_join_verified: bool,
+    /// Deterministic RDF graph describing the calculated algebras and decompositions.
+    pub turtle: String,
+}
+
+fn clifford_split_witness(base: CliffordAlgebra, extension: CliffordAlgebra) -> bool {
+    let a = Multivector::from_terms([
+        (
+            crate::clifford::BasisBlade::scalar(),
+            Rational::from_i128(3).expect("3"),
+        ),
+        (
+            base.generator(0).expect("base e1"),
+            Rational::from_i128(2).expect("2"),
+        ),
+    ])
+    .expect("exact base witness");
+    let b = Multivector::from_terms([
+        (
+            crate::clifford::BasisBlade::scalar(),
+            Rational::from_i128(-5).expect("-5"),
+        ),
+        (
+            base.generator(1).expect("base e2"),
+            Rational::from_i128(7).expect("7"),
+        ),
+    ])
+    .expect("exact tail witness");
+    let joined = extension
+        .join_positive_extension(&a, &b)
+        .expect("Cl13 join witness");
+    let (split_a, split_b) = extension
+        .split_positive_extension(&joined)
+        .expect("Cl13 split witness");
+    split_a == a
+        && split_b == b
+        && extension
+            .join_positive_extension(&split_a, &split_b)
+            .is_ok_and(|rejoined| rejoined == joined)
+}
+
+/// Calculate exact positive extensions `Cl(12,0)` → `Cl(13,0)` and `Cl(6,6)` →
+/// `Cl(7,6)` and emit their structural RDF record.
+///
+/// The calculation verifies every generator square from the declared signature, distinct
+/// generator anticommutation, the pseudoscalar square, the `2^12 = 4096` / `2^13 = 8192`
+/// dimensions, and an exact sparse-multivector round trip through
+/// `Cl(p+1,q) = embed(Cl(p,q)) ⊕ e_(p+1)embed(Cl(p,q))` as a vector-space/module
+/// decomposition. The emitted graph describes these calculations using
+/// the general Clifford vocabulary. It deliberately contains no E8-to-Clifford edge: a
+/// dimensional coincidence is not a representation.
+pub fn clifford_twelve_thirteen() -> CliffordTwelveThirteen {
+    let bases = [
+        CliffordAlgebra::new(12, 0).expect("Cl(12,0)"),
+        CliffordAlgebra::new(6, 6).expect("Cl(6,6)"),
+    ];
+    let extensions = [
+        bases[0].positive_extension().expect("Cl(13,0)"),
+        bases[1].positive_extension().expect("Cl(7,6)"),
+    ];
+
+    let base_dimensions = [bases[0].dimension(), bases[1].dimension()];
+    let extension_dimensions = [extensions[0].dimension(), extensions[1].dimension()];
+    assert_eq!(base_dimensions, [4096, 4096]);
+    assert_eq!(extension_dimensions, [8192, 8192]);
+
+    // Verify every declared generator square and every distinct anticommuting pair.
+    let mut generator_laws_verified = 0_usize;
+    let mut anticommutation_pairs_verified = 0_usize;
+    for algebra in bases.into_iter().chain(extensions) {
+        for index in 0..algebra.signature().generators() {
+            let generator = algebra.generator(index).expect("declared generator");
+            let square = algebra
+                .geometric_product_blades(generator, generator)
+                .expect("generator square");
+            assert_eq!(square.blade(), crate::clifford::BasisBlade::scalar());
+            assert_eq!(
+                square.sign(),
+                algebra
+                    .signature()
+                    .generator_square(index)
+                    .expect("signature square")
+            );
+            generator_laws_verified += 1;
+        }
+        for left_index in 0..algebra.signature().generators() {
+            for right_index in (left_index + 1)..algebra.signature().generators() {
+                let left = algebra.generator(left_index).expect("left generator");
+                let right = algebra.generator(right_index).expect("right generator");
+                let forward = algebra
+                    .geometric_product_blades(left, right)
+                    .expect("forward product");
+                let reverse = algebra
+                    .geometric_product_blades(right, left)
+                    .expect("reverse product");
+                assert_eq!(forward.blade(), reverse.blade());
+                assert_eq!(forward.sign(), -reverse.sign());
+                anticommutation_pairs_verified += 1;
+            }
+        }
+    }
+    assert_eq!(generator_laws_verified, 50);
+    assert_eq!(anticommutation_pairs_verified, 288);
+
+    let base_pseudoscalar_squares = [
+        bases[0].pseudoscalar_square().expect("Cl(12,0) I^2"),
+        bases[1].pseudoscalar_square().expect("Cl(6,6) I^2"),
+    ];
+    let extension_pseudoscalar_squares = [
+        extensions[0].pseudoscalar_square().expect("Cl(13,0) I^2"),
+        extensions[1].pseudoscalar_square().expect("Cl(7,6) I^2"),
+    ];
+    assert_eq!(base_pseudoscalar_squares, [1, 1]);
+    assert_eq!(extension_pseudoscalar_squares, [1, 1]);
+
+    let split_join_verified = clifford_split_witness(bases[0], extensions[0])
+        && clifford_split_witness(bases[1], extensions[1]);
+    assert!(
+        split_join_verified,
+        "both Cl12 -> Cl13 splits must round-trip"
+    );
+
+    let mut t = header();
+    t.push_str("@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\n");
+    t.push_str("# Eighth producer — exact Cl(12) -> Cl(13) positive extensions.\n");
+    t.push_str("# No E8 relation is asserted: that requires a faithful representation.\n\n");
+    t.push_str("p:cliffordComputation a gmeow:Activity .\n\n");
+    for (name, p, q, dimension, pseudoscalar_square) in [
+        (
+            "cl120",
+            12,
+            0,
+            base_dimensions[0],
+            base_pseudoscalar_squares[0],
+        ),
+        (
+            "cl66",
+            6,
+            6,
+            base_dimensions[1],
+            base_pseudoscalar_squares[1],
+        ),
+        (
+            "cl130",
+            13,
+            0,
+            extension_dimensions[0],
+            extension_pseudoscalar_squares[0],
+        ),
+        (
+            "cl76",
+            7,
+            6,
+            extension_dimensions[1],
+            extension_pseudoscalar_squares[1],
+        ),
+    ] {
+        let _ = writeln!(
+            t,
+            "p:{name} a math:CliffordAlgebra ;\n    math:underlyingSet p:{name}Carrier ;\n    math:scalarField math:realNumbers ;\n    math:structureOperation p:{name}GeometricProduct ;\n    math:satisfiesAxiom p:{name}Associativity , p:{name}Anticommutation ;\n    math:hasBasis p:{name}BladeBasis ;\n    math:hasGrading p:{name}Grading ;\n    math:cliffordInvolution p:{name}Reversion , p:{name}GradeInvolution , p:{name}Conjugation ;\n    math:metricSignature p:{name}Signature ;\n    math:spaceDimension \"{dimension}\"^^xsd:nonNegativeInteger ;\n    math:pseudoscalarSquare {pseudoscalar_square} ;\n    gmeow:wasGeneratedBy p:cliffordComputation .\n\np:{name}Carrier a math:Set .\np:{name}GeometricProduct a math:GeometricProduct .\np:{name}Associativity a math:Axiom .\np:{name}Anticommutation a math:Axiom .\np:{name}BladeBasis a math:Basis .\np:{name}Grading a math:Grading .\np:{name}Reversion a math:CliffordInvolution .\np:{name}GradeInvolution a math:CliffordInvolution .\np:{name}Conjugation a math:CliffordInvolution .\np:{name}Signature a math:MetricSignature ;\n    math:signaturePositive \"{p}\"^^xsd:nonNegativeInteger ;\n    math:signatureNegative \"{q}\"^^xsd:nonNegativeInteger .\n"
+        );
+
+        let generator_count = p + q;
+        for index in 0..generator_count {
+            let square = if index < p { 1 } else { -1 };
+            let generator_number = index + 1;
+            let _ = writeln!(
+                t,
+                "p:{name} math:hasBasisBlade p:{name}e{generator_number} .\np:{name}e{generator_number} a math:BasisBlade ;\n    math:bladeGrade \"1\"^^xsd:nonNegativeInteger ;\n    math:generatorIndex \"{generator_number}\"^^xsd:positiveInteger ;\n    math:generatorSquare {square} ;\n    gmeow:wasGeneratedBy p:cliffordComputation ."
+            );
+        }
+        for left_index in 1..=generator_count {
+            for right_index in (left_index + 1)..=generator_count {
+                let _ = writeln!(
+                    t,
+                    "p:{name} math:hasAnticommutationWitness p:{name}Anti{left_index}_{right_index} .\np:{name}Anti{left_index}_{right_index} a math:CliffordAnticommutationWitness ;\n    math:leftGenerator p:{name}e{left_index} ;\n    math:rightGenerator p:{name}e{right_index} ;\n    math:anticommutationVerified true ;\n    gmeow:wasGeneratedBy p:cliffordComputation ."
+                );
+            }
+        }
+        t.push('\n');
+    }
+
+    t.push_str("p:cl130Extension a math:CliffordExtension , math:CliffordModuleDecomposition ;\n");
+    t.push_str("    math:baseAlgebra p:cl120 ;\n");
+    t.push_str("    math:extendedAlgebra p:cl130 ;\n");
+    t.push_str("    math:extensionGenerator p:e13Euclidean ;\n");
+    t.push_str("    math:decomposedObject p:cl130 ;\n");
+    t.push_str("    math:moduleBaseSummand p:cl120 ;\n");
+    t.push_str("    math:moduleExtensionSummand p:e13Cl120 ;\n");
+    t.push_str("    math:splitJoinVerified true ;\n");
+    t.push_str("    gmeow:wasGeneratedBy p:cliffordComputation .\n");
+    t.push_str("p:e13Euclidean a math:BasisBlade ; math:bladeGrade \"1\"^^xsd:nonNegativeInteger ; math:generatorSquare 1 ; gmeow:wasGeneratedBy p:cliffordComputation .\n");
+    t.push_str("p:e13Cl120 a math:MathematicalObject ; math:spaceDimension \"4096\"^^xsd:nonNegativeInteger ; gmeow:wasGeneratedBy p:cliffordComputation .\n\n");
+
+    t.push_str("p:cl76Extension a math:CliffordExtension , math:CliffordModuleDecomposition ;\n");
+    t.push_str("    math:baseAlgebra p:cl66 ;\n");
+    t.push_str("    math:extendedAlgebra p:cl76 ;\n");
+    t.push_str("    math:extensionGenerator p:e7Split ;\n");
+    t.push_str("    math:decomposedObject p:cl76 ;\n");
+    t.push_str("    math:moduleBaseSummand p:cl66 ;\n");
+    t.push_str("    math:moduleExtensionSummand p:e7Cl66 ;\n");
+    t.push_str("    math:splitJoinVerified true ;\n");
+    t.push_str("    gmeow:wasGeneratedBy p:cliffordComputation .\n");
+    t.push_str("p:e7Split a math:BasisBlade ; math:bladeGrade \"1\"^^xsd:nonNegativeInteger ; math:generatorSquare 1 ; gmeow:wasGeneratedBy p:cliffordComputation .\n");
+    t.push_str("p:e7Cl66 a math:MathematicalObject ; math:spaceDimension \"4096\"^^xsd:nonNegativeInteger ; gmeow:wasGeneratedBy p:cliffordComputation .\n");
+
+    CliffordTwelveThirteen {
+        base_dimensions,
+        extension_dimensions,
+        base_pseudoscalar_squares,
+        extension_pseudoscalar_squares,
+        generator_laws_verified,
+        anticommutation_pairs_verified,
+        split_join_verified,
+        turtle: t,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1243,5 +1490,66 @@ mod tests {
     #[test]
     fn pvalue_tri_slice_is_deterministic() {
         assert_eq!(pvalue_tri_slice().turtle, pvalue_tri_slice().turtle);
+    }
+
+    // ---- Eighth producer — exact Cl12 -> Cl13 extensions ------------------
+
+    #[test]
+    fn clifford_twelve_thirteen_pins_dimensions_and_split() {
+        let result = clifford_twelve_thirteen();
+        assert_eq!(result.base_dimensions, [4096, 4096]);
+        assert_eq!(result.extension_dimensions, [8192, 8192]);
+        assert_eq!(result.base_pseudoscalar_squares, [1, 1]);
+        assert_eq!(result.extension_pseudoscalar_squares, [1, 1]);
+        assert_eq!(result.generator_laws_verified, 50);
+        assert_eq!(result.anticommutation_pairs_verified, 288);
+        assert!(result.split_join_verified);
+    }
+
+    #[test]
+    fn clifford_twelve_thirteen_graph_carries_both_extensions_without_e8_claim() {
+        let result = clifford_twelve_thirteen();
+        let idx = index_turtle(result.turtle.as_bytes()).expect("parse Clifford graph");
+        for algebra in ["cl120", "cl66", "cl130", "cl76"] {
+            assert!(has_type(&idx, &prod(algebra), &math_iri("CliffordAlgebra")));
+            assert!(first_iri(&idx, &prod(algebra), &math_iri("metricSignature")).is_some());
+            assert!(first_i128(&idx, &prod(algebra), &math_iri("spaceDimension")).is_some());
+        }
+        for extension in ["cl130Extension", "cl76Extension"] {
+            assert!(has_type(
+                &idx,
+                &prod(extension),
+                &math_iri("CliffordExtension")
+            ));
+            assert!(has_type(
+                &idx,
+                &prod(extension),
+                &math_iri("CliffordModuleDecomposition")
+            ));
+        }
+        assert_eq!(result.turtle.matches(" a math:BasisBlade ;").count(), 52);
+        assert_eq!(
+            result
+                .turtle
+                .matches(" a math:CliffordAnticommutationWitness ;")
+                .count(),
+            288
+        );
+        assert_eq!(
+            result.turtle.matches("math:splitJoinVerified true").count(),
+            2
+        );
+        assert!(!result.turtle.contains("e8Roots"));
+        assert!(!result.turtle.contains("representationOf p:e8"));
+        assert!(!result.turtle.contains("math:actsOn"));
+        assert!(!result.turtle.contains("math:equivariantMap"));
+    }
+
+    #[test]
+    fn clifford_twelve_thirteen_is_deterministic() {
+        assert_eq!(
+            clifford_twelve_thirteen().turtle,
+            clifford_twelve_thirteen().turtle
+        );
     }
 }

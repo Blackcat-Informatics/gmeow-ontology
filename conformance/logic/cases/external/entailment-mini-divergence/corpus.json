@@ -1,0 +1,8 @@
+{
+  "name": "entailment-mini-divergence",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "gmeow-self-authored",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --vendor-entailment conformance/logic/cases/external/entailment-mini/_source.rdf conformance/logic/cases/external/entailment-mini",
+  "lane": "divergence"
+}

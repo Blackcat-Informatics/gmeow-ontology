@@ -14,7 +14,9 @@
 //! * Structural assertions run a SPARQL ASK over the slice module alone, or the
 //!   module plus its `examples/`, per `gmeow:saScope`.
 //! * Example-conformance fixtures validate the bound example against the slice
-//!   module + shapes via the native SHACL engine and compare finding codes.
+//!   module + shapes via the native SHACL engine and compare finding codes. The
+//!   grounding kernel is the sole data-scope exception: its three co-foundational
+//!   modules are visible together, while shape authority remains slice-owned.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -171,7 +173,8 @@ pub fn run_structural_file(path: &Path) -> Result<()> {
 pub fn run_conformance_file(path: &Path) -> Result<()> {
     let spec = dsl::load_spec(path)?;
     let slice_dir = paths::slice_dir(path);
-    // Every cell validates against the SAME enforcing surface (the slice module + the
+    // Every cell validates against the SAME enforcing surface (the slice's conformance
+    // data + the
     // canonical shape set), and a migrated slice's surface is the whole generated
     // validation/constraint/procedural projection, so the per-cell whole-surface SHACL
     // runs dominate the file's wall time. The cells are independent, so fan them across
@@ -200,16 +203,29 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
             detail: format!("parsing slice shapes: {e}"),
         })
     })?;
-    let module = native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
-        Diag::of_kind(DatasetRead {
-            detail: format!("building module dataset: {e}"),
-        })
-    })?;
+    // Shape ownership is recovered from the tested slice's own module. Validation
+    // data is normally that same module, except that the grounding contract makes
+    // logic:, lang:, and math: one co-foundational kernel. Their conformance cells
+    // therefore see all three canonical modules, which lets a lang: denotation of a
+    // math:-owned class observe its authoritative owl:Class type without duplicating
+    // that declaration in lang: (Principle 4).
+    let owned_module =
+        native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
+            Diag::of_kind(DatasetRead {
+                detail: format!("building module dataset: {e}"),
+            })
+        })?;
+    let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+        .map_err(|e| {
+            Diag::of_kind(DatasetRead {
+                detail: format!("building conformance module dataset: {e}"),
+            })
+        })?;
     let local_shapes = slice_dir.join("shapes.ttl");
     let shapes = scope_shapes_to_slice(
         shapes,
         &shapes_ttl,
-        &module,
+        &owned_module,
         local_shapes.is_file().then_some(local_shapes.as_path()),
     )?;
     let workers = std::thread::available_parallelism()
@@ -748,14 +764,21 @@ fn run_conformance_cell(
 /// Generated validation files are deliberately repository-wide.  A partially
 /// migrated slice must load them so migrated constraints remain live alongside
 /// its residual `shapes.ttl`, but applying every other slice's shapes to this
-/// slice's module would violate the documented slice-scoped conformance contract:
-/// cross-slice values are completed only in the full ontology validation lane.
+/// slice's module would violate the documented slice-scoped conformance contract.
+/// The grounding kernel may expose all three peer modules as validation data, but
+/// that does not broaden shape ownership: a lang test still enforces lang shapes,
+/// never every math or logic shape.
 /// Ownership is recovered without filename heuristics from the canonical graph:
 /// module terms name their ontology through `rdfs:isDefinedBy`, generated shapes
 /// either derive from one of those terms (`*-shape` / `*-domain-shape`) or carry
 /// `logic:formalizes` / `gmeow:enforcesFailureClass` back to one, and every local
 /// residual node shape is owned by construction.
-fn scope_shapes_to_slice(
+///
+/// # Errors
+///
+/// Returns a typed validation diagnostic when the module has no recoverable
+/// ontology authority, or when the generated/local shape metadata cannot be parsed.
+pub fn scope_shapes_to_slice(
     mut shapes: Shapes,
     shapes_ttl: &str,
     module: &RdfDataset,

@@ -450,7 +450,18 @@ pub fn dispatch_query(
     profile_gate::check_builtin_profile(program, profile)?;
 
     let contract_hash = query_contract_hash(profile, budget);
-    match crate::physical::resolve_native_under(&contract_hash, foreign, world, program, budget)? {
+    // A parsed production program is flat (the parser never mints a `Struct` term), so the
+    // structured routing inside `resolve_native_under` is not taken and this fresh arena is
+    // unused; it is present so the structured entry has a valid owning arena to thread.
+    let mut dag = crate::physical::term_dag::TermDag::new();
+    match crate::physical::resolve_native_under(
+        &contract_hash,
+        foreign,
+        world,
+        program,
+        budget,
+        &mut dag,
+    )? {
         crate::physical::NativeOutcome::Decided(answer) => Ok(answer),
         crate::physical::NativeOutcome::Unsupported(kind) => {
             Err(gmeow_errors::Diag::of_kind(crate::error::Reason {

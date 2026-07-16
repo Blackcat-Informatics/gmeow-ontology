@@ -59,7 +59,7 @@ ex:corrNightlyEnvelope
 ex:nightlyEnvelope
     a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "2" ;
+    gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveKeeper ;
@@ -88,7 +88,7 @@ ex:corrCoalitionEnvelope
 ex:coalitionEnvelope
     a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "2" ;
+    gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnSecurityRing gmeow:gmnRingNato ;
     gmeow:accordingTo ex:coalitionDesk ;

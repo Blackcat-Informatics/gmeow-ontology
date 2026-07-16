@@ -33,7 +33,7 @@ fn lang_module_dataset() -> Arc<RdfDataset> {
 }
 
 fn dict() -> GmnDictionary {
-    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v2 loads from the carrier")
+    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v3 loads from the carrier")
 }
 
 /// Load and parse one grounding slice's authored `module.ttl`.
@@ -62,7 +62,7 @@ fn single_claim_record_round_trips() {
     let doc = gmn1_write(&model, &dict()).expect("write");
     assert!(
         doc.text
-            .starts_with("@gmn{v: 1, aliases: dict-v2, glyphs: 2}\n")
+            .starts_with("@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n")
     );
     assert!(
         doc.text.contains("@c{"),
@@ -320,7 +320,7 @@ fn process_record_with_boundary_and_iteration_round_trips() {
     );
     assert!(
         doc.text.contains("bd: open"),
-        "bd must use the dict-v2 alias: {}",
+        "bd must use the dict-v3 alias: {}",
         doc.text
     );
     assert!(
@@ -416,12 +416,12 @@ fn every_task5_qualifier_slot_round_trips() {
     let doc = gmn1_write(&model, &dict()).expect("write");
     assert!(
         doc.text.contains("m: poss"),
-        "m must use the dict-v2 alias: {}",
+        "m must use the dict-v3 alias: {}",
         doc.text
     );
     assert!(
         doc.text.contains("ek: inst"),
-        "ek must use the dict-v2 alias: {}",
+        "ek must use the dict-v3 alias: {}",
         doc.text
     );
 
