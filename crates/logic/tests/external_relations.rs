@@ -19,6 +19,7 @@ use gmeow_logic::external_relation::{
     RelationInvocationStatus, RelationOrderDirection, RelationOrdering, RelationProviderBudget,
     RelationProviderDescriptor, RelationProviderError, RelationProviderFailureKind,
     RelationProviderIncompletenessKind, RelationProviderRegistration, RelationTuple,
+    TableRelationProvider,
 };
 use gmeow_logic::provenance::{ZWeightSemiring, term_display};
 use gmeow_logic::query_ir::{Budget, parse_query_program};
@@ -98,17 +99,19 @@ fn resident_hybrid_dataset() -> Arc<RdfDataset> {
     builder.freeze().expect("valid resident hybrid dataset")
 }
 
-struct TableProvider {
-    generation: String,
-    rows: Vec<RelationTuple<i64>>,
+/// Thin test-only wrapper around the production [`TableRelationProvider`] that adds
+/// call recording for cache-reuse/dedup assertions. All filter/order/limit row logic
+/// is delegated to the production type; this wrapper adds nothing but the call log
+/// and cooperative cancellation, both of which are genuinely test-only concerns.
+struct RecordingTableProvider {
+    inner: TableRelationProvider,
     calls: Mutex<Vec<RelationCall>>,
 }
 
-impl TableProvider {
+impl RecordingTableProvider {
     fn new(rows: Vec<RelationTuple<i64>>) -> Self {
         Self {
-            generation: GENERATION.to_owned(),
-            rows,
+            inner: TableRelationProvider::new(GENERATION, rows),
             calls: Mutex::new(Vec::new()),
         }
     }
@@ -118,7 +121,7 @@ impl TableProvider {
     }
 }
 
-impl ExternalRelationProvider<i64> for TableProvider {
+impl ExternalRelationProvider<i64> for RecordingTableProvider {
     fn call(
         &self,
         call: &RelationCall,
@@ -131,23 +134,7 @@ impl ExternalRelationProvider<i64> for TableProvider {
                 detail: "cancelled".to_owned(),
             });
         }
-        let mut rows = self
-            .rows
-            .iter()
-            .filter(|row| {
-                call.bounds
-                    .iter()
-                    .zip(&row.arguments)
-                    .all(|(bound, argument)| bound.as_ref().is_none_or(|bound| bound == argument))
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-        rows.sort_by(|left, right| call.ordering.compare_rows(left, right));
-        rows.truncate(call.limit);
-        Ok(RelationBatch {
-            artifact_generation: self.generation.clone(),
-            rows,
-        })
+        self.inner.call(call, cancellation)
     }
 }
 
@@ -252,12 +239,12 @@ fn query<'a>(
 
 #[test]
 fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
-    let provider = TableProvider::new(vec![
+    let provider = RecordingTableProvider::new(vec![
         row("cat", "doc/one", 7, "001"),
         row("cat", "doc/two", 5, "002"),
         row("dog", "doc/three", 3, "003"),
     ]);
-    let unused_vector = TableProvider::new(vec![row("cat", "doc/one", 99, "001")]);
+    let unused_vector = RecordingTableProvider::new(vec![row("cat", "doc/one", 99, "001")]);
     let providers = QueryRelationProviders::new(
         vec![
             registration(
@@ -374,12 +361,12 @@ fn duplicate_tuple_delivered_by_two_distinct_provider_requests_both_contribute()
     // must still be retained. A second, structurally distinct provider (vector)
     // also contributes, so the receipt must identify every contributing
     // provider and every contributing provider *request*.
-    let lexical = TableProvider::new(vec![
+    let lexical = RecordingTableProvider::new(vec![
         row("cat", "doc/one", 7, "001"),
         row("cat", "doc/two", 5, "002"),
         row("dog", "doc/three", 3, "003"),
     ]);
-    let vector = TableProvider::new(vec![row("cat", "doc/four", 9, "004")]);
+    let vector = RecordingTableProvider::new(vec![row("cat", "doc/four", 9, "004")]);
     let providers = QueryRelationProviders::new(
         vec![
             registration(
@@ -474,8 +461,8 @@ fn duplicate_tuple_delivered_by_two_distinct_provider_requests_both_contribute()
 
 #[test]
 fn lexical_and_vector_alternatives_aggregate_and_repeat_deterministically() {
-    let lexical = TableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
-    let vector = TableProvider::new(vec![row("cat", "doc/one", 3, "001")]);
+    let lexical = RecordingTableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
+    let vector = RecordingTableProvider::new(vec![row("cat", "doc/one", 3, "001")]);
     let providers = QueryRelationProviders::new(
         vec![
             registration(
@@ -533,7 +520,7 @@ fn lexical_and_vector_alternatives_aggregate_and_repeat_deterministically() {
 
 #[test]
 fn provider_seed_participates_in_positive_recursion_with_transitive_lineage() {
-    let provider = TableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
+    let provider = RecordingTableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
     let providers = QueryRelationProviders::new(
         vec![registration(
             LEXICAL,
@@ -590,7 +577,7 @@ fn provider_seed_participates_in_positive_recursion_with_transitive_lineage() {
 
 #[test]
 fn bounded_provider_matches_equivalent_scratch_world_without_materializing_noise() {
-    let provider = TableProvider::new(vec![
+    let provider = RecordingTableProvider::new(vec![
         row("cat", "doc/one", 7, "001"),
         row("cat", "doc/two", 5, "002"),
         row("dog", "doc/three", 3, "003"),
@@ -655,7 +642,7 @@ fn bounded_provider_matches_equivalent_scratch_world_without_materializing_noise
 
 #[test]
 fn unbound_calls_keep_total_order_and_merge_provider_preservation() {
-    let provider = TableProvider::new(vec![
+    let provider = RecordingTableProvider::new(vec![
         row("cat", "doc/two", 5, "002"),
         row("dog", "doc/three", 3, "003"),
         row("cat", "doc/one", 7, "001"),
@@ -802,7 +789,7 @@ fn provider_failure_after_row_preparation_exposes_no_partial_answer() {
 
 #[test]
 fn provider_head_collision_wrong_algebra_and_rdf12_triple_terms_are_explicit() {
-    let provider = TableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
+    let provider = RecordingTableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
     let mut wrong = descriptor(
         LEXICAL,
         "https://example.org/provider/lexical",
@@ -907,7 +894,7 @@ fn provider_head_collision_wrong_algebra_and_rdf12_triple_terms_are_explicit() {
 
 #[test]
 fn resident_and_fallible_views_share_the_provider_semantics_and_identity() {
-    let provider = TableProvider::new(vec![
+    let provider = RecordingTableProvider::new(vec![
         row("cat", "doc/one", 7, "001"),
         row("cat", "doc/two", 5, "002"),
     ]);
@@ -1019,7 +1006,7 @@ fn fallible_view_keeps_rdf_operational_and_relation_failures_disjoint() {
         Some(RelationQueryError::Provider { .. })
     ));
 
-    let provider = TableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
+    let provider = RecordingTableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
     let providers = QueryRelationProviders::new(
         vec![registration(
             LEXICAL,
