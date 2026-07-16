@@ -1600,6 +1600,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-music",
  "gmeow-pipeline",
+ "gmeow-slice-brief",
  "gmeow-slice-quality",
  "gmeow-validate",
  "predicates",
@@ -1843,6 +1844,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-slice-brief",
  "gmeow-slice-quality",
  "gmeow-validate",
  "insta",
@@ -1858,6 +1860,21 @@ dependencies = [
  "tempfile",
  "tracing",
  "ureq",
+]
+
+[[package]]
+name = "gmeow-slice-brief"
+version = "0.1.0"
+dependencies = [
+ "gmeow-docs",
+ "gmeow-errors",
+ "gmeow-logic-compile",
+ "gmeow-slice-quality",
+ "purrdf",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
 ]
 
 [[package]]
