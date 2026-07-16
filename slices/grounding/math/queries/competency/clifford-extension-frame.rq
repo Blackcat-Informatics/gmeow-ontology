@@ -1,0 +1,14 @@
+# External-concept coverage: exact Clifford extension frame and module split.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?extension ?base ?extended ?generator ?baseSummand ?extensionSummand
+WHERE {
+  ?extension a math:CliffordExtension , math:CliffordModuleDecomposition ;
+             math:baseAlgebra ?base ;
+             math:extendedAlgebra ?extended ;
+             math:extensionGenerator ?generator ;
+             math:moduleBaseSummand ?baseSummand ;
+             math:moduleExtensionSummand ?extensionSummand ;
+             math:splitJoinVerified true .
+}
+ORDER BY ?extension

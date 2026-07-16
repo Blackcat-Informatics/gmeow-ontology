@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Real-SHACL conformance for the six `math:` producers: five flagship-acceptance
-//! producers plus the probability layer's live `logic:probabilityModel` seam producer.
+//! Real-SHACL conformance for the eight `math:` producers: five flagship-acceptance
+//! producers plus the probability seam, p-value tri-slice, and exact Clifford producers.
 //!
 //! `gmeow-validate` depends on `gmeow-math`, so this crate can call the native
 //! producers directly and validate their emitted RDF graph fragments against the
@@ -21,8 +21,8 @@ mod conformance_support;
 use conformance_support::*;
 
 use gmeow_math::producers::{
-    self, PRODUCER_NS, additive_he_demo, e8_weyl_order, exact_pca_residual, probability_model_seam,
-    proof_ingest, r_bridge_lift,
+    self, PRODUCER_NS, additive_he_demo, clifford_twelve_thirteen, e8_weyl_order,
+    exact_pca_residual, probability_model_seam, proof_ingest, pvalue_tri_slice, r_bridge_lift,
 };
 use purrdf::shapes::report::Severity;
 use purrdf::shapes::term::Term;
@@ -120,6 +120,24 @@ fn probability_model_seam_graph_validates_clean() {
     );
 }
 
+#[test]
+fn pvalue_tri_slice_graph_validates_clean() {
+    let v = producer_violations(&pvalue_tri_slice().turtle);
+    assert!(
+        v.is_empty(),
+        "p-value tri-slice producer graph raised math violations: {v:#?}"
+    );
+}
+
+#[test]
+fn clifford_twelve_thirteen_graph_validates_clean() {
+    let v = producer_violations(&clifford_twelve_thirteen().turtle);
+    assert!(
+        v.is_empty(),
+        "Clifford producer graph raised math violations: {v:#?}"
+    );
+}
+
 /// The pinned values are the flagship falsifiable invariants — re-assert them here
 /// so the conformance surface and the value surface stay wired to one producer call.
 #[test]
@@ -140,4 +158,17 @@ fn producers_pin_their_falsifiable_values() {
 
     let seam = probability_model_seam();
     assert_eq!(seam.joint_mass_total, gmeow_math::Rational::one());
+
+    let pvalue = pvalue_tri_slice();
+    assert_eq!(
+        pvalue.magnitude,
+        gmeow_math::Rational::new(3, 100).expect("3/100")
+    );
+
+    let clifford = clifford_twelve_thirteen();
+    assert_eq!(clifford.base_dimensions, [4096, 4096]);
+    assert_eq!(clifford.extension_dimensions, [8192, 8192]);
+    assert_eq!(clifford.generator_laws_verified, 50);
+    assert_eq!(clifford.anticommutation_pairs_verified, 288);
+    assert!(clifford.split_join_verified);
 }

@@ -1159,3 +1159,66 @@ ex:ecRadialFieldClosedForm a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/signed-radial-field-closed-form.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "The closed-form flagship scene — the SAME field given exactly by T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — is well-formed: the field is typed both math:ClosedFormFunction and math:PiecewiseFunction, declares its frame (math:domain plus math:codomain math:ExtendedRealLine), its body AST (math:definingExpression), its formal argument x and five parameters A, B, C, p, q, and its four ring pieces; every defining-expression variable leaf resolves to the formal argument or a declared parameter; and it carries the same rings, divergent limits, and dominant-plateau measure evaluations as its qualitative twin. It validates with no findings." .
+
+# === External-corpus reusable-family framing =============================== #
+
+ex:ecPersistentHomologyComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/persistent-homology-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A persistent-homology activity names its mathematical input, one fully framed filtration, and a persistence-diagram output." .
+
+ex:ecPersistentHomologyNoResult a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistent-homology-no-result.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames the input and filtration but omits the required persistence-diagram result, isolating math:IncompletePersistentHomologyAnalysis." .
+
+ex:ecDimensionalReductionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/dimensional-reduction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A dimensional reduction names its input, exact non-negative target dimension, and a fully framed output embedding." .
+
+ex:ecDimensionalReductionNoTarget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dimensional-reduction-no-target.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames the input and output embedding but omits targetDimension, isolating math:IncompleteDimensionalityReductionAnalysis." .
+
+ex:ecHamiltonianComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hamiltonian-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A Hamiltonian system names its smooth state space, symplectic form, framed Hamiltonian function, and generated Hamiltonian flow." .
+
+ex:ecHamiltonianNoForm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/hamiltonian-no-form.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies every Hamiltonian-system role except its symplectic form, isolating math:IncompleteHamiltonianSystem." .
+
+ex:ecCellularSheafComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/cellular-sheaf-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A cellular sheaf names its base complex, cell-indexed stalks, a restriction map, and a compatible section." .
+
+ex:ecCellularSheafNoRestriction a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cellular-sheaf-no-restriction.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a base complex and stalk but no restriction map, isolating math:IncompleteCellularSheaf." .
+
+ex:ecCliffordComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/clifford-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two fully framed Clifford algebras and their exact module decomposition declare scalar field, product, axioms, basis blades, grading, involution, signature, dimensions, extension generator, summands, and split/join witness." .
+
+ex:ecCliffordNoGrading a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/clifford-no-grading.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames a Clifford algebra except for its grading, isolating math:IncompleteCliffordAlgebra." .
+
+ex:ecCliffordExtensionNoGenerator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/clifford-extension-no-generator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies two fully framed Clifford algebras but omits the extension generator, isolating math:IncompleteCliffordExtension." .

@@ -69,7 +69,7 @@ specifies a code — codebook, rate, fidelity:
 - **Codebook** — `gmeow:GmnCodebook` (`gmeow:gmnCodebookCurrent`): the GMN script plus the ten
   sigil roles (linked through `gmeow:references`) plus the alias-table version
   (`gmeow:gmnDictionaryVersion`) and glyph-table version (`gmeow:gmnGlyphTableVersion`). The alias
-  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV2`) whose
+  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV3`) whose
   `gmeow:GmnDictionaryEntry` members each bind one full GMEOW term to one compact alias string — a
   gated **bijection** over its covered term set (injectivity, `lang:GmnDictionaryAliasCollision`).
   A reader that holds the codebook holds everything needed to decode a conforming document.
@@ -128,7 +128,7 @@ and the alias-table reference (resolved, with `gmeow:gmnDictionaryVersion`, to t
 individual of the dialect lineage):
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 ```
 
 A **record** is a sigil followed by a braced key–value list. **Key order is generation order**,
@@ -140,7 +140,7 @@ identified by everything before them. Keys that are absent are simply omitted; k
 present appear in exactly this order. A valid record:
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12}
 ```
 
@@ -207,7 +207,7 @@ and a dedicated phase marker is declined.
 A record exercising the new slots, alongside a `@p` process record exercising the `@p`-only pair:
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12, m: poss, ek: inst}
 @p{s: gate1, p: cycling, o: doorGate1, st: sensorCrew, bd: open, it: cycleSeries1}
 ```
@@ -243,7 +243,7 @@ A **schema-once tabular batch** declares its columns once in an `@claims[...]` h
 streams bare rows — the token-economy form for homogeneous runs. A valid batch:
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @claims[s p o q]
 gate1 locatedIn yardNorth 0.95
 gate2 locatedIn yardSouth 0.88
@@ -277,14 +277,14 @@ The four validator-tier failure classes, each with its labeled INVALID block:
 INVALID — `lang:GmnNonCanonicalOrder` (wrong key order: the confidence precedes the subject):
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{q: 0.95, s: gate1, p: hasState, o: doorGate1}
 ```
 
 INVALID — `lang:GmnMalformedNumber` (scientific notation; a three-fractional-digit confidence):
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, q: 9.5e-1}
 @c{s: gate2, p: hasState, o: doorGate2, q: 0.951}
 ```
@@ -295,11 +295,11 @@ INVALID — `lang:GmnUndeclaredDialectVersion` (no `@gmn` header before the firs
 @c{s: gate1, p: hasState, o: doorGate1, q: 0.95}
 ```
 
-INVALID — `lang:GmnUncoveredTerm` (grammar-valid tokens that the pinned dictionary `dict-v2`
+INVALID — `lang:GmnUncoveredTerm` (grammar-valid tokens that the pinned dictionary `dict-v3`
 does not mint and no named-key ruling covers — undecodable, never guessable):
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: zx9, p: quuxes, o: gate1, q: 0.50}
 ```
 
@@ -312,7 +312,7 @@ on without leaving the channel. Corrections are **deltas over stable record iden
 claims-about-claims — new records with their own standpoint, never in-place mutation of history:
 
 ```text
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @err{id: c42, class: GmnMalformedNumber}
 @patch{id: c42, q: 0.95}
 @retract{id: c17}

@@ -124,7 +124,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "4493d191c3de2c24cf751a4399f7b02ae648626d" }
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "6404a31a781ff97847125d3633639894a2cd1a10" }
 
 [workspace.package]
 version = "0.1.0"

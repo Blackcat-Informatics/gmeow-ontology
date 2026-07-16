@@ -25,7 +25,7 @@ ex:corrEnvelope a logic:Correspondence ;
 
 ex:envelopeComplete a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "2" ;
+    gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;

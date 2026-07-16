@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:base ;
+    math:hasStalk ex:vertexStalk , ex:edgeStalk ;
+    math:restrictionMap ex:vertexToEdge ;
+    math:hasSection ex:globalSection .
+ex:base a math:CellComplex .
+ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertex .
+ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edge .
+ex:vertexToEdge a math:SheafRestrictionMap ;
+    math:sourceObject ex:vertexStalk ;
+    math:targetObject ex:edgeStalk .
+ex:globalSection a math:SheafSection .
+ex:vertex a math:MathematicalObject .
+ex:edge a math:MathematicalObject .

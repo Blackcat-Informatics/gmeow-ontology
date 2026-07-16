@@ -112,12 +112,13 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
     );
 
     // stage-math-producers — the five flagship producer graphs plus the probability-model
-    // seam producer graph and the p-value tri-slice producer graph.
+    // seam, p-value tri-slice, and exact Clifford producer graphs.
     entry(
         &mut t,
         "stage-math-producers",
         &[
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",

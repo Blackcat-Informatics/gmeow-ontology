@@ -98,9 +98,9 @@ impl Gmn1RoundTripReport {
     }
 }
 
-/// Load `gmeow:gmnDictV2` from the lang slice's authored `module.ttl` — the SAME
+/// Load `gmeow:gmnDictV3` from the lang slice's authored `module.ttl` — the SAME
 /// dictionary every grounding source is decoded/encoded against (one shipped
-/// `gmeow:gmnDictV2` version, per the carrier's own version-pinning discipline). Shared
+/// `gmeow:gmnDictV3` version, per the carrier's own version-pinning discipline). Shared
 /// by [`check_gmn1_roundtrip`] and [`check_gmn1_construct_coverage`] so both audits load
 /// the identical dictionary, never two independently-loaded copies.
 fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag> {
@@ -110,7 +110,7 @@ fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag
     let lang_ds = parse_dataset(&lang_bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("parse {}: {e}", lang_module_path.display())))?;
     GmnDictionary::from_dataset(&lang_ds)
-        .map_err(|e| stage_err(&format!("gmeow:gmnDictV2 failed to load: {}", e.0)))
+        .map_err(|e| stage_err(&format!("gmeow:gmnDictV3 failed to load: {}", e.0)))
 }
 
 /// Every grounding source path (`slices/grounding/<slice>/module.ttl` plus every
@@ -466,10 +466,10 @@ mod tests {
               @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
               gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;\n\
                 gmeow:references gmeow:fixtureDictionary, lang:fixtureScript ;\n\
-                gmeow:gmnDictionaryVersion \"2\" ;\n\
+                gmeow:gmnDictionaryVersion \"3\" ;\n\
                 gmeow:gmnGlyphTableVersion \"2\" .\n\
               gmeow:fixtureDictionary a gmeow:GmnDictionary ;\n\
-                gmeow:gmnDictionaryVersion \"2\" .\n\
+                gmeow:gmnDictionaryVersion \"3\" .\n\
               lang:fixtureScript a lang:Script ;\n\
                 lang:hasGrapheme lang:fixtureGrapheme .\n",
         )
