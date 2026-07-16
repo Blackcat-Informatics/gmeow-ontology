@@ -783,17 +783,27 @@ fn parse_prefixes(query: &str) -> Vec<(String, String)> {
     let mut prefixes = Vec::new();
     for line in query.lines() {
         let trimmed = line.trim();
-        let lower = trimmed.to_ascii_lowercase();
-        if let Some(rest) = lower.strip_prefix("prefix ") {
-            let rest = trimmed[trimmed.len() - rest.len()..].trim();
-            if let Some(colon) = rest.find(':') {
-                let name = rest[..colon].trim().to_owned();
-                let after = rest[colon + 1..].trim();
-                if let (Some(open), Some(close)) = (after.find('<'), after.find('>')) {
-                    prefixes.push((name, after[open + 1..close].to_owned()));
-                }
-            }
+        // `str::get` boundary-checks the split point instead of raw byte indexing, so a
+        // malformed or multi-byte-UTF-8 line is skipped rather than panicking.
+        if !trimmed.to_ascii_lowercase().starts_with("prefix ") {
+            continue;
         }
+        let Some(rest) = trimmed.get("prefix ".len()..) else {
+            continue;
+        };
+        let Some((name, after)) = rest.trim().split_once(':') else {
+            continue;
+        };
+        // Find the `<iri>` delimiters via split_once rather than independent `find` calls: two
+        // independent `find`s can locate a `>` that occurs BEFORE the `<` on malformed input,
+        // which raw-sliced `after[open + 1..close]` would then panic on (start > end).
+        let Some((_, after_open)) = after.trim().split_once('<') else {
+            continue;
+        };
+        let Some((iri, _)) = after_open.split_once('>') else {
+            continue;
+        };
+        prefixes.push((name.trim().to_owned(), iri.to_owned()));
     }
     prefixes
 }
@@ -803,15 +813,13 @@ fn expand_iri(token: &str, prefixes: &[(String, String)]) -> Option<String> {
     if token == "a" {
         return Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned());
     }
-    if token.starts_with('<') && token.ends_with('>') {
-        return Some(token[1..token.len() - 1].to_owned());
+    if let Some(iri) = token.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
+        return Some(iri.to_owned());
     }
     if token.starts_with('?') || token.starts_with('$') {
         return None;
     }
-    let colon = token.find(':')?;
-    let prefix = &token[..colon];
-    let local = &token[colon + 1..];
+    let (prefix, local) = token.split_once(':')?;
     prefixes
         .iter()
         .find(|(name, _)| name == prefix)
@@ -1200,6 +1208,62 @@ mod tests {
                 .map(|seed| seed.label.as_str())
                 .collect::<Vec<_>>(),
             vec!["branch-0", "branch-1", "combined"]
+        );
+    }
+
+    #[test]
+    fn parse_prefixes_reads_well_formed_declarations() {
+        let query =
+            "PREFIX ex: <http://example.org/> \nprefix  view: <http://view.example.org/#> .";
+        let prefixes = parse_prefixes(query);
+        assert_eq!(
+            prefixes,
+            vec![
+                ("ex".to_owned(), "http://example.org/".to_owned()),
+                ("view".to_owned(), "http://view.example.org/#".to_owned()),
+            ]
+        );
+    }
+
+    #[test]
+    fn parse_prefixes_skips_malformed_lines_without_panicking() {
+        // A `>` occurring before the `<` (raw `find`-based slicing would panic with
+        // start > end) and a line missing the angle brackets entirely must not panic —
+        // each is simply skipped. A multi-byte UTF-8 prefix name is well-formed and must
+        // still parse correctly (proving the boundary-checked rewrite is UTF-8-safe, not
+        // merely non-panicking).
+        let query = "PREFIX ex: >broken<\nPREFIX  \u{1F431}: <http://cat.example.org/>\nPREFIX noiri: not-an-iri\nPREFIX ok: <http://ok.example.org/>";
+        let prefixes = parse_prefixes(query);
+        assert_eq!(
+            prefixes,
+            vec![
+                ("\u{1F431}".to_owned(), "http://cat.example.org/".to_owned()),
+                ("ok".to_owned(), "http://ok.example.org/".to_owned()),
+            ],
+            "malformed lines are skipped; well-formed multi-byte lines still parse: {prefixes:#?}"
+        );
+    }
+
+    #[test]
+    fn expand_iri_resolves_prefixed_and_bracketed_tokens() {
+        let prefixes = vec![("ex".to_owned(), "http://example.org/".to_owned())];
+        assert_eq!(
+            expand_iri("ex:Thing", &prefixes),
+            Some("http://example.org/Thing".to_owned())
+        );
+        assert_eq!(
+            expand_iri("<http://bare.example.org/>", &prefixes),
+            Some("http://bare.example.org/".to_owned())
+        );
+        assert_eq!(
+            expand_iri("a", &prefixes).as_deref(),
+            Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        );
+        assert_eq!(expand_iri("?s", &prefixes), None);
+        assert_eq!(
+            expand_iri("unknown:Thing", &prefixes),
+            None,
+            "an unresolved prefix must not panic or fall back to a guessed IRI"
         );
     }
 }
