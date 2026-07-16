@@ -441,6 +441,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "physical/lower.rs",
         "the three-consumer lowering (logic:/math:/lang:) INTO physical/term_dag.rs — a term-arena ingestion surface for the unification/proof rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
     ),
+    (
+        "physical/unify.rs",
+        "Robinson unification + occurs-check over physical/term_dag.rs (union-find Subst, resolve, capture-avoiding apply/shift) — the term-solving substrate for the proof-object / backward-FOL rungs to come; no reference from dispatch_query's backward goal-resolution join yet",
+    ),
 ];
 
 /// Frame `value` under `tag` into `hasher` with a domain tag and length prefixes, so
