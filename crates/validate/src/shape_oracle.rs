@@ -663,6 +663,86 @@ fn parse_property_shape(
     Ok(Some(prop))
 }
 
+/// Conjunctively merge property shapes that share the same `(path, inverse)` selector, mirroring
+/// the frontend's `merge_same_path_properties`. A hand-authored legacy shape that splits an
+/// exactly-one obligation across two `sh:property` blocks (`[ sh:path P ; sh:minCount 1 ; sh:class C ]`
+/// and `[ sh:path P ; sh:maxCount 1 ; sh:class C ]`) states the SAME constraint the projector emits
+/// as one merged block; reading them unmerged would spuriously red the equivalence oracle (a legacy
+/// `min=1,max=None` block never matches the merged projected `min=1,max=1`). The merged cardinality
+/// is the tightest of the group's bounds (max of mins, min of maxes) and the union of value
+/// components; first-seen path order is preserved for determinism.
+fn merge_same_path_property_shapes(
+    props: Vec<PropertyConstraintIr>,
+) -> gmeow_errors::Result<Vec<PropertyConstraintIr>> {
+    let mut order: Vec<(String, bool)> = Vec::new();
+    let mut groups: std::collections::BTreeMap<(String, bool), Vec<PropertyConstraintIr>> =
+        std::collections::BTreeMap::new();
+    for p in props {
+        let key = (p.path.clone(), p.inverse);
+        if !groups.contains_key(&key) {
+            order.push(key.clone());
+        }
+        groups.entry(key).or_default().push(p);
+    }
+    let mut out = Vec::with_capacity(order.len());
+    for key in order {
+        let mut group = groups.remove(&key).expect("key present");
+        if group.len() == 1 {
+            out.push(group.pop().expect("one element"));
+            continue;
+        }
+        let mut min_count: Option<u32> = None;
+        let mut max_count: Option<u32> = None;
+        let mut components: Vec<ConstraintComponent> = Vec::new();
+        let mut severity: Option<ShaclSeverity> = None;
+        let mut message: Option<String> = None;
+        let mut reifier_shape: Option<String> = None;
+        let mut reification_required = false;
+        for p in &group {
+            min_count = match (min_count, p.min_count) {
+                (Some(a), Some(b)) => Some(a.max(b)),
+                (Some(a), None) => Some(a),
+                (None, b) => b,
+            };
+            max_count = match (max_count, p.max_count) {
+                (Some(a), Some(b)) => Some(a.min(b)),
+                (Some(a), None) => Some(a),
+                (None, b) => b,
+            };
+            for c in &p.components {
+                if !components.contains(c) {
+                    components.push(c.clone());
+                }
+            }
+            severity = severity.or(p.severity);
+            message = message.or_else(|| p.message.clone());
+            reifier_shape = reifier_shape.or_else(|| p.reifier_shape.clone());
+            reification_required = reification_required || p.reification_required;
+        }
+        let provenance =
+            (min_count.is_some() || max_count.is_some()).then_some(ConstraintProvenance::OptNative);
+        let (path, inverse) = key;
+        let mut merged =
+            PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?;
+        if inverse {
+            merged = merged.inverted();
+        }
+        if let Some(sev) = severity {
+            merged = merged.with_severity(sev);
+        }
+        if let Some(msg) = message
+            && !msg.trim().is_empty()
+        {
+            merged = merged.with_message(msg)?;
+        }
+        if reifier_shape.is_some() || reification_required {
+            merged = merged.with_reifier(reifier_shape, reification_required)?;
+        }
+        out.push(merged);
+    }
+    Ok(out)
+}
+
 /// Tokenize a SPARQL `sh:select` string into Turtle/SPARQL terms: `<iri>` and `"…"` /
 /// `"""…"""` are single tokens; `;` `.` `,` `(` `)` `{` `}` are punctuation tokens; the rest
 /// are whitespace-separated words (variables, keywords, CURIEs, the `a` shorthand). Only the
@@ -1159,6 +1239,7 @@ pub fn read_shacl_shape(
         extra_targets.remove(0)
     };
     let node_components = node_acc.finish(node_shape_iri)?;
+    let properties = merge_same_path_property_shapes(properties)?;
     let mut ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
         .with_node_components(node_components)?;
     if let Some(failure_class) = failure_classes.first() {
@@ -1810,6 +1891,33 @@ fn parse_target_skeleton(select: &str) -> Option<(Option<String>, Vec<String>)> 
             continue;
         }
         if t.eq_ignore_ascii_case("filter") {
+            // `FILTER NOT EXISTS { … }` is a subclass-exclusion refinement (a direct-type
+            // guard: exclude a focus that is ALSO typed a proper subclass of the target). A
+            // fresh witness typed EXACTLY the target class satisfies it, so it never changes
+            // focus membership — skip the braced block wholesale.
+            if body.get(i + 1).map(|s| s.eq_ignore_ascii_case("not")) == Some(true)
+                && body.get(i + 2).map(|s| s.eq_ignore_ascii_case("exists")) == Some(true)
+                && body.get(i + 3).map(String::as_str) == Some("{")
+            {
+                let mut depth = 0usize;
+                let mut j = i + 3;
+                loop {
+                    match body.get(j).map(String::as_str) {
+                        Some("{") => depth += 1,
+                        Some("}") => {
+                            depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                        }
+                        None => return None,
+                        _ => {}
+                    }
+                    j += 1;
+                }
+                i = j + 1;
+                continue;
+            }
             if body.get(i + 1).map(String::as_str) != Some("(") {
                 return None;
             }

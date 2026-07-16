@@ -710,7 +710,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): closed-world Procedures shapes from  #
+# Migrated procedural constraints: closed-world Procedures shapes from  #
 # shapes/gmeow-shapes.ttl lifted to logic: (Principle 17).                      #
 # =========================================================================== #
 
@@ -723,7 +723,7 @@ gmeow:ExecutionHasPlanConstraint
     skos:definition "A closed-world requiredness constraint: a gmeow:Execution references at least one gmeow:executesProcedure or gmeow:executesStep."@x-gmeow-english ;
     logic:onClass gmeow:Execution ;
     logic:anyOf gmeow:executesProcedure , gmeow:executesStep ;
-    logic:formalizes gmeow:Execution ;
+    logic:formalizes gmeow:ExecutionHasPlanShape ;
     logic:message "An Execution must reference at least one Procedure (gmeow:executesProcedure) or ProcedureStep (gmeow:executesStep)." .
 
 # Projection of gmeow:BranchHasOutgoingFlowsShape: a stepTypeBranch ProcedureStep
@@ -734,7 +734,7 @@ gmeow:BranchHasOutgoingFlowsConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ProcedureStep whose gmeow:procedureStepType is gmeow:stepTypeBranch is the gmeow:flowSource of at least two distinct gmeow:ControlFlow relators."@x-gmeow-english ;
-    logic:formalizes gmeow:ProcedureStep ;
+    logic:formalizes gmeow:BranchHasOutgoingFlowsShape ;
     logic:message "A ProcedureStep of type stepTypeBranch must be the source of at least two ControlFlow relators." ;
     logic:integrity logic:brofForall .
 logic:brofForall a logic:Formula ;
@@ -760,3 +760,23 @@ logic:brofSrc2 a logic:Formula ; logic:relation gmeow:flowSource ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "flow2" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 logic:brofDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "flow1" ] , [ logic:termIndex 1 ; logic:termVariable "flow2" ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/ControlFlow> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/flowSource> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+<https://blackcatinformatics.ca/gmeow/ControlFlow> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/flowTarget> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+<https://blackcatinformatics.ca/gmeow/DataFlow> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/dataFlowSource> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+<https://blackcatinformatics.ca/gmeow/DataFlow> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/dataFlowTarget> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ControlFlow> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/flowSource" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ControlFlow> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/flowTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DataFlow> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/dataFlowSource" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DataFlow> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/dataFlowTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: control-flow / data-flow source-target cardinality ---
+# gmeow:ControlFlowHasSourceTargetShape — exactly one source step and one target step.
+gmeow:ControlFlow rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:flowSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:flowTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+# gmeow:DataFlowHasSourceTargetShape — exactly one source step and one target step.
+gmeow:DataFlow rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:dataFlowSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dataFlowTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

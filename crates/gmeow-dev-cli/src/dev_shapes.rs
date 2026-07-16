@@ -283,6 +283,13 @@ fn sparql_alpha_canonical(select: &str) -> String {
     let mut i = 0usize;
     while i < toks.len() {
         let t = &toks[i];
+        if t == "." {
+            // A statement-terminating '.' is pure SPARQL syntax (an optional separator between
+            // triple patterns); two selects that differ only in trailing terminators are
+            // α-equivalent, so it never contributes to the identity key.
+            i += 1;
+            continue;
+        }
         if t == "$this" || t == "?this" {
             out.push("?this".to_owned());
         } else if t == "[" && toks.get(i + 1).map(String::as_str) == Some("]") {
@@ -693,9 +700,19 @@ impl OracleCtx {
         // constraint/procedural surface (`sh:or` joined `sh:sparql` here for the disjunctive
         // obligations — a value-branch `sh:or` a record replicates procedurally). This trust
         // anchor is UNCHANGED for the existing paths.
+        // A value-keyed `sh:SPARQLTarget` (`?this a C ; P value`) contributes, beside its
+        // procedural `sh:sparql` body, one residue token per additional `?this a C` type
+        // constraint the value-keyed reader could not fold into the `(predicate, value)` key.
+        // A formalizing record's own class guard reproduces that type refinement, so it rides
+        // the same `sh:sparql` trust anchor (trusted, not re-verified — it is not a covered
+        // declarative component).
+        let value_keyed_type_refinement =
+            |p: &str| p.starts_with("sh:SPARQLTarget additional type constraint");
         let sparql_only_residue_grounded = |unsupported: &[String]| {
             !unsupported.is_empty()
-                && unsupported.iter().all(|p| p == SH_SPARQL || p == SH_OR)
+                && unsupported
+                    .iter()
+                    .all(|p| p == SH_SPARQL || p == SH_OR || value_keyed_type_refinement(p))
                 && self.formalized_shapes.contains(iri)
         };
         // The SEMANTIC clearance for STRUCTURAL residue (`sh:node` / `sh:xone` / a raw
@@ -3479,7 +3496,7 @@ mod tests {
     #[test]
     fn splicer_resolves_every_real_block_subject_count_exact() {
         let (text, iris) = real_gmeow_shapes();
-        assert_eq!(iris.len(), 137, "the census of the committed file");
+        assert_eq!(iris.len(), 85, "the census of the committed file");
         let mut spans: Vec<(usize, usize)> = Vec::new();
         for iri in &iris {
             let span = subject_span(&text, local_name(iri))
@@ -3488,7 +3505,7 @@ mod tests {
         }
         spans.sort_unstable();
         spans.dedup();
-        assert_eq!(spans.len(), 137, "every block resolves to its OWN span");
+        assert_eq!(spans.len(), 85, "every block resolves to its OWN span");
         for w in spans.windows(2) {
             assert!(
                 w[0].1 <= w[1].0,
@@ -3528,7 +3545,7 @@ mod tests {
             let remaining = node_shape_iris(&ds);
             assert_eq!(
                 remaining.len(),
-                136,
+                84,
                 "pruning {iri} must remove exactly one block"
             );
             assert!(!remaining.contains(iri), "{iri} must be the removed block");
@@ -3728,7 +3745,7 @@ mod tests {
     }
 
     #[test]
-    fn classification_over_the_real_gmeow_shapes_totals_137() {
+    fn classification_over_the_real_gmeow_shapes_totals_85() {
         let (text, _) = real_gmeow_shapes();
         let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
             .expect("the committed shapes file must parse");
@@ -3737,8 +3754,8 @@ mod tests {
         assert!(errors.is_empty(), "every committed block reads: {errors:?}");
         let report = lattice_report(&blocks, &lattice_hier(&[]));
         assert!(
-            report.contains("  TOTAL blocks=137\n"),
-            "the by-block census of the committed file is exactly 137: {}",
+            report.contains("  TOTAL blocks=85\n"),
+            "the by-block census of the committed file is exactly 85: {}",
             report.lines().rev().take(12).collect::<Vec<_>>().join("\n")
         );
     }

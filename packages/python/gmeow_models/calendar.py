@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from pydantic import ConfigDict, Field
 
@@ -94,14 +95,15 @@ class Availability(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Availability", "curie": "gmeow:Availability", "definitionDigest": "blake3:feec9afa0041cb7bf901fcd3adf331f35f3af14b72359ba47524aa3b419cc4f1", "iri": "https://blackcatinformatics.ca/gmeow/Availability"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Availability", "curie": "gmeow:Availability", "definitionDigest": "blake3:4d24a61d1edbefe470c8edf709aaf336f16e0ede544749c8a91843a8ed4a75e1", "iri": "https://blackcatinformatics.ca/gmeow/Availability"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    availabilityAgent: list[Agent] | None = Field(default=None, description="The agent whose availability is stated.", alias="gmeow:availabilityAgent")
-    availabilitySlot: list[TimeInterval] | None = Field(default=None, description="The time interval over which the availability status holds.", alias="gmeow:availabilitySlot")
+    availabilityAgent: Agent = Field(description="The agent whose availability is stated.", alias="gmeow:availabilityAgent")
+    availabilitySlot: TimeInterval = Field(description="The time interval over which the availability status holds.", alias="gmeow:availabilitySlot")
+    availabilityStatus: AvailabilityStatusEnum = Field(description="The availability status for this slot — free, busy, tentative, or out-of-office.", alias="gmeow:availabilityStatus")
 
 
 class EventInvitation(ConfiguredBaseModel):
@@ -145,14 +147,15 @@ class EventInvitation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/EventInvitation", "curie": "gmeow:EventInvitation", "definitionDigest": "blake3:07f7bad1c2738ec1ad936cc82d33f9228cea4ecf2f69222b86b34d9f7d634637", "iri": "https://blackcatinformatics.ca/gmeow/EventInvitation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/EventInvitation", "curie": "gmeow:EventInvitation", "definitionDigest": "blake3:e21ed2938ba24aed54507962e572ee0904c3e2b0c72fa4072700510c032fddf5", "iri": "https://blackcatinformatics.ca/gmeow/EventInvitation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    invitationEvent: list[Event] | None = Field(default=None, description="The event being invited to.", alias="gmeow:invitationEvent")
-    invitationInvitee: list[Agent] | None = Field(default=None, description="An agent invited to the event. Non-functional: a joint invitation may name several invitees.", alias="gmeow:invitationInvitee")
+    invitationEvent: Event = Field(description="The event being invited to.", alias="gmeow:invitationEvent")
+    invitationInvitee: list[Agent] = Field(min_length=1, description="An agent invited to the event. Non-functional: a joint invitation may name several invitees.", alias="gmeow:invitationInvitee")
+    invitationStatus: InvitationStatusEnum = Field(description="The current status of the invitation as set by the organizer — needs-action, accepted, declined, tentative.", alias="gmeow:invitationStatus")
 
 
 class EventSchedule(ConfiguredBaseModel):
@@ -243,13 +246,15 @@ class Reminder(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Reminder", "curie": "gmeow:Reminder", "definitionDigest": "blake3:35878c5dbd3a4de098ee63df159683463b77aeef353722f2346059480494763a", "iri": "https://blackcatinformatics.ca/gmeow/Reminder"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Reminder", "curie": "gmeow:Reminder", "definitionDigest": "blake3:d6ea6516e7f914a7c675eaf6ed027a199b09ed54cc4838bce0c9780f46cd4309", "iri": "https://blackcatinformatics.ca/gmeow/Reminder"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    reminderTarget: list[Event] | None = Field(default=None, description="The event this reminder is attached to.", alias="gmeow:reminderTarget")
+    reminderAction: ReminderActionEnum = Field(description="The action to take when the reminder fires — display, email, or audio.", alias="gmeow:reminderAction")
+    reminderTarget: Event = Field(description="The event this reminder is attached to.", alias="gmeow:reminderTarget")
+    reminderTrigger: Any = Field(description="The trigger for a reminder — either an xsd:duration offset before the target event (e.g. PT15M) or an absolute xsd:dateTime.", alias="gmeow:reminderTrigger")
 
 
 class ScheduleException(ConfiguredBaseModel):
@@ -341,7 +346,7 @@ class Task(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Task", "curie": "gmeow:Task", "definitionDigest": "blake3:17bfac90ddcec84dbf92391b81169477c07e70c3e8022756fdeda055b78586cc", "iri": "https://blackcatinformatics.ca/gmeow/Task"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Task", "curie": "gmeow:Task", "definitionDigest": "blake3:a0c7a8808da2f75c20b7580d01dfd0c51299b0953f85eba35bcf39a7c9ffe8ae", "iri": "https://blackcatinformatics.ca/gmeow/Task"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -387,7 +392,7 @@ class TimeZone(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TimeZone", "curie": "gmeow:TimeZone", "definitionDigest": "blake3:9930f6e41a09c96ae6a1df89cdc183edff5764ffd8a002882f88898528523f52", "iri": "https://blackcatinformatics.ca/gmeow/TimeZone"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TimeZone", "curie": "gmeow:TimeZone", "definitionDigest": "blake3:c2eea8d00112cd73eb88b8a56dd0eb893164213e3b7ad5d3aa6b923e5d43f730", "iri": "https://blackcatinformatics.ca/gmeow/TimeZone"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

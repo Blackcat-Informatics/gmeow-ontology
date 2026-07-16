@@ -177,7 +177,7 @@ gmeow:SupersededEntitySuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a superseded gmeow:Entity (one carrying gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:Entity ;
+    logic:formalizes gmeow:SupersededEntitySuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded entity (one with gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supEnForall .

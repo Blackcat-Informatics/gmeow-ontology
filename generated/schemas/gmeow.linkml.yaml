@@ -3763,7 +3763,7 @@ classes:
   ReadingOrder:
     class_uri: https://blackcatinformatics.ca/gmeow/ReadingOrder
     title: Reading Order
-    description: 'Closed-world checks: NONE, by design. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no owl:Restriction requirements, so a ReadingOrder instance is valid without additional closed-world checks — a deliberate absence, not an omission.'
+    description: 'Closed-world checks: the usage contract only. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no owl:Restriction requirements, so a ReadingOrder instance carries no structural closed-world checks; its single obligation is the wiring contract of its own definition — an ordering standpoint exists to be ordered by, so it must be the gmeow:accordingTo of at least one claim (gmeow:ReadingOrderAccordingToConstraint).'
     is_a: Standpoint
   RealizationMode:
     class_uri: https://blackcatinformatics.ca/gmeow/RealizationMode
@@ -4305,6 +4305,7 @@ classes:
   Standpoint:
     class_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     title: Standpoint
+    description: 'Coexistence is explicitly permitted: contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are co-equal and must NOT be flagged — there is deliberately no constraint on their coexistence (Principle 9, no single slot to win). This is the intent the retired documentation-only gmeow:StandpointCoexistenceShape recorded: coexistence is proven by the positive fixtures, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only ever rejects closed-world malformations, never co-equal contradiction.'
     is_a: Entity
     slots:
     - sharpens
@@ -6230,7 +6231,7 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarsenTo
     title: coarsen to
     range: GranularityLevel
-    multivalued: true
+    multivalued: false
   coarserThan:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarserThan
     title: coarser than

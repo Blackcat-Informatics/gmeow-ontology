@@ -85,14 +85,15 @@ class DepictionUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DepictionUsage", "curie": "gmeow:DepictionUsage", "definitionDigest": "blake3:4a04e748a19a1b3521387458811f6880ba9056b3d5bc12699a0db1de33b9a4a3", "iri": "https://blackcatinformatics.ca/gmeow/DepictionUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DepictionUsage", "curie": "gmeow:DepictionUsage", "definitionDigest": "blake3:40b7045c7402cdf4d59616f540d9e4570ebc4b454743c8ea6ccc40850bb28ba4", "iri": "https://blackcatinformatics.ca/gmeow/DepictionUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    depictionImage: list[MediaObject] | None = Field(default=None, description="The image (MediaObject) that depicts the subject in a depiction usage. Functional per relator: one image per DepictionUsage.", alias="gmeow:depictionImage")
-    depictionSubject: list[Entity] | None = Field(default=None, description="The entity that is depicted in a depiction usage. Functional per relator: one subject per DepictionUsage.", alias="gmeow:depictionSubject")
+    depictionContext: DepictionContextEnum = Field(description="The context in which the image depicts the subject — work, family, childhood, portrait, candid, etc. A gmeow:DepictionContext value. Functional per relator: one context per DepictionUsage.", alias="gmeow:depictionContext")
+    depictionImage: MediaObject = Field(description="The image (MediaObject) that depicts the subject in a depiction usage. Functional per relator: one image per DepictionUsage.", alias="gmeow:depictionImage")
+    depictionSubject: Entity = Field(description="The entity that is depicted in a depiction usage. Functional per relator: one subject per DepictionUsage.", alias="gmeow:depictionSubject")
 
 
 class ImageRegion(ConfiguredBaseModel):
@@ -116,13 +117,14 @@ class ImageRegion(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ImageRegion", "curie": "gmeow:ImageRegion", "definitionDigest": "blake3:661e73ba0a3f2246e8e4038be53c2f79007365e95c9f28be723a56e4df6c0eb9", "iri": "https://blackcatinformatics.ca/gmeow/ImageRegion"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ImageRegion", "curie": "gmeow:ImageRegion", "definitionDigest": "blake3:b2bf1cf9d7ed9e940e478ba3dc9131f5dadb9c2c3000d156ef715aaf2e0d3740", "iri": "https://blackcatinformatics.ca/gmeow/ImageRegion"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    regionOf: list[MediaObject] | None = Field(default=None, description="A region is part of exactly one image. Functional per region: one containing image per ImageRegion. Inverse of gmeow:hasRegion.", alias="gmeow:regionOf")
+    regionOf: MediaObject = Field(description="A region is part of exactly one image. Functional per region: one containing image per ImageRegion. Inverse of gmeow:hasRegion.", alias="gmeow:regionOf")
+    regionSelector: RegionSelector = Field(description="The selector that describes this region's boundaries. Functional per region: one selector per ImageRegion.", alias="gmeow:regionSelector")
 
 
 class RegionSelector(ConfiguredBaseModel):
@@ -147,7 +149,7 @@ class RegionSelector(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RegionSelector", "curie": "gmeow:RegionSelector", "definitionDigest": "blake3:43d94267ccfcf7cb9f35a55a9c4399931644be223db5fc7e92285762ed77bf21", "iri": "https://blackcatinformatics.ca/gmeow/RegionSelector"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RegionSelector", "curie": "gmeow:RegionSelector", "definitionDigest": "blake3:811b9566c57b42db795171b918f2a7cf2721beaed25f08950d660cffe6f5e9ed", "iri": "https://blackcatinformatics.ca/gmeow/RegionSelector"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -178,11 +180,13 @@ class SceneGraphEdge(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge", "curie": "gmeow:SceneGraphEdge", "definitionDigest": "blake3:43f246d76132fd9eee2e8d74b61cd059bb17d570ed7a95b47606df3e6f10d039", "iri": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge", "curie": "gmeow:SceneGraphEdge", "definitionDigest": "blake3:95efa6ca4dbcddb61417dbc7b48b20bc4cad4be270b7fe07b7b78f9b656c9a5d", "iri": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    sceneObject: list[ImageRegion] | None = Field(default=None, description="The object region in a scene-graph edge — the region toward which the relation points. Functional per edge: one object per SceneGraphEdge.", alias="gmeow:sceneObject")
-    sceneSubject: list[ImageRegion] | None = Field(default=None, description="The subject region in a scene-graph edge — the region from which the relation originates. Functional per edge: one subject per SceneGraphEdge.", alias="gmeow:sceneSubject")
+    sceneConfidence: float | None = Field(default=None, ge=0, le=1, description="The confidence of this scene-graph edge, as a decimal in [0.0, 1.0]. Functional: one confidence value per edge.", alias="gmeow:sceneConfidence")
+    sceneObject: ImageRegion = Field(description="The object region in a scene-graph edge — the region toward which the relation points. Functional per edge: one object per SceneGraphEdge.", alias="gmeow:sceneObject")
+    sceneRelation: SceneRelationTypeEnum = Field(description="The spatial or semantic relation of this edge — a gmeow:SceneRelationType value. Functional: one relation per edge.", alias="gmeow:sceneRelation")
+    sceneSubject: ImageRegion = Field(description="The subject region in a scene-graph edge — the region from which the relation originates. Functional per edge: one subject per SceneGraphEdge.", alias="gmeow:sceneSubject")

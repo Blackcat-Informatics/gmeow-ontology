@@ -287,7 +287,7 @@ class TemporalMeasurement(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement", "curie": "gmeow:TemporalMeasurement", "definitionDigest": "blake3:359508efaffe38d833e3a982a32dda5322e290779dfb10b1ce03f17d5dbaced6", "iri": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement", "curie": "gmeow:TemporalMeasurement", "definitionDigest": "blake3:129d407b0cb5932e960d96109677a5f7c6ea5c09bafede3458e3ff1baaf41110", "iri": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
