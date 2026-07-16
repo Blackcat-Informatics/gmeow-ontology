@@ -57,7 +57,7 @@ fn graded_entailment_cases() -> BTreeMap<&'static str, &'static str> {
 }
 
 /// The pinned minimum number of non-gap entailment cases the reduction must grade
-/// (the executable coverage floor for deliverable a). Set from the vendored corpus.
+/// (the executable coverage floor for native entailment grading). Set from the vendored corpus.
 const ENTAILMENT_COVERAGE_FLOOR: usize = 4;
 
 /// The frozen divergence cases: conclusions outside the soundly-refutable single-EDB
@@ -69,7 +69,7 @@ fn divergence_gaps() -> BTreeMap<&'static str, &'static str> {
     ])
 }
 
-/// COVERAGE FLOOR (the headline check for deliverable a): the native entailment
+/// COVERAGE FLOOR (the headline check for native entailment grading): the native entailment
 /// reduction grades AT LEAST the pinned number of entailment cases with a real
 /// (non-gap) verdict agreeing with the W3C-declared outcome. A build where the
 /// reduction stopped grading (all cases → gap) drops the corpus below the floor and
