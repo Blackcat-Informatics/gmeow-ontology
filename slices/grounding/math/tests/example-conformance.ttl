@@ -1233,3 +1233,14 @@ ex:ecInformationMeasureNoDistribution a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies an entropy's logarithm base and information unit but omits its probability distribution, isolating math:IncompleteInformationMeasure." .
+
+ex:ecHodgeDecompositionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hodge-decomposition-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The Hodge decomposition names a complete frame — the signal, its exact, coexact, and harmonic components, its boundary operator, and its fully framed cellular-sheaf carrier — and demonstrates reconstruction (the signal equals the sum of the three components, residual exactly 0/1) and pairwise orthogonality (each of the three component inner products exactly 0/1)." .
+
+ex:ecHodgeDecompositionMalformedBoundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/hodge-decomposition-malformed-boundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Hodge decomposition — signal, exact/coexact/harmonic components, carrier sheaf, reconstruction residual, and the three pairwise-orthogonality inner products — but omits its required boundary operator, isolating math:IncompleteHodgeDecomposition." .

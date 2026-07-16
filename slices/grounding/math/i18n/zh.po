@@ -1950,6 +1950,86 @@ msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
 msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
 msgstr "将信息测度关联到其在已声明单位下计算所得大小的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此诸如均匀两结果分布的香农熵之类的参考计算被记录为恰好 1/1 比特。定义域 math:InformationMeasure，值域 math:RationalValue（以散文陈述）。"
 
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|rdfs:label"
+msgid "over sheaf"
+msgstr "在层上"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|skos:definition"
+msgid "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "将霍奇分解关联到其所在的胞腔层，该层的层拉普拉斯算子与上边缘映射定义其恰当、上恰当与调和子空间。定义域 math:HodgeDecomposition，值域 math:CellularSheaf（以散文陈述）。该载体是分解框架的组成部分，绝非隐式；缺少它的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|rdfs:label"
+msgid "Hodge boundary operator"
+msgstr "霍奇边缘算子"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|skos:definition"
+msgid "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "将霍奇分解关联到其边缘算子，该算子的像是恰当分量、其伴随的像是上恰当分量。定义域 math:HodgeDecomposition，值域 math:BoundaryOperator（以散文陈述）。该算子是分解的构成要素——恰当/上恰当的分离相对于它而定义；边缘算子被省略或类型错误的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|rdfs:label"
+msgid "exact component"
+msgstr "恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."
+msgstr "将霍奇分解关联到其恰当分量——位于适用边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:ExactComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
+msgid "coexact component"
+msgstr "上恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
+msgstr "将霍奇分解关联到其上恰当分量——位于伴随边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:CoexactComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|rdfs:label"
+msgid "harmonic component"
+msgstr "调和分量"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."
+msgstr "将霍奇分解关联到其调和分量——位于适用霍奇拉普拉斯算子核中的部分，与恰当与上恰当部分皆正交。定义域 math:HodgeDecomposition，值域 math:HarmonicComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|rdfs:label"
+msgid "reconstruction residual"
+msgstr "重构残差"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其重构残差范数的精确 math:RationalValue——信号减去其恰当、上恰当与调和分量之和。霍奇分解定理使该残差恰好为零，以精确对 0/1 携带，绝非小数；非零残差将见证重构失败。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|rdfs:label"
+msgid "exact–coexact inner product"
+msgstr "恰当–上恰当内积"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其恰当与上恰当分量内积 ⟨exact, coexact⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|rdfs:label"
+msgid "exact–harmonic inner product"
+msgstr "恰当–调和内积"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其恰当与调和分量内积 ⟨exact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|rdfs:label"
+msgid "coexact–harmonic inner product"
+msgstr "上恰当–调和内积"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其上恰当与调和分量内积 ⟨coexact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|rdfs:label"
+msgid "Incomplete Hodge Decomposition"
+msgstr "不完整霍奇分解"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:definition"
+msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
+msgstr "当霍奇分解缺少必需的框架组成部分时引发的失败——它所分解的信号、其恰当、上恰当或调和分量、其边缘算子、其载体层、见证重构的精确残差，或三个精确的成对正交性内积之一。霍奇分解仅相对于完整且已声明的框架才有定义；边缘算子、重构残差或分量正交性为隐式的裸分离是不良构成的。"
+
 msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
 msgid "Vector-Symbolic Operation"
 msgstr "向量符号运算"

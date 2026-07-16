@@ -7840,6 +7840,61 @@ math:measureValue
     skos:definition "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Hodge-decomposition frame properties (Hodge coverage family) --------- #
+math:overSheaf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over sheaf"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hodgeBoundaryOperator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hodge boundary operator"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exactComponent
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact component"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coexactComponent
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coexact component"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:harmonicComponent
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "harmonic component"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:reconstructionResidual
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "reconstruction residual"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exactCoexactInnerProduct
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact–coexact inner product"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exactHarmonicInnerProduct
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact–harmonic inner product"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coexactHarmonicInnerProduct
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coexact–harmonic inner product"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:sheafBaseComplex
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "sheaf base complex"@x-gmeow-english ;
@@ -8083,6 +8138,13 @@ math:IncompleteInformationMeasure
     skos:definition "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:IncompleteHodgeDecomposition
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Hodge Decomposition"@x-gmeow-english ;
+    skos:definition "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Task-7 conformance-failure classes ------------------------------------- #
 
 math:UnderspecifiedPiecewiseFunction
@@ -8293,6 +8355,49 @@ math:FisherInformation logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:maxQualifiedCardinality 1 ; owl:onClass math:DistributionParameter ] ,
     [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:allValuesFrom math:DistributionParameter ] ;
     gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+# Hodge coverage family: a Hodge decomposition is defined only relative to a
+# complete, declared frame — the signal, its exact/coexact/harmonic components,
+# its boundary operator, its carrier sheaf, the exact residual witnessing
+# reconstruction (signal = exact + coexact + harmonic, residual 0/1), and the
+# three exact pairwise-orthogonality inner products (each 0/1). Every obligation
+# is a qualified-cardinality + allValuesFrom OWL restriction (EL-safe) that
+# derives the paired sh:minCount/maxCount + sh:class property shape; a missing or
+# wrongly typed component fails the derived constraint and isolates
+# math:IncompleteHodgeDecomposition. Omitting the boundary operator fails the
+# derived QualifiedMinCount, the malformed-boundary-operator counterexample.
+math:HodgeDecomposition logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:decomposesFlow ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:decomposesFlow ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:decomposesFlow ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactComponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:ExactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactComponent ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ExactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactComponent ; owl:allValuesFrom math:ExactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactComponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:CoexactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactComponent ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CoexactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactComponent ; owl:allValuesFrom math:CoexactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:harmonicComponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:HarmonicComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:harmonicComponent ; owl:maxQualifiedCardinality 1 ; owl:onClass math:HarmonicComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:harmonicComponent ; owl:allValuesFrom math:HarmonicComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:hodgeBoundaryOperator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:hodgeBoundaryOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:hodgeBoundaryOperator ; owl:allValuesFrom math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:overSheaf ; owl:minQualifiedCardinality 1 ; owl:onClass math:CellularSheaf ] ,
+    [ a owl:Restriction ; owl:onProperty math:overSheaf ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CellularSheaf ] ,
+    [ a owl:Restriction ; owl:onProperty math:overSheaf ; owl:allValuesFrom math:CellularSheaf ] ,
+    [ a owl:Restriction ; owl:onProperty math:reconstructionResidual ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:reconstructionResidual ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:reconstructionResidual ; owl:allValuesFrom math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactCoexactInnerProduct ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactCoexactInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactCoexactInnerProduct ; owl:allValuesFrom math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactHarmonicInnerProduct ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactHarmonicInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactHarmonicInnerProduct ; owl:allValuesFrom math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:allValuesFrom math:RationalValue ] ;
+    gmeow:enforcesFailureClass math:IncompleteHodgeDecomposition .
 
 math:Number rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -12436,6 +12541,7 @@ math:IncompleteCliffordAlgebra a logic:Situation .
 math:IncompleteCliffordExtension a logic:Situation .
 math:IncompleteDimensionalityReductionAnalysis a logic:Situation .
 math:IncompleteHamiltonianSystem a logic:Situation .
+math:IncompleteHodgeDecomposition a logic:Situation .
 math:IncompleteInformationMeasure a logic:Situation .
 math:IncompletePersistentHomologyAnalysis a logic:Situation .
 math:ZeroDenominator a logic:Situation .

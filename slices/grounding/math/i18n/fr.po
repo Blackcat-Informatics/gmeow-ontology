@@ -1950,6 +1950,86 @@ msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
 msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
 msgstr "Relie une mesure d'information à la valeur math:RationalValue exacte de sa magnitude calculée dans son unité déclarée — portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte qu'un calcul de référence tel que l'entropie de Shannon d'une distribution uniforme à deux résultats est enregistré comme exactement 1/1 bit. Domaine math:InformationMeasure, portée math:RationalValue (énoncé en prose)."
 
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|rdfs:label"
+msgid "over sheaf"
+msgstr "sur faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|skos:definition"
+msgid "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "Relie une décomposition de Hodge au faisceau cellulaire dont le laplacien de faisceau et les applications de cobord définissent ses sous-espaces exact, coexact et harmonique. Domaine math:HodgeDecomposition, portée math:CellularSheaf (énoncé en prose). Le support fait partie du cadre de la décomposition, jamais implicite ; une décomposition qui en manque est mal formée (math:IncompleteHodgeDecomposition)."
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|rdfs:label"
+msgid "Hodge boundary operator"
+msgstr "opérateur de bord de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|skos:definition"
+msgid "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "Relie une décomposition de Hodge à l'opérateur de bord dont l'image est la composante exacte et dont l'image de l'adjoint est la composante coexacte. Domaine math:HodgeDecomposition, portée math:BoundaryOperator (énoncé en prose). L'opérateur est constitutif de la décomposition — la séparation exact/coexact est définie relativement à lui ; une décomposition dont l'opérateur de bord est omis ou mal typé est mal formée (math:IncompleteHodgeDecomposition)."
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|rdfs:label"
+msgid "exact component"
+msgstr "composante exacte"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."
+msgstr "Relie une décomposition de Hodge à sa composante exacte — la partie située dans l'image de l'opérateur de bord ou de cobord applicable. Domaine math:HodgeDecomposition, portée math:ExactComponent (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
+msgid "coexact component"
+msgstr "composante coexacte"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
+msgstr "Relie une décomposition de Hodge à sa composante coexacte — la partie située dans l'image de l'opérateur de bord ou de cobord adjoint. Domaine math:HodgeDecomposition, portée math:CoexactComponent (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|rdfs:label"
+msgid "harmonic component"
+msgstr "composante harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."
+msgstr "Relie une décomposition de Hodge à sa composante harmonique — la partie située dans le noyau du laplacien de Hodge applicable, orthogonale à la fois aux parties exacte et coexacte. Domaine math:HodgeDecomposition, portée math:HarmonicComponent (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|rdfs:label"
+msgid "reconstruction residual"
+msgstr "résidu de reconstruction"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte de la norme résiduelle de sa reconstruction — le signal moins la somme de ses composantes exacte, coexacte et harmonique. Le théorème de décomposition de Hodge rend ce résidu exactement nul, porté comme la paire exacte 0/1, jamais un décimal ; un résidu non nul témoignerait d'une reconstruction échouée. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|rdfs:label"
+msgid "exact–coexact inner product"
+msgstr "produit scalaire exact–coexact"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte du produit scalaire ⟨exact, coexact⟩ de ses composantes exacte et coexacte. L'orthogonalité des deux composantes rend cette valeur exactement nulle, portée comme la paire exacte 0/1. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|rdfs:label"
+msgid "exact–harmonic inner product"
+msgstr "produit scalaire exact–harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte du produit scalaire ⟨exact, harmonique⟩ de ses composantes exacte et harmonique. L'orthogonalité des deux composantes rend cette valeur exactement nulle, portée comme la paire exacte 0/1. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|rdfs:label"
+msgid "coexact–harmonic inner product"
+msgstr "produit scalaire coexact–harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte du produit scalaire ⟨coexact, harmonique⟩ de ses composantes coexacte et harmonique. L'orthogonalité des deux composantes rend cette valeur exactement nulle, portée comme la paire exacte 0/1. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|rdfs:label"
+msgid "Incomplete Hodge Decomposition"
+msgstr "Décomposition de Hodge incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:definition"
+msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
+msgstr "L'échec soulevé lorsqu'une décomposition de Hodge manque d'une composante de cadre requise — le signal qu'elle décompose, sa composante exacte, coexacte ou harmonique, son opérateur de bord, son faisceau support, le résidu exact témoignant de la reconstruction, ou l'un des trois produits scalaires exacts d'orthogonalité par paires. Une décomposition de Hodge n'est définie que relativement à un cadre complet et déclaré ; une simple séparation dont l'opérateur de bord, le résidu de reconstruction ou l'orthogonalité des composantes est implicite est mal formée."
+
 msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
 msgid "Vector-Symbolic Operation"
 msgstr "Opération vectorielle-symbolique"

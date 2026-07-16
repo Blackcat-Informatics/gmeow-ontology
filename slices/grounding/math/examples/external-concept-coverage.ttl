@@ -150,3 +150,33 @@ cov:uniformTwo a math:Distribution ;
 cov:uniformFamily a math:DistributionFamily .
 cov:oneBit a math:RationalValue ;
     math:numerator 1 ; math:denominator 1 .
+
+# Hodge-decomposition coverage: a decomposition is recoverable from its signal,
+# its exact/coexact/harmonic components, and its boundary operator as separate
+# reusable objects. Reconstruction (signal = exact + coexact + harmonic) and
+# pairwise orthogonality are witnessed by exact 0/1 residual and inner products.
+cov:hodgeDecomposition a math:HodgeDecomposition ;
+    math:decomposesFlow cov:hodgeSignal ;
+    math:exactComponent cov:hodgeExact ;
+    math:coexactComponent cov:hodgeCoexact ;
+    math:harmonicComponent cov:hodgeHarmonic ;
+    math:hodgeBoundaryOperator cov:hodgeBoundary ;
+    math:overSheaf cov:hodgeSheaf ;
+    math:reconstructionResidual cov:hodgeZero ;
+    math:exactCoexactInnerProduct cov:hodgeZero ;
+    math:exactHarmonicInnerProduct cov:hodgeZero ;
+    math:coexactHarmonicInnerProduct cov:hodgeZero .
+cov:hodgeSignal a math:SheafSection .
+cov:hodgeExact a math:ExactComponent .
+cov:hodgeCoexact a math:CoexactComponent .
+cov:hodgeHarmonic a math:HarmonicComponent .
+cov:hodgeBoundary a math:BoundaryOperator .
+cov:hodgeSheaf a math:CellularSheaf ;
+    math:sheafBaseComplex cov:hodgeComplex ;
+    math:hasStalk cov:hodgeStalk ;
+    math:restrictionMap cov:hodgeRestriction .
+cov:hodgeComplex a math:CellComplex .
+cov:hodgeStalk a math:SheafStalk .
+cov:hodgeRestriction a math:SheafRestrictionMap .
+cov:hodgeZero a math:RationalValue ;
+    math:numerator 0 ; math:denominator 1 .

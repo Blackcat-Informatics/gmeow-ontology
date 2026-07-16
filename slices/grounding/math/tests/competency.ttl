@@ -2475,3 +2475,30 @@ ex:rowCoverageInformationMeasure a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "distribution" ; gmeow:cellValueIri cov:uniformTwo ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri math:logBaseTwo ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri math:bit ] .
+
+ex:cqCoverageHodgeDecomposition a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/hodge-decomposition-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A Hodge decomposition is recoverable from its signal, its exact, coexact, and harmonic components, and its boundary operator as separate reusable mathematical objects, without a project-specific flow-splitting surrogate that flattens the exact/coexact/harmonic distinction." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageHodgeDecompositionShape ;
+    gmeow:cqExpectRow ex:rowCoverageHodgeDecomposition .
+
+ex:cqCoverageHodgeDecompositionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "decomposition" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "signal" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "exact" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "coexact" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "harmonic" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageHodgeDecomposition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "decomposition" ; gmeow:cellValueIri cov:hodgeDecomposition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signal" ; gmeow:cellValueIri cov:hodgeSignal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exact" ; gmeow:cellValueIri cov:hodgeExact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coexact" ; gmeow:cellValueIri cov:hodgeCoexact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "harmonic" ; gmeow:cellValueIri cov:hodgeHarmonic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri cov:hodgeBoundary ] .

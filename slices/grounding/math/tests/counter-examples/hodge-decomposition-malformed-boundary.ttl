@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Malformed boundary-operator counterexample: the Hodge decomposition supplies a
+# complete frame — signal, exact/coexact/harmonic components, carrier sheaf,
+# exact reconstruction residual, and the three exact pairwise-orthogonality inner
+# products — but OMITS its required boundary operator (math:hodgeBoundaryOperator).
+# Without the boundary operator the exact and coexact subspaces are undefined, so
+# the decomposition is ill-formed: it isolates math:IncompleteHodgeDecomposition
+# via the single derived QualifiedMinCount constraint on math:hodgeBoundaryOperator.
+ex:decomposition a math:HodgeDecomposition ;
+    math:decomposesFlow ex:signal ;
+    math:exactComponent ex:exactPart ;
+    math:coexactComponent ex:coexactPart ;
+    math:harmonicComponent ex:harmonicPart ;
+    math:overSheaf ex:sheaf ;
+    math:reconstructionResidual ex:zero ;
+    math:exactCoexactInnerProduct ex:zero ;
+    math:exactHarmonicInnerProduct ex:zero ;
+    math:coexactHarmonicInnerProduct ex:zero .
+
+ex:signal a math:SheafSection .
+ex:exactPart a math:ExactComponent .
+ex:coexactPart a math:CoexactComponent .
+ex:harmonicPart a math:HarmonicComponent .
+
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:complex ;
+    math:hasStalk ex:stalk ;
+    math:restrictionMap ex:restriction .
+ex:complex a math:CellComplex .
+ex:stalk a math:SheafStalk .
+ex:restriction a math:SheafRestrictionMap .
+
+ex:zero a math:RationalValue ;
+    math:numerator 0 ;
+    math:denominator 1 .
