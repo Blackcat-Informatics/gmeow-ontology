@@ -30,7 +30,10 @@ use gmeow_logic_compile::ir::{
 };
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_gates::CorrespondenceVerdicts;
-use purrdf::sparql::NativeSparqlEngine;
+use purrdf::sparql::{
+    GraphPattern, NamedNodePattern, NativeSparqlEngine, Query, SparqlParser, TermPattern,
+    TriplePattern as SparqlTriplePattern,
+};
 use purrdf::{
     RdfQuad, RdfTerm, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult, canonicalize,
     parse_dataset, serialize_dataset,
@@ -769,207 +772,166 @@ pub fn logic_program_verdicts(
     Ok(program_verdicts(&derived))
 }
 
-// Mapping-cell branch-covering seed derivation.  This remains text-facing because those
-// lowerings already exist as SPARQL; execution and comparison still flow through the same
-// graph authority above.
+// Mapping-cell branch-covering seed derivation.  The `get` leg is a SPARQL `CONSTRUCT`; its
+// `WHERE` clause is parsed by the SAME real algebra (`purrdf::sparql`) the executor above runs
+// it through, then walked into disjunctive-normal-form branches.  A hand-rolled text splitter
+// would be a second, weaker parser for a fragment the real one already covers exactly.
 
-#[derive(Debug, Clone)]
-enum QueryTerm {
-    Var(String),
-    Iri(String),
-}
+/// Deterministic base for fresh per-variable seed IRIs.  Kept byte-identical to the prior
+/// scheme (`http://seed.example/v{n}`) so the branch-covering / determinism tests in
+/// `crates/pipeline/src/correspondence_law.rs` are unaffected by this rewrite.
+const BRANCH_SEED_BASE: &str = "http://seed.example/v";
 
-fn parse_prefixes(query: &str) -> Vec<(String, String)> {
-    let mut prefixes = Vec::new();
-    for line in query.lines() {
-        let trimmed = line.trim();
-        // `str::get` boundary-checks the split point instead of raw byte indexing, so a
-        // malformed or multi-byte-UTF-8 line is skipped rather than panicking.
-        if !trimmed.to_ascii_lowercase().starts_with("prefix ") {
-            continue;
-        }
-        let Some(rest) = trimmed.get("prefix ".len()..) else {
-            continue;
-        };
-        let Some((name, after)) = rest.trim().split_once(':') else {
-            continue;
-        };
-        // Find the `<iri>` delimiters via split_once rather than independent `find` calls: two
-        // independent `find`s can locate a `>` that occurs BEFORE the `<` on malformed input,
-        // which raw-sliced `after[open + 1..close]` would then panic on (start > end).
-        let Some((_, after_open)) = after.trim().split_once('<') else {
-            continue;
-        };
-        let Some((iri, _)) = after_open.split_once('>') else {
-            continue;
-        };
-        prefixes.push((name.trim().to_owned(), iri.to_owned()));
-    }
-    prefixes
-}
-
-fn expand_iri(token: &str, prefixes: &[(String, String)]) -> Option<String> {
-    let token = token.trim();
-    if token == "a" {
-        return Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned());
-    }
-    if let Some(iri) = token.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
-        return Some(iri.to_owned());
-    }
-    if token.starts_with('?') || token.starts_with('$') {
-        return None;
-    }
-    let (prefix, local) = token.split_once(':')?;
-    prefixes
-        .iter()
-        .find(|(name, _)| name == prefix)
-        .map(|(_, iri)| format!("{iri}{local}"))
-}
-
-fn extract_where_body(query: &str) -> Option<String> {
-    let lower = query.to_ascii_lowercase();
-    let position = lower.find("where")?;
-    let after = &query[position + "where".len()..];
-    let open = after.find('{')?;
-    let mut depth = 1usize;
-    let mut body = String::new();
-    for ch in after[open + 1..].chars() {
-        match ch {
-            '{' => depth += 1,
-            '}' => {
-                depth -= 1;
-                if depth == 0 {
-                    return Some(body);
+/// Recursively enumerate the `WHERE` algebra into disjunctive branches: one `Vec` of triple
+/// patterns per top-level `UNION` disjunct.  `Join`/`Lateral` distribute as a cartesian
+/// product, so a pattern joined OUTSIDE a `UNION` — the shared-atom case the old text splitter
+/// dropped — appears in every resulting branch.  `LeftJoin` (`OPTIONAL`) keeps only its
+/// required (left) side: SPARQL OPTIONAL semantics do not require the right side to match, so
+/// its content is not a positive obligation the seed corpus must recover — forcing it into
+/// every seed would wrongly demand round-tripping data that is, by construction, optional.
+/// `Filter`/`Extend` (`BIND`)/`Graph`/solution-modifier wrappers contribute no atoms of their
+/// own and are unwrapped down to their inner pattern; `Minus` likewise keeps only its required
+/// (left) side. Constructs with no positive triple-pattern content (`Path`, `Service`,
+/// `Values`) yield no branches — deterministically dropped, never guessed at.
+fn dnf_branches(pattern: &GraphPattern) -> Vec<Vec<SparqlTriplePattern>> {
+    match pattern {
+        GraphPattern::Bgp { patterns } => vec![patterns.clone()],
+        GraphPattern::Join { left, right } | GraphPattern::Lateral { left, right } => {
+            let left_branches = dnf_branches(left);
+            let right_branches = dnf_branches(right);
+            match (left_branches.is_empty(), right_branches.is_empty()) {
+                (true, true) => Vec::new(),
+                (true, false) => right_branches,
+                (false, true) => left_branches,
+                (false, false) => {
+                    let mut out = Vec::with_capacity(left_branches.len() * right_branches.len());
+                    for left_branch in &left_branches {
+                        for right_branch in &right_branches {
+                            let mut combined = left_branch.clone();
+                            combined.extend(right_branch.iter().cloned());
+                            out.push(combined);
+                        }
+                    }
+                    out
                 }
             }
-            _ => {}
         }
-        body.push(ch);
-    }
-    None
-}
-
-fn split_union_branches(where_body: &str) -> Vec<String> {
-    let chars: Vec<char> = where_body.chars().collect();
-    let mut branches = Vec::new();
-    let mut index = 0usize;
-    while index < chars.len() {
-        if chars[index] == '{' {
-            let start = index + 1;
-            let mut depth = 1usize;
-            index += 1;
-            while index < chars.len() && depth > 0 {
-                match chars[index] {
-                    '{' => depth += 1,
-                    '}' => depth -= 1,
-                    _ => {}
-                }
-                if depth == 0 {
-                    break;
-                }
-                index += 1;
-            }
-            branches.push(chars[start..index].iter().collect());
+        GraphPattern::Union { left, right } => {
+            let mut out = dnf_branches(left);
+            out.extend(dnf_branches(right));
+            out
         }
-        index += 1;
-    }
-    if branches.is_empty() {
-        vec![where_body.to_owned()]
-    } else {
-        branches
+        GraphPattern::LeftJoin { left, .. } | GraphPattern::Minus { left, .. } => {
+            dnf_branches(left)
+        }
+        GraphPattern::Filter { inner, .. }
+        | GraphPattern::Extend { inner, .. }
+        | GraphPattern::Graph { inner, .. }
+        | GraphPattern::OrderBy { inner, .. }
+        | GraphPattern::Project { inner, .. }
+        | GraphPattern::Distinct { inner }
+        | GraphPattern::Reduced { inner }
+        | GraphPattern::Slice { inner, .. }
+        | GraphPattern::Group { inner, .. } => dnf_branches(inner),
+        GraphPattern::Path { .. } | GraphPattern::Service { .. } | GraphPattern::Values { .. } => {
+            Vec::new()
+        }
     }
 }
 
-fn branch_patterns(branch: &str) -> Vec<[QueryTerm; 3]> {
-    let mut flat = String::new();
-    let mut depth = 0usize;
-    for ch in branch.chars() {
-        match ch {
-            '{' => depth += 1,
-            '}' if depth > 0 => depth -= 1,
-            _ if depth == 0 => flat.push(ch),
-            _ => {}
-        }
-    }
-    let mut patterns = Vec::new();
-    for statement in flat.split('.') {
-        let statement = statement.trim();
-        let upper = statement.to_ascii_uppercase();
-        if statement.is_empty()
-            || upper.starts_with("FILTER")
-            || upper.starts_with("BIND")
-            || upper.starts_with("VALUES")
-        {
-            continue;
-        }
-        let tokens: Vec<&str> = statement.split_whitespace().collect();
-        if tokens.len() != 3 {
-            continue;
-        }
-        let term = |token: &str| {
-            if token.starts_with('?') || token.starts_with('$') {
-                QueryTerm::Var(token.to_owned())
-            } else {
-                QueryTerm::Iri(token.to_owned())
-            }
-        };
-        patterns.push([term(tokens[0]), term(tokens[1]), term(tokens[2])]);
-    }
-    patterns
-}
-
-fn instantiate_branch(
-    patterns: &[[QueryTerm; 3]],
-    prefixes: &[(String, String)],
+/// Bind a fresh seed IRI to a first-seen variable/blank-node key (reused for repeat
+/// occurrences within the same branch), advancing the shared, branch-spanning counter.
+fn fresh_binding(
+    key: &str,
+    bindings: &mut BTreeMap<String, String>,
     counter: &mut usize,
-    variables: &mut BTreeMap<String, String>,
-) -> Option<Vec<Atom>> {
-    let mut atoms = Vec::new();
-    for pattern in patterns {
-        let mut resolved = [String::new(), String::new(), String::new()];
-        for (slot, term) in pattern.iter().enumerate() {
-            resolved[slot] = match term {
-                QueryTerm::Var(variable) => variables
-                    .entry(variable.clone())
-                    .or_insert_with(|| {
-                        let iri = format!("http://seed.example/v{counter}");
-                        *counter += 1;
-                        iri
-                    })
-                    .clone(),
-                QueryTerm::Iri(token) => expand_iri(token, prefixes)?,
-            };
-        }
-        let [subject, predicate, object] = resolved;
-        atoms.push((subject, predicate, object));
-    }
-    (!atoms.is_empty()).then_some(atoms)
+) -> String {
+    bindings
+        .entry(key.to_owned())
+        .or_insert_with(|| {
+            let iri = format!("{BRANCH_SEED_BASE}{counter}");
+            *counter += 1;
+            iri
+        })
+        .clone()
 }
 
-/// Derive one deterministic seed per top-level `UNION` branch and a combined seed.
+fn resolve_named_node_pattern(
+    term: &NamedNodePattern,
+    bindings: &mut BTreeMap<String, String>,
+    counter: &mut usize,
+) -> String {
+    match term {
+        NamedNodePattern::NamedNode(iri) => iri.as_str().to_owned(),
+        NamedNodePattern::Variable(variable) => fresh_binding(variable.as_str(), bindings, counter),
+    }
+}
+
+/// Resolve one subject/object term to its concrete seed value.  IRIs and literals become
+/// their own resolved lexical form (no manual prefix expansion — the parser already resolved
+/// prefixed names to absolute IRIs); variables and blank nodes get a fresh deterministic seed
+/// IRI.  An RDF-star quoted-triple term is outside the positive binary-atom seed fragment, so
+/// it resolves to `None` and its containing triple pattern contributes no atom, rather than a
+/// mis-parsed guess.
+fn resolve_term_pattern(
+    term: &TermPattern,
+    bindings: &mut BTreeMap<String, String>,
+    counter: &mut usize,
+) -> Option<String> {
+    match term {
+        TermPattern::NamedNode(iri) => Some(iri.as_str().to_owned()),
+        TermPattern::Variable(variable) => {
+            Some(fresh_binding(variable.as_str(), bindings, counter))
+        }
+        TermPattern::Literal(literal) => Some(literal.value().to_owned()),
+        TermPattern::BlankNode(blank) => Some(fresh_binding(
+            &format!("_:{}", blank.as_str()),
+            bindings,
+            counter,
+        )),
+        TermPattern::Triple(_) => None,
+    }
+}
+
+/// Instantiate one DNF branch into concrete seed atoms.  Variable/blank-node bindings are
+/// scoped to this branch (a fresh map per branch); the seed-IRI counter is shared across
+/// branches so every seed atom in the corpus carries a distinct fresh IRI.
+fn instantiate_branch(branch: &[SparqlTriplePattern], counter: &mut usize) -> Vec<Atom> {
+    let mut bindings = BTreeMap::new();
+    let mut atoms = Vec::with_capacity(branch.len());
+    for pattern in branch {
+        let subject = resolve_term_pattern(&pattern.subject, &mut bindings, counter);
+        let predicate = resolve_named_node_pattern(&pattern.predicate, &mut bindings, counter);
+        let object = resolve_term_pattern(&pattern.object, &mut bindings, counter);
+        if let (Some(subject), Some(object)) = (subject, object) {
+            atoms.push((subject, predicate, object));
+        }
+    }
+    atoms
+}
+
+/// Derive one deterministic seed per top-level `UNION` branch of `get_query`'s `WHERE` algebra
+/// (a pattern joined outside a `UNION` is distributed into every branch) plus one combined
+/// seed unioning all branches.  Deterministically returns an empty corpus — never a panic or a
+/// guessed split — when `get_query` fails to parse or is not a `CONSTRUCT`.
 pub fn derive_seeds(get_query: &str) -> Vec<SeedGraph> {
-    let prefixes = parse_prefixes(get_query);
-    let Some(where_body) = extract_where_body(get_query) else {
+    let Ok(Query::Construct { pattern, .. }) = SparqlParser::new().parse_query(get_query) else {
         return Vec::new();
     };
-    let branches = split_union_branches(&where_body);
+    let branches = dnf_branches(&pattern);
     let mut counter = 0usize;
     let mut seeds = Vec::new();
     let mut combined = Vec::new();
     for (index, branch) in branches.iter().enumerate() {
-        let mut variables = BTreeMap::new();
-        if let Some(atoms) = instantiate_branch(
-            &branch_patterns(branch),
-            &prefixes,
-            &mut counter,
-            &mut variables,
-        ) {
-            combined.extend(atoms.iter().cloned());
-            seeds.push(SeedGraph {
-                label: format!("branch-{index}"),
-                atoms,
-            });
+        let atoms = instantiate_branch(branch, &mut counter);
+        if atoms.is_empty() {
+            continue;
         }
+        combined.extend(atoms.iter().cloned());
+        seeds.push(SeedGraph {
+            label: format!("branch-{index}"),
+            atoms,
+        });
     }
     if !combined.is_empty() {
         seeds.push(SeedGraph {
@@ -1212,58 +1174,82 @@ mod tests {
     }
 
     #[test]
-    fn parse_prefixes_reads_well_formed_declarations() {
-        let query =
-            "PREFIX ex: <http://example.org/> \nprefix  view: <http://view.example.org/#> .";
-        let prefixes = parse_prefixes(query);
+    fn derive_seeds_is_empty_for_a_query_that_is_not_a_construct() {
+        // A hard-fail, not a silent mis-parse: an unparsable or non-CONSTRUCT query
+        // deterministically yields no seeds rather than guessing at a split.
+        assert_eq!(derive_seeds("this is not valid SPARQL {{{"), Vec::new());
         assert_eq!(
-            prefixes,
-            vec![
-                ("ex".to_owned(), "http://example.org/".to_owned()),
-                ("view".to_owned(), "http://view.example.org/#".to_owned()),
-            ]
+            derive_seeds("SELECT ?s WHERE { ?s <http://ex.example/p> ?o }"),
+            Vec::new()
         );
     }
 
+    // Gap G15: the prior hand-rolled splitter did `flat.split('.')` over the flattened WHERE
+    // body, which mis-splits any full `<IRI>` whose authority/path contains a dot. A real
+    // SPARQL predicate IRI is atomic to the parser regardless of embedded dots, so it must
+    // survive into the seed as ONE triple pattern, not be chopped into garbage statements.
     #[test]
-    fn parse_prefixes_skips_malformed_lines_without_panicking() {
-        // A `>` occurring before the `<` (raw `find`-based slicing would panic with
-        // start > end) and a line missing the angle brackets entirely must not panic —
-        // each is simply skipped. A multi-byte UTF-8 prefix name is well-formed and must
-        // still parse correctly (proving the boundary-checked rewrite is UTF-8-safe, not
-        // merely non-panicking).
-        let query = "PREFIX ex: >broken<\nPREFIX  \u{1F431}: <http://cat.example.org/>\nPREFIX noiri: not-an-iri\nPREFIX ok: <http://ok.example.org/>";
-        let prefixes = parse_prefixes(query);
+    fn full_dotted_iri_predicate_is_not_mis_split() {
+        let get = "CONSTRUCT { ?s <http://view.example/p> ?o } \
+                    WHERE { ?s <http://ex.example/p.q> ?o . }";
+        let seeds = derive_seeds(get);
+        let branch = seeds
+            .iter()
+            .find(|seed| seed.label == "branch-0")
+            .expect("one branch for the single BGP");
         assert_eq!(
-            prefixes,
-            vec![
-                ("\u{1F431}".to_owned(), "http://cat.example.org/".to_owned()),
-                ("ok".to_owned(), "http://ok.example.org/".to_owned()),
-            ],
-            "malformed lines are skipped; well-formed multi-byte lines still parse: {prefixes:#?}"
+            branch.atoms.len(),
+            1,
+            "the dotted-IRI predicate triple must survive as exactly one atom: {branch:#?}"
         );
+        assert_eq!(branch.atoms[0].1, "http://ex.example/p.q");
     }
 
+    // Gap G15: a triple pattern joined OUTSIDE a `UNION` (`?s a ex:C .` here) must be
+    // distributed into EVERY branch, not dropped. The prior `split_union_branches` only
+    // extracted patterns found INSIDE `{...}` groups, silently losing this shared atom.
     #[test]
-    fn expand_iri_resolves_prefixed_and_bracketed_tokens() {
-        let prefixes = vec![("ex".to_owned(), "http://example.org/".to_owned())];
-        assert_eq!(
-            expand_iri("ex:Thing", &prefixes),
-            Some("http://example.org/Thing".to_owned())
-        );
-        assert_eq!(
-            expand_iri("<http://bare.example.org/>", &prefixes),
-            Some("http://bare.example.org/".to_owned())
-        );
-        assert_eq!(
-            expand_iri("a", &prefixes).as_deref(),
-            Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-        );
-        assert_eq!(expand_iri("?s", &prefixes), None);
-        assert_eq!(
-            expand_iri("unknown:Thing", &prefixes),
-            None,
-            "an unresolved prefix must not panic or fall back to a guessed IRI"
-        );
+    fn triple_pattern_shared_outside_union_appears_in_every_branch() {
+        let get = "PREFIX ex: <http://ex.example/> \
+                    CONSTRUCT { ?s <http://view.example/p> ?o } \
+                    WHERE { ?s a ex:C . { ?s ex:r1 ?o } UNION { ?s ex:r2 ?o } }";
+        let seeds = derive_seeds(get);
+        let branch_labels: Vec<&str> = seeds
+            .iter()
+            .filter(|seed| seed.label.starts_with("branch-"))
+            .map(|seed| seed.label.as_str())
+            .collect();
+        assert_eq!(branch_labels, vec!["branch-0", "branch-1"], "{seeds:#?}");
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        for label in ["branch-0", "branch-1"] {
+            let branch = seeds
+                .iter()
+                .find(|seed| seed.label == label)
+                .unwrap_or_else(|| panic!("{label} present"));
+            assert_eq!(branch.atoms.len(), 2, "{branch:#?}");
+            assert!(
+                branch
+                    .atoms
+                    .iter()
+                    .any(|(_, predicate, object)| predicate == rdf_type
+                        && object == "http://ex.example/C"),
+                "the shared `?s a ex:C` atom must appear in {label}: {branch:#?}"
+            );
+        }
+    }
+
+    // A literal value containing a dot must not be split by any character-level pass; the
+    // real parser hands us the literal's lexical form as one atomic token.
+    #[test]
+    fn dotted_literal_object_is_not_mis_split() {
+        let get = "CONSTRUCT { ?s <http://view.example/p> ?o } \
+                    WHERE { ?s <http://src.example/value> \"3.14\" . }";
+        let seeds = derive_seeds(get);
+        let branch = seeds
+            .iter()
+            .find(|seed| seed.label == "branch-0")
+            .expect("one branch for the single BGP");
+        assert_eq!(branch.atoms.len(), 1, "{branch:#?}");
+        assert_eq!(branch.atoms[0].2, "3.14");
     }
 }
