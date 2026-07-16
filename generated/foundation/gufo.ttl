@@ -5,5 +5,8 @@
 <https://blackcatinformatics.ca/gmeow/foundation/gufo>
     a owl:Ontology .
 
+logic:FunctionTerm
+    rdfs:subClassOf logic:ArgumentStructure .
+
 logic:RecoveryCase
     rdfs:subClassOf <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82> .

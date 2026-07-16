@@ -123952,7 +123952,7 @@
 
 logic:projection-report
     a logic:ProjectionReport ;
-    logic:axiomCount 655 ;
+    logic:axiomCount 656 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 6 ;

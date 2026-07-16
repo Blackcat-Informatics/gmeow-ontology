@@ -63,6 +63,7 @@
 &lt;https://blackcatinformatics.ca/logic/DataFlowEdge&gt; &lt;https://blackcatinformatics.ca/logic/mediates&gt; &lt;https://blackcatinformatics.ca/logic/flowFrom&gt; .
 &lt;https://blackcatinformatics.ca/logic/DataFlowEdge&gt; &lt;https://blackcatinformatics.ca/logic/mediates&gt; &lt;https://blackcatinformatics.ca/logic/flowTo&gt; .
 &lt;https://blackcatinformatics.ca/logic/EmergenceAssessment&gt; &lt;https://blackcatinformatics.ca/logic/instantiatesFramework&gt; &lt;https://blackcatinformatics.ca/logic/MereologicalFramework&gt; .
+&lt;https://blackcatinformatics.ca/logic/FunctionTerm&gt; &lt;https://blackcatinformatics.ca/logic/subClassOf&gt; &lt;https://blackcatinformatics.ca/logic/ArgumentStructure&gt; .
 &lt;https://blackcatinformatics.ca/logic/GoalEvaluation&gt; &lt;https://blackcatinformatics.ca/logic/instantiatesFramework&gt; &lt;https://blackcatinformatics.ca/logic/TeleologicalFramework&gt; .
 &lt;https://blackcatinformatics.ca/logic/GoalExpression&gt; &lt;https://blackcatinformatics.ca/logic/instantiatesFramework&gt; &lt;https://blackcatinformatics.ca/logic/TeleologicalFramework&gt; .
 &lt;https://blackcatinformatics.ca/logic/Holon&gt; &lt;https://blackcatinformatics.ca/logic/instantiatesFramework&gt; &lt;https://blackcatinformatics.ca/logic/HolonicFramework&gt; .

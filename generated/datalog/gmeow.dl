@@ -15,6 +15,7 @@ obligationForbiddenPredicate("https://blackcatinformatics.ca/logic/CounterpartNo
 mediates("https://blackcatinformatics.ca/logic/DataFlowEdge", "https://blackcatinformatics.ca/logic/flowFrom", "default").
 mediates("https://blackcatinformatics.ca/logic/DataFlowEdge", "https://blackcatinformatics.ca/logic/flowTo", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/EmergenceAssessment", "https://blackcatinformatics.ca/logic/MereologicalFramework", "default").
+subClassOf("https://blackcatinformatics.ca/logic/FunctionTerm", "https://blackcatinformatics.ca/logic/ArgumentStructure", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/GoalEvaluation", "https://blackcatinformatics.ca/logic/TeleologicalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/GoalExpression", "https://blackcatinformatics.ca/logic/TeleologicalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/Holon", "https://blackcatinformatics.ca/logic/HolonicFramework", "default").

@@ -23,6 +23,7 @@
 <https://blackcatinformatics.ca/gmeow/owl/covering/687410c490e7/union> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
 <https://blackcatinformatics.ca/gmeow/owl/covering/687410c490e7/union> <http://www.w3.org/2002/07/owl#unionOf> <https://blackcatinformatics.ca/gmeow/owl/covering/687410c490e7/cell/0000> .
 <https://blackcatinformatics.ca/gmeow/owl/gmeow-dl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/logic/FunctionTerm> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/ArgumentStructure> .
 <https://blackcatinformatics.ca/logic/Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/owl/covering/687410c490e7/union> .
 <https://blackcatinformatics.ca/logic/RecoveryCase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82> .
 <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> .
