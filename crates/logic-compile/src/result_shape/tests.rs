@@ -17,6 +17,9 @@ fn lit(var: &str, dt: &str) -> ObservedBinding {
         },
     )
 }
+fn triple(var: &str) -> ObservedBinding {
+    ObservedBinding::new(var, ObservedTerm::TripleTerm)
+}
 
 #[test]
 fn wire_and_local_roundtrip_for_every_enum() {
@@ -108,6 +111,32 @@ fn any_literal_column_accepts_any_datatype() {
         shape
             .validate_bindings(&[vec![lit("v", XSD_STRING)]])
             .is_ok()
+    );
+}
+
+#[test]
+fn rdf12_triple_term_is_a_first_class_closed_kind() {
+    let shape = ResultShape::new(
+        vec![ResultColumn::required("statement", ColumnKind::TripleTerm)],
+        RowCardinality::Contains,
+    );
+    assert!(
+        shape
+            .validate_bindings(&[vec![triple("statement")]])
+            .is_ok()
+    );
+    let inferred = ResultShape::from_observed(&[vec![triple("statement")]]);
+    assert_eq!(
+        inferred.column("statement").map(|column| &column.kind),
+        Some(&ColumnKind::TripleTerm)
+    );
+    assert_eq!(
+        shape.validate_bindings(&[vec![iri("statement")]]),
+        Err(ContractViolation::TermKindMismatch {
+            var: "statement".to_owned(),
+            expected: TermKind::TripleTerm,
+            found: TermKind::Iri,
+        })
     );
 }
 

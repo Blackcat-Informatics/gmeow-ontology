@@ -4023,7 +4023,7 @@ logic:TermKind
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Kind"@x-gmeow-english ;
-    skos:definition "The closed value class of the logic:columnTermKind facet: the RDF term kind a result column binds. Its individuals are logic:TermKindIri, logic:TermKindLiteral and logic:TermKindBlankNode. The set is closed, so a misspelt value names no declared kind and is rejected (design/LOGIC-SEMANTICS.md, §The result row schema)."@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:columnTermKind facet: the RDF 1.2 term kind a result column binds. Its individuals are logic:TermKindIri, logic:TermKindLiteral, logic:TermKindBlankNode and logic:TermKindTripleTerm. The set is closed, so a misspelt value names no declared kind and is rejected (design/LOGIC-SEMANTICS.md, §The result row schema)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:TermKindIri
@@ -4046,6 +4046,13 @@ logic:TermKindBlankNode
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Kind Blank Node"@x-gmeow-english ;
     skos:definition "The logic:TermKind value for a column whose values are blank nodes. Wire value `blank-node`."@x-gmeow-english .
+
+logic:TermKindTripleTerm
+    a owl:NamedIndividual ,
+        logic:TermKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Kind Triple Term"@x-gmeow-english ;
+    skos:definition "The logic:TermKind value for a column whose values are RDF 1.2 triple terms. Wire value `triple-term`."@x-gmeow-english .
 
 logic:ColumnBinding
     a owl:Class ;
