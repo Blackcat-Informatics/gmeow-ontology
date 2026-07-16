@@ -780,3 +780,61 @@ Nothing was scoped down or deferred: all four seams are fully implemented (Seam 
 duplicate deleted; Seam 4 affine cell dogfooded with graph/correspondence
 byte-parity; Seam 1 counts single-owned with projection-report byte-parity; Seam 3
 sound narrowing). make check green after regenerate + snapshot re-bless.
+
+================================================================================
+2026-07-15 — Issue #1309 stage-2 gap remediation (logic-layer seam cleanups)
+================================================================================
+
+Nothing was scoped down or deferred within the four seams — all four remain
+fully implemented and were re-verified DEMONSTRATED-IN-PRODUCTION after
+integrating current origin/main. `make check` green on the merged-into-main tree.
+The items below are honest scope/mechanism disclosures, not omissions:
+
+- SEAM 3 (broadened, maintainer-directed): the compile-logic input denylist was
+  WIDENED from documentation-only to every predicate family the five augmentation
+  readers provably never read — the whole skos:core# surface (incl. mapping
+  predicates), SSSOM semapv:, foreign-domain example vocab (gUFO/schema.org/FOAF/
+  Wikidata/wikibase), and the bibliographic-metadata families (dcterms/dc/dcmitype/
+  prov/pav/vann/void/dcat/dqv/cito/bibo/premis/crm/org/vcard/time/oa). rdfs:comment
+  is deliberately KEPT (read by read_caveats). Soundness stays GUARD-ENFORCED (the
+  non-vacuous logic_compile_input_subgraph_preserves_reader_output test, now hardened
+  with reader-3/reader-4 non-empty asserts, proves all five readers are byte-identical
+  over the broadened narrowing), not sound-by-construction. TBox/logic: edits still
+  (correctly, soundly) bust the cache — the widened win covers docs + alignment +
+  foreign-domain + metadata edits. Zero shipped-output drift (the narrowed graph is
+  an internal carrier graph, absent from the terminal bundle).
+
+- SEAM 2 heavy off-gate byte tests NOT run this session (maintainer decision): the
+  three ~800s #[ignore] full-pipeline tests (mode_owl_dl/datalog/report_matches_the_
+  committed_pipeline_artifact) were deferred to stage-3 verification depth. On-gate
+  coverage this session = every_mode_maps_to_its_committed_pipeline_path (mode→path
+  pin) + the whole-pipeline drift caught by `make check`. Seam-1 off-gate oracle
+  (projection_report_counts_..., ~14s) WAS run and passed (592/0/479).
+
+- GUIDES rdfs GROUNDING — a MAIN-ORIGIN blocker fixed in-branch by maintainer
+  decision: integrating current origin/main brought #1533's guides AuthoringPacket
+  vocabulary, whose hand-authored rdfs:subClassOf subsumption axioms pushed the
+  guides/rdfs projection-vocabulary residue to 5, over its committed lower-only
+  ceiling of 2. main itself is red on this gate (the guides correspondence surface
+  is byte-identical to main; the measurement is a pure function of it). The ratchet
+  is HARD lower-only (raising the ceiling is a forbidden violation, gate.rs), so the
+  maintainer directed GROUNDING, not a re-seed: three of the five subClassOf axioms
+  (AuthoringPacket/GroundingCoverage/GroundingAttribute — the three #1533 added) were
+  authored as canonical logic:Formula axioms (forall x. C(x) -> D(x)) the rdfs:subClassOf
+  projects from, with a logic:formalizes back-reference (Principle 17, mirroring the
+  ai slice's typed-IR constraint idiom). Residue drops 5 -> 2 (at ceiling); no ceiling
+  raised; no class semantics changed; the formulas compile + validate + reason (make
+  check green). gmeow:Recipe / gmeow:LearningPath stay grandfathered at the ceiling.
+  This fix also greens main's guides slice when this branch merges.
+
+- generated/.pipeline-cache/ (a ~2.3 GB local content-addressed build cache created
+  by the renamed `make sync` / regenerate infra on current main) is NOT gitignored on
+  origin/main OR this branch — a main-side omission. Left untracked (not committed;
+  the large-files pre-commit gate correctly rejects its blobs). A .gitignore entry is
+  the correct fix but is main-infrastructure scope, not authored here to avoid
+  unrelated churn in a seam-cleanup PR; flagged for a maintainer follow-up on main.
+
+- Current origin/main was integrated TWICE this session (it advanced from 83a885ac9
+  to 448f0bb74 mid-remediation, renaming `make regenerate` -> `make sync` and shipping
+  the #1554/#1555 grounding-bridge waves + #1533 AuthoringPacket). The stale-main
+  RunMode::Regenerate -> RunMode::Update rename was carried into the Seam-2 CLI path.
