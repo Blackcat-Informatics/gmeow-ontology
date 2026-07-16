@@ -895,3 +895,58 @@ decisions, NOT open gaps.
   LFS recommended): generated/logic/reasoning-explanations.rdf12.ttl (~55MB) and
   generated/logic/inferred-closure.rdf12.ttl (~54MB). Pre-existing generated files,
   not introduced by this stage.
+
+## 2026-07-16 — Issue #1526 / PR #1576 stage-2 exit (query-scoped annotated external relation providers)
+
+- FULL LOCAL `make check` NOT observed green to completion in stage 2. The first
+  complete local run cleared every gate (validate, constitution-check, i18n-lint,
+  gts-frame-profile-gate, coherence-gate-teeth, superset/fold, reason) and passed
+  the test suite EXCEPT the repo-static Diag-substrate invariant (crate-check +
+  rust-gate): the new `gmeow hybrid-query` candidate parser returned
+  `Result<_, String>` in three places, and `gmeow_errors::Diag` is the sole
+  first-party error type. Fixed (commit 9596ab3: String -> Diag via the crate's
+  `error_diag` helper under a stable per-site code; call site re-wraps with the
+  file path via `Diag::message()`; honest line-level diagnostic text unchanged).
+  Re-verified via the EXACT failing gate: `gmeow-validate
+  repo_static::live_repo_static_passes` PASS, plus gmeow-cli 53/53, gmeow-errors
+  106/106, `cargo clippy -p gmeow-cli --tests` clean, clean build. The confirming
+  single green `make check` was stopped by explicit user direction; the
+  authoritative full gate (PR built merged-into-`main`) is delegated to CI /
+  stage3. If CI surfaces anything the focused re-verification did not, it must be
+  fixed before merge, not waved past.
+
+- GENERATED-ARTIFACT DRIFT surfaced by make check's local regeneration:
+  `packages/python/gmeow_models/logic.py` (logic:RecoveryCase definitionDigest
+  a470144… -> 953a66d…) and `generated/dist/gmeow.gts` (the `merge=ours` bundle)
+  were rewritten by the local `sync` step during make check. This drift is
+  PRE-EXISTING — it stems from the branch's earlier `origin/main` merge; NO
+  stage-2 commit touched `slices/grounding/logic/module.ttl` or any logic source,
+  so the stage-2 Rust/CLI work did not cause it. Reverted in the working tree; the
+  authoritative `make sync` (which rewrites the `merge=ours` gmeow.gts from merged
+  sources and re-projects logic.py) is deferred to stage3 per the approved plan,
+  where the superset/fold gate validates the bundle semantically.
+
+- NATIVE-vs-ORACLE ROUTING CHANGE: the one-fixpoint integration now serves
+  ordinary binary RDF predicates natively where they previously routed to the
+  oracle (`magic.rs` -> `resolve_native_generic_annotated`), reached on the
+  provider-FREE annotated path too. Native-vs-`purrdf::entail` parity is verified
+  at stage3's full `make reason-crosscheck`, NOT re-run in stage2 (cost). The
+  large `generated/logic/inferred-closure*` / `reasoning-explanations*` regen
+  drift must be confirmed at stage3 as attributable to the origin/main merge +
+  this admission, with the crosscheck green.
+
+- DOGFOOD CONSUMER SERVES CANNED IN-FILE CANDIDATE ROWS: per explicit user
+  direction, the binding completion-adversary DARK finding was discharged by
+  BUILDING a shipped consumer (`gmeow hybrid-query` + production
+  `TableRelationProvider`) that executes the full provider→RDF fixpoint and
+  receipt path end-to-end on the shipped `gmeow` binary. Its candidate tuples come
+  from a static `--candidates` table file because no live lexical/vector index
+  backend exists in-repo yet (external tuples are derived query inputs, never
+  asserted ontology facts). A real index-backed provider awaits that backend.
+
+- OUT OF #1526's SCOPE BY THE ISSUE's OWN TEXT (not deferrals): topology-derived
+  candidates ("…and later topology-derived candidates…") and negative /
+  rule-head-position provider recursion ("reject provider relations in rule
+  heads"). Acceptance says "recursion where supported"; positive recursion IS
+  supported and demonstrated (fixture
+  `provider_seed_participates_in_positive_recursion_with_transitive_lineage`).
