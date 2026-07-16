@@ -490,6 +490,7 @@ __all__ = [
     "Logic_FormalizationCandidate",
     "Logic_Formula",
     "Logic_FreshnessGuard",
+    "Logic_FunctionTerm",
     "Logic_FunctionalComplex",
     "Logic_GoalEvaluation",
     "Logic_McpActionSchema",

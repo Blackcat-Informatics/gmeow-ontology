@@ -856,7 +856,7 @@ class Logic_RecoveryCase(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/RecoveryCase", "curie": "logic:RecoveryCase", "definitionDigest": "blake3:a470144826e84170305c997ae6018bc98b8ecdcf685837d15fd17b3bea2a0abd", "iri": "https://blackcatinformatics.ca/logic/RecoveryCase"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/RecoveryCase", "curie": "logic:RecoveryCase", "definitionDigest": "blake3:00ea874f2b937e2b5a79cafaf3e86051a05d376fec491e55d52dc9f3a15a18c0", "iri": "https://blackcatinformatics.ca/logic/RecoveryCase"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
