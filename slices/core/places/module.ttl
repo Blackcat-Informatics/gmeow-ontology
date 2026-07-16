@@ -5730,4 +5730,4 @@ gmeow:ProximityResultPresentConstraint
     logic:onClass gmeow:ProximityMeasurement ;
     logic:anyOf gmeow:observationResult ;
     logic:formalizes gmeow:ProximityMeasurementShape ;
-    logic:message "A ProximityMeasurement must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." .
+    logic:message "A ProximityMeasurement must yield at least one math:Quantity result." .

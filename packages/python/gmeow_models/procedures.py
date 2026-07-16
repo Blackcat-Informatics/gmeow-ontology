@@ -74,7 +74,7 @@ class ControlFlow(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ControlFlow", "curie": "gmeow:ControlFlow", "definitionDigest": "blake3:98b1ed51f16760450df949683d33aa706fe1740f900dc32b8b33becc94927261", "iri": "https://blackcatinformatics.ca/gmeow/ControlFlow"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ControlFlow", "curie": "gmeow:ControlFlow", "definitionDigest": "blake3:ef84204969d25039e8267447b6c5b8b394d29feb7e277a09bb7cd839dbd303a4", "iri": "https://blackcatinformatics.ca/gmeow/ControlFlow"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -106,7 +106,7 @@ class DataFlow(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DataFlow", "curie": "gmeow:DataFlow", "definitionDigest": "blake3:d84b052500e550c7d80aa51085c3a6a5185268587a028a44773c4231ab65ad22", "iri": "https://blackcatinformatics.ca/gmeow/DataFlow"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DataFlow", "curie": "gmeow:DataFlow", "definitionDigest": "blake3:7369135175bd25f3de90a165ca0c4cbc87092b189195640c0101987b10a967fc", "iri": "https://blackcatinformatics.ca/gmeow/DataFlow"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

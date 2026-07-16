@@ -61,7 +61,7 @@ class Tagging(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Tagging", "curie": "gmeow:Tagging", "definitionDigest": "blake3:366ec5981eea8c1dec316fd2b38236f18cbeed934bd90165fff15c665fc13285", "iri": "https://blackcatinformatics.ca/gmeow/Tagging"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Tagging", "curie": "gmeow:Tagging", "definitionDigest": "blake3:b6899e6f330b1f425280dedc09b69fbe6b7b2bca239661aefafed10f322b3009", "iri": "https://blackcatinformatics.ca/gmeow/Tagging"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

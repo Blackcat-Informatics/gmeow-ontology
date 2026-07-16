@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 82,
-  "term_count": 5006,
-  "dependency_edge_count": 1163,
+  "term_count": 5030,
+  "dependency_edge_count": 1169,
   "term_count_by_category": {
-    "Class": 1546,
+    "Class": 1552,
     "Datatype": 1,
-    "Individual": 747,
-    "Property": 2712
+    "Individual": 748,
+    "Property": 2729
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -148,8 +148,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "42a00e09c34a1b2d32662a38ede41b060a0dbbf14d2f703ddfc093788939092d",
-        "semantic_digest": "3c4146747590396bbd444ba05272ff0434f6a75232822a8503460a521732b51e"
+        "raw_digest": "91311bd9d8d6a2b89006e8027039d9e9c98298084583d83b24527bb22df3aafc",
+        "semantic_digest": "6d1015e2b304e71aedaa19e66c2f1e3be166d9238816e15ba50f57f2ed5d6185"
       },
       {
         "role": "TestDsl",
@@ -423,15 +423,16 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 317,
+  "shape_count": 145,
   "competency_count": 194,
   "sample_shape": {
-    "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
-    "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
     "messages": [
-      "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted."
+      "An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict (gmeow:meetsThreshold).",
+      "An AdequacyAssessment must name exactly one gmeow:EpistemicStandard (gmeow:adequacyUnderStandard)."
     ],
-    "owner_slice": "root"
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/epistemics"
   },
   "sample_competency": {
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",

@@ -111,7 +111,7 @@ class StandpointTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/StandpointTenure", "curie": "gmeow:StandpointTenure", "definitionDigest": "blake3:3aaa7457772c4a6acd358126a44d82fcb982a91f19f7cb4eaf6d70f004bbbee1", "iri": "https://blackcatinformatics.ca/gmeow/StandpointTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/StandpointTenure", "curie": "gmeow:StandpointTenure", "definitionDigest": "blake3:983f58ba288a0eddd002ef209f1f85da6d16ad2e1d14e3a45dccab177963a052", "iri": "https://blackcatinformatics.ca/gmeow/StandpointTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
