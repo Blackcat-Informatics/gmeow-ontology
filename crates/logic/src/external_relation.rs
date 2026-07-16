@@ -415,6 +415,79 @@ pub trait ExternalRelationProvider<E>: Send + Sync {
     ) -> Result<RelationBatch<E>, RelationProviderError>;
 }
 
+/// Reusable, in-memory reference implementation of [`ExternalRelationProvider<i64>`].
+///
+/// Holds a fixed, immutable row table plus the artifact generation that produced it.
+/// `call()` filters the table against `call.bounds`, orders every surviving row using
+/// the call's own [`RelationOrdering::compare_rows`] (never a provider-chosen order),
+/// and truncates the result to `call.limit` before returning a batch pinned to this
+/// provider's `artifact_generation`. Because the operation always holds every row
+/// resident, the ordered prefix it returns for any call is always complete: an empty
+/// result means the table genuinely holds no row matching the pushed bounds, never a
+/// silent failure or incompleteness.
+///
+/// This type is the production base for any relation whose candidate universe is
+/// small enough to hold resident in memory. A provider with real operational failure
+/// modes (a remote index, a budgeted computation, cooperative cancellation) should
+/// implement [`ExternalRelationProvider`] directly for its own row source and, where
+/// useful, delegate the filter/order/limit logic to a `TableRelationProvider` it
+/// holds internally rather than reimplementing it.
+#[derive(Debug, Clone)]
+pub struct TableRelationProvider {
+    artifact_generation: String,
+    rows: Vec<RelationTuple<i64>>,
+}
+
+impl TableRelationProvider {
+    /// Construct a provider over a fixed in-memory row table and the artifact
+    /// generation it reports on every call.
+    #[must_use]
+    pub fn new(artifact_generation: impl Into<String>, rows: Vec<RelationTuple<i64>>) -> Self {
+        Self {
+            artifact_generation: artifact_generation.into(),
+            rows,
+        }
+    }
+
+    /// The artifact generation this provider reports on every call.
+    #[must_use]
+    pub fn artifact_generation(&self) -> &str {
+        &self.artifact_generation
+    }
+
+    /// The complete backing row table, in construction order.
+    #[must_use]
+    pub fn rows(&self) -> &[RelationTuple<i64>] {
+        &self.rows
+    }
+}
+
+impl ExternalRelationProvider<i64> for TableRelationProvider {
+    fn call(
+        &self,
+        call: &RelationCall,
+        _cancellation: &dyn RelationCancellation,
+    ) -> Result<RelationBatch<i64>, RelationProviderError> {
+        let mut rows = self
+            .rows
+            .iter()
+            .filter(|row| {
+                call.bounds
+                    .iter()
+                    .zip(&row.arguments)
+                    .all(|(bound, argument)| bound.as_ref().is_none_or(|bound| bound == argument))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        rows.sort_by(|left, right| call.ordering.compare_rows(left, right));
+        rows.truncate(call.limit);
+        Ok(RelationBatch {
+            artifact_generation: self.artifact_generation.clone(),
+            rows,
+        })
+    }
+}
+
 /// Deterministic operation-wide provider governor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RelationProviderBudget {

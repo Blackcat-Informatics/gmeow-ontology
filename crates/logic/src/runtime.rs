@@ -188,7 +188,7 @@ pub use crate::external_relation::{
     RelationOrderDirection, RelationOrdering, RelationProviderBudget, RelationProviderDescriptor,
     RelationProviderError, RelationProviderFailureKind, RelationProviderIncompletenessKind,
     RelationProviderRegistration, RelationQueryFailureReceipt, RelationQueryReceipt,
-    RelationQueryResult, RelationTuple,
+    RelationQueryResult, RelationTuple, TableRelationProvider,
 };
 
 /// Opaque tuple-annotation inputs and results used by annotated direct-view dispatch.
