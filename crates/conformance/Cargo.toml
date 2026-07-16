@@ -104,3 +104,12 @@ name = "tptp_divergence_gate"
 # honest structured-gap divergence set + its recorded `gmeow:gapShape` tokens.
 [[test]]
 name = "entailment_mini_gate"
+
+# The W3C OWL 2 Full soundness-divergence SCALING gate: walks all 154 vendored
+# `w3c-owl2-full-divergence` cases (no hardcoded slug list) and re-runs the live
+# reasoner over each. Asserts the non-negotiable soundness invariant (native never
+# decides a verdict that contradicts the W3C published verdict), pins the frozen
+# honest-gap reproduction, and floors + provenance-pins the corpus. Offline +
+# deterministic + sub-second (standard libtest harness, not datatest-stable).
+[[test]]
+name = "full_divergence_gate"
