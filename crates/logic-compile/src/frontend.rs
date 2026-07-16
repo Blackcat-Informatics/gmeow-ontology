@@ -3464,7 +3464,7 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
         None => ShaclSeverity::Violation,
     };
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
-    let formalizes = value(store, node, &nn(&logic_iri("formalizes"))).map(|t| term_str(&t));
+    let formalizes_all = sugar_iri_list(store, node, "formalizes");
     let failure_classes =
         distinct_failure_classes(store, node).map_err(|err| err.with_focus(iri.clone()))?;
     if failure_classes.len() > 1 {
@@ -3497,9 +3497,12 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
 
     let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)
         .map_err(|err| err.with_focus(iri.clone()))?;
-    if let Some(formalizes) = formalizes {
+    if let Some((primary, rest)) = formalizes_all.split_first() {
         constraint = constraint
-            .with_formalizes(formalizes)
+            .with_formalizes(primary.clone())
+            .map_err(|err| err.with_focus(iri.clone()))?;
+        constraint = constraint
+            .with_also_formalizes(rest.to_vec())
             .map_err(|err| err.with_focus(iri.clone()))?;
     }
     if let Some(failure_class) = failure_classes.first() {
@@ -3605,15 +3608,15 @@ fn finalize_sugar(
 ) -> gmeow_errors::Result<ConstraintIr> {
     let severity = sugar_severity(store, node)?;
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
-    let formalizes = value(store, node, &nn(&logic_iri("formalizes")))
-        .map(|t| term_str(&t))
-        .ok_or_else(|| {
-            sugar_err(
-                "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
-            )
-        })?;
+    let formalizes_all = sugar_iri_list(store, node, "formalizes");
+    let (primary, rest) = formalizes_all.split_first().ok_or_else(|| {
+        sugar_err(
+            "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
+        )
+    })?;
     let mut constraint = ConstraintIr::new(subject_str(node), integrity, severity, message)?
-        .with_formalizes(formalizes)?;
+        .with_formalizes(primary.clone())?
+        .with_also_formalizes(rest.to_vec())?;
     let failure_classes = distinct_failure_classes(store, node)?;
     if failure_classes.len() > 1 {
         return Err(sugar_err(format!(

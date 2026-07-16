@@ -3620,7 +3620,7 @@ mod tests {
     #[test]
     fn splicer_resolves_every_real_block_subject_count_exact() {
         let (text, iris) = real_gmeow_shapes();
-        assert_eq!(iris.len(), 77, "the census of the committed file");
+        assert_eq!(iris.len(), 43, "the census of the committed file");
         let mut spans: Vec<(usize, usize)> = Vec::new();
         for iri in &iris {
             let span = subject_span(&text, local_name(iri))
@@ -3629,7 +3629,7 @@ mod tests {
         }
         spans.sort_unstable();
         spans.dedup();
-        assert_eq!(spans.len(), 77, "every block resolves to its OWN span");
+        assert_eq!(spans.len(), 43, "every block resolves to its OWN span");
         for w in spans.windows(2) {
             assert!(
                 w[0].1 <= w[1].0,
@@ -3669,7 +3669,7 @@ mod tests {
             let remaining = node_shape_iris(&ds);
             assert_eq!(
                 remaining.len(),
-                76,
+                42,
                 "pruning {iri} must remove exactly one block"
             );
             assert!(!remaining.contains(iri), "{iri} must be the removed block");
@@ -3869,7 +3869,7 @@ mod tests {
     }
 
     #[test]
-    fn classification_over_the_real_gmeow_shapes_totals_77() {
+    fn classification_over_the_real_gmeow_shapes_totals_43() {
         let (text, _) = real_gmeow_shapes();
         let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
             .expect("the committed shapes file must parse");
@@ -3878,8 +3878,8 @@ mod tests {
         assert!(errors.is_empty(), "every committed block reads: {errors:?}");
         let report = lattice_report(&blocks, &lattice_hier(&[]));
         assert!(
-            report.contains("  TOTAL blocks=77\n"),
-            "the by-block census of the committed file is exactly 77: {}",
+            report.contains("  TOTAL blocks=43\n"),
+            "the by-block census of the committed file is exactly 43: {}",
             report.lines().rev().take(12).collect::<Vec<_>>().join("\n")
         );
     }

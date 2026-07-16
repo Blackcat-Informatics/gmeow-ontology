@@ -246,6 +246,12 @@ pub struct ConstraintIr {
     /// annotation property, which carries no DL/EL profile weight), so excluded from the
     /// content key.
     pub formalizes: Option<String>,
+    /// Additional `logic:formalizes` back-references beyond the primary [`Self::formalizes`]: a
+    /// constraint may formalize several gmeow-domain terms at once (e.g. the canonical class it
+    /// governs AND the legacy hand-authored shape it reproduces). Each is projected as its own
+    /// `logic:formalizes` line. Annotation-level, so excluded from the content key. Sorted,
+    /// deduplicated, and never overlapping the primary.
+    pub also_formalizes: Vec<String>,
     /// Typed conformance failure raised by the projected constraint shape. Annotation-level and
     /// deliberately excluded from the formula's semantic identity.
     pub failure_class: Option<String>,
@@ -291,6 +297,7 @@ impl ConstraintIr {
             severity,
             message,
             formalizes: None,
+            also_formalizes: Vec::new(),
             failure_class: None,
             aggregate: None,
         })
@@ -317,6 +324,33 @@ impl ConstraintIr {
             ));
         }
         self.formalizes = Some(formalizes);
+        Ok(self)
+    }
+
+    /// Attach additional `logic:formalizes` back-references (beyond the primary). Each must be a
+    /// non-empty IRI; the primary is filtered out, and the remainder is sorted and deduplicated so
+    /// the projection is deterministic. Chainable; annotation-level (never perturbs the content key).
+    pub fn with_also_formalizes(
+        mut self,
+        also: impl IntoIterator<Item = String>,
+    ) -> gmeow_errors::Result<Self> {
+        let primary = self.formalizes.clone();
+        let mut extra: Vec<String> = Vec::new();
+        for term in also {
+            if term.trim().is_empty() {
+                return Err(ir_err(
+                    "ConstraintIr.with_also_formalizes: every formalized term must be a non-empty \
+                     IRI",
+                ));
+            }
+            if primary.as_deref() == Some(term.as_str()) {
+                continue;
+            }
+            extra.push(term);
+        }
+        extra.sort();
+        extra.dedup();
+        self.also_formalizes = extra;
         Ok(self)
     }
 

@@ -621,7 +621,13 @@ fn parse_property_shape(
                     )));
                 }
             },
-            Some("minCount") => min_count = Some(obj_u32(ds, obj, &ctx)?),
+            // `sh:minCount 0` is a no-op (every focus has at least zero values), so it is
+            // normalized to "no minimum" — otherwise a legacy shape that spelled the vacuous
+            // bound explicitly would fail to match a projection that (correctly) omits it.
+            Some("minCount") => {
+                let n = obj_u32(ds, obj, &ctx)?;
+                min_count = (n > 0).then_some(n);
+            }
             Some("maxCount") => max_count = Some(obj_u32(ds, obj, &ctx)?),
             Some("reifierShape") => reifier_shape = Some(obj_iri(ds, obj, &ctx)?),
             Some("reificationRequired") => reification_required = obj_bool(ds, obj, &ctx)?,

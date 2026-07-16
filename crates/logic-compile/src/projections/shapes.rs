@@ -1568,8 +1568,16 @@ fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     let failure_line = c.failure_class.as_ref().map_or_else(String::new, |fc| {
         format!("    gmeow:enforcesFailureClass <{fc}> ;\n")
     });
+    // The primary back-reference plus every additional `logic:formalizes` term (a constraint may
+    // formalize the canonical class it governs AND the legacy shape it reproduces). `also_formalizes`
+    // is pre-sorted/deduped and never contains the primary, so the emission is deterministic.
+    let also_lines = c
+        .also_formalizes
+        .iter()
+        .map(|f| format!("    logic:formalizes <{f}> ;\n"))
+        .collect::<String>();
     Ok(format!(
-        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n{failure_line}    {target} ;\n    \
+        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n{also_lines}{failure_line}    {target} ;\n    \
          sh:sparql [\n        a sh:SPARQLConstraint ;\n        sh:severity sh:{sev} ;\n{message_line}        \
          sh:select \"\"\"{select}\"\"\" ;\n    ] .\n"
     ))

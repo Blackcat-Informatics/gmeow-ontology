@@ -130,12 +130,13 @@ class AffectClassifierLabel(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel", "curie": "gmeow:AffectClassifierLabel", "definitionDigest": "blake3:6f2a0e1b88a01ecacfc17a4a09563c38baff3744d993965f17fcb85e721b288e", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel", "curie": "gmeow:AffectClassifierLabel", "definitionDigest": "blake3:6c4cafb67cdb72612fa75d3622051044715768a52fea8eef939923edadb31389", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    memberOfLabelSet: list[str] = Field(min_length=1, description="Binds a gmeow:AffectClassifierLabel to the gmeow:AffectLabelSet it belongs to (GoEmotions, Ekman-7, SST-2, CardiffNLP). Mandatory on a label (SHACL): an unregistered label fails canonical projection.", alias="gmeow:memberOfLabelSet")
 
 
 class AffectClassifierOutput(ConfiguredBaseModel):
@@ -185,12 +186,17 @@ class AffectClassifierOutput(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput", "curie": "gmeow:AffectClassifierOutput", "definitionDigest": "blake3:95a50b103e8827164ea4c89116db84844947406aeea5b5eaf977dad342a5d07a", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput", "curie": "gmeow:AffectClassifierOutput", "definitionDigest": "blake3:06c721fccc8c9a0e42adfc26eb3065f81a42a4720009da1868cc24df072bed84", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    classifiedTarget: list[str] = Field(min_length=1, description="The target span a classifier output was emitted over — the chunk/text/segment classified (⊑ gmeow:observedFeature, the observation-spine bridge). Range intentionally open. Mandatory on an output (SHACL): an output with no target is unmoored evidence.", alias="gmeow:classifiedTarget")
+    classifierScore: list[float] = Field(min_length=1, description="The raw score a classifier emitted for its label. Its MEANING is fixed by gmeow:scoreSemantics (sigmoid/softmax/logit/…), never assumed: a raw score is logic:evidenceStrength/probability, and only a CALIBRATED probability may be read as confidence. Mandatory on an output (SHACL).", alias="gmeow:classifierScore")
+    emittedLabel: list[str] = Field(min_length=1, description="The exact external gmeow:AffectClassifierLabel a classifier output emitted — its lossless label identity (gmeow-goemotions:joy, gmeow-hf:sst2Negative). Mandatory on an output (SHACL); the label MUST be registered in a gmeow:AffectLabelSet or canonical projection fails.", alias="gmeow:emittedLabel")
+    producedBy: list[str] = Field(min_length=1, description="The gmeow:ModelInferenceRun that produced a classifier output — its provenance handle (PROV-O prov:wasGeneratedBy by generated correspondence). Mandatory and functional (SHACL): one output, one run.", alias="gmeow:producedBy")
+    scoreSemantics: list[ScoreSemanticsEnum] = Field(description="What a gmeow:classifierScore MEANS — a sigmoid score, softmax probability, calibrated probability, logit, or margin (open gmeow:ScoreSemantics vocab). Mandatory on an output (SHACL): a bare number with no declared semantics is uninterpretable.", alias="gmeow:scoreSemantics")
 
 
 class Emotion(ConfiguredBaseModel):
@@ -271,12 +277,13 @@ class AffectComposite(Emotion):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectComposite", "curie": "gmeow:AffectComposite", "definitionDigest": "blake3:5f5ed61dcf7e41e5000b466787c4e4b459192300df61ac6bfdeb8965eae72285", "iri": "https://blackcatinformatics.ca/gmeow/AffectComposite"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectComposite", "curie": "gmeow:AffectComposite", "definitionDigest": "blake3:b50aa4ee3ba84fa414b150f536cc62d84c2192a39f8f13f27f83fa77ceddd70c", "iri": "https://blackcatinformatics.ca/gmeow/AffectComposite"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    affectiveConstituent: list[str] = Field(min_length=1, description="A declared part of a gmeow:AffectComposite's decomposition — a core-affect gmeow:AffectVectorObservation, a constituent gmeow:Emotion, or an appraisal/relation cell (elicitor, target, agency, norm) that gives the named compound its structure. Range intentionally open; NOT functional (a composite has several constituents). Mandatory on a composite (SHACL): a composite with no declared constituent is an unanalyzed primitive, which is forbidden.", alias="gmeow:affectiveConstituent")
 
 
 class AffectDecision(ConfiguredBaseModel):
@@ -392,12 +399,14 @@ class AffectScaleProfile(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile", "curie": "gmeow:AffectScaleProfile", "definitionDigest": "blake3:13a8859301445b24287025ae92bf7e41a3303302ec4163a6ff4a90c88760bade", "iri": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile", "curie": "gmeow:AffectScaleProfile", "definitionDigest": "blake3:02d9ef4ea9c085279829bc1fc71ec0a1eeb078e334b85a8573498af2d13f7e33", "iri": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    profileRangeMax: list[float] = Field(min_length=1, description="The maximum of an affect scale's range (must exceed gmeow:profileRangeMin). Mandatory (SHACL). Functional.", alias="gmeow:profileRangeMax")
+    profileRangeMin: list[float] = Field(min_length=1, description="The minimum of an affect scale's range (below gmeow:profileRangeMax). Mandatory (SHACL). Functional.", alias="gmeow:profileRangeMin")
 
 
 class AffectVectorObservation(ConfiguredBaseModel):
@@ -443,14 +452,14 @@ class AffectVectorObservation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation", "curie": "gmeow:AffectVectorObservation", "definitionDigest": "blake3:afd2e77d2066695f98a90c1c22615e4cffa51b8cfbb121afe5627cb580666236", "iri": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation", "curie": "gmeow:AffectVectorObservation", "definitionDigest": "blake3:4404f84a702774993c0b0898ffdb2dda14095b8e356fd8cc95ae38aa0419f46c", "iri": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     vectorComponent: list[str] = Field(min_length=1, description="A per-axis gmeow:Appraisal cell grouped by a gmeow:AffectVectorObservation — one dimensional reading (dimension + value + scale profile) that is one component of the vector. NOT functional: a vector groups several axis cells. One cell per axis is preserved; the grouping does not overwrite the cells.", alias="gmeow:vectorComponent")
-    vectorProfile: str = Field(description="The gmeow:AffectScaleProfile naming the metric/basis of a gmeow:AffectVectorObservation — the frame the whole vector is read against. Mandatory (SHACL). Functional: one vector, one declared basis.", alias="gmeow:vectorProfile")
+    vectorProfile: list[str] = Field(min_length=1, description="The gmeow:AffectScaleProfile naming the metric/basis of a gmeow:AffectVectorObservation — the frame the whole vector is read against. Mandatory (SHACL). Functional: one vector, one declared basis.", alias="gmeow:vectorProfile")
 
 
 class AffectiveClaim(ConfiguredBaseModel):
@@ -552,12 +561,14 @@ class AffectiveExperience(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectiveExperience", "curie": "gmeow:AffectiveExperience", "definitionDigest": "blake3:2c9912e6b77af01fddda7f3726b709858ba9c5e8282c91602a2f13914ebfa53b", "iri": "https://blackcatinformatics.ca/gmeow/AffectiveExperience"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectiveExperience", "curie": "gmeow:AffectiveExperience", "definitionDigest": "blake3:9d093822b66fb7ab662a2c921bff4628f288c3d8983753e7c87dd900460c07cb", "iri": "https://blackcatinformatics.ca/gmeow/AffectiveExperience"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    experiencer: list[str] = Field(min_length=1, description="The agent whose mental process this is — the one undergoing the perceiving, reasoning, or dreaming. Functional: one process, one experiencer (a mental occurrent inheres in exactly one agent; two agents reasoning about the same thing are two processes).", alias="gmeow:experiencer")
+    feltAffect: list[str] = Field(min_length=1, description="Links a felt gmeow:AffectiveExperience (occurrent) to the gmeow:AffectiveMoment (endurant affective mode — an Emotion, later a Mood) it MANIFESTS. The affect-scoped, discoverable refinement of mentation's generic gmeow:realizesMentalMoment (domain narrowed to gmeow:AffectiveExperience, range to gmeow:AffectiveMoment), following the gmeow:appraisalOf ⊑ gmeow:observedFeature idiom. NOT functional — one episode may manifest several coexisting modes; the episode's gmeow:experiencer and the mode's gmeow:emotionBearer are the same agent.", alias="gmeow:feltAffect")
     mentalProcessType: list[str] | None = Field(default=None, description="The kind of a mental process — a gmeow:MentalProcessType value (gmeow:processPerception, gmeow:processReasoning, gmeow:processDreaming, …). NOT functional: a single occurrence may carry several type values (a reverie that is both imagining and mind-wandering). Mirrors gmeow:eventType.", alias="gmeow:mentalProcessType")
 
 
@@ -583,17 +594,17 @@ class Appraisal(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Appraisal", "curie": "gmeow:Appraisal", "definitionDigest": "blake3:e4d0d76a2d7dadca4bc48051586a0ca792a546d0302333188291ab8a93ddf2e7", "iri": "https://blackcatinformatics.ca/gmeow/Appraisal"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Appraisal", "curie": "gmeow:Appraisal", "definitionDigest": "blake3:66262019b43c35d52fb229cd55f27e13ee217cad3ccd14b02bafd009aacf5e57", "iri": "https://blackcatinformatics.ca/gmeow/Appraisal"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     appraisalDimension: Any | None = Field(default=None, description="The dimension a dimensional appraisal reads. At most one per appraisal (SHACL — one cell, one reading; a PAD triple is three Appraisals sharing a vantage). Open vocabulary (sh:nodeKind sh:IRI).", alias="gmeow:appraisalDimension")
-    appraisalOf: Any = Field(description="What is appraised — an agent's state, a work, an event, an emotion (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one appraisal, one subject.", alias="gmeow:appraisalOf")
-    appraisalScaleProfile: list[Any] | None = Field(default=None, description="The gmeow:AffectScaleProfile a dimensional gmeow:appraisalValue is read against — the declared range, midpoint, polarity, and transform that give the bare magnitude its meaning. MANDATORY on any dimensional appraisal (a cell carrying gmeow:appraisalValue): the greenfield reshape removed the bare-decimal floor, so an unframed reading is ill-formed, not a permitted default (Principle 6, Principle 11). Functional: one reading, one frame.", alias="gmeow:appraisalScaleProfile")
+    appraisalOf: str = Field(description="What is appraised — an agent's state, a work, an event, an emotion (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one appraisal, one subject.", alias="gmeow:appraisalOf")
+    appraisalScaleProfile: list[AffectScaleProfile] | None = Field(default=None, description="The gmeow:AffectScaleProfile a dimensional gmeow:appraisalValue is read against — the declared range, midpoint, polarity, and transform that give the bare magnitude its meaning. MANDATORY on any dimensional appraisal (a cell carrying gmeow:appraisalValue): the greenfield reshape removed the bare-decimal floor, so an unframed reading is ill-formed, not a permitted default (Principle 6, Principle 11). Functional: one reading, one frame.", alias="gmeow:appraisalScaleProfile")
     appraisalValue: float | None = Field(default=None, description="The magnitude of a dimensional reading, ALWAYS expressed against the gmeow:AffectScaleProfile named by gmeow:appraisalScaleProfile — a bare number carries no meaning without its declared frame (Principle 11), and the greenfield reshape removed the old plain-decimal floor (Principle 6). At most one per appraisal, and only alongside its dimension AND its scale profile (SHACL). Constitutive of this one cell — divergent readings are divergent Appraisals, not extra values.", alias="gmeow:appraisalValue")
-    vantage: list[Any] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
+    vantage: list[str] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
 
 
 class DerivedAffectIntensityObservation(ConfiguredBaseModel):
@@ -643,7 +654,7 @@ class DerivedAffectIntensityObservation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation", "curie": "gmeow:DerivedAffectIntensityObservation", "definitionDigest": "blake3:43214c64a6d02c3ef7e2d65b5a0c0e1798bedc4591eca647f9f6b243e6719a21", "iri": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation", "curie": "gmeow:DerivedAffectIntensityObservation", "definitionDigest": "blake3:6fde89784eef6219a1c764c8baf20d072876ca6a52e69f916faa0991a360867c", "iri": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -695,9 +706,11 @@ class ModelInferenceRun(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun", "curie": "gmeow:ModelInferenceRun", "definitionDigest": "blake3:32b3b85a5753e06b6cdf9cc250f5532b03263d99a60e5271ff811d7e4077c09e", "iri": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun", "curie": "gmeow:ModelInferenceRun", "definitionDigest": "blake3:73b8fee3b956ecaada034576632165db8d9e012f490e96087bf29490b33802e8", "iri": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    modelIdentifier: list[str] = Field(min_length=1, description="The model repository id of an inference run (e.g. the Hugging Face repo 'SamLowe/roberta-base-go_emotions'). Mandatory (SHACL); a model id WITHOUT a pinned gmeow:modelRevision fails reproducibility.", alias="gmeow:modelIdentifier")
+    modelRevision: list[str] = Field(min_length=1, description="The pinned model revision/commit of an inference run — MANDATORY (SHACL). A model name without a pinned revision is unreproducible and fails. The single most drift-prone field for zero-shot/generative adapters.", alias="gmeow:modelRevision")
