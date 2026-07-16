@@ -16,6 +16,7 @@
 # exactly the named finding fires.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
 
 # === Rule: every form names exactly one sign system ========================= #
@@ -23,7 +24,7 @@
 ex:ecFormSituated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/form-situated.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A lang:WordForm naming exactly one lang:SignSystem through lang:inSignSystem satisfies lang:FormSituatedShape and validates with no findings." .
+    gmeow:conformanceRationale "A lang:WordForm naming exactly one lang:SignSystem through lang:inSignSystem and its owning lang:Lexeme through lang:lexemeOf satisfies the generated form and word-form constraints and validates with no findings." .
 
 ex:ecFormMissingSignSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/form-missing-sign-system.ttl" ;
@@ -151,7 +152,7 @@ ex:ecAnchorUnanchored a gmeow:ExampleConformance ;
 ex:ecSlotFormResource a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/slot-form-resource.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A lang:FormSlot whose lang:slotForm points at a lang:WordForm resource satisfies lang:SlotFormStructuralShape and validates with no findings." .
+    gmeow:conformanceRationale "A lang:FormSlot whose lang:slotForm points at a lang:Form resource satisfies lang:SlotFormStructuralShape and validates with no findings." .
 
 ex:ecSlotFormLiteral a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-form-literal.ttl" ;
@@ -424,7 +425,7 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 ex:ecGmnScriptGlyphCanonical a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-script-glyph-canonical.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A grapheme in gmeow:gmnScript with the canonical codepoint spelling \"U+2291\" and a full lang:Denotation binding its operator form to a denoted term, plus two sigil-scoped glyphs lawfully sharing \"U+03BC\" (BOTH carry gmeow:gmnSigilScope, the exemption of lang:GmnGlyphCollisionShape) — satisfies the codepoint, confusable, and collision gates and validates with no findings." .
+    gmeow:conformanceRationale "A @ℒ-scoped grapheme in gmeow:gmnScript with the canonical codepoint spelling \"U+2291\", its measured three-token cost, and a full lang:Denotation binding its operator form to canonical logic:subClassOf through gmeow:gmnDenotationGrapheme, plus two sigil-scoped glyphs lawfully sharing \"U+03BC\" (BOTH carry gmeow:gmnSigilScope, the exemption of lang:GmnGlyphCollisionShape) — satisfies the codepoint, confusable, collision, and grounding-direction gates and validates with no findings." .
 
 ex:ecGmnEnvelopeComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-envelope-complete.ttl" ;

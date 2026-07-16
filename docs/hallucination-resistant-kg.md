@@ -50,8 +50,9 @@ gmeow audit your-claims.ttl --strict   # exit non-zero on any flag (CI)
 ```
 
 `make audit` runs the gates over the fixture and is part of `make check`
-(verified by construction, P7). Every audit query is dual-engine-gated by the
-crosscheck like all committed SPARQL.
+(verified by construction, P7). Every audit query has expectation-bearing
+product coverage; generic RDF 1.2 / RDF\* and SPARQL engine compliance belongs
+to PurRDF's own suite.
 
 ## The extraction prompt (published data)
 

@@ -2,6 +2,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
   roll-up tier: Registered
   per-axis grades (weakest first):
     axisOptimalTesting: Registered (0.00)
+    axisGmnGlyphOptimality: Registered (0.00)
     axisTranslationCoverage: Registered (0.33)
     axisDocumentation: Registered (0.00)
     axisMaximalGrounding: Maximal (1.00)
@@ -15,17 +16,19 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisProvenanceHonesty: Maximal (1.00)
     axisDocMaturity: Maximal (1.00)
     axisFlagshipCounterExampleDepth: Maximal (1.00)
-  ranked uplift advice (13):
+  ranked uplift advice (15):
     1. [slice-quality.axis-advice] axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping "=" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).
     2. [slice-quality.linkage.no-calculus-eligible-correspondence] the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.
     3. [slice-quality.axis-advice] axisOptimalTesting: Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA).
     4. [slice-quality.testing.no-cells] the slice ships no test cells or competency queries (SLICE_QA).
     5. [slice-quality.axis-advice] axisGmn1Coverage: Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit made once the measured score has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent.
     6. [slice-quality.gmn1-coverage.no-repo-root] the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).
-    7. [slice-quality.axis-advice] axisTranslationCoverage: Add audited French and Mandarin translations for every localizable literal the slice authors — labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names — recorded (non-empty msgstr) in the slice's i18n/fr.po and i18n/zh.po catalogs.
-    8. [slice-quality.translation.incomplete] cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.
-    9. [slice-quality.translation.incomplete] fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.
-    10. [slice-quality.axis-advice] axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent.
-    11. [slice-quality.doc-maturity.model-unavailable] the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).
-    12. [slice-quality.axis-advice] axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).
-    13. [slice-quality.documentation.no-docs] the slice ships no docs.md.
+    7. [slice-quality.axis-advice] axisGmnGlyphOptimality: Disposition every audited grounding-plane symbol candidate exactly once as an adopted glyph, named key, structured constructor, or semantic rejection; add its cited rationale, candidate rendering, ASCII fallback, spoken label, and decision basis; and make adopted signs executable through a scoped lang:Denotation-backed glyph registry binding whose measured token cost does not lose to the fallback.
+    8. [slice-quality.gmn-glyph-optimality.audit-graph-unavailable] GMN glyph optimality cannot be audited because the slice directory has no resolvable slices/ path prefix; scoring fails closed at 0.0 until the canonical grounding authority is available
+    9. [slice-quality.axis-advice] axisTranslationCoverage: Add audited French and Mandarin translations for every localizable literal the slice authors — labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names — recorded (non-empty msgstr) in the slice's i18n/fr.po and i18n/zh.po catalogs.
+    10. [slice-quality.translation.incomplete] cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.
+    11. [slice-quality.translation.incomplete] fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.
+    12. [slice-quality.axis-advice] axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent.
+    13. [slice-quality.doc-maturity.model-unavailable] the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).
+    14. [slice-quality.axis-advice] axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).
+    15. [slice-quality.documentation.no-docs] the slice ships no docs.md.

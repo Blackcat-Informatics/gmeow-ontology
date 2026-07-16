@@ -1,0 +1,16 @@
+# Competency question: "What is the signature — the operand number system and the
+# result number system — of each arithmetic operator?"  This exercises the rule that
+# every math:ArithmeticOperation carries its signature over the number-system tower
+# through math:operatorDomain and math:operatorCodomain (both mandatory on the class,
+# so a strict BGP). Over the module the answer is the eight operators: the field
+# operators Addition/Subtraction/Multiplication/Division and Exponentiation over
+# ℝ → ℝ, Root and Logarithm over ℝ → ℂ (their real inputs can land in ℂ), and the
+# unary Negation over the signed extended real line ℝ̄ → ℝ̄ (it carries the poles).
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?operator ?operatorDomain ?operatorCodomain WHERE {
+    ?operator a math:ArithmeticOperation ;
+              math:operatorDomain ?operatorDomain ;
+              math:operatorCodomain ?operatorCodomain .
+}
+ORDER BY ?operator

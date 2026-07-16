@@ -85,7 +85,14 @@ pub(crate) use incremental_grounding::{
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
-pub(crate) use store::{Bound, RelationStore, SkolemRegistry, extract_edb};
+pub(crate) use store::{
+    Bound, RelationStore, SkolemRegistry, extract_edb, extract_edb_patterns, visit_edb_patterns,
+};
+
+// The decomposable derivation of one chase-invented null (firing rule, existential
+// ordinal, frontier binding). Public so the pipeline can project it into the shipped
+// diagnostics graph and the CLI/playground can explain an invented individual.
+pub use store::WitnessDerivation;
 
 // The arrangement's native lending cursor + its sealed GAT trait: the zero-alloc row
 // scan consumed by the semi-naive join (`seminaive`) and the chase (`chase`).

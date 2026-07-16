@@ -51,7 +51,7 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    committed for reviewability and drift-gate visibility, but `.gitattributes`
    marks it `merge=ours -diff`. Running `make install` bootstraps the local
    Git merge driver (`merge.ours.driver=true`); after a merge or rebase,
-   regenerate/check the bundle from canonical sources rather than resolving the
+   update/check the bundle from canonical sources rather than resolving the
    binary file by hand.
 6. **One mandatory frame profile.** Every payload-bearing frame authored by
    GMEOW production code uses exactly one transform: `zstd-rsyncable`, at zstd

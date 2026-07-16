@@ -16,8 +16,56 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences;
+use gmeow_validate::store::dataset_from_paths;
+
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const MATH: &str = "https://blackcatinformatics.ca/math/";
+const LANG: &str = "https://blackcatinformatics.ca/lang/";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const GUFO: &str = "http://purl.org/nemo/gufo#";
+const BFO: &str = "http://purl.obolibrary.org/obo/BFO_";
+const RO: &str = "http://purl.obolibrary.org/obo/RO_";
+const SUMO: &str = "https://www.ontologyportal.org/SUMO.owl#";
+const OWL: &str = "http://www.w3.org/2002/07/owl#";
+const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
+const SH: &str = "http://www.w3.org/ns/shacl#";
+const DUL: &str = "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#";
+const IAO: &str = "http://purl.obolibrary.org/obo/IAO_";
+const PATO: &str = "http://purl.obolibrary.org/obo/PATO_";
+const YAMATO: &str = "http://www.hozo.jp/owl/YAMATO20210808.miz.owl#";
+const OPENCYC: &str = "http://sw.opencyc.org/concept/";
+const ONTOUML: &str = "https://w3id.org/ontouml#";
+const QB: &str = "http://purl.org/linked-data/cube#";
+const STATO: &str = "http://purl.obolibrary.org/obo/STATO_";
+const OBCS: &str = "http://purl.obolibrary.org/obo/OBCS_";
+const SIO: &str = "http://semanticscience.org/resource/SIO_";
+const OBI: &str = "http://purl.obolibrary.org/obo/OBI_";
+const ONTOLEX: &str = "http://www.w3.org/ns/lemon/ontolex#";
+const LEXINFO: &str = "http://www.lexinfo.net/ontology/3.0/lexinfo#";
+const WORDNET: &str = "https://globalwordnet.github.io/schemas/wn#";
+const NIF: &str = "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#";
+const OA: &str = "http://www.w3.org/ns/oa#";
+const WIKIDATA: &str = "http://www.wikidata.org/entity/";
+const LEXVO: &str = "http://lexvo.org/id/";
+const GLOTTOLOG: &str = "https://glottolog.org/resource/languoid/id/";
+const IANA_LANGUAGE_REGISTRY: &str = "https://www.iana.org/assignments/language-subtag-registry";
+const QUDT: &str = "http://qudt.org/";
+const SI_DIGITAL: &str = "https://si-digital-framework.org/SI/";
+const OM2: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/";
+const OM1: &str = "http://www.wurvoc.org/vocabularies/om-1.8/";
+const SOSA: &str = "http://www.w3.org/ns/sosa/";
+const IVOA_OBSCORE: &str = "http://www.ivoa.net/rdf/ObsCore#";
+const LOINC: &str = "http://loinc.org/rdf/";
+const OPENMATH_HTTP: &str = "http://www.openmath.org/cd/";
+const OPENMATH_HTTPS: &str = "https://openmath.org/cd/";
+const MATHLIB: &str = "https://leanprover-community.github.io/mathlib4_docs/";
+const DLMF: &str = "https://dlmf.nist.gov/";
+const OEIS: &str = "https://oeis.org/";
+const RDF_TEST_MANIFEST: &str = "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#";
+const OWL_TEST_ONTOLOGY: &str = "http://www.w3.org/2007/OWL/testOntology#";
 const CORRESPONDENCE_LAWS_GRAPH: &str =
     "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
 
@@ -50,6 +98,36 @@ fn graph_triples(graph_iri: &str) -> Vec<(String, String, String)> {
         out.push((term(s), term(p), term(o)));
     }
     out
+}
+
+/// Compile the three canonical grounding mapping directories and return the exact
+/// content-addressed correspondence subjects they produce. Comparing frontend cell IRIs to the
+/// bundle would be wrong because the shipped subjects are compiler-minted; comparing only counts
+/// would let one stale extra mask one missing canonical correspondence.
+fn canonical_grounding_correspondence_subjects() -> BTreeSet<String> {
+    let root = repo_root();
+    let mut paths = Vec::new();
+    for slice in ["logic", "math", "lang"] {
+        let mappings = root.join("slices/grounding").join(slice).join("mappings");
+        for entry in std::fs::read_dir(&mappings)
+            .unwrap_or_else(|error| panic!("read {}: {error}", mappings.display()))
+        {
+            let path = entry.expect("mapping directory entry").path();
+            if path.extension().and_then(|extension| extension.to_str()) == Some("ttl") {
+                paths.push(path);
+            }
+        }
+    }
+    paths.sort();
+    let dataset = dataset_from_paths(&paths).expect("canonical grounding mappings parse");
+    let view = DslView::new(dataset.as_ref());
+    transpile_correspondences(&view, &view)
+        .expect("canonical grounding correspondences compile")
+        .correspondences
+        .into_iter()
+        .filter(|correspondence| correspondence.grounding)
+        .map(|correspondence| correspondence.iri)
+        .collect()
 }
 
 /// Objects `o` such that `(subject, predicate, o)` is present.
@@ -100,6 +178,163 @@ fn discharged_section_claims_for_cell(
         }
     }
     claims
+}
+
+#[test]
+fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
+    let triples = graph_triples(CORRESPONDENCE_LAWS_GRAPH);
+    let grounding_type = format!("{LOGIC}GroundingCorrespondence");
+    let grounding: BTreeSet<String> = triples
+        .iter()
+        .filter(|(_, predicate, object)| predicate == RDF_TYPE && object == &grounding_type)
+        .map(|(subject, _, _)| subject.clone())
+        .collect();
+    let source_predicate = format!("{LOGIC}sourceEndpoint");
+    let target_predicate = format!("{LOGIC}targetEndpoint");
+    let class_predicate = format!("{LOGIC}morphismClass");
+    let kind_predicate = format!("{LOGIC}morphismKind");
+    let preservation_predicate = format!("{LOGIC}preservationKind");
+    let target_catalogs: &[(&str, &[&str], usize)] = &[
+        ("gUFO", &[GUFO], 52),
+        ("BFO", &[BFO], 13),
+        ("RO", &[RO], 4),
+        ("SUMO", &[SUMO], 24),
+        ("OWL", &[OWL], 28),
+        ("RDFS", &[RDFS], 5),
+        ("SHACL", &[SH], 15),
+        ("DUL", &[DUL], 6),
+        ("IAO", &[IAO], 1),
+        ("PATO", &[PATO], 1),
+        ("YAMATO", &[YAMATO], 9),
+        ("OpenCyc", &[OPENCYC], 6),
+        ("OntoUML", &[ONTOUML], 9),
+        ("RDF Data Cube", &[QB], 1),
+        ("STATO", &[STATO], 5),
+        ("OBCS", &[OBCS], 5),
+        ("SIO", &[SIO], 1),
+        ("OBI", &[OBI], 1),
+        ("OntoLex", &[ONTOLEX], 5),
+        ("LexInfo", &[LEXINFO], 3),
+        ("Global WordNet", &[WORDNET], 6),
+        ("NIF", &[NIF], 6),
+        ("Web Annotation", &[OA], 4),
+        ("Wikidata", &[WIKIDATA], 146),
+        ("Lexvo", &[LEXVO], 2),
+        ("Glottolog", &[GLOTTOLOG], 1),
+        ("IANA Language Registry", &[IANA_LANGUAGE_REGISTRY], 1),
+        ("QUDT", &[QUDT], 11),
+        ("SI Digital Framework", &[SI_DIGITAL], 7),
+        ("OM 2", &[OM2], 2),
+        ("OM 1.8", &[OM1], 1),
+        ("SOSA", &[SOSA], 1),
+        ("IVOA ObsCore", &[IVOA_OBSCORE], 1),
+        ("LOINC", &[LOINC], 1),
+        ("OpenMath", &[OPENMATH_HTTP, OPENMATH_HTTPS], 14),
+        ("Mathlib", &[MATHLIB], 11),
+        ("DLMF", &[DLMF], 5),
+        ("OEIS", &[OEIS], 3),
+        ("RDF Test Manifest", &[RDF_TEST_MANIFEST], 2),
+        ("OWL Test Ontology", &[OWL_TEST_ONTOLOGY], 2),
+    ];
+    let mut target_families = std::collections::BTreeMap::<&str, usize>::new();
+    let mut source_namespaces = std::collections::BTreeMap::<&str, usize>::new();
+    let mut endpoint_pairs = BTreeSet::new();
+
+    for correspondence in &grounding {
+        let sources = objects_of(&triples, correspondence, &source_predicate);
+        let targets = objects_of(&triples, correspondence, &target_predicate);
+        assert_eq!(
+            sources.len(),
+            1,
+            "{correspondence}: exactly one source endpoint"
+        );
+        assert_eq!(
+            targets.len(),
+            1,
+            "{correspondence}: exactly one target endpoint"
+        );
+        let source_namespace = if sources[0].starts_with(LOGIC) {
+            "logic"
+        } else if sources[0].starts_with(MATH) {
+            "math"
+        } else if sources[0].starts_with(LANG) {
+            "lang"
+        } else if sources[0].starts_with(GMEOW) {
+            // The logic-owned DUL/IAO/OpenCyc bridge rows ground the shared
+            // gmeow:InformationObject rather than minting a duplicate logic: class.
+            "gmeow-shared"
+        } else {
+            panic!(
+                "{correspondence}: grounding source is outside logic:, math:, lang:, and shared gmeow:, got {}",
+                sources[0]
+            );
+        };
+        *source_namespaces.entry(source_namespace).or_default() += 1;
+        for predicate in [&class_predicate, &kind_predicate, &preservation_predicate] {
+            assert_eq!(
+                objects_of(&triples, correspondence, predicate).len(),
+                1,
+                "{correspondence}: semantic judgment {predicate} must ship exactly once"
+            );
+        }
+
+        endpoint_pairs.insert((sources[0].to_owned(), targets[0].to_owned()));
+        let matches: Vec<_> = target_catalogs
+            .iter()
+            .filter(|(_, namespaces, _)| {
+                namespaces
+                    .iter()
+                    .any(|namespace| targets[0].starts_with(namespace))
+            })
+            .collect();
+        assert_eq!(
+            matches.len(),
+            1,
+            "{correspondence}: target must belong to exactly one registered catalog family: {}",
+            targets[0]
+        );
+        *target_families.entry(matches[0].0).or_default() += 1;
+    }
+
+    for (namespace, minimum) in [
+        ("gmeow-shared", 12),
+        ("lang", 46),
+        ("logic", 175),
+        ("math", 188),
+    ] {
+        assert!(
+            source_namespaces
+                .get(namespace)
+                .copied()
+                .unwrap_or_default()
+                >= minimum,
+            "the shipped grounding surface fell below the {namespace} source-ownership ratchet of {minimum}: {source_namespaces:?}"
+        );
+    }
+    for &(family, _, minimum) in target_catalogs {
+        assert!(
+            target_families.get(family).copied().unwrap_or_default() >= minimum,
+            "the shipped grounding surface fell below the {family} target-family ratchet of {minimum}: {target_families:?}"
+        );
+    }
+    for (source, target) in [
+        (format!("{LOGIC}partOf"), format!("{BFO}0000050")),
+        (format!("{LOGIC}overlaps"), format!("{RO}0002131")),
+    ] {
+        assert!(
+            endpoint_pairs.contains(&(source.clone(), target.clone())),
+            "the shipped OBO relation catalog is missing {source} -> {target}"
+        );
+    }
+
+    let canonical = canonical_grounding_correspondence_subjects();
+    let missing: Vec<_> = canonical.difference(&grounding).cloned().collect();
+    let stale: Vec<_> = grounding.difference(&canonical).cloned().collect();
+    assert!(
+        missing.is_empty() && stale.is_empty(),
+        "the shipped correspondence graph must carry exactly the canonical logic:, math:, and \
+         lang: grounding subjects; missing={missing:?}; stale={stale:?}"
+    );
 }
 
 #[test]

@@ -57,6 +57,7 @@ use purrdf::slice::rdf_query::{Object, Subject};
 use std::collections::BTreeSet;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const MATH: &str = "https://blackcatinformatics.ca/math/";
 const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/places/";
 
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -86,6 +87,10 @@ const QUDT_BYTE: &str = "http://qudt.org/vocab/unit/BYTE";
 
 fn gmeow(local: &str) -> String {
     format!("{GMEOW}{local}")
+}
+
+fn math(local: &str) -> String {
+    format!("{MATH}{local}")
 }
 
 fn ex(local: &str) -> String {
@@ -690,7 +695,7 @@ fn regulatory_overlay_3d_bounds() {
             found_bounds = true;
             for bound in [&l, &u] {
                 assert!(
-                    g.has(Some(bound.as_str()), Some(&gmeow("quantityValue")), None),
+                    g.has(Some(bound.as_str()), Some(&math("quantityValue")), None),
                     "3D bound must have quantityValue"
                 );
                 assert!(
@@ -808,7 +813,7 @@ fn occupancy_with_unit_asserted() {
         .next()
         .expect("occupancy must have an observationResult");
     assert!(
-        g.has_literal(&sq, &gmeow("quantityValue"), "412", XSD_DECIMAL),
+        g.has_literal(&sq, &math("quantityValue"), "412", XSD_DECIMAL),
         "occupancy quantityValue must be 412"
     );
 }
@@ -826,7 +831,7 @@ fn storage_capacity_in_bytes() {
         .next()
         .expect("capacity must have an observationResult");
     assert!(
-        g.has_literal(&sq, &gmeow("quantityValue"), "1099511627776", XSD_DECIMAL),
+        g.has_literal(&sq, &math("quantityValue"), "1099511627776", XSD_DECIMAL),
         "storage capacity must be 1 TiB in bytes"
     );
     assert!(

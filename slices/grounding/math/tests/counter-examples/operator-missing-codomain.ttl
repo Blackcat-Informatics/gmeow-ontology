@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the operator-signature gate: a math:ArithmeticOperation
+# individual that declares its math:operatorDomain but OMITS its
+# math:operatorCodomain (sh:minCount 1, derived from the exact-one
+# math:operatorCodomain restriction on the math:ArithmeticOperation class).
+# Validation MUST emit shacl.MinCountConstraintComponent (math:UnframedOperator).
+# The domain is present, so the missing codomain is the single isolated violation —
+# an operator is not a bare glyph; it carries its full signature over number systems.
+# Bound by tests/example-conformance.ttl (ex:ecOperatorMissingCodomain).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:halfSignedOperator a math:ArithmeticOperation ;
+    math:operatorDomain math:realNumbers .

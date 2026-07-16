@@ -29,6 +29,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/learning> ,
         <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,

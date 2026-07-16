@@ -426,7 +426,7 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   in the divergence ledger** — an equal cost descriptor folds through as a non-blocking `Agree`
   corroboration, a divergent one as a **blocking `CorpusOnly` regression finding** carrying
   content-addressed identity, and the committed cost-ledger projection is additionally enforced by
-  the `check-generated` drift check; a cost regression is thus a ledger refutation / drift failure.
+  the strict-sync drift check; a cost regression is thus a ledger refutation / drift failure.
   **The wall-clock duration budget is retired as a gate** — timings fold into the advisory
   leaderboard only. Retired-instruction counts gate only through their own deterministic column;
   estimated cycles and cache figures are microarchitecture-dependent and stay advisory.
@@ -443,7 +443,7 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   its divergence-ledger finding-graph blake3 is byte-identical across the whole window — a drifting
   fingerprint over a fixed corpus is itself a divergence finding. The committed
   `generated/bench/soak.md` record projects the invariant per-corpus finding-graph digest and is
-  drift-gated by `check-generated`, so "ledger gap-zero over a soak window" is a checkable claim
+  drift-gated by strict `sync`, so "ledger gap-zero over a soak window" is a checkable claim
   rather than a single sample.
 
 Consistency with the release-as-evidence principle: perf **timings** remain carried as data and

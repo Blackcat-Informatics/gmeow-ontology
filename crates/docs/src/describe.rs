@@ -29,7 +29,7 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use gmeow_errors::{Diag, Result};
 use gmeow_logic_compile::ingest::{ns_to_prefix, registry_iri, sssom_id};
 use gmeow_validate::language_tags::{
-    LangSelector, LitDesc, filter_literals, load_tag_map, marked, resolve_lang_input,
+    LangSelector, LitDesc, filter_literals, load_tag_map_from_dataset, marked, resolve_lang_input,
     select_literal,
 };
 
@@ -94,6 +94,11 @@ pub struct DescribeGraph {
 }
 
 impl DescribeGraph {
+    /// Wrap an already-materialized GTS dataset without another bundle parse.
+    pub fn from_dataset(ds: Arc<RdfDataset>) -> Self {
+        Self { ds }
+    }
+
     /// Load a GTS bundle's bytes into a describe-ready graph. Folds every segment
     /// and preserves each base quad's graph component (so default-graph reads are
     /// exact). Errors carry the reader diagnostic text.
@@ -108,7 +113,7 @@ impl DescribeGraph {
                 detail: format!("cannot fold GTS bundle: {e}"),
             })
         })?;
-        Ok(Self { ds })
+        Ok(Self::from_dataset(ds))
     }
 
     /// Resolve an IRI to its dataset-local term id, if interned.
@@ -721,6 +726,38 @@ pub fn describe(
         Err(e) => return (e.to_string(), DescribeStatus::LoadFailed),
     };
 
+    describe_graph(query, graph, lang, format, modeled_defs)
+}
+
+/// Resolve and render a term card from an already-materialized GTS dataset.
+///
+/// Consumer commands that also inspect bundle blobs should parse the GTS once
+/// through `gmeow_pipeline::bundle_blobs::Bundle`, materialize its dataset, and
+/// call this entry point. The byte-oriented [`describe`] wrapper remains the
+/// one-shot API and now also performs only one GTS fold.
+pub fn describe_dataset(
+    query: &str,
+    dataset: Arc<RdfDataset>,
+    lang: Option<&str>,
+    format: CardFormat,
+    modeled_defs: &BTreeSet<String>,
+) -> (String, DescribeStatus) {
+    describe_graph(
+        query,
+        DescribeGraph::from_dataset(dataset),
+        lang,
+        format,
+        modeled_defs,
+    )
+}
+
+fn describe_graph(
+    query: &str,
+    graph: DescribeGraph,
+    lang: Option<&str>,
+    format: CardFormat,
+    modeled_defs: &BTreeSet<String>,
+) -> (String, DescribeStatus) {
     let term = match resolve_term(&graph, query) {
         Resolution::Resolved(iri) => iri,
         Resolution::Ambiguous { candidates } => {
@@ -757,33 +794,11 @@ pub fn describe(
 
     // The tag map + available-language set drive language resolution. The carrier
     // internal→BCP-47 map is a BUNDLE-WIDE fact: the generated `gmeow:bcp47Tag`
-    // projection rides the named `lang-projection-corpus` graph, so the map is read
-    // from a FLATTENED (all-graphs-unioned) projection of the bundle — the
-    // default-graph alone omits the corpus, leaving the fr/zh carriers invisible.
-    // This mirrors the consumer bin's `bundle_tag_map`.
-    let flat = match purrdf::gts::flattened_dataset_from_bytes(gts_bytes) {
-        Ok(ds) => ds,
-        Err(e) => {
-            return (
-                format!("cannot fold bundle for language map: {e}"),
-                DescribeStatus::LoadFailed,
-            );
-        }
-    };
-    let nt = match purrdf::serialize_dataset(
-        &flat,
-        "application/n-triples",
-        purrdf::SerializeGraph::DefaultGraph,
-    ) {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            return (
-                format!("cannot project bundle for language map: {e}"),
-                DescribeStatus::LoadFailed,
-            );
-        }
-    };
-    let tag_map = match load_tag_map(&nt, "n-triples") {
+    // projection rides the named `lang-projection-corpus` graph, so scan every
+    // graph in the already-materialized dataset. This is semantically identical
+    // to flattening all graphs, serializing N-Triples, and reparsing, without that
+    // allocation-heavy codec round-trip.
+    let tag_map = match load_tag_map_from_dataset(&graph.ds) {
         Ok(map) => map,
         Err(e) => {
             return (
@@ -954,6 +969,25 @@ mod tests {
         assert!(text.contains("English definition text."), "{text}");
         assert!(text.contains("category: Class"), "{text}");
         assert!(text.contains("slice: lifecycle"), "{text}");
+    }
+
+    #[test]
+    fn store_native_describe_matches_the_byte_entry_point() {
+        let gts = multilingual_gts(true, true);
+        let graph = purrdf::gts::read_all_segments(&gts).expect("read fixture GTS");
+        let dataset = purrdf::gts::dataset_from_gts_graph(&graph).expect("materialize fixture");
+        let modeled = BTreeSet::new();
+
+        let from_bytes = describe("SampleTerm", &gts, Some("fr"), CardFormat::Json, &modeled);
+        let from_dataset = describe_dataset(
+            "SampleTerm",
+            dataset,
+            Some("fr"),
+            CardFormat::Json,
+            &modeled,
+        );
+
+        assert_eq!(from_dataset, from_bytes);
     }
 
     /// `class_is_modeled` gate (issue: Pydantic model surface, finding F3): a

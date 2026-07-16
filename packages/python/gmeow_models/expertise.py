@@ -152,5 +152,5 @@ class SkillProficiency(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     skillProficiencyAgent: list[Agent] | None = Field(default=None, description="The agent whose proficiency a skill-proficiency expresses. Functional — constitutive of the proficiency.", alias="gmeow:skillProficiencyAgent")
     skillProficiencyLevel: list[ProficiencyLevelEnum] | None = Field(default=None, description="The attained level of a skill-proficiency (a gmeow:ProficiencyLevel value, e.g. dreyfusExpert, assessedCompetent). Functional.", alias="gmeow:skillProficiencyLevel")
-    skillProficiencyOf: list[str] | None = Field(default=None, description="The skill a skill-proficiency concerns. Functional — constitutive.", alias="gmeow:skillProficiencyOf")
+    skillProficiencyOf: list[str] | None = Field(default=None, description="Within gmeow:SkillProficiency, values are node references constrained to gmeow:Skill. The skill a skill-proficiency concerns. Functional — constitutive.", alias="gmeow:skillProficiencyOf")
     skillProficiencyScale: list[ProficiencyScaleEnum] | None = Field(default=None, description="The framework/scale a skill-proficiency level is measured on (Dreyfus, NIH, assessed, self-reported) — a gmeow:ProficiencyScale value. Functional.", alias="gmeow:skillProficiencyScale")

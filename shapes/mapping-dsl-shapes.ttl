@@ -65,7 +65,161 @@ gmeow:TermEquivalenceShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "justification must be a single IRI"
+    ] ;
+    sh:property [
+        sh:path logic:morphismClass ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
+            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ;
+        sh:severity sh:Violation ;
+        sh:message "morphismClass must be one declared logic:MorphismClass rung"
+    ] ;
+    sh:property [
+        sh:path logic:morphismKind ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ;
+        sh:severity sh:Violation ;
+        sh:message "morphismKind must be logic:InstitutionMorphism or logic:CommitmentShiftingBridge"
+    ] ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:ExactPreservation logic:SoundUnderApproximation
+            logic:CompleteOverApproximation logic:InconsistencyPreserving
+            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ;
+        sh:severity sh:Violation ;
+        sh:message "preservationKind must be one declared logic:PreservationKind value"
     ] .
+
+# A grounding correspondence is deliberately stronger authoring data than an ordinary
+# mapping row: both accepted frontends lower to the same shipped IR, and their endpoints,
+# warrant, law-spine, morphism kind, and preservation boundary are all explicit.
+logic:GroundingCorrespondenceShape
+    a sh:NodeShape ;
+    rdfs:label "GroundingCorrespondence authoring shape"@en ;
+    sh:targetClass logic:GroundingCorrespondence ;
+    sh:xone (
+        [ sh:class gmeow:TermEquivalence ]
+        [ sh:and (
+            [ sh:class gmeow:ProjectionMapping ]
+            [ sh:property [
+                sh:path gmeow:hasBinding ;
+                sh:minCount 1 ; sh:maxCount 1
+            ] ]
+        ) ]
+    ) ;
+    sh:property [
+        sh:path gmeow:justification ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification"
+    ] ;
+    sh:property [
+        sh:path logic:sourceEndpoint ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint"
+    ] ;
+    sh:property [
+        sh:path logic:targetEndpoint ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint"
+    ] ;
+    sh:property [
+        sh:path logic:morphismClass ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
+            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one logic:morphismClass"
+    ] ;
+    sh:property [
+        sh:path logic:morphismKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one logic:morphismKind"
+    ] ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( logic:ExactPreservation logic:SoundUnderApproximation
+            logic:CompleteOverApproximation logic:InconsistencyPreserving
+            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ;
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence must explicitly declare one logic:preservationKind"
+    ] ;
+    sh:or (
+        [ sh:and (
+            [ sh:property [ sh:path logic:morphismClass ; sh:hasValue logic:BridgeView ] ]
+            [ sh:property [ sh:path logic:morphismKind ; sh:hasValue logic:CommitmentShiftingBridge ] ]
+        ) ]
+        [ sh:and (
+            [ sh:not [ sh:property [ sh:path logic:morphismClass ; sh:hasValue logic:BridgeView ] ] ]
+            [ sh:property [ sh:path logic:morphismKind ; sh:hasValue logic:InstitutionMorphism ] ]
+        ) ]
+    ) ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "GroundingCorrespondence endpoints must agree with the selected frontend's authored source and target" ;
+        sh:select """
+            SELECT $this WHERE {
+                {
+                    $this a gmeow:TermEquivalence ;
+                        logic:sourceEndpoint ?source ;
+                        logic:targetEndpoint ?target .
+                    FILTER(
+                        NOT EXISTS { $this gmeow:alignSubject ?source } ||
+                        NOT EXISTS { $this gmeow:alignObject ?target }
+                    )
+                }
+                UNION
+                {
+                    $this a gmeow:ProjectionMapping ;
+                        logic:targetEndpoint ?target ;
+                        gmeow:hasBinding ?binding .
+                    FILTER NOT EXISTS {
+                        ?binding ?targetProperty ?target .
+                        FILTER(?targetProperty IN (
+                            gmeow:toPredicate, gmeow:toClass, gmeow:edoalTarget
+                        ))
+                    }
+                }
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A commitment-shifting BridgeView cannot claim an equivalence relation" ;
+        sh:select """
+            SELECT $this WHERE {
+                $this logic:morphismKind logic:CommitmentShiftingBridge .
+                {
+                    $this gmeow:alignPredicate ?predicate .
+                    FILTER(?predicate IN (
+                        skos:exactMatch, owl:equivalentClass,
+                        owl:equivalentProperty, owl:sameAs
+                    ))
+                }
+                UNION
+                {
+                    $this gmeow:hasBinding ?binding .
+                    ?binding gmeow:relation "=" .
+                }
+            }
+        """
+    ] ;
+    sh:message "GroundingCorrespondence must use exactly one accepted frontend and pair BridgeView with CommitmentShiftingBridge; every other rung is an InstitutionMorphism" .
 
 # --------------------------------------------------------------------------- #
 # DeclinedCorrespondence — the machine-reviewable "won't-bridge" record

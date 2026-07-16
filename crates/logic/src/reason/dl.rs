@@ -22,7 +22,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::facts::skolem_iri;
 use crate::reason::InferredAxiom;
-use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm, TermValue};
+use purrdf::{RdfDataset, RdfLiteral, RdfQuad, RdfTerm, TermValue};
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -445,6 +445,27 @@ pub struct DlCoverage {
     pub unsupported: Vec<String>,
 }
 
+/// One native DL coverage defect. This is reasoner-domain evidence, not an RDF
+/// representation-conversion loss, so it is owned by GMEOW rather than PurRDF's
+/// transcode [`purrdf::LossLedger`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DlGap {
+    /// Stable machine-readable gap code.
+    pub code: String,
+    /// Human-readable explanation of the undecided construct.
+    pub message: String,
+}
+
+impl DlGap {
+    /// Construct a native DL coverage gap.
+    pub fn new(code: impl Into<String>, message: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            message: message.into(),
+        }
+    }
+}
+
 /// The verdict of a native DL consistency run.
 ///
 /// `consistent` is `false` iff at least one [`InconsistencyWitness`] was found.
@@ -459,7 +480,7 @@ pub struct DlVerdict {
     pub unsatisfiable_classes: Vec<UnsatClass>,
     pub inconsistencies: Vec<InconsistencyWitness>,
     pub coverage: DlCoverage,
-    pub gaps: Vec<RdfLoss>,
+    pub gaps: Vec<DlGap>,
 }
 
 /// Strip a decoded object display form (`<iri>`) back to the bare IRI.
@@ -1167,11 +1188,21 @@ pub(crate) fn augment_inferred_with_dl(
 }
 
 /// Add the finite DL consequences and retain every production existential-chase
-/// termination certificate that admitted a real rule program.
+/// termination certificate that admitted a real rule program, together with the
+/// decomposable derivation of every invented null the chase minted.
+///
+/// The witness derivations are swept out of the per-world Skolem registries the
+/// chase populates rather than dropped: each carries its firing rule, existential
+/// ordinal, and frontier binding, so a downstream consumer can explain an invented
+/// individual (and reconstruct its bounded proof height over the witness sub-forest)
+/// entirely from the reasoning result, without re-running the chase.
 pub(crate) fn augment_inferred_with_dl_certificates(
     inferred: &mut Vec<InferredAxiom>,
     edb: &RdfDataset,
-) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
+) -> gmeow_errors::Result<(
+    Vec<crate::reason::ChaseCertificate>,
+    Vec<crate::physical::WitnessDerivation>,
+)> {
     let restrictions = read_restrictions(edb);
     let existential_rules = structured_existential_rules(&restrictions, edb);
     let lists = read_lists(edb);
@@ -2021,7 +2052,24 @@ pub(crate) fn augment_inferred_with_dl_certificates(
     });
     certificates
         .dedup_by(|left, right| left.world == right.world && left.admission == right.admission);
-    Ok(certificates)
+
+    // Sweep the decomposable derivation of every invented null out of the per-world
+    // Skolem registries the chase populated (they would otherwise be dropped here).
+    // The witness IRI is content-addressed, so the same recipe minted in two worlds
+    // collapses to one derivation; sort+dedup by IRI keeps the set deterministic.
+    let mut witness_derivations: Vec<crate::physical::WitnessDerivation> = witness_registries
+        .values()
+        .flat_map(|registry| {
+            registry
+                .witnesses()
+                .filter_map(|iri| registry.explain(iri))
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    witness_derivations.sort_by(|left, right| left.witness.cmp(&right.witness));
+    witness_derivations.dedup_by(|left, right| left.witness == right.witness);
+
+    Ok((certificates, witness_derivations))
 }
 
 /// The predicate-quantifying / literal-aware DL clashes the resource-only
@@ -2887,7 +2935,7 @@ pub fn unsatisfiable_from_inferred(inferred: &[InferredAxiom]) -> Vec<UnsatClass
 /// byte-identical whether a consumer reads `DlVerdict::gaps` directly or
 /// reconstructs them from a typed result's
 /// `preservation.unsupported_constructs`.
-pub fn gaps_from_unsupported<I, S>(unsupported: I) -> Vec<RdfLoss>
+pub fn gaps_from_unsupported<I, S>(unsupported: I) -> Vec<DlGap>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
@@ -2896,7 +2944,7 @@ where
         .into_iter()
         .map(|name| {
             let name = name.as_ref();
-            RdfLoss::new(
+            DlGap::new(
                 format!("reason.dl-gap.{name}"),
                 format!(
                     "{name} is present in the bundle but was not decided by the native DL path"
@@ -4554,6 +4602,50 @@ mod tests {
                 && !finding.message.contains("0 existential edge(s)"),
             "frontier certification must carry non-vacuous special-edge evidence: {finding:?}"
         );
+
+        // The witness derivations swept out of the chase carry the exact recipe an
+        // explain(witness) consumer decomposes: one per invented null, each pinning
+        // its firing rule, existential ordinal, and frontier binding. This is the
+        // reasoning-result surface the pipeline projects into graph/diagnostics.
+        let all_fillers: BTreeSet<String> = x_fillers.iter().chain(&y_fillers).cloned().collect();
+        assert_eq!(
+            certified.witness_derivations.len(),
+            2,
+            "each frontier binding mints one decomposable witness derivation"
+        );
+        let derived_witnesses: BTreeSet<String> = certified
+            .witness_derivations
+            .iter()
+            .map(|derivation| derivation.witness.clone())
+            .collect();
+        assert_eq!(
+            derived_witnesses, all_fillers,
+            "every invented filler must carry a swept-out witness derivation"
+        );
+        for derivation in &certified.witness_derivations {
+            assert_eq!(derivation.ordinal, 0, "the single ∃-head fills ordinal 0");
+            assert!(
+                !derivation.rule_iri.is_empty(),
+                "the firing rule must be pinned on the derivation"
+            );
+            let frontier_iris: Vec<&str> = derivation
+                .frontier
+                .iter()
+                .map(|term| match term {
+                    TermValue::Iri(iri) => iri.as_str(),
+                    other => panic!("frontier binding must be an IRI: {other:?}"),
+                })
+                .collect();
+            assert_eq!(
+                frontier_iris.len(),
+                1,
+                "the DL restriction has exactly one frontier subject"
+            );
+            assert!(
+                frontier_iris[0] == X || frontier_iris[0] == Y,
+                "the frontier binding must be a bound demonstrand subject: {frontier_iris:?}"
+            );
+        }
     }
 
     #[test]

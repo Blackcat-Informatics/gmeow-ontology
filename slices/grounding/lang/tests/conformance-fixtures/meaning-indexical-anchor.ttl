@@ -7,7 +7,10 @@
 @prefix ex:   <http://example.org/lang/> .
 
 ex:english a lang:SignSystem .
-ex:formI a lang:WordForm ; lang:inSignSystem ex:english .
+ex:lexemeI a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:formI a lang:WordForm ;
+    lang:inSignSystem ex:english ;
+    lang:lexemeOf ex:lexemeI .
 
 ex:denI a lang:Denotation ;
     lang:denotedForm ex:formI ;

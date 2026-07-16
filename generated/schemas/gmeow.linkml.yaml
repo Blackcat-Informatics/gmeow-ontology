@@ -422,6 +422,25 @@ classes:
     slots:
     - authorIdentityString
     - canonicalizedIdentity
+  AuthoringPacket:
+    class_uri: https://blackcatinformatics.ca/gmeow/AuthoringPacket
+    title: Authoring Packet
+    slots:
+    - exemplarShortfall
+    - packetAxis
+    - packetBatch
+    - packetCoversTerm
+    - packetDigest
+    - packetExemplar
+    - packetExternalAbsent
+    - packetExternalMapped
+    - packetFrAbsent
+    - packetFrPresent
+    - packetGrounding
+    - packetSourceSlice
+    - packetTermCount
+    - packetZhAbsent
+    - packetZhPresent
   AuthorityLevel:
     class_uri: https://blackcatinformatics.ca/gmeow/AuthorityLevel
     title: Authority Level
@@ -1547,7 +1566,6 @@ classes:
     - isAbout
     - isAccessibleForFree
     - isReferencedBy
-    - isResultOf
     - locatedAt
     - mediaType
     - mentionedIn
@@ -1559,7 +1577,6 @@ classes:
     - storedIn
     - supersededBy
     - supersedes
-    - trueQuantity
     - usageInfo
     - versionFingerprint
     - versionLabel
@@ -1980,6 +1997,9 @@ classes:
     slots:
     - gmnDictionaryEntryAlias
     - gmnDictionaryEntryTerm
+  GmnDispositionBasis:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnDispositionBasis
+    title: GMN Disposition Basis
   GmnEnvelope:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnEnvelope
     title: GMN Envelope
@@ -2013,6 +2033,12 @@ classes:
   GmnSigilRole:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnSigilRole
     title: GMN Sigil Role
+  GmnSymbolCandidate:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnSymbolCandidate
+    title: GMN Symbol Candidate
+  GmnSymbolDisposition:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnSymbolDisposition
+    title: GMN Symbol Disposition
   Goal:
     class_uri: https://blackcatinformatics.ca/gmeow/Goal
     title: Goal
@@ -2049,6 +2075,23 @@ classes:
   GrooveProfileKind:
     class_uri: https://blackcatinformatics.ca/gmeow/GrooveProfileKind
     title: Groove Profile Kind
+  GroundingAttribute:
+    class_uri: https://blackcatinformatics.ca/gmeow/GroundingAttribute
+    title: Grounding Attribute
+  GroundingCoverage:
+    class_uri: https://blackcatinformatics.ca/gmeow/GroundingCoverage
+    title: Grounding Coverage
+    slots:
+    - groundingAlignPredicate
+    - groundingAttribute
+    - groundingConfidence
+    - groundingConflict
+    - groundingConflictWith
+    - groundingExternalEntity
+    - groundingExternalLabel
+    - groundingPredicate
+    - groundingTerm
+    - groundingValue
   Group:
     class_uri: https://blackcatinformatics.ca/gmeow/Group
     title: Group
@@ -2304,6 +2347,11 @@ classes:
     slots:
     - relationshipInterval
     - relationshipParty
+  InventedWitness:
+    class_uri: https://blackcatinformatics.ca/gmeow/InventedWitness
+    title: Invented Witness
+    slots:
+    - existentialOrdinal
   InvitationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/InvitationStatus
     title: Invitation Status
@@ -2670,10 +2718,6 @@ classes:
   MaximViolationType:
     class_uri: https://blackcatinformatics.ca/gmeow/MaximViolationType
     title: Maxim Violation Type
-  MeasuredValue:
-    class_uri: https://blackcatinformatics.ca/gmeow/MeasuredValue
-    title: Measured Value
-    is_a: Entity
   Measurement:
     class_uri: https://blackcatinformatics.ca/gmeow/Measurement
     title: Measurement
@@ -3676,6 +3720,13 @@ classes:
     - projectHomepage
     - projectIdentifier
     - projectLicense
+  ProjectionCeilingCommitment:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionCeilingCommitment
+    title: Projection Ceiling Commitment
+    slots:
+    - ceilingCount
+    - ceilingSlice
+    - ceilingVocabulary
   ProjectionContext:
     class_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     title: Projection Context
@@ -3687,6 +3738,19 @@ classes:
     title: Projection Loss
     slots:
     - accountsForParameter
+  ProjectionVocabulary:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionVocabulary
+    title: Projection Vocabulary
+    slots:
+    - vocabularyAlignmentPredicate
+    - vocabularyCountKind
+    - vocabularyCountPredicate
+    - vocabularyDefaultCeiling
+    - vocabularyNamespace
+    - vocabularyOwner
+    - vocabularyPrefix
+    - vocabularyPreservation
+    - vocabularySubsumedBy
   Prompt:
     class_uri: https://blackcatinformatics.ca/gmeow/Prompt
     title: Prompt
@@ -3758,10 +3822,6 @@ classes:
     title: Quality Tier
     slots:
     - tierRank
-  Quantity:
-    class_uri: https://blackcatinformatics.ca/gmeow/Quantity
-    title: Quantity
-    is_a: Entity
   Question:
     class_uri: https://blackcatinformatics.ca/gmeow/Question
     title: Question
@@ -3997,13 +4057,6 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/SMIMESignature
     title: S/MIME Signature
     is_a: CryptographicSignature
-  ScalarQuantity:
-    class_uri: https://blackcatinformatics.ca/gmeow/ScalarQuantity
-    title: Scalar Quantity
-    is_a: Entity
-    slots:
-    - quantityUncertainty
-    - quantityValue
   ScalePolarity:
     class_uri: https://blackcatinformatics.ca/gmeow/ScalePolarity
     title: Scale Polarity
@@ -4138,7 +4191,6 @@ classes:
   SensoryQuantity:
     class_uri: https://blackcatinformatics.ca/gmeow/SensoryQuantity
     title: Sensory Quantity
-    is_a: Entity
   SequenceCoordinates:
     class_uri: https://blackcatinformatics.ca/gmeow/SequenceCoordinates
     title: Sequence Coordinates
@@ -6041,6 +6093,25 @@ slots:
     range: EmailAddress
     domain: EmailMessage
     multivalued: true
+  ceilingCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ceilingCount
+    title: ceiling count
+    range: integer
+    domain: ProjectionCeilingCommitment
+    minimum_value: 0
+    multivalued: false
+  ceilingSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ceilingSlice
+    title: ceiling slice
+    range: uriorcurie
+    domain: ProjectionCeilingCommitment
+    multivalued: false
+  ceilingVocabulary:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ceilingVocabulary
+    title: ceiling vocabulary
+    range: ProjectionVocabulary
+    domain: ProjectionCeilingCommitment
+    multivalued: false
   celestialEpoch:
     slot_uri: https://blackcatinformatics.ca/gmeow/celestialEpoch
     title: celestial epoch
@@ -8108,6 +8179,12 @@ slots:
     range: Criterion
     domain: Exemplar
     multivalued: true
+  exemplarShortfall:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exemplarShortfall
+    title: exemplar shortfall
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
   exemplarSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/exemplarSubject
     title: exemplar subject
@@ -8184,6 +8261,13 @@ slots:
     range: TimeInterval
     domain: Entity
     multivalued: true
+  existentialOrdinal:
+    slot_uri: https://blackcatinformatics.ca/gmeow/existentialOrdinal
+    title: existential ordinal
+    range: integer
+    domain: InventedWitness
+    minimum_value: 0
+    multivalued: false
   experiencer:
     slot_uri: https://blackcatinformatics.ca/gmeow/experiencer
     title: experiencer
@@ -8764,6 +8848,31 @@ slots:
     title: gmn accept window
     range: string
     multivalued: true
+  gmnArity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnArity
+    title: gmn arity
+    range: string
+    multivalued: false
+  gmnAsciiFallback:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnAsciiFallback
+    title: gmn ASCII fallback
+    range: string
+    multivalued: false
+  gmnCandidateDenotation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnCandidateDenotation
+    title: gmn candidate denotation
+    range: uriorcurie
+    multivalued: false
+  gmnCandidateGlyph:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnCandidateGlyph
+    title: gmn candidate glyph
+    range: string
+    multivalued: false
+  gmnCandidateTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnCandidateTarget
+    title: gmn candidate target
+    range: uriorcurie
+    multivalued: false
   gmnCodepoints:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnCodepoints
     title: gmn codepoints
@@ -8784,6 +8893,11 @@ slots:
     title: gmn declared rate
     range: uriorcurie
     multivalued: true
+  gmnDenotationGrapheme:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDenotationGrapheme
+    title: gmn denotation grapheme
+    range: uriorcurie
+    multivalued: false
   gmnDeterminismClass:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnDeterminismClass
     title: gmn determinism class
@@ -8812,6 +8926,16 @@ slots:
     title: gmn dictionary version
     range: string
     multivalued: true
+  gmnDispositionBasis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDispositionBasis
+    title: gmn disposition basis
+    range: uriorcurie
+    multivalued: false
+  gmnDispositionRationale:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDispositionRationale
+    title: gmn disposition rationale
+    range: string
+    multivalued: false
   gmnEnvelopeCorrespondence:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence
     title: gmn envelope correspondence
@@ -8919,6 +9043,16 @@ slots:
     title: gmn sigil scope
     range: uriorcurie
     multivalued: true
+  gmnSpokenLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnSpokenLabel
+    title: gmn spoken label
+    range: string
+    multivalued: false
+  gmnSymbolDisposition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnSymbolDisposition
+    title: gmn symbol disposition
+    range: uriorcurie
+    multivalued: false
   governanceModel:
     slot_uri: https://blackcatinformatics.ca/gmeow/governanceModel
     title: governance model
@@ -8956,6 +9090,66 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/groundedIn
     title: grounded in
     range: EvidenceSpan
+    multivalued: true
+  groundingAlignPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingAlignPredicate
+    title: grounding alignment predicate
+    range: string
+    domain: GroundingCoverage
+    multivalued: true
+  groundingAttribute:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingAttribute
+    title: grounding attribute
+    range: GroundingAttribute
+    domain: GroundingCoverage
+    multivalued: true
+  groundingConfidence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingConfidence
+    title: grounding confidence
+    range: decimal
+    domain: GroundingCoverage
+    multivalued: true
+  groundingConflict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingConflict
+    title: grounding conflict
+    range: boolean
+    domain: GroundingCoverage
+    multivalued: true
+  groundingConflictWith:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingConflictWith
+    title: grounding conflict with
+    range: uriorcurie
+    domain: GroundingCoverage
+    multivalued: true
+  groundingExternalEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingExternalEntity
+    title: grounding external entity
+    range: uriorcurie
+    domain: GroundingCoverage
+    multivalued: true
+  groundingExternalLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingExternalLabel
+    title: grounding external label
+    range: string
+    domain: GroundingCoverage
+    multivalued: true
+  groundingPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingPredicate
+    title: grounding predicate
+    range: string
+    domain: GroundingCoverage
+    multivalued: true
+  groundingTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingTerm
+    title: grounding term
+    range: uriorcurie
+    domain: GroundingCoverage
+    multivalued: true
+  groundingValue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundingValue
+    title: grounding value
+    range: string
+    domain: GroundingCoverage
     multivalued: true
   groundsClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/groundsClaim
@@ -10694,7 +10888,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/isResultOf
     title: is result of
     range: Observation
-    domain: Entity
     multivalued: true
   issuedAt:
     slot_uri: https://blackcatinformatics.ca/gmeow/issuedAt
@@ -11883,9 +12076,9 @@ slots:
   observationResult:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationResult
     title: observation result
-    range: Entity
+    range: uriorcurie
     domain: Observation
-    multivalued: false
+    multivalued: true
   observationType:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationType
     title: observation type
@@ -12038,7 +12231,7 @@ slots:
   overlayLowerBound:
     slot_uri: https://blackcatinformatics.ca/gmeow/overlayLowerBound
     title: overlay lower bound
-    range: ScalarQuantity
+    range: uriorcurie
     domain: RegulatoryOverlay
     multivalued: true
   overlayPlace:
@@ -12062,7 +12255,7 @@ slots:
   overlayUpperBound:
     slot_uri: https://blackcatinformatics.ca/gmeow/overlayUpperBound
     title: overlay upper bound
-    range: ScalarQuantity
+    range: uriorcurie
     domain: RegulatoryOverlay
     multivalued: true
   overrides:
@@ -12088,6 +12281,90 @@ slots:
     title: package of
     range: SoftwareProduct
     domain: Package
+    multivalued: true
+  packetAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetAxis
+    title: packet axis
+    range: string
+    domain: AuthoringPacket
+    multivalued: true
+  packetBatch:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetBatch
+    title: packet batch
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetCoversTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetCoversTerm
+    title: packet covers term
+    range: uriorcurie
+    domain: AuthoringPacket
+    multivalued: true
+  packetDigest:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetDigest
+    title: packet digest
+    range: string
+    domain: AuthoringPacket
+    multivalued: true
+  packetExemplar:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetExemplar
+    title: packet exemplar
+    range: uriorcurie
+    domain: AuthoringPacket
+    multivalued: true
+  packetExternalAbsent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetExternalAbsent
+    title: packet external absent
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetExternalMapped:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetExternalMapped
+    title: packet external mapped
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetFrAbsent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetFrAbsent
+    title: packet French absent
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetFrPresent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetFrPresent
+    title: packet French present
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetGrounding:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetGrounding
+    title: packet grounding
+    range: GroundingCoverage
+    domain: AuthoringPacket
+    multivalued: true
+  packetSourceSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetSourceSlice
+    title: packet source slice
+    range: uriorcurie
+    domain: AuthoringPacket
+    multivalued: true
+  packetTermCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetTermCount
+    title: packet term count
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetZhAbsent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetZhAbsent
+    title: packet Chinese absent
+    range: integer
+    domain: AuthoringPacket
+    multivalued: true
+  packetZhPresent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packetZhPresent
+    title: packet Chinese present
+    range: integer
+    domain: AuthoringPacket
     multivalued: true
   pageOfSite:
     slot_uri: https://blackcatinformatics.ca/gmeow/pageOfSite
@@ -12878,13 +13155,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/quantityUncertainty
     title: quantity uncertainty
     range: decimal
-    domain: ScalarQuantity
-    multivalued: false
-  quantityValue:
-    slot_uri: https://blackcatinformatics.ca/gmeow/quantityValue
-    title: quantity value
-    range: decimal
-    domain: ScalarQuantity
     multivalued: false
   quaternionW:
     slot_uri: https://blackcatinformatics.ca/gmeow/quaternionW
@@ -14139,13 +14409,13 @@ slots:
   stateHasAngularVelocity:
     slot_uri: https://blackcatinformatics.ca/gmeow/stateHasAngularVelocity
     title: state has angular velocity
-    range: ScalarQuantity
+    range: uriorcurie
     domain: LocationState
     multivalued: true
   stateHasVelocity:
     slot_uri: https://blackcatinformatics.ca/gmeow/stateHasVelocity
     title: state has velocity
-    range: ScalarQuantity
+    range: uriorcurie
     domain: LocationState
     multivalued: true
   stateInterval:
@@ -15014,7 +15284,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/trueQuantity
     title: true quantity
     range: Magnitude
-    domain: Entity
     multivalued: false
   trustLevel:
     slot_uri: https://blackcatinformatics.ca/gmeow/trustLevel
@@ -15370,6 +15639,61 @@ slots:
     range: string
     domain: VirtualLocation
     multivalued: true
+  vocabularyAlignmentPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyAlignmentPredicate
+    title: vocabulary alignment predicate
+    range: uri
+    domain: ProjectionVocabulary
+    multivalued: true
+  vocabularyCountKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyCountKind
+    title: vocabulary count kind
+    range: string
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularyCountPredicate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyCountPredicate
+    title: vocabulary count predicate
+    range: uri
+    domain: ProjectionVocabulary
+    multivalued: true
+  vocabularyDefaultCeiling:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling
+    title: vocabulary default ceiling
+    range: integer
+    domain: ProjectionVocabulary
+    minimum_value: 0
+    multivalued: false
+  vocabularyNamespace:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyNamespace
+    title: vocabulary namespace
+    range: uri
+    domain: ProjectionVocabulary
+    multivalued: true
+  vocabularyOwner:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyOwner
+    title: vocabulary owner
+    range: uriorcurie
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularyPrefix:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyPrefix
+    title: vocabulary prefix
+    range: string
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularyPreservation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularyPreservation
+    title: vocabulary preservation
+    range: uriorcurie
+    domain: ProjectionVocabulary
+    multivalued: false
+  vocabularySubsumedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy
+    title: vocabulary subsumed by
+    range: uriorcurie
+    domain: ProjectionVocabulary
+    multivalued: false
   voiceExemplifiedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/voiceExemplifiedBy
     title: voice exemplified by
@@ -16374,6 +16698,9 @@ enums:
       afc-accessibility-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisGmn1Coverage
         title: axis-floor commitment — accessibility / axisGmn1Coverage
+      afc-accessibility-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisGmnGlyphOptimality
+        title: axis-floor commitment — accessibility / axisGmnGlyphOptimality
       afc-accessibility-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisProseQuality
         title: axis-floor commitment — accessibility / axisProseQuality
@@ -16392,6 +16719,9 @@ enums:
       afc-accounts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisGmn1Coverage
         title: axis-floor commitment — accounts / axisGmn1Coverage
+      afc-accounts-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisGmnGlyphOptimality
+        title: axis-floor commitment — accounts / axisGmnGlyphOptimality
       afc-accounts-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisProseQuality
         title: axis-floor commitment — accounts / axisProseQuality
@@ -16410,6 +16740,9 @@ enums:
       afc-affect-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisGmn1Coverage
         title: axis-floor commitment — affect / axisGmn1Coverage
+      afc-affect-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisGmnGlyphOptimality
+        title: axis-floor commitment — affect / axisGmnGlyphOptimality
       afc-affect-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisProseQuality
         title: axis-floor commitment — affect / axisProseQuality
@@ -16428,6 +16761,9 @@ enums:
       afc-agent-runtime-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisGmn1Coverage
         title: axis-floor commitment — agent-runtime / axisGmn1Coverage
+      afc-agent-runtime-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisGmnGlyphOptimality
+        title: axis-floor commitment — agent-runtime / axisGmnGlyphOptimality
       afc-agent-runtime-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisProseQuality
         title: axis-floor commitment — agent-runtime / axisProseQuality
@@ -16446,6 +16782,9 @@ enums:
       afc-agentic-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisGmn1Coverage
         title: axis-floor commitment — agentic / axisGmn1Coverage
+      afc-agentic-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisGmnGlyphOptimality
+        title: axis-floor commitment — agentic / axisGmnGlyphOptimality
       afc-agentic-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisProseQuality
         title: axis-floor commitment — agentic / axisProseQuality
@@ -16464,6 +16803,9 @@ enums:
       afc-aggregation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisGmn1Coverage
         title: axis-floor commitment — aggregation / axisGmn1Coverage
+      afc-aggregation-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisGmnGlyphOptimality
+        title: axis-floor commitment — aggregation / axisGmnGlyphOptimality
       afc-aggregation-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisProseQuality
         title: axis-floor commitment — aggregation / axisProseQuality
@@ -16482,6 +16824,9 @@ enums:
       afc-agreements-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisGmn1Coverage
         title: axis-floor commitment — agreements / axisGmn1Coverage
+      afc-agreements-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisGmnGlyphOptimality
+        title: axis-floor commitment — agreements / axisGmnGlyphOptimality
       afc-agreements-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisProseQuality
         title: axis-floor commitment — agreements / axisProseQuality
@@ -16500,6 +16845,9 @@ enums:
       afc-ai-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisGmn1Coverage
         title: axis-floor commitment — ai / axisGmn1Coverage
+      afc-ai-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisGmnGlyphOptimality
+        title: axis-floor commitment — ai / axisGmnGlyphOptimality
       afc-ai-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisProseQuality
         title: axis-floor commitment — ai / axisProseQuality
@@ -16518,6 +16866,9 @@ enums:
       afc-archaeological-evidence-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisGmn1Coverage
         title: axis-floor commitment — archaeological-evidence / axisGmn1Coverage
+      afc-archaeological-evidence-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisGmnGlyphOptimality
+        title: axis-floor commitment — archaeological-evidence / axisGmnGlyphOptimality
       afc-archaeological-evidence-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisProseQuality
         title: axis-floor commitment — archaeological-evidence / axisProseQuality
@@ -16536,6 +16887,9 @@ enums:
       afc-attestation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisGmn1Coverage
         title: axis-floor commitment — attestation / axisGmn1Coverage
+      afc-attestation-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisGmnGlyphOptimality
+        title: axis-floor commitment — attestation / axisGmnGlyphOptimality
       afc-attestation-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisProseQuality
         title: axis-floor commitment — attestation / axisProseQuality
@@ -16554,6 +16908,9 @@ enums:
       afc-awareness-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisGmn1Coverage
         title: axis-floor commitment — awareness / axisGmn1Coverage
+      afc-awareness-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisGmnGlyphOptimality
+        title: axis-floor commitment — awareness / axisGmnGlyphOptimality
       afc-awareness-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisProseQuality
         title: axis-floor commitment — awareness / axisProseQuality
@@ -16572,6 +16929,9 @@ enums:
       afc-calendar-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisGmn1Coverage
         title: axis-floor commitment — calendar / axisGmn1Coverage
+      afc-calendar-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisGmnGlyphOptimality
+        title: axis-floor commitment — calendar / axisGmnGlyphOptimality
       afc-calendar-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisProseQuality
         title: axis-floor commitment — calendar / axisProseQuality
@@ -16590,6 +16950,9 @@ enums:
       afc-citations-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisGmn1Coverage
         title: axis-floor commitment — citations / axisGmn1Coverage
+      afc-citations-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisGmnGlyphOptimality
+        title: axis-floor commitment — citations / axisGmnGlyphOptimality
       afc-citations-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisProseQuality
         title: axis-floor commitment — citations / axisProseQuality
@@ -16608,6 +16971,9 @@ enums:
       afc-cognition-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisGmn1Coverage
         title: axis-floor commitment — cognition / axisGmn1Coverage
+      afc-cognition-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisGmnGlyphOptimality
+        title: axis-floor commitment — cognition / axisGmnGlyphOptimality
       afc-cognition-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisProseQuality
         title: axis-floor commitment — cognition / axisProseQuality
@@ -16626,6 +16992,9 @@ enums:
       afc-concepts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisGmn1Coverage
         title: axis-floor commitment — concepts / axisGmn1Coverage
+      afc-concepts-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisGmnGlyphOptimality
+        title: axis-floor commitment — concepts / axisGmnGlyphOptimality
       afc-concepts-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisProseQuality
         title: axis-floor commitment — concepts / axisProseQuality
@@ -16644,6 +17013,9 @@ enums:
       afc-connectivity-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisGmn1Coverage
         title: axis-floor commitment — connectivity / axisGmn1Coverage
+      afc-connectivity-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisGmnGlyphOptimality
+        title: axis-floor commitment — connectivity / axisGmnGlyphOptimality
       afc-connectivity-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisProseQuality
         title: axis-floor commitment — connectivity / axisProseQuality
@@ -16662,6 +17034,9 @@ enums:
       afc-contacts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisGmn1Coverage
         title: axis-floor commitment — contacts / axisGmn1Coverage
+      afc-contacts-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisGmnGlyphOptimality
+        title: axis-floor commitment — contacts / axisGmnGlyphOptimality
       afc-contacts-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisProseQuality
         title: axis-floor commitment — contacts / axisProseQuality
@@ -16680,6 +17055,9 @@ enums:
       afc-coreference-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisGmn1Coverage
         title: axis-floor commitment — coreference / axisGmn1Coverage
+      afc-coreference-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisGmnGlyphOptimality
+        title: axis-floor commitment — coreference / axisGmnGlyphOptimality
       afc-coreference-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisProseQuality
         title: axis-floor commitment — coreference / axisProseQuality
@@ -16698,6 +17076,9 @@ enums:
       afc-creative-works-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisGmn1Coverage
         title: axis-floor commitment — creative-works / axisGmn1Coverage
+      afc-creative-works-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisGmnGlyphOptimality
+        title: axis-floor commitment — creative-works / axisGmnGlyphOptimality
       afc-creative-works-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisProseQuality
         title: axis-floor commitment — creative-works / axisProseQuality
@@ -16716,6 +17097,9 @@ enums:
       afc-deception-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisGmn1Coverage
         title: axis-floor commitment — deception / axisGmn1Coverage
+      afc-deception-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisGmnGlyphOptimality
+        title: axis-floor commitment — deception / axisGmnGlyphOptimality
       afc-deception-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisProseQuality
         title: axis-floor commitment — deception / axisProseQuality
@@ -16734,6 +17118,9 @@ enums:
       afc-diagnostics-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisGmn1Coverage
         title: axis-floor commitment — diagnostics / axisGmn1Coverage
+      afc-diagnostics-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisGmnGlyphOptimality
+        title: axis-floor commitment — diagnostics / axisGmnGlyphOptimality
       afc-diagnostics-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisProseQuality
         title: axis-floor commitment — diagnostics / axisProseQuality
@@ -16752,6 +17139,9 @@ enums:
       afc-documentation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-documentation-axisGmn1Coverage
         title: axis-floor commitment — documentation / axisGmn1Coverage
+      afc-documentation-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-documentation-axisGmnGlyphOptimality
+        title: axis-floor commitment — documentation / axisGmnGlyphOptimality
       afc-documentation-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-documentation-axisProseQuality
         title: axis-floor commitment — documentation / axisProseQuality
@@ -16767,6 +17157,9 @@ enums:
       afc-documents-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisGmn1Coverage
         title: axis-floor commitment — documents / axisGmn1Coverage
+      afc-documents-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisGmnGlyphOptimality
+        title: axis-floor commitment — documents / axisGmnGlyphOptimality
       afc-documents-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisProseQuality
         title: axis-floor commitment — documents / axisProseQuality
@@ -16785,6 +17178,9 @@ enums:
       afc-dreaming-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisGmn1Coverage
         title: axis-floor commitment — dreaming / axisGmn1Coverage
+      afc-dreaming-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisGmnGlyphOptimality
+        title: axis-floor commitment — dreaming / axisGmnGlyphOptimality
       afc-dreaming-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisProseQuality
         title: axis-floor commitment — dreaming / axisProseQuality
@@ -16803,6 +17199,9 @@ enums:
       afc-email-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisGmn1Coverage
         title: axis-floor commitment — email / axisGmn1Coverage
+      afc-email-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisGmnGlyphOptimality
+        title: axis-floor commitment — email / axisGmnGlyphOptimality
       afc-email-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisProseQuality
         title: axis-floor commitment — email / axisProseQuality
@@ -16821,6 +17220,9 @@ enums:
       afc-employment-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisGmn1Coverage
         title: axis-floor commitment — employment / axisGmn1Coverage
+      afc-employment-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisGmnGlyphOptimality
+        title: axis-floor commitment — employment / axisGmnGlyphOptimality
       afc-employment-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisProseQuality
         title: axis-floor commitment — employment / axisProseQuality
@@ -16839,6 +17241,9 @@ enums:
       afc-entities-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisGmn1Coverage
         title: axis-floor commitment — entities / axisGmn1Coverage
+      afc-entities-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisGmnGlyphOptimality
+        title: axis-floor commitment — entities / axisGmnGlyphOptimality
       afc-entities-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisProseQuality
         title: axis-floor commitment — entities / axisProseQuality
@@ -16857,6 +17262,9 @@ enums:
       afc-epistemics-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisGmn1Coverage
         title: axis-floor commitment — epistemics / axisGmn1Coverage
+      afc-epistemics-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisGmnGlyphOptimality
+        title: axis-floor commitment — epistemics / axisGmnGlyphOptimality
       afc-epistemics-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisProseQuality
         title: axis-floor commitment — epistemics / axisProseQuality
@@ -16875,6 +17283,9 @@ enums:
       afc-events-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisGmn1Coverage
         title: axis-floor commitment — events / axisGmn1Coverage
+      afc-events-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisGmnGlyphOptimality
+        title: axis-floor commitment — events / axisGmnGlyphOptimality
       afc-events-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisProseQuality
         title: axis-floor commitment — events / axisProseQuality
@@ -16893,6 +17304,9 @@ enums:
       afc-evidence-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisGmn1Coverage
         title: axis-floor commitment — evidence / axisGmn1Coverage
+      afc-evidence-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisGmnGlyphOptimality
+        title: axis-floor commitment — evidence / axisGmnGlyphOptimality
       afc-evidence-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisProseQuality
         title: axis-floor commitment — evidence / axisProseQuality
@@ -16911,6 +17325,9 @@ enums:
       afc-expertise-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisGmn1Coverage
         title: axis-floor commitment — expertise / axisGmn1Coverage
+      afc-expertise-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisGmnGlyphOptimality
+        title: axis-floor commitment — expertise / axisGmnGlyphOptimality
       afc-expertise-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisProseQuality
         title: axis-floor commitment — expertise / axisProseQuality
@@ -16929,6 +17346,9 @@ enums:
       afc-finance-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisGmn1Coverage
         title: axis-floor commitment — finance / axisGmn1Coverage
+      afc-finance-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisGmnGlyphOptimality
+        title: axis-floor commitment — finance / axisGmnGlyphOptimality
       afc-finance-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisProseQuality
         title: axis-floor commitment — finance / axisProseQuality
@@ -16947,6 +17367,9 @@ enums:
       afc-gender-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisGmn1Coverage
         title: axis-floor commitment — gender / axisGmn1Coverage
+      afc-gender-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisGmnGlyphOptimality
+        title: axis-floor commitment — gender / axisGmnGlyphOptimality
       afc-gender-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisProseQuality
         title: axis-floor commitment — gender / axisProseQuality
@@ -16965,6 +17388,9 @@ enums:
       afc-genealogy-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisGmn1Coverage
         title: axis-floor commitment — genealogy / axisGmn1Coverage
+      afc-genealogy-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisGmnGlyphOptimality
+        title: axis-floor commitment — genealogy / axisGmnGlyphOptimality
       afc-genealogy-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisProseQuality
         title: axis-floor commitment — genealogy / axisProseQuality
@@ -16983,6 +17409,9 @@ enums:
       afc-graphrag-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisGmn1Coverage
         title: axis-floor commitment — graphrag / axisGmn1Coverage
+      afc-graphrag-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisGmnGlyphOptimality
+        title: axis-floor commitment — graphrag / axisGmnGlyphOptimality
       afc-graphrag-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisProseQuality
         title: axis-floor commitment — graphrag / axisProseQuality
@@ -17001,6 +17430,9 @@ enums:
       afc-gts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisGmn1Coverage
         title: axis-floor commitment — gts / axisGmn1Coverage
+      afc-gts-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisGmnGlyphOptimality
+        title: axis-floor commitment — gts / axisGmnGlyphOptimality
       afc-gts-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisProseQuality
         title: axis-floor commitment — gts / axisProseQuality
@@ -17019,6 +17451,9 @@ enums:
       afc-guides-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisGmn1Coverage
         title: axis-floor commitment — guides / axisGmn1Coverage
+      afc-guides-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisGmnGlyphOptimality
+        title: axis-floor commitment — guides / axisGmnGlyphOptimality
       afc-guides-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisProseQuality
         title: axis-floor commitment — guides / axisProseQuality
@@ -17037,6 +17472,9 @@ enums:
       afc-images-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisGmn1Coverage
         title: axis-floor commitment — images / axisGmn1Coverage
+      afc-images-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisGmnGlyphOptimality
+        title: axis-floor commitment — images / axisGmnGlyphOptimality
       afc-images-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisProseQuality
         title: axis-floor commitment — images / axisProseQuality
@@ -17055,6 +17493,9 @@ enums:
       afc-imagination-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisGmn1Coverage
         title: axis-floor commitment — imagination / axisGmn1Coverage
+      afc-imagination-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisGmnGlyphOptimality
+        title: axis-floor commitment — imagination / axisGmnGlyphOptimality
       afc-imagination-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisProseQuality
         title: axis-floor commitment — imagination / axisProseQuality
@@ -17073,6 +17514,9 @@ enums:
       afc-inference-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisGmn1Coverage
         title: axis-floor commitment — inference / axisGmn1Coverage
+      afc-inference-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisGmnGlyphOptimality
+        title: axis-floor commitment — inference / axisGmnGlyphOptimality
       afc-inference-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisProseQuality
         title: axis-floor commitment — inference / axisProseQuality
@@ -17091,6 +17535,9 @@ enums:
       afc-inhabitation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisGmn1Coverage
         title: axis-floor commitment — inhabitation / axisGmn1Coverage
+      afc-inhabitation-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisGmnGlyphOptimality
+        title: axis-floor commitment — inhabitation / axisGmnGlyphOptimality
       afc-inhabitation-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisProseQuality
         title: axis-floor commitment — inhabitation / axisProseQuality
@@ -17109,6 +17556,9 @@ enums:
       afc-inquiry-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisGmn1Coverage
         title: axis-floor commitment — inquiry / axisGmn1Coverage
+      afc-inquiry-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisGmnGlyphOptimality
+        title: axis-floor commitment — inquiry / axisGmnGlyphOptimality
       afc-inquiry-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisProseQuality
         title: axis-floor commitment — inquiry / axisProseQuality
@@ -17127,6 +17577,9 @@ enums:
       afc-kernel-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisGmn1Coverage
         title: axis-floor commitment — kernel / axisGmn1Coverage
+      afc-kernel-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisGmnGlyphOptimality
+        title: axis-floor commitment — kernel / axisGmnGlyphOptimality
       afc-kernel-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisProseQuality
         title: axis-floor commitment — kernel / axisProseQuality
@@ -17145,6 +17598,15 @@ enums:
       afc-lang-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisGmn1Coverage
         title: axis-floor commitment — lang / axisGmn1Coverage
+      afc-lang-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisGmnGlyphOptimality
+        title: axis-floor commitment — lang / axisGmnGlyphOptimality
+      afc-lang-axisMaximalGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisMaximalGrounding
+        title: axis-floor commitment — lang / axisMaximalGrounding
+      afc-lang-axisMaximalLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisMaximalLinkage
+        title: axis-floor commitment — lang / axisMaximalLinkage
       afc-lang-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisProseQuality
         title: axis-floor commitment — lang / axisProseQuality
@@ -17163,6 +17625,9 @@ enums:
       afc-language-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisGmn1Coverage
         title: axis-floor commitment — language / axisGmn1Coverage
+      afc-language-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisGmnGlyphOptimality
+        title: axis-floor commitment — language / axisGmnGlyphOptimality
       afc-language-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisProseQuality
         title: axis-floor commitment — language / axisProseQuality
@@ -17181,6 +17646,9 @@ enums:
       afc-languages-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisGmn1Coverage
         title: axis-floor commitment — languages / axisGmn1Coverage
+      afc-languages-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisGmnGlyphOptimality
+        title: axis-floor commitment — languages / axisGmnGlyphOptimality
       afc-languages-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisProseQuality
         title: axis-floor commitment — languages / axisProseQuality
@@ -17199,6 +17667,9 @@ enums:
       afc-learning-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisGmn1Coverage
         title: axis-floor commitment — learning / axisGmn1Coverage
+      afc-learning-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisGmnGlyphOptimality
+        title: axis-floor commitment — learning / axisGmnGlyphOptimality
       afc-learning-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisProseQuality
         title: axis-floor commitment — learning / axisProseQuality
@@ -17217,6 +17688,9 @@ enums:
       afc-lexicon-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisGmn1Coverage
         title: axis-floor commitment — lexicon / axisGmn1Coverage
+      afc-lexicon-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisGmnGlyphOptimality
+        title: axis-floor commitment — lexicon / axisGmnGlyphOptimality
       afc-lexicon-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisProseQuality
         title: axis-floor commitment — lexicon / axisProseQuality
@@ -17235,6 +17709,9 @@ enums:
       afc-lifecycle-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisGmn1Coverage
         title: axis-floor commitment — lifecycle / axisGmn1Coverage
+      afc-lifecycle-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisGmnGlyphOptimality
+        title: axis-floor commitment — lifecycle / axisGmnGlyphOptimality
       afc-lifecycle-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisProseQuality
         title: axis-floor commitment — lifecycle / axisProseQuality
@@ -17256,6 +17733,9 @@ enums:
       afc-logic-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisGmn1Coverage
         title: axis-floor commitment — logic / axisGmn1Coverage
+      afc-logic-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisGmnGlyphOptimality
+        title: axis-floor commitment — logic / axisGmnGlyphOptimality
       afc-logic-axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalGrounding
         title: axis-floor commitment — logic / axisMaximalGrounding
@@ -17292,12 +17772,39 @@ enums:
       afc-math-axisDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisDocumentation
         title: axis-floor commitment — math / axisDocumentation
+      afc-math-axisFlagshipCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth
+        title: axis-floor commitment — math / axisFlagshipCounterExampleDepth
       afc-math-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage
         title: axis-floor commitment — math / axisGmn1Coverage
+      afc-math-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisGmnGlyphOptimality
+        title: axis-floor commitment — math / axisGmnGlyphOptimality
+      afc-math-axisMaximalGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding
+        title: axis-floor commitment — math / axisMaximalGrounding
+      afc-math-axisMaximalInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation
+        title: axis-floor commitment — math / axisMaximalInformation
+      afc-math-axisMaximalLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage
+        title: axis-floor commitment — math / axisMaximalLinkage
+      afc-math-axisMaximalProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection
+        title: axis-floor commitment — math / axisMaximalProjection
+      afc-math-axisOptimalTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting
+        title: axis-floor commitment — math / axisOptimalTesting
       afc-math-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisProseQuality
         title: axis-floor commitment — math / axisProseQuality
+      afc-math-axisProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty
+        title: axis-floor commitment — math / axisProvenanceHonesty
+      afc-math-axisReasonerDerived:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived
+        title: axis-floor commitment — math / axisReasonerDerived
       afc-math-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisShapeMigration
         title: axis-floor commitment — math / axisShapeMigration
@@ -17313,6 +17820,9 @@ enums:
       afc-mentation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisGmn1Coverage
         title: axis-floor commitment — mentation / axisGmn1Coverage
+      afc-mentation-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisGmnGlyphOptimality
+        title: axis-floor commitment — mentation / axisGmnGlyphOptimality
       afc-mentation-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisProseQuality
         title: axis-floor commitment — mentation / axisProseQuality
@@ -17331,6 +17841,9 @@ enums:
       afc-metacognition-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisGmn1Coverage
         title: axis-floor commitment — metacognition / axisGmn1Coverage
+      afc-metacognition-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisGmnGlyphOptimality
+        title: axis-floor commitment — metacognition / axisGmnGlyphOptimality
       afc-metacognition-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisProseQuality
         title: axis-floor commitment — metacognition / axisProseQuality
@@ -17349,6 +17862,9 @@ enums:
       afc-model-serving-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisGmn1Coverage
         title: axis-floor commitment — model-serving / axisGmn1Coverage
+      afc-model-serving-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisGmnGlyphOptimality
+        title: axis-floor commitment — model-serving / axisGmnGlyphOptimality
       afc-model-serving-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisProseQuality
         title: axis-floor commitment — model-serving / axisProseQuality
@@ -17367,6 +17883,9 @@ enums:
       afc-music-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisGmn1Coverage
         title: axis-floor commitment — music / axisGmn1Coverage
+      afc-music-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisGmnGlyphOptimality
+        title: axis-floor commitment — music / axisGmnGlyphOptimality
       afc-music-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisProseQuality
         title: axis-floor commitment — music / axisProseQuality
@@ -17385,6 +17904,9 @@ enums:
       afc-names-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisGmn1Coverage
         title: axis-floor commitment — names / axisGmn1Coverage
+      afc-names-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisGmnGlyphOptimality
+        title: axis-floor commitment — names / axisGmnGlyphOptimality
       afc-names-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisProseQuality
         title: axis-floor commitment — names / axisProseQuality
@@ -17403,6 +17925,9 @@ enums:
       afc-narrative-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisGmn1Coverage
         title: axis-floor commitment — narrative / axisGmn1Coverage
+      afc-narrative-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisGmnGlyphOptimality
+        title: axis-floor commitment — narrative / axisGmnGlyphOptimality
       afc-narrative-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisProseQuality
         title: axis-floor commitment — narrative / axisProseQuality
@@ -17421,6 +17946,9 @@ enums:
       afc-norms-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisGmn1Coverage
         title: axis-floor commitment — norms / axisGmn1Coverage
+      afc-norms-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisGmnGlyphOptimality
+        title: axis-floor commitment — norms / axisGmnGlyphOptimality
       afc-norms-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisProseQuality
         title: axis-floor commitment — norms / axisProseQuality
@@ -17439,6 +17967,9 @@ enums:
       afc-notation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisGmn1Coverage
         title: axis-floor commitment — notation / axisGmn1Coverage
+      afc-notation-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisGmnGlyphOptimality
+        title: axis-floor commitment — notation / axisGmnGlyphOptimality
       afc-notation-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisProseQuality
         title: axis-floor commitment — notation / axisProseQuality
@@ -17457,6 +17988,9 @@ enums:
       afc-notes-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisGmn1Coverage
         title: axis-floor commitment — notes / axisGmn1Coverage
+      afc-notes-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisGmnGlyphOptimality
+        title: axis-floor commitment — notes / axisGmnGlyphOptimality
       afc-notes-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisProseQuality
         title: axis-floor commitment — notes / axisProseQuality
@@ -17475,6 +18009,9 @@ enums:
       afc-observations-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisGmn1Coverage
         title: axis-floor commitment — observations / axisGmn1Coverage
+      afc-observations-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisGmnGlyphOptimality
+        title: axis-floor commitment — observations / axisGmnGlyphOptimality
       afc-observations-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisProseQuality
         title: axis-floor commitment — observations / axisProseQuality
@@ -17493,6 +18030,9 @@ enums:
       afc-organization-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisGmn1Coverage
         title: axis-floor commitment — organization / axisGmn1Coverage
+      afc-organization-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisGmnGlyphOptimality
+        title: axis-floor commitment — organization / axisGmnGlyphOptimality
       afc-organization-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisProseQuality
         title: axis-floor commitment — organization / axisProseQuality
@@ -17511,6 +18051,9 @@ enums:
       afc-pipeline-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisGmn1Coverage
         title: axis-floor commitment — pipeline / axisGmn1Coverage
+      afc-pipeline-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisGmnGlyphOptimality
+        title: axis-floor commitment — pipeline / axisGmnGlyphOptimality
       afc-pipeline-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisProseQuality
         title: axis-floor commitment — pipeline / axisProseQuality
@@ -17529,6 +18072,9 @@ enums:
       afc-places-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisGmn1Coverage
         title: axis-floor commitment — places / axisGmn1Coverage
+      afc-places-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisGmnGlyphOptimality
+        title: axis-floor commitment — places / axisGmnGlyphOptimality
       afc-places-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisProseQuality
         title: axis-floor commitment — places / axisProseQuality
@@ -17547,6 +18093,9 @@ enums:
       afc-procedures-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisGmn1Coverage
         title: axis-floor commitment — procedures / axisGmn1Coverage
+      afc-procedures-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisGmnGlyphOptimality
+        title: axis-floor commitment — procedures / axisGmnGlyphOptimality
       afc-procedures-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisProseQuality
         title: axis-floor commitment — procedures / axisProseQuality
@@ -17565,6 +18114,9 @@ enums:
       afc-profiles-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisGmn1Coverage
         title: axis-floor commitment — profiles / axisGmn1Coverage
+      afc-profiles-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisGmnGlyphOptimality
+        title: axis-floor commitment — profiles / axisGmnGlyphOptimality
       afc-profiles-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisProseQuality
         title: axis-floor commitment — profiles / axisProseQuality
@@ -17583,6 +18135,9 @@ enums:
       afc-provenance-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisGmn1Coverage
         title: axis-floor commitment — provenance / axisGmn1Coverage
+      afc-provenance-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisGmnGlyphOptimality
+        title: axis-floor commitment — provenance / axisGmnGlyphOptimality
       afc-provenance-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisProseQuality
         title: axis-floor commitment — provenance / axisProseQuality
@@ -17601,6 +18156,9 @@ enums:
       afc-quality-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisGmn1Coverage
         title: axis-floor commitment — quality / axisGmn1Coverage
+      afc-quality-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisGmnGlyphOptimality
+        title: axis-floor commitment — quality / axisGmnGlyphOptimality
       afc-quality-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisProseQuality
         title: axis-floor commitment — quality / axisProseQuality
@@ -17619,6 +18177,9 @@ enums:
       afc-rights-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisGmn1Coverage
         title: axis-floor commitment — rights / axisGmn1Coverage
+      afc-rights-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisGmnGlyphOptimality
+        title: axis-floor commitment — rights / axisGmnGlyphOptimality
       afc-rights-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisProseQuality
         title: axis-floor commitment — rights / axisProseQuality
@@ -17637,6 +18198,9 @@ enums:
       afc-risk-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisGmn1Coverage
         title: axis-floor commitment — risk / axisGmn1Coverage
+      afc-risk-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisGmnGlyphOptimality
+        title: axis-floor commitment — risk / axisGmnGlyphOptimality
       afc-risk-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisProseQuality
         title: axis-floor commitment — risk / axisProseQuality
@@ -17655,6 +18219,9 @@ enums:
       afc-sensory-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisGmn1Coverage
         title: axis-floor commitment — sensory / axisGmn1Coverage
+      afc-sensory-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisGmnGlyphOptimality
+        title: axis-floor commitment — sensory / axisGmnGlyphOptimality
       afc-sensory-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisProseQuality
         title: axis-floor commitment — sensory / axisProseQuality
@@ -17673,6 +18240,9 @@ enums:
       afc-sensory-environment-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisGmn1Coverage
         title: axis-floor commitment — sensory-environment / axisGmn1Coverage
+      afc-sensory-environment-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisGmnGlyphOptimality
+        title: axis-floor commitment — sensory-environment / axisGmnGlyphOptimality
       afc-sensory-environment-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisProseQuality
         title: axis-floor commitment — sensory-environment / axisProseQuality
@@ -17691,6 +18261,9 @@ enums:
       afc-sexuality-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisGmn1Coverage
         title: axis-floor commitment — sexuality / axisGmn1Coverage
+      afc-sexuality-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisGmnGlyphOptimality
+        title: axis-floor commitment — sexuality / axisGmnGlyphOptimality
       afc-sexuality-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisProseQuality
         title: axis-floor commitment — sexuality / axisProseQuality
@@ -17709,6 +18282,9 @@ enums:
       afc-slice-quality-rubric-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisGmn1Coverage
         title: axis-floor commitment — slice-quality-rubric / axisGmn1Coverage
+      afc-slice-quality-rubric-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisGmnGlyphOptimality
+        title: axis-floor commitment — slice-quality-rubric / axisGmnGlyphOptimality
       afc-slice-quality-rubric-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisProseQuality
         title: axis-floor commitment — slice-quality-rubric / axisProseQuality
@@ -17727,6 +18303,9 @@ enums:
       afc-software-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisGmn1Coverage
         title: axis-floor commitment — software / axisGmn1Coverage
+      afc-software-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisGmnGlyphOptimality
+        title: axis-floor commitment — software / axisGmnGlyphOptimality
       afc-software-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisProseQuality
         title: axis-floor commitment — software / axisProseQuality
@@ -17745,6 +18324,9 @@ enums:
       afc-sources-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisGmn1Coverage
         title: axis-floor commitment — sources / axisGmn1Coverage
+      afc-sources-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisGmnGlyphOptimality
+        title: axis-floor commitment — sources / axisGmnGlyphOptimality
       afc-sources-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisProseQuality
         title: axis-floor commitment — sources / axisProseQuality
@@ -17763,6 +18345,9 @@ enums:
       afc-standpoint-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisGmn1Coverage
         title: axis-floor commitment — standpoint / axisGmn1Coverage
+      afc-standpoint-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisGmnGlyphOptimality
+        title: axis-floor commitment — standpoint / axisGmnGlyphOptimality
       afc-standpoint-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisProseQuality
         title: axis-floor commitment — standpoint / axisProseQuality
@@ -17781,6 +18366,9 @@ enums:
       afc-tags-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisGmn1Coverage
         title: axis-floor commitment — tags / axisGmn1Coverage
+      afc-tags-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisGmnGlyphOptimality
+        title: axis-floor commitment — tags / axisGmnGlyphOptimality
       afc-tags-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisProseQuality
         title: axis-floor commitment — tags / axisProseQuality
@@ -17799,6 +18387,9 @@ enums:
       afc-teleology-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisGmn1Coverage
         title: axis-floor commitment — teleology / axisGmn1Coverage
+      afc-teleology-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisGmnGlyphOptimality
+        title: axis-floor commitment — teleology / axisGmnGlyphOptimality
       afc-teleology-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisProseQuality
         title: axis-floor commitment — teleology / axisProseQuality
@@ -17817,6 +18408,9 @@ enums:
       afc-temporal-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisGmn1Coverage
         title: axis-floor commitment — temporal / axisGmn1Coverage
+      afc-temporal-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisGmnGlyphOptimality
+        title: axis-floor commitment — temporal / axisGmnGlyphOptimality
       afc-temporal-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisProseQuality
         title: axis-floor commitment — temporal / axisProseQuality
@@ -17835,6 +18429,9 @@ enums:
       afc-trust-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisGmn1Coverage
         title: axis-floor commitment — trust / axisGmn1Coverage
+      afc-trust-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisGmnGlyphOptimality
+        title: axis-floor commitment — trust / axisGmnGlyphOptimality
       afc-trust-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisProseQuality
         title: axis-floor commitment — trust / axisProseQuality
@@ -17853,6 +18450,9 @@ enums:
       afc-versions-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-versions-axisGmn1Coverage
         title: axis-floor commitment — versions / axisGmn1Coverage
+      afc-versions-axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-versions-axisGmnGlyphOptimality
+        title: axis-floor commitment — versions / axisGmnGlyphOptimality
       afc-versions-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-versions-axisProseQuality
         title: axis-floor commitment — versions / axisProseQuality
@@ -17919,6 +18519,18 @@ enums:
       thrGmn1CoverageMaximal:
         meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageMaximal
         title: GMN-1-coverage floor — Maximal
+      thrGmnGlyphExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmnGlyphExemplified
+        title: GMN-glyph-optimality floor — Exemplified
+      thrGmnGlyphGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmnGlyphGrounded
+        title: GMN-glyph-optimality floor — Grounded
+      thrGmnGlyphLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmnGlyphLinked
+        title: GMN-glyph-optimality floor — Linked
+      thrGmnGlyphMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmnGlyphMaximal
+        title: GMN-glyph-optimality floor — Maximal
       thrGroundingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrGroundingExemplified
         title: grounding floor — Exemplified
@@ -18066,9 +18678,15 @@ enums:
   BuildDataFlowEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
     permissible_values:
+      pipeline-dataflow-compile-logic-source-load:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-compile-logic-source-load
+        title: 'dataflow: source-load → compile-logic'
       pipeline-dataflow-reason-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
         title: 'dataflow: compile-logic → reason'
+      pipeline-dataflow-validate-compile-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-compile-logic
+        title: 'dataflow: compile-logic → validate'
   CadastralReferenceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     permissible_values:
@@ -18768,6 +19386,24 @@ enums:
   CreativeWorkEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWork
     permissible_values:
+      gmnCommonLogicWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCommonLogicWork
+        title: Common Logic standard
+      gmnDescriptionLogicNotationWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDescriptionLogicNotationWork
+        title: description-logic subsumption notation
+      gmnFormalSemanticsNotationWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnFormalSemanticsNotationWork
+        title: formal-semantics notation conventions
+      gmnLinguisticNotationWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLinguisticNotationWork
+        title: linguistic acceptability notation conventions
+      gmnOpenMathWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnOpenMathWork
+        title: OpenMath content dictionaries
+      gmnUnicodeMathWork:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnUnicodeMathWork
+        title: Unicode mathematical and Greek symbol repertoire
       ipaChartWork:
         meaning: https://blackcatinformatics.ca/gmeow/ipaChartWork
         title: the IPA Chart
@@ -19890,6 +20526,9 @@ enums:
   FanoutExtractionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FanoutExtraction
     permissible_values:
+      fanout-briefs-authoring-packets:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-briefs-authoring-packets
+        title: fanout briefs authoring packets
       fanout-catalog-constraint-catalog:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-catalog-constraint-catalog
         title: fanout catalog constraint catalog
@@ -20385,12 +21024,54 @@ enums:
       gmnDictV1EntryModalPossible:
         meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalPossible
         title: 'dict-v1 entry: gmeow:modalForcePossible → poss'
+      gmnDictV2EntryDenotation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryDenotation
+        title: 'dict-v2 entry: lang:Denotation to den'
+      gmnDictV2EntryLogicAnd:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryLogicAnd
+        title: 'dict-v2 entry: logic:and to and'
+      gmnDictV2EntryLogicExists:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryLogicExists
+        title: 'dict-v2 entry: logic:exists to ex'
+      gmnDictV2EntryLogicForall:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryLogicForall
+        title: 'dict-v2 entry: logic:forall to fa'
+      gmnDictV2EntryLogicIff:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryLogicIff
+        title: 'dict-v2 entry: logic:iff to iff'
+      gmnDictV2EntryLogicOr:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryLogicOr
+        title: 'dict-v2 entry: logic:or to or'
+      gmnDictV2EntryMathDivision:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryMathDivision
+        title: 'dict-v2 entry: math:Division to div'
+      gmnDictV2EntryMorphemeBoundary:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryMorphemeBoundary
+        title: 'dict-v2 entry: lang:MorphemeBoundary to mb'
+      gmnDictV2EntryTranslation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2EntryTranslation
+        title: 'dict-v2 entry: lang:Translation to xl'
   GmnDictionaryEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
     permissible_values:
-      gmnDictV1:
-        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1
-        title: GMN dictionary (version 1)
+      gmnDictV2:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV2
+        title: GMN dictionary (version 2)
+  GmnDispositionBasisEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnDispositionBasis
+    permissible_values:
+      gmnBasisAmbiguity:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnBasisAmbiguity
+        title: ambiguity basis
+      gmnBasisConfusability:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnBasisConfusability
+        title: confusability basis
+      gmnBasisSemanticMismatch:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnBasisSemanticMismatch
+        title: semantic-mismatch basis
+      gmnBasisTokenCost:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnBasisTokenCost
+        title: token-cost basis
   GmnFixityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     permissible_values:
@@ -20481,6 +21162,93 @@ enums:
       gmnSigilStandpoint:
         meaning: https://blackcatinformatics.ca/gmeow/gmnSigilStandpoint
         title: standpoint sigil
+  GmnSymbolCandidateEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnSymbolCandidate
+    permissible_values:
+      gmnCandidateIpaAe:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateIpaAe
+        title: 'GMN candidate: IPA ae as a term alias'
+      gmnCandidateIpaK:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateIpaK
+        title: 'GMN candidate: IPA k as a term alias'
+      gmnCandidateIpaStress:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateIpaStress
+        title: 'GMN candidate: IPA stress as a term alias'
+      gmnCandidateIpaT:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateIpaT
+        title: 'GMN candidate: IPA t as a term alias'
+      gmnCandidateLangDenotation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLangDenotation
+        title: 'GMN candidate: denotation brackets'
+      gmnCandidateLangMorphemeBoundary:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLangMorphemeBoundary
+        title: 'GMN candidate: morpheme-boundary hyphen'
+      gmnCandidateLangTranslation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLangTranslation
+        title: 'GMN candidate: translation arrow'
+      gmnCandidateLangUngrammatical:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLangUngrammatical
+        title: 'GMN candidate: ungrammaticality as asterisk'
+      gmnCandidateLogicAnd:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicAnd
+        title: 'GMN candidate: conjunction'
+      gmnCandidateLogicExists:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicExists
+        title: 'GMN candidate: existential quantifier'
+      gmnCandidateLogicForall:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicForall
+        title: 'GMN candidate: universal quantifier'
+      gmnCandidateLogicIff:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicIff
+        title: 'GMN candidate: biconditional'
+      gmnCandidateLogicNot:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicNot
+        title: 'GMN candidate: logic:not as ¬'
+      gmnCandidateLogicOr:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicOr
+        title: 'GMN candidate: disjunction'
+      gmnCandidateLogicSubClassOf:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateLogicSubClassOf
+        title: 'GMN candidate: logic:subClassOf as ⊑'
+      gmnCandidateMathAddition:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathAddition
+        title: 'GMN candidate: addition as +'
+      gmnCandidateMathDivision:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathDivision
+        title: 'GMN candidate: division sign'
+      gmnCandidateMathEulerMascheroni:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathEulerMascheroni
+        title: 'GMN candidate: Euler–Mascheroni as γ'
+      gmnCandidateMathExponentiation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathExponentiation
+        title: 'GMN candidate: exponentiation as ^'
+      gmnCandidateMathMultiplication:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathMultiplication
+        title: 'GMN candidate: multiplication as ×'
+      gmnCandidateMathNegation:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegation
+        title: 'GMN candidate: unary negation minus'
+      gmnCandidateMathPi:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathPi
+        title: 'GMN candidate: math:pi as π'
+      gmnCandidateMathSubtraction:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCandidateMathSubtraction
+        title: 'GMN candidate: binary subtraction minus'
+  GmnSymbolDispositionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnSymbolDisposition
+    permissible_values:
+      gmnDispositionAdoptedGlyph:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDispositionAdoptedGlyph
+        title: adopted glyph
+      gmnDispositionNamedKey:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDispositionNamedKey
+        title: named key
+      gmnDispositionSemanticRejection:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDispositionSemanticRejection
+        title: semantic rejection
+      gmnDispositionStructuredConstructor:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDispositionStructuredConstructor
+        title: structured constructor
   GoalEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Goal
     permissible_values:
@@ -20607,6 +21375,24 @@ enums:
       grooveProfileKindSwingRatio:
         meaning: https://blackcatinformatics.ca/gmeow/grooveProfileKindSwingRatio
         title: swing ratio
+  GroundingAttributeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GroundingAttribute
+    permissible_values:
+      groundingEn:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingEn
+        title: English grounding
+      groundingExemplar:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingExemplar
+        title: exemplar grounding
+      groundingExternalMapped:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingExternalMapped
+        title: external-mapped grounding
+      groundingFr:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingFr
+        title: French grounding
+      groundingZh:
+        meaning: https://blackcatinformatics.ca/gmeow/groundingZh
+        title: Chinese grounding
   GroupOperatorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GroupOperator
     permissible_values:
@@ -20763,6 +21549,12 @@ enums:
       gmnLangGlyphContext:
         meaning: https://blackcatinformatics.ca/gmeow/gmnLangGlyphContext
         title: the GMN linguistic glyph-table context
+      gmnLogicGlyphContext:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLogicGlyphContext
+        title: the GMN logical glyph-table context
+      gmnMathGlyphContext:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnMathGlyphContext
+        title: the GMN mathematical glyph-table context
       gmnVersionOne:
         meaning: https://blackcatinformatics.ca/gmeow/gmnVersionOne
         title: GMN dialect version 1
@@ -22842,6 +23634,9 @@ enums:
       stage-export-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-profiles
         title: 'export: profiles'
+      stage-export-projection-ceilings:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-projection-ceilings
+        title: 'export: projection ceilings'
       stage-export-pydantic:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-pydantic
         title: 'export: pydantic models'
@@ -22875,6 +23670,9 @@ enums:
       stage-reason:
         meaning: https://blackcatinformatics.ca/gmeow/stage-reason
         title: reason
+      stage-slice-brief:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-slice-brief
+        title: slice-brief
       stage-snapshot:
         meaning: https://blackcatinformatics.ca/gmeow/stage-snapshot
         title: snapshot
@@ -23649,6 +24447,429 @@ enums:
       sliceQualityRubric:
         meaning: https://blackcatinformatics.ca/gmeow/sliceQualityRubric
         title: Slice-Quality Rubric
+  ProjectionCeilingCommitmentEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionCeilingCommitment
+    permissible_values:
+      pcc-accessibility-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-accessibility-rdfs
+        title: projection-ceiling commitment — accessibility / rdfs
+      pcc-accounts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-accounts-rdfs
+        title: projection-ceiling commitment — accounts / rdfs
+      pcc-affect-mfoem:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-mfoem
+        title: projection-ceiling commitment — affect / mfoem
+      pcc-affect-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-oa
+        title: projection-ceiling commitment — affect / oa
+      pcc-affect-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-affect-rdfs
+        title: projection-ceiling commitment — affect / rdfs
+      pcc-agentic-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-agentic-rdfs
+        title: projection-ceiling commitment — agentic / rdfs
+      pcc-agentic-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-agentic-sh
+        title: projection-ceiling commitment — agentic / sh
+      pcc-aggregation-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-aggregation-qb
+        title: projection-ceiling commitment — aggregation / qb
+      pcc-aggregation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-aggregation-rdfs
+        title: projection-ceiling commitment — aggregation / rdfs
+      pcc-agreements-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-agreements-rdfs
+        title: projection-ceiling commitment — agreements / rdfs
+      pcc-ai-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-oa
+        title: projection-ceiling commitment — ai / oa
+      pcc-ai-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-rdfs
+        title: projection-ceiling commitment — ai / rdfs
+      pcc-ai-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-ai-sh
+        title: projection-ceiling commitment — ai / sh
+      pcc-archaeological-evidence-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-archaeological-evidence-oa
+        title: projection-ceiling commitment — archaeological-evidence / oa
+      pcc-archaeological-evidence-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-archaeological-evidence-rdfs
+        title: projection-ceiling commitment — archaeological-evidence / rdfs
+      pcc-attestation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-attestation-rdfs
+        title: projection-ceiling commitment — attestation / rdfs
+      pcc-awareness-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-awareness-rdfs
+        title: projection-ceiling commitment — awareness / rdfs
+      pcc-calendar-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-calendar-rdfs
+        title: projection-ceiling commitment — calendar / rdfs
+      pcc-citations-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-citations-oa
+        title: projection-ceiling commitment — citations / oa
+      pcc-citations-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-citations-rdfs
+        title: projection-ceiling commitment — citations / rdfs
+      pcc-cognition-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-cognition-rdfs
+        title: projection-ceiling commitment — cognition / rdfs
+      pcc-cognition-sumo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-cognition-sumo
+        title: projection-ceiling commitment — cognition / sumo
+      pcc-concepts-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-concepts-ontolex
+        title: projection-ceiling commitment — concepts / ontolex
+      pcc-concepts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-concepts-rdfs
+        title: projection-ceiling commitment — concepts / rdfs
+      pcc-concepts-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-concepts-sh
+        title: projection-ceiling commitment — concepts / sh
+      pcc-connectivity-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-connectivity-rdfs
+        title: projection-ceiling commitment — connectivity / rdfs
+      pcc-contacts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-contacts-rdfs
+        title: projection-ceiling commitment — contacts / rdfs
+      pcc-creative-works-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-creative-works-rdfs
+        title: projection-ceiling commitment — creative-works / rdfs
+      pcc-deception-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-deception-rdfs
+        title: projection-ceiling commitment — deception / rdfs
+      pcc-diagnostics-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-diagnostics-rdfs
+        title: projection-ceiling commitment — diagnostics / rdfs
+      pcc-diagnostics-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-diagnostics-sh
+        title: projection-ceiling commitment — diagnostics / sh
+      pcc-documentation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-documentation-rdfs
+        title: projection-ceiling commitment — documentation / rdfs
+      pcc-documentation-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-documentation-sh
+        title: projection-ceiling commitment — documentation / sh
+      pcc-documents-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-documents-rdfs
+        title: projection-ceiling commitment — documents / rdfs
+      pcc-dreaming-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-dreaming-rdfs
+        title: projection-ceiling commitment — dreaming / rdfs
+      pcc-email-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-email-rdfs
+        title: projection-ceiling commitment — email / rdfs
+      pcc-employment-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-employment-rdfs
+        title: projection-ceiling commitment — employment / rdfs
+      pcc-entities-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-entities-rdfs
+        title: projection-ceiling commitment — entities / rdfs
+      pcc-epistemics-iao:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-iao
+        title: projection-ceiling commitment — epistemics / iao
+      pcc-epistemics-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-rdfs
+        title: projection-ceiling commitment — epistemics / rdfs
+      pcc-epistemics-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-sh
+        title: projection-ceiling commitment — epistemics / sh
+      pcc-epistemics-sumo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-epistemics-sumo
+        title: projection-ceiling commitment — epistemics / sumo
+      pcc-events-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-events-rdfs
+        title: projection-ceiling commitment — events / rdfs
+      pcc-evidence-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-evidence-rdfs
+        title: projection-ceiling commitment — evidence / rdfs
+      pcc-expertise-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-expertise-rdfs
+        title: projection-ceiling commitment — expertise / rdfs
+      pcc-finance-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-finance-rdfs
+        title: projection-ceiling commitment — finance / rdfs
+      pcc-gender-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-gender-rdfs
+        title: projection-ceiling commitment — gender / rdfs
+      pcc-genealogy-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-genealogy-rdfs
+        title: projection-ceiling commitment — genealogy / rdfs
+      pcc-graphrag-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-graphrag-rdfs
+        title: projection-ceiling commitment — graphrag / rdfs
+      pcc-graphrag-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-graphrag-sh
+        title: projection-ceiling commitment — graphrag / sh
+      pcc-gts-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-gts-rdfs
+        title: projection-ceiling commitment — gts / rdfs
+      pcc-gts-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-gts-sh
+        title: projection-ceiling commitment — gts / sh
+      pcc-guides-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-guides-rdfs
+        title: projection-ceiling commitment — guides / rdfs
+      pcc-images-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-images-oa
+        title: projection-ceiling commitment — images / oa
+      pcc-images-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-images-rdfs
+        title: projection-ceiling commitment — images / rdfs
+      pcc-imagination-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-imagination-rdfs
+        title: projection-ceiling commitment — imagination / rdfs
+      pcc-inference-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inference-rdfs
+        title: projection-ceiling commitment — inference / rdfs
+      pcc-inhabitation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inhabitation-rdfs
+        title: projection-ceiling commitment — inhabitation / rdfs
+      pcc-inhabitation-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inhabitation-sh
+        title: projection-ceiling commitment — inhabitation / sh
+      pcc-inquiry-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-inquiry-rdfs
+        title: projection-ceiling commitment — inquiry / rdfs
+      pcc-kernel-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-bfo
+        title: projection-ceiling commitment — kernel / bfo
+      pcc-kernel-gufo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-gufo
+        title: projection-ceiling commitment — kernel / gufo
+      pcc-kernel-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-rdfs
+        title: projection-ceiling commitment — kernel / rdfs
+      pcc-kernel-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-kernel-sh
+        title: projection-ceiling commitment — kernel / sh
+      pcc-lang-lexvo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lang-lexvo
+        title: projection-ceiling commitment — lang / lexvo
+      pcc-lang-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lang-rdfs
+        title: projection-ceiling commitment — lang / rdfs
+      pcc-lang-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lang-sh
+        title: projection-ceiling commitment — lang / sh
+      pcc-language-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-language-rdfs
+        title: projection-ceiling commitment — language / rdfs
+      pcc-languages-lexvo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-languages-lexvo
+        title: projection-ceiling commitment — languages / lexvo
+      pcc-languages-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-languages-rdfs
+        title: projection-ceiling commitment — languages / rdfs
+      pcc-learning-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-learning-rdfs
+        title: projection-ceiling commitment — learning / rdfs
+      pcc-learning-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-learning-sh
+        title: projection-ceiling commitment — learning / sh
+      pcc-lexicon-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lexicon-ontolex
+        title: projection-ceiling commitment — lexicon / ontolex
+      pcc-lexicon-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lexicon-rdfs
+        title: projection-ceiling commitment — lexicon / rdfs
+      pcc-lifecycle-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-lifecycle-rdfs
+        title: projection-ceiling commitment — lifecycle / rdfs
+      pcc-logic-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-logic-rdfs
+        title: projection-ceiling commitment — logic / rdfs
+      pcc-mappings-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-fno
+        title: projection-ceiling commitment — mappings / fno
+      pcc-mappings-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-oa
+        title: projection-ceiling commitment — mappings / oa
+      pcc-mappings-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-ontolex
+        title: projection-ceiling commitment — mappings / ontolex
+      pcc-mappings-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mappings-qb
+        title: projection-ceiling commitment — mappings / qb
+      pcc-math-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-math-rdfs
+        title: projection-ceiling commitment — math / rdfs
+      pcc-mentation-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mentation-bfo
+        title: projection-ceiling commitment — mentation / bfo
+      pcc-mentation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-mentation-rdfs
+        title: projection-ceiling commitment — mentation / rdfs
+      pcc-metacognition-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-metacognition-rdfs
+        title: projection-ceiling commitment — metacognition / rdfs
+      pcc-model-serving-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-model-serving-rdfs
+        title: projection-ceiling commitment — model-serving / rdfs
+      pcc-model-serving-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-model-serving-sh
+        title: projection-ceiling commitment — model-serving / sh
+      pcc-music-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-music-fno
+        title: projection-ceiling commitment — music / fno
+      pcc-music-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-music-rdfs
+        title: projection-ceiling commitment — music / rdfs
+      pcc-music-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-music-sh
+        title: projection-ceiling commitment — music / sh
+      pcc-names-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-names-ontolex
+        title: projection-ceiling commitment — names / ontolex
+      pcc-names-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-names-rdfs
+        title: projection-ceiling commitment — names / rdfs
+      pcc-narrative-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-narrative-rdfs
+        title: projection-ceiling commitment — narrative / rdfs
+      pcc-norms-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-norms-rdfs
+        title: projection-ceiling commitment — norms / rdfs
+      pcc-notation-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-fno
+        title: projection-ceiling commitment — notation / fno
+      pcc-notation-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-rdfs
+        title: projection-ceiling commitment — notation / rdfs
+      pcc-notation-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notation-sh
+        title: projection-ceiling commitment — notation / sh
+      pcc-notes-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notes-oa
+        title: projection-ceiling commitment — notes / oa
+      pcc-notes-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-notes-rdfs
+        title: projection-ceiling commitment — notes / rdfs
+      pcc-observations-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-oa
+        title: projection-ceiling commitment — observations / oa
+      pcc-observations-obi:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-obi
+        title: projection-ceiling commitment — observations / obi
+      pcc-observations-pato:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-pato
+        title: projection-ceiling commitment — observations / pato
+      pcc-observations-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-qb
+        title: projection-ceiling commitment — observations / qb
+      pcc-observations-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-qudt
+        title: projection-ceiling commitment — observations / qudt
+      pcc-observations-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-observations-rdfs
+        title: projection-ceiling commitment — observations / rdfs
+      pcc-organization-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-organization-rdfs
+        title: projection-ceiling commitment — organization / rdfs
+      pcc-pipeline-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-pipeline-rdfs
+        title: projection-ceiling commitment — pipeline / rdfs
+      pcc-pipeline-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-pipeline-sh
+        title: projection-ceiling commitment — pipeline / sh
+      pcc-places-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-bfo
+        title: projection-ceiling commitment — places / bfo
+      pcc-places-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-qudt
+        title: projection-ceiling commitment — places / qudt
+      pcc-places-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-rdfs
+        title: projection-ceiling commitment — places / rdfs
+      pcc-places-so:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-places-so
+        title: projection-ceiling commitment — places / so
+      pcc-procedures-obi:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-procedures-obi
+        title: projection-ceiling commitment — procedures / obi
+      pcc-procedures-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-procedures-rdfs
+        title: projection-ceiling commitment — procedures / rdfs
+      pcc-profiles-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-profiles-rdfs
+        title: projection-ceiling commitment — profiles / rdfs
+      pcc-provenance-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-provenance-rdfs
+        title: projection-ceiling commitment — provenance / rdfs
+      pcc-quality-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-quality-oa
+        title: projection-ceiling commitment — quality / oa
+      pcc-quality-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-quality-rdfs
+        title: projection-ceiling commitment — quality / rdfs
+      pcc-rights-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-rights-rdfs
+        title: projection-ceiling commitment — rights / rdfs
+      pcc-rights-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-rights-sh
+        title: projection-ceiling commitment — rights / sh
+      pcc-risk-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-risk-rdfs
+        title: projection-ceiling commitment — risk / rdfs
+      pcc-sensory-environment-mfoem:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-mfoem
+        title: projection-ceiling commitment — sensory-environment / mfoem
+      pcc-sensory-environment-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-rdfs
+        title: projection-ceiling commitment — sensory-environment / rdfs
+      pcc-sensory-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sensory-rdfs
+        title: projection-ceiling commitment — sensory / rdfs
+      pcc-sexuality-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-sexuality-rdfs
+        title: projection-ceiling commitment — sexuality / rdfs
+      pcc-slice-quality-rubric-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-slice-quality-rubric-rdfs
+        title: projection-ceiling commitment — slice-quality-rubric / rdfs
+      pcc-software-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-software-rdfs
+        title: projection-ceiling commitment — software / rdfs
+      pcc-standpoint-dul:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-dul
+        title: projection-ceiling commitment — standpoint / dul
+      pcc-standpoint-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-fno
+        title: projection-ceiling commitment — standpoint / fno
+      pcc-standpoint-iao:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-iao
+        title: projection-ceiling commitment — standpoint / iao
+      pcc-standpoint-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-oa
+        title: projection-ceiling commitment — standpoint / oa
+      pcc-standpoint-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-rdfs
+        title: projection-ceiling commitment — standpoint / rdfs
+      pcc-standpoint-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-standpoint-sh
+        title: projection-ceiling commitment — standpoint / sh
+      pcc-tags-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-tags-oa
+        title: projection-ceiling commitment — tags / oa
+      pcc-tags-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-tags-rdfs
+        title: projection-ceiling commitment — tags / rdfs
+      pcc-teleology-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-teleology-rdfs
+        title: projection-ceiling commitment — teleology / rdfs
+      pcc-temporal-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-temporal-qudt
+        title: projection-ceiling commitment — temporal / qudt
+      pcc-temporal-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-temporal-rdfs
+        title: projection-ceiling commitment — temporal / rdfs
+      pcc-temporal-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-temporal-sh
+        title: projection-ceiling commitment — temporal / sh
+      pcc-trust-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-trust-rdfs
+        title: projection-ceiling commitment — trust / rdfs
+      pcc-versions-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/pcc-versions-rdfs
+        title: projection-ceiling commitment — versions / rdfs
   ProjectionContextEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     permissible_values:
@@ -23721,6 +24942,120 @@ enums:
       lossSymbolizesContinuousTrajectory:
         meaning: https://blackcatinformatics.ca/gmeow/lossSymbolizesContinuousTrajectory
         title: 'loss: symbolizes continuous trajectory'
+  ProjectionVocabularyEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionVocabulary
+    permissible_values:
+      projVocab-bfo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-bfo
+        title: projection vocabulary — BFO
+      projVocab-datalog:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-datalog
+        title: projection vocabulary — Datalog (documentary-only)
+      projVocab-dul:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-dul
+        title: projection vocabulary — DOLCE (dul)
+      projVocab-edoal:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-edoal
+        title: projection vocabulary — EDOAL
+      projVocab-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-fno
+        title: projection vocabulary — Function Ontology (fno)
+      projVocab-glottolog:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-glottolog
+        title: projection vocabulary — Glottolog
+      projVocab-gufo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-gufo
+        title: projection vocabulary — gUFO
+      projVocab-iao:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-iao
+        title: projection vocabulary — OBO Information Artifact Ontology (IAO)
+      projVocab-lexinfo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-lexinfo
+        title: projection vocabulary — LexInfo
+      projVocab-lexvo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-lexvo
+        title: projection vocabulary — Lexvo
+      projVocab-mathml:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-mathml
+        title: projection vocabulary — MathML
+      projVocab-mfoem:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-mfoem
+        title: projection vocabulary — OBO Emotion Ontology (MFOEM)
+      projVocab-n3:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-n3
+        title: projection vocabulary — Notation3 (documentary-only)
+      projVocab-nif:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-nif
+        title: projection vocabulary — NLP Interchange Format
+      projVocab-oa:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-oa
+        title: projection vocabulary — W3C Web Annotation
+      projVocab-obcs:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-obcs
+        title: projection vocabulary — OBO Biological/Clinical Statistics (OBCS)
+      projVocab-obi:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-obi
+        title: projection vocabulary — Ontology for Biomedical Investigations
+      projVocab-om2:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-om2
+        title: projection vocabulary — OM-2 (Ontology of units of Measure)
+      projVocab-ontolex:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ontolex
+        title: projection vocabulary — OntoLex-Lemon
+      projVocab-opencyc:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-opencyc
+        title: projection vocabulary — OpenCyc permanent identifiers
+      projVocab-openmath:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-openmath
+        title: projection vocabulary — OpenMath
+      projVocab-pato:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-pato
+        title: projection vocabulary — OBO Phenotype And Trait Ontology (PATO)
+      projVocab-prolog:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-prolog
+        title: projection vocabulary — Prolog (documentary-only)
+      projVocab-qb:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-qb
+        title: projection vocabulary — RDF Data Cube
+      projVocab-qudt:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-qudt
+        title: projection vocabulary — QUDT
+      projVocab-rdfs:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-rdfs
+        title: projection vocabulary — RDFS structural axioms
+      projVocab-ro:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ro
+        title: projection vocabulary — OBO Relation Ontology (RO)
+      projVocab-sh:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sh
+        title: projection vocabulary — SHACL (sh)
+      projVocab-sio:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sio
+        title: projection vocabulary — Semanticscience Integrated Ontology
+      projVocab-so:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-so
+        title: projection vocabulary — OBO Sequence Ontology (SO)
+      projVocab-sssom:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sssom
+        title: projection vocabulary — SSSOM
+      projVocab-stato:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-stato
+        title: projection vocabulary — OBO Statistics Ontology (STATO)
+      projVocab-sumo:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-sumo
+        title: projection vocabulary — SUMO
+      projVocab-ucum:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ucum
+        title: projection vocabulary — UCUM
+      projVocab-ud:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-ud
+        title: projection vocabulary — Universal Dependencies
+      projVocab-wordnet:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-wordnet
+        title: projection vocabulary — WordNet
+      projVocab-yamato:
+        meaning: https://blackcatinformatics.ca/gmeow/projVocab-yamato
+        title: projection vocabulary — YAMATO 2021-08-08
   PromptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PromptRole
     permissible_values:
@@ -23826,6 +25161,9 @@ enums:
       axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/axisGmn1Coverage
         title: GMN-1 Coverage
+      axisGmnGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/axisGmnGlyphOptimality
+        title: GMN Glyph Disposition Optimality
       axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/axisMaximalGrounding
         title: Maximal Grounding
@@ -24945,6 +26283,9 @@ enums:
       qualityDimensionDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation
         title: documentation
+      qualityDimensionGlyphOptimality:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionGlyphOptimality
+        title: glyph disposition optimality
       qualityDimensionGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionGrounding
         title: grounding

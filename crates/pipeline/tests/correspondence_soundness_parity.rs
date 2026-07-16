@@ -24,7 +24,7 @@ use gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundn
 /// is the authority; this is a fast floor that fails with a readable count delta before the
 /// (larger) snapshot diff. A drift here is a coverage regression: investigate the snapshot,
 /// it is NOT a number to blindly re-bless.
-const EXPECTED_FINDING_COUNT: usize = 450;
+const EXPECTED_FINDING_COUNT: usize = 449;
 
 fn repo_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

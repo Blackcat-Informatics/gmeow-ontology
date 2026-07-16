@@ -8,7 +8,7 @@
 # Deception statement-metadata exemplars — canonical RDF 1.2 / RDF* cells.
 #
 # Compiled to statements/gmeow.rdf12.ttl and statements/gmeow-statements.owl.ttl
-# by the `gmeow regenerate` statements generator. See dsl/statements/examples.ttl for the general
+# by the `gmeow-dev sync --mode update --outputs generated` statements generator. See dsl/statements/examples.ttl for the general
 # pattern and dsl/statements/vocabulary.ttl for the DSL spec.
 # =============================================================================
 

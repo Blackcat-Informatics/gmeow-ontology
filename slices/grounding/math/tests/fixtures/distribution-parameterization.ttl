@@ -32,5 +32,7 @@ ex:stddevRole a math:DistributionParameterRole ;
     math:roleWithinParameterization ex:meanStddevParam ;
     math:requiresPositiveValue true .
 
-ex:muQty a gmeow:Quantity .
-ex:sigmaQty a gmeow:Quantity .
+ex:muQty a math:Quantity .
+ex:sigmaQty a math:Quantity .
+<http://example.org/math/muQty> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/sigmaQty> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

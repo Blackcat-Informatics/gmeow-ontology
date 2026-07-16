@@ -276,6 +276,10 @@ fn preservation_kind_values_match_module_ttl() {
         from_ttl.contains("Unsupported"),
         "the Unsupported floor is declared"
     );
+    for kind in PreservationKind::ALL {
+        assert_eq!(PreservationKind::from_local(kind.as_str()), Some(kind));
+    }
+    assert_eq!(PreservationKind::from_local("NotAPreservationKind"), None);
 }
 
 #[test]
@@ -1262,10 +1266,12 @@ fn discharge_condition_values_match_module_ttl() {
 
 #[test]
 fn correspondences_sort_canonically() {
-    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_correspondences(vec![
-        corr(&format!("{LOGIC}z"), vec![]),
-        corr(&format!("{LOGIC}a"), vec![]),
-    ]);
+    let prog = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![
+            corr(&format!("{LOGIC}z"), vec![]),
+            corr(&format!("{LOGIC}a"), vec![]),
+        ])
+        .expect("distinct correspondence IRIs, no recovery cases");
     let iris: Vec<&str> = prog
         .correspondences
         .iter()
@@ -1279,7 +1285,9 @@ fn canonical_key_is_unchanged_for_correspondence_free_program() {
     // Corpus safety: attaching no correspondences must not alter the historical key.
     let ax = axiom(&format!("{LOGIC}x"), &kind_pred(), &format!("{LOGIC}y"));
     let base = LogicProgram::new(vec![ax.clone()], vec![], vec![], None);
-    let attached = LogicProgram::new(vec![ax], vec![], vec![], None).with_correspondences(vec![]);
+    let attached = LogicProgram::new(vec![ax], vec![], vec![], None)
+        .with_correspondences(vec![])
+        .expect("no correspondences");
     assert_eq!(base.canonical_key(), attached.canonical_key());
     assert!(!base.canonical_key().contains("CORRESPONDENCES"));
 }
@@ -1287,7 +1295,8 @@ fn canonical_key_is_unchanged_for_correspondence_free_program() {
 #[test]
 fn canonical_key_appends_correspondences_when_present() {
     let prog = LogicProgram::new(vec![], vec![], vec![], None)
-        .with_correspondences(vec![corr(&format!("{LOGIC}c"), vec![])]);
+        .with_correspondences(vec![corr(&format!("{LOGIC}c"), vec![])])
+        .expect("single correspondence, no recovery cases");
     assert!(prog.canonical_key().contains("CORRESPONDENCES"));
 }
 
@@ -1308,10 +1317,119 @@ fn correspondence_content_key_is_law_claim_order_independent() {
     let mut claims_ba = claims_ab.clone();
     claims_ba.reverse();
     let prog_ab = LogicProgram::new(vec![], vec![], vec![], None)
-        .with_correspondences(vec![corr(&format!("{LOGIC}c"), claims_ab)]);
+        .with_correspondences(vec![corr(&format!("{LOGIC}c"), claims_ab)])
+        .expect("single correspondence, no recovery cases");
     let prog_ba = LogicProgram::new(vec![], vec![], vec![], None)
-        .with_correspondences(vec![corr(&format!("{LOGIC}c"), claims_ba)]);
+        .with_correspondences(vec![corr(&format!("{LOGIC}c"), claims_ba)])
+        .expect("single correspondence, no recovery cases");
     assert_eq!(prog_ab.canonical_key(), prog_ba.canonical_key());
+}
+
+#[test]
+fn correspondence_recovery_cases_sort_and_key_by_full_content() {
+    let case_a = RecoveryCaseIr::new("https://example.org/recovery/a", pred("a", vec![tv("x")]))
+        .expect("case a");
+    let case_b = RecoveryCaseIr::new("https://example.org/recovery/b", pred("b", vec![tv("x")]))
+        .expect("case b");
+
+    let ab = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case_a.clone(), case_b.clone()])
+        .expect("unique cases");
+    let ba = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case_b.clone(), case_a.clone()])
+        .expect("unique cases");
+    assert_eq!(ab.recovery_cases, ba.recovery_cases);
+
+    // Same case SET (same two IRIs, same cardinality) as `ab` — only `case_a`'s recovery
+    // transform changes (negated). If `content_key()`/`content_id` ignored the transform,
+    // `changed` would collide with `ab` (identical case identities), so this genuinely
+    // proves the transform participates in the content key rather than merely proving that
+    // dropping a case changes the key.
+    let case_a_transform_changed = RecoveryCaseIr::new(
+        case_a.iri.clone(),
+        Formula::Not(Box::new(pred("a", vec![tv("x")]))),
+    )
+    .expect("changed case a");
+    let changed = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case_a_transform_changed, case_b.clone()])
+        .expect("unique changed case");
+    assert_eq!(
+        ab.recovery_cases.len(),
+        changed.recovery_cases.len(),
+        "the case SET size must stay constant so the key difference is attributable only to \
+         the transform"
+    );
+    assert_ne!(ab.content_key(), changed.content_key());
+}
+
+#[test]
+fn correspondence_recovery_case_iris_are_unique() {
+    let case = RecoveryCaseIr::new(
+        "https://example.org/recovery/duplicate",
+        pred("a", vec![tv("x")]),
+    )
+    .expect("case");
+    let error = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case.clone(), case])
+        .expect_err("duplicate case identity must hard-fail");
+    assert!(error.message().contains("duplicated"), "{error}");
+}
+
+#[test]
+fn program_rejects_recovery_case_iri_reused_across_correspondences() {
+    // Two DIFFERENT correspondences each declare exactly one recovery case, and both
+    // cases share one IRI. Within a single correspondence this collision is already
+    // rejected by `Correspondence::with_recovery_cases`; the gap this test closes is the
+    // program-wide case: the shared IRI is a GLOBAL RDF subject, so `LogicProgram::
+    // with_correspondences` — the one place every correspondence in the program is
+    // visible together — must hard-fail rather than silently let the second
+    // correspondence's case alias the first's.
+    let shared_case_iri = "https://example.org/recovery/shared";
+    let case_x = RecoveryCaseIr::new(shared_case_iri, pred("a", vec![tv("x")])).expect("case x");
+    let case_y = RecoveryCaseIr::new(shared_case_iri, pred("b", vec![tv("y")])).expect("case y");
+
+    let corr_x = corr(&format!("{LOGIC}corrX"), vec![])
+        .with_recovery_cases(vec![case_x])
+        .expect("single case, unique within corrX");
+    let corr_y = corr(&format!("{LOGIC}corrY"), vec![])
+        .with_recovery_cases(vec![case_y])
+        .expect("single case, unique within corrY");
+
+    let error = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![corr_x, corr_y])
+        .expect_err("recovery-case IRI reused across two correspondences must hard-fail");
+    assert!(
+        error.message().contains(shared_case_iri),
+        "diagnostic must name the duplicated IRI: {error}"
+    );
+    assert!(
+        error.message().contains(&format!("{LOGIC}corrX"))
+            && error.message().contains(&format!("{LOGIC}corrY")),
+        "diagnostic must name both owning correspondences: {error}"
+    );
+}
+
+#[test]
+fn program_accepts_distinct_recovery_case_iris_across_correspondences() {
+    // Distinct case IRIs owned by distinct correspondences must NOT be flagged as a
+    // collision — the program-wide check must not over-fire on ordinary, well-formed
+    // correspondences that each declare their own case.
+    let case_x = RecoveryCaseIr::new("https://example.org/recovery/x", pred("a", vec![tv("x")]))
+        .expect("case x");
+    let case_y = RecoveryCaseIr::new("https://example.org/recovery/y", pred("b", vec![tv("y")]))
+        .expect("case y");
+
+    let corr_x = corr(&format!("{LOGIC}corrX"), vec![])
+        .with_recovery_cases(vec![case_x])
+        .expect("single case, unique within corrX");
+    let corr_y = corr(&format!("{LOGIC}corrY"), vec![])
+        .with_recovery_cases(vec![case_y])
+        .expect("single case, unique within corrY");
+
+    let program = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![corr_x, corr_y])
+        .expect("distinct recovery-case IRIs across correspondences must be accepted");
+    assert_eq!(program.correspondences.len(), 2);
 }
 
 #[test]
@@ -1348,8 +1466,12 @@ fn correspondence_axes_signed_zero_normalized() {
         )
         .unwrap()
     };
-    let pos = LogicProgram::new(vec![], vec![], vec![], None).with_correspondences(vec![mk(0.0)]);
-    let neg = LogicProgram::new(vec![], vec![], vec![], None).with_correspondences(vec![mk(-0.0)]);
+    let pos = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![mk(0.0)])
+        .expect("single correspondence, no recovery cases");
+    let neg = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![mk(-0.0)])
+        .expect("single correspondence, no recovery cases");
     assert_eq!(pos.canonical_key(), neg.canonical_key());
 }
 
@@ -1677,9 +1799,9 @@ fn normalize_cancels_double_inverse_and_flattens() {
 
 #[test]
 fn canonical_key_round_trips_inverse_to_get() {
-    // The lawful put is the structural inverse of get; put∘get identity is decided by the
-    // canonical key, NOT by hashing surrounding metadata. A WRONG put body has a different
-    // key — the property the old IRI-string tautology could not see.
+    // Inversion constructs a deterministic candidate body.  This is path-algebra identity,
+    // not recovery discharge: the native executor separately decides whether the candidate
+    // reproduces a complete declared source graph.
     let get = LegPath::Seq(vec![step("foo"), LegPath::Inverse(Box::new(step("bar")))]);
     let lawful_put = get.invert();
     assert_eq!(

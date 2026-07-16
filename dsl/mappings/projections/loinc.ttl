@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -50,11 +51,11 @@ gmeow:mapLoincMethod a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "method metadata outside the lab-test scope is dropped" ] .
 
 gmeow:mapLoincQuantity a gmeow:ProjectionMapping ;
-    rdfs:label "ScalarQuantity → loinc:Quantity"@x-gmeow-english ;
+    rdfs:label "math:Quantity → loinc:Quantity"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "qty" ;
-        gmeow:atom ( [ gmeow:subjectVar "qty" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ScalarQuantity ] ) ;
-        gmeow:edoalSource gmeow:ScalarQuantity ; gmeow:edoalSourceKind "class" ] ;
+        gmeow:atom ( [ gmeow:subjectVar "qty" ; gmeow:predicate rdf:type ; gmeow:objectValue math:Quantity ] ) ;
+        gmeow:edoalSource math:Quantity ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
         gmeow:profile "loinc" ; gmeow:toClass loinc:Quantity ; gmeow:relation "<=" ;
         gmeow:confidence 0.75 ;

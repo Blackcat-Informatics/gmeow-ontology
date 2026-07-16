@@ -25,7 +25,7 @@ use crate::stages::export::{Term, collect_term_surface, read_fold_upstream};
 /// The bundle directory name under `dist/`.
 pub const OKF_DIR_NAME: &str = "gmeow-okf";
 
-const LOSSY_NOTE: &str = "> LOSSY projection: the flat GMEOW term surface (label, definition, advisories, and IS-A / domain / range / sub-property links). The OWL axioms, the RDF-star statement/reification layer, and the full alignment graph are dropped — the GTS/OWL source is canonical.";
+const LOSSY_NOTE: &str = "> LOSSY projection: the flat GMEOW term surface (label, definition, advisories, and IS-A / domain / range / sub-property links). The logic axioms, the RDF 1.2 statement/reification layer, and the full alignment graph are dropped — the grounding-slice sources carried by GTS are canonical.";
 
 fn category_type(category: &str) -> &'static str {
     match category {

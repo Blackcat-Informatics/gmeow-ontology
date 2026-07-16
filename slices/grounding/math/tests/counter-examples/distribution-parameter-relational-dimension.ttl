@@ -31,7 +31,7 @@ ex:weightDist a math:Distribution ;
 ex:varianceRole a math:DistributionParameterRole ;
     math:quantityDimension math:squareOfRandomVariableDimension .
 
-ex:linearVarianceQuantity a gmeow:Quantity ;
+ex:linearVarianceQuantity a math:Quantity ;
     math:hasDimension math:lengthDimension .
 
 ex:varParam a math:DistributionParameter ;

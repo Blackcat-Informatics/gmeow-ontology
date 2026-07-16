@@ -41,14 +41,59 @@ Two hard rules govern the kernel:
    slice for a grounding concept. Where a grounding concept is found split
    across a grounding and a non-grounding slice, the reconciliation direction
    is fixed: the grounding slice owns the concept and the non-grounding slice
-   consumes it. The standing case is quantity: the observations slice's
-   `gmeow:Quantity` (≡ `gmeow:ScalarQuantity`, carrying `gmeow:quantityValue`
-   with unit, frame, determinacy, and provenance) and the math slice's
-   `math:Quantity` (carrying `math:quantityValue` and `math:hasDimension`)
-   coexist with **no declared relationship** — two value-carrying properties
-   for one concept. The scheduled reconciliation makes the dimensional
-   quantity math-owned and the observations spine its consumer, collapsing
-   the duplicate value property.
+   consumes it. Quantity is the standing applied example: `math:Quantity` and
+   `math:quantityValue` are the sole class/property authorities, carrying the
+   dimension and concrete magnitude. The observations slice consumes that
+   object and adds unit, frame, determinacy, uncertainty, and provenance
+   qualifiers without minting observation-local aliases.
+
+## External grounding ownership
+
+All semantic grounding to an external formalism is authored in the grounding
+kernel, never in a downstream domain slice. The owner is selected by the kind
+of meaning being grounded:
+
+| External surface | Owning slice | Canonical direction |
+|---|---|---|
+| Linguistic, lexical, semiotic, and serialization formalisms | `lang:` | `lang:` → external view |
+| Mathematical structures, quantities, and mathematical interchange languages | `math:` | `math:` → external view |
+| Upper ontologies, logical formalisms, rule languages, and validation dialects | `logic:` | `logic:` → external view |
+
+The external term is a **target endpoint**, not a term from which a domain
+slice derives its semantics. Non-grounding slices consume the grounding term
+and its correspondence; they do not author a second alignment. RDF/OWL
+declaration syntax and generated validation syntax are serialization/compiler
+boundaries, not exceptions that grant external vocabularies semantic ownership.
+
+Grounding correspondences are different from presentation-only projections.
+They compile to content-addressed `logic:Correspondence` records and ship in
+the `graph/correspondence-laws` named graph of `gmeow.gts`, while remaining
+meta-level and outside object-level closure. SSSOM and other alignment formats
+are generated views of those records.
+
+The shipped grounding surface is split by semantic owner:
+
+- `logic:` carries 140 core correspondences for gUFO, BFO, OBO/RO, SUMO,
+  OWL/RDFS, and SHACL Core/AF in
+  [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
+  plus 23 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
+  [`foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
+- `math:` carries its identity catalog, six direct quantity/value bridges to
+  SOSA, OM 1.8, IVOA ObsCore, LOINC, and QUDT in
+  [`quantity-bridges.ttl`](../slices/grounding/math/mappings/quantity-bridges.ttl),
+  plus 13 validation-only Data Cube, STATO, OBCS, SIO, and OBI rows in
+  [`statistical-bridges.ttl`](../slices/grounding/math/mappings/statistical-bridges.ttl).
+- `lang:` carries its identity catalog plus 21 validation-only OntoLex-Lemon,
+  LexInfo, Global WordNet schema, NIF, and Web Annotation rows in
+  [`lexical-bridges.ttl`](../slices/grounding/lang/mappings/lexical-bridges.ttl).
+
+Every grounding row is oriented from its grounding namespace and states its
+morphism class, morphism kind, and preservation kind. Commitment-shifting
+views are never promoted to equivalence. This division is also the migration
+rule for domain slices: use the `logic:`, `math:`, or `lang:` term and its one
+owned correspondence instead of asserting an external vocabulary term again.
+The foundation policy and coverage ledger is
+[`foundational-bridging.md`](./foundational-bridging.md).
 
 ## The seam registry
 

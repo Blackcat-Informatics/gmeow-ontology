@@ -1262,6 +1262,17 @@ mod tests {
     /// artifact. Requires `make build` to have produced `dist/gmeow.jsonld`;
     /// skipped silently when the file is absent so `cargo test` still passes
     /// in a source-only checkout.
+    ///
+    /// The artifact is written by the deterministic first-party serializer
+    /// (`serialize_graph`, via `gmeow build` / the yaml_ld stage), so parsing it
+    /// into the carrier and re-serializing must reproduce the file BYTE-FOR-BYTE.
+    /// Byte-fixed-point is strictly stronger than the RDFC-1.0 canonical
+    /// isomorphism this test used to assert (identical bytes re-parse to the
+    /// identical dataset), and it keeps the test to one parse + one serialize —
+    /// no second parse and no double canonicalization. The canonical-
+    /// isomorphism law itself stays covered by
+    /// `committed_rdf12_statements_roundtrip_through_jsonld_star` and the
+    /// `roundtrip_isomorphic_accepts_emitted_*` fixtures in this module.
     #[test]
     fn dist_jsonld_roundtrips_through_carrier() {
         let path = repo_root().join("dist/gmeow.jsonld");
@@ -1271,18 +1282,27 @@ mod tests {
             return;
         }
 
-        let original = parse_jsonld_star(&std::fs::read(&path).expect("read dist/gmeow.jsonld"))
-            .expect("parse built dist/gmeow.jsonld");
+        let bytes = std::fs::read(&path).expect("read dist/gmeow.jsonld");
+        let original = parse_jsonld_star(&bytes).expect("parse built dist/gmeow.jsonld");
         let json = serialize_graph(original.as_ref())
             .expect("re-serialize parsed dist artifact to JSON-LD-star");
-        let roundtrip = parse_jsonld_star(json.as_bytes())
-            .expect("parse re-serialized JSON-LD-star back to carrier dataset");
 
-        assert_eq!(
-            canonical_lines(&original),
-            canonical_lines(&roundtrip),
-            "built dist/gmeow.jsonld must round-trip through JSON-LD-star"
-        );
+        if json.as_bytes() != bytes.as_slice() {
+            let divergence = json
+                .as_bytes()
+                .iter()
+                .zip(bytes.iter())
+                .position(|(a, b)| a != b)
+                .unwrap_or_else(|| json.len().min(bytes.len()));
+            panic!(
+                "built dist/gmeow.jsonld must round-trip through the JSON-LD-star \
+                 carrier byte-for-byte: re-serialization diverges at byte {divergence} \
+                 (built {} bytes, re-serialized {} bytes). If the serializer's output \
+                 format changed, the artifact is stale — rebuild it with `make build`.",
+                bytes.len(),
+                json.len(),
+            );
+        }
     }
 
     /// A hand-authored YAML-LD-star statement-layer fixture losslessly transpiles into

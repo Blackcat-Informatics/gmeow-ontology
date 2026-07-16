@@ -1,0 +1,14 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/logic-pato
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "Bridge view from the logic quality category onto PATO's quality root."
+# curie_map:
+#   logic: https://blackcatinformatics.ca/logic/
+#   pato: http://purl.obolibrary.org/obo/PATO_
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+logic:Quality	skos:closeMatch	pato:0000001	semapv:ManualMappingCuration	0.85	PATO's quality root specializes a biomedical quality commitment; it is a validation bridge onto logic:Quality.

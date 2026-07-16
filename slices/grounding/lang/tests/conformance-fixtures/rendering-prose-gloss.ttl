@@ -14,7 +14,7 @@
 
 ex:english a lang:SignSystem .
 ex:latin a lang:Script .
-ex:englishProse a lang:Grammar .
+ex:englishProse a lang:Grammar ; lang:grammarFor ex:english .
 
 # The abstract content: a full-FOL formula the gloss approximates.
 ex:formula a logic:Formula .

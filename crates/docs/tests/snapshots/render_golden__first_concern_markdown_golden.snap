@@ -29,5 +29,5 @@ Projection\-time withholding, coarsening, sensitivity, and display control\.
 
 ---
 
-**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-source-load`
 Rendered from `gmeow.gts` by the dogfooded build pipeline.

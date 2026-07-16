@@ -44,6 +44,7 @@
 #
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/tests/> .
 
 # --- 1. Location umbrella and structural subclasses (MUST) --------------------
@@ -513,19 +514,20 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:overlayDeterminacy MUST be rdfs:subPropertyOf hasDeterminacy with domain RegulatoryOverlay and range Determinacy." .
 
-# --- 38. overlayLowerBound / overlayUpperBound range ScalarQuantity (MUST) ----
+# --- 38. overlayLowerBound / overlayUpperBound range math:Quantity (MUST) -----
 ex:saOverlayBoundsRange a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:overlayLowerBound rdfs:domain gmeow:RegulatoryOverlay ;
-                            rdfs:range  gmeow:ScalarQuantity .
+                            rdfs:range  math:Quantity .
     gmeow:overlayUpperBound rdfs:domain gmeow:RegulatoryOverlay ;
-                            rdfs:range  gmeow:ScalarQuantity .
+                            rdfs:range  math:Quantity .
 }""" ;
-    gmeow:saRationale "gmeow:overlayLowerBound and overlayUpperBound MUST have domain RegulatoryOverlay and range ScalarQuantity (3D altitude bounds)." .
+    gmeow:saRationale "gmeow:overlayLowerBound and overlayUpperBound MUST have domain RegulatoryOverlay and range math:Quantity (3D altitude bounds)." .
 
 # --- 39. Maritime overlay type seeds exist (MUST) -----------------------------
 ex:saMaritimeOverlayTypeSeeds a gmeow:StructuralAssertion ;
@@ -673,17 +675,18 @@ ASK {
 }""" ;
     gmeow:saRationale "The three Trajectory properties MUST have rdfs:domain gmeow:Trajectory." .
 
-# --- 50. Velocity properties range over ScalarQuantity (MUST) -----------------
-ex:saVelocityRangeScalarQuantity a gmeow:StructuralAssertion ;
+# --- 50. Velocity properties range over math:Quantity (MUST) ------------------
+ex:saVelocityRangeQuantity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:stateHasVelocity        rdfs:range gmeow:ScalarQuantity .
-    gmeow:stateHasAngularVelocity rdfs:range gmeow:ScalarQuantity .
+    gmeow:stateHasVelocity        rdfs:range math:Quantity .
+    gmeow:stateHasAngularVelocity rdfs:range math:Quantity .
 }""" ;
-    gmeow:saRationale "gmeow:stateHasVelocity and stateHasAngularVelocity MUST range over gmeow:ScalarQuantity." .
+    gmeow:saRationale "gmeow:stateHasVelocity and stateHasAngularVelocity MUST range over math:Quantity." .
 
 # --- 51. hasTrajectorySample is NOT functional (MUST-NOT) ---------------------
 ex:saHasTrajectorySampleNotFunctional a gmeow:StructuralAssertion ;

@@ -34,6 +34,22 @@ per target:
    fragment is held to section/retraction on the conformance corpus.
 5. **External identifiers name alignments, not identity** — inherited unchanged.
 
+## Shipped grounding laws versus projections
+
+The `lang:` grounding slice owns both, but they are different artifacts. The
+canonical correspondence catalogs under `mappings/` compile to shipped,
+content-addressed `logic:GroundingCorrespondence` records. The 21-row
+`lexical-bridges.ttl` catalog covers OntoLex-Lemon, LexInfo, Global WordNet
+schema, NIF, and Web Annotation; the existing equivalence catalog carries
+identifier and lexical authority links. These laws remain in
+`graph/correspondence-laws` even when no presentation export is requested.
+
+OntoLex documents, CoNLL-U, SemAF/AMR, NIF/OA selector documents, TEI, BCP-47,
+EBNF/ABNF, and GMN emissions are codec or presentation projections. They are
+generated views with preservation/loss records. A target can have a narrow
+grounding row and a richer output projection, but the output never becomes the
+authority for the row.
+
 ## The targets
 
 ### OntoLex-Lemon — the lexicon surface
