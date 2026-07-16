@@ -294,6 +294,161 @@ fn recovery_case_formula_round_trips_byte_identically() {
     assert!(error.message().contains("not typed"), "{error}");
 }
 
+/// [`CorrespondenceOwnership`] must not over-capture: a resource whose IRI merely shares a
+/// recovery case's IRI as a *string* prefix — but is not a genuine `recoveryTransform`
+/// descendant minted by [`project_correspondence`] — is NEVER treated as correspondence-owned.
+/// Regression for the dialect-writer gap where an "exact-or-slash-prefix" ownership test
+/// classified any slash-suffixed sibling of a recovery-case IRI as owned, silently dropping its
+/// axioms from the generated CGIF/CLIF/XCL dialects. The case's genuine structural children
+/// (the case node itself and its `/transform` formula tree) are still correctly owned.
+#[test]
+fn correspondence_ownership_does_not_over_capture_unrelated_slash_children() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+
+    let case_iri = "https://example.org/recovery/case1".to_owned();
+    let transform = Formula::atom(
+        Term::iri("https://example.org/holds").expect("relation IRI"),
+        vec![Term::iri("https://example.org/a").expect("endpoint IRI")],
+    )
+    .expect("ground atom");
+    let case = RecoveryCaseIr::new(case_iri.clone(), transform).expect("valid recovery case");
+    let correspondence = Correspondence::new(
+        "https://example.org/correspondence/case1owner",
+        CorrespondenceRelation::SubsumedBy,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("valid correspondence")
+    .with_recovery_cases(vec![case])
+    .expect("unique recovery case");
+
+    let ownership = CorrespondenceOwnership::build(std::slice::from_ref(&correspondence));
+
+    // Genuine structural children ARE owned.
+    assert!(
+        ownership.owns(&case_iri),
+        "the recovery case node itself must be owned"
+    );
+    assert!(
+        ownership.owns(&format!("{case_iri}/transform")),
+        "the mint root of the recoveryTransform formula tree must be owned"
+    );
+    assert!(
+        ownership.owns(&format!("{case_iri}/transform/body")),
+        "a genuine descendant under the transform mint root must be owned"
+    );
+
+    // An unrelated resource that shares the case IRI as a string prefix but is NOT a
+    // `/transform` descendant must NOT be swept up.
+    assert!(
+        !ownership.owns(&format!("{case_iri}extra")),
+        "a sibling IRI sharing the case IRI as a bare string prefix must not be owned"
+    );
+    assert!(
+        !ownership.owns(&format!("{case_iri}/unrelated-sibling")),
+        "a slash-suffixed sibling that is not a recoveryTransform descendant must not be owned"
+    );
+    assert!(
+        !ownership.owns(&format!("{case_iri}/../other")),
+        "a path-traversal-style sibling must not be owned"
+    );
+}
+
+/// End-to-end regression: a program carrying a recovery case PLUS an unrelated axiom whose
+/// subject is slash-suffixed under the case IRI must project both the case's own recovery
+/// evidence AND retain the unrelated axiom as a flat axiom in the meta channel — the writer
+/// must not silently drop it as "correspondence-owned".
+#[test]
+fn writer_meta_channel_retains_axiom_sharing_case_iri_as_slash_prefix() {
+    use crate::ir::{
+        ContextualScope, CorrespondenceRelation, LogicAxiom, LogicProgram, MorphismClass,
+        MorphismKind,
+    };
+
+    let case_iri = "https://example.org/recovery/case1".to_owned();
+    let transform = Formula::atom(
+        Term::iri("https://example.org/holds").expect("relation IRI"),
+        vec![Term::iri("https://example.org/a").expect("endpoint IRI")],
+    )
+    .expect("ground atom");
+    let case = RecoveryCaseIr::new(case_iri.clone(), transform).expect("valid recovery case");
+    let correspondence = Correspondence::new(
+        "https://example.org/correspondence/case1owner",
+        CorrespondenceRelation::SubsumedBy,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("valid correspondence")
+    .with_recovery_cases(vec![case])
+    .expect("unique recovery case");
+
+    // A domain resource that is NOT part of the recovery-case structure, but happens to be
+    // named as a slash-child of the case IRI (a plausible naming collision in a large corpus).
+    let sibling_subject = format!("{case_iri}/unrelated-sibling");
+    let sibling_axiom = LogicAxiom::new(
+        sibling_subject.clone(),
+        "https://example.org/marker".to_owned(),
+        "true".to_owned(),
+        true,
+        false,
+        ContextualScope::default(),
+    )
+    .expect("valid axiom");
+
+    let program = LogicProgram::new(vec![sibling_axiom], vec![], vec![], None)
+        .with_correspondences(vec![correspondence])
+        .expect("unique correspondence");
+
+    let cgif = crate::cgif::project_cgif(&program)
+        .expect("project_cgif")
+        .content;
+    assert!(
+        cgif.contains(&sibling_subject),
+        "the unrelated sibling axiom must survive into the CGIF meta channel, not be dropped \
+         as correspondence-owned:\n{cgif}"
+    );
+
+    let clif = crate::clif::project_clif(&program)
+        .expect("project_clif")
+        .content;
+    assert!(
+        clif.contains(&sibling_subject),
+        "the unrelated sibling axiom must survive into the CLIF meta channel, not be dropped \
+         as correspondence-owned:\n{clif}"
+    );
+
+    let xcl = crate::xcl::project_xcl(&program)
+        .expect("project_xcl")
+        .content;
+    assert!(
+        xcl.contains(&sibling_subject),
+        "the unrelated sibling axiom must survive into the XCL meta channel, not be dropped \
+         as correspondence-owned:\n{xcl}"
+    );
+}
+
 /// Standpoint indexing has one canonical RDF spelling across the ontology and the
 /// correspondence carrier: the declared `gmeow:accordingTo` annotation property.
 #[test]

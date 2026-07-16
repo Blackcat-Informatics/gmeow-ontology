@@ -474,6 +474,74 @@ fn law_claim_iri(corr_iri: &str, index: usize) -> String {
     format!("{corr_iri}/law-claim/{index}")
 }
 
+/// The root of a recovery case's `logic:recoveryTransform` formula tree — the ONE genuinely
+/// recursive sub-namespace a [`RecoveryCaseIr`] mints (see [`project_correspondence`]'s
+/// `{case.iri}/transform` emission and `super::rdf::emit_formula`'s `{node}/...` child-naming
+/// scheme). Every node the formula tree mints is a slash-descendant of exactly this root.
+fn recovery_transform_root(case_iri: &str) -> String {
+    format!("{case_iri}/transform")
+}
+
+/// The complete, precisely-enumerated set of RDF subjects a correspondence projection mints
+/// and therefore owns — used by the CGIF/CLIF/XCL meta-channel writers to exclude these
+/// subjects from a generic flat-axiom re-derivation (which would otherwise duplicate them
+/// under a different lexical form, breaking idempotence; see each writer's `meta_predications`).
+///
+/// Ownership is intentionally **narrow**:
+///
+/// * every node this projection mints DIRECTLY (the correspondence individual, the singleton
+///   `correspondence-program` wrapper, each recovery case, and each law-claim node) is owned by
+///   EXACT IRI match only;
+/// * the one node this projection mints RECURSIVELY — a recovery case's `recoveryTransform`
+///   formula tree — is owned by prefix match rooted at [`recovery_transform_root`], because
+///   [`super::rdf::emit_formula`] mints an unbounded, content-keyed tree of `{node}/...`
+///   children under that exact root and no other.
+///
+/// No other slash-suffix of any owned IRI is owned. An unrelated resource that merely shares a
+/// correspondence or recovery-case IRI as a *string* prefix (e.g. a domain resource authored at
+/// `<case-iri>/unrelated-node`, which is not a `recoveryTransform` descendant) is never treated
+/// as correspondence-owned, so its axioms are never silently dropped from a generated dialect.
+pub(crate) struct CorrespondenceOwnership {
+    exact: std::collections::HashSet<String>,
+    transform_roots: Vec<String>,
+}
+
+impl CorrespondenceOwnership {
+    /// Build the owned-subject set for `correspondences` (one call per writer invocation; the
+    /// writers already hold `program.correspondences` on hand).
+    pub(crate) fn build(correspondences: &[Correspondence]) -> Self {
+        let mut exact = std::collections::HashSet::new();
+        exact.insert(program_iri());
+        let mut transform_roots = Vec::new();
+        for c in correspondences {
+            exact.insert(c.iri.clone());
+            for index in 0..c.law_claims.len() {
+                exact.insert(law_claim_iri(&c.iri, index));
+            }
+            for case in &c.recovery_cases {
+                exact.insert(case.iri.clone());
+                transform_roots.push(recovery_transform_root(&case.iri));
+            }
+        }
+        Self {
+            exact,
+            transform_roots,
+        }
+    }
+
+    /// Whether `subject` is a correspondence-owned node under the narrow rule documented on
+    /// [`CorrespondenceOwnership`].
+    pub(crate) fn owns(&self, subject: &str) -> bool {
+        self.exact.contains(subject)
+            || self.transform_roots.iter().any(|root| {
+                subject == root.as_str()
+                    || subject
+                        .strip_prefix(root.as_str())
+                        .is_some_and(|rest| rest.starts_with('/'))
+            })
+    }
+}
+
 /// Project a [`CorrespondenceProgram`] into a deterministic, sorted, byte-stable
 /// N-Triples graph — the content folded into the `graph/correspondence` named graph.
 ///
