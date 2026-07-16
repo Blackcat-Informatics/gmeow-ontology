@@ -658,10 +658,10 @@ mod tests {
         );
     }
 
-    // ── Test 4: reify parity + TermValue::Triple hard-fail ──────────────────────────
+    // ── Test 4: reify parity + non-IRI triple-term-predicate hard-fail ──────────────
 
     #[test]
-    fn reify_matches_mint_nary_reifier_and_hard_fails_on_triple() {
+    fn reify_matches_mint_nary_reifier_and_guards_non_iri_triple_predicate() {
         let mut dag = TermDag::new();
         let mul_abc = ground_atom(&mut dag, MUL, &[A, B, C]);
 
@@ -672,18 +672,38 @@ mod tests {
             "reify must reuse mint_nary_reifier on the resolved args"
         );
 
-        // A term carrying an RDF-star quoted-triple argument inherits term_n3's hard fail.
-        let triple = TermValue::Triple {
+        let op = dag.intern_leaf(iri(MUL));
+
+        // An IRI-predicate RDF-star triple argument reifies: `term_n3` renders nested
+        // triple terms recursively in RDF 1.2 non-asserting form (`<<( s p o )>>`), keeping
+        // distinct nested statements distinct, so the reifier is well-defined.
+        let iri_pred_triple = TermValue::Triple {
             s: Box::new(iri(A)),
             p: Box::new(iri(P)),
             o: Box::new(iri(B)),
         };
-        let op = dag.intern_leaf(iri(MUL));
-        let triple_leaf = dag.intern_leaf(triple);
-        let with_triple = dag.intern_app(op, vec![triple_leaf]);
+        let ok_leaf = dag.intern_leaf(iri_pred_triple);
+        let with_ok_triple = dag.intern_app(op, vec![ok_leaf]);
         assert!(
-            reify(&dag, with_triple).is_err(),
-            "a term with a TermValue::Triple argument must hard-fail to reify"
+            reify(&dag, with_ok_triple).is_ok(),
+            "an IRI-predicate triple-term argument reifies (recursive RDF 1.2 rendering)"
+        );
+
+        // A NON-IRI triple-term predicate is the remaining hard fail
+        // (`validate_triple_term_predicates` rejects a literal/blank/triple predicate).
+        let non_iri_pred_triple = TermValue::Triple {
+            s: Box::new(iri(A)),
+            p: Box::new(TermValue::typed_literal(
+                "not-an-iri".to_string(),
+                crate::physical::XSD_INTEGER,
+            )),
+            o: Box::new(iri(B)),
+        };
+        let bad_leaf = dag.intern_leaf(non_iri_pred_triple);
+        let with_bad_triple = dag.intern_app(op, vec![bad_leaf]);
+        assert!(
+            reify(&dag, with_bad_triple).is_err(),
+            "a non-IRI triple-term predicate must hard-fail to reify"
         );
     }
 
