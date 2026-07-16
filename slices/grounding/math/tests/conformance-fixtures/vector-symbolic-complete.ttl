@@ -16,7 +16,19 @@
 # product (vᵢ² = +1), so unbinding the composite by the key recovers the other
 # operand EXACTLY, with recovery loss 0/1. Every coordinate is carried as an exact
 # math:RationalValue (numerator/denominator), never a decimal.
-ex:space a math:VectorSpace .
+# The ambient vector space. A math:VectorSpace ⊑ math:AlgebraicStructure, so it is
+# genuinely framed as one: its carrier is the math:Set of vectors, its
+# math:structureOperation is vector addition, and it satisfies the additive
+# associativity axiom of its underlying abelian group. (Scalar multiplication and
+# the remaining vector-space axioms are further math:structureOperation /
+# math:satisfiesAxiom facts; the minimal abelian-group core is declared here.)
+ex:space a math:VectorSpace ;
+    math:underlyingSet ex:vectorSet ;
+    math:structureOperation ex:vectorAddition ;
+    math:satisfiesAxiom ex:additiveAssociativity .
+ex:vectorSet a math:Set .
+ex:vectorAddition a math:Operation .
+ex:additiveAssociativity a math:Axiom .
 ex:basis a math:Basis .
 
 # The two reference operand vectors, given as concrete exact-rational bipolar

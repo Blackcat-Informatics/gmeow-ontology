@@ -19,7 +19,15 @@ ex:binding a math:VectorBinding ;
     math:vsaOperand ex:vecA , ex:vecB ;
     math:recoveryLossContract ex:exactContract .
 
-ex:space a math:VectorSpace .
+# The ambient vector space is fully framed as the math:AlgebraicStructure it is, so
+# the ONLY isolated omission in this counterexample is math:operationCapacity.
+ex:space a math:VectorSpace ;
+    math:underlyingSet ex:vectorSet ;
+    math:structureOperation ex:vectorAddition ;
+    math:satisfiesAxiom ex:additiveAssociativity .
+ex:vectorSet a math:Set .
+ex:vectorAddition a math:Operation .
+ex:additiveAssociativity a math:Axiom .
 ex:basis a math:Basis .
 
 ex:vecA a math:Vector ; math:inBasis ex:basis .
