@@ -53,7 +53,7 @@ class CommunitySummary(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    summarizesCommunity: list[str] | None = Field(default=None, description="The community this summary condenses.", alias="gmeow:summarizesCommunity")
+    summarizesCommunity: list[str] | None = Field(default=None, description="Within gmeow:CommunitySummary, values are node references constrained to gmeow:Community. The community this summary condenses.", alias="gmeow:summarizesCommunity")
 
 
 class Embedding(ConfiguredBaseModel):
@@ -88,7 +88,7 @@ class Embedding(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     distanceMetric: DistanceMetricEnum = Field(description="The similarity/distance function under which an embedding or index is meaningful — cosine and euclidean disagree about what is 'near', so the metric is provenance, not a detail. Domain-free: carried by Embedding and VectorIndex alike.", alias="gmeow:distanceMetric")
     embeddingModel: SoftwareAgent = Field(description="The model agent that produced this embedding. Two models' embeddings of the same chunk are two Embedding individuals — never merged (P9: machine-derived values are attributed).", alias="gmeow:embeddingModel")
-    embeddingOf: str = Field(description="The information object this embedding represents. Functional: one embedding represents exactly one object under one model.", alias="gmeow:embeddingOf")
+    embeddingOf: str = Field(description="Within gmeow:Embedding, values are node references constrained to gmeow:InformationObject. The information object this embedding represents. Functional: one embedding represents exactly one object under one model.", alias="gmeow:embeddingOf")
 
 
 class ExtractedRelationship(ConfiguredBaseModel):
@@ -116,8 +116,8 @@ class ExtractedRelationship(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    relationshipSource: str = Field(description="The extracted-entity description at the tail of this extracted relationship.", alias="gmeow:relationshipSource")
-    relationshipTarget: str = Field(description="The extracted-entity description at the head of this extracted relationship.", alias="gmeow:relationshipTarget")
+    relationshipSource: str = Field(description="Within gmeow:ExtractedRelationship, values are node references constrained to gmeow:ExtractedEntity. The extracted-entity description at the tail of this extracted relationship.", alias="gmeow:relationshipSource")
+    relationshipTarget: str = Field(description="Within gmeow:ExtractedRelationship, values are node references constrained to gmeow:ExtractedEntity. The extracted-entity description at the head of this extracted relationship.", alias="gmeow:relationshipTarget")
 
 
 class RetrievalEvent(ConfiguredBaseModel):
@@ -148,4 +148,4 @@ class RetrievalEvent(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    againstIndex: str = Field(description="The index this retrieval queried. Functional: federated retrieval is several RetrievalEvents under one parent activity.", alias="gmeow:againstIndex")
+    againstIndex: str = Field(description="Within gmeow:RetrievalEvent, values are node references constrained to gmeow:VectorIndex. The index this retrieval queried. Functional: federated retrieval is several RetrievalEvents under one parent activity.", alias="gmeow:againstIndex")

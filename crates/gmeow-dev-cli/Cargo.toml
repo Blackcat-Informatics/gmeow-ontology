@@ -3,12 +3,12 @@
 
 [package]
 name = "gmeow-dev-cli"
-description = "The repo-maintenance `gmeow-dev` command surface (regenerate, fanout, reason, verify, mappings, i18n, and the developer toolchain)."
+description = "The repo-maintenance `gmeow-dev` command surface (sync, fanout, reason, verify, mappings, i18n, and the developer toolchain)."
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords = ["cli", "gmeow", "regenerate", "pipeline", "developer"]
+keywords = ["cli", "gmeow", "sync", "pipeline", "developer"]
 
 [lib]
 path = "src/lib.rs"
@@ -34,7 +34,9 @@ gmeow-foundation-corpus = { path = "../foundation-corpus" }
 # The RDF-1.2 umbrella: GTS read/fold, the slice ownership/fix-deps analyzer, and
 # the OpenPGP secret-key parse the signed release/compile-gts lanes need.
 purrdf.workspace = true
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
 # The dependency-free license-token policy classifier the `extract` guard uses.
 gmeow-license = { path = "../license" }
 # The trust-policy TOML the signed-bundle `validate` pre-gate reads.

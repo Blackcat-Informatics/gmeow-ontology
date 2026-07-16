@@ -12,7 +12,7 @@ declares its drops (P5) in its own native slot.
 |---|---|---|---|
 | **Croissant 1.0** | `<ds>.croissant.jsonld` | Google Dataset Search, Hugging Face, Kaggle, OpenML; loadable via `mlcroissant` | structural (required keys, FileObject/recordSet integrity, sha256 hex) |
 | **RO-Crate 1.1** | `ro-crate/` + `<ds>.crate.zip` | WorkflowHub, Zenodo, crate viewers | structural (descriptor/root/conformsTo/hasPart, flat graph, zip integrity) |
-| **DCAT 3** | `<ds>.dcat.ttl` | W3C data catalogs | the projection round-trip + dual-engine crosscheck (a mapping-DSL profile) |
+| **DCAT 3** | `<ds>.dcat.ttl` | W3C data catalogs | projection round-trip + expectation-bearing mapping/profile conformance |
 | **DataCite kernel-4** | `<ds>.datacite.xml` | DOI registration | structural ElementTree pins; XSD reference-only (crossref.py stance) |
 | **Frictionless** | `datapackage.json` | data pipelines (`frictionless`) | jsonschema against the vendored official Data Package profile |
 
@@ -20,7 +20,7 @@ Two entry points:
 
 ```bash
 gmeow export all my-dataset.ttl            # arbitrary user data → dist/research-objects/
-gmeow regenerate research-objects          # the flagship worked example (drift-gated)
+gmeow-dev sync --mode update --outputs generated research-objects          # the flagship worked example (drift-gated)
 ```
 
 The input must contain a **dataset descriptor**: a `gmeow:Dataset` node with

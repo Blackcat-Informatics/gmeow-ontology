@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: indexes 0 and 2 are unique and non-negative, but index 2 has
+# no sibling predecessor at index 1 (math:NonContiguousArgumentSlots).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:gappedApplication a math:ApplicationExpression ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:gappedSlot0 , ex:gappedSlot2 .
+
+ex:gappedSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:gappedOperand0 .
+ex:gappedSlot2 a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:gappedOperand2 .
+ex:gappedOperand0 a math:MathematicalExpression .
+ex:gappedOperand2 a math:MathematicalExpression .

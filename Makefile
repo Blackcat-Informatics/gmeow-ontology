@@ -9,8 +9,11 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
-MESSAGE ?= chore: regenerate checked-in artifacts
+MESSAGE ?= chore: synchronize checked-in artifacts
 GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
+SYNC_MODE ?=
+SYNC_OUTPUTS ?= all
+SYNC_VERBOSE ?=
 CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
@@ -45,7 +48,7 @@ RUST_TEST_WORKSPACE_ARGS := --workspace
 WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
-# codegen for regenerate/reasoning throughput. CI and release workflows append the
+# codegen for synchronization/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
 
 # The enforced corpus-aggregate recall floor lives in Rust
@@ -62,20 +65,15 @@ MUTANTS_ARGS ?=
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
 
-CHECK_TARGETS := check-lint rust-gate gts-frame-profile-gate validate check-generated constitution-check \
-	crate-check audit wikidata coverage acceptance reason-gate lint-alignment i18n-lint \
-	doc-lint coherence-gate-teeth slice-quality-gate bench-soak
-
 .PHONY: help \
 	install fmt lint check-lint lint-issue-refs i18n-lint \
 	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck reason-gate rust-build rust-test rust-docs check \
-	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
+	sync fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-entail-oracle-alloc bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
@@ -170,26 +168,21 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: ## Run the full Docker-free local quality gate.
-	$(MAKE) $(CHECK_TARGETS)
-	$(MAKE) compliance-report
-	@echo "all checks passed (Docker-free, Java-free)"
+	cargo xtask check
 
 i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 	$(GMEOW_DEV) i18n lint
 
 ##@ Generated Artifacts And Outputs
 
-regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
-	$(GMEOW_DEV) regenerate
+sync: ## Run one cached update/check pipeline and make all outputs (CI defaults read-only).
+	$(GMEOW_DEV) sync $(if $(strip $(SYNC_MODE)),--mode $(SYNC_MODE),) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,)
 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
-check-generated: ## Drift + orphan check for all registered generators.
-	$(GMEOW_DEV) check-generated
-
-commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
-	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) regenerate --list-paths); \
+commit: sync ## Synchronize artifacts, stage generator-owned outputs, and commit.
+	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
 	for p in $${REGENERATED_PATHS}; do \
 	  if [ -e "$$p" ]; then git add "$$p"; fi; \
 	done; \
@@ -200,10 +193,6 @@ commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and c
 	fi
 	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
 
-docs: regenerate ## Regenerate all external documentation projections (site, book, print, snippets, OKF, YAML-LD).
-	$(GMEOW_DEV) export-docs --format all --directory dist/gmeow-docs --force
-	$(GMEOW_DEV) export-docs --format site --directory ontology-docs --force
-
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize
 
@@ -213,7 +202,7 @@ build: cli-build ## Build the Rust CLIs plus serializations and JSON-LD context 
 project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles.
 	$(GMEOW_DEV) project
 
-release: docs ## Regenerate, native-reason, build, report, docs, and emit CrossRef deposit.
+release: sync ## Synchronize, native-reason, build, report, docs, and emit CrossRef deposit.
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) build
 	$(MAKE) lsp-release
@@ -334,7 +323,7 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run carrier purity,
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-coherence-gate-teeth: rust-build reason-gate ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
+coherence-gate-teeth: rust-build ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
 	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
@@ -427,7 +416,7 @@ maint-dev-cli-heavy: rust-build ## Run the off-gate gmeow-dev CLI heavy parity l
 
 maint-pydantic-conformance: ## Off-gate LIVE Pydantic conformance: import + model_rebuild sweep, docstring doctests, and model_json_schema() agreement with the packed JSON Schema (uv-managed; the on-gate hard-fail is the Rust structural gate).
 	@test -f packages/python/gmeow_models/__init__.py \
-		|| { echo "packages/python/gmeow_models is missing — run 'make regenerate' first"; exit 1; }
+		|| { echo "packages/python/gmeow_models is missing — run 'make sync' first"; exit 1; }
 	cd packages/python && uv venv --allow-existing .venv && uv pip install --python .venv -e '.[conformance]'
 	cd packages/python && uv run --python .venv pytest tests -q
 
@@ -472,7 +461,7 @@ bench-soak: ## On-gate divergence-ledger soak window: run the deterministic nati
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
-	$(GMEOW_DEV) check-generated --timings-json $(PERF_DIR)/check-generated.json
+	$(GMEOW_DEV) sync --mode check --outputs generated --timings-json $(PERF_DIR)/sync.json
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
 	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
@@ -488,9 +477,6 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 	$(GMEOW_DEV) compliance-report --from-passing-check
 
 ##@ Maintainer Tasks
-
-maint-crosscheck: ## Prove every committed query answers on the native purrdf engine.
-	$(GMEOW_DEV) crosscheck-queries
 
 maint-extract: ## Run import/extract policy for TARGET.
 	$(GMEOW_DEV) extract --target $(TARGET)

@@ -242,7 +242,7 @@ pub(crate) fn build_coherence_outcome(
             pair_loss_ledger("gts", to)
                 .entries()
                 .iter()
-                .map(|e| e.code.to_owned())
+                .map(|e| e.code.to_string())
                 .collect::<Vec<_>>()
         })
         .collect();

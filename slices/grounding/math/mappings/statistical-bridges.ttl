@@ -1,0 +1,161 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix stato: <http://purl.obolibrary.org/obo/STATO_> .
+@prefix obcs: <http://purl.obolibrary.org/obo/OBCS_> .
+@prefix obi: <http://purl.obolibrary.org/obo/OBI_> .
+@prefix sio: <http://semanticscience.org/resource/SIO_> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# Domain bridges supplement the identity/catalog mappings in equivalences.ttl.
+# They are validation-only close/related matches: no target TBox is imported and
+# no OBO or Data Cube class becomes canonical mathematical semantics.
+
+gmeow:mapsetMathQb a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-math-qb.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/math-qb" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Bridge from the native matrix/data model to the RDF Data Cube dataset carrier; cube serialization remains a generated projection." .
+
+gmeow:mapsetMathStato a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-math-stato.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/math-stato" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Statistical concept bridges onto STATO's persistent OBO IRIs." .
+
+gmeow:mapsetMathObcs a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-math-obcs.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/math-obcs" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Statistical concept bridges onto the Ontology of Biological and Clinical Statistics." .
+
+gmeow:mapsetMathInformation a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-math-information.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/math-information" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Narrow bridges from math data and transformation constructs onto SIO and OBI information-science terms." .
+
+gmeow:eqMathQbDataset a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:DatasetMatrix ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject qb:DataSet ;
+    logic:sourceEndpoint math:DatasetMatrix ; logic:targetEndpoint qb:DataSet ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-math-qb.sssom.tsv" ;
+    gmeow:comment "A matrix can be serialized as a Data Cube dataset, but the cube carrier does not imply matrix shape or algebra." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathStatoModel a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:StatisticalModel ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject stato:0000107 ;
+    logic:sourceEndpoint math:StatisticalModel ; logic:targetEndpoint stato:0000107 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-math-stato.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathStatoVariable a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:StatisticalVariable ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject stato:0000258 ;
+    logic:sourceEndpoint math:StatisticalVariable ; logic:targetEndpoint stato:0000258 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-math-stato.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathStatoRandomVariable a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:RandomVariable ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject stato:0000221 ;
+    logic:sourceEndpoint math:RandomVariable ; logic:targetEndpoint stato:0000221 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-math-stato.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathStatoStatistic a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Statistic ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject stato:0000039 ;
+    logic:sourceEndpoint math:Statistic ; logic:targetEndpoint stato:0000039 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-math-stato.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathStatoSample a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Sample ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject stato:0000651 ;
+    logic:sourceEndpoint math:Sample ; logic:targetEndpoint stato:0000651 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-math-stato.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathObcsModel a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:StatisticalModel ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obcs:0000035 ;
+    logic:sourceEndpoint math:StatisticalModel ; logic:targetEndpoint obcs:0000035 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-math-obcs.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathObcsVariable a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:StatisticalVariable ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obcs:0000038 ;
+    logic:sourceEndpoint math:StatisticalVariable ; logic:targetEndpoint obcs:0000038 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-math-obcs.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathObcsDataMatrix a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:DatasetMatrix ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obcs:0000120 ;
+    logic:sourceEndpoint math:DatasetMatrix ; logic:targetEndpoint obcs:0000120 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-math-obcs.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathObcsTransformation a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:DataTransformation ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obcs:0000188 ;
+    logic:sourceEndpoint math:DataTransformation ; logic:targetEndpoint obcs:0000188 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-math-obcs.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathObcsRandomVariable a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:RandomVariable ; gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obcs:0000126 ;
+    logic:sourceEndpoint math:RandomVariable ; logic:targetEndpoint obcs:0000126 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-math-obcs.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathSioDataset a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:DatasetMatrix ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sio:000089 ;
+    logic:sourceEndpoint math:DatasetMatrix ; logic:targetEndpoint sio:000089 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-math-information.sssom.tsv" ;
+    gmeow:comment "SIO dataset is a carrier category broader than the native rectangular matrix construct." ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathObiTransformation a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:DataTransformation ; gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject obi:0200000 ;
+    logic:sourceEndpoint math:DataTransformation ; logic:targetEndpoint obi:0200000 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-math-information.sssom.tsv" ;
+    gmeow:comment "OBI_0200000 is a completely executed planned process producing output data from input data; math:DataTransformation is a mathematical transformation specification and need not denote an executed process. The concepts are usefully related but not close enough for interchange, so this is a validation-only commitment-shifting bridge." ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .

@@ -20,7 +20,7 @@
 //!    process and every serialized byte payload (corpus graphs AND the committed `.conllu`
 //!    projection artifacts) must be byte-identical across the two runs.
 //!
-//! 2. **The drift lane — `run_full(RunMode::Check)` (`make check-generated`).** Fresh
+//! 2. **The drift lane — `run_full(RunMode::Check)` (`make sync SYNC_MODE=check SYNC_OUTPUTS=generated`).** Fresh
 //!    process, re-derives every committed artifact and reconciles it: the per-reading
 //!    `.conllu` files by EXACT BYTES (`crates/pipeline/src/run.rs:737-755`, the non-RDF
 //!    committed-artifact compare), and the corpus graphs through the `gmeow.gts`

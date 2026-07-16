@@ -24,7 +24,7 @@ ex:areaLengthSquared a math:DimensionExponent ;
 ex:varianceRole a math:DistributionParameterRole ;
     math:quantityDimension ex:areaDimension .
 
-ex:linearQuantity a gmeow:Quantity ;
+ex:linearQuantity a math:Quantity ;
     math:hasDimension math:lengthDimension .
 
 ex:misdimensionedParameter a math:DistributionParameter ;

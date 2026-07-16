@@ -1,7 +1,7 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/gender
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: "Gender alignments \u2014 gender-identity values to GSSO and Homosaurus v4 (the authoritative sex-gender / LGBTQ+ vocabularies) and the gender-carrying property to schema.org, FOAF and Wikidata P21 (P21 is Wikidata's accepted sex-or-gender field). EVERY external identifier was verified against the local authoritative copies (Homosaurus v4 + GSSO from /opt/foundation; Wikidata via API) \u2014 scraped IDs proved unreliable. Note Wikidata has NO gender-identity item for 'woman'/'man' distinct from the SEX values female/male (Q6581072/Q6581097), which are mapped to sexAssignedAtBirth instead \u2014 itself evidence of the sex/gender conflation GMEOW refuses; GSSO does carry distinct woman/man gender identities. The value vocab is OPEN (demigirl/demiboy/questioning are canonical until verified IDs exist). The reified, self-asserted, co-equal gmeow:IdentityFacet machinery (hasGenderIdentity/genderValue, selfAsserted, displayable suppression) is CANONICAL. sexAssignedAtBirth is a recorded administrative datum; documentary sex on records uses external gedcom:sex directly."

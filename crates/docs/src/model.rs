@@ -2196,7 +2196,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
         // Absent only during the one-shot bootstrap build that first mints the
         // manifest (the stage writes it THIS build; the committed docs pick it up
         // the next pass). An empty map skips every term's content-address for this
-        // pass — the two-phase fixed-point convergence. `check-generated` still
+        // pass — the two-phase fixed-point convergence. Strict sync still
         // guarantees the committed manifest is present + current in a landed tree,
         // so a genuinely-missing committed manifest is caught there, not silently.
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
@@ -4364,6 +4364,7 @@ ex:restEnergy a math:Quantity ;
     rdfs:label "rest energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "8.187e-14"^^xsd:double .
 
 ex:energyDimension a math:DerivedDimension ;

@@ -93,14 +93,16 @@ use purrdf::TermValue;
 use crate::physical::binding_pattern::BindingPattern;
 use crate::physical::incremental::{IncrementalSession, SignedFact};
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
-use crate::physical::store::{RelationStore, extract_edb};
+#[cfg(test)]
+use crate::physical::store::extract_edb;
+use crate::physical::store::{RelationStore, extract_edb_patterns};
 use crate::profile_gate;
 use crate::provenance::term_display;
 use crate::query_ir::{
     AnswerSet, Binding, Budget, CompletionFrontier, QAtom, QBodyLit, QBuiltin, QProgram, QTerm,
 };
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
-use crate::seam::{BudgetStatus, WorldFactSource};
+use crate::seam::{BudgetStatus, WorldFactPattern, WorldFactSource};
 
 use crate::annotation::{
     AnnotatedAnswer, AnnotatedAnswerSet, AnnotatedFactKey, AnnotationDerivation, AnnotationFactRef,
@@ -207,6 +209,57 @@ fn atom_of(atom: &QAtom) -> Result<EvalAtom, UnsupportedKind> {
         object,
         negated: false,
     })
+}
+
+pub(super) fn source_term(term: &EvalTerm) -> Option<TermValue> {
+    match term {
+        EvalTerm::Var(_) => None,
+        EvalTerm::ConstNamed(iri) => Some(TermValue::iri(iri)),
+        EvalTerm::ConstLit(value) => Some(value.clone()),
+    }
+}
+
+/// Build the minimal deterministic set of RDF source probes required by a binary
+/// query. Source facts can share a predicate with rule heads, so the plan is based on
+/// every relation *consumed* by the goal or a body atom rather than an EDB/IDB name
+/// partition. A broad pattern subsumes narrower probes for the same predicate.
+fn binary_source_patterns(rules: &[EvalRule], goal: &EvalAtom) -> Vec<WorldFactPattern> {
+    let mut patterns = Vec::new();
+    let atoms = std::iter::once(goal).chain(rules.iter().flat_map(|rule| rule.body.iter()));
+    for atom in atoms {
+        let pattern = WorldFactPattern::new(
+            source_term(&atom.subject),
+            Some(atom.predicate.clone()),
+            source_term(&atom.object),
+        );
+        if patterns
+            .iter()
+            .any(|existing: &WorldFactPattern| existing.subsumes(&pattern))
+        {
+            continue;
+        }
+        patterns.retain(|existing| !pattern.subsumes(existing));
+        patterns.push(pattern);
+    }
+    patterns.sort();
+    patterns
+}
+
+/// Predicate-only source plan for a reusable incremental session.
+///
+/// A later signed transaction may retract a source tuple that did not match the
+/// initial goal's constants (for example, replacing `status(up)` with
+/// `status(down)`). The session therefore admits every tuple of each consumed
+/// predicate while still excluding predicates the program can never inspect.
+fn incremental_source_patterns(rules: &[EvalRule], goal: &EvalAtom) -> Vec<WorldFactPattern> {
+    let predicates = std::iter::once(goal)
+        .chain(rules.iter().flat_map(|rule| rule.body.iter()))
+        .map(|atom| atom.predicate.clone())
+        .collect::<BTreeSet<_>>();
+    predicates
+        .into_iter()
+        .map(|predicate| WorldFactPattern::new(None, Some(predicate), None))
+        .collect()
 }
 
 // ── Magic-predicate minting ───────────────────────────────────────────────────────
@@ -1177,7 +1230,8 @@ pub(crate) fn prepare_incremental_query(
         return Ok(None);
     }
 
-    let mut edb = extract_edb(foreign, world).facts_sorted();
+    let source_patterns = incremental_source_patterns(&rules, &goal_atom);
+    let mut edb = extract_edb_patterns(foreign, world, &source_patterns)?.facts_sorted();
     for seed in &transformed.seeds {
         edb.push(seed_to_fact(seed)?);
     }
@@ -1261,7 +1315,7 @@ fn eval_with_base_fallback(
     transformed_rules: Vec<EvalRule>,
     base_rules: Vec<EvalRule>,
     max_steps: Option<u64>,
-    base_edb: impl FnOnce() -> RelationStore,
+    base_edb: impl FnOnce() -> gmeow_errors::Result<RelationStore>,
 ) -> gmeow_errors::Result<FallbackOutcome> {
     // Enter the type-state plan pipeline for the demand-transformed program.  A magic
     // (demand) transform threads a magic guard — and, under stratified NAF, a negated
@@ -1281,7 +1335,7 @@ fn eval_with_base_fallback(
                 UnsupportedKind::NonStratifiable,
             ));
         };
-        return match evaluate(base_edb(), base_exe.as_ref(), max_steps)? {
+        return match evaluate(base_edb()?, base_exe.as_ref(), max_steps)? {
             NativeOutcome::Decided(budgeted) => {
                 let frontier = budgeted.frontier();
                 Ok(FallbackOutcome::Decided {
@@ -1425,7 +1479,8 @@ fn evaluate_binary_under(
         control_predicates.insert(seed.predicate.clone());
     }
 
-    let mut edb = extract_edb(foreign, world);
+    let source_patterns = binary_source_patterns(&rules, &goal_atom);
+    let mut edb = extract_edb_patterns(foreign, world, &source_patterns)?;
     let base_edb_facts = edb.facts_sorted();
     for seed in &transformed.seeds {
         let fact = seed_to_fact(seed)?;
@@ -1439,7 +1494,7 @@ fn evaluate_binary_under(
         transformed_rules.clone(),
         base_rules.clone(),
         budget.max_steps,
-        || extract_edb(foreign, world),
+        || extract_edb_patterns(foreign, world, &source_patterns),
     )?;
     match outcome {
         FallbackOutcome::Decided {
@@ -1762,7 +1817,8 @@ where
     for seed in &transformed.seeds {
         control_predicates.insert(seed.predicate.clone());
     }
-    let base_edb_facts = extract_edb(foreign, world).facts_sorted();
+    let source_patterns = binary_source_patterns(&base_rules, &goal_atom);
+    let base_edb_facts = extract_edb_patterns(foreign, world, &source_patterns)?.facts_sorted();
     let mut edb = base_edb_facts.clone();
     for seed in &transformed.seeds {
         edb.push(seed_to_fact(seed)?);
@@ -2251,7 +2307,7 @@ mod tests {
         let goal = &prog.goal.atoms[0];
         let goal_atom = atom_of(goal).unwrap();
         let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
-        let mut edb = extract_edb(&foreign, &world_nn);
+        let mut edb = extract_edb(&foreign, &world_nn).unwrap();
         for seed in &transformed.seeds {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, &f.subject, &f.object);
@@ -2772,7 +2828,7 @@ mod tests {
                 &TermValue::iri(x.clone()),
                 &TermValue::iri(y.clone()),
             );
-            edb
+            Ok(edb)
         };
         // The transformed EDB is irrelevant: the transform is non-stratifiable, so
         // `evaluate` short-circuits before touching it.
@@ -2838,7 +2894,7 @@ mod tests {
             transformed,
             base,
             None,
-            RelationStore::new,
+            || Ok(RelationStore::new()),
         )
         .expect("fallback must not error");
         assert!(
@@ -3219,7 +3275,7 @@ mod tests {
         let goal = &prog.goal.atoms[0];
         let goal_atom = atom_of(goal).unwrap();
         let transformed = transform(&rules, &goal_atom, goal_adornment(goal));
-        let mut edb = extract_edb(foreign, world);
+        let mut edb = extract_edb(foreign, world).unwrap();
         for seed in &transformed.seeds {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, &f.subject, &f.object);
@@ -3450,7 +3506,7 @@ mod tests {
 
         // Evaluate the SUBSUMPTIVE transformed program and inspect the derived `p` facts.
         let mp = magic_transform(&rules, &goal_atom, adorn);
-        let mut edb = extract_edb(&foreign, &world_nn);
+        let mut edb = extract_edb(&foreign, &world_nn).unwrap();
         for seed in &mp.seeds {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, &f.subject, &f.object);

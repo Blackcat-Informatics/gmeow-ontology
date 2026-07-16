@@ -79,7 +79,10 @@ pub use node::{
     StageProduct,
 };
 pub use registry::{StageRegistry, default_registry};
-pub use run::{RunMode, RunReport, full_spec, run_full};
+pub use run::{
+    RunMode, RunOutputScope, RunReport, full_spec, run_full, run_full_scoped,
+    run_full_scoped_with_progress,
+};
 pub use scheduler::{RunContext, RunResult, run};
 
 #[cfg(test)]

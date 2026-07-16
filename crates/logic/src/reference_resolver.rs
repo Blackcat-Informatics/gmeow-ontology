@@ -71,9 +71,8 @@ fn reference_err(detail: String) -> gmeow_errors::Diag {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if:
-/// - A rule body that would be used contains `!` (cut is procedural).
-/// - `term_n3` fails on an RDF-star triple-term (out of scope).
+/// Returns a diagnostic if a rule body that would be used contains `!` (cut is
+/// procedural) or a source term violates the RDF 1.2 value contract.
 pub fn resolve(
     foreign: &dyn WorldFactSource,
     world: &str,
@@ -388,7 +387,8 @@ impl<'a> ResolveState<'a> {
                 subj_term.as_ref(),
                 Some(pred),
                 obj_term.as_ref(),
-            )
+            )?
+            .into_iter()
             .map(|dq| (dq.subject.clone(), dq.object.clone()))
             .collect();
 

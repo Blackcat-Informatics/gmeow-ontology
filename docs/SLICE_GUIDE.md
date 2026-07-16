@@ -564,7 +564,7 @@ advisor's term list as the specification of the uplift.
 ## 11. Gates, drift, and landing
 
 - Work in a worktree (`.worktrees/<slug>/`), never the top-level checkout; build the
-  native extensions before regenerating; regenerate with `make regenerate`, never the bare
+  native extensions before regenerating; regenerate with `make sync`, never the bare
   command (`CLAUDE.md` § working discipline).
 - **Slice edits drift generated artifacts by design** — that is the pipeline working, not
   a problem. Expect: docs-model goldens on any term or annotation change; result-shapes
@@ -591,7 +591,7 @@ advisor's term list as the specification of the uplift.
 | Silent disambiguation of ambiguous input | fabricates certainty | co-resident readings (§8) |
 | Deleting a superseded value | destroys audit | suppression machinery (Principle 10) |
 | Asserting derived or computed facts in source | second source of truth in the canon | validation; the solver boundary (P12) |
-| Hand-editing a generated artifact | drift; competing source of truth | `make check-generated` (Principle 7) |
+| Hand-editing a generated artifact | drift; competing source of truth | `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` (Principle 7) |
 | A value without its frame | uninterpretable scalar | frame shapes (Principle 11) |
 | Structural test without a rationale | unmaintainable invariant | review practice (§6.6) |
 | Module without a consumer | a monument, not a product | the manifest consumer field (Principle 15) |
@@ -634,7 +634,7 @@ Before opening the PR, every box:
 - [ ] The tier claimed in `gmeow:sliceDocMaturity` is one the coverage genuinely earns —
       every dimension in its intent covered, realized-state markers present, the
       `asserted ⊄ earned` gate empty (§6.8)
-- [ ] `make regenerate` landed with the change; drifted goldens re-blessed deliberately;
+- [ ] `make sync` landed with the change; drifted goldens re-blessed deliberately;
       full `make check` green merged into current `main` (§11)
 - [ ] Capping axis uplifted where the lane names one; the raised floor individual
       (`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` in the rubric slice) landed in the

@@ -480,8 +480,8 @@ pub(crate) fn term_loss_digest_from_upstream(
 
 /// Fold the per-term JSON Schema / OpenAPI fragment digest off the COMMITTED
 /// `generated/schemas/gmeow.schema.json` / `gmeow.openapi.json` under `root` — the
-/// disk-sourced reader for the standalone `make docs` fanout
-/// (`gmeow-dev export-docs`), which builds the docs model via
+/// disk-sourced reader for the standalone `make sync SYNC_OUTPUTS=docs` fanout
+/// (`gmeow-dev sync --mode update --outputs docs`), which builds the docs model via
 /// [`gmeow_docs::model::DocsModel::discover`] WITHOUT a live pipeline product. The
 /// two committed files are projections of the `stage-export-json-schema` emitter
 /// output, so the resulting digest — and thus every rendered per-term Python/Rust
@@ -498,7 +498,7 @@ pub fn schema_fragments_from_generated(
         let path = root.join(rel);
         let bytes = std::fs::read(&path).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "export-docs".to_string(),
+                stage: "sync-docs".to_string(),
                 message: format!(
                     "missing committed schema source {} for the schema-fragment digest: {e}",
                     path.display()
@@ -507,7 +507,7 @@ pub fn schema_fragments_from_generated(
         })?;
         serde_json::from_slice(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "export-docs".to_string(),
+                stage: "sync-docs".to_string(),
                 message: format!(
                     "parse committed schema source {} for the schema-fragment digest: {e}",
                     path.display()
@@ -676,7 +676,7 @@ pub fn render_docs_graph(
     // The per-term JSON Schema / OpenAPI fragment join, read off THIS run's
     // stage-export-json-schema product (hard-fails on a missing artifact) — never the
     // committed generated/schemas/*.json, which are the previous run's bytes until
-    // the fanout flushes (the stale-disk-fold class). The standalone `make docs`
+    // the fanout flushes (the stale-disk-fold class). The standalone `make sync SYNC_OUTPUTS=docs`
     // sibling reader (`schema_fragments_from_generated`) stays disk-sourced because
     // it runs post-pipeline against the fanout-refreshed committed files.
     let schema_fragments = schema_fragments_from_upstream(upstream, &model.terms)?;
@@ -1868,7 +1868,7 @@ mod tests {
         }
     }
 
-    /// The EXACT production `make docs` fanout path: build the docs model via
+    /// The EXACT production `make sync SYNC_OUTPUTS=docs` fanout path: build the docs model via
     /// `DocsModel::discover` (no live pipeline product — the standalone render),
     /// source the schema-fragment digest off the committed `generated/schemas/*.json`
     /// via [`schema_fragments_from_generated`] (the production sibling reader), attach

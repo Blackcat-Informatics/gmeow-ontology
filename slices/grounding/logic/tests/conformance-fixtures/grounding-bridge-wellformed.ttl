@@ -9,6 +9,7 @@
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .
 
@@ -19,6 +20,7 @@ ex:bridge a gmeow:TermEquivalence , logic:GroundingCorrespondence ;
     gmeow:sssomFile "fixture.sssom.tsv" ;
     logic:sourceEndpoint logic:Restriction ;
     logic:targetEndpoint owl:Restriction ;
+    gmeow:justification semapv:ManualMappingCuration ;
     logic:morphismClass logic:WellBehavedLens ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:SoundUnderApproximation .

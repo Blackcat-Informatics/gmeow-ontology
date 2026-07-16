@@ -130,7 +130,7 @@ class BuildActivity(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    buildOutput: list[str] | None = Field(default=None, description="The distribution artifact produced by a build activity. Non-functional: a build may produce multiple artifacts (tarball, wheel, binary, container image).", alias="gmeow:buildOutput")
+    buildOutput: list[str] | None = Field(default=None, description="Within gmeow:BuildActivity, values are node references constrained to gmeow:Distribution. The distribution artifact produced by a build activity. Non-functional: a build may produce multiple artifacts (tarball, wheel, binary, container image).", alias="gmeow:buildOutput")
     buildSource: list[Any] | None = Field(default=None, description="The source commit or repository that a build activity consumes. Non-functional: a build may consume multiple commits (monorepo) or a repository at a specific ref.", alias="gmeow:buildSource")
 
 
@@ -163,8 +163,8 @@ class Commit(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     authoredBy: list[Agent] | None = Field(default=None, description="The agent who authored the changes in a commit — the creative origin of the patch. Distinct from the committer (who applied the commit to the repository). Author and committer may differ.", alias="gmeow:authoredBy")
-    commitAuthorIdentity: list[str] | None = Field(default=None, description="The recorded author identity of a commit — the raw historical bytes. Distinct from gmeow:authoredBy, which points to the canonical agent currently understood to have authored the changes.", alias="gmeow:commitAuthorIdentity")
-    commitCommitterIdentity: list[str] | None = Field(default=None, description="The recorded committer identity of a commit — the raw historical bytes. Distinct from gmeow:committedBy, which points to the canonical agent currently understood to have committed the changes.", alias="gmeow:commitCommitterIdentity")
+    commitAuthorIdentity: list[str] | None = Field(default=None, description="Within gmeow:Commit, values are node references constrained to gmeow:AuthorIdentity. The recorded author identity of a commit — the raw historical bytes. Distinct from gmeow:authoredBy, which points to the canonical agent currently understood to have authored the changes.", alias="gmeow:commitAuthorIdentity")
+    commitCommitterIdentity: list[str] | None = Field(default=None, description="Within gmeow:Commit, values are node references constrained to gmeow:AuthorIdentity. The recorded committer identity of a commit — the raw historical bytes. Distinct from gmeow:committedBy, which points to the canonical agent currently understood to have committed the changes.", alias="gmeow:commitCommitterIdentity")
     commitTree: list[SourceTree] | None = Field(default=None, description="The source tree (directory snapshot) that a commit records. Functional: a commit points to exactly one tree.", alias="gmeow:commitTree")
     contentDigest: list[Any] = Field(min_length=1, description="A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms.", alias="gmeow:contentDigest")
 
@@ -405,4 +405,4 @@ class TreeEntry(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     treeEntryMode: list[str] | None = Field(default=None, description="The git file mode of a tree entry — e.g. '100644' (regular file), '100755' (executable), '040000' (directory), '160000' (submodule), '120000' (symlink). Functional: one mode per entry.", alias="gmeow:treeEntryMode")
     treeEntryName: list[str] | None = Field(default=None, description="The file or directory name of a tree entry — e.g. 'README.md', 'src'. Functional: one name per entry.", alias="gmeow:treeEntryName")
-    treeEntryObject: list[str] | None = Field(default=None, description="The content-addressed object (Blob or SourceTree) that a tree entry points to. Functional: one object per entry.", alias="gmeow:treeEntryObject")
+    treeEntryObject: list[str] | None = Field(default=None, description="Within gmeow:TreeEntry, values are node references constrained to gmeow:SourceNode. The content-addressed object (Blob or SourceTree) that a tree entry points to. Functional: one object per entry.", alias="gmeow:treeEntryObject")

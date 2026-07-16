@@ -12,9 +12,9 @@
 > forms are in [`LANG-TRANSLATION.md`](LANG-TRANSLATION.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
-> projection loss ledger — not a claim that any implementation already realizes X except as those
-> gates demonstrate.
+> realization implements X, established by canonical OWL/`logic:` authorities in `module.ttl`,
+> their generated validation projections, competency queries, and the projection loss ledger —
+> not a claim that any implementation already realizes X except as those gates demonstrate.
 
 ## Purpose
 

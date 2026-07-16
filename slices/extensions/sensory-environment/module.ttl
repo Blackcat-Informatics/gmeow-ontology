@@ -14,7 +14,7 @@ gmeow:CoordinateMatrix
     rdfs:label "Coordinate Matrix"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
-    skos:definition "A multi-dimensional numeric value expressed as a coordinate matrix or vector — the generalisation of ScalarQuantity to vector, matrix, and tensor results. Carries a serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame (hasReferenceFrame), unit (gmeow:unit), and determinacy (hasDeterminacy). Used for colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality compound readings. The actual matrix algebra (dot products, transforms, decompositions) lives in the solver layer (Principle 12)."@x-gmeow-english ;
+    skos:definition "A multi-dimensional numeric value expressed as a coordinate matrix or vector — the generalisation of math:Quantity to vector, matrix, and tensor results. Carries a serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame (hasReferenceFrame), unit (gmeow:unit), and determinacy (hasDeterminacy). Used for colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality compound readings. The actual matrix algebra (dot products, transforms, decompositions) lives in the solver layer (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:requiresFrame gmeow:coordinateMatrixFrame .
 
@@ -67,7 +67,7 @@ gmeow:SensoryPerception
             owl:onProperty gmeow:perceptionEnvironment ;
             owl:someValuesFrom gmeow:SensoryEnvironment ;
         ] ;
-    skos:definition "A standpoint-indexed perceived value about a SensoryEnvironment — a subjective claim made by a perceiver (vantage) about ambient conditions (observedFeature), yielding a result in a MentalReferenceFrame. A SensoryPerception is a StandpointClaim specialised to the sensory domain: the vantage is the perceiver, the observedFeature is the SensoryEnvironment, and the observationResult is the perceived value (a ScalarQuantity, categorical individual, or structured percept descriptor). Competing perceptions coexist without collapse (Principle 9); superseded perceptions are suppressed, never deleted (Principle 10)."@x-gmeow-english ;
+    skos:definition "A standpoint-indexed perceived value about a SensoryEnvironment — a subjective claim made by a perceiver (vantage) about ambient conditions (observedFeature), yielding a result in a MentalReferenceFrame. A SensoryPerception is a StandpointClaim specialised to the sensory domain: the vantage is the perceiver, the observedFeature is the SensoryEnvironment, and the observationResult is the perceived value (a math:Quantity, categorical individual, or structured percept descriptor). Competing perceptions coexist without collapse (Principle 9); superseded perceptions are suppressed, never deleted (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:coordinateMatrixFrame

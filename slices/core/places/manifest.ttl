@@ -20,6 +20,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/rights> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
