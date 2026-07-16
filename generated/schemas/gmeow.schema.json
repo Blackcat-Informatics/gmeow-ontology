@@ -11094,6 +11094,16 @@
       ],
       "type": "object"
     },
+    "GapShapeEnum": {
+      "enum": [
+        "gmeow:GapShapeExistentialWitness",
+        "gmeow:GapShapeMalformed",
+        "gmeow:GapShapeNativeCoverage",
+        "gmeow:GapShapeRoleAssertion",
+        "gmeow:GapShapeVendoringMultiGoal"
+      ],
+      "type": "string"
+    },
     "GateVerdictEnum": {
       "enum": [
         "gmeow:gateCollected",
@@ -28456,6 +28466,31 @@
           },
           "then": {
             "$ref": "#/$defs/logic:FreshnessGuard"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:FunctionTerm"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:FunctionTerm"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:FunctionTerm"
           }
         },
         {
@@ -47405,6 +47440,31 @@
       "required": [
         "logic:guardsPrecondition"
       ],
+      "type": "object"
+    },
+    "logic:FunctionTerm": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
       "type": "object"
     },
     "logic:FunctionalComplex": {

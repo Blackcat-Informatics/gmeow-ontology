@@ -112,6 +112,14 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
+    // stage-goal-directed — the checked backward-engine answers + proof derivations.
+    entry(
+        &mut t,
+        "stage-goal-directed",
+        &["https://blackcatinformatics.ca/gmeow/graph/goal-directed"],
+        &[],
+    );
+
     // stage-math-producers — the five flagship producer graphs plus the probability-model
     // seam, p-value tri-slice, and exact Clifford producer graphs.
     entry(

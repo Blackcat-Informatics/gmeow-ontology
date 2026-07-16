@@ -487,6 +487,7 @@ gmeow:pipeline-build
         gmeow:stage-math-producers ,
         gmeow:stage-slice-brief ,
         gmeow:stage-reason ,
+        gmeow:stage-goal-directed ,
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
         gmeow:stage-conformance ,
@@ -602,6 +603,17 @@ gmeow:stage-reason
     gmeow:producesFormat "rdf12-turtle" ;
     gmeow:requiresResource gmeow:engineResource .
 
+gmeow:stage-goal-directed
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "goal directed"@x-gmeow-english ;
+    skos:definition "Run the native proof-carrying full-FOL backward engine over the shipped goal-directed demonstrator corpus and fold its checked answers into gmeow.gts — the production consumer that makes the backward engine non-dark. It evaluates each shipped structured (function-symbol) demonstrator through gmeow_logic::goal_directed, validates every answer's Curry–Howard proof (a proof that does not re-derive its answer atom HARD-fails), and attaches the checked answers + content-addressed proof derivations as the graph/goal-directed named graph, which stage-snapshot folds into the bundle. The demonstrator corpus is a SET, so appending a demonstrator reaches the bundle with no stage change. graph/goal-directed is bundle-internal, a sibling of graph/reasoning, excluded from the object-level EDB (it asserts derived answers, not axioms)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "goal_directed" ;
+    gmeow:dataflowConsumes gmeow:stage-compile-logic .
+
 gmeow:stage-gts-compose
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -702,6 +714,7 @@ gmeow:stage-snapshot
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-profiles ,
         gmeow:stage-export-research-objects ,
+        gmeow:stage-goal-directed ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
@@ -1108,6 +1121,9 @@ gmeow:stage-reason
         <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ,
         <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
     gmeow:attachesBlobRep "diagnostics:nodes" .
+
+gmeow:stage-goal-directed
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/goal-directed> .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;

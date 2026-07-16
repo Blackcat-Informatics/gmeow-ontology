@@ -628,6 +628,79 @@ pub fn conjecture_test(
     0
 }
 
+// ── entails ──────────────────────────────────────────────────────────────────
+
+/// Parse an RDF file into a dataset, inferring the syntax from its extension. A
+/// `file://` base IRI is derived from the path so RDF/XML relative IRIs resolve.
+/// Returns the failure exit code on read / parse error (a hard fail, never a
+/// degraded empty graph).
+fn parse_rdf_file(
+    reporter: &dyn Reporter,
+    path: &Path,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    let media = match path.extension().and_then(|e| e.to_str()) {
+        Some(ext) => ext.to_lowercase(),
+        None => {
+            return Err(fail(
+                reporter,
+                "gmeow-cli.entails.unknown-syntax",
+                format!(
+                    "cannot infer RDF syntax for {} (no extension); expected one of \
+                     .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
+                    path.display()
+                ),
+            ));
+        }
+    };
+    let base = std::path::absolute(path)
+        .ok()
+        .map(|abs| format!("file://{}", abs.display()));
+    purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.entails.parse",
+            format!("cannot parse {} as {media}: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow entails` — decide whether the premise graph entails the conclusion
+/// (`A ⊨ C`) natively, by refutation over the DL consistency calculus
+/// ([`gmeow_logic::entail::dl_entails`]). Prints a stable, greppable verdict:
+/// `verdict entailed` / `verdict not-entailed` / `verdict gap` (plus `gap-shape` /
+/// `gap-detail` for a gap). A malformed / unparsable input is a hard fail (exit 1);
+/// an honest capability gap is a successful, decided answer (exit 0).
+pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i32 {
+    let premise_ds = match parse_rdf_file(reporter, premise) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let conclusion_ds = match parse_rdf_file(reporter, conclusion) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+
+    let verdict = match gmeow_logic::entail::dl_entails(premise_ds.as_ref(), conclusion_ds.as_ref())
+    {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.entails.failed",
+                format!("entailment check failed: {e}"),
+            );
+        }
+    };
+
+    println!("verdict {}", verdict.as_token());
+    if let gmeow_logic::entail::EntailmentVerdict::Gap(gap) = &verdict {
+        println!("gap-shape {}", gap.shape.as_token());
+        println!("gap-detail {}", gap.detail);
+    }
+    0
+}
+
 // ── validate ─────────────────────────────────────────────────────────────────
 
 /// The native RDF format id for a file suffix, mirroring
@@ -2451,6 +2524,94 @@ mod explain_tests {
             explain(reporter.as_ref(), iri, None),
             0,
             "a shipped chase-invented null explains successfully"
+        );
+    }
+}
+
+#[cfg(test)]
+mod entails_tests {
+    use gmeow_cli_core::{ConsoleMode, reporter_for};
+
+    use super::*;
+
+    /// Drive the REAL `gmeow entails` production surface (parse files → dl_entails →
+    /// exit code) over a premise `x∈A, A⊑B` and three conclusions: an entailed
+    /// membership, a non-entailed membership, and a role-assertion gap; plus a hard
+    /// fail on an unreadable file.
+    #[test]
+    fn entails_decides_positive_negative_gap_and_hard_fails_missing() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let premise = dir.path().join("premise.ttl");
+        std::fs::write(
+            &premise,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:A .\n\
+             ex:A rdfs:subClassOf ex:B .\n",
+        )
+        .unwrap();
+
+        let concl_pos = dir.path().join("pos.ttl");
+        std::fs::write(
+            &concl_pos,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:B .\n",
+        )
+        .unwrap();
+
+        let concl_neg = dir.path().join("neg.ttl");
+        std::fs::write(
+            &concl_neg,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:C .\n",
+        )
+        .unwrap();
+
+        let concl_gap = dir.path().join("gap.ttl");
+        std::fs::write(
+            &concl_gap,
+            "@prefix ex: <http://ex/> .\nex:x ex:knows ex:y .\n",
+        )
+        .unwrap();
+
+        let reporter = reporter_for(ConsoleMode::Silent);
+        let r = reporter.as_ref();
+
+        // The production handler returns exit 0 for every decided verdict (entailed,
+        // not-entailed, and an honest gap) — the verdict itself is on stdout.
+        assert_eq!(entails(r, &premise, &concl_pos), 0, "entailed exits 0");
+        assert_eq!(entails(r, &premise, &concl_neg), 0, "not-entailed exits 0");
+        assert_eq!(entails(r, &premise, &concl_gap), 0, "an honest gap exits 0");
+
+        // The underlying verdicts are correct on the real datasets (parsed exactly as
+        // the CLI does).
+        let prem = parse_rdf_file(r, &premise).expect("premise parses");
+        let pos = parse_rdf_file(r, &concl_pos).expect("pos parses");
+        let neg = parse_rdf_file(r, &concl_neg).expect("neg parses");
+        let gap = parse_rdf_file(r, &concl_gap).expect("gap parses");
+        use gmeow_logic::entail::{EntailmentVerdict, GapShape, dl_entails};
+        assert_eq!(
+            dl_entails(prem.as_ref(), pos.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed
+        );
+        assert_eq!(
+            dl_entails(prem.as_ref(), neg.as_ref()).unwrap(),
+            EntailmentVerdict::NotEntailed
+        );
+        assert!(matches!(
+            dl_entails(prem.as_ref(), gap.as_ref()).unwrap(),
+            EntailmentVerdict::Gap(g) if g.shape == GapShape::RoleAssertion
+        ));
+
+        // A missing conclusion file is a hard fail (exit 1), never a degraded verdict.
+        let missing = dir.path().join("nope.ttl");
+        assert_eq!(
+            entails(r, &premise, &missing),
+            1,
+            "missing input hard-fails"
         );
     }
 }

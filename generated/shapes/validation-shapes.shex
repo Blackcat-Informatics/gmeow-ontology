@@ -5742,6 +5742,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/freshnessWindowStart> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/functionSymbol> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/functionSymbol-domain-shape> {
+  <https://blackcatinformatics.ca/logic/functionSymbol> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/goalEvaluationStatus> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/goalEvaluationStatus-domain-shape> {
   <https://blackcatinformatics.ca/logic/goalEvaluationStatus> . {0,1} ;
@@ -5810,6 +5815,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionStatus> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/satisfactionStatus-domain-shape> {
   <https://blackcatinformatics.ca/logic/satisfactionStatus> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termApplication> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termApplication-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termApplication> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/termIndex> (associate via ShapeMap)

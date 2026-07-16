@@ -3,9 +3,10 @@
 
 //! Loader for the committed engine-benchmark corpus (`conformance/logic/cases/bench/`).
 //!
-//! The bench corpus is a NEW sibling of the OWL-consistency `cases/external/` tree.
+//! The bench corpus is one of the two families under the single vendored-corpus root
+//! ([`crate::vendored`]), a sibling of the OWL-consistency `cases/external/` tree.
 //! Each `cases/bench/<corpus>/` directory carries a `corpus.json`
-//! ([`crate::external::corpus::CorpusMeta`]) whose declared SPDX license is audited
+//! ([`crate::vendored::CorpusMeta`]) whose declared SPDX license is audited
 //! with the SAME `audit_vendorable` gate the external corpora use — a
 //! non-vendorable (REFERENCE_ONLY / unknown) license is a HARD FAIL, never a
 //! silently-loaded case. Each `<corpus>/<case>/` directory carries the four
@@ -31,7 +32,7 @@
 //! same batch, and checks that the base closure is recovered. Its golden `rows` is the
 //! derived-row count after insertion.
 //!
-//! Loading is manual + hard-fail (matching `external/corpus.rs`): a missing artifact,
+//! Loading is manual + hard-fail (matching `vendored.rs`): a missing artifact,
 //! a wrong type, an unknown key, or an engine/fragment inconsistency is an error,
 //! never a silent default. Ordering is deterministic: corpora then cases, both sorted
 //! by directory name.
@@ -43,7 +44,7 @@ use serde_json::{Map, Value};
 use gmeow_errors::Diag;
 
 use crate::error::{CorpusInvalid, Io, ProfileInvalid};
-use crate::external::corpus::{audit_vendorable, parse_corpus_meta};
+use crate::vendored::{audit_vendorable, parse_corpus_meta};
 
 /// The reasoning fragment a bench case exercises — it selects both the rule surface
 /// (`program.rules`) and the engines the harness may drive.
@@ -377,10 +378,11 @@ fn parse_fixture_term(text: &str) -> gmeow_errors::Result<FixtureTerm> {
     })
 }
 
-/// The engine-benchmark corpus root, `conformance/logic/cases/bench/`.
+/// The engine-benchmark corpus root, `conformance/logic/cases/bench/` — the `bench`
+/// family under the single shared [`vendored_corpus_root`](crate::paths::vendored_corpus_root).
 #[must_use]
 pub fn bench_cases_root() -> PathBuf {
-    crate::paths::cases_root().join("bench")
+    crate::paths::vendored_corpus_root().join("bench")
 }
 
 /// Enumerate and load every committed bench case under [`bench_cases_root`],

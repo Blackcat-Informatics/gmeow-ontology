@@ -34,6 +34,12 @@ gmeow-errors = { path = "../errors" }
 # project surface (frontend / ir / projections) and bridges its IR into the runtime
 # EvalRule via crate::lower; certify + the compile_logic entrypoint call into it.
 gmeow-logic-compile = { path = "../logic-compile" }
+# The `lang:` form AST (a leaf crate: sha2 only). The three-consumer term-DAG
+# lowering (`physical::lower`) carries a `lang:` form alongside its one-way
+# `lang:`→`logic:` denotation, so a form's meaning lowers into the SAME hash-consed
+# arena the `logic:` and `math:` consumers intern into. No layering cycle: lang-form
+# depends on neither logic nor logic-compile.
+gmeow-lang-form = { path = "../lang-form" }
 serde_json = "1"
 blake3 = "1"
 # Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping

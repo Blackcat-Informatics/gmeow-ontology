@@ -1090,6 +1090,113 @@ gmeow:tallyDlGap
     skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path could not decide (native logic:ConfIncomplete) — the coverage-gap (gmeow:VerdictWeaker) partition, an honest native capability gap. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ════════════════════════════════════════════════════════════════════════════
+# Reified capability gaps — the ontology image of the Rust gmeow_logic::entail
+# CapabilityGapShape taxonomy. Each gmeow:CapabilityGap reifies one committed
+# divergence case the native reasoner honestly could not grade as a single
+# refutation case (its gmeow:gapShape), riding in graph/conformance beside the
+# gmeow:ConformanceComparison individuals above — the first-class ontological
+# image of the agreement-matrix "Capability gaps (by shape)" breakdown.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:GapShape
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape"@x-gmeow-english ;
+    skos:definition "The closed value class of the structured reason a conformance conclusion could not be graded as a single refutation case — the RDF image of the Rust gmeow_logic::entail::CapabilityGapShape taxonomy. Its five named individuals are gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed (four genuine REASONER-FRAGMENT gaps — a conclusion shape the native DL fragment cannot soundly refute at all) and gmeow:GapShapeVendoringMultiGoal (NOT a reasoner-fragment gap — a VENDORING-FORMAT limit: dl_entails decides a conjunctive multi-triple conclusion perfectly well, as n independent refutations, but it cannot be frozen as one single-EDB consistency case). The set is closed, so a misspelt shape names no declared value and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:GapShapeRoleAssertion
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Role Assertion"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conclusion that is a role / property assertion (a bare `a P b`, rdfs:subPropertyOf, domain/range, …): role negation is not EL-expressible, so the native DL fragment cannot refute it. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeExistentialWitness
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Existential Witness"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conclusion carrying a blank-node (existential) subject or object, which needs Skolem-witness semantics outside the ground-refutation fragment the native DL reasoner decides over. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeNativeCoverage
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Native Coverage"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conclusion the native DL engine reported a coverage gap on the reduced EDB for — it cannot honestly decide the reduction, distinct from a shape it refused up front. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeMalformed
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Malformed"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a malformed conclusion triple (e.g. a literal where a class IRI is required), which the refutation calculus cannot normalize into a refutable shape. A genuine reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GapShapeVendoringMultiGoal
+    a owl:NamedIndividual ,
+        gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gap Shape Vendoring Multi Goal"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape for a conjunctive multi-triple conclusion. NOT a reasoner-fragment gap: the native reasoner CAN decide a conjunctive multi-triple conclusion via dl_entails (as n independent refutations); it is only that the frozen, single-input.nq vendoring format cannot freeze a conjunction as one single-EDB consistency case. A VENDORING-FORMAT limit, never a reasoner-fragment gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:isReasonerFragmentGap
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GapShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "is reasoner fragment gap"@x-gmeow-english ;
+    skos:definition "Whether a gmeow:GapShape is a genuine reasoner-fragment gap (a conclusion shape the native DL fragment cannot soundly refute at all) as opposed to a vendoring-format limit the reasoner itself can decide. Domain gmeow:GapShape, range xsd:boolean (stated in prose — an external-vocabulary rdfs:range is held out of the diagnostics slice's ungrounded-residue budget) — true for gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed; false for gmeow:GapShapeVendoringMultiGoal. The RDF image of gmeow_logic::entail::CapabilityGapShape::is_reasoner_fragment_gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:GapShapeRoleAssertion gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeExistentialWitness gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeNativeCoverage gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeMalformed gmeow:isReasonerFragmentGap "true"^^xsd:boolean .
+
+gmeow:GapShapeVendoringMultiGoal gmeow:isReasonerFragmentGap "false"^^xsd:boolean .
+
+gmeow:CapabilityGap
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Capability Gap"@x-gmeow-english ;
+    skos:definition "A reified structured capability-gap case — one committed divergence case the native reasoner could not grade as a single refutation case — carrying its corpus (gmeow:capabilityGapCorpus), case (gmeow:capabilityGapCase), and structured shape (gmeow:gapShape). Rides in the graph/conformance named graph beside the divergence gmeow:Finding graph and the gmeow:ConformanceComparison individuals. The first-class ontological image of the agreement-matrix \"Capability gaps (by shape)\" breakdown."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:capabilityGapCorpus
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "capability gap corpus"@x-gmeow-english ;
+    skos:definition "The external-corpus name a gmeow:CapabilityGap belongs to — the cases/external/<corpus>/ directory the divergence case carrying this structured gap lives in. Domain gmeow:CapabilityGap, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:capabilityGapCase
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "capability gap case"@x-gmeow-english ;
+    skos:definition "The case id a gmeow:CapabilityGap grades — the <case> subdirectory within its corpus, unique per corpus. Domain gmeow:CapabilityGap, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:gapShape
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "gap shape"@x-gmeow-english ;
+    skos:definition "The gmeow:GapShape classifying why a gmeow:CapabilityGap's conclusion could not be graded as a single refutation case. Domain gmeow:CapabilityGap, range gmeow:GapShape (stated in prose) — the reified image of the case's wire gap_shape token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
@@ -1169,6 +1276,50 @@ logic:gateFatalTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
 }""" ] .
 logic:gateFatalVerdict a logic:Formula ; logic:relation gmeow:findingGateVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gateFatal ] .
+
+# =========================================================================== #
+# Capability-gap fragment-classification constraint (#930): a closed-world      #
+# integrity tree that makes gmeow:isReasonerFragmentGap LOAD-BEARING at         #
+# reason/verify time. Every reified gmeow:CapabilityGap must reference (via      #
+# gmeow:gapShape) a gmeow:GapShape that carries a gmeow:isReasonerFragmentGap    #
+# boolean value; a gap whose gap-shape lacks the reasoner-fragment / vendoring- #
+# format classification is incoherent and is a validation violation. Authored   #
+# in logic: ONLY (no hand-authored sh:NodeShape); projected to a                 #
+# sh:SPARQLConstraint carrying a sh:SPARQLTarget (no targetClass), formalizing   #
+# gmeow:isReasonerFragmentGap. This is the SEMANTIC consumer that closes the     #
+# dark-feature gap in which the boolean was read only by structural schema       #
+# projection (LinkML/TS/GraphQL/Python). (Principle 17; design/LOGIC-VALIDATION.md.) #
+# =========================================================================== #
+
+gmeow:CapabilityGapFragmentClassificationConstraint
+    a logic:Constraint ;
+    rdfs:label "Capability-gap fragment-classification constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint (Principle 17) that makes gmeow:isReasonerFragmentGap load-bearing at reason/verify time: every reified gmeow:CapabilityGap MUST reference via gmeow:gapShape a gmeow:GapShape that carries a gmeow:isReasonerFragmentGap boolean value. A capability gap whose gmeow:gapShape is absent, or whose gap-shape lacks the reasoner-fragment / vendoring-format classification, is incoherent — a divergence case the agreement matrix cannot partition — and is a validation violation. Adding a new gmeow:GapShape individual without the boolean (or mis-pointing a gmeow:CapabilityGap) therefore reddens the verify gate, closing the dark-feature gap in which the boolean was consumed only by structural schema projection (LinkML/TS/GraphQL/Python)."@x-gmeow-english ;
+    logic:formalizes gmeow:isReasonerFragmentGap ;
+    logic:severity "Violation" ;
+    logic:message "A gmeow:CapabilityGap must reference via gmeow:gapShape a gmeow:GapShape carrying a gmeow:isReasonerFragmentGap boolean value — the reasoner-fragment classification consumed by this integrity guard is missing." ;
+    logic:integrity logic:capabilityGapFragmentForall .
+logic:capabilityGapFragmentForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:capabilityGapFragmentImpl .
+logic:capabilityGapFragmentImpl a logic:Formula ; logic:antecedent logic:capabilityGapFragmentTarget ; logic:consequent logic:capabilityGapFragmentClassified .
+logic:capabilityGapFragmentTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CapabilityGap> .
+}""" ] .
+logic:capabilityGapFragmentClassified a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gs" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "frag" ] ;
+    logic:exists logic:capabilityGapFragmentWitness .
+logic:capabilityGapFragmentWitness a logic:Formula ;
+    logic:and logic:capabilityGapFragmentHasShape , logic:capabilityGapFragmentShapeClassified .
+logic:capabilityGapFragmentHasShape a logic:Formula ; logic:relation gmeow:gapShape ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gs" ] .
+logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeow:isReasonerFragmentGap ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gs" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .

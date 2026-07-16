@@ -222,6 +222,13 @@ fn term_to_xml(term: &Term) -> String {
             ),
         },
         Term::SequenceMarker(n) => format!("<seq>{}</seq>", xml_escape_text(n)),
+        // A function-term application → an `<app>` element whose head names the function symbol
+        // and whose body is the ordered argument terms (each recursively rendered, so a nested
+        // application nests its `<app>` elements).
+        Term::App { symbol, args } => {
+            let inner: String = args.iter().map(term_to_xml).collect();
+            format!("<app><name>{}</name>{inner}</app>", xml_escape_text(symbol))
+        }
     }
 }
 

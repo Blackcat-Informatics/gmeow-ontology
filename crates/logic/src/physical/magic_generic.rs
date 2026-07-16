@@ -458,7 +458,9 @@ fn project_generic(rows: &[(TypedRow, TypedProvenance)], goal: &QAtom) -> Vec<Bi
                     n.to_string(),
                     crate::physical::XSD_INTEGER,
                 ))),
-                QTerm::Var(_) => None,
+                // A structured argument is not a flat constant constraint; structured goals
+                // route to the full-FOL resolver, never the generic n-ary path.
+                QTerm::Var(_) | QTerm::Struct(_) => None,
             };
             if let Some(w) = want
                 && surfaces[pos] != w

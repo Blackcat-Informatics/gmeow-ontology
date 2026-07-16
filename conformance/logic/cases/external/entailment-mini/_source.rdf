@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<rdf:RDF
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:test="http://www.w3.org/2007/OWL/testOntology#">
+
+	<test:PositiveEntailmentTest rdf:about="http://gmeow.example/entailment-mini/subclass-transitive">
+		<test:identifier>subclass-transitive</test:identifier>
+		<test:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;owl:Class rdf:about="B"/&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+  &lt;owl:Class rdf:about="B"/&gt;
+  &lt;owl:Class rdf:about="C"/&gt;
+  &lt;rdf:Description rdf:about="B"&gt;&lt;rdfs:subClassOf rdf:resource="C"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlPremiseOntology>
+		<test:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="C"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlConclusionOntology>
+	</test:PositiveEntailmentTest>
+
+	<test:PositiveEntailmentTest rdf:about="http://gmeow.example/entailment-mini/type-membership">
+		<test:identifier>type-membership</test:identifier>
+		<test:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="A"/&gt;&lt;/rdf:Description&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;owl:Class rdf:about="B"/&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlPremiseOntology>
+		<test:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlConclusionOntology>
+	</test:PositiveEntailmentTest>
+
+	<test:NegativeEntailmentTest rdf:about="http://gmeow.example/entailment-mini/type-not-entailed">
+		<test:identifier>type-not-entailed</test:identifier>
+		<test:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="A"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlPremiseOntology>
+		<test:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlConclusionOntology>
+	</test:NegativeEntailmentTest>
+
+	<test:NegativeEntailmentTest rdf:about="http://gmeow.example/entailment-mini/subclass-not-entailed">
+		<test:identifier>subclass-not-entailed</test:identifier>
+		<test:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;owl:Class rdf:about="B"/&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlPremiseOntology>
+		<test:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="C"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlConclusionOntology>
+	</test:NegativeEntailmentTest>
+
+	<test:PositiveEntailmentTest rdf:about="http://gmeow.example/entailment-mini/role-conclusion">
+		<test:identifier>role-conclusion</test:identifier>
+		<test:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="a"&gt;&lt;ex:knows rdf:resource="b"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlPremiseOntology>
+		<test:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="a"&gt;&lt;ex:knows rdf:resource="b"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlConclusionOntology>
+	</test:PositiveEntailmentTest>
+
+	<test:PositiveEntailmentTest rdf:about="http://gmeow.example/entailment-mini/multi-triple-conclusion">
+		<test:identifier>multi-triple-conclusion</test:identifier>
+		<test:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="A"/&gt;&lt;/rdf:Description&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;owl:Class rdf:about="B"/&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+  &lt;owl:Class rdf:about="A"/&gt;
+  &lt;owl:Class rdf:about="C"/&gt;
+  &lt;rdf:Description rdf:about="A"&gt;&lt;rdfs:subClassOf rdf:resource="C"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlPremiseOntology>
+		<test:rdfXmlConclusionOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ex="http://example.org/" xml:base="http://example.org/"&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="B"/&gt;&lt;/rdf:Description&gt;
+  &lt;rdf:Description rdf:about="x"&gt;&lt;rdf:type rdf:resource="C"/&gt;&lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</test:rdfXmlConclusionOntology>
+	</test:PositiveEntailmentTest>
+
+</rdf:RDF>

@@ -56,9 +56,9 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     // divergence gate (`el_divergence_gate`) instead of this generic harness.
     // Skip both here; Lane-A and endogenous cases always run.
     if matches!(
-        gmeow_conformance::external::lane_for_case(&case_dir).map_err(|d| d.to_string())?,
-        Some(gmeow_conformance::external::Lane::B)
-            | Some(gmeow_conformance::external::Lane::Divergence)
+        gmeow_conformance::vendored::lane_for_case(&case_dir).map_err(|d| d.to_string())?,
+        Some(gmeow_conformance::vendored::Lane::B)
+            | Some(gmeow_conformance::vendored::Lane::Divergence)
     ) {
         return Ok(());
     }
