@@ -2353,3 +2353,68 @@ gmeow:PrivacyNoticeAttributionConstraint
 <https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkHolder> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
 <https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkMark> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Mark> ] .
 <https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TrademarkStatus> ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintOperator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/leftOperand> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightWork> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LogicalConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintLogic> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LogicalConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/logicConstraintMember> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AtomicConstraint> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/constraintOperator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AtomicConstraint> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/leftOperand" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Copyright> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/copyrightHolder" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Copyright> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/copyrightWork" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LogicalConstraint> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/constraintLogic" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LogicalConstraint> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/logicConstraintMember" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# =========================================================================== #
+# Canonical logic: grounding for the rights closed-world constraints. Each      #
+# constraint also formalizes the corresponding validation-shape IRI; records    #
+# ground the atomic-constraint operand choice (exactly-one) and the             #
+# logical-constraint member count.                                              #
+# =========================================================================== #
+
+gmeow:CopyrightHolderRequiredConstraint logic:formalizes gmeow:CopyrightShape .
+gmeow:ExpiredTrademarkSuppressionConstraint logic:formalizes gmeow:ExpiredTrademarkSuppressionShape .
+gmeow:PrivacyNoticeAttributionConstraint logic:formalizes gmeow:PrivacyNoticeShape .
+gmeow:ConsentDataSubjectConstraint logic:formalizes gmeow:ConsentWellformednessShape .
+gmeow:ConsentDataControllerConstraint logic:formalizes gmeow:ConsentWellformednessShape .
+
+# A gmeow:AtomicConstraint binds EXACTLY one right-hand side: a literal
+# gmeow:rightOperand XOR an IRI gmeow:rightOperandReference (a choice group).
+gmeow:AtomicConstraintOperandChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Atomic constraint operand-choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AtomicConstraint binds exactly one of gmeow:rightOperand (a literal value) or gmeow:rightOperandReference (an IRI reference), never both and never neither."@x-gmeow-english ;
+    logic:onClass gmeow:AtomicConstraint ;
+    logic:choicePredicate gmeow:rightOperand , gmeow:rightOperandReference ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:AtomicConstraintShape ;
+    logic:message "An atomic constraint must have exactly one right-hand side: a gmeow:rightOperand literal XOR a gmeow:rightOperandReference IRI." .
+
+# A gmeow:LogicalConstraint combines at least two member constraints (an aggregate
+# count: a one-member logical combination is just the member).
+gmeow:LogicalConstraintMemberCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "LogicalConstraint member-count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:LogicalConstraint combines at least two gmeow:logicConstraintMember constraints."@x-gmeow-english ;
+    logic:onClass gmeow:LogicalConstraint ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:logicConstraintMember ;
+    logic:aggComparator ">=" ;
+    logic:aggCompareTo "2"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+    logic:formalizes gmeow:LogicalConstraintShape ;
+    logic:message "A logical constraint must combine at least two member constraints (gmeow:logicConstraintMember)." .
+
+# LogicalConstraint: gmeow:constraintLogic is functional per constraint (max 1).
+gmeow:LogicalConstraint rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:constraintLogic ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# LogicalConstraint: at least two member constraints, as a BARE sh:minCount 2.
+gmeow:LogicalConstraint rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:logicConstraintMember ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .

@@ -1972,8 +1972,12 @@ fn parse_target_skeleton(select: &str) -> Option<TargetSkeleton> {
             }
             let end = paren_close(body, i + 1)?;
             let inner = &body[i + 2..end - 1];
-            // FILTER(STRSTARTS(STR(?this), "ns"))
-            if inner.len() == 9
+            // FILTER(STRSTARTS(STR(?this), "ns")) — optionally OR'd with an exact-IRI arm
+            // `|| STR(?this) = "exactIRI"` (the ontology-header meta-shape catches its own header
+            // IRI, which has no trailing-slash namespace prefix). The exact-IRI arm only ADDS a
+            // focus member, so extracting the STRSTARTS namespace still mints a sound focus member.
+            if inner.len() >= 9
+                && (inner.len() == 9 || inner[9] == "||")
                 && inner[0].eq_ignore_ascii_case("strstarts")
                 && inner[1] == "("
                 && inner[2].eq_ignore_ascii_case("str")

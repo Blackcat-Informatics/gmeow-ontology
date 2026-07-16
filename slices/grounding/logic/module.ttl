@@ -10392,3 +10392,141 @@ logic:carriesTerminationCertificate
     rdfs:label "carries termination certificate"@x-gmeow-english ;
     skos:definition "Relates a logic:ChaseAcceptanceWitness to the weak-acyclicity termination-certificate evidence (xsd:string, the ChaseAdmission::WeaklyAcyclic evidence summary) that admits its chase. Domain logic:ChaseAcceptanceWitness (stated in prose). A chase acceptance record with no certificate reports a closure that may never terminate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# The repo-wide gmeow: annotation-completeness meta-constraints. Each is a       #
+# whole-shape logic:Constraint reproducing the namespace-filter sh:SPARQLTarget  #
+# focus and the four annotation-completeness obligations (rdfs:label,            #
+# skos:definition, rdfs:isDefinedBy, gmeow:graphBoxRole), and formalizes the     #
+# corresponding validation-shape IRI. The structural minCount obligations are    #
+# machine-readable, so the semantic witness cross-check (structural-side pinned) #
+# proves the record reproduces the shape's judgments over every graph.          #
+# =========================================================================== #
+
+gmeow:GmeowClassCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW class annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced owl:Class carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowClassShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW class must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gccForall .
+logic:gccForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gccImpl .
+logic:gccImpl a logic:Formula ; logic:antecedent logic:gccTarget ; logic:consequent logic:gccAnd .
+logic:gccTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:gccAnd a logic:Formula ; logic:and logic:gccLabel , logic:gccDef , logic:gccDefBy , logic:gccRole .
+logic:gccLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gccLabelAtom .
+logic:gccLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gccDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gccDefAtom .
+logic:gccDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gccDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gccDefByAtom .
+logic:gccDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gccRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gccRoleAtom .
+logic:gccRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+gmeow:GmeowPropertyCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW property annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced owl object/datatype/annotation property carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowPropertyShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW property must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gpcForall .
+logic:gpcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gpcImpl .
+logic:gpcImpl a logic:Formula ; logic:antecedent logic:gpcTarget ; logic:consequent logic:gpcAnd .
+logic:gpcTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this a ?t .
+    FILTER(?t IN (
+        <http://www.w3.org/2002/07/owl#ObjectProperty>,
+        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+        <http://www.w3.org/2002/07/owl#AnnotationProperty>
+    ))
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:gpcAnd a logic:Formula ; logic:and logic:gpcLabel , logic:gpcDef , logic:gpcDefBy , logic:gpcRole .
+logic:gpcLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gpcLabelAtom .
+logic:gpcLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gpcDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gpcDefAtom .
+logic:gpcDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gpcDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gpcDefByAtom .
+logic:gpcDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gpcRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gpcRoleAtom .
+logic:gpcRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+gmeow:GmeowDatatypeCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW datatype annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced rdfs:Datatype carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowDatatypeShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW datatype must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gdcForall .
+logic:gdcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gdcImpl .
+logic:gdcImpl a logic:Formula ; logic:antecedent logic:gdcTarget ; logic:consequent logic:gdcAnd .
+logic:gdcTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Datatype> .
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:gdcAnd a logic:Formula ; logic:and logic:gdcLabel , logic:gdcDef , logic:gdcDefBy , logic:gdcRole .
+logic:gdcLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gdcLabelAtom .
+logic:gdcLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gdcDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gdcDefAtom .
+logic:gdcDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gdcDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gdcDefByAtom .
+logic:gdcDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gdcRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gdcRoleAtom .
+logic:gdcRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+gmeow:GmeowOntologyCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW ontology-header annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced owl:Ontology header carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowOntologyShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW ontology header must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gocForall .
+logic:gocForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gocImpl .
+logic:gocImpl a logic:Formula ; logic:antecedent logic:gocTarget ; logic:consequent logic:gocAnd .
+logic:gocTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+    FILTER(
+        STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/")
+        || STR(?this) = "https://blackcatinformatics.ca/gmeow"
+    )
+}""" ] .
+logic:gocAnd a logic:Formula ; logic:and logic:gocLabel , logic:gocDef , logic:gocDefBy , logic:gocRole .
+logic:gocLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gocLabelAtom .
+logic:gocLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gocDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gocDefAtom .
+logic:gocDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gocDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gocDefByAtom .
+logic:gocDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gocRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gocRoleAtom .
+logic:gocRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .

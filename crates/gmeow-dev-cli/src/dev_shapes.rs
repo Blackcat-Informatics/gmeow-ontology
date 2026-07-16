@@ -307,12 +307,73 @@ fn sparql_alpha_canonical(select: &str) -> String {
             out.push(name.clone());
         } else if t.chars().all(|ch| ch.is_ascii_alphabetic()) {
             out.push(t.to_ascii_uppercase());
+        } else if (t.starts_with('\'') && t.ends_with('\'') && t.len() >= 2)
+            || (t.starts_with('"') && t.ends_with('"') && t.len() >= 2)
+        {
+            // A SPARQL string literal: the quote CHARACTER carries no semantics ('x' ≡ "x"), so
+            // canonicalize to double quotes. Two selects differing only in quote style flag the
+            // same nodes, so this stays a SOUND identity.
+            out.push(format!("\"{}\"", &t[1..t.len() - 1]));
         } else {
             out.push(t.clone());
         }
         i += 1;
     }
+    strip_redundant_grouping_parens(&mut out);
     out.join(" ")
+}
+
+/// Remove SOUND-to-drop grouping parentheses from an α-canonical token stream: a `( … )` pair
+/// whose opening paren is a GROUPING paren (its preceding token is not a function/keyword
+/// identifier — so it is not an argument list) and whose enclosed span carries no depth-0 infix
+/// operator (`||` / `&&` / comparison / arithmetic) is a redundant parenthesization of a single
+/// primary expression, so dropping it never changes the parse. This canonicalizes the projector's
+/// defensively-parenthesized `( ( A ) || ( B ) )` and a hand-authored `( A || B )` to one form.
+fn strip_redundant_grouping_parens(toks: &mut Vec<String>) {
+    let is_ident = |t: &str| t.chars().next().is_some_and(|c| c.is_ascii_alphanumeric());
+    let is_infix = |t: &str| {
+        matches!(
+            t,
+            "||" | "&&" | "|" | "&" | "=" | "!=" | "<" | ">" | "<=" | ">=" | "+" | "-" | "*" | "/"
+        )
+    };
+    loop {
+        let mut removed = false;
+        let mut i = 0usize;
+        while i < toks.len() {
+            if toks[i] == "(" {
+                let grouping = i == 0 || !is_ident(&toks[i - 1]);
+                if grouping {
+                    // Find the matching close paren and test for a depth-0 infix operator.
+                    let mut depth = 1i32;
+                    let mut j = i + 1;
+                    let mut top_level_op = false;
+                    while j < toks.len() && depth > 0 {
+                        match toks[j].as_str() {
+                            "(" => depth += 1,
+                            ")" => depth -= 1,
+                            t if depth == 1 && (is_infix(t) || t == ",") => top_level_op = true,
+                            _ => {}
+                        }
+                        if depth == 0 {
+                            break;
+                        }
+                        j += 1;
+                    }
+                    if j < toks.len() && depth == 0 && !top_level_op {
+                        toks.remove(j);
+                        toks.remove(i);
+                        removed = true;
+                        continue;
+                    }
+                }
+            }
+            i += 1;
+        }
+        if !removed {
+            break;
+        }
+    }
 }
 
 /// The `sh:select` bodies of every `sh:sparql` constraint on `subject`, sorted for set
@@ -2333,7 +2394,18 @@ fn strip_range_backed_class(
     let mut props = Vec::new();
     for pc in &ir.properties {
         let range = object_ranges.get(&pc.path);
-        let backed = |c: &ConstraintComponent| matches!(c, ConstraintComponent::Class(cls) if Some(cls) == range);
+        // A CLASS range (not a datatype) entails the value is an IRI-named individual under the
+        // GMEOW naming convention, so a co-present `sh:nodeKind sh:IRI` is range-redundant too —
+        // the same soundness argument as `strip_redundant_iri_nodekind` for `owl:ObjectProperty`.
+        let range_is_class = range.is_some_and(|r| {
+            !r.starts_with("http://www.w3.org/2001/XMLSchema#")
+                && r != "http://www.w3.org/2000/01/rdf-schema#Literal"
+        });
+        let backed = |c: &ConstraintComponent| {
+            matches!(c, ConstraintComponent::Class(cls) if Some(cls) == range)
+                || (range_is_class
+                    && matches!(c, ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)))
+        };
         if !pc.inverse && pc.components.iter().any(backed) {
             let kept: Vec<ConstraintComponent> = pc
                 .components
@@ -3619,8 +3691,10 @@ mod tests {
 
     #[test]
     fn splicer_resolves_every_real_block_subject_count_exact() {
+        // Count-agnostic: the wave-C drain reduced the committed file's census, and a future wave
+        // will empty it entirely, so the proof pins the splicer MECHANISM (each block resolves to
+        // its OWN non-overlapping span) against whatever blocks the file currently carries.
         let (text, iris) = real_gmeow_shapes();
-        assert_eq!(iris.len(), 43, "the census of the committed file");
         let mut spans: Vec<(usize, usize)> = Vec::new();
         for iri in &iris {
             let span = subject_span(&text, local_name(iri))
@@ -3629,7 +3703,11 @@ mod tests {
         }
         spans.sort_unstable();
         spans.dedup();
-        assert_eq!(spans.len(), 43, "every block resolves to its OWN span");
+        assert_eq!(
+            spans.len(),
+            iris.len(),
+            "every block resolves to its OWN span"
+        );
         for w in spans.windows(2) {
             assert!(
                 w[0].1 <= w[1].0,
@@ -3669,7 +3747,7 @@ mod tests {
             let remaining = node_shape_iris(&ds);
             assert_eq!(
                 remaining.len(),
-                42,
+                iris.len() - 1,
                 "pruning {iri} must remove exactly one block"
             );
             assert!(!remaining.contains(iri), "{iri} must be the removed block");
@@ -3869,7 +3947,9 @@ mod tests {
     }
 
     #[test]
-    fn classification_over_the_real_gmeow_shapes_totals_43() {
+    fn classification_over_the_real_gmeow_shapes_matches_the_block_census() {
+        // Count-agnostic: the wave-C drain reduced the committed census (and a future wave empties
+        // it), so the classifier's reported TOTAL must simply agree with the blocks actually read.
         let (text, _) = real_gmeow_shapes();
         let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
             .expect("the committed shapes file must parse");
@@ -3878,8 +3958,9 @@ mod tests {
         assert!(errors.is_empty(), "every committed block reads: {errors:?}");
         let report = lattice_report(&blocks, &lattice_hier(&[]));
         assert!(
-            report.contains("  TOTAL blocks=43\n"),
-            "the by-block census of the committed file is exactly 43: {}",
+            report.contains(&format!("  TOTAL blocks={}\n", blocks.len())),
+            "the by-block census must match the blocks read ({}): {}",
+            blocks.len(),
             report.lines().rev().take(12).collect::<Vec<_>>().join("\n")
         );
     }

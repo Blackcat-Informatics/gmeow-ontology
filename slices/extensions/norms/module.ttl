@@ -1915,3 +1915,139 @@ gmeow:DutyModalityConstraint
     logic:valuePath gmeow:deonticModality ;
     logic:memberValue gmeow:deonticObligation ;
     logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality (#352)." .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Criterion> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentRubric> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Rubric> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessedEvent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Condition> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Criterion> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/penaltyPole> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
+<https://blackcatinformatics.ca/gmeow/Criterion> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rewardPole> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/precedenceHigher> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
+<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/precedenceLower> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
+<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/precedenceScope> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/NormativeSystem> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scaleMax> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scaleMin> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scaleStep> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Assessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assessmentScoreValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Assessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assessmentTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Assessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assessedEvent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assessedNorm" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/complianceVerdict" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Condition> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/conditionText" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ConditionExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/expressionLanguage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ConditionGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/groupMember" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ConditionGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/groupOperator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Criterion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/penaltyPole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Criterion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/rewardPole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Exemplar> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/citationIntent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Exemplar> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/citedEntity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Exemplar> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/citingEntity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Exemplar> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/exemplarPolarity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/PrecedenceTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/precedenceHigher" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/PrecedenceTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/precedenceLower" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/PrecedenceTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/precedenceScope" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ScoreAnchor> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/anchorRangeMax" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ScoreAnchor> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/anchorRangeMin" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ScoreScale> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/scaleMax" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ScoreScale> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/scaleMin" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# =========================================================================== #
+# Canonical logic: grounding for the norms closed-world constraints. Each        #
+# canonical constraint also formalizes the corresponding validation-shape IRI.  #
+# Sugar records ground the value sets (owl:oneOf), the unique-language facet,    #
+# and the bare-literal existence obligations.                                   #
+# =========================================================================== #
+
+gmeow:NormIssuerPresenceConstraint logic:formalizes gmeow:NormIssuerShape .
+gmeow:NormDeonticModalityCardinalityConstraint logic:formalizes gmeow:NormIssuerShape .
+gmeow:GraftPermissionModalityConstraint logic:formalizes gmeow:GraftPermissionModalityShape .
+gmeow:ProhibitionModalityConstraint logic:formalizes gmeow:GraftProhibitionModalityShape .
+gmeow:DutyModalityConstraint logic:formalizes gmeow:GraftDutyModalityShape .
+gmeow:AssessmentMethodConstraint logic:formalizes gmeow:AssessmentShape .
+gmeow:ConditionParameterMutexConstraint logic:formalizes gmeow:ConditionParameterShape .
+gmeow:ScoreScaleOrderConstraint logic:formalizes gmeow:ScoreScaleShape .
+gmeow:StyleGuideVoiceDigestConstraint logic:formalizes gmeow:StyleGuideShape .
+gmeow:StyleGuideForConstraint logic:formalizes gmeow:StyleGuideShape .
+gmeow:ScoreAnchorMeaningConstraint logic:formalizes gmeow:ScoreAnchorShape .
+gmeow:ScoreAnchorRangeMinConstraint logic:formalizes gmeow:ScoreAnchorShape .
+gmeow:ScoreAnchorRangeMaxConstraint logic:formalizes gmeow:ScoreAnchorShape .
+gmeow:ScoreAnchorRangeOrderConstraint logic:formalizes gmeow:ScoreAnchorShape .
+gmeow:ScoreAnchorRangeWithinScaleConstraint logic:formalizes gmeow:ScoreAnchorShape .
+gmeow:ExemplarRedirectConstraint logic:formalizes gmeow:ExemplarShape .
+gmeow:ExemplarEvidenceConstraint logic:formalizes gmeow:ExemplarShape .
+gmeow:ExemplarPolarityConstraint logic:formalizes gmeow:ExemplarShape .
+gmeow:ConditionGroupMemberCountConstraint logic:formalizes gmeow:ConditionGroupShape .
+gmeow:ConditionGroupOperatorConstraint logic:formalizes gmeow:ConditionGroupShape .
+gmeow:PrecedenceTenureScopeConstraint logic:formalizes gmeow:PrecedenceTenureShape .
+gmeow:CriterionRewardPoleConstraint logic:formalizes gmeow:CriterionShape .
+gmeow:CriterionPenaltyPoleConstraint logic:formalizes gmeow:CriterionShape .
+
+# sh:in value sets → owl:oneOf antecedent (the derive projects a declarative sh:in).
+gmeow:ConditionGroup rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:allValuesFrom [ owl:oneOf ( gmeow:operatorAll gmeow:operatorAny gmeow:operatorNone ) ] ] .
+gmeow:Exemplar rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:exemplarPolarity ; owl:allValuesFrom [ owl:oneOf ( gmeow:polarityPositive gmeow:polarityNegative gmeow:polarityCautionary ) ] ] .
+
+# sh:uniqueLang facet → declarative logic:UniqueLangConstraint sugar (localizable prose).
+gmeow:ScoreAnchorMeaningUniqueLangConstraint
+    a logic:UniqueLangConstraint ;
+    rdfs:label "ScoreAnchor meaning unique-language constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ScoreAnchor carries at most one gmeow:anchorMeaning per language tag (no two language-tagged meanings share a tag)."@x-gmeow-english ;
+    logic:onClass gmeow:ScoreAnchor ;
+    logic:valuePath gmeow:anchorMeaning ;
+    logic:formalizes gmeow:ScoreAnchorShape ;
+    logic:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose)." .
+
+# bare-literal existence obligations (no datatype antecedent → logic: existence record).
+gmeow:ConditionExpressionTextConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ConditionExpression text-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ConditionExpression carries a gmeow:expressionText."@x-gmeow-english ;
+    logic:onClass gmeow:ConditionExpression ;
+    logic:anyOf gmeow:expressionText ;
+    logic:formalizes gmeow:ConditionExpressionShape ;
+    logic:message "A ConditionExpression must carry exactly one gmeow:expressionText." .
+
+gmeow:ConditionParameterNameConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ConditionParameter name-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ConditionParameter carries a gmeow:parameterName."@x-gmeow-english ;
+    logic:onClass gmeow:ConditionParameter ;
+    logic:anyOf gmeow:parameterName ;
+    logic:formalizes gmeow:ConditionParameterShape ;
+    logic:message "A ConditionParameter must carry exactly one gmeow:parameterName." .
+
+# ConditionExpression: gmeow:expressionLanguage is functional per expression (max 1).
+gmeow:ConditionExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:expressionLanguage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# ConditionExpression: gmeow:expressionText is a single mandatory literal (min 1, max 1);
+# an rdfs:Literal data-range filler projects the declarative sh:minCount/maxCount without a
+# category-error IRI node-kind on the literal-valued path.
+gmeow:ConditionExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:expressionText ; owl:minQualifiedCardinality 1 ; owl:onDataRange rdfs:Literal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:expressionText ; owl:maxQualifiedCardinality 1 ; owl:onDataRange rdfs:Literal ] .

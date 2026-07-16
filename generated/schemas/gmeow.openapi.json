@@ -1951,18 +1951,74 @@
           },
           "gmeow:assessmentCriterion": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Criterion"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Criterion"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
                 "type": "array"
               }
             ]
           },
           "gmeow:assessmentRubric": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "gmeow:Rubric has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Rubric has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "type": "array"
               }
             ]
@@ -1986,12 +2042,42 @@
               }
             ]
           },
-          "gmeow:assessmentTarget": {},
+          "gmeow:assessmentTarget": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
           "gmeow:vantage": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -2053,30 +2139,61 @@
           "gmeow:constraintOperator": {
             "anyOf": [
               {
-                "$comment": "gmeow:ConstraintOperator has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$comment": "gmeow:ConstraintOperator has no NodeShape; node reference only",
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:ConstraintOperator has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$comment": "gmeow:ConstraintOperator has no NodeShape; node reference only",
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -2084,30 +2201,61 @@
           "gmeow:leftOperand": {
             "anyOf": [
               {
-                "$comment": "gmeow:LeftOperand has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$comment": "gmeow:LeftOperand has no NodeShape; node reference only",
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:LeftOperand has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$comment": "gmeow:LeftOperand has no NodeShape; node reference only",
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -2158,6 +2306,10 @@
             ]
           }
         },
+        "required": [
+          "gmeow:constraintOperator",
+          "gmeow:leftOperand"
+        ],
         "type": "object"
       },
       "Attack": {
@@ -5587,14 +5739,121 @@
               }
             ]
           },
-          "gmeow:assessedEvent": {},
-          "gmeow:assessedNorm": {},
-          "gmeow:complianceVerdict": {},
+          "gmeow:assessedEvent": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:assessedNorm": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:complianceVerdict": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
           "gmeow:vantage": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -5878,19 +6137,46 @@
           "gmeow:conditionText": {
             "anyOf": [
               {
-                "type": "string"
-              },
-              {
-                "properties": {
-                  "@type": {
+                "anyOf": [
+                  {
                     "type": "string"
                   },
-                  "@value": {}
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@value"
-                ],
-                "type": "object"
+                "minItems": 1,
+                "type": "array"
               }
             ]
           }
@@ -5973,7 +6259,25 @@
             ],
             "type": "object"
           },
-          "gmeow:expressionText": {}
+          "gmeow:expressionText": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
         },
         "required": [
           "gmeow:expressionLanguage",
@@ -6003,11 +6307,42 @@
             ]
           },
           "gmeow:groupMember": {
-            "items": {},
+            "items": {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
             "minItems": 2,
             "type": "array"
           },
-          "gmeow:groupOperator": {}
+          "gmeow:groupOperator": {
+            "enum": [
+              {
+                "@id": "gmeow:operatorAll"
+              },
+              {
+                "@id": "gmeow:operatorAny"
+              },
+              {
+                "@id": "gmeow:operatorNone"
+              }
+            ],
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "gmeow:groupMember",
@@ -7297,6 +7632,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -7380,30 +7716,61 @@
           "gmeow:copyrightWork": {
             "anyOf": [
               {
-                "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -7454,6 +7821,10 @@
             ]
           }
         },
+        "required": [
+          "gmeow:copyrightHolder",
+          "gmeow:copyrightWork"
+        ],
         "type": "object"
       },
       "Correspondence": {
@@ -7693,23 +8064,73 @@
           },
           "gmeow:penaltyPole": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "gmeow:rewardPole": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:penaltyPole",
+          "gmeow:rewardPole"
+        ],
         "type": "object"
       },
       "CrossNodeGlutWitness": {
@@ -7827,11 +8248,15 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:walletScheme"
+        ],
         "type": "object"
       },
       "CryptographicKey": {
@@ -10607,10 +11032,61 @@
               }
             ]
           },
-          "gmeow:citationIntent": {},
-          "gmeow:citedEntity": {},
-          "gmeow:citingEntity": {},
-          "gmeow:exemplarPolarity": {}
+          "gmeow:citationIntent": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:citedEntity": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:citingEntity": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:exemplarPolarity": {
+            "enum": [
+              {
+                "@id": "gmeow:polarityCautionary"
+              },
+              {
+                "@id": "gmeow:polarityNegative"
+              },
+              {
+                "@id": "gmeow:polarityPositive"
+              }
+            ],
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "gmeow:citationIntent",
@@ -10776,6 +11252,49 @@
               }
             ]
           },
+          "gmeow:accountCurrency": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ReferenceFrame"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/ReferenceFrame"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
           "gmeow:accountHolder": {
             "anyOf": [
               {
@@ -10814,6 +11333,38 @@
                       "type": "object"
                     }
                   ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:accountType": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:FinancialAccountType has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:FinancialAccountType has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10871,6 +11422,9 @@
             ]
           }
         },
+        "required": [
+          "gmeow:accountHolder"
+        ],
         "type": "object"
       },
       "FinancialTransaction": {
@@ -10933,11 +11487,15 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:transactionAmount"
+        ],
         "type": "object"
       },
       "Finding": {
@@ -12784,6 +13342,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -12815,11 +13374,63 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:holdingQuantity": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:holdingAgent",
+          "gmeow:holdingAsset",
+          "gmeow:holdingQuantity"
+        ],
         "type": "object"
       },
       "Honorific": {
@@ -14380,15 +14991,14 @@
             ]
           },
           "gmeow:journalEntryPostings": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
+            "items": {},
+            "minItems": 2,
+            "type": "array"
           }
         },
+        "required": [
+          "gmeow:journalEntryPostings"
+        ],
         "type": "object"
       },
       "JurisdictionTenure": {
@@ -15627,6 +16237,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -15658,11 +16269,16 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:ledgerAccountHolder",
+          "gmeow:ledgerAccountType"
+        ],
         "type": "object"
       },
       "LedgerEvent": {
@@ -16347,26 +16963,6 @@
                 "type": "object"
               },
               {
-                "items": {
-                  "$comment": "gmeow:ConstraintLogic has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "gmeow:logicConstraintMember": {
-            "anyOf": [
-              {
-                "$comment": "gmeow:Constraint has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -16376,9 +16972,13 @@
                   "@id"
                 ],
                 "type": "object"
-              },
-              {
-                "items": {
+              }
+            ]
+          },
+          "gmeow:logicConstraintMember": {
+            "items": {
+              "anyOf": [
+                {
                   "$comment": "gmeow:Constraint has no NodeShape; node reference only",
                   "properties": {
                     "@id": {
@@ -16390,11 +16990,27 @@
                   ],
                   "type": "object"
                 },
-                "type": "array"
-              }
-            ]
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 2,
+            "type": "array"
           }
         },
+        "required": [
+          "gmeow:constraintLogic",
+          "gmeow:logicConstraintMember"
+        ],
         "type": "object"
       },
       "Manifestation": {
@@ -36512,6 +37128,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -36555,6 +37172,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -36563,6 +37181,14 @@
             "anyOf": [
               {
                 "$comment": "gmeow:PostingDirection has no NodeShape; node reference only",
+                "enum": [
+                  {
+                    "@id": "gmeow:postingDirectionCredit"
+                  },
+                  {
+                    "@id": "gmeow:postingDirectionDebit"
+                  }
+                ],
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -36576,6 +37202,14 @@
               {
                 "items": {
                   "$comment": "gmeow:PostingDirection has no NodeShape; node reference only",
+                  "enum": [
+                    {
+                      "@id": "gmeow:postingDirectionCredit"
+                    },
+                    {
+                      "@id": "gmeow:postingDirectionDebit"
+                    }
+                  ],
                   "properties": {
                     "@id": {
                       "type": "string"
@@ -36586,6 +37220,7 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -36629,15 +37264,21 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:postingAccount",
+          "gmeow:postingAmount",
+          "gmeow:postingDirection",
+          "gmeow:postingJournalEntry"
+        ],
         "type": "object"
       },
       "PrecedenceTenure": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -36657,8 +37298,133 @@
                 "type": "array"
               }
             ]
+          },
+          "gmeow:precedenceHigher": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Norm"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Norm"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:precedenceLower": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Norm"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Norm"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:precedenceScope": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:NormativeSystem has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:NormativeSystem has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "gmeow:precedenceHigher",
+          "gmeow:precedenceLower",
+          "gmeow:precedenceScope"
+        ],
         "type": "object"
       },
       "PremiseUse": {
