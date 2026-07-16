@@ -1723,12 +1723,11 @@ mod tests {
         assert_eq!(b["Wg"], format!("<{W}>"), "world binding");
     }
 
-    /// An n-ary shape the generic evaluator CANNOT serve — an arity-3 IDB over a binary
-    /// EDB predicate (`edge`) that the generic-triple EDB never loads — must NOT be a
-    /// silent-empty `Ok`. Native declares `Unsupported(NonBinaryAtom)` and production
-    /// dispatch hard-fails with the same typed reason.
+    /// An n-ary IDB can join ordinary binary RDF EDB predicates in the same generic
+    /// fixpoint. This is the parser-driven regression proof for the provider/RDF join
+    /// seam: the native result is complete and production dispatch preserves it.
     #[test]
-    fn dispatch_query_parsed_nary_over_binary_edb_not_silent_empty() {
+    fn dispatch_query_parsed_nary_over_binary_edb_decides() {
         let store = WorldStore::new();
         store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
         store.insert_quad(W, &p("b"), &p("edge"), &p("c"));
@@ -1742,8 +1741,8 @@ mod tests {
         let prog = parse_query_program(&src).unwrap();
         let budget = Budget::default();
 
-        // Native MUST declare the gap (never a silent-empty `Decided`): the generic
-        // evaluator cannot load the binary `edge` EDB, so it is `NonBinaryAtom`.
+        // Native admits the absolute-IRI binary EDB predicate into the generic source
+        // plan and derives the arity-3 head without crossing to another evaluator.
         let native = crate::physical::resolve_native(
             &WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap(),
             &world_nn,
@@ -1751,24 +1750,18 @@ mod tests {
             &budget,
         )
         .unwrap();
-        assert!(
-            matches!(
-                native,
-                crate::physical::NativeOutcome::Unsupported(
-                    crate::physical::UnsupportedKind::NonBinaryAtom
-                )
-            ),
-            "an un-servable n-ary shape must be a declared gap, not silent-empty: {native:?}"
-        );
+        let crate::physical::NativeOutcome::Decided(native_answer) = native else {
+            panic!("binary RDF must be servable inside the n-ary fixpoint: {native:?}");
+        };
+        assert_eq!(native_answer.bindings.len(), 1);
+        assert_eq!(native_answer.bindings[0]["Y"], format!("<{BASE}b>"));
+        assert_eq!(native_answer.bindings[0]["Z"], format!("<{BASE}c>"));
 
-        // Production dispatch preserves the refusal instead of fabricating an empty answer.
+        // Production dispatch preserves the same complete answer.
         let foreign = WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap();
-        let error = dispatch_query(&foreign, &world_nn, &prog, HORN_PROFILE, &budget)
-            .expect_err("unsupported n-ary shape must hard-fail");
-        assert_eq!(
-            error.message(),
-            "native backward engine does not support NonBinaryAtom; query refused because no fallback engine remains"
-        );
+        let answer = dispatch_query(&foreign, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        assert_eq!(answer.status, BudgetStatus::Ok);
+        assert_eq!(answer.bindings, native_answer.bindings);
     }
 
     /// Cut is retained in the parser only to produce a stable retirement diagnostic.

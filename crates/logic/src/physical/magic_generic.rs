@@ -340,8 +340,9 @@ struct GenericSourcePattern {
 ///
 /// The reserved `triple/4` relation retains predicate-as-data. Ordinary RDF predicates
 /// are admitted as binary relations, which lets a provider/RDF join remain inside this
-/// one arity-generic fixpoint. IDB and query-scoped provider relations are never scanned
-/// from RDF.
+/// one arity-generic fixpoint. Query-scoped provider relations and ordinary IDB relations
+/// are never scanned from RDF. The reserved `triple/4` carrier is deliberately both an
+/// EDB encoding and a legal rule head, so it is planned before the ordinary-IDB exclusion.
 fn generic_source_patterns(
     rules: &[GenericRule],
     goal: &GenericAtom,
@@ -358,7 +359,7 @@ fn generic_source_patterns(
         idb: &BTreeSet<&str>,
         provider_relations: &BTreeSet<String>,
     ) -> Option<GenericSourcePattern> {
-        if idb.contains(atom.relation.as_str()) || provider_relations.contains(&atom.relation) {
+        if provider_relations.contains(&atom.relation) {
             return None;
         }
         if atom.relation == GENERIC_TRIPLE_RELATION {
@@ -384,6 +385,9 @@ fn generic_source_patterns(
                 ),
                 triple_encoding: true,
             });
+        }
+        if idb.contains(atom.relation.as_str()) {
+            return None;
         }
         if atom.args.len() != 2 {
             return None;
@@ -457,15 +461,11 @@ fn build_generic_edb(
 /// Decide whether the generic evaluator can SOUNDLY serve every EDB relation the
 /// program references.
 ///
-/// The generic-triple EDB ([`build_generic_edb`]) loads world facts under EXACTLY ONE
-/// relation — the arity-4 reserved [`GENERIC_TRIPLE_RELATION`].  A relation that is not
-/// a rule head (not IDB) is therefore satisfiable ONLY if it is that reserved arity-4
-/// relation; any OTHER non-IDB relation (e.g. a binary EDB predicate named `edge`) has
-/// NO facts in the generic EDB, so a demand-restricted fixpoint over it derives nothing.
-/// Returning that empty set as a decided answer would be a SILENT WRONG ANSWER — the
-/// worst outcome.  Such a program is an honest gap: it is reported as
-/// [`UnsupportedKind::NonBinaryAtom`] so dispatch routes it to the oracle, never a
-/// silent-empty `Ok`.
+/// The generic EDB ([`build_generic_edb`]) loads the arity-4 reserved
+/// [`GENERIC_TRIPLE_RELATION`] and absolute-IRI binary RDF predicates demanded by the
+/// program. A relation that is neither a rule head, a registered provider, the reserved
+/// carrier, nor a loadable binary RDF predicate cannot be served without fabricating an
+/// empty answer, so it remains an honest [`UnsupportedKind::NonBinaryAtom`] gap.
 ///
 /// A reserved-`triple` atom of the wrong arity is likewise un-servable (the EDB rows are
 /// arity 4), so it is a gap too — never silently no-matched.
@@ -476,8 +476,9 @@ fn generic_program_servable(
 ) -> bool {
     let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.relation.as_str()).collect();
 
-    // A non-IDB relation is servable iff it is the reserved arity-4 generic-triple
-    // relation; a reserved-`triple` atom (IDB or not) must be arity 4.
+    // A non-IDB relation is servable when it is a registered provider, the reserved
+    // arity-4 generic-triple relation, or an absolute-IRI binary RDF predicate. A
+    // reserved-`triple` atom (IDB or not) must be arity 4.
     let atom_ok = |atom: &GenericAtom| -> bool {
         if atom.relation == GENERIC_TRIPLE_RELATION {
             return atom.args.len() == 4;
