@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @ℒ{s: gmeow__examples-2f-notation-2f-corrPydanticSurface, p: rdf__type, o: logic__Correspondence}
 @c{s: gmeow__examples-2f-notation-2f-corrPydanticSurface, p: rdfs__label, v: r_0591a60785fead38}
 @c{s: gmeow__examples-2f-notation-2f-corrPydanticSurface, p: rdfs__seeAlso, o: gmeow__examples-2f-notation-2f-pydanticNotation}

@@ -1159,3 +1159,122 @@ ex:ecRadialFieldClosedForm a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/signed-radial-field-closed-form.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "The closed-form flagship scene — the SAME field given exactly by T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — is well-formed: the field is typed both math:ClosedFormFunction and math:PiecewiseFunction, declares its frame (math:domain plus math:codomain math:ExtendedRealLine), its body AST (math:definingExpression), its formal argument x and five parameters A, B, C, p, q, and its four ring pieces; every defining-expression variable leaf resolves to the formal argument or a declared parameter; and it carries the same rings, divergent limits, and dominant-plateau measure evaluations as its qualitative twin. It validates with no findings." .
+
+# === External-corpus reusable-family framing =============================== #
+
+ex:ecPersistentHomologyComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/persistent-homology-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A persistent-homology activity names its mathematical input, one fully framed filtration, and a persistence-diagram output." .
+
+ex:ecPersistentHomologyNoResult a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistent-homology-no-result.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames the input and filtration but omits the required persistence-diagram result, isolating math:IncompletePersistentHomologyAnalysis." .
+
+ex:ecDimensionalReductionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/dimensional-reduction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A dimensional reduction names its input, exact non-negative target dimension, and a fully framed output embedding." .
+
+ex:ecDimensionalReductionNoTarget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dimensional-reduction-no-target.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames the input and output embedding but omits targetDimension, isolating math:IncompleteDimensionalityReductionAnalysis." .
+
+ex:ecHamiltonianComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hamiltonian-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A Hamiltonian system names its smooth state space, symplectic form, framed Hamiltonian function, and generated Hamiltonian flow." .
+
+ex:ecHamiltonianNoForm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/hamiltonian-no-form.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies every Hamiltonian-system role except its symplectic form, isolating math:IncompleteHamiltonianSystem." .
+
+ex:ecCellularSheafComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/cellular-sheaf-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A cellular sheaf names its base complex, cell-indexed stalks, a restriction map, and a compatible section." .
+
+ex:ecCellularSheafNoRestriction a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cellular-sheaf-no-restriction.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a base complex and stalk but no restriction map, isolating math:IncompleteCellularSheaf." .
+
+ex:ecCliffordComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/clifford-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two fully framed Clifford algebras and their exact module decomposition declare scalar field, product, axioms, basis blades, grading, involution, signature, dimensions, extension generator, summands, and split/join witness." .
+
+ex:ecCliffordNoGrading a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/clifford-no-grading.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames a Clifford algebra except for its grading, isolating math:IncompleteCliffordAlgebra." .
+
+ex:ecCliffordExtensionNoGenerator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/clifford-extension-no-generator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies two fully framed Clifford algebras but omits the extension generator, isolating math:IncompleteCliffordExtension." .
+
+ex:ecInformationMeasureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/information-measure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Entropy, mutual information, Kullback–Leibler divergence, cross entropy, Fisher information, and surprisal each name a complete frame — distribution(s), logarithm base, and unit, plus the joint distribution, reference distribution, likelihood model with score parameter, or outcome each measure requires — and the entropy of a uniform two-outcome distribution carries its exact reference value of 1/1 bit." .
+
+ex:ecInformationMeasureNoDistribution a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/information-measure-no-distribution.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies an entropy's logarithm base and information unit but omits its probability distribution, isolating math:IncompleteInformationMeasure." .
+
+ex:ecHodgeDecompositionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hodge-decomposition-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The Hodge decomposition names a complete frame — the signal, its exact, coexact, and harmonic components, its boundary operator, and its fully framed cellular-sheaf carrier — and demonstrates reconstruction (the signal equals the sum of the three components, residual exactly 0/1) and pairwise orthogonality (each of the three component inner products exactly 0/1)." .
+
+ex:ecHodgeDecompositionMalformedBoundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/hodge-decomposition-malformed-boundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Hodge decomposition — signal, exact/coexact/harmonic components, carrier sheaf, reconstruction residual, and the three pairwise-orthogonality inner products — but omits its required boundary operator, isolating math:IncompleteHodgeDecomposition." .
+
+ex:ecMapperConstructionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/mapper-construction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The Mapper construction names a complete frame — its source metric space, its fully framed filter function, its finitely enumerated cover of two overlapping closed intervals, its deterministic single-linkage clustering rule at the exact threshold 1/1, and its output nerve complex — so the cover and clustering are determined data rather than free resolution choices." .
+
+ex:ecMapperConstructionNoFilter a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mapper-construction-no-filter.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, cover of two overlapping intervals, clustering rule, and output nerve — but omits its required filter function, isolating math:IncompleteMapperConstruction." .
+
+ex:ecMapperConstructionNoCover a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mapper-construction-no-cover.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, filter function, clustering rule, and output nerve — but omits its required cover of the filter codomain, isolating math:IncompleteMapperConstruction." .
+
+ex:ecVectorSymbolicComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/vector-symbolic-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The binding, bundling, and unbinding each name a complete frame — their vector space, their basis, their operand vectors (two operands for the binding and bundling; the bound vector, key, and recovered operand for the unbinding), their capacity descriptor at the exact bound 2/1, and their recovery-loss contract at the exact loss 0/1 — so under the exact bipolar MAP algebra the retrieval is certified invertible rather than an implicit similarity claim." .
+
+ex:ecVectorSymbolicCapacityDegradation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/vector-symbolic-capacity-degradation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic binding — vector space, basis, two operand vectors, and an exact recovery-loss contract — but omits its required capacity descriptor, leaving the superposition-crosstalk limit unstated and isolating math:IncompleteVectorSymbolicOperation." .
+
+ex:ecVectorSymbolicNonInvertibility a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/vector-symbolic-non-invertibility.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic unbinding — vector space, basis, bound vector, key, recovered operand, and capacity descriptor — but omits its required recovery-loss (fidelity) contract, so it cannot certify the retrieval as invertible and isolates math:IncompleteVectorSymbolicOperation." .

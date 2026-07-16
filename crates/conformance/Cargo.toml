@@ -29,7 +29,7 @@ path = "src/bin/ingest_external.rs"
 
 [dependencies]
 # Dependency-free license-token policy classifier (RUST-FIRST single source of truth).
-# The vendoring gate (external/corpus.rs) shares this exact algorithm with the Python
+# The vendoring gate (vendored.rs) shares this exact algorithm with the Python
 # LinkPolicy shim, which reaches it via the gmeow-validate PyO3 surface.
 gmeow-license = { path = "../license" }
 # The native logic engine: compile / certify / materialize / explain / foundation
@@ -97,3 +97,19 @@ name = "el_divergence_gate"
 # silently-decided verdict. Offline + deterministic + sub-second.
 [[test]]
 name = "tptp_divergence_gate"
+
+# The entailment-mini coverage-floor + divergence gate: asserts the native
+# `dl_entails` reduction grades at least the pinned number of both-inline W3C-style
+# entailment cases (the executable coverage floor for native entailment grading), and pins the
+# honest structured-gap divergence set + its recorded `gmeow:gapShape` tokens.
+[[test]]
+name = "entailment_mini_gate"
+
+# The W3C OWL 2 Full soundness-divergence SCALING gate: walks all 154 vendored
+# `w3c-owl2-full-divergence` cases (no hardcoded slug list) and re-runs the live
+# reasoner over each. Asserts the non-negotiable soundness invariant (native never
+# decides a verdict that contradicts the W3C published verdict), pins the frozen
+# honest-gap reproduction, and floors + provenance-pins the corpus. Offline +
+# deterministic + sub-second (standard libtest harness, not datatest-stable).
+[[test]]
+name = "full_divergence_gate"

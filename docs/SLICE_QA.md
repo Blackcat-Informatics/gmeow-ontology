@@ -58,7 +58,9 @@ Notes from the baseline:
 - `tests/conformance-fixtures/` and `tests/counter-examples/` are deliberately
   **outside** `examples/` so the global `make validate` gate never loads them as
   data; they are validated **slice-scoped** (module + slice shapes) by the
-  example-conformance harness only.
+  example-conformance harness only. The grounding kernel is the sole data-scope
+  exception: each of its three peers sees the `logic:` + `lang:` + `math:` module
+  union, but shape authority remains restricted to the tested slice.
 - `manifest.ttl` is the **only** truth for slice identity and tier. Registering a
   new slice still needs the root `owl:imports` + the self-count edits — see the
   slice-registration notes; QA cells do not change registration.

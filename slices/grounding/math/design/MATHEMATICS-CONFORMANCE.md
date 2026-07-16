@@ -90,6 +90,9 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A homomorphic-encryption scheme declares its homomorphic operation, hardness assumption, and noise model | SHACL Core | `math:UnderspecifiedEncryptionScheme` |
 | The E8 root-system invariants (240 roots, rank 8, Weyl order 696,729,600) are the pinned answer | competency query | a mistyped invariant fails the exact-match competency gate |
 | A root system claiming the E8 fingerprint (240 roots, rank 8) declares the true Weyl order 696,729,600 | SHACL-SPARQL | `math:WrongE8WeylOrder` |
+| A `math:CliffordAlgebra` declares its scalar field, signature, basis, grading, exact dimension, pseudoscalar square, involution, basis blade, carrier, product, and axioms | SHACL Core derived from OWL restrictions | `math:IncompleteCliffordAlgebra` |
+| A `math:CliffordExtension` names its base algebra, extended algebra, and extension generator | SHACL Core derived from OWL restrictions | `math:IncompleteCliffordExtension` |
+| A `math:CliffordModuleDecomposition` names both summands and carries a true exact split/join witness | SHACL Core derived from OWL restrictions + native producer test | `math:IncompleteCliffordExtension` |
 
 Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (atoms
 over `logic:relation` predications, the logical connectives, and quantifiers) — `math:` expresses the law and `logic:` owns
@@ -196,6 +199,9 @@ silent prose.
 | A `math:MetricSignature`'s `p + q` equals the manifold's dimension, and its `(p, q)` split agrees with the structure kind (Riemannian ⇒ `q = 0`; Lorentzian ⇒ exactly one timelike) | SHACL-SPARQL | `math:DimensionMismatch` |
 | A `math:Compactification` names all four roles (original space, compactifying map, compactified space, boundary at infinity); a `math:ConformalCompactification` additionally names its conformal factor | SHACL Core | `math:UnderspecifiedCompactification` |
 | **A `math:Complement` names its ambient space and its complement-semantics** | SHACL Core | `math:UnqualifiedComplement` |
+| A `math:PersistentHomology` activity names its input, one filtration, and a persistence-diagram output | SHACL Core derived from OWL restrictions | `math:IncompletePersistentHomologyAnalysis` |
+| A `math:HamiltonianSystem` names its smooth state space, symplectic form, Hamiltonian function, and generated flow | SHACL Core derived from OWL restrictions | `math:IncompleteHamiltonianSystem` |
+| A `math:CellularSheaf` names its base complex, at least one stalk, and at least one restriction map | SHACL Core derived from OWL restrictions | `math:IncompleteCellularSheaf` |
 
 The named-complement rule is the charter's distinguished gate: it generalizes the
 bedrock set-theoretic complement (`math:complementWithin`, replaced) to
@@ -222,6 +228,7 @@ property of the vector.
 | A `math:PCAAnalysis` declares its input, centering and scaling policy, covariance operator, eigensolver, and its component / loading / score / explained-variance / residual outputs | SHACL Core | `math:IncompletePCAAnalysis` |
 | **The meaning of a residual, component, or latent dimension is a `math:ResidualInterpretationClaim` — a `gmeow:Observation` with a `gmeow:vantage` and a result — never a property (no direct meaning property is minted)** | SHACL Core | `math:ResidualMeaningAsProperty` |
 | A `math:Embedding` names its source, target space, function, and model | SHACL Core | `math:UnderspecifiedEmbedding` |
+| A `math:DimensionalReduction` names its input, exact non-negative target dimension, and embedding output | SHACL Core derived from OWL restrictions | `math:IncompleteDimensionalityReductionAnalysis` |
 | A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (+ inherited `math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
 | A `math:WeightTensor` names the `math:ParameterSpace` it lives in | SHACL Core | `math:UnframedWeightTensor` |
 | A `math:Filtration` declares at least one `math:FiltrationStage`, and every stage names its `math:filtrationThreshold` and `math:stageStructure` (structural presence only — monotonicity ε₁ ≤ ε₂ ⇒ containment is the first-order law `math:filtrationMonotonicityLaw`, not a shape) | SHACL Core | `math:UnderspecifiedFiltration` |

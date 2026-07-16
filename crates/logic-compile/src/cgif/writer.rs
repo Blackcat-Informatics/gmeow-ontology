@@ -221,6 +221,14 @@ fn term_to_cgif(term: &Term) -> String {
         },
         // A sequence marker → a `[Sequence: "name"]` concept.
         Term::SequenceMarker(n) => format!("[Sequence: {}]", quote_string(n)),
+        // A function-term application → the CGIF functional relation `(f t₀ … tₙ)`, the same
+        // parenthesized conceptual-relation form an atom uses, with the function symbol as the
+        // relation type over its argument concepts.
+        Term::App { symbol, args } => {
+            let mut parts = vec![name_term(symbol)];
+            parts.extend(args.iter().map(term_to_cgif));
+            format!("({})", parts.join(" "))
+        }
     }
 }
 

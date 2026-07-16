@@ -194,8 +194,8 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &["stage-source-load"],
         ),
-        // Leaf compute: RUN the seven math producers (five flagship producers plus the
-        // probability-model seam producer and the p-value tri-slice producer) and attach each
+        // Leaf compute: RUN the eight math producers (five flagship producers plus the
+        // probability-model seam, p-value tri-slice, and Clifford producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
@@ -212,6 +212,14 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-source-load",
                 "stage-statements",
             ],
+        ),
+        // The production consumer of the native proof-carrying full-FOL backward engine:
+        // it evaluates the shipped goal-directed demonstrator corpus, proof-checks every
+        // answer, and attaches graph/goal-directed (folded into gmeow.gts by stage-snapshot).
+        st(
+            "stage-goal-directed",
+            "goal_directed",
+            &["stage-compile-logic"],
         ),
         st(
             "stage-gts-compose",
@@ -300,11 +308,14 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
+                // The proof-carrying backward engine's checked answers + proof derivations,
+                // folded into graph/goal-directed of gmeow.gts.
+                "stage-goal-directed",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
-                // The seven math producer graphs (five flagship producers plus the
-                // probability-model seam producer and the p-value tri-slice producer),
+                // The eight math producer graphs (five flagship producers plus the
+                // probability-model seam, p-value tri-slice, and Clifford producers),
                 // folded into gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",

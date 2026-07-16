@@ -1,0 +1,11 @@
+# External-corpus coverage: reusable information-measure (entropy) frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?measure ?distribution ?base ?unit
+WHERE {
+  ?measure a math:Entropy ;
+           math:overDistribution ?distribution ;
+           math:informationBase ?base ;
+           math:informationUnit ?unit .
+}
+ORDER BY ?measure

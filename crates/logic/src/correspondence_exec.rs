@@ -406,6 +406,9 @@ fn pattern_term(term: &Term, position: &str) -> gmeow_errors::Result<PatternTerm
         Term::SequenceMarker(_) => Err(exec_error(format!(
             "{position} sequence markers are outside the recovery-case RDF-atom fragment"
         ))),
+        Term::App { .. } => Err(exec_error(format!(
+            "{position} compound function terms are outside the recovery-case RDF-atom fragment"
+        ))),
     }
 }
 

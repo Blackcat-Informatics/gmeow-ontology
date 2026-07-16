@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: rdf__type, o: den}
 @λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationContext, o: gmeow__examples-2f-names-2f-everydayAddressContext}
 @λ{s: gmeow__examples-2f-names-2f-chosenDenotation, p: lang__denotationKind, o: lang__denotesEntity}

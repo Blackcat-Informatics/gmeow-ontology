@@ -61,6 +61,37 @@ pub fn module_file(slice_dir: &Path) -> PathBuf {
     slice_dir.join("module.ttl")
 }
 
+/// Canonical module data visible to one slice's example-conformance cells.
+///
+/// Ordinary slices remain strictly slice-local. The three grounding slices are
+/// different by contract: `logic:`, `lang:`, and `math:` form one interlocked,
+/// co-foundational kernel (`docs/GROUNDING.md`), so a grounding constraint may
+/// legitimately need the asserted type of a peer-owned target. Give those
+/// cells the three grounding modules as data while [`crate::exec`] still scopes
+/// the enforcing shapes to the tested slice's authority.
+pub fn conformance_module_files(slice_dir: &Path) -> Vec<PathBuf> {
+    let grounding = slices_root().join("grounding");
+    // datatest-stable passes repository-relative paths, while unit callers often
+    // use absolute paths. Normalize the existing slice directory before testing
+    // membership so both routes receive the same grounding-kernel scope.
+    let canonical_slice = slice_dir
+        .canonicalize()
+        .unwrap_or_else(|_| slice_dir.to_path_buf());
+    let is_grounding_kernel_member = canonical_slice.parent() == Some(grounding.as_path())
+        && matches!(
+            canonical_slice.file_name().and_then(|name| name.to_str()),
+            Some("lang" | "logic" | "math")
+        );
+    if !is_grounding_kernel_member {
+        return vec![module_file(slice_dir)];
+    }
+
+    ["lang", "logic", "math"]
+        .into_iter()
+        .map(|name| grounding.join(name).join("module.ttl"))
+        .collect()
+}
+
 /// The SHACL surfaces enforcing one slice. Canonical generated validation and
 /// constraint projections always participate; a residual local `<slice>/shapes.ttl`
 /// is added while equivalence-proven migration is incomplete. This makes partial
@@ -123,6 +154,24 @@ mod tests {
             examples_dir(slice),
             Path::new("/repo/slices/core/epistemics/examples")
         );
+    }
+
+    #[test]
+    fn conformance_data_is_slice_local_except_for_the_grounding_kernel() {
+        let ordinary = slices_root().join("core/epistemics");
+        assert_eq!(
+            conformance_module_files(&ordinary),
+            vec![module_file(&ordinary)]
+        );
+
+        let grounding = slices_root().join("grounding");
+        let expected = ["lang", "logic", "math"]
+            .into_iter()
+            .map(|name| grounding.join(name).join("module.ttl"))
+            .collect::<Vec<_>>();
+        for name in ["lang", "logic", "math"] {
+            assert_eq!(conformance_module_files(&grounding.join(name)), expected);
+        }
     }
 
     #[test]

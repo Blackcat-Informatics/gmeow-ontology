@@ -141,6 +141,23 @@ point of grounding the credence rather than emitting a bare number.
 > bottleneck bound guarantees that a small perturbation of the underlying function moves the persistence
 > — and hence the credence — by a bounded amount.
 
+## Dimensional reduction, information measures, and vector-symbolic operations
+
+`math:DimensionalReduction` generalizes PCA-adjacent projection without collapsing the method and
+its output. Every run names its input, exact target dimension, and output `math:Embedding`;
+`math:UMAPReduction`, `math:IsomapReduction`, initialization, reconstruction, intrinsic-dimension,
+and path records specialize or qualify that frame. A lower-dimensional coordinate array is never
+given semantic meaning by the reduction itself: interpretations remain observation claims with a
+vantage and evidence.
+
+The information family distinguishes `math:Entropy`, `math:MutualInformation`,
+`math:KullbackLeiblerDivergence`, `math:CrossEntropy`, `math:FisherInformation`, and
+`math:Surprisal` under `math:InformationMeasure`; their verified Wikidata links are identity anchors,
+not substitutes for GMEOW's explicit probability and operand frames. `math:VectorBinding`,
+`math:VectorBundling`, and `math:VectorUnbinding` name reusable vector-symbolic operations, while
+recovery quality and semantic readings remain measured, framed results rather than properties of
+the vectors.
+
 ## An AI describing its own structure — the self-structure flagship
 
 Core classes: `math:TensorComputationGraph`, `math:NeuralLayer`, `math:WeightTensor`,

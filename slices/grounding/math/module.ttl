@@ -3890,7 +3890,7 @@ math:MetricSignature
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Metric Signature"@x-gmeow-english ;
-    skos:definition "The signature (p, q) of a math:MetricTensor: the count of positive (math:signaturePositive) and negative (math:signatureNegative) eigenvalues of the metric. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), so 'exactly one timelike direction' is checkable against the manifold's structure kind. The sum p + q equals the manifold's dimension."@x-gmeow-english ;
+    skos:definition "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Geometry conformance failures ------------------------------------------ #
@@ -3939,7 +3939,7 @@ math:spaceDimension
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "space dimension"@x-gmeow-english ;
-    skos:definition "The dimension of a coordinate space, vector space, or math:TangentSpace — distinct from the physical math:hasDimension (an SI dimension). Domain a math:Set or math:VectorSpace serving as a coordinate/tangent space, range xsd:nonNegativeInteger (stated in prose). A chart's math:targetCoordinateSpace and a math:TangentSpace carry it; it must equal the manifold's math:manifoldDimension (math:DimensionMismatch)."@x-gmeow-english ;
+    skos:definition "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasChart
@@ -4009,7 +4009,7 @@ math:metricSignature
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "metric signature"@x-gmeow-english ;
-    skos:definition "Relates a math:MetricTensor to its math:MetricSignature (p, q). Domain math:MetricTensor, range math:MetricSignature (stated in prose). Structured, not an opaque string, so a Lorentzian metric's 'exactly one timelike direction' is checkable against the manifold's structure kind."@x-gmeow-english ;
+    skos:definition "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:signaturePositive
@@ -4299,7 +4299,7 @@ math:hasBasis
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has basis"@x-gmeow-english ;
-    skos:definition "Relates a math:VectorSpace to a math:Basis of it. Domain math:VectorSpace, range math:Basis (stated in prose). A space may carry several bases; the principal-component basis is the one PCA selects for maximal variance."@x-gmeow-english ;
+    skos:definition "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:rankValue
@@ -4683,7 +4683,7 @@ math:analysisInput
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "analysis input"@x-gmeow-english ;
-    skos:definition "Relates a math:PCAAnalysis to the object it decomposes — a data matrix, a subspace, or a residual subspace. Domain math:PCAAnalysis, range a math:MathematicalObject (a matrix, math:Subspace, or math:OrthogonalComplement) (stated in prose). The declared input of the analysis; an analysis without its input is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    skos:definition "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:centeringPolicy
@@ -7110,11 +7110,1231 @@ math:smoothnessBoundary
     logic:preservationKind logic:Unsupported ;
     skos:definition "The loss-ledger boundary record backing math:smoothness: smoothness (C^∞ / real-analyticity, 'the function has derivatives of every order') is genuinely second-order — it ∀-quantifies over the INFINITE FAMILY of all derivatives {f, f′, f″, …}, a quantification over an unbounded family of functions that is not first-order axiomatizable. HiLog reflection could reify a single derivative, but 'for all n, the n-th derivative exists' ranges over the whole family, so a first-order witness would be an unsound uninterpreted predicate. Hence smoothness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:nonAffinityLaw, math:convexityLaw, and math:boundednessLaw, which ARE first-order logic:Formula laws, exactly as math:compactnessBoundary contrasts with math:continuityLaw and math:connectednessLaw."@x-gmeow-english .
 
+# =========================================================================== #
+# External-corpus coverage families
+#
+# These are general mathematical referents needed by the pinned external-corpus
+# crosswalk.  They are shipped grounding vocabulary, not project-local aliases:
+# the project-specific analytical recipes are compositions of these terms and
+# remain outside the ontology.  In particular, a dimensional coincidence never
+# establishes an E8/Clifford representation; that requires an explicit faithful
+# representation and equivariant map.
+# =========================================================================== #
+
+# --- Computational topology ------------------------------------------------ #
+
+math:CellComplex
+    a owl:Class ; logic:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cell Complex"@x-gmeow-english ;
+    skos:definition "A topological space assembled from cells by attaching each cell boundary to lower-dimensional cells. It is not merely a partition or mesh: cell dimensions and attaching maps are constitutive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SimplicialComplex
+    a owl:Class ; logic:subClassOf math:CellComplex ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Simplicial Complex"@x-gmeow-english ;
+    skos:definition "A cell complex whose cells are simplices and which is closed under taking faces, with intersections occurring along common faces. It is not an arbitrary cell complex: simplex cells and face closure are required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ChainComplex
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Chain Complex"@x-gmeow-english ;
+    skos:definition "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BoundaryOperator
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Boundary Operator"@x-gmeow-english ;
+    skos:definition "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CoboundaryOperator
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Coboundary Operator"@x-gmeow-english ;
+    skos:definition "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VietorisRipsComplex
+    a owl:Class ; logic:subClassOf math:SimplicialComplex ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vietoris–Rips Complex"@x-gmeow-english ;
+    skos:definition "The simplicial complex at a scale whose simplices are finite point sets with all pairwise distances at most that scale. It is not a Čech complex: pairwise distance bounds do not require one common ball intersection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CechComplex
+    a owl:Class ; logic:subClassOf math:SimplicialComplex ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Čech Complex"@x-gmeow-english ;
+    skos:definition "The nerve simplicial complex of a family of equal-radius balls, with a simplex for each subfamily having nonempty total intersection. It is not a Vietoris–Rips complex: a common intersection, not merely pairwise proximity, licenses a simplex."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AlphaComplex
+    a owl:Class ; logic:subClassOf math:SimplicialComplex ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Alpha Complex"@x-gmeow-english ;
+    skos:definition "A scale-indexed subcomplex of a Delaunay complex that captures the homotopy type of the union of restricted balls. It is not the full Delaunay complex or an arbitrary proximity complex."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistentHomology
+    a owl:Class ; logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistent Homology"@x-gmeow-english ;
+    skos:definition "A topological-data-analysis activity that computes homology across a declared filtration and emits persistence summaries; it is the method, not the filtration itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistenceDiagram
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence Diagram"@x-gmeow-english ;
+    skos:definition "A multiset of birth–death points summarizing the lifetimes of homological features in a filtration. It is not the filtration or the persistent-homology activity that produced it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistenceBarcode
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence Barcode"@x-gmeow-english ;
+    skos:definition "A family of intervals representing the same persistent-module decomposition encoded by feature birth and death lifetimes. It is not a persistence diagram, although the two may encode equivalent interval data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistenceLandscape
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence Landscape"@x-gmeow-english ;
+    skos:definition "A sequence of real-valued functions derived from persistence intervals that places persistent-homology summaries in a statistical function space. It is not a raw barcode or diagram: it is their function-valued transform."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BettiSummary
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Betti Summary"@x-gmeow-english ;
+    skos:definition "A degree-indexed collection of Betti numbers for a declared complex, space, filtration stage, or persistence result. It is not one unscoped Betti number."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BettiNumber
+    a owl:Class ; logic:subClassOf math:NaturalNumber ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Betti Number"@x-gmeow-english ;
+    skos:definition "The rank of a homology group in a specified degree, counting independent topological features of that degree. It is not a simplex count or an Euler characteristic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MapperConstruction
+    a owl:Class ; logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mapper Construction"@x-gmeow-english ;
+    skos:definition "A topological-data-analysis activity that covers the range of a filter function, clusters inverse images, and forms their nerve graph or complex. It is not clustering or dimensional reduction alone: the cover and nerve construction are required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MultiparameterPersistence
+    a owl:Class ; logic:subClassOf math:PersistentHomology ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Multiparameter Persistence"@x-gmeow-english ;
+    skos:definition "Persistent-homology analysis over a filtration indexed by a partially ordered parameter space of dimension greater than one. It is not a collection of unrelated one-parameter persistence runs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ZigzagPersistence
+    a owl:Class ; logic:subClassOf math:PersistentHomology ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Zigzag Persistence"@x-gmeow-english ;
+    skos:definition "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Mapper-construction frame classes (Mapper coverage family) ------------- #
+# A math:MapperConstruction is defined only relative to a complete, declared
+# frame: the source metric space it samples, the filter function it factors
+# through, the cover of the filter codomain, the clustering rule applied inside
+# each cover element's inverse image, and the output nerve complex. The cover and
+# clustering are the reusable objects that make Mapper more than a bare graph, and
+# each is a first-class mathematical object here, never an implicit choice.
+math:MetricSpace
+    a owl:Class ; logic:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Metric Space"@x-gmeow-english ;
+    skos:definition "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Cover
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cover"@x-gmeow-english ;
+    skos:definition "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CoverElement
+    a owl:Class ; logic:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cover Element"@x-gmeow-english ;
+    skos:definition "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ClusteringRule
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clustering Rule"@x-gmeow-english ;
+    skos:definition "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NerveComplex
+    a owl:Class ; logic:subClassOf math:SimplicialComplex ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Nerve Complex"@x-gmeow-english ;
+    skos:definition "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Geometric fields, dynamics, and Morse theory -------------------------- #
+
+math:ScalarField
+    a owl:Class ; logic:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Scalar Field"@x-gmeow-english ;
+    skos:definition "A function assigning a scalar to each point of its declared domain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VectorField
+    a owl:Class ; logic:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector Field"@x-gmeow-english ;
+    skos:definition "A function assigning to each point of a manifold a vector in the tangent space at that point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Flow
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Flow"@x-gmeow-english ;
+    skos:definition "A parameterized family of transformations describing the evolution generated by a vector field or dynamical system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SymplecticForm
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Symplectic Form"@x-gmeow-english ;
+    skos:definition "A closed nondegenerate differential two-form on a smooth even-dimensional manifold."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HamiltonianFunction
+    a owl:Class ; logic:subClassOf math:ScalarField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hamiltonian Function"@x-gmeow-english ;
+    skos:definition "A scalar function on a symplectic state space whose symplectic gradient generates the Hamiltonian flow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HamiltonianFlow
+    a owl:Class ; logic:subClassOf math:Flow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hamiltonian Flow"@x-gmeow-english ;
+    skos:definition "The flow generated by a Hamiltonian function through a declared symplectic form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HamiltonianSystem
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hamiltonian System"@x-gmeow-english ;
+    skos:definition "A dynamical system framed by a symplectic state space and a Hamiltonian function that generates its flow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Cellular sheaves and Hodge structure ---------------------------------- #
+
+math:CellularSheaf
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cellular Sheaf"@x-gmeow-english ;
+    skos:definition "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation. Unlike a constant sheaf, its stalks and restriction maps may differ from cell to cell, and it is not merely the underlying cell complex, which carries no stalk data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SheafStalk
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sheaf Stalk"@x-gmeow-english ;
+    skos:definition "The local value object assigned by a sheaf to a point or cell of its base space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SheafRestrictionMap
+    a owl:Class ; logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Restriction Map"@x-gmeow-english ;
+    skos:definition "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SheafSection
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sheaf Section"@x-gmeow-english ;
+    skos:definition "A compatible assignment of local stalk values over a region of a sheaf's base space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SheafCohomology
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sheaf Cohomology"@x-gmeow-english ;
+    skos:definition "The cohomological invariants measuring obstructions to gluing local sheaf data into global sections."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SheafLaplacian
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sheaf Laplacian"@x-gmeow-english ;
+    skos:definition "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data. Unlike a scalar graph Laplacian, it acts on sheaf-valued cochains through the declared restriction maps, not on plain vertex functions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HodgeLaplacian
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hodge Laplacian"@x-gmeow-english ;
+    skos:definition "The degree-wise operator formed from a boundary or coboundary and its adjoint, whose kernel is the harmonic component."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HodgeDecomposition
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hodge Decomposition"@x-gmeow-english ;
+    skos:definition "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products. Unlike an arbitrary direct sum, its three components are mutually orthogonal and the harmonic part is uniquely determined, not freely chosen."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HarmonicComponent
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Harmonic Component"@x-gmeow-english ;
+    skos:definition "The component of a Hodge decomposition lying in the kernel of the applicable Hodge Laplacian."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExactComponent
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Exact Component"@x-gmeow-english ;
+    skos:definition "The component of a Hodge decomposition lying in the image of the applicable boundary or coboundary operator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CoexactComponent
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Coexact Component"@x-gmeow-english ;
+    skos:definition "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Reduction, reconstruction, and information ---------------------------- #
+
+math:DimensionalReduction
+    a owl:Class ; logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensional Reduction"@x-gmeow-english ;
+    skos:definition "An analysis activity that maps data to a declared lower-dimensional representation and records its input, target dimension, and output embedding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UMAPReduction
+    a owl:Class ; logic:subClassOf math:DimensionalReduction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "UMAP Reduction"@x-gmeow-english ;
+    skos:definition "A dimensionality-reduction analysis using the Uniform Manifold Approximation and Projection method with its metric and neighborhood parameters declared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IsomapReduction
+    a owl:Class ; logic:subClassOf math:DimensionalReduction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Isomap Reduction"@x-gmeow-english ;
+    skos:definition "A dimensionality-reduction analysis that approximates geodesic distances on a neighborhood graph before embedding them in a lower-dimensional space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SpectralInitialization
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Spectral Initialization"@x-gmeow-english ;
+    skos:definition "An initialization obtained from eigenvectors of a declared graph, kernel, covariance, or Laplacian operator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ReductionPath
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Reduction Path"@x-gmeow-english ;
+    skos:definition "An ordered record of intermediate representations and transformations in a staged dimensionality-reduction procedure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ReconstructionMap
+    a owl:Class ; logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Reconstruction Map"@x-gmeow-english ;
+    skos:definition "A map from a reduced or embedded representation toward a source-space reconstruction, with exactness, approximation, and round-trip loss declared rather than assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IntrinsicDimension
+    a owl:Class ; logic:subClassOf math:NaturalNumber ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Intrinsic Dimension"@x-gmeow-english ;
+    skos:definition "The estimated minimum number of coordinates needed to describe a dataset or manifold at a declared scale and under a declared estimator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:InformationMeasure
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Information Measure"@x-gmeow-english ;
+    skos:definition "A mathematically framed quantity measuring uncertainty, dependence, divergence, or information relative to declared distributions, logarithm base, and units."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Entropy
+    a owl:Class ; logic:subClassOf math:InformationMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Information Entropy"@x-gmeow-english ;
+    skos:definition "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame. Unlike math:CrossEntropy or math:KullbackLeiblerDivergence, it scores a single distribution against itself, not one distribution against a separate reference distribution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MutualInformation
+    a owl:Class ; logic:subClassOf math:InformationMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mutual Information"@x-gmeow-english ;
+    skos:definition "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence. It is not a math:Distance: it vanishes exactly when the variables are independent and is never negative, but it does not obey the triangle inequality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:KullbackLeiblerDivergence
+    a owl:Class ; logic:subClassOf math:InformationMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Kullback–Leibler Divergence"@x-gmeow-english ;
+    skos:definition "The directed expected log-density ratio from one declared probability distribution to another, not a symmetric distance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CrossEntropy
+    a owl:Class ; logic:subClassOf math:InformationMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cross Entropy"@x-gmeow-english ;
+    skos:definition "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another. Unlike math:Entropy, it scores a model distribution against a separate data distribution and is therefore never below that data distribution's own entropy; unlike math:KullbackLeiblerDivergence, it keeps that irreducible entropy term rather than subtracting it out."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FisherInformation
+    a owl:Class ; logic:subClassOf math:InformationMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Fisher Information"@x-gmeow-english ;
+    skos:definition "The expected curvature or score variance of a parametric likelihood with respect to a declared parameter."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Surprisal
+    a owl:Class ; logic:subClassOf math:InformationMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Surprisal"@x-gmeow-english ;
+    skos:definition "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LogarithmBase
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Logarithm Base"@x-gmeow-english ;
+    skos:definition "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:InformationUnit
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Information Unit"@x-gmeow-english ;
+    skos:definition "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:JointDistribution
+    a owl:Class ; logic:subClassOf math:Distribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Joint Distribution"@x-gmeow-english ;
+    skos:definition "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:logBaseTwo
+    a owl:NamedIndividual , math:LogarithmBase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logarithm base 2"@x-gmeow-english ;
+    skos:definition "The base-2 logarithm convention: information measured in bits (shannons). The canonical base of Shannon entropy in digital contexts."@x-gmeow-english .
+
+math:logBaseE
+    a owl:NamedIndividual , math:LogarithmBase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logarithm base e"@x-gmeow-english ;
+    skos:definition "The natural-logarithm convention: information measured in nats. The canonical base in analytic and statistical settings, where derivatives of the log-likelihood are simplest."@x-gmeow-english .
+
+math:logBaseTen
+    a owl:NamedIndividual , math:LogarithmBase ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logarithm base 10"@x-gmeow-english ;
+    skos:definition "The base-10 logarithm convention: information measured in hartleys (dits, bans). The historical base of Hartley's measure."@x-gmeow-english .
+
+math:bit
+    a owl:NamedIndividual , math:InformationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bit (shannon)"@x-gmeow-english ;
+    skos:definition "The bit, or shannon: the information unit paired with the base-2 logarithm. One bit is the entropy of a uniform distribution over two equiprobable outcomes."@x-gmeow-english .
+
+math:nat
+    a owl:NamedIndividual , math:InformationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "nat"@x-gmeow-english ;
+    skos:definition "The nat, or natural unit of information: the information unit paired with the base-e logarithm."@x-gmeow-english .
+
+math:hartley
+    a owl:NamedIndividual , math:InformationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hartley (dit)"@x-gmeow-english ;
+    skos:definition "The hartley, or dit (ban): the information unit paired with the base-10 logarithm."@x-gmeow-english .
+
+math:VectorSymbolicOperation
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector-Symbolic Operation"@x-gmeow-english ;
+    skos:definition "An operation in a declared vector-symbolic architecture that composes or retrieves distributed representations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VectorBinding
+    a owl:Class ; logic:subClassOf math:VectorSymbolicOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector Binding"@x-gmeow-english ;
+    skos:definition "A vector-symbolic operation combining two representations into a representation of their association. Unlike math:VectorBundling, its result is dissimilar to both operands rather than similar to them, and it is undone by math:VectorUnbinding rather than being idempotent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VectorBundling
+    a owl:Class ; logic:subClassOf math:VectorSymbolicOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector Bundling"@x-gmeow-english ;
+    skos:definition "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate. Unlike math:VectorBinding, its result stays similar to each superposed operand and is not invertible into its individual factors."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VectorUnbinding
+    a owl:Class ; logic:subClassOf math:VectorSymbolicOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector Unbinding"@x-gmeow-english ;
+    skos:definition "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law. Unlike math:VectorBundling, it inverts math:VectorBinding rather than superposing, and its recovery is approximate unless an exact algebra is declared, never lossless by default."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Vector-symbolic frame classes (vector-symbolic coverage family) -------- #
+# A math:VectorSymbolicOperation is defined only relative to a complete, declared
+# frame: the math:VectorSpace it composes representations in, a math:Basis fixing
+# the coordinates, the operand math:Vector(s) it binds, bundles, or unbinds, a
+# capacity descriptor bounding how many items may be superposed before recovery
+# degrades, and a recovery-loss contract stating the exact fidelity of retrieval.
+# Capacity and the recovery-loss contract are the reusable objects that make a
+# vector-symbolic architecture more than an ordinary similarity score, and each is
+# a first-class mathematical object here, never an implicit assumption. Recovery
+# is approximate unless an exact algebra proves otherwise, so the recovery-loss
+# contract's exact rational loss bound is constitutive.
+math:VectorSymbolicCapacity
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector-Symbolic Capacity"@x-gmeow-english ;
+    skos:definition "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RecoveryLossContract
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Recovery-Loss Contract"@x-gmeow-english ;
+    skos:definition "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Clifford and exterior algebra ----------------------------------------- #
+
+math:QuadraticSpace
+    a owl:Class ; logic:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Quadratic Space"@x-gmeow-english ;
+    skos:definition "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:QuadraticForm
+    a owl:Class ; logic:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Quadratic Form"@x-gmeow-english ;
+    skos:definition "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GradedAlgebra
+    a owl:Class ; logic:subClassOf math:Algebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Graded Algebra"@x-gmeow-english ;
+    skos:definition "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Grading
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Grading"@x-gmeow-english ;
+    skos:definition "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExteriorAlgebra
+    a owl:Class ; logic:subClassOf math:GradedAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Exterior Algebra"@x-gmeow-english ;
+    skos:definition "The graded alternating algebra generated by a vector space under the exterior product. It is not a Clifford algebra: repeated generators vanish and no quadratic-form contribution is retained."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordAlgebra
+    a owl:Class ; logic:subClassOf math:GradedAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Algebra"@x-gmeow-english ;
+    skos:definition "The unital associative algebra generated by a quadratic space under the relation v² equals its quadratic form; its field, signature, basis, grading, and product convention must be explicit. It is not an exterior algebra because its product retains the quadratic-form contribution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BasisBlade
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Basis Blade"@x-gmeow-english ;
+    skos:definition "A homogeneous Clifford or exterior basis element formed as an ordered product of distinct basis generators. It is not an arbitrary multivector or a sum of blades."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordAnticommutationWitness
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Anticommutation Witness"@x-gmeow-english ;
+    skos:definition "A calculated record that names two distinct Clifford generators and verifies that reversing their geometric-product order negates the result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Multivector
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Multivector"@x-gmeow-english ;
+    skos:definition "An element of a Clifford algebra expressed as a sum of homogeneous blade components across one or more grades. It is not necessarily a vector or a grade-one element."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordProduct
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Product"@x-gmeow-english ;
+    skos:definition "A bilinear product operation defined within a declared Clifford algebra and governed by its quadratic form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GeometricProduct
+    a owl:Class ; logic:subClassOf math:CliffordProduct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Geometric Product"@x-gmeow-english ;
+    skos:definition "The associative Clifford product combining inner and exterior contributions according to the declared quadratic form. It is not the scalar product or exterior product alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExteriorProduct
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Exterior Product"@x-gmeow-english ;
+    skos:definition "The alternating graded product, conventionally written with a wedge, that vanishes when a generator is repeated. It is not logical conjunction or the full geometric product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LeftContraction
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Left Contraction"@x-gmeow-english ;
+    skos:definition "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GradeProjection
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Grade Projection"@x-gmeow-english ;
+    skos:definition "The operation selecting the homogeneous component of a multivector at a declared grade. It is not coordinate selection or extraction of one basis coefficient."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordInvolution
+    a owl:Class ; logic:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Involution"@x-gmeow-english ;
+    skos:definition "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Reversion
+    a owl:Class ; logic:subClassOf math:CliffordInvolution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Reversion"@x-gmeow-english ;
+    skos:definition "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GradeInvolution
+    a owl:Class ; logic:subClassOf math:CliffordInvolution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Grade Involution"@x-gmeow-english ;
+    skos:definition "The Clifford involution that negates odd-grade components and preserves even-grade components."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordConjugation
+    a owl:Class ; logic:subClassOf math:CliffordInvolution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Conjugation"@x-gmeow-english ;
+    skos:definition "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Rotor
+    a owl:Class ; logic:subClassOf math:Multivector ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Rotor"@x-gmeow-english ;
+    skos:definition "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Spinor
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Spinor"@x-gmeow-english ;
+    skos:definition "An element of a declared spin representation or spinor module associated with a quadratic space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DiracOperator
+    a owl:Class ; logic:subClassOf math:DifferentialOperator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dirac Operator"@x-gmeow-english ;
+    skos:definition "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DirectSumDecomposition
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Direct-Sum Decomposition"@x-gmeow-english ;
+    skos:definition "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category. Unlike a mere set partition, its summands are subobjects whose internal sum reconstructs the whole, not disjoint blocks of elements."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordModuleDecomposition
+    a owl:Class ; logic:subClassOf math:DirectSumDecomposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Module Decomposition"@x-gmeow-english ;
+    skos:definition "The vector-space or module decomposition of an extended Clifford algebra into an embedded base-algebra summand and the new-generator multiple of that summand; it is not an algebra direct sum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CliffordExtension
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford Extension"@x-gmeow-english ;
+    skos:definition "A declared extension from a base Clifford algebra to one with an additional generator, recording both signatures and the embedding convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FaithfulRepresentation
+    a owl:Class ; logic:subClassOf math:GroupRepresentation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Faithful Representation"@x-gmeow-english ;
+    skos:definition "A group representation whose kernel is trivial, so distinct represented group elements induce distinct transformations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:EquivariantMap
+    a owl:Class ; logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Equivariant Map"@x-gmeow-english ;
+    skos:definition "A morphism between spaces carrying group actions that commutes with the declared actions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Cross-family properties ------------------------------------------------ #
+
+math:analysisOutput
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "analysis output"@x-gmeow-english ;
+    skos:definition "Relates a mathematical analysis activity to an explicit result object it produced; interpretation of that result remains a separate standpoint-indexed claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetDimension
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target dimension"@x-gmeow-english ;
+    skos:definition "The non-negative integer dimension requested as the output dimension of a dimensionality-reduction analysis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:usesInitialization
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uses initialization"@x-gmeow-english ;
+    skos:definition "Relates an iterative mathematical analysis to the explicit initialization from which its optimization or iteration begins."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:reconstructionOf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "reconstruction of"@x-gmeow-english ;
+    skos:definition "Relates a reconstructed mathematical object to the representation, projection, or source object it attempts to recover."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:symplecticForm
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "symplectic form"@x-gmeow-english ;
+    skos:definition "Relates a Hamiltonian system or smooth state space to the closed nondegenerate two-form that frames its Hamiltonian dynamics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:stateSpace
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "state space"@x-gmeow-english ;
+    skos:definition "Relates a dynamical or Hamiltonian system to the mathematical space containing its states."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hamiltonianFunction
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hamiltonian function"@x-gmeow-english ;
+    skos:definition "Relates a Hamiltonian system to the scalar function whose symplectic gradient generates its evolution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:generatesFlow
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "generates flow"@x-gmeow-english ;
+    skos:definition "Relates a vector field, Hamiltonian function, or dynamical system to the flow it generates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Information-measure frame properties (information-theoretic coverage family) --- #
+math:overDistribution
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over distribution"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:referenceDistribution
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "reference distribution"@x-gmeow-english ;
+    skos:definition "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:informationBase
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "information base"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:informationUnit
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "information unit"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:likelihoodModel
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "likelihood model"@x-gmeow-english ;
+    skos:definition "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:scoreParameter
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "score parameter"@x-gmeow-english ;
+    skos:definition "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ofOutcome
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "of outcome"@x-gmeow-english ;
+    skos:definition "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:measureValue
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "measure value"@x-gmeow-english ;
+    skos:definition "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Mapper-construction frame properties (Mapper coverage family) --------- #
+math:sourceMetricSpace
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "source metric space"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:filterFunction
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filter function"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coverScheme
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cover scheme"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:clusteringRule
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "clustering rule"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:outputNerve
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "output nerve"@x-gmeow-english ;
+    skos:definition "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasCoverElement
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has cover element"@x-gmeow-english ;
+    skos:definition "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:clusteringThreshold
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "clustering threshold"@x-gmeow-english ;
+    skos:definition "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Vector-symbolic frame properties (vector-symbolic coverage family) ---- #
+math:overVectorSpace
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over vector space"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:overBasis
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over basis"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:vsaOperand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "vsa operand"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundVector
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bound vector"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:unbindingKey
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "unbinding key"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:recoveredOperand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "recovered operand"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:operationCapacity
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "operation capacity"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:recoveryLossContract
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "recovery-loss contract"@x-gmeow-english ;
+    skos:definition "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:capacityBound
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "capacity bound"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:lossBound
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "loss bound"@x-gmeow-english ;
+    skos:definition "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Hodge-decomposition frame properties (Hodge coverage family) --------- #
+math:overSheaf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over sheaf"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hodgeBoundaryOperator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hodge boundary operator"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exactComponent
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact component"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coexactComponent
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coexact component"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:harmonicComponent
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "harmonic component"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:reconstructionResidual
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "reconstruction residual"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exactCoexactInnerProduct
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact–coexact inner product"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exactHarmonicInnerProduct
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact–harmonic inner product"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coexactHarmonicInnerProduct
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coexact–harmonic inner product"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:sheafBaseComplex
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "sheaf base complex"@x-gmeow-english ;
+    skos:definition "Relates a cellular sheaf to the cell complex on which its stalks and restriction maps are indexed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasStalk
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has stalk"@x-gmeow-english ;
+    skos:definition "Relates a sheaf to one of its local stalk objects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:stalkOverCell
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "stalk over cell"@x-gmeow-english ;
+    skos:definition "Relates a cellular-sheaf stalk to the cell of the base complex to which it is assigned."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:restrictionMap
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "restriction map"@x-gmeow-english ;
+    skos:definition "Relates a sheaf to one of its compatible restriction maps between stalks."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasSection
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has section"@x-gmeow-english ;
+    skos:definition "Relates a sheaf to a local or global compatible section."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasLaplacian
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has Laplacian"@x-gmeow-english ;
+    skos:definition "Relates a complex, sheaf, or graded space to the Laplacian operator defined on it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:decomposesFlow
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "decomposes flow"@x-gmeow-english ;
+    skos:definition "Relates a Hodge decomposition to the flow, chain, or cochain it separates into exact, coexact, and harmonic components."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasQuadraticForm
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has quadratic form"@x-gmeow-english ;
+    skos:definition "Relates a quadratic space or Clifford algebra to the quadratic form governing its metric relation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:scalarField
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "scalar field"@x-gmeow-english ;
+    skos:definition "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasGrading
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has grading"@x-gmeow-english ;
+    skos:definition "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:cliffordInvolution
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Clifford involution"@x-gmeow-english ;
+    skos:definition "Relates a Clifford algebra to a supported involution such as reversion, grade involution, or Clifford conjugation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasBasisBlade
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has basis blade"@x-gmeow-english ;
+    skos:definition "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasAnticommutationWitness
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has anticommutation witness"@x-gmeow-english ;
+    skos:definition "Relates a Clifford algebra to a calculated witness for one distinct-generator anticommutation law."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:leftGenerator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "left generator"@x-gmeow-english ;
+    skos:definition "Relates a Clifford anticommutation witness to the generator occurring on the left in its forward product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:rightGenerator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "right generator"@x-gmeow-english ;
+    skos:definition "Relates a Clifford anticommutation witness to the distinct generator occurring on the right in its forward product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:bladeGrade
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "blade grade"@x-gmeow-english ;
+    skos:definition "The non-negative integer grade of a homogeneous basis blade."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:generatorIndex
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "generator index"@x-gmeow-english ;
+    skos:definition "The positive integer position of a Clifford generator in the algebra's declared ordered basis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:generatorSquare
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "generator square"@x-gmeow-english ;
+    skos:definition "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:pseudoscalarSquare
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "pseudoscalar square"@x-gmeow-english ;
+    skos:definition "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:anticommutationVerified
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "anticommutation verified"@x-gmeow-english ;
+    skos:definition "The boolean result of exactly checking the named distinct-generator anticommutation witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:decomposedObject
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "decomposed object"@x-gmeow-english ;
+    skos:definition "Relates a decomposition record to the mathematical object decomposed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:directSummand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "direct summand"@x-gmeow-english ;
+    skos:definition "Relates a direct-sum decomposition to one of its explicitly identified summands."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:moduleBaseSummand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "module base summand"@x-gmeow-english ;
+    skos:definition "Relates a Clifford module decomposition to the embedded base-algebra summand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:moduleExtensionSummand
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "module extension summand"@x-gmeow-english ;
+    skos:definition "Relates a Clifford module decomposition to the summand obtained by left multiplication with the new extension generator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:splitJoinVerified
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "split/join verified"@x-gmeow-english ;
+    skos:definition "The boolean result of an exact round trip through a declared Clifford extension split and join."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:baseAlgebra
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "base algebra"@x-gmeow-english ;
+    skos:definition "Relates a Clifford extension to the lower-generator Clifford algebra being embedded."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:extendedAlgebra
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "extended algebra"@x-gmeow-english ;
+    skos:definition "Relates a Clifford extension to the Clifford algebra obtained after adjoining the declared generator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:extensionGenerator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "extension generator"@x-gmeow-english ;
+    skos:definition "Relates a Clifford extension to the additional basis generator, including its grade and exact square."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:representedObject
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "represented object"@x-gmeow-english ;
+    skos:definition "Relates a mathematical representation to the group, algebra, or structured object it represents."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:representationMap
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "representation map"@x-gmeow-english ;
+    skos:definition "Relates a representation record to the explicit morphism realizing the representation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:equivariantMap
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "equivariant map"@x-gmeow-english ;
+    skos:definition "Relates a representation or structured comparison to the explicit map proved to commute with the declared group actions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:equivariantUnder
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "equivariant under"@x-gmeow-english ;
+    skos:definition "Relates an equivariant map to the group action or symmetry with which it commutes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- External-corpus coverage conformance failures ------------------------- #
+
+math:IncompletePersistentHomologyAnalysis
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Persistent-Homology Analysis"@x-gmeow-english ;
+    skos:definition "The failure raised when a persistent-homology analysis lacks its input, filtration, or persistence-summary output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteDimensionalityReductionAnalysis
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Dimensionality-Reduction Analysis"@x-gmeow-english ;
+    skos:definition "The failure raised when a dimensionality-reduction analysis lacks its input, target dimension, or output embedding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteHamiltonianSystem
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Hamiltonian System"@x-gmeow-english ;
+    skos:definition "The failure raised when a Hamiltonian system lacks its smooth state space, symplectic form, Hamiltonian function, or generated Hamiltonian flow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCellularSheaf
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Cellular Sheaf"@x-gmeow-english ;
+    skos:definition "The failure raised when a cellular sheaf lacks its base complex, stalks, or restriction maps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCliffordAlgebra
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Clifford Algebra"@x-gmeow-english ;
+    skos:definition "The failure raised when a Clifford algebra lacks its scalar field, signature, basis blades, grading, product/involution frame, or exact vector-space dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCliffordExtension
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Clifford Extension"@x-gmeow-english ;
+    skos:definition "The failure raised when a Clifford extension lacks its base algebra, extended algebra, or additional generator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteInformationMeasure
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Information Measure"@x-gmeow-english ;
+    skos:definition "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteHodgeDecomposition
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Hodge Decomposition"@x-gmeow-english ;
+    skos:definition "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteMapperConstruction
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Mapper Construction"@x-gmeow-english ;
+    skos:definition "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteVectorSymbolicOperation
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Vector-Symbolic Operation"@x-gmeow-english ;
+    skos:definition "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Task-7 conformance-failure classes ------------------------------------- #
 
 math:UnderspecifiedPiecewiseFunction
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Piecewise Function"@x-gmeow-english ;
     skos:definition "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."@x-gmeow-english ;
@@ -7126,7 +8346,7 @@ math:UnderspecifiedPiecewiseFunction
 
 math:UnbackedAnalyticProperty
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unbacked Analytic Property"@x-gmeow-english ;
     skos:definition "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."@x-gmeow-english ;
@@ -7148,6 +8368,323 @@ math:UnbackedAnalyticProperty
 # cross-node / value-negation / numeric-range conditions have no OWL antecedent
 # and stay as the procedural sh:sparql constraint fragment.
 # =========================================================================== #
+
+math:PersistentHomology logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:analysisInput ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:analysisInput ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:overFiltration ; owl:minQualifiedCardinality 1 ; owl:onClass math:Filtration ] ,
+    [ a owl:Restriction ; owl:onProperty math:overFiltration ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Filtration ] ,
+    [ a owl:Restriction ; owl:onProperty math:overFiltration ; owl:allValuesFrom math:Filtration ] ,
+    [ a owl:Restriction ; owl:onProperty math:analysisOutput ; owl:minQualifiedCardinality 1 ; owl:onClass math:PersistenceDiagram ] ,
+    [ a owl:Restriction ; owl:onProperty math:analysisOutput ; owl:allValuesFrom math:MathematicalObject ] ;
+    gmeow:enforcesFailureClass math:IncompletePersistentHomologyAnalysis .
+
+math:DimensionalReduction logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:analysisInput ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:analysisInput ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:targetDimension ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty math:targetDimension ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty math:analysisOutput ; owl:minQualifiedCardinality 1 ; owl:onClass math:Embedding ] ,
+    [ a owl:Restriction ; owl:onProperty math:analysisOutput ; owl:allValuesFrom math:Embedding ] ;
+    gmeow:enforcesFailureClass math:IncompleteDimensionalityReductionAnalysis .
+
+math:HamiltonianSystem logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:stateSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:SmoothManifold ] ,
+    [ a owl:Restriction ; owl:onProperty math:stateSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:SmoothManifold ] ,
+    [ a owl:Restriction ; owl:onProperty math:stateSpace ; owl:allValuesFrom math:SmoothManifold ] ,
+    [ a owl:Restriction ; owl:onProperty math:symplecticForm ; owl:minQualifiedCardinality 1 ; owl:onClass math:SymplecticForm ] ,
+    [ a owl:Restriction ; owl:onProperty math:symplecticForm ; owl:maxQualifiedCardinality 1 ; owl:onClass math:SymplecticForm ] ,
+    [ a owl:Restriction ; owl:onProperty math:symplecticForm ; owl:allValuesFrom math:SymplecticForm ] ,
+    [ a owl:Restriction ; owl:onProperty math:hamiltonianFunction ; owl:minQualifiedCardinality 1 ; owl:onClass math:HamiltonianFunction ] ,
+    [ a owl:Restriction ; owl:onProperty math:hamiltonianFunction ; owl:maxQualifiedCardinality 1 ; owl:onClass math:HamiltonianFunction ] ,
+    [ a owl:Restriction ; owl:onProperty math:hamiltonianFunction ; owl:allValuesFrom math:HamiltonianFunction ] ,
+    [ a owl:Restriction ; owl:onProperty math:generatesFlow ; owl:minQualifiedCardinality 1 ; owl:onClass math:HamiltonianFlow ] ,
+    [ a owl:Restriction ; owl:onProperty math:generatesFlow ; owl:maxQualifiedCardinality 1 ; owl:onClass math:HamiltonianFlow ] ,
+    [ a owl:Restriction ; owl:onProperty math:generatesFlow ; owl:allValuesFrom math:HamiltonianFlow ] ;
+    gmeow:enforcesFailureClass math:IncompleteHamiltonianSystem .
+
+math:CellularSheaf logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:sheafBaseComplex ; owl:minQualifiedCardinality 1 ; owl:onClass math:CellComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:sheafBaseComplex ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CellComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:sheafBaseComplex ; owl:allValuesFrom math:CellComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasStalk ; owl:minQualifiedCardinality 1 ; owl:onClass math:SheafStalk ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasStalk ; owl:allValuesFrom math:SheafStalk ] ,
+    [ a owl:Restriction ; owl:onProperty math:restrictionMap ; owl:minQualifiedCardinality 1 ; owl:onClass math:SheafRestrictionMap ] ,
+    [ a owl:Restriction ; owl:onProperty math:restrictionMap ; owl:allValuesFrom math:SheafRestrictionMap ] ;
+    gmeow:enforcesFailureClass math:IncompleteCellularSheaf .
+
+math:CliffordAlgebra logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:scalarField ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:scalarField ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:metricSignature ; owl:minQualifiedCardinality 1 ; owl:onClass math:MetricSignature ] ,
+    [ a owl:Restriction ; owl:onProperty math:metricSignature ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MetricSignature ] ,
+    [ a owl:Restriction ; owl:onProperty math:metricSignature ; owl:allValuesFrom math:MetricSignature ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasGrading ; owl:minQualifiedCardinality 1 ; owl:onClass math:Grading ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasGrading ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Grading ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasGrading ; owl:allValuesFrom math:Grading ] ,
+    [ a owl:Restriction ; owl:onProperty math:cliffordInvolution ; owl:minQualifiedCardinality 1 ; owl:onClass math:CliffordInvolution ] ,
+    [ a owl:Restriction ; owl:onProperty math:cliffordInvolution ; owl:allValuesFrom math:CliffordInvolution ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasBasisBlade ; owl:minQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasBasisBlade ; owl:allValuesFrom math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:spaceDimension ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty math:spaceDimension ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty math:pseudoscalarSquare ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty math:pseudoscalarSquare ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
+    gmeow:enforcesFailureClass math:IncompleteCliffordAlgebra .
+
+math:CliffordExtension logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:baseAlgebra ; owl:minQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:baseAlgebra ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:baseAlgebra ; owl:allValuesFrom math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:extendedAlgebra ; owl:minQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:extendedAlgebra ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:extendedAlgebra ; owl:allValuesFrom math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:extensionGenerator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:extensionGenerator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:extensionGenerator ; owl:allValuesFrom math:BasisBlade ] ;
+    gmeow:enforcesFailureClass math:IncompleteCliffordExtension .
+
+math:CliffordAnticommutationWitness logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:leftGenerator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:leftGenerator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:rightGenerator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:rightGenerator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BasisBlade ] ,
+    [ a owl:Restriction ; owl:onProperty math:anticommutationVerified ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ,
+    [ a owl:Restriction ; owl:onProperty math:anticommutationVerified ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ,
+    [ a owl:Restriction ; owl:onProperty math:anticommutationVerified ; owl:hasValue true ] .
+
+math:CliffordModuleDecomposition logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:decomposedObject ; owl:minQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:decomposedObject ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:moduleBaseSummand ; owl:minQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:moduleBaseSummand ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CliffordAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:moduleExtensionSummand ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:moduleExtensionSummand ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:splitJoinVerified ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ,
+    [ a owl:Restriction ; owl:onProperty math:splitJoinVerified ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ,
+    [ a owl:Restriction ; owl:onProperty math:splitJoinVerified ; owl:hasValue true ] ;
+    gmeow:enforcesFailureClass math:IncompleteCliffordExtension .
+
+# Information-theoretic coverage family: each information measure is defined only
+# relative to a complete, declared frame. Every declarative frame obligation is a
+# qualified-cardinality + allValuesFrom OWL restriction (EL-safe) that derives the
+# paired sh:minCount/maxCount + sh:class property shape; a missing component fails
+# the derived QualifiedMinCount and isolates math:IncompleteInformationMeasure.
+math:Entropy logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:minQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:maxQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:allValuesFrom math:InformationUnit ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:Surprisal logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:ofOutcome ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:ofOutcome ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:ofOutcome ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:MutualInformation logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:JointDistribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:JointDistribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:JointDistribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:minQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:maxQualifiedCardinality 1 ; owl:onClass math:InformationUnit ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationUnit ; owl:allValuesFrom math:InformationUnit ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:KullbackLeiblerDivergence logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:CrossEntropy logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:overDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:referenceDistribution ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:minQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LogarithmBase ] ,
+    [ a owl:Restriction ; owl:onProperty math:informationBase ; owl:allValuesFrom math:LogarithmBase ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+math:FisherInformation logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:likelihoodModel ; owl:minQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:likelihoodModel ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:likelihoodModel ; owl:allValuesFrom math:Distribution ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:minQualifiedCardinality 1 ; owl:onClass math:DistributionParameter ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:maxQualifiedCardinality 1 ; owl:onClass math:DistributionParameter ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreParameter ; owl:allValuesFrom math:DistributionParameter ] ;
+    gmeow:enforcesFailureClass math:IncompleteInformationMeasure .
+
+# Hodge coverage family: a Hodge decomposition is defined only relative to a
+# complete, declared frame — the signal, its exact/coexact/harmonic components,
+# its boundary operator, its carrier sheaf, the exact residual witnessing
+# reconstruction (signal = exact + coexact + harmonic, residual 0/1), and the
+# three exact pairwise-orthogonality inner products (each 0/1). Every obligation
+# is a qualified-cardinality + allValuesFrom OWL restriction (EL-safe) that
+# derives the paired sh:minCount/maxCount + sh:class property shape; a missing or
+# wrongly typed component fails the derived constraint and isolates
+# math:IncompleteHodgeDecomposition. Omitting the boundary operator fails the
+# derived QualifiedMinCount, the malformed-boundary-operator counterexample.
+math:HodgeDecomposition logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:decomposesFlow ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:decomposesFlow ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:decomposesFlow ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactComponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:ExactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactComponent ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ExactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactComponent ; owl:allValuesFrom math:ExactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactComponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:CoexactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactComponent ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CoexactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactComponent ; owl:allValuesFrom math:CoexactComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:harmonicComponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:HarmonicComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:harmonicComponent ; owl:maxQualifiedCardinality 1 ; owl:onClass math:HarmonicComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:harmonicComponent ; owl:allValuesFrom math:HarmonicComponent ] ,
+    [ a owl:Restriction ; owl:onProperty math:hodgeBoundaryOperator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:hodgeBoundaryOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:hodgeBoundaryOperator ; owl:allValuesFrom math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:overSheaf ; owl:minQualifiedCardinality 1 ; owl:onClass math:CellularSheaf ] ,
+    [ a owl:Restriction ; owl:onProperty math:overSheaf ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CellularSheaf ] ,
+    [ a owl:Restriction ; owl:onProperty math:overSheaf ; owl:allValuesFrom math:CellularSheaf ] ,
+    [ a owl:Restriction ; owl:onProperty math:reconstructionResidual ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:reconstructionResidual ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:reconstructionResidual ; owl:allValuesFrom math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactCoexactInnerProduct ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactCoexactInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactCoexactInnerProduct ; owl:allValuesFrom math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactHarmonicInnerProduct ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactHarmonicInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:exactHarmonicInnerProduct ; owl:allValuesFrom math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:minQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
+    [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:allValuesFrom math:RationalValue ] ;
+    gmeow:enforcesFailureClass math:IncompleteHodgeDecomposition .
+
+# Mapper coverage family: a Mapper construction is defined only relative to a
+# complete, declared frame — the source metric space it samples, the filter
+# (lens) function it factors through, the cover of the filter codomain, the
+# deterministic clustering rule applied inside each cover element's inverse image,
+# and the output nerve complex. Every obligation is a qualified-cardinality +
+# allValuesFrom OWL restriction (EL-safe) that derives the paired
+# sh:minCount/maxCount + sh:class property shape; a missing or wrongly typed
+# component fails the derived constraint and isolates
+# math:IncompleteMapperConstruction. Omitting the filter function fails the derived
+# QualifiedMinCount on math:filterFunction (the missing-filter counterexample);
+# omitting the cover fails the derived QualifiedMinCount on math:coverScheme (the
+# missing-cover counterexample).
+math:MapperConstruction logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:sourceMetricSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:MetricSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:sourceMetricSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MetricSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:sourceMetricSpace ; owl:allValuesFrom math:MetricSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:filterFunction ; owl:minQualifiedCardinality 1 ; owl:onClass math:Function ] ,
+    [ a owl:Restriction ; owl:onProperty math:filterFunction ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Function ] ,
+    [ a owl:Restriction ; owl:onProperty math:filterFunction ; owl:allValuesFrom math:Function ] ,
+    [ a owl:Restriction ; owl:onProperty math:coverScheme ; owl:minQualifiedCardinality 1 ; owl:onClass math:Cover ] ,
+    [ a owl:Restriction ; owl:onProperty math:coverScheme ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Cover ] ,
+    [ a owl:Restriction ; owl:onProperty math:coverScheme ; owl:allValuesFrom math:Cover ] ,
+    [ a owl:Restriction ; owl:onProperty math:clusteringRule ; owl:minQualifiedCardinality 1 ; owl:onClass math:ClusteringRule ] ,
+    [ a owl:Restriction ; owl:onProperty math:clusteringRule ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ClusteringRule ] ,
+    [ a owl:Restriction ; owl:onProperty math:clusteringRule ; owl:allValuesFrom math:ClusteringRule ] ,
+    [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:minQualifiedCardinality 1 ; owl:onClass math:NerveComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NerveComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:outputNerve ; owl:allValuesFrom math:NerveComplex ] ;
+    gmeow:enforcesFailureClass math:IncompleteMapperConstruction .
+
+# Vector-symbolic coverage family: a binding, bundling, or unbinding is defined
+# only relative to a complete, declared frame — the vector space it composes in,
+# the basis fixing its coordinates, its operand vectors, its capacity descriptor,
+# and its recovery-loss (fidelity) contract. Every obligation is a
+# qualified-cardinality + allValuesFrom OWL restriction (EL-safe) that derives the
+# paired sh:minCount/maxCount + sh:class property shape; a missing or wrongly typed
+# component fails the derived constraint and isolates
+# math:IncompleteVectorSymbolicOperation. Binding and bundling take two or more
+# operands (a derived QualifiedMinCount of 2 on math:vsaOperand). Omitting the
+# capacity descriptor fails the derived QualifiedMinCount on math:operationCapacity
+# (the capacity-degradation counterexample); omitting the recovery-loss contract
+# fails the derived QualifiedMinCount on math:recoveryLossContract (the
+# non-invertibility counterexample), because recovery is approximate unless an
+# exact algebra proves otherwise.
+math:VectorBinding logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:allValuesFrom math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:minQualifiedCardinality 2 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:allValuesFrom math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:minQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:allValuesFrom math:RecoveryLossContract ] ;
+    gmeow:enforcesFailureClass math:IncompleteVectorSymbolicOperation .
+
+math:VectorBundling logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:allValuesFrom math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:minQualifiedCardinality 2 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:vsaOperand ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:allValuesFrom math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:minQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:allValuesFrom math:RecoveryLossContract ] ;
+    gmeow:enforcesFailureClass math:IncompleteVectorSymbolicOperation .
+
+math:VectorUnbinding logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overVectorSpace ; owl:allValuesFrom math:VectorSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:minQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:overBasis ; owl:allValuesFrom math:Basis ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundVector ; owl:minQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundVector ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundVector ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:unbindingKey ; owl:minQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:unbindingKey ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:unbindingKey ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveredOperand ; owl:minQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveredOperand ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveredOperand ; owl:allValuesFrom math:Vector ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:minQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:operationCapacity ; owl:allValuesFrom math:VectorSymbolicCapacity ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:minQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RecoveryLossContract ] ,
+    [ a owl:Restriction ; owl:onProperty math:recoveryLossContract ; owl:allValuesFrom math:RecoveryLossContract ] ;
+    gmeow:enforcesFailureClass math:IncompleteVectorSymbolicOperation .
 
 math:Number rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -11090,6 +12627,92 @@ math:VerificationOutcome a logic:AbstractIndividualType .
 math:WeightTensor a logic:AbstractIndividualType .
 math:WeylGroup a logic:AbstractIndividualType .
 
+# External-corpus reusable mathematical structures
+math:AlphaComplex a logic:AbstractIndividualType .
+math:BasisBlade a logic:AbstractIndividualType .
+math:BettiNumber a logic:AbstractIndividualType .
+math:BettiSummary a logic:AbstractIndividualType .
+math:BoundaryOperator a logic:AbstractIndividualType .
+math:CechComplex a logic:AbstractIndividualType .
+math:CellComplex a logic:AbstractIndividualType .
+math:CellularSheaf a logic:AbstractIndividualType .
+math:ChainComplex a logic:AbstractIndividualType .
+math:CliffordAlgebra a logic:AbstractIndividualType .
+math:CliffordAnticommutationWitness a logic:AbstractIndividualType .
+math:CliffordConjugation a logic:AbstractIndividualType .
+math:CliffordExtension a logic:AbstractIndividualType .
+math:CliffordInvolution a logic:AbstractIndividualType .
+math:CliffordModuleDecomposition a logic:AbstractIndividualType .
+math:CliffordProduct a logic:AbstractIndividualType .
+math:CoboundaryOperator a logic:AbstractIndividualType .
+math:CoexactComponent a logic:AbstractIndividualType .
+math:CrossEntropy a logic:AbstractIndividualType .
+math:DiracOperator a logic:AbstractIndividualType .
+math:DirectSumDecomposition a logic:AbstractIndividualType .
+math:Entropy a logic:AbstractIndividualType .
+math:EquivariantMap a logic:AbstractIndividualType .
+math:ExactComponent a logic:AbstractIndividualType .
+math:ExteriorAlgebra a logic:AbstractIndividualType .
+math:ExteriorProduct a logic:AbstractIndividualType .
+math:FaithfulRepresentation a logic:AbstractIndividualType .
+math:FisherInformation a logic:AbstractIndividualType .
+math:Flow a logic:AbstractIndividualType .
+math:GeometricProduct a logic:AbstractIndividualType .
+math:GradeInvolution a logic:AbstractIndividualType .
+math:GradeProjection a logic:AbstractIndividualType .
+math:GradedAlgebra a logic:AbstractIndividualType .
+math:Grading a logic:AbstractIndividualType .
+math:HamiltonianFlow a logic:AbstractIndividualType .
+math:HamiltonianFunction a logic:AbstractIndividualType .
+math:HamiltonianSystem a logic:AbstractIndividualType .
+math:HarmonicComponent a logic:AbstractIndividualType .
+math:HodgeDecomposition a logic:AbstractIndividualType .
+math:HodgeLaplacian a logic:AbstractIndividualType .
+math:InformationMeasure a logic:AbstractIndividualType .
+math:IntrinsicDimension a logic:AbstractIndividualType .
+math:KullbackLeiblerDivergence a logic:AbstractIndividualType .
+math:LeftContraction a logic:AbstractIndividualType .
+math:Multivector a logic:AbstractIndividualType .
+math:MutualInformation a logic:AbstractIndividualType .
+math:PersistenceBarcode a logic:AbstractIndividualType .
+math:PersistenceDiagram a logic:AbstractIndividualType .
+math:PersistenceLandscape a logic:AbstractIndividualType .
+math:QuadraticForm a logic:AbstractIndividualType .
+math:QuadraticSpace a logic:AbstractIndividualType .
+math:ReconstructionMap a logic:AbstractIndividualType .
+math:ReductionPath a logic:AbstractIndividualType .
+math:Reversion a logic:AbstractIndividualType .
+math:Rotor a logic:AbstractIndividualType .
+math:ScalarField a logic:AbstractIndividualType .
+math:SheafCohomology a logic:AbstractIndividualType .
+math:SheafLaplacian a logic:AbstractIndividualType .
+math:SheafRestrictionMap a logic:AbstractIndividualType .
+math:SheafSection a logic:AbstractIndividualType .
+math:SheafStalk a logic:AbstractIndividualType .
+math:SimplicialComplex a logic:AbstractIndividualType .
+math:SpectralInitialization a logic:AbstractIndividualType .
+math:Spinor a logic:AbstractIndividualType .
+math:Surprisal a logic:AbstractIndividualType .
+math:SymplecticForm a logic:AbstractIndividualType .
+math:VectorBinding a logic:AbstractIndividualType .
+math:VectorBundling a logic:AbstractIndividualType .
+math:VectorField a logic:AbstractIndividualType .
+math:VectorSymbolicCapacity a logic:AbstractIndividualType .
+math:VectorSymbolicOperation a logic:AbstractIndividualType .
+math:VectorUnbinding a logic:AbstractIndividualType .
+math:RecoveryLossContract a logic:AbstractIndividualType .
+math:VietorisRipsComplex a logic:AbstractIndividualType .
+
+# External-corpus Mapper / information-theoretic support structures
+math:ClusteringRule a logic:AbstractIndividualType .
+math:Cover a logic:AbstractIndividualType .
+math:CoverElement a logic:AbstractIndividualType .
+math:InformationUnit a logic:AbstractIndividualType .
+math:JointDistribution a logic:AbstractIndividualType .
+math:LogarithmBase a logic:AbstractIndividualType .
+math:MetricSpace a logic:AbstractIndividualType .
+math:NerveComplex a logic:AbstractIndividualType .
+
 # Event
 
 math:InferenceRun a logic:Event .
@@ -11100,6 +12723,13 @@ math:PCAAnalysis a logic:Event .
 math:ProofCheckActivity a logic:Event .
 math:ProofIngestRun a logic:Event .
 math:RIngestRun a logic:Event .
+math:DimensionalReduction a logic:Event .
+math:IsomapReduction a logic:Event .
+math:MapperConstruction a logic:Event .
+math:MultiparameterPersistence a logic:Event .
+math:PersistentHomology a logic:Event .
+math:UMAPReduction a logic:Event .
+math:ZigzagPersistence a logic:Event .
 
 # Role
 
@@ -11205,4 +12835,14 @@ math:UnscopedVariableOccurrence a logic:Situation .
 math:UnsituatedNumber a logic:Situation .
 math:UnwiredFlagshipScenario a logic:Situation .
 math:WrongE8WeylOrder a logic:Situation .
+math:IncompleteCellularSheaf a logic:Situation .
+math:IncompleteCliffordAlgebra a logic:Situation .
+math:IncompleteCliffordExtension a logic:Situation .
+math:IncompleteDimensionalityReductionAnalysis a logic:Situation .
+math:IncompleteHamiltonianSystem a logic:Situation .
+math:IncompleteHodgeDecomposition a logic:Situation .
+math:IncompleteInformationMeasure a logic:Situation .
+math:IncompleteMapperConstruction a logic:Situation .
+math:IncompletePersistentHomologyAnalysis a logic:Situation .
+math:IncompleteVectorSymbolicOperation a logic:Situation .
 math:ZeroDenominator a logic:Situation .

@@ -155,6 +155,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/i18n.md`](./docs/i18n.md) | Process | The compiled PO translation layer: `.po` layout, extract/merge/export/sync commands, translator workflow, and i18n quality gates |
 | [`slices/grounding/logic/design/LOGIC.md`](./slices/grounding/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration — the design-set entrypoint |
 | [`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md) | Doctrine | The correspondence calculus — cross-ontology alignment as the ninth `logic:` node kind; the law-spine, mnemomorphism, and section/retraction ("perfectly subsume V" as a CI-checkable law); rationale in [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/) |
+| [`slices/grounding/math/docs.md`](./slices/grounding/math/docs.md) | Doctrine | The shipped `math:` grounding layer: exact structure, computational topology, sheaves/Hodge, Hamiltonian systems, reduction and information measures, vector-symbolic operations, Clifford algebras, external bridges, and native calculation seams |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The generated alignment lowerings (SSSOM / EDOAL / FnO / SPARQL) of `logic:Correspondence`, and how lossy down-projection works |
@@ -379,8 +380,10 @@ projection, never as the authority over `logic:` semantics.
   `slices/grounding/logic/mappings/grounding-bridges.ttl` and
   `slices/grounding/logic/mappings/foundation-bridges.ttl`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
-- **The peer grounding slices ship their laws too.** `math:` owns Data Cube, STATO, OBCS,
-  SIO/OBI, QUDT, OpenMath, and mathematical identifier correspondences; `lang:` owns
+- **The peer grounding slices ship their laws too.** `math:` owns reusable mathematical structure
+  (including computational topology, sheaves/Hodge, Hamiltonian systems, reduction/information,
+  vector-symbolic operations, and Clifford algebras) plus Data Cube, STATO, OBCS, SIO/OBI, QUDT,
+  OpenMath, and mathematical identifier correspondences; `lang:` owns
   OntoLex-Lemon, LexInfo, Global WordNet schema, NIF, Web Annotation, and linguistic identifier
   correspondences. Domain slices consume the grounding terms and do not re-author these links.
 

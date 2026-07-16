@@ -245,12 +245,14 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
-/// The seven `math:` producer graphs, one per native producer entrypoint — five bound to the
+/// The eight `math:` producer graphs, one per native producer entrypoint — five bound to the
 /// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
 /// `probability-model` ([`gmeow_math::producers::probability_model_seam`]), the probability
 /// layer's live `logic:probabilityModel` seam producer, and `pvalue-tri-slice`
 /// ([`gmeow_math::producers::pvalue_tri_slice`]), the signature `lang:` → `logic:` → `math:`
-/// p-value round-trip (both NOT flagship-bound; the manifest's "five, not adjectives"
+/// p-value round-trip, and `clifford-12-13`
+/// ([`gmeow_math::producers::clifford_twelve_thirteen`]), the exact positive-extension
+/// calculation (all three NOT flagship-bound; the manifest's "five, not adjectives"
 /// depth-bar contract stays exactly five). The `stage-math-producers`
 /// stage RUNS each `gmeow_math::producers::*` function and parses its deterministic `.turtle`
 /// into the matching named graph here; the snapshot presenter reads each back via
@@ -260,7 +262,7 @@ pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
 /// and NOT a `generated/` file, so they map to no committed path — the superset gate's orphan
 /// sweep only considers `graph/fanout/…` / `graph/projections/…` reps. The array order pins
 /// the producer→graph pairing shared by the stage and the presenter.
-pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 7] = [
+pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 8] = [
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
@@ -268,6 +270,7 @@ pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 7] = [
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
 ];
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
@@ -878,8 +881,8 @@ fn assemble_carrier(
         authoring_briefs,
         authoring_briefs_fanout,
     ];
-    // graph/math-producers/<name> — the seven `math:` producers' (five flagship producers,
-    // the probability-model seam producer, and the p-value tri-slice producer) deterministic
+    // graph/math-producers/<name> — the eight `math:` producers' (five flagship producers,
+    // the probability-model seam, p-value tri-slice, and Clifford producers) deterministic
     // RDF graphs, each read off the
     // `stage-math-producers` product's attached named graph (a pure keyed fold,
     // PIPELINE_SPINE §4) and folded into gmeow.gts (Design A — the producer output ships in
@@ -893,6 +896,23 @@ fn assemble_carrier(
     datasets.push(rooted_in_graph(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
         reasoning_iri,
+    )?);
+    // graph/goal-directed ← the native proof-carrying backward engine's checked answers +
+    // proof derivations, read off the stage-goal-directed product's attached named graph and
+    // folded into gmeow.gts (dual carriage, exactly like graph/reasoning). This is the fold
+    // that makes the backward engine non-dark: without this explicit push the stage's graph
+    // would never reach the terminal bundle. Bundle-internal (no committed byte artifact this
+    // task) and excluded from the object-level EDB.
+    let goal_directed = upstream.get("stage-goal-directed").ok_or_else(|| {
+        stage_err("missing stage-goal-directed product for the goal-directed graph")
+    })?;
+    let goal_directed_iri = crate::stages::goal_directed::GRAPH_GOAL_DIRECTED;
+    datasets.push(rooted_in_graph(
+        &goal_directed
+            .bundle()
+            .dataset()
+            .project_named_graph(goal_directed_iri),
+        goal_directed_iri,
     )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
     if conformance.quad_count() != 0 {
@@ -3508,8 +3528,8 @@ impl SnapshotStage {
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
-                // The seven math producer graphs (five flagship producers plus the
-                // probability-model seam producer and the p-value tri-slice producer), folded
+                // The eight math producer graphs (five flagship producers plus the
+                // probability-model seam, p-value tri-slice, and Clifford producers), folded
                 // into gmeow.gts as their own bundle-internal named graphs (Design A — the
                 // producer output ships).
                 "stage-math-producers".to_string(),
@@ -3523,6 +3543,9 @@ impl SnapshotStage {
                 // committed schema from disk and lag a regenerate behind (the bytes
                 // are only flushed to disk AFTER phase 1 returns — run.rs:242-254).
                 "stage-export-json-schema".to_string(),
+                // The native proof-carrying backward engine's checked answers + proof
+                // derivations, folded into the graph/goal-directed named graph of gmeow.gts.
+                "stage-goal-directed".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
                 // The self-description named graphs (authored default / imports / metadata
@@ -3656,7 +3679,10 @@ impl Stage for SnapshotStage {
         // gmeow.gts as a bundle-internal named graph, plus its fanout twin into
         // generated/briefs/authoring-packets.nt (RDF travels as RDF — the shippable
         // authoring deliverable lands in `generated/` too, not only in the bundle graph).
-        "snapshot.v28-authoring-briefs-producer"
+        // v29 additionally folds `stage-math-producers`' EIGHTH graph
+        // (graph/math-producers/clifford-12-13, `gmeow_math::producers::
+        // clifford_twelve_thirteen`) carrying both exact Cl12 -> Cl13 positive extensions.
+        "snapshot.v29-clifford-12-13-producer"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -5915,6 +5941,70 @@ mod conformance_fold_tests {
         assert!(
             names.contains(GRAPH_CONFORMANCE),
             "the folded snapshot must carry the graph/conformance named graph; got {names:?}"
+        );
+    }
+
+    /// A reified `gmeow:CapabilityGap` individual (the G3 ontology image of a committed
+    /// divergence case's structured `gmeow:gapShape`) lands in the `graph/conformance`
+    /// named graph after the fold, mirroring
+    /// [`synthetic_divergence_lands_in_graph_conformance`] but for the capability-gap
+    /// emitter rather than the divergence-comparison one.
+    #[test]
+    fn capability_gap_lands_in_graph_conformance() {
+        let (_, block) = gmeow_conformance::divergence::emit_capability_gap_nq(
+            "entailment-mini-divergence",
+            "multi-triple-conclusion",
+            gmeow_logic::entail::CapabilityGapShape::VendoringMultiGoal,
+        );
+        assert!(!block.is_empty(), "the capability gap emitter must emit");
+
+        let mut builder = SnapshotBuilder::new();
+        add_base_nq(
+            &mut builder,
+            b"<https://blackcatinformatics.ca/gmeow/> \
+              <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+              <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            "base",
+        )
+        .expect("fold base graph");
+        add_named(
+            &mut builder,
+            block.as_bytes(),
+            GRAPH_CONFORMANCE,
+            "conformance",
+        )
+        .expect("fold conformance graph");
+
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["gzip".to_string()]),
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit snapshot");
+
+        let names = folded_graph_names(&gts);
+        assert!(
+            names.contains(GRAPH_CONFORMANCE),
+            "the folded snapshot must carry the graph/conformance named graph; got {names:?}"
+        );
+
+        let g = purrdf::gts::read_graph(&gts, true).expect("read_graph");
+        let capability_gap_type = "https://blackcatinformatics.ca/gmeow/CapabilityGap";
+        let has_capability_gap = g.quads.iter().any(|&(_, p, o, _)| {
+            let p_val = g.terms.get(p).and_then(|t| t.value.as_deref());
+            let o_val = g.terms.get(o).and_then(|t| t.value.as_deref());
+            p_val == Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+                && o_val == Some(capability_gap_type)
+        });
+        assert!(
+            has_capability_gap,
+            "the folded graph/conformance graph must carry a gmeow:CapabilityGap individual"
         );
     }
 

@@ -243,6 +243,8 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
             | "termLiteral"
             | "termLiteralDatatype"
             | "termSequenceMarker"
+            | "termApplication"
+            | "functionSymbol"
     )
 }
 
@@ -3028,7 +3030,7 @@ fn parse_formula_inner(
                 };
                 let relation =
                     Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
-                let args = parse_term_carriers(store, node, "argument")?;
+                let args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
                 if args.is_empty() {
                     return Err(formula_err(
                         node,
@@ -3137,6 +3139,7 @@ fn parse_term_carriers(
     store: &RdfDataset,
     node: &Subject,
     link: &str,
+    active: &mut Vec<String>,
 ) -> gmeow_errors::Result<Vec<Term>> {
     let mut indexed: Vec<(usize, Term)> = Vec::new();
     for carrier_term in formula_objects(store, node, link) {
@@ -3150,7 +3153,7 @@ fn parse_term_carriers(
             )
         })?;
         let idx = parse_term_index(store, node, &carrier)?;
-        indexed.push((idx, parse_term(store, node, &carrier)?));
+        indexed.push((idx, parse_term(store, node, &carrier, active)?));
     }
     indexed.sort_by_key(|(i, _)| *i);
     validate_contiguous_indices(&indexed, node, link)?;
@@ -3176,7 +3179,9 @@ fn parse_bound_vars(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
             )
         })?;
         let idx = parse_term_index(store, node, &carrier)?;
-        let term = parse_term(store, node, &carrier)?;
+        // A bound-variable carrier must resolve to a plain variable, so it never opens a
+        // function-term recursion; a fresh cycle guard suffices.
+        let term = parse_term(store, node, &carrier, &mut Vec::new())?;
         let Term::Var(name) = term else {
             return Err(formula_err(
                 node,
@@ -3208,12 +3213,14 @@ fn parse_term(
     store: &RdfDataset,
     formula: &Subject,
     carrier: &Subject,
+    active: &mut Vec<String>,
 ) -> gmeow_errors::Result<Term> {
     let fields = [
         "termIri",
         "termVariable",
         "termLiteral",
         "termSequenceMarker",
+        "termApplication",
     ];
     let present: Vec<(&str, Vec<Node>)> = fields
         .iter()
@@ -3339,8 +3346,83 @@ fn parse_term(
             }
             Term::sequence_marker(term_str(value)).map_err(|e| formula_err(formula, e.message()))
         }
+        "termApplication" => {
+            let function_term = term_as_subject(value).ok_or_else(|| {
+                formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} requires a resource-valued logic:termApplication (a logic:FunctionTerm node)",
+                        subject_str(formula),
+                        subject_str(carrier)
+                    ),
+                )
+            })?;
+            parse_function_term(store, formula, &function_term, active)
+        }
         _ => unreachable!("term value property was selected from a closed local array"),
     }
+}
+
+/// Reconstruct a [`Term::App`] from the `logic:FunctionTerm` node a `logic:termApplication`
+/// carrier points at: its single reified `logic:functionSymbol` (an IRI-named `logic:Type`
+/// individual, never a variable — keeping the object level first-order) applied to its ordered
+/// `logic:argument` term-carriers. The argument carriers are read with the same
+/// [`parse_term_carriers`] machinery the atomic-predication arguments use, so an argument may
+/// itself be a `logic:termApplication` and a nested term like `cons(H, cons(1, nil))`
+/// round-trips. `active` is the path of function-term nodes currently being expanded: a node
+/// reached from its own expansion is a cycle (`cons` whose argument is `cons`) and is rejected
+/// rather than recursed into forever.
+fn parse_function_term(
+    store: &RdfDataset,
+    formula: &Subject,
+    function_term: &Subject,
+    active: &mut Vec<String>,
+) -> gmeow_errors::Result<Term> {
+    let node_id = subject_str(function_term);
+    if active.contains(&node_id) {
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:FunctionTerm {} is cyclic: it appears within its own logic:argument expansion",
+                subject_str(formula),
+                node_id
+            ),
+        ));
+    }
+
+    let symbols = formula_objects(store, function_term, "functionSymbol");
+    if symbols.len() != 1 {
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:FunctionTerm {} requires exactly one logic:functionSymbol; found {}",
+                subject_str(formula),
+                node_id,
+                symbols.len()
+            ),
+        ));
+    }
+    let Node::Iri(symbol) = &symbols[0] else {
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:FunctionTerm {} requires an IRI-valued logic:functionSymbol (the reified function symbol, never a variable)",
+                subject_str(formula),
+                node_id
+            ),
+        ));
+    };
+
+    active.push(node_id.clone());
+    let args = parse_term_carriers(store, function_term, "argument", active);
+    let popped = active.pop();
+    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
+    let args = args?;
+
+    // `Term::app` rejects a nullary application (a 0-ary function symbol is a constant and
+    // must be a logic:termIri), so a logic:FunctionTerm with no logic:argument fails here
+    // rather than minting a second spelling for a constant.
+    Term::app(symbol.clone(), args).map_err(|e| formula_err(formula, e.message()))
 }
 
 fn parse_term_index(

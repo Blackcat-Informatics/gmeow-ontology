@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @λ{s: gmeow__examples-2f-lang-2f-analysisCatsChaseMice, p: rdf__type, o: lang__Analysis}
 @c{s: gmeow__examples-2f-lang-2f-analysisCatsChaseMice, p: rdfs__label, v: r_00599551ec4dfb72}
 @λ{s: gmeow__examples-2f-lang-2f-analysisDuckBird, p: rdf__type, o: lang__Analysis}

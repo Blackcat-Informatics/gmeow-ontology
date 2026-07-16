@@ -726,6 +726,12 @@ fn hash_goal(goal: &crate::query_ir::QGoal) -> [u8; 32] {
                     hasher.update(&[2]);
                     hasher.update(&value.to_le_bytes());
                 }
+                // A structured (compound) term — a counterfactual over structured goals
+                // routes to the full-FOL resolver, so this arm is for exhaustiveness only.
+                QTerm::Struct(sn) => {
+                    hasher.update(&[3]);
+                    hasher.update(&(sn.node().index() as u64).to_le_bytes());
+                }
             }
         }
     }
@@ -875,6 +881,7 @@ fn atom_str(a: &QAtom) -> String {
             QTerm::Const(c) => c.clone(),
             QTerm::Var(v) => format!("?{v}"),
             QTerm::Num(n) => n.to_string(),
+            QTerm::Struct(sn) => format!("#struct{}", sn.node().index()),
         })
         .collect();
     format!("<{}>({})", a.pred, args.join(", "))
@@ -888,6 +895,7 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
             QTerm::Const(c) => c.clone(),
             QTerm::Var(v) => format!("?{v}"),
             QTerm::Num(n) => n.to_string(),
+            QTerm::Struct(sn) => format!("#struct{}", sn.node().index()),
         }
     }
     match b {
@@ -921,7 +929,7 @@ fn strip_brackets(s: &str) -> String {
 fn const_iri(t: &QTerm) -> Option<String> {
     match t {
         QTerm::Const(c) => Some(strip_brackets(c)),
-        QTerm::Var(_) | QTerm::Num(_) => None,
+        QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
     }
 }
 

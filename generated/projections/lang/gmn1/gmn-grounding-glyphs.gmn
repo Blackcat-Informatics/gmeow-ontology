@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @λ{s: *, p: rdf__type, o: owl__Class}
 @ℒ{s: ¬, p: rdfs__domain, o: logic__Formula}
 @ℒ{s: ⊑, p: rdf__type, o: owl__ObjectProperty}

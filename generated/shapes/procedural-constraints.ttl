@@ -327,6 +327,19 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/orderStatus> <https://blackcatinformatics.ca/gmeow/orderStatusCancelled> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/CapabilityGapFragmentClassificationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CapabilityGap> .
+}""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:CapabilityGap must reference via gmeow:gapShape a gmeow:GapShape carrying a gmeow:isReasonerFragmentGap boolean value — the reasoner-fragment classification consumed by this integrity guard is missing." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gapShape> ?gs . ?gs <https://blackcatinformatics.ca/gmeow/isReasonerFragmentGap> ?frag . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/CascadeSeverityConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Cascade> ;
@@ -2370,6 +2383,26 @@
         sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/logic/freshnessWindow> ?w . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/freshnessWindowStart> ?s . } } UNION { $this <https://blackcatinformatics.ca/logic/freshnessWindow> ?w2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ?e . } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/logic/FunctionSymbolConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/functionSymbol> ?c0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/logic/FunctionTermArityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/FunctionTerm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/argument> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/logic/Formula> ;
@@ -2439,7 +2472,7 @@
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } } } }""" ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . } } UNION { $this <https://blackcatinformatics.ca/logic/termVariable> ?v4 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termApplication> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v3 . } } } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/AnalyticPropertyBackedConstraintProceduralConstraintShape>

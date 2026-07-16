@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @λ{s: gmeow__examples-2f-math-2f-latexNotation, p: rdf__type, o: lang__Grammar}
 @c{s: gmeow__examples-2f-math-2f-latexNotation, p: rdfs__label, v: r_f13813c4cd4acab2}
 @μ{s: gmeow__examples-2f-math-2f-sumExpression, p: rdf__type, o: math__ApplicationExpression}

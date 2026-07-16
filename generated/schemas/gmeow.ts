@@ -1322,6 +1322,7 @@ export enum CreativeWorkEnum {
     gmnCommonLogicWork = "gmnCommonLogicWork",
     gmnDescriptionLogicNotationWork = "gmnDescriptionLogicNotationWork",
     gmnFormalSemanticsNotationWork = "gmnFormalSemanticsNotationWork",
+    gmnInformationTheoryWork = "gmnInformationTheoryWork",
     gmnLinguisticNotationWork = "gmnLinguisticNotationWork",
     gmnOpenMathWork = "gmnOpenMathWork",
     gmnUnicodeMathWork = "gmnUnicodeMathWork",
@@ -1877,6 +1878,14 @@ export enum GTSProfileEnum {
     gtsProfileOpaque = "gtsProfileOpaque",
 }
 
+export enum GapShapeEnum {
+    GapShapeExistentialWitness = "GapShapeExistentialWitness",
+    GapShapeMalformed = "GapShapeMalformed",
+    GapShapeNativeCoverage = "GapShapeNativeCoverage",
+    GapShapeRoleAssertion = "GapShapeRoleAssertion",
+    GapShapeVendoringMultiGoal = "GapShapeVendoringMultiGoal",
+}
+
 export enum GateVerdictEnum {
     gateCollected = "gateCollected",
     gateFatal = "gateFatal",
@@ -1980,10 +1989,41 @@ export enum GmnDictionaryEntryEnum {
     gmnDictV2EntryMathDivision = "gmnDictV2EntryMathDivision",
     gmnDictV2EntryMorphemeBoundary = "gmnDictV2EntryMorphemeBoundary",
     gmnDictV2EntryTranslation = "gmnDictV2EntryTranslation",
+    gmnDictV3EntryBoundaryClosed = "gmnDictV3EntryBoundaryClosed",
+    gmnDictV3EntryBoundaryOpen = "gmnDictV3EntryBoundaryOpen",
+    gmnDictV3EntryCodebook = "gmnDictV3EntryCodebook",
+    gmnDictV3EntryDenotation = "gmnDictV3EntryDenotation",
+    gmnDictV3EntryEnvelope = "gmnDictV3EntryEnvelope",
+    gmnDictV3EntryEvKindComputational = "gmnDictV3EntryEvKindComputational",
+    gmnDictV3EntryEvKindDirect = "gmnDictV3EntryEvKindDirect",
+    gmnDictV3EntryEvKindExpert = "gmnDictV3EntryEvKindExpert",
+    gmnDictV3EntryEvKindInstrumental = "gmnDictV3EntryEvKindInstrumental",
+    gmnDictV3EntryEvKindRemote = "gmnDictV3EntryEvKindRemote",
+    gmnDictV3EntryEvKindStreaming = "gmnDictV3EntryEvKindStreaming",
+    gmnDictV3EntryEvKindSurvey = "gmnDictV3EntryEvKindSurvey",
+    gmnDictV3EntryLogicAnd = "gmnDictV3EntryLogicAnd",
+    gmnDictV3EntryLogicExists = "gmnDictV3EntryLogicExists",
+    gmnDictV3EntryLogicForall = "gmnDictV3EntryLogicForall",
+    gmnDictV3EntryLogicIff = "gmnDictV3EntryLogicIff",
+    gmnDictV3EntryLogicOr = "gmnDictV3EntryLogicOr",
+    gmnDictV3EntryMathBoundaryOperator = "gmnDictV3EntryMathBoundaryOperator",
+    gmnDictV3EntryMathCoboundaryOperator = "gmnDictV3EntryMathCoboundaryOperator",
+    gmnDictV3EntryMathDirectSum = "gmnDictV3EntryMathDirectSum",
+    gmnDictV3EntryMathDivision = "gmnDictV3EntryMathDivision",
+    gmnDictV3EntryMathHodgeLaplacian = "gmnDictV3EntryMathHodgeLaplacian",
+    gmnDictV3EntryMathLeftContraction = "gmnDictV3EntryMathLeftContraction",
+    gmnDictV3EntryMathReversion = "gmnDictV3EntryMathReversion",
+    gmnDictV3EntryModalActual = "gmnDictV3EntryModalActual",
+    gmnDictV3EntryModalCounterfactual = "gmnDictV3EntryModalCounterfactual",
+    gmnDictV3EntryModalNecessary = "gmnDictV3EntryModalNecessary",
+    gmnDictV3EntryModalPossible = "gmnDictV3EntryModalPossible",
+    gmnDictV3EntryMorphemeBoundary = "gmnDictV3EntryMorphemeBoundary",
+    gmnDictV3EntryTranslation = "gmnDictV3EntryTranslation",
 }
 
 export enum GmnDictionaryEnum {
     gmnDictV2 = "gmnDictV2",
+    gmnDictV3 = "gmnDictV3",
 }
 
 export enum GmnDispositionBasisEnum {
@@ -2052,13 +2092,30 @@ export enum GmnSymbolCandidateEnum {
     gmnCandidateLogicOr = "gmnCandidateLogicOr",
     gmnCandidateLogicSubClassOf = "gmnCandidateLogicSubClassOf",
     gmnCandidateMathAddition = "gmnCandidateMathAddition",
+    gmnCandidateMathBoundaryOperator = "gmnCandidateMathBoundaryOperator",
+    gmnCandidateMathCoboundaryOperator = "gmnCandidateMathCoboundaryOperator",
+    gmnCandidateMathDirectSum = "gmnCandidateMathDirectSum",
     gmnCandidateMathDivision = "gmnCandidateMathDivision",
+    gmnCandidateMathEntropy = "gmnCandidateMathEntropy",
     gmnCandidateMathEulerMascheroni = "gmnCandidateMathEulerMascheroni",
     gmnCandidateMathExponentiation = "gmnCandidateMathExponentiation",
+    gmnCandidateMathExteriorProduct = "gmnCandidateMathExteriorProduct",
+    gmnCandidateMathGeometricProductDot = "gmnCandidateMathGeometricProductDot",
+    gmnCandidateMathGradeProjection = "gmnCandidateMathGradeProjection",
+    gmnCandidateMathHodgeLaplacian = "gmnCandidateMathHodgeLaplacian",
+    gmnCandidateMathKullbackLeibler = "gmnCandidateMathKullbackLeibler",
+    gmnCandidateMathLeftContraction = "gmnCandidateMathLeftContraction",
     gmnCandidateMathMultiplication = "gmnCandidateMathMultiplication",
+    gmnCandidateMathMutualInformation = "gmnCandidateMathMutualInformation",
     gmnCandidateMathNegation = "gmnCandidateMathNegation",
+    gmnCandidateMathNerve = "gmnCandidateMathNerve",
     gmnCandidateMathPi = "gmnCandidateMathPi",
+    gmnCandidateMathReversion = "gmnCandidateMathReversion",
+    gmnCandidateMathSheafLaplacian = "gmnCandidateMathSheafLaplacian",
     gmnCandidateMathSubtraction = "gmnCandidateMathSubtraction",
+    gmnCandidateMathVectorBinding = "gmnCandidateMathVectorBinding",
+    gmnCandidateMathVectorBundling = "gmnCandidateMathVectorBundling",
+    gmnCandidateMathVectorUnbinding = "gmnCandidateMathVectorUnbinding",
 }
 
 export enum GmnSymbolDispositionEnum {
@@ -3064,6 +3121,7 @@ export enum PipelineStageEnum {
     stage_export_result_shapes = "stage-export-result-shapes",
     stage_export_schemas = "stage-export-schemas",
     stage_export_yaml_ld = "stage-export-yaml-ld",
+    stage_goal_directed = "stage-goal-directed",
     stage_gts_compose = "stage-gts-compose",
     stage_gts_sink = "stage-gts-sink",
     stage_mappings = "stage-mappings",
@@ -4958,6 +5016,12 @@ export interface CalendarSystem extends Entity {
 export interface CalibrationStatus {
 }
 
+export interface CapabilityGap {
+    capabilityGapCase?: string[],
+    capabilityGapCorpus?: string[],
+    gapShape?: string[],
+}
+
 export interface Capacity extends Measurement {
     capacityOf?: Location,
 }
@@ -6026,6 +6090,10 @@ export interface GTSSegment extends Manifestation {
     gtsSegmentIndex?: number,
     gtsSegmentOf?: GTSDocument,
     usesTransformCodec?: TransformCodec[],
+}
+
+export interface GapShape {
+    isReasonerFragmentGap?: string[],
 }
 
 export interface GateVerdict {
