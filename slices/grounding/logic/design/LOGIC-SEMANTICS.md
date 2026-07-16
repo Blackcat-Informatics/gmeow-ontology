@@ -167,6 +167,37 @@ The governing rule on combinations is the contract's, restated here for the sema
 
 A request with no resolvable contract is rejected before any reasoning begins.
 
+### Query-scoped external relation inputs
+
+Hybrid retrieval relations — lexical candidates, vector neighbours, graph neighbourhoods,
+temporal/spatial candidates, and topology-derived candidates — may enter a query as explicitly
+registered external relation providers. They are **derived inputs to one query execution**, not
+asserted RDF facts and not additions to the ontology. A provider atom participates at its authored
+position in the same demand-transformed fixpoint, joins, recursion, profile gate, and preservation
+ledger as ordinary RDF EDB and IDB atoms. There is no second hybrid evaluator and no scratch-world
+fallback semantics.
+
+The relation descriptor is part of the request's meaning. It pins relation IRI and arity, positional
+RDF 1.2 term schema, provider/index/model identities, bound/limit/order policy, annotation algebra
+and dimension, deterministic budget, and preservation. The provider manifest is framed into the
+query contract hash. Consequently, changing a model, artifact generation, budget, order, or schema
+changes query identity rather than invisibly changing the result of identical query text.
+
+The result boundary distinguishes three cases:
+
+1. a complete successful batch with no rows is semantic absence for that requested relation prefix;
+2. a provider that reports failure or cannot certify the prefix is a typed non-result; and
+3. an RDF view that fails operationally is a separate typed source failure.
+
+Neither non-result may be represented as case 1, and no partial batch crosses the boundary. Success
+and failure receipts retain every attempted provider request and artifact generation; successful
+answer lineage separately identifies only providers whose tuples contributed.
+
+An external tuple's algebra element also has an explicit **dimension**. Similarity, ordinal rank,
+distance, topological persistence, and epistemic confidence are not interchangeable. They may share
+the same generic algebra interface only when the descriptor names the meaning and the selected
+algebra identity matches; the engine never relabels a retrieval score as confidence.
+
 ### Cut is retired, not canonical
 
 Cut is operational search control; it can change a program's answer set and makes explanations hard

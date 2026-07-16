@@ -879,6 +879,12 @@ fn canonical_invocation(out: &mut String, invocation: &RelationInvocationReceipt
     push_frame(out, invocation.detail.as_deref().unwrap_or(""));
 }
 
+fn provider_batch_contract_violation(detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical {
+        detail: detail.into(),
+    })
+}
+
 /// Stateful, operation-local executor for an immutable provider set.
 ///
 /// The state is deliberately borrowed by one query and has no global registration or
@@ -963,28 +969,28 @@ where
         descriptor: &RelationProviderDescriptor,
         call: &RelationCall,
         batch: &RelationBatch<A::Element>,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         if batch.artifact_generation != descriptor.artifact_generation {
-            return Err(format!(
+            return Err(provider_batch_contract_violation(format!(
                 "provider returned artifact generation <{}>, expected <{}>",
                 batch.artifact_generation, descriptor.artifact_generation
-            ));
+            )));
         }
         if batch.rows.len() > call.limit {
-            return Err(format!(
+            return Err(provider_batch_contract_violation(format!(
                 "provider returned {} rows beyond pushed limit {}",
                 batch.rows.len(),
                 call.limit
-            ));
+            )));
         }
         let mut unique = BTreeSet::new();
         for (row_index, row) in batch.rows.iter().enumerate() {
             if row.arguments.len() != descriptor.arity() {
-                return Err(format!(
+                return Err(provider_batch_contract_violation(format!(
                     "provider row {row_index} has arity {}, expected {}",
                     row.arguments.len(),
                     descriptor.arity()
-                ));
+                )));
             }
             for (position, ((argument, column), bound)) in row
                 .arguments
@@ -994,34 +1000,34 @@ where
                 .enumerate()
             {
                 if !term_conforms_to_column(argument, column) {
-                    return Err(format!(
+                    return Err(provider_batch_contract_violation(format!(
                         "provider row {row_index} argument {position} does not conform to {}",
                         column_kind_key(column)
-                    ));
+                    )));
                 }
                 if let Some(expected) = bound
                     && term_display(argument) != term_display(expected)
                 {
-                    return Err(format!(
+                    return Err(provider_batch_contract_violation(format!(
                         "provider row {row_index} argument {position} violates pushed bound {}",
                         term_display(expected)
-                    ));
+                    )));
                 }
             }
             let key = row.arguments.iter().map(term_display).collect::<Vec<_>>();
             if !unique.insert(key) {
-                return Err(format!(
+                return Err(provider_batch_contract_violation(format!(
                     "provider row {row_index} duplicates an earlier tuple"
-                ));
+                )));
             }
         }
         for (position, pair) in batch.rows.windows(2).enumerate() {
             if call.ordering.compare_rows(&pair[0], &pair[1]) == Ordering::Greater {
-                return Err(format!(
+                return Err(provider_batch_contract_violation(format!(
                     "provider rows {} and {} violate the declared total order",
                     position,
                     position + 1
-                ));
+                )));
             }
         }
         Ok(())
@@ -1191,7 +1197,7 @@ where
             );
             return Err(self.fail(RelationExecutionFailureKind::Cancelled, receipt));
         }
-        if let Err(detail) = self.validate_batch(&descriptor, &call, &batch) {
+        if let Err(diagnostic) = self.validate_batch(&descriptor, &call, &batch) {
             let receipt = Self::receipt(
                 &descriptor,
                 &call,
@@ -1199,7 +1205,7 @@ where
                 None,
                 delivered,
                 0,
-                Some(detail),
+                Some(diagnostic.to_string()),
             );
             return Err(self.fail(RelationExecutionFailureKind::ContractViolation, receipt));
         }
