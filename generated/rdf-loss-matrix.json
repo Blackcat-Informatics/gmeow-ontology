@@ -147,6 +147,279 @@
     "note": "The target syntax has no named-graph construct; quads are folded into the default graph and graph names are dropped."
   },
   {
+    "code": "additional-properties-validation-widened",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "LinkML 1.11 has no per-class equivalent for JSON Schema's additionalProperties policy or schema. Named attributes retain their constraints, but acceptance of unlisted object keys is widened and recorded on the object schema."
+  },
+  {
+    "code": "array-contains-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema contains/minContains/maxContains assertions have no LinkML 1.11 slot expression. List item and cardinality constraints remain, while the contains predicate and its match-count bounds are omitted."
+  },
+  {
+    "code": "conditional-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema if/then/else conditional validation has no LinkML 1.11 expression. Independently representable carrier constraints remain, while the conditional relationship is omitted."
+  },
+  {
+    "code": "dependency-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema dependentRequired/dependentSchemas validation has no LinkML 1.11 expression. Attribute constraints remain, while cross-property dependencies are omitted."
+  },
+  {
+    "code": "exclusive-bound-validation-widened",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "LinkML 1.11 exposes inclusive minimum_value/maximum_value bounds but no exclusive numeric bounds. An exclusive JSON Schema bound is projected as the corresponding inclusive bound, widening acceptance at the boundary value."
+  },
+  {
+    "code": "format-validation-widened",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "A JSON Schema format does not have an exact, uniformly enforced LinkML 1.11 equivalent. The scalar carrier remains constrained and the format name is retained when representable, while validation semantics are widened."
+  },
+  {
+    "code": "keyword-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "A JSON Schema assertion outside the emitter's closed LinkML 1.11 capability table has no sound projection. The assertion is omitted and recorded at its schema location rather than disappearing silently."
+  },
+  {
+    "code": "multiple-of-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema multipleOf has no LinkML 1.11 numeric expression. The numeric carrier and other representable bounds remain, while divisibility validation is omitted."
+  },
+  {
+    "code": "non-scalar-enum-validation-widened",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "LinkML 1.11 permissible values are scalar identifiers and cannot encode arbitrary JSON object or array enum members. The representable carrier remains, while non-scalar membership validation is widened."
+  },
+  {
+    "code": "property-count-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema minProperties/maxProperties assertions have no LinkML 1.11 class expression. Named attributes and their requiredness remain, while total property-count validation is omitted."
+  },
+  {
+    "code": "string-length-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema minLength/maxLength assertions have no LinkML 1.11 slot expression. The string carrier and representable pattern remain, while code-point length validation is omitted."
+  },
+  {
+    "code": "tuple-array-validation-widened",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "LinkML 1.11 lists are homogeneous and cannot preserve JSON Schema prefixItems or position-specific item schemas. The list is projected to a sound common item carrier, widening position-specific validation."
+  },
+  {
+    "code": "unevaluated-validation-dropped",
+    "from": "json-schema",
+    "to": "linkml-1.11",
+    "intentional": true,
+    "note": "JSON Schema unevaluatedProperties/unevaluatedItems assertions depend on applicator evaluation state that LinkML 1.11 does not expose. Representable local constraints remain, while the unevaluated assertion is omitted."
+  },
+  {
+    "code": "array-contains-validation-dropped",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "JSON Schema contains/minContains/maxContains constraints have no direct Pydantic v2 field-annotation equivalent; the generated model validates the array container and item type but does not enforce the contains predicate at runtime."
+  },
+  {
+    "code": "conditional-validation-dropped",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "JSON Schema if/then/else dependent validation has no direct Pydantic v2 type-annotation equivalent; the conditional is preserved in model_json_schema() but is not enforced by model validation."
+  },
+  {
+    "code": "format-validation-widened",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "A JSON Schema string format has no exact dependency-free Pydantic v2 standard-library type; the generated runtime annotation accepts a strict string while model_json_schema() retains the format."
+  },
+  {
+    "code": "inline-object-validation-widened",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "A Pydantic model or TypedDict with named properties cannot enforce a JSON Schema-valued additionalProperties assertion on every arbitrary extra value; named fields and extra-key policy remain enforced while model_json_schema() retains the complete object schema."
+  },
+  {
+    "code": "intersection-validation-widened",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "JSON Schema allOf, or anyOf combined conjunctively with structural siblings, has no exact general Pydantic v2 type annotation; runtime validation uses the representable branch information while model_json_schema() retains the complete intersection."
+  },
+  {
+    "code": "keyword-validation-dropped",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "A JSON Schema assertion keyword outside the emitter's closed annotation grammar cannot be enforced by the generated Pydantic v2 runtime type; it remains present on model_json_schema() and is recorded at its schema location."
+  },
+  {
+    "code": "negation-validation-dropped",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "JSON Schema not has no direct Pydantic v2 type-annotation equivalent; the generated runtime annotation validates the positive carrier type while model_json_schema() retains the negation."
+  },
+  {
+    "code": "one-of-validation-widened",
+    "from": "json-schema",
+    "to": "pydantic-v2",
+    "intentional": true,
+    "note": "Pydantic v2 unions implement any-branch semantics and cannot enforce JSON Schema oneOf's exactly-one matching rule; runtime validation uses a union while model_json_schema() retains oneOf."
+  },
+  {
+    "code": "additional-properties-validation-widened",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "TypeScript uses structural object compatibility and index signatures apply to every string key, so it cannot constrain only JSON object properties not named by the schema. Named properties retain their exact declarations while the extra-property policy or value schema is widened."
+  },
+  {
+    "code": "array-cardinality-validation-widened",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "A JSON Schema minItems/maxItems assertion exceeds the declaration emitter's fixed tuple-expansion budget. Item and tuple-prefix carriers remain, while exact length validation is widened to keep declaration size bounded deterministically."
+  },
+  {
+    "code": "array-contains-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema contains/minContains/maxContains assertions quantify matching array elements and have no TypeScript assignability equivalent. Item and cardinality declarations remain while the contains predicate and match count are omitted."
+  },
+  {
+    "code": "conditional-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema if/then/else validates one branch according to runtime instance content; a general conditional relationship has no finite TypeScript declaration equivalent. Independently representable carrier constraints remain."
+  },
+  {
+    "code": "dependency-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema dependentRequired/dependentSchemas assertions impose cross-property runtime relationships that a general structural TypeScript declaration cannot enforce. Individual property declarations remain."
+  },
+  {
+    "code": "integer-validation-widened",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "TypeScript has one number type and cannot distinguish all JSON integers from fractional numbers. The generated declaration retains the number carrier while integer-only validation is widened."
+  },
+  {
+    "code": "keyword-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "A JSON Schema assertion outside the emitter's closed TypeScript 7.0 capability table has no sound declaration projection. The assertion is omitted and recorded at its schema location rather than disappearing silently."
+  },
+  {
+    "code": "negation-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "General JSON Schema not is a set complement over instance validation. TypeScript's Exclude utility distributes over union members and cannot express that general complement, so the positive carrier remains while negation is omitted."
+  },
+  {
+    "code": "numeric-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema minimum/maximum/exclusive bounds and multipleOf are runtime numeric predicates with no exact TypeScript number-type expression; integer const/enum values outside the IEEE-754 safe range also have no exact TypeScript number literal. The numeric carrier or closest literal remains while the predicate or excess precision is omitted."
+  },
+  {
+    "code": "object-literal-validation-widened",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "A JSON Schema object-valued const or enum member requires exact key membership. TypeScript can preserve every named literal field but structural compatibility still accepts values with additional fields outside fresh-object checks."
+  },
+  {
+    "code": "one-of-validation-widened",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "A TypeScript union implements any-branch assignability and cannot generally enforce JSON Schema oneOf's exactly-one matching rule. Branch declarations remain as a union while overlap exclusivity is widened."
+  },
+  {
+    "code": "pattern-properties-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "Arbitrary JSON Schema patternProperties regular expressions have no equivalent key-space expression in TypeScript. Named and additional-property declarations remain while regex-selected property validation is omitted."
+  },
+  {
+    "code": "property-count-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema minProperties/maxProperties count runtime object keys; TypeScript structural declarations express named requiredness but cannot bound the total property count."
+  },
+  {
+    "code": "property-name-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema propertyNames validates every runtime object key with a schema, which a general TypeScript string-key declaration cannot express. Property value declarations remain while key validation is omitted."
+  },
+  {
+    "code": "string-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema minLength/maxLength, pattern, format, and content assertions are runtime predicates without a general TypeScript string-type equivalent. The string carrier remains while the predicate is omitted."
+  },
+  {
+    "code": "tuple-array-validation-widened",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "A JSON Schema prefixItems tuple exceeds the declaration emitter's fixed tuple-expansion budget. The common item carrier remains while position-specific validation beyond the budget is widened deterministically."
+  },
+  {
+    "code": "unevaluated-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema unevaluatedProperties/unevaluatedItems depends on applicator evaluation state that TypeScript's structural type system does not expose. Representable local declarations remain while the unevaluated assertion is omitted."
+  },
+  {
+    "code": "unique-items-validation-dropped",
+    "from": "json-schema",
+    "to": "typescript-7.0",
+    "intentional": true,
+    "note": "JSON Schema uniqueItems compares runtime array values for equality; TypeScript array and tuple declarations cannot require pairwise-distinct elements. Item and length declarations remain while uniqueness is omitted."
+  },
+  {
     "code": "canonical-rdf12-projection",
     "from": "jsonld",
     "to": "canonical-rdf12",
@@ -614,6 +887,13 @@
     "to": "rdfxml",
     "intentional": true,
     "note": "RDF/XML has no triple-term (RDF-1.2 quoted triple) syntax; reifying triples and their annotations are dropped."
+  },
+  {
+    "code": "okf-navigation-page-dropped",
+    "from": "okf",
+    "to": "rdf-1.2-dataset",
+    "intentional": true,
+    "note": "A frontmatter-less index.md navigation page has no OKF concept subject and is omitted from the RDF profile; its path is recorded on the runtime loss entry."
   },
   {
     "code": "canonical-rdf12-projection",
@@ -684,6 +964,34 @@
     "to": "gts",
     "intentional": true,
     "note": "Blob payloads are preserved as content-addressed references (the blob_id digest plus the origin file id), never materialized into the RDF IR, which must stay value-light for arbitrarily large payloads (e.g. multi-terabyte data dumps). A destination GTS carries the reference; the payload bytes are streamed origin->destination on demand (deferred materialization)."
+  },
+  {
+    "code": "named-graph-dropped",
+    "from": "rdf-1.2-dataset",
+    "to": "okf",
+    "intentional": true,
+    "note": "OKF documents have no named-graph placement; a quad asserted outside the default graph cannot be represented in Markdown frontmatter or body text."
+  },
+  {
+    "code": "okf-annotation-dropped",
+    "from": "rdf-1.2-dataset",
+    "to": "okf",
+    "intentional": true,
+    "note": "An RDF 1.2 annotation outside the exact caller-configured OKF Markdown-link profile has no OKF representation and is omitted from the bundle."
+  },
+  {
+    "code": "okf-non-profile-quad-dropped",
+    "from": "rdf-1.2-dataset",
+    "to": "okf",
+    "intentional": true,
+    "note": "An RDF statement outside the caller-configured OKF profile, including an OWL axiom, has no Markdown/frontmatter field and is omitted from the bundle."
+  },
+  {
+    "code": "okf-reifier-dropped",
+    "from": "rdf-1.2-dataset",
+    "to": "okf",
+    "intentional": true,
+    "note": "An RDF 1.2 reifier outside the exact caller-configured OKF Markdown-link profile has no OKF representation and is omitted from the bundle."
   },
   {
     "code": "canonical-rdf12-projection",

@@ -1091,15 +1091,16 @@ ex:saPiecewiseGrounded a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     math:PiecewiseFunction rdfs:subClassOf math:Function .
     math:FunctionPiece a owl:Class .
-    math:UnderspecifiedPiecewiseFunction rdfs:subClassOf math:MathConformanceFailure .
-    math:UnbackedAnalyticProperty rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedPiecewiseFunction logic:subClassOf math:MathConformanceFailure .
+    math:UnbackedAnalyticProperty logic:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function (rdfs:subClassOf), so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each subclass math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: failure." .
+    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function, so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each use canonical logic:subClassOf to specialize math:MathConformanceFailure, so each violation is a typed, queryable object and RDFS remains a projection rather than semantic authority." .
 
 # --- Task 8 — the two co-equal flagship signed-radial-field scenes ---------- #
 
@@ -1312,3 +1313,43 @@ ASK {
         [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Dimension ] .
 }""" ;
     gmeow:saRationale "Probability, odds, and log-odds are dimensionless quantity scales by axiom, not prose only; their inherited exactly-one dimension must therefore be math:dimensionless. Odds and log-odds restate the exact-one restriction locally because generated validation and functional-model views target those subclasses directly rather than assuming an entailment pre-pass." .
+
+# --- External-concept topology taxonomy is logic-owned (MUST) -------------- #
+
+ex:saExternalTopologyTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    math:SimplicialComplex logic:subClassOf math:CellComplex .
+    math:ChainComplex logic:subClassOf math:MathematicalObject .
+    math:BoundaryOperator logic:subClassOf math:Operation .
+    math:CoboundaryOperator logic:subClassOf math:Operation .
+    math:CechComplex logic:subClassOf math:SimplicialComplex .
+    math:AlphaComplex logic:subClassOf math:SimplicialComplex .
+    math:PersistenceBarcode logic:subClassOf math:MathematicalObject .
+    math:PersistenceLandscape logic:subClassOf math:MathematicalObject .
+    math:BettiSummary logic:subClassOf math:MathematicalObject .
+    math:BettiNumber logic:subClassOf math:NaturalNumber .
+    math:MapperConstruction logic:subClassOf gmeow:Activity .
+    math:MultiparameterPersistence logic:subClassOf math:PersistentHomology .
+    math:ZigzagPersistence logic:subClassOf math:PersistentHomology .
+}""" ;
+    gmeow:saRationale "The computational-topology coverage family MUST preserve its mathematical distinctions through canonical logic:subClassOf edges: complexes remain in the complex hierarchy, persistence encodings remain mathematical objects, Mapper remains an activity, and the multi-parameter and zigzag methods remain specializations of persistent homology. This executes the taxonomy itself rather than treating a term inventory or prose mention as test coverage." .
+
+# --- External-concept quadratic and Clifford taxonomy is logic-owned (MUST) #
+
+ex:saExternalCliffordTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:QuadraticSpace logic:subClassOf math:VectorSpace .
+    math:QuadraticForm logic:subClassOf math:Function .
+    math:CliffordInvolution logic:subClassOf math:Operation .
+    math:CliffordConjugation logic:subClassOf math:CliffordInvolution .
+}""" ;
+    gmeow:saRationale "The quadratic/Clifford coverage family MUST distinguish the carrier space, its scalar-valued quadratic form, the general involution operation, and Clifford conjugation as one particular involution. These canonical logic:subClassOf assertions prevent the runtime kernel's structures from collapsing into an untyped collection and exercise the exact semantic edges the producer relies on." .

@@ -225,8 +225,8 @@ msgid "Estimate"
 msgstr "Estimation"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|skos:definition"
-msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."
-msgstr "Une estimation : une valeur produite qui estime un estimande (math:estimatesEstimand) et, le cas échéant, un paramètre de modèle (math:estimatedParameter), portant sa valeur (math:estimateValue) et l'estimateur qui l'a produite (math:estimator). Une sous-classe de math:MathematicalObject et l'objet résultat structuré de la séparation processus / résultat / affirmation — ni l'activité d'analyse ni l'affirmation tenue. Le triplet tidy de broom en R remonte les coefficients de modèle sur ces objets."
+msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."
+msgstr "Une estimation : une valeur produite qui estime un estimande (math:estimatesEstimand) et, le cas échéant, un paramètre de modèle (math:estimatedParameter), portant sa valeur (math:estimateValue) et l'estimateur qui l'a produite (math:estimator). Une sous-classe de math:MathematicalObject et l'objet résultat structuré de la séparation processus / résultat / affirmation — ni l'activité d'analyse ni l'affirmation tenue, et jamais un nombre nu : elle fixe à la fois CE QU'elle estime (son estimande et/ou son paramètre estimé) et COMMENT (l'estimateur qui l'a produite) ; une estimation qui ne nomme ni sa quantité cible ni un paramètre de modèle, ou qui ne nomme aucun estimateur, est sous-spécifiée (math:UnderspecifiedEstimate). Le triplet tidy de broom en R remonte les coefficients de modèle sur ces objets."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|rdfs:label"
 msgid "Estimator"
@@ -1461,3 +1461,1043 @@ msgstr "Propriété analytique non étayée"
 msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
 msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
 msgstr "L'échec levé lorsqu'une math:AnalyticProperty ne se résout en aucune loi définitoire — elle ne porte aucun arc math:definingLaw vers une véritable logic:Formula du premier ordre (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) ni vers un enregistrement honnête de frontière logic:expressivenessBoundary (math:smoothnessBoundary). Une revendication de monotonie ou de propriété analytique DOIT être étayée par une véritable loi ou une frontière enregistrée, jamais un drapeau nu ; un jeton de propriété analytique nu est inauthorable par construction. Appliqué par la logic:Constraint d'existence gardée math:AnalyticPropertyBackedConstraint (toute math:AnalyticProperty requiert un math:definingLaw), abaissée en une contrainte SHACL sh:sparql."
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|rdfs:label"
+msgid "Cell Complex"
+msgstr "Complexe cellulaire"
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|skos:definition"
+msgid "A topological space assembled from cells by attaching each cell boundary to lower-dimensional cells. It is not merely a partition or mesh: cell dimensions and attaching maps are constitutive."
+msgstr "Un espace topologique assemblé à partir de cellules en attachant leur bord à des cellules de dimension inférieure. Ce n’est pas simplement une partition ou un maillage : les dimensions des cellules et les applications d’attachement sont constitutives."
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|rdfs:label"
+msgid "Simplicial Complex"
+msgstr "Complexe simplicial"
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|skos:definition"
+msgid "A cell complex whose cells are simplices and which is closed under taking faces, with intersections occurring along common faces. It is not an arbitrary cell complex: simplex cells and face closure are required."
+msgstr "Un complexe cellulaire formé de simplexes, fermé par prise des faces et dont les intersections sont des faces communes. Ce n’est pas un complexe cellulaire arbitraire : les cellules simpliciales et la fermeture par faces sont requises."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|rdfs:label"
+msgid "Chain Complex"
+msgstr "Complexe de chaînes"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|skos:definition"
+msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."
+msgstr "Une suite graduée de modules reliés par des applications bord dont toute composée consécutive est nulle. Ce n’est pas seulement une collection graduée : la loi de bord de carré nul est constitutive."
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|rdfs:label"
+msgid "Boundary Operator"
+msgstr "Opérateur bord"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|skos:definition"
+msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."
+msgstr "L'opération de degré moins un d'un complexe de chaînes, de carré nul, dont l'homologie décrit les cycles modulo les bords. Ce n’est ni une dérivée générique ni une opération de bord géométrique non typée."
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|rdfs:label"
+msgid "Coboundary Operator"
+msgstr "Opérateur de cobord"
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|skos:definition"
+msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."
+msgstr "L'opération de degré plus un d'un complexe de cochaînes, duale de l'opérateur bord et de carré nul. Ce n’est pas un opérateur delta arbitraire : la graduation des cochaînes et la loi de carré nul sont requises."
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|rdfs:label"
+msgid "Vietoris–Rips Complex"
+msgstr "Complexe de Vietoris–Rips"
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|skos:definition"
+msgid "The simplicial complex at a scale whose simplices are finite point sets with all pairwise distances at most that scale. It is not a Čech complex: pairwise distance bounds do not require one common ball intersection."
+msgstr "Le complexe simplicial à une échelle donnée dont les simplexes sont les ensembles finis de points dont toutes les distances deux à deux sont au plus cette échelle. Ce n’est pas un complexe de Čech : les bornes de distance par paires n’exigent pas une intersection commune des boules."
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|rdfs:label"
+msgid "Čech Complex"
+msgstr "Complexe de Čech"
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|skos:definition"
+msgid "The nerve simplicial complex of a family of equal-radius balls, with a simplex for each subfamily having nonempty total intersection. It is not a Vietoris–Rips complex: a common intersection, not merely pairwise proximity, licenses a simplex."
+msgstr "Le complexe simplicial nerf d'une famille de boules de même rayon, avec un simplexe pour chaque sous-famille d'intersection totale non vide. Ce n’est pas un complexe de Vietoris–Rips : une intersection commune, et non une simple proximité par paires, autorise un simplexe."
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|rdfs:label"
+msgid "Alpha Complex"
+msgstr "Complexe alpha"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|skos:definition"
+msgid "A scale-indexed subcomplex of a Delaunay complex that captures the homotopy type of the union of restricted balls. It is not the full Delaunay complex or an arbitrary proximity complex."
+msgstr "Un sous-complexe indexé par l'échelle d'un complexe de Delaunay qui capture le type d'homotopie de l'union des boules restreintes. Ce n’est ni le complexe de Delaunay complet ni un complexe de proximité arbitraire."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|rdfs:label"
+msgid "Persistent Homology"
+msgstr "Homologie persistante"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|skos:definition"
+msgid "A topological-data-analysis activity that computes homology across a declared filtration and emits persistence summaries; it is the method, not the filtration itself."
+msgstr "Une activité d'analyse topologique qui calcule l'homologie le long d'une filtration déclarée et produit des résumés de persistance ; c'est la méthode, non la filtration."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|rdfs:label"
+msgid "Persistence Diagram"
+msgstr "Diagramme de persistance"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|skos:definition"
+msgid "A multiset of birth–death points summarizing the lifetimes of homological features in a filtration. It is not the filtration or the persistent-homology activity that produced it."
+msgstr "Un multiensemble de points naissance–mort résumant les durées de vie des caractéristiques homologiques d'une filtration. Ce n’est ni la filtration ni l’activité d’homologie persistante qui l’a produit."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|rdfs:label"
+msgid "Persistence Barcode"
+msgstr "Code-barres de persistance"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|skos:definition"
+msgid "A family of intervals representing the same persistent-module decomposition encoded by feature birth and death lifetimes. It is not a persistence diagram, although the two may encode equivalent interval data."
+msgstr "Une famille d'intervalles représentant la même décomposition en module persistant codée par les naissances et morts des caractéristiques. Ce n’est pas un diagramme de persistance, bien que les deux puissent encoder des données d’intervalles équivalentes."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|rdfs:label"
+msgid "Persistence Landscape"
+msgstr "Paysage de persistance"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|skos:definition"
+msgid "A sequence of real-valued functions derived from persistence intervals that places persistent-homology summaries in a statistical function space. It is not a raw barcode or diagram: it is their function-valued transform."
+msgstr "Une suite de fonctions réelles dérivées d'intervalles de persistance, plaçant les résumés d'homologie persistante dans un espace fonctionnel statistique. Ce n’est pas un code-barres ni un diagramme brut : c’est leur transformation à valeurs fonctionnelles."
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|rdfs:label"
+msgid "Betti Summary"
+msgstr "Résumé de Betti"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|skos:definition"
+msgid "A degree-indexed collection of Betti numbers for a declared complex, space, filtration stage, or persistence result. It is not one unscoped Betti number."
+msgstr "Une collection indexée par le degré de nombres de Betti pour un complexe, espace, stade de filtration ou résultat de persistance déclaré. Ce n’est pas un unique nombre de Betti sans contexte."
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|rdfs:label"
+msgid "Betti Number"
+msgstr "Nombre de Betti"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|skos:definition"
+msgid "The rank of a homology group in a specified degree, counting independent topological features of that degree. It is not a simplex count or an Euler characteristic."
+msgstr "Le rang d'un groupe d'homologie à un degré donné, comptant les caractéristiques topologiques indépendantes de ce degré. Ce n’est ni un nombre de simplexes ni une caractéristique d’Euler."
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|rdfs:label"
+msgid "Mapper Construction"
+msgstr "Construction Mapper"
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|skos:definition"
+msgid "A topological-data-analysis activity that covers the range of a filter function, clusters inverse images, and forms their nerve graph or complex. It is not clustering or dimensional reduction alone: the cover and nerve construction are required."
+msgstr "Une activité d'analyse topologique qui couvre l'image d'une fonction filtre, regroupe les images réciproques et forme leur graphe ou complexe nerf. Ce n’est pas seulement un regroupement ou une réduction dimensionnelle : le recouvrement et la construction du nerf sont requis."
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|rdfs:label"
+msgid "Multiparameter Persistence"
+msgstr "Persistance multiparamétrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|skos:definition"
+msgid "Persistent-homology analysis over a filtration indexed by a partially ordered parameter space of dimension greater than one. It is not a collection of unrelated one-parameter persistence runs."
+msgstr "Une analyse d'homologie persistante sur une filtration indexée par un espace de paramètres partiellement ordonné de dimension supérieure à un. Ce n’est pas une collection d’exécutions de persistance à un paramètre sans relation."
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|rdfs:label"
+msgid "Zigzag Persistence"
+msgstr "Persistance en zigzag"
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|skos:definition"
+msgid "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence."
+msgstr "Une analyse d'homologie persistante sur une suite dont les applications structurelles peuvent pointer vers l'avant ou l'arrière, autorisant ajouts et retraits. Ce n’est pas une persistance ordinaire uniquement orientée vers l’avant."
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|rdfs:label"
+msgid "Scalar Field"
+msgstr "Champ scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|skos:definition"
+msgid "A function assigning a scalar to each point of its declared domain."
+msgstr "Une fonction qui attribue un scalaire à chaque point de son domaine déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|rdfs:label"
+msgid "Vector Field"
+msgstr "Champ vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|skos:definition"
+msgid "A function assigning to each point of a manifold a vector in the tangent space at that point."
+msgstr "Une fonction qui attribue à chaque point d'une variété un vecteur de l'espace tangent en ce point."
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|rdfs:label"
+msgid "Flow"
+msgstr "Flot"
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|skos:definition"
+msgid "A parameterized family of transformations describing the evolution generated by a vector field or dynamical system."
+msgstr "Une famille paramétrée de transformations décrivant l'évolution engendrée par un champ vectoriel ou un système dynamique."
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|rdfs:label"
+msgid "Symplectic Form"
+msgstr "Forme symplectique"
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|skos:definition"
+msgid "A closed nondegenerate differential two-form on a smooth even-dimensional manifold."
+msgstr "Une 2-forme différentielle fermée et non dégénérée sur une variété lisse de dimension paire."
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|rdfs:label"
+msgid "Hamiltonian Function"
+msgstr "Fonction hamiltonienne"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|skos:definition"
+msgid "A scalar function on a symplectic state space whose symplectic gradient generates the Hamiltonian flow."
+msgstr "Une fonction scalaire sur un espace d'états symplectique dont le gradient symplectique engendre le flot hamiltonien."
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|rdfs:label"
+msgid "Hamiltonian Flow"
+msgstr "Flot hamiltonien"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|skos:definition"
+msgid "The flow generated by a Hamiltonian function through a declared symplectic form."
+msgstr "Le flot engendré par une fonction hamiltonienne au moyen d'une forme symplectique déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|rdfs:label"
+msgid "Hamiltonian System"
+msgstr "Système hamiltonien"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|skos:definition"
+msgid "A dynamical system framed by a symplectic state space and a Hamiltonian function that generates its flow."
+msgstr "Un système dynamique cadré par un espace d'états symplectique et une fonction hamiltonienne qui engendre son flot."
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|rdfs:label"
+msgid "Cellular Sheaf"
+msgstr "Faisceau cellulaire"
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|skos:definition"
+msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."
+msgstr "Un faisceau sur un complexe cellulaire qui attribue un germe à chaque cellule et une application de restriction compatible à chaque relation de face."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
+msgid "Sheaf Stalk"
+msgstr "Germe de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|skos:definition"
+msgid "The local value object assigned by a sheaf to a point or cell of its base space."
+msgstr "L'objet de valeur locale attribué par un faisceau à un point ou une cellule de son espace de base."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|rdfs:label"
+msgid "Restriction Map"
+msgstr "Application de restriction"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|skos:definition"
+msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."
+msgstr "Un morphisme de faisceaux transportant les données locales entre germes le long d'une inclusion ou incidence, soumis aux lois d'identité et de composition."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|rdfs:label"
+msgid "Sheaf Section"
+msgstr "Section de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|skos:definition"
+msgid "A compatible assignment of local stalk values over a region of a sheaf's base space."
+msgstr "Une attribution compatible de valeurs locales de germes sur une région de l'espace de base d'un faisceau."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|rdfs:label"
+msgid "Sheaf Cohomology"
+msgstr "Cohomologie de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|skos:definition"
+msgid "The cohomological invariants measuring obstructions to gluing local sheaf data into global sections."
+msgstr "Les invariants cohomologiques mesurant les obstacles au recollement de données locales de faisceau en sections globales."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|rdfs:label"
+msgid "Sheaf Laplacian"
+msgstr "Laplacien de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|skos:definition"
+msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."
+msgstr "Un laplacien construit à partir des applications de cobord d'un faisceau cellulaire et de produits scalaires, mesurant l'incompatibilité des données locales."
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|rdfs:label"
+msgid "Hodge Laplacian"
+msgstr "Laplacien de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|skos:definition"
+msgid "The degree-wise operator formed from a boundary or coboundary and its adjoint, whose kernel is the harmonic component."
+msgstr "L'opérateur par degré formé d'un bord ou cobord et de son adjoint, dont le noyau est la composante harmonique."
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|rdfs:label"
+msgid "Hodge Decomposition"
+msgstr "Décomposition de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|skos:definition"
+msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."
+msgstr "Une décomposition orthogonale d'une chaîne, cochaîne ou d'un flot en composantes exacte, coexacte et harmonique sous des produits scalaires déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|rdfs:label"
+msgid "Harmonic Component"
+msgstr "Composante harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the kernel of the applicable Hodge Laplacian."
+msgstr "La composante d'une décomposition de Hodge située dans le noyau du laplacien de Hodge applicable."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|rdfs:label"
+msgid "Exact Component"
+msgstr "Composante exacte"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the applicable boundary or coboundary operator."
+msgstr "La composante d'une décomposition de Hodge située dans l'image de l'opérateur bord ou cobord applicable."
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|rdfs:label"
+msgid "Coexact Component"
+msgstr "Composante coexacte"
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."
+msgstr "La composante d'une décomposition de Hodge située dans l'image de l'adjoint de l'opérateur bord ou cobord."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|rdfs:label"
+msgid "Dimensional Reduction"
+msgstr "Réduction dimensionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|skos:definition"
+msgid "An analysis activity that maps data to a declared lower-dimensional representation and records its input, target dimension, and output embedding."
+msgstr "Une activité d'analyse qui projette des données vers une représentation déclarée de dimension inférieure et enregistre entrée, dimension cible et plongement de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|rdfs:label"
+msgid "UMAP Reduction"
+msgstr "Réduction UMAP"
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|skos:definition"
+msgid "A dimensionality-reduction analysis using the Uniform Manifold Approximation and Projection method with its metric and neighborhood parameters declared."
+msgstr "Une réduction dimensionnelle par UMAP dont la métrique et les paramètres de voisinage sont déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|rdfs:label"
+msgid "Isomap Reduction"
+msgstr "Réduction Isomap"
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|skos:definition"
+msgid "A dimensionality-reduction analysis that approximates geodesic distances on a neighborhood graph before embedding them in a lower-dimensional space."
+msgstr "Une réduction dimensionnelle qui approxime les distances géodésiques sur un graphe de voisinage avant le plongement."
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|rdfs:label"
+msgid "Spectral Initialization"
+msgstr "Initialisation spectrale"
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|skos:definition"
+msgid "An initialization obtained from eigenvectors of a declared graph, kernel, covariance, or Laplacian operator."
+msgstr "Une initialisation obtenue à partir de vecteurs propres d'un graphe, noyau, opérateur de covariance ou laplacien déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|rdfs:label"
+msgid "Reduction Path"
+msgstr "Chemin de réduction"
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|skos:definition"
+msgid "An ordered record of intermediate representations and transformations in a staged dimensionality-reduction procedure."
+msgstr "Un enregistrement ordonné des représentations et transformations intermédiaires d'une procédure de réduction dimensionnelle par étapes."
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|rdfs:label"
+msgid "Reconstruction Map"
+msgstr "Application de reconstruction"
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|skos:definition"
+msgid "A map from a reduced or embedded representation toward a source-space reconstruction, with exactness, approximation, and round-trip loss declared rather than assumed."
+msgstr "Une application d'une représentation réduite vers une reconstruction source, avec exactitude, approximation et perte d'aller-retour déclarées."
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|rdfs:label"
+msgid "Intrinsic Dimension"
+msgstr "Dimension intrinsèque"
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|skos:definition"
+msgid "The estimated minimum number of coordinates needed to describe a dataset or manifold at a declared scale and under a declared estimator."
+msgstr "Le nombre minimal estimé de coordonnées nécessaires pour décrire un jeu de données ou une variété à une échelle et avec un estimateur déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|rdfs:label"
+msgid "Information Measure"
+msgstr "Mesure d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|skos:definition"
+msgid "A mathematically framed quantity measuring uncertainty, dependence, divergence, or information relative to declared distributions, logarithm base, and units."
+msgstr "Une quantité cadrée mesurant incertitude, dépendance, divergence ou information relativement à des distributions, une base logarithmique et des unités déclarées."
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|rdfs:label"
+msgid "Information Entropy"
+msgstr "Entropie informationnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|skos:definition"
+msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."
+msgstr "Une mesure de l'incertitude d'une distribution déclarée, dont la base logarithmique et les unités font partie du cadre."
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|rdfs:label"
+msgid "Mutual Information"
+msgstr "Information mutuelle"
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|skos:definition"
+msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."
+msgstr "La divergence entre une distribution jointe et le produit de ses marginales, mesurant la dépendance statistique."
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|rdfs:label"
+msgid "Kullback–Leibler Divergence"
+msgstr "Divergence de Kullback–Leibler"
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|skos:definition"
+msgid "The directed expected log-density ratio from one declared probability distribution to another, not a symmetric distance."
+msgstr "L'espérance dirigée du logarithme du rapport de densités d'une distribution à une autre ; ce n'est pas une distance symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|rdfs:label"
+msgid "Cross Entropy"
+msgstr "Entropie croisée"
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|skos:definition"
+msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."
+msgstr "L'espérance de la log-vraisemblance négative attribuée par une distribution aux résultats tirés d'une autre."
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|rdfs:label"
+msgid "Fisher Information"
+msgstr "Information de Fisher"
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|skos:definition"
+msgid "The expected curvature or score variance of a parametric likelihood with respect to a declared parameter."
+msgstr "La courbure attendue ou variance du score d'une vraisemblance paramétrique par rapport à un paramètre déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|rdfs:label"
+msgid "Surprisal"
+msgstr "Surprise informationnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|skos:definition"
+msgid "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."
+msgstr "Le logarithme négatif de la probabilité déclarée d'un résultat, avec base et unités enregistrées."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
+msgid "Vector-Symbolic Operation"
+msgstr "Opération vectorielle-symbolique"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|skos:definition"
+msgid "An operation in a declared vector-symbolic architecture that composes or retrieves distributed representations."
+msgstr "Une opération d'une architecture vectorielle-symbolique déclarée qui compose ou retrouve des représentations distribuées."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|rdfs:label"
+msgid "Vector Binding"
+msgstr "Liaison vectorielle"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|skos:definition"
+msgid "A vector-symbolic operation combining two representations into a representation of their association."
+msgstr "Une opération vectorielle-symbolique qui combine deux représentations en une représentation de leur association."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|rdfs:label"
+msgid "Vector Bundling"
+msgstr "Agrégation vectorielle"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|skos:definition"
+msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."
+msgstr "Une opération vectorielle-symbolique qui superpose plusieurs représentations en un agrégat préservant la similarité."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|rdfs:label"
+msgid "Vector Unbinding"
+msgstr "Déliaison vectorielle"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|skos:definition"
+msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."
+msgstr "Une opération vectorielle-symbolique qui récupère un facteur lié lorsque l'autre facteur et une loi de liaison sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|rdfs:label"
+msgid "Quadratic Space"
+msgstr "Espace quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|skos:definition"
+msgid "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."
+msgstr "Un espace vectoriel muni d'une forme quadratique déclarée, avec son corps scalaire et ses propriétés de dégénérescence. Ce n’est pas un espace vectoriel nu dépourvu de cette forme."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|rdfs:label"
+msgid "Quadratic Form"
+msgstr "Forme quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|skos:definition"
+msgid "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."
+msgstr "Une fonction scalaire homogène de degré deux sur un espace vectoriel, avec sa forme bilinéaire associée lorsque la caractéristique le permet. Ce n’est pas sa forme bilinéaire associée."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|rdfs:label"
+msgid "Graded Algebra"
+msgstr "Algèbre graduée"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|skos:definition"
+msgid "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."
+msgstr "Une algèbre décomposée en composantes indexées par le degré dont la multiplication respecte la loi de graduation. Ce n’est pas une décomposition en somme directe arbitraire : la multiplication doit respecter les degrés."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|rdfs:label"
+msgid "Grading"
+msgstr "Graduation"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|skos:definition"
+msgid "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."
+msgstr "Une décomposition d'une algèbre ou d'un module en composantes homogènes indexées, avec la loi combinant les degrés. Ce n’est pas une simple partition ou un simple étiquetage des éléments."
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|rdfs:label"
+msgid "Exterior Algebra"
+msgstr "Algèbre extérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|skos:definition"
+msgid "The graded alternating algebra generated by a vector space under the exterior product. It is not a Clifford algebra: repeated generators vanish and no quadratic-form contribution is retained."
+msgstr "L'algèbre alternée graduée engendrée par un espace vectoriel sous le produit extérieur. Ce n’est pas une algèbre de Clifford : les générateurs répétés s’annulent et aucune contribution de la forme quadratique n’est conservée."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|rdfs:label"
+msgid "Clifford Algebra"
+msgstr "Algèbre de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|skos:definition"
+msgid "The unital associative algebra generated by a quadratic space under the relation v² equals its quadratic form; its field, signature, basis, grading, and product convention must be explicit. It is not an exterior algebra because its product retains the quadratic-form contribution."
+msgstr "L'algèbre associative unitaire engendrée par un espace quadratique sous la relation v² égale à sa forme quadratique ; corps, signature, base, graduation et produit sont explicites. Ce n’est pas une algèbre extérieure, car son produit conserve la contribution de la forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|rdfs:label"
+msgid "Basis Blade"
+msgstr "Lame de base"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|skos:definition"
+msgid "A homogeneous Clifford or exterior basis element formed as an ordered product of distinct basis generators. It is not an arbitrary multivector or a sum of blades."
+msgstr "Un élément de base homogène formé comme produit ordonné de générateurs de base distincts. Ce n’est ni un multivecteur arbitraire ni une somme de lames."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|rdfs:label"
+msgid "Clifford Anticommutation Witness"
+msgstr "Témoin d'anticommutation de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|skos:definition"
+msgid "A calculated record that names two distinct Clifford generators and verifies that reversing their geometric-product order negates the result."
+msgstr "Un enregistrement calculé qui nomme deux générateurs distincts et vérifie que l'inversion de leur produit géométrique en change le signe."
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|rdfs:label"
+msgid "Multivector"
+msgstr "Multivecteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|skos:definition"
+msgid "An element of a Clifford algebra expressed as a sum of homogeneous blade components across one or more grades. It is not necessarily a vector or a grade-one element."
+msgstr "Un élément d'une algèbre de Clifford exprimé comme somme de composantes homogènes d'un ou plusieurs degrés. Ce n’est pas nécessairement un vecteur ou un élément de degré un."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|rdfs:label"
+msgid "Clifford Product"
+msgstr "Produit de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|skos:definition"
+msgid "A bilinear product operation defined within a declared Clifford algebra and governed by its quadratic form."
+msgstr "Une opération bilinéaire définie dans une algèbre de Clifford et régie par sa forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|rdfs:label"
+msgid "Geometric Product"
+msgstr "Produit géométrique"
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|skos:definition"
+msgid "The associative Clifford product combining inner and exterior contributions according to the declared quadratic form. It is not the scalar product or exterior product alone."
+msgstr "Le produit associatif de Clifford combinant contributions intérieure et extérieure selon la forme quadratique. Ce n’est ni le produit scalaire seul ni le produit extérieur seul."
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|rdfs:label"
+msgid "Exterior Product"
+msgstr "Produit extérieur"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|skos:definition"
+msgid "The alternating graded product, conventionally written with a wedge, that vanishes when a generator is repeated. It is not logical conjunction or the full geometric product."
+msgstr "Le produit alterné gradué, noté par un coin, qui s'annule lorsqu'un générateur est répété. Ce n’est ni la conjonction logique ni le produit géométrique complet."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|rdfs:label"
+msgid "Left Contraction"
+msgstr "Contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|skos:definition"
+msgid "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."
+msgstr "Le produit abaissant le degré qui sélectionne la composante de différence des degrés d'un produit de Clifford. Ce n’est pas un produit intérieur symétrique : l’ordre des opérandes et la convention de contraction comptent."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|rdfs:label"
+msgid "Grade Projection"
+msgstr "Projection de degré"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|skos:definition"
+msgid "The operation selecting the homogeneous component of a multivector at a declared grade. It is not coordinate selection or extraction of one basis coefficient."
+msgstr "L'opération qui sélectionne la composante homogène d'un multivecteur au degré déclaré. Ce n’est ni une sélection de coordonnées ni l’extraction d’un seul coefficient de base."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|rdfs:label"
+msgid "Clifford Involution"
+msgstr "Involution de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|skos:definition"
+msgid "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."
+msgstr "Une opération d'ordre deux sur une algèbre de Clifford, dont l'action sur les degrés et l'ordre du produit est déclarée. Ce n’est pas un endomorphisme algébrique arbitraire : l’appliquer deux fois doit restituer l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|rdfs:label"
+msgid "Clifford Reversion"
+msgstr "Réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|skos:definition"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."
+msgstr "L'anti-involution qui inverse l'ordre des générateurs de base dans chaque lame. Ce n’est pas l’involution de degré ; ses signes dépendant du degré proviennent de l’inversion de l’ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|rdfs:label"
+msgid "Grade Involution"
+msgstr "Involution de degré"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|skos:definition"
+msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
+msgstr "L'involution qui nie les composantes de degré impair et préserve celles de degré pair."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|rdfs:label"
+msgid "Clifford Conjugation"
+msgstr "Conjugaison de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|skos:definition"
+msgid "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."
+msgstr "La composition de l'involution de degré et de la réversion. Ce n’est ni la réversion seule ni l’involution de degré seule."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|rdfs:label"
+msgid "Rotor"
+msgstr "Roteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|skos:definition"
+msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
+msgstr "Un multivecteur pair inversible dont l'action sandwich réalise une transformation orthogonale. Ce n’est pas n’importe quel multivecteur pair : l’inversibilité et l’action en sandwich sont constitutives."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|rdfs:label"
+msgid "Spinor"
+msgstr "Spineur"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|skos:definition"
+msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
+msgstr "Un élément d'une représentation spinorielle ou d'un module de spineurs associé à un espace quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|rdfs:label"
+msgid "Dirac Operator"
+msgstr "Opérateur de Dirac"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|skos:definition"
+msgid "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."
+msgstr "Un opérateur différentiel du premier ordre construit par multiplication de Clifford et connexion compatible sur un fibré de spineurs."
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|rdfs:label"
+msgid "Direct-Sum Decomposition"
+msgstr "Décomposition en somme directe"
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|skos:definition"
+msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."
+msgstr "Une décomposition en facteurs nommés, d'intersection deux à deux nulle et d'enveloppe conjointe exhaustive dans la catégorie déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|rdfs:label"
+msgid "Clifford Module Decomposition"
+msgstr "Décomposition de module de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|skos:definition"
+msgid "The vector-space or module decomposition of an extended Clifford algebra into an embedded base-algebra summand and the new-generator multiple of that summand; it is not an algebra direct sum."
+msgstr "La décomposition vectorielle ou modulaire d'une algèbre étendue en algèbre de base plongée et son multiple par le nouveau générateur ; ce n'est pas une somme d'algèbres."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|rdfs:label"
+msgid "Clifford Extension"
+msgstr "Extension de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|skos:definition"
+msgid "A declared extension from a base Clifford algebra to one with an additional generator, recording both signatures and the embedding convention."
+msgstr "Une extension d'une algèbre de base par un générateur supplémentaire, enregistrant signatures et convention de plongement."
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|rdfs:label"
+msgid "Faithful Representation"
+msgstr "Représentation fidèle"
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|skos:definition"
+msgid "A group representation whose kernel is trivial, so distinct represented group elements induce distinct transformations."
+msgstr "Une représentation de groupe de noyau trivial, où des éléments distincts induisent des transformations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|rdfs:label"
+msgid "Equivariant Map"
+msgstr "Application équivariante"
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|skos:definition"
+msgid "A morphism between spaces carrying group actions that commutes with the declared actions."
+msgstr "Un morphisme entre espaces munis d'actions de groupe qui commute avec les actions déclarées."
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|rdfs:label"
+msgid "analysis output"
+msgstr "sortie d'analyse"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|skos:definition"
+msgid "Relates a mathematical analysis activity to an explicit result object it produced; interpretation of that result remains a separate standpoint-indexed claim."
+msgstr "Relie une activité d'analyse à l'objet résultat produit ; son interprétation reste une revendication séparée indexée par le point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|rdfs:label"
+msgid "target dimension"
+msgstr "dimension cible"
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|skos:definition"
+msgid "The non-negative integer dimension requested as the output dimension of a dimensionality-reduction analysis."
+msgstr "La dimension entière non négative demandée comme sortie d'une réduction dimensionnelle."
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|rdfs:label"
+msgid "uses initialization"
+msgstr "utilise l'initialisation"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|skos:definition"
+msgid "Relates an iterative mathematical analysis to the explicit initialization from which its optimization or iteration begins."
+msgstr "Relie une analyse itérative à l'initialisation explicite de son optimisation ou itération."
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|rdfs:label"
+msgid "reconstruction of"
+msgstr "reconstruction de"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|skos:definition"
+msgid "Relates a reconstructed mathematical object to the representation, projection, or source object it attempts to recover."
+msgstr "Relie un objet reconstruit à la représentation, projection ou source qu'il tente de retrouver."
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|rdfs:label"
+msgid "symplectic form"
+msgstr "forme symplectique"
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|skos:definition"
+msgid "Relates a Hamiltonian system or smooth state space to the closed nondegenerate two-form that frames its Hamiltonian dynamics."
+msgstr "Relie un système hamiltonien ou espace lisse à la 2-forme fermée non dégénérée qui cadre sa dynamique."
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|rdfs:label"
+msgid "state space"
+msgstr "espace d'états"
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|skos:definition"
+msgid "Relates a dynamical or Hamiltonian system to the mathematical space containing its states."
+msgstr "Relie un système dynamique ou hamiltonien à l'espace mathématique contenant ses états."
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|rdfs:label"
+msgid "Hamiltonian function"
+msgstr "fonction hamiltonienne"
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|skos:definition"
+msgid "Relates a Hamiltonian system to the scalar function whose symplectic gradient generates its evolution."
+msgstr "Relie un système à la fonction scalaire dont le gradient symplectique engendre son évolution."
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|rdfs:label"
+msgid "generates flow"
+msgstr "engendre le flot"
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|skos:definition"
+msgid "Relates a vector field, Hamiltonian function, or dynamical system to the flow it generates."
+msgstr "Relie un champ, une fonction hamiltonienne ou un système au flot qu'il engendre."
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|rdfs:label"
+msgid "sheaf base complex"
+msgstr "complexe de base du faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|skos:definition"
+msgid "Relates a cellular sheaf to the cell complex on which its stalks and restriction maps are indexed."
+msgstr "Relie un faisceau cellulaire au complexe qui indexe ses germes et restrictions."
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|rdfs:label"
+msgid "has stalk"
+msgstr "a pour germe"
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|skos:definition"
+msgid "Relates a sheaf to one of its local stalk objects."
+msgstr "Relie un faisceau à l'un de ses germes locaux."
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|rdfs:label"
+msgid "stalk over cell"
+msgstr "germe sur la cellule"
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|skos:definition"
+msgid "Relates a cellular-sheaf stalk to the cell of the base complex to which it is assigned."
+msgstr "Relie un germe à la cellule de base à laquelle il est attribué."
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|rdfs:label"
+msgid "restriction map"
+msgstr "application de restriction"
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|skos:definition"
+msgid "Relates a sheaf to one of its compatible restriction maps between stalks."
+msgstr "Relie un faisceau à l'une de ses applications de restriction compatibles."
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|rdfs:label"
+msgid "has section"
+msgstr "a pour section"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|skos:definition"
+msgid "Relates a sheaf to a local or global compatible section."
+msgstr "Relie un faisceau à une section compatible locale ou globale."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|rdfs:label"
+msgid "has Laplacian"
+msgstr "a pour laplacien"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|skos:definition"
+msgid "Relates a complex, sheaf, or graded space to the Laplacian operator defined on it."
+msgstr "Relie un complexe, faisceau ou espace gradué au laplacien qui y est défini."
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|rdfs:label"
+msgid "decomposes flow"
+msgstr "décompose le flot"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|skos:definition"
+msgid "Relates a Hodge decomposition to the flow, chain, or cochain it separates into exact, coexact, and harmonic components."
+msgstr "Relie une décomposition de Hodge à l'objet qu'elle sépare en composantes exacte, coexacte et harmonique."
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|rdfs:label"
+msgid "has quadratic form"
+msgstr "a pour forme quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|skos:definition"
+msgid "Relates a quadratic space or Clifford algebra to the quadratic form governing its metric relation."
+msgstr "Relie un espace quadratique ou une algèbre de Clifford à sa forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
+msgid "scalar field"
+msgstr "corps scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
+msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
+msgstr "Relie un espace, module ou algèbre au corps de scalaires déclaré pour ses opérations."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|rdfs:label"
+msgid "has grading"
+msgstr "a pour graduation"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|skos:definition"
+msgid "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."
+msgstr "Relie une algèbre ou un module gradué à sa décomposition en composantes homogènes."
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|rdfs:label"
+msgid "Clifford involution"
+msgstr "involution de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|skos:definition"
+msgid "Relates a Clifford algebra to a supported involution such as reversion, grade involution, or Clifford conjugation."
+msgstr "Relie une algèbre de Clifford à une involution telle que réversion, involution de degré ou conjugaison."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|rdfs:label"
+msgid "has basis blade"
+msgstr "a pour lame de base"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|skos:definition"
+msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
+msgstr "Relie une algèbre de Clifford à une lame homogène induite par sa base ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|rdfs:label"
+msgid "has anticommutation witness"
+msgstr "a pour témoin d'anticommutation"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|skos:definition"
+msgid "Relates a Clifford algebra to a calculated witness for one distinct-generator anticommutation law."
+msgstr "Relie une algèbre à un témoin calculé d'une loi d'anticommutation."
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|rdfs:label"
+msgid "left generator"
+msgstr "générateur gauche"
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the generator occurring on the left in its forward product."
+msgstr "Relie un témoin au générateur placé à gauche dans son produit direct."
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|rdfs:label"
+msgid "right generator"
+msgstr "générateur droit"
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the distinct generator occurring on the right in its forward product."
+msgstr "Relie un témoin au générateur distinct placé à droite."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|rdfs:label"
+msgid "blade grade"
+msgstr "degré de la lame"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|skos:definition"
+msgid "The non-negative integer grade of a homogeneous basis blade."
+msgstr "Le degré entier non négatif d'une lame de base homogène."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|rdfs:label"
+msgid "generator index"
+msgstr "indice du générateur"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|skos:definition"
+msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
+msgstr "La position entière positive d'un générateur dans la base ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|rdfs:label"
+msgid "generator square"
+msgstr "carré du générateur"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|skos:definition"
+msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
+msgstr "Le carré scalaire exact d'un générateur selon la signature déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|rdfs:label"
+msgid "pseudoscalar square"
+msgstr "carré du pseudo-scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|skos:definition"
+msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
+msgstr "Le carré exact du pseudo-scalaire de degré maximal sous une convention déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|rdfs:label"
+msgid "anticommutation verified"
+msgstr "anticommutation vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|skos:definition"
+msgid "The boolean result of exactly checking the named distinct-generator anticommutation witness."
+msgstr "Le résultat booléen de la vérification exacte du témoin d'anticommutation."
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|rdfs:label"
+msgid "decomposed object"
+msgstr "objet décomposé"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|skos:definition"
+msgid "Relates a decomposition record to the mathematical object decomposed."
+msgstr "Relie un enregistrement de décomposition à l'objet décomposé."
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|rdfs:label"
+msgid "direct summand"
+msgstr "facteur direct"
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|skos:definition"
+msgid "Relates a direct-sum decomposition to one of its explicitly identified summands."
+msgstr "Relie une somme directe à l'un de ses facteurs identifiés."
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|rdfs:label"
+msgid "module base summand"
+msgstr "facteur de base du module"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the embedded base-algebra summand."
+msgstr "Relie une décomposition de Clifford au facteur de l'algèbre de base plongée."
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|rdfs:label"
+msgid "module extension summand"
+msgstr "facteur d'extension du module"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the summand obtained by left multiplication with the new extension generator."
+msgstr "Relie une décomposition au facteur obtenu par multiplication par le nouveau générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|rdfs:label"
+msgid "split/join verified"
+msgstr "séparation/réunion vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|skos:definition"
+msgid "The boolean result of an exact round trip through a declared Clifford extension split and join."
+msgstr "Le résultat booléen d'un aller-retour exact par séparation et réunion d'une extension."
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|rdfs:label"
+msgid "base algebra"
+msgstr "algèbre de base"
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the lower-generator Clifford algebra being embedded."
+msgstr "Relie une extension à l'algèbre de Clifford de moindre nombre de générateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|rdfs:label"
+msgid "extended algebra"
+msgstr "algèbre étendue"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the Clifford algebra obtained after adjoining the declared generator."
+msgstr "Relie une extension à l'algèbre obtenue après adjonction du générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|rdfs:label"
+msgid "extension generator"
+msgstr "générateur d'extension"
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|skos:definition"
+msgid "Relates a Clifford extension to the additional basis generator, including its grade and exact square."
+msgstr "Relie une extension au générateur supplémentaire, avec son degré et son carré exact."
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|rdfs:label"
+msgid "represented object"
+msgstr "objet représenté"
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|skos:definition"
+msgid "Relates a mathematical representation to the group, algebra, or structured object it represents."
+msgstr "Relie une représentation au groupe, à l'algèbre ou à l'objet structuré représenté."
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|rdfs:label"
+msgid "representation map"
+msgstr "application de représentation"
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|skos:definition"
+msgid "Relates a representation record to the explicit morphism realizing the representation."
+msgstr "Relie une représentation au morphisme explicite qui la réalise."
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|rdfs:label"
+msgid "equivariant map"
+msgstr "application équivariante"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|skos:definition"
+msgid "Relates a representation or structured comparison to the explicit map proved to commute with the declared group actions."
+msgstr "Relie une comparaison à l'application prouvée commutative avec les actions de groupe."
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|rdfs:label"
+msgid "equivariant under"
+msgstr "équivariant sous"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|skos:definition"
+msgid "Relates an equivariant map to the group action or symmetry with which it commutes."
+msgstr "Relie une application équivariante à l'action ou symétrie avec laquelle elle commute."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|rdfs:label"
+msgid "Incomplete Persistent-Homology Analysis"
+msgstr "Analyse d'homologie persistante incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|skos:definition"
+msgid "The failure raised when a persistent-homology analysis lacks its input, filtration, or persistence-summary output."
+msgstr "L'échec levé quand une analyse manque son entrée, sa filtration ou sa sortie de persistance."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|rdfs:label"
+msgid "Incomplete Dimensionality-Reduction Analysis"
+msgstr "Analyse de réduction dimensionnelle incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|skos:definition"
+msgid "The failure raised when a dimensionality-reduction analysis lacks its input, target dimension, or output embedding."
+msgstr "L'échec levé quand une réduction manque son entrée, sa dimension cible ou son plongement de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|rdfs:label"
+msgid "Incomplete Hamiltonian System"
+msgstr "Système hamiltonien incomplet"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|skos:definition"
+msgid "The failure raised when a Hamiltonian system lacks its smooth state space, symplectic form, Hamiltonian function, or generated Hamiltonian flow."
+msgstr "L'échec levé quand un système manque son espace d'états, sa forme symplectique, sa fonction ou son flot hamiltonien."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|rdfs:label"
+msgid "Incomplete Cellular Sheaf"
+msgstr "Faisceau cellulaire incomplet"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|skos:definition"
+msgid "The failure raised when a cellular sheaf lacks its base complex, stalks, or restriction maps."
+msgstr "L'échec levé quand un faisceau manque son complexe de base, ses germes ou ses restrictions."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|rdfs:label"
+msgid "Incomplete Clifford Algebra"
+msgstr "Algèbre de Clifford incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|skos:definition"
+msgid "The failure raised when a Clifford algebra lacks its scalar field, signature, basis blades, grading, product/involution frame, or exact vector-space dimension."
+msgstr "L'échec levé quand une algèbre manque corps, signature, lames, graduation, produits ou involutions, ou dimension exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|rdfs:label"
+msgid "Incomplete Clifford Extension"
+msgstr "Extension de Clifford incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|skos:definition"
+msgid "The failure raised when a Clifford extension lacks its base algebra, extended algebra, or additional generator."
+msgstr "L'échec levé quand une extension manque son algèbre de base, son algèbre étendue ou son générateur supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|rdfs:label"
+msgid "Metric Signature"
+msgstr "Signature métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|skos:definition"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."
+msgstr "La signature (p, q) partagée d'un espace quadratique réel, tenseur métrique, forme quadratique ou algèbre de Clifford, portée par math:signaturePositive et math:signatureNegative. Elle est structurée ; p + q égale la dimension du support."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|rdfs:label"
+msgid "space dimension"
+msgstr "dimension de l'espace"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|skos:definition"
+msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
+msgstr "La dimension vectorielle entière non négative d'un espace de coordonnées, espace tangent, support algébrique ou autre objet linéaire ; elle est distincte de la dimension physique math:hasDimension."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|rdfs:label"
+msgid "metric signature"
+msgstr "signature métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
+msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
+msgstr "Relie un tenseur métrique, espace quadratique, forme quadratique ou algèbre de Clifford à sa math:MetricSignature (p, q) structurée et partagée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgid "has basis"
+msgstr "a pour base"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
+msgstr "Relie un espace vectoriel, espace quadratique ou algèbre de Clifford à une math:Basis de son support ; une base de Clifford fixe les générateurs ordonnés de ses produits exacts."
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
+msgid "analysis input"
+msgstr "entrée d'analyse"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|skos:definition"
+msgid "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."
+msgstr "Relie une activité d'analyse mathématique à l'objet explicite qu'elle analyse ; l'absence de cette relation rend mal formée toute analyse qui exige une entrée."

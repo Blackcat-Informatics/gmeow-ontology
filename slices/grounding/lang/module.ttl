@@ -3575,8 +3575,8 @@ gmeow:gmnCodebookCurrent
         gmeow:gmnSigilMath ,
         gmeow:gmnSigilLangAst ,
         gmeow:gmnSigilLogic ,
-        gmeow:gmnDictV2 ;
-    gmeow:gmnDictionaryVersion "2" ;
+        gmeow:gmnDictV3 ;
+    gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnDeclaredRate gmeow:gmnRateTokensPerStatement .
 
@@ -3592,7 +3592,7 @@ gmeow:gmnDictV2
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN dictionary (version 2)"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "Dictionary version 2 of the GMN alias table (the \"dict-v2\" referenced by the codebook and by every worked example of LANG-GMN.md's @gmn header): it retains the version-1 qualifier bindings and adds the measured `den`, `xl`, and `mb` named-key rulings, referenced by gmeow:gmnCodebookCurrent and pinned by gmeow:gmnDictionaryVersion \"2\"."@x-gmeow-english ;
+    skos:definition "Dictionary version 2 of the GMN alias table: the immutable predecessor of the current table, retaining the version-1 qualifier bindings and adding the measured `den`, `xl`, and `mb` named-key rulings. Documents pinned to `dict-v2` remain interpretable through this historical resource; the current codebook references its version-3 successor."@x-gmeow-english ;
     gmeow:gmnDictionaryVersion "2" ;
     gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ,
         gmeow:gmnDictV1EntryCodebook ,
@@ -3874,6 +3874,315 @@ gmeow:gmnDictV1EntryBoundaryClosed
     gmeow:gmnDictionaryEntryAlias "closed" ;
     gmeow:gmnCodepoints "U+0063 U+006C U+006F U+0073 U+0065 U+0064" ;
     gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+# --- GMN alias dictionary (version 3) ----------------------------------------- #
+# Version 2 remains immutable history. Version 3 duplicates every retained
+# binding onto version-owned entry resources and adds the six mathematics keys
+# admitted by the external-concept symbology audit. The current codebook points
+# only at this table, so a reader never guesses across versions.
+
+gmeow:gmnDictV3
+    a owl:NamedIndividual , gmeow:GmnDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN dictionary (version 3)"@x-gmeow-english ;
+    skos:definition "Dictionary version 3 of the GMN alias table: an immutable successor to version 2 that retains all 24 prior bindings on version-owned entries and adds `boundary`, `coboundary`, `ds`, `lcon`, `rev`, and `hlap` for the audited mathematics named keys."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnDictionaryEntry
+        gmeow:gmnDictV3EntryEnvelope ,
+        gmeow:gmnDictV3EntryCodebook ,
+        gmeow:gmnDictV3EntryDenotation ,
+        gmeow:gmnDictV3EntryTranslation ,
+        gmeow:gmnDictV3EntryMorphemeBoundary ,
+        gmeow:gmnDictV3EntryMathDivision ,
+        gmeow:gmnDictV3EntryLogicForall ,
+        gmeow:gmnDictV3EntryLogicExists ,
+        gmeow:gmnDictV3EntryLogicAnd ,
+        gmeow:gmnDictV3EntryLogicOr ,
+        gmeow:gmnDictV3EntryLogicIff ,
+        gmeow:gmnDictV3EntryModalNecessary ,
+        gmeow:gmnDictV3EntryModalActual ,
+        gmeow:gmnDictV3EntryModalPossible ,
+        gmeow:gmnDictV3EntryModalCounterfactual ,
+        gmeow:gmnDictV3EntryEvKindDirect ,
+        gmeow:gmnDictV3EntryEvKindInstrumental ,
+        gmeow:gmnDictV3EntryEvKindRemote ,
+        gmeow:gmnDictV3EntryEvKindComputational ,
+        gmeow:gmnDictV3EntryEvKindExpert ,
+        gmeow:gmnDictV3EntryEvKindSurvey ,
+        gmeow:gmnDictV3EntryEvKindStreaming ,
+        gmeow:gmnDictV3EntryBoundaryOpen ,
+        gmeow:gmnDictV3EntryBoundaryClosed ,
+        gmeow:gmnDictV3EntryMathBoundaryOperator ,
+        gmeow:gmnDictV3EntryMathCoboundaryOperator ,
+        gmeow:gmnDictV3EntryMathDirectSum ,
+        gmeow:gmnDictV3EntryMathLeftContraction ,
+        gmeow:gmnDictV3EntryMathReversion ,
+        gmeow:gmnDictV3EntryMathHodgeLaplacian .
+
+gmeow:gmnDictV3EntryEnvelope
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: gmeow:GmnEnvelope to genv"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:GmnEnvelope: `genv`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ;
+    gmeow:gmnDictionaryEntryAlias "genv" .
+
+gmeow:gmnDictV3EntryCodebook
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: gmeow:GmnCodebook to gcb"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:GmnCodebook: `gcb`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
+    gmeow:gmnDictionaryEntryAlias "gcb" .
+
+gmeow:gmnDictV3EntryDenotation
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: lang:Denotation to den"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for lang:Denotation: `den`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm lang:Denotation ;
+    gmeow:gmnDictionaryEntryAlias "den" .
+
+gmeow:gmnDictV3EntryTranslation
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: lang:Translation to xl"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for lang:Translation: `xl`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm lang:Translation ;
+    gmeow:gmnDictionaryEntryAlias "xl" .
+
+gmeow:gmnDictV3EntryMorphemeBoundary
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: lang:MorphemeBoundary to mb"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for lang:MorphemeBoundary: `mb`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm lang:MorphemeBoundary ;
+    gmeow:gmnDictionaryEntryAlias "mb" .
+
+gmeow:gmnDictV3EntryMathDivision
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:Division to div"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for math:Division: `div`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:Division ;
+    gmeow:gmnDictionaryEntryAlias "div" .
+
+gmeow:gmnDictV3EntryLogicForall
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:forall to fa"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:forall: `fa`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:forall ;
+    gmeow:gmnDictionaryEntryAlias "fa" .
+
+gmeow:gmnDictV3EntryLogicExists
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:exists to ex"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:exists: `ex`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:exists ;
+    gmeow:gmnDictionaryEntryAlias "ex" .
+
+gmeow:gmnDictV3EntryLogicAnd
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:and to and"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:and: `and`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:and ;
+    gmeow:gmnDictionaryEntryAlias "and" .
+
+gmeow:gmnDictV3EntryLogicOr
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:or to or"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:or: `or`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:or ;
+    gmeow:gmnDictionaryEntryAlias "or" .
+
+gmeow:gmnDictV3EntryLogicIff
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:iff to iff"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:iff: `iff`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:iff ;
+    gmeow:gmnDictionaryEntryAlias "iff" .
+
+gmeow:gmnDictV3EntryModalNecessary
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: necessary modal force to nec"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:modalForceNecessary: `nec`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceNecessary ; gmeow:gmnDictionaryEntryAlias "nec" ;
+    gmeow:gmnCodepoints "U+006E U+0065 U+0063" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV3EntryModalActual
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: actual modal force to act"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:modalForceActual: `act`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceActual ; gmeow:gmnDictionaryEntryAlias "act" ;
+    gmeow:gmnCodepoints "U+0061 U+0063 U+0074" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryModalPossible
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: possible modal force to poss"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:modalForcePossible: `poss`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForcePossible ; gmeow:gmnDictionaryEntryAlias "poss" ;
+    gmeow:gmnCodepoints "U+0070 U+006F U+0073 U+0073" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryModalCounterfactual
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: counterfactual modal force to cf"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:modalForceCounterfactual: `cf`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceCounterfactual ; gmeow:gmnDictionaryEntryAlias "cf" ;
+    gmeow:gmnCodepoints "U+0063 U+0066" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryEvKindDirect
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: direct observation to dir"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodDirectObservation: `dir`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodDirectObservation ; gmeow:gmnDictionaryEntryAlias "dir" ;
+    gmeow:gmnCodepoints "U+0064 U+0069 U+0072" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryEvKindInstrumental
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: instrumental reading to inst"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodInstrumentalReading: `inst`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodInstrumentalReading ; gmeow:gmnDictionaryEntryAlias "inst" ;
+    gmeow:gmnCodepoints "U+0069 U+006E U+0073 U+0074" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryEvKindRemote
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: remote sensing to rmt"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodRemoteSensing: `rmt`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodRemoteSensing ; gmeow:gmnDictionaryEntryAlias "rmt" ;
+    gmeow:gmnCodepoints "U+0072 U+006D U+0074" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV3EntryEvKindComputational
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: computational model to cmp"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodComputationalModel: `cmp`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodComputationalModel ; gmeow:gmnDictionaryEntryAlias "cmp" ;
+    gmeow:gmnCodepoints "U+0063 U+006D U+0070" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryEvKindExpert
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: expert judgement to exj"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodExpertJudgement: `exj`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodExpertJudgement ; gmeow:gmnDictionaryEntryAlias "exj" ;
+    gmeow:gmnCodepoints "U+0065 U+0078 U+006A" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV3EntryEvKindSurvey
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: survey to srv"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodSurvey: `srv`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodSurvey ; gmeow:gmnDictionaryEntryAlias "srv" ;
+    gmeow:gmnCodepoints "U+0073 U+0072 U+0076" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryEvKindStreaming
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: streaming observation to strm"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:methodStreaming: `strm`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodStreaming ; gmeow:gmnDictionaryEntryAlias "strm" ;
+    gmeow:gmnCodepoints "U+0073 U+0074 U+0072 U+006D" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV3EntryBoundaryOpen
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:Open to open"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:Open: `open`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:Open ; gmeow:gmnDictionaryEntryAlias "open" ;
+    gmeow:gmnCodepoints "U+006F U+0070 U+0065 U+006E" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryBoundaryClosed
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:Closed to closed"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:Closed: `closed`, retained unchanged from version 2."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:Closed ; gmeow:gmnDictionaryEntryAlias "closed" ;
+    gmeow:gmnCodepoints "U+0063 U+006C U+006F U+0073 U+0065 U+0064" ; gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV3EntryMathBoundaryOperator
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:BoundaryOperator to boundary"@x-gmeow-english ;
+    skos:definition "The version-3 named-key binding for math:BoundaryOperator: `boundary`, which disambiguates chain boundaries from partial differentiation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:BoundaryOperator ; gmeow:gmnDictionaryEntryAlias "boundary" .
+
+gmeow:gmnDictV3EntryMathCoboundaryOperator
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:CoboundaryOperator to coboundary"@x-gmeow-english ;
+    skos:definition "The version-3 named-key binding for math:CoboundaryOperator: `coboundary`, which disambiguates the cochain operator from other delta notations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:CoboundaryOperator ; gmeow:gmnDictionaryEntryAlias "coboundary" .
+
+gmeow:gmnDictV3EntryMathDirectSum
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:DirectSumDecomposition to ds"@x-gmeow-english ;
+    skos:definition "The version-3 named-key binding for math:DirectSumDecomposition: `ds`, cheaper than the fragmented circled-plus display sign."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:DirectSumDecomposition ; gmeow:gmnDictionaryEntryAlias "ds" .
+
+gmeow:gmnDictV3EntryMathLeftContraction
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:LeftContraction to lcon"@x-gmeow-english ;
+    skos:definition "The version-3 named-key binding for math:LeftContraction: `lcon`, cheaper than the fragmented contraction display sign."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:LeftContraction ; gmeow:gmnDictionaryEntryAlias "lcon" .
+
+gmeow:gmnDictV3EntryMathReversion
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:Reversion to rev"@x-gmeow-english ;
+    skos:definition "The version-3 named-key binding for math:Reversion: `rev`, which distinguishes the Clifford involution from other tilde operators."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:Reversion ; gmeow:gmnDictionaryEntryAlias "rev" .
+
+gmeow:gmnDictV3EntryMathHodgeLaplacian
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: math:HodgeLaplacian to hlap"@x-gmeow-english ;
+    skos:definition "The version-3 named-key binding for math:HodgeLaplacian: `hlap`, which distinguishes the Hodge operator from other capital-delta conventions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm math:HodgeLaplacian ; gmeow:gmnDictionaryEntryAlias "hlap" .
 
 # --- GMN dialect crossings (four judged translation units) -------------------- #
 # Each crossing between dialect levels is a lang:TranslationUnit carrying its
@@ -5229,7 +5538,7 @@ gmeow:gmnDenMorphemeBoundary
 
 # --- Audited named-key and structured-constructor rulings ------------------ #
 # These signs are deliberately absent from gmeow:gmnDenotationGrapheme. Named
-# keys execute through dict-v2; structured/rejected candidates preserve the
+# keys execute through the current dict-v3; structured/rejected candidates preserve the
 # familiar display symbol only as evidence, never as an ambiguous flat alias.
 
 gmeow:gmnFormMathDivision
@@ -5251,6 +5560,138 @@ gmeow:gmnDenMathDivision
     lang:denotedForm gmeow:gmnFormMathDivision ;
     lang:denotationKind lang:denotesEntity ;
     lang:denotationTarget math:Division ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathBoundaryOperator
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN boundary-operator key `boundary`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `boundary` for math:BoundaryOperator; the partial sign remains non-executable display notation because it is ambiguous with partial differentiation."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathBoundaryOperator
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN boundary-operator key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `boundary` to the class math:BoundaryOperator; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathBoundaryOperator ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:BoundaryOperator ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathCoboundaryOperator
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN coboundary-operator key `coboundary`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `coboundary` for math:CoboundaryOperator; delta remains non-executable display notation because it is overloaded across mathematical domains."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathCoboundaryOperator
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN coboundary-operator key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `coboundary` to the class math:CoboundaryOperator; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathCoboundaryOperator ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:CoboundaryOperator ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathDirectSumDecomposition
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN direct-sum key `ds`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `ds` for math:DirectSumDecomposition; the circled-plus sign remains display notation because the named key is cheaper under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 60 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathDirectSumDecomposition
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN direct-sum key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `ds` to the class math:DirectSumDecomposition; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathDirectSumDecomposition ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:DirectSumDecomposition ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathLeftContraction
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN left-contraction key `lcon`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `lcon` for math:LeftContraction; the contraction sign remains display notation because the named key is cheaper under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 70 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathLeftContraction
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN left-contraction key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `lcon` to the class math:LeftContraction; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathLeftContraction ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:LeftContraction ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathReversion
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Clifford-reversion key `rev`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `rev` for math:Reversion; tilde remains non-executable display notation because it is confusable with approximation, negation, and programming operators."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathReversion
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN Clifford-reversion key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `rev` to the class math:Reversion; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathReversion ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:Reversion ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathHodgeLaplacian
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Hodge-Laplacian key `hlap`"@x-gmeow-english ;
+    skos:definition "The unary prefix GMN named-key form `hlap` for math:HodgeLaplacian; capital delta remains non-executable display notation because it is overloaded across several operator families."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathHodgeLaplacian
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN Hodge-Laplacian key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `hlap` to the class math:HodgeLaplacian; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathHodgeLaplacian ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:HodgeLaplacian ;
     lang:denotationContext gmeow:gmnMathGlyphContext ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -5536,6 +5977,162 @@ gmeow:gmnCandidateLogicIff
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
     gmeow:gmnDispositionRationale "The biconditional glyph fragments into more pinned BPE tokens than the `iff` key." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenLogicIff ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# External-corpus mathematics coverage: conventional display notation is audited
+# here in the language grounding slice, while the mathematical referents remain
+# owned by math:.  No overloaded glyph is silently promoted to an executable
+# alias; the disposition records the named key or structured constructor that
+# preserves the missing arity, grade, or semantic context.
+
+gmeow:gmnCandidateMathBoundaryOperator
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: boundary operator"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the conventional partial-sign notation of math:BoundaryOperator."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:BoundaryOperator ;
+    gmeow:gmnCandidateGlyph "∂" ;
+    gmeow:gmnAsciiFallback "boundary" ;
+    gmeow:gmnSpokenLabel "boundary" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The same partial sign denotes partial differentiation and chain boundaries; the `boundary` key keeps the operator family explicit." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathBoundaryOperator ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathCoboundaryOperator
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: coboundary operator"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the conventional delta notation of math:CoboundaryOperator."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:CoboundaryOperator ;
+    gmeow:gmnCandidateGlyph "δ" ;
+    gmeow:gmnAsciiFallback "coboundary" ;
+    gmeow:gmnSpokenLabel "coboundary" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "Delta is also used for variation, change, and distributions; the `coboundary` key preserves the cochain-complex meaning." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathCoboundaryOperator ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathExteriorProduct
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: exterior product"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the wedge notation of math:ExteriorProduct."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:ExteriorProduct ;
+    gmeow:gmnCandidateGlyph "∧" ;
+    gmeow:gmnAsciiFallback "wedge" ;
+    gmeow:gmnSpokenLabel "wedge" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The wedge glyph already denotes logic:and and omits the graded operands' context; an explicit binary `wedge` constructor preserves both distinctions." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathDirectSum
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: direct sum"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the circled-plus notation associated with math:DirectSumDecomposition."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:DirectSumDecomposition ;
+    gmeow:gmnCandidateGlyph "⊕" ;
+    gmeow:gmnAsciiFallback "ds" ;
+    gmeow:gmnSpokenLabel "direct sum" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The circled-plus glyph fragments into more pinned BPE tokens than the one-token `ds` key, so it remains display notation." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathDirectSumDecomposition ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathLeftContraction
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: left contraction"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the right-floor notation of math:LeftContraction."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:LeftContraction ;
+    gmeow:gmnCandidateGlyph "⌟" ;
+    gmeow:gmnAsciiFallback "lcon" ;
+    gmeow:gmnSpokenLabel "left contraction" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The contraction glyph fragments into more pinned BPE tokens than the `lcon` key, so the Unicode sign remains display notation." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathLeftContraction ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathGradeProjection
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: grade projection"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the grade-indexed angle-bracket notation of math:GradeProjection."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:GradeProjection ;
+    gmeow:gmnCandidateGlyph "⟨·⟩ₖ" ;
+    gmeow:gmnAsciiFallback "grade" ;
+    gmeow:gmnSpokenLabel "project grade" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The display form contains both an operand slot and a grade parameter; a flat glyph alias would erase that structure, so GMN keeps an explicit `grade` constructor." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathReversion
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Clifford reversion"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the tilde notation of math:Reversion."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Reversion ;
+    gmeow:gmnCandidateGlyph "~" ;
+    gmeow:gmnAsciiFallback "rev" ;
+    gmeow:gmnSpokenLabel "reversion" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "Tilde is shared with approximation, negation, and programming-language operators; the `rev` key makes the Clifford involution inspectable." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathReversion ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathGeometricProductDot
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: geometric-product dot"@x-gmeow-english ;
+    skos:definition "The explicit rejection of a centred dot as a flattened alias for math:GeometricProduct."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:GeometricProduct ;
+    gmeow:gmnCandidateGlyph "·" ;
+    gmeow:gmnAsciiFallback "gp" ;
+    gmeow:gmnSpokenLabel "geometric product" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionSemanticRejection ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisSemanticMismatch ;
+    gmeow:gmnDispositionRationale "A centred dot conventionally denotes scalar or inner product, whereas geometric product is normally juxtaposition; GMN uses the explicit `gp` constructor instead of asserting a false glyph identity." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathHodgeLaplacian
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Hodge Laplacian"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the capital-delta notation of math:HodgeLaplacian."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:HodgeLaplacian ;
+    gmeow:gmnCandidateGlyph "Δ" ;
+    gmeow:gmnAsciiFallback "hlap" ;
+    gmeow:gmnSpokenLabel "Hodge Laplacian" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "Capital delta is used for finite differences, changes, discriminants, and several Laplacians; the `hlap` key fixes the Hodge operator family." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathHodgeLaplacian ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # The IPA glyphs remain executable inside phonological surface content but are

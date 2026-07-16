@@ -32,12 +32,12 @@ fn score_for(slice_iri: &str, extra_candidate: &str) -> gmeow_slice_quality::sco
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
 gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;
-    gmeow:references gmeow:gmnScript , gmeow:gmnDictV2 ;
-    gmeow:gmnDictionaryVersion "2" ;
+    gmeow:references gmeow:gmnScript , gmeow:gmnDictV3 ;
+    gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "2" .
 
-gmeow:gmnDictV2 a gmeow:GmnDictionary ;
-    gmeow:gmnDictionaryVersion "2" .
+gmeow:gmnDictV3 a gmeow:GmnDictionary ;
+    gmeow:gmnDictionaryVersion "3" .
 
 gmeow:gmnScript a lang:Script ;
     lang:hasGrapheme ex:glyph .

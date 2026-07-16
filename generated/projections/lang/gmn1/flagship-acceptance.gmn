@@ -1,4 +1,4 @@
-@gmn{v: 1, aliases: dict-v2, glyphs: 2}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gmeow__examples-2f-lang-2f-acceptance-2f-ambiguityHeldHonestly, p: rdf__type, o: gmeow__FlagshipScenario}
 @c{s: gmeow__examples-2f-lang-2f-acceptance-2f-ambiguityHeldHonestly, p: rdfs__label, v: r_62df39b6be97657a}
 @c{s: gmeow__examples-2f-lang-2f-acceptance-2f-ambiguityHeldHonestly, p: skos__definition, v: r_0c95b3cd1e61bd84}

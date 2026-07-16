@@ -5901,11 +5901,52 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/CalibrationDiagnostic-shape> {
 }
 
+# targetClass <https://blackcatinformatics.ca/math/CellularSheaf> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/CellularSheaf-shape> {
+  <https://blackcatinformatics.ca/math/hasStalk> IRI ;
+  <https://blackcatinformatics.ca/math/restrictionMap> IRI ;
+  <https://blackcatinformatics.ca/math/sheafBaseComplex> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/Chart> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/Chart-shape> {
   <https://blackcatinformatics.ca/math/chartDomain> NONLITERAL ;
   <https://blackcatinformatics.ca/math/coordinateMap> NONLITERAL ;
   <https://blackcatinformatics.ca/math/targetCoordinateSpace> NONLITERAL ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/CliffordAlgebra> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/CliffordAlgebra-shape> {
+  <https://blackcatinformatics.ca/math/hasBasis> IRI ;
+  <https://blackcatinformatics.ca/math/hasGrading> IRI ;
+  <https://blackcatinformatics.ca/math/scalarField> . ;
+  <https://blackcatinformatics.ca/math/hasBasisBlade> IRI ;
+  <https://blackcatinformatics.ca/math/spaceDimension> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+  <https://blackcatinformatics.ca/math/metricSignature> IRI ;
+  <https://blackcatinformatics.ca/math/cliffordInvolution> IRI ;
+  <https://blackcatinformatics.ca/math/pseudoscalarSquare> <http://www.w3.org/2001/XMLSchema#integer> ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/CliffordAnticommutationWitness> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/CliffordAnticommutationWitness-shape> {
+  <https://blackcatinformatics.ca/math/leftGenerator> IRI ;
+  <https://blackcatinformatics.ca/math/rightGenerator> IRI ;
+  <https://blackcatinformatics.ca/math/anticommutationVerified> ["true"^^<http://www.w3.org/2001/XMLSchema#boolean>] ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/CliffordExtension> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/CliffordExtension-shape> {
+  <https://blackcatinformatics.ca/math/baseAlgebra> IRI ;
+  <https://blackcatinformatics.ca/math/extendedAlgebra> IRI ;
+  <https://blackcatinformatics.ca/math/extensionGenerator> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/CliffordModuleDecomposition> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/CliffordModuleDecomposition-shape> {
+  <https://blackcatinformatics.ca/math/decomposedObject> IRI ;
+  <https://blackcatinformatics.ca/math/moduleBaseSummand> IRI ;
+  <https://blackcatinformatics.ca/math/splitJoinVerified> ["true"^^<http://www.w3.org/2001/XMLSchema#boolean>] ;
+  <https://blackcatinformatics.ca/math/moduleExtensionSummand> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ClosedFormFunction> (associate via ShapeMap)
@@ -6000,6 +6041,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/homogeneousOperand> NONLITERAL {2,} ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/DimensionalReduction> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/DimensionalReduction-shape> {
+  <https://blackcatinformatics.ca/math/analysisInput> IRI ;
+  <https://blackcatinformatics.ca/math/analysisOutput> IRI ;
+  <https://blackcatinformatics.ca/math/targetDimension> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/Distribution> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/Distribution-shape> {
   <https://blackcatinformatics.ca/math/distributionFamily> IRI + ;
@@ -6070,6 +6118,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/GramMatrix-shape> {
   <https://blackcatinformatics.ca/math/inBasis> IRI ;
   <https://blackcatinformatics.ca/math/representsForm> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/HamiltonianSystem> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/HamiltonianSystem-shape> {
+  <https://blackcatinformatics.ca/math/stateSpace> IRI ;
+  <https://blackcatinformatics.ca/math/generatesFlow> IRI ;
+  <https://blackcatinformatics.ca/math/symplecticForm> IRI ;
+  <https://blackcatinformatics.ca/math/hamiltonianFunction> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> (associate via ShapeMap)
@@ -6216,6 +6272,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/diesAt> NONLITERAL ;
   <https://blackcatinformatics.ca/math/overFiltration> IRI ;
   <https://blackcatinformatics.ca/math/persistenceFeature> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/PersistentHomology> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/PersistentHomology-shape> {
+  <https://blackcatinformatics.ca/math/analysisInput> IRI ;
+  <https://blackcatinformatics.ca/math/analysisOutput> IRI ;
+  <https://blackcatinformatics.ca/math/overFiltration> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/PiecewiseFunction> (associate via ShapeMap)
