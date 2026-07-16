@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The **five correspondence conformance gates** (F4): the decidable checks that police a
-//! `logic:Correspondence` and its derived `put` leg. Each is a graph-iso / content-address
-//! check over the canonical IR — *never* a data-execution check, so they run with no
-//! execution engine (F3 stays off this path; `LOGIC-CONFORMANCE.md § Correspondence gates`).
+//! `logic:Correspondence` and its derived `put` leg.  The compiler-side gate functions do
+//! not own an executor; they consume the total, per-correspondence behavioural verdict map
+//! produced by `gmeow_logic::correspondence_exec`.  Recovery is therefore executed once at
+//! the runtime seam and checked here without a second structural approximation.
 //!
 //! | Gate | What it refuses |
 //! |---|---|
 //! | **Law** | an `ObligationDischarged` law whose witness does not pass (must degrade to `ObligationUnknown`), or a shipped `ObligationViolated` law |
 //! | **Overclaim** | a bridge view claiming equivalence; an equivalence claimed on a non-injective rung (Principle 5) |
-//! | **Round-trip** | an `iso` / `section` claim whose `put` leg is not the derived inverse (`put ∘ get ≠ id`) |
-//! | **Mnemomorphism** | a declared-recoverable cell that carries no derived recovery `put` leg, or a witness claimed on a non-injective rung |
+//! | **Round-trip** | an `iso` / `section` claim whose executed complete source case is not recovered (`put ∘ get ≠ id`) |
+//! | **Mnemomorphism** | a declared-recoverable cell whose executed witness loses source atoms, lacks an executable complete case, or sits on a non-injective rung |
 //! | **Composition** | a composite whose rung is STRONGER than the lattice-join of its parts (composition may only weaken) |
 //!
 //! [`evaluate_gates`] produces a structured, serializable [`CorrespondenceGateReport`]
@@ -31,8 +32,8 @@ use super::correspondence_gate::assert_relation_no_overclaim;
 /// The per-correspondence **executed lens-law verdict** map the gates read, keyed by
 /// correspondence IRI. Each verdict is the behavioural section-law outcome (`put ∘ get =
 /// id_S`) an engine-adjacent producer computed by RUNNING both legs (never a syntactic path
-/// compare); the gates below stay execution-free (`§4-7`) by consuming this map instead of
-/// re-deriving an inversion. See `gmeow_logic::correspondence_exec` for the executor.
+/// compare); the gates below consume this map instead of re-deriving an inversion. See
+/// `gmeow_logic::correspondence_exec` for the single executor.
 pub type CorrespondenceVerdicts = BTreeMap<String, DischargeVerdict>;
 
 /// Read the supplied executed verdict for a correspondence.
@@ -67,8 +68,8 @@ fn refutation_clause(verdict: DischargeVerdict) -> &'static str {
              ObligationViolated)"
         }
         DischargeVerdict::ObligationUnknown => {
-            "the executed put ∘ get section-law discharge could not verify it (no derivable \
-             get/put leg pair to run; ObligationUnknown)"
+            "the executed put ∘ get section-law discharge could not verify it (no executable \
+             complete recovery case or atomic leg pair; ObligationUnknown)"
         }
         DischargeVerdict::ObligationDischarged => {
             "the executed put ∘ get section-law discharge \

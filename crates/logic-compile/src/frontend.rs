@@ -246,6 +246,14 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
     )
 }
 
+/// Recovery-case ownership links are correspondence-calculus structure, not domain
+/// axioms.  Their formula tree is reconstructed into [`RecoveryCaseIr`] by the shared
+/// correspondence reader; retaining these edges in `LogicProgram::axioms` as well would
+/// duplicate one semantic object across the generic projection and correspondence lanes.
+fn is_recovery_case_structural_predicate(prop_local: &str) -> bool {
+    matches!(prop_local, "recoveryCase" | "recoveryTransform")
+}
+
 /// The reserved `logic:` predicate-local names that carry a `logic:Constraint` (or a compact
 /// constraint-sugar record) — its integrity/severity/message/formalizes annotations, the sugar
 /// pattern parameters, and the aggregate-comparison satellite. Like the formula-structural
@@ -461,6 +469,9 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_formula_structural_predicate(p_local) {
             continue;
         }
+        if is_recovery_case_structural_predicate(p_local) {
+            continue;
+        }
         // Rule-aggregation triples (the reduce spec carried on a logic:Rule node) are consumed
         // by extract_rules; they are rule structure, never domain facts, and must not pollute
         // the axiom set or the canonical round-trip.
@@ -520,7 +531,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // `extract_formulas`. Keeping it as a generic class-membership axiom as well would give
         // the same authored node two IR homes; the CL writer would then emit a constructorless
         // duplicate under the source IRI alongside the content-addressed formula tree.
-        if o_local == "Formula" {
+        if matches!(o_local, "Formula" | "TermCarrier" | "RecoveryCase") {
             continue;
         }
         // A `logic:Constraint` / constraint-sugar type triple is consumed by the constraint +
@@ -2796,6 +2807,15 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             referenced.insert(term_str(&obj));
         }
     }
+    // A formula reached as a correspondence recovery transform is owned by that
+    // first-class `logic:RecoveryCase`, not a free-standing assertion.  Keep one semantic
+    // home while still validating every node in the shared formula parser below.
+    let recovery_transform_pred = nn(&logic_iri("recoveryTransform"));
+    for case in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("RecoveryCase"))) {
+        for obj in objects(store, &case, &recovery_transform_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -2889,7 +2909,7 @@ fn one_child_subject(
 /// The parser is deliberately strict: every node has exactly one constructor family; singleton
 /// constructors have exactly one child; `and`/`or` have at least two children; `iff` has exactly
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
-fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
+pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
 }
 

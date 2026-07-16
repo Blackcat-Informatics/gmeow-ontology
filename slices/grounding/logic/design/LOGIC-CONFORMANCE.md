@@ -230,8 +230,10 @@ in the section below) governs which constructs are in scope for the round-trip c
 
 The correspondence calculus ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)) **generalizes the
 Common-Logic round-trip gate above to any `logic:Correspondence`.** Five gates govern the
-Correspondence corpus category, each a decidable check over the content-addressed canonical IR
-(graph-isomorphism, not semantic-equivalence search):
+Correspondence corpus category.  Structural claims remain decidable over content-addressed canonical
+IR; recovery claims additionally consume the deterministic behavioural verdict produced by the
+single native correspondence executor.  They do not substitute a path-shape comparison for graph
+execution:
 
 - **Law gate** — a correspondence may not claim a law (GetPut / PutGet / PutPut / the section law) it
   fails; an `ObligationDischarged` verdict under `logic:DischargeCertifiedFragment` is permitted only
@@ -242,11 +244,16 @@ Correspondence corpus category, each a decidable check over the content-addresse
   build failure, treated identically to dropping a fact silently (the preservation-overclaim rule
   below).
 - **Round-trip gate** — `iso` and `section/retraction` claims must pass canonical-IR identity:
-  `put ∘ get = id` (and, for iso, `get ∘ put = id`) over the declared query class. This is the CL
-  round-trip gate applied to a correspondence's get/put legs.
+  `put ∘ get = id` (and, for iso, `get ∘ put = id`) over the declared query class.  A first-class
+  `logic:RecoveryCase` supplies an ordered, universally quantified source→view formula.  The native
+  executor instantiates its complete positive-conjunctive binary RDF source pattern, runs get and
+  candidate put, and compares the recovered atom set; an atomic one-triple leg may synthesize the
+  complete case, while a composite leg without one remains `ObligationUnknown`.
 - **Mnemomorphism gate** — if a correspondence is declared `mnemomorphic`, its retained witness must
-  actually recover the source (the in-band complement reconstructs `S ∖ im(get)`); a
-  declared-recoverable cell that cannot recover is a failure.
+  actually recover the source (the in-band complement reconstructs `S ∖ im(get)`); missing or
+  fabricated atoms yield `ObligationViolated` and a countermodel.  The discharge is explicitly
+  bounded by the authored query class (`logic:DischargeBoundedCorpus`), never presented as a global
+  proof over unenumerated source structures.
 - **Composition gate** — composing correspondences may only preserve or weaken claims (class by
   lattice-join, law-status by weakest-dominates, loss by union of unsupported-construct sets); a
   composite claiming more than its parts license is a failure.

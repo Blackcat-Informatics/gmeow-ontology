@@ -1319,6 +1319,43 @@ fn correspondence_content_key_is_law_claim_order_independent() {
 }
 
 #[test]
+fn correspondence_recovery_cases_sort_and_key_by_full_content() {
+    let case_a = RecoveryCaseIr::new("https://example.org/recovery/a", pred("a", vec![tv("x")]))
+        .expect("case a");
+    let case_b = RecoveryCaseIr::new("https://example.org/recovery/b", pred("b", vec![tv("x")]))
+        .expect("case b");
+
+    let ab = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case_a.clone(), case_b.clone()])
+        .expect("unique cases");
+    let ba = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case_b, case_a.clone()])
+        .expect("unique cases");
+    assert_eq!(ab.recovery_cases, ba.recovery_cases);
+
+    let changed = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![
+            RecoveryCaseIr::new(case_a.iri, Formula::Not(Box::new(pred("a", vec![tv("x")]))))
+                .expect("changed case"),
+        ])
+        .expect("unique changed case");
+    assert_ne!(ab.content_key(), changed.content_key());
+}
+
+#[test]
+fn correspondence_recovery_case_iris_are_unique() {
+    let case = RecoveryCaseIr::new(
+        "https://example.org/recovery/duplicate",
+        pred("a", vec![tv("x")]),
+    )
+    .expect("case");
+    let error = corr(&format!("{LOGIC}c"), vec![])
+        .with_recovery_cases(vec![case.clone(), case])
+        .expect_err("duplicate case identity must hard-fail");
+    assert!(error.message().contains("duplicated"), "{error}");
+}
+
+#[test]
 fn correspondence_dedups_duplicate_law_claims() {
     let claim = LawClaimIr {
         law: CorrespondenceLaw::SectionLaw,
@@ -1681,9 +1718,9 @@ fn normalize_cancels_double_inverse_and_flattens() {
 
 #[test]
 fn canonical_key_round_trips_inverse_to_get() {
-    // The lawful put is the structural inverse of get; put∘get identity is decided by the
-    // canonical key, NOT by hashing surrounding metadata. A WRONG put body has a different
-    // key — the property the old IRI-string tautology could not see.
+    // Inversion constructs a deterministic candidate body.  This is path-algebra identity,
+    // not recovery discharge: the native executor separately decides whether the candidate
+    // reproduces a complete declared source graph.
     let get = LegPath::Seq(vec![step("foo"), LegPath::Inverse(Box::new(step("bar")))]);
     let lawful_put = get.invert();
     assert_eq!(

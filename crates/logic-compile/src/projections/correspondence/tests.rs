@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use crate::ir::PreservationKind;
+use crate::ir::{Formula, PreservationKind, RecoveryCaseIr, Term};
 
 const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
@@ -201,6 +201,97 @@ fn projection_round_trips_to_equal_content_key() {
         nt,
         "re-projecting the re-derived program is byte-identical"
     );
+}
+
+/// Recovery evidence has one canonical RDF home under its correspondence.  Its complete
+/// quantified transform survives project → parse → project without also becoming a
+/// top-level formula assertion.
+#[test]
+fn recovery_case_formula_round_trips_byte_identically() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+
+    let atom = |relation: &str, object: &str| {
+        Formula::atom(
+            Term::iri(relation).expect("relation IRI"),
+            vec![
+                Term::var("source").expect("source variable"),
+                Term::iri(object).expect("endpoint IRI"),
+            ],
+        )
+        .expect("binary atom")
+    };
+    let transform = Formula::Forall {
+        vars: vec!["source".to_owned()],
+        body: Box::new(Formula::Implies(
+            Box::new(atom(
+                "https://example.org/sourceKind",
+                "https://example.org/Language",
+            )),
+            Box::new(atom(
+                "https://example.org/viewKind",
+                "https://example.org/SignSystem",
+            )),
+        )),
+    };
+    let case = RecoveryCaseIr::new("https://example.org/recovery/language", transform)
+        .expect("valid recovery case");
+    let correspondence = Correspondence::new(
+        "https://example.org/correspondence/language",
+        CorrespondenceRelation::SubsumedBy,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        Some("https://example.org/get".to_owned()),
+        Some("https://example.org/put".to_owned()),
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("valid correspondence")
+    .with_recovery_cases(vec![case])
+    .expect("unique recovery case");
+    let program = CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::Exact);
+
+    let nt = project_correspondence(&program);
+    assert!(
+        nt.contains("RecoveryCase"),
+        "case type must be projected:\n{nt}"
+    );
+    assert!(
+        nt.contains("recoveryTransform"),
+        "formula ownership edge must be projected:\n{nt}"
+    );
+    let dataset = parse_nt(&nt);
+    let re_derived = parse_correspondence(&dataset).expect("re-derive recovery case");
+    assert_eq!(program.content_key(), re_derived.content_key());
+    assert_eq!(project_correspondence(&re_derived), nt);
+
+    let duplicate_transform = format!(
+        "{nt}<https://example.org/recovery/language> <{}> <https://example.org/recovery/second-transform> .\n",
+        p_recovery_transform()
+    );
+    let duplicate_dataset = parse_nt(&duplicate_transform);
+    let error = parse_correspondence(&duplicate_dataset)
+        .expect_err("a recovery case with two transforms must hard-fail");
+    assert!(error.message().contains("exactly one"), "{error}");
+
+    let untyped = nt
+        .lines()
+        .filter(|line| {
+            !(line.starts_with("<https://example.org/recovery/language> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+                && line.contains("RecoveryCase"))
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let untyped_dataset = parse_nt(&untyped);
+    let error = parse_correspondence(&untyped_dataset)
+        .expect_err("an untyped recovery case must hard-fail");
+    assert!(error.message().contains("not typed"), "{error}");
 }
 
 /// Standpoint indexing has one canonical RDF spelling across the ontology and the

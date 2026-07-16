@@ -1704,14 +1704,50 @@ fn opt_axis_key(v: Option<f64>) -> String {
     }
 }
 
+/// One declared query-class case for executed correspondence recovery.
+///
+/// The case is neutral evidence: its transform may discharge a genuine recovery or refute a
+/// lossy one.  It therefore never substitutes for the correspondence's `mnemomorphic` claim;
+/// the native executor decides the claim from the case's behavior.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryCaseIr {
+    /// IRI of the first-class `logic:RecoveryCase` node.
+    pub iri: String,
+    /// The ordered, universally quantified source-to-view transform
+    /// (`logic:recoveryTransform`).  The native correspondence executor accepts the
+    /// positive-conjunctive binary fragment and derives the candidate put direction from it;
+    /// a case may therefore either discharge recovery or produce a countermodel.
+    pub transform: Formula,
+}
+
+impl RecoveryCaseIr {
+    /// Build a recovery case, rejecting an empty identity.  Executability of the formula is
+    /// deliberately checked by the native executor: the IR carries full `logic:Formula`, while
+    /// an out-of-fragment recovery claim must become an explicit violated/unknown discharge,
+    /// never disappear during parsing.
+    pub fn new(iri: impl Into<String>, transform: Formula) -> gmeow_errors::Result<Self> {
+        let iri = iri.into();
+        if iri.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "RecoveryCaseIr.iri must be a non-empty IRI string".to_owned(),
+            }));
+        }
+        Ok(Self { iri, transform })
+    }
+
+    /// Deterministic full-content identity.
+    pub fn content_key(&self) -> String {
+        format!("{}{}{}", self.iri, SEP, self.transform.content_key())
+    }
+}
+
 /// A `logic:Correspondence` IR node — the ninth node kind realized: an asymmetric lens
 /// (the `get`/`put` legs) wrapped in a relation/axes/laws/standpoint envelope.
 ///
 /// Identity is content-addressed: the IRI is the sort key (compared directly on the
-/// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the `law_claims`
-/// are sorted and deduped at construction, so two correspondences differing only in the
-/// order their claims were supplied compare equal).  No `Eq`/`Hash` derive: the
-/// quantitative axes are `f64` (mirrors [`LogicAxiom`]).
+/// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the
+/// `law_claims` and recovery cases are canonicalized at construction). No `Eq`/`Hash` derive:
+/// the quantitative axes are `f64` (mirrors [`LogicAxiom`]).
 #[derive(Debug, Clone, PartialEq)]
 pub struct Correspondence {
     /// IRI string of the correspondence individual (identity).
@@ -1765,6 +1801,11 @@ pub struct Correspondence {
     /// therefore also projected as a `logic:GroundingCorrespondence`. Ordinary consumer
     /// mappings remain plain `logic:Correspondence` nodes.
     pub grounding: bool,
+    /// Executable recovery cases (`logic:recoveryCase`) declaring the complete source graph
+    /// patterns over which this correspondence's recovery law is decided.  Presence does NOT
+    /// assert recoverability: a lossy correspondence may carry a deliberately refuting case.
+    /// Sorted by IRI and unique at construction through [`Self::with_recovery_cases`].
+    pub recovery_cases: Vec<RecoveryCaseIr>,
 }
 
 impl Correspondence {
@@ -1857,6 +1898,7 @@ impl Correspondence {
             source_endpoint: None,
             target_endpoint: None,
             grounding: false,
+            recovery_cases: Vec::new(),
         })
     }
 
@@ -1889,6 +1931,31 @@ impl Correspondence {
         self
     }
 
+    /// Attach the executable recovery cases for this correspondence.
+    ///
+    /// Case identity is authored and therefore must be unique.  Two nodes with the same IRI
+    /// are ambiguous even when their formulas happen to match, so duplicates hard-fail rather
+    /// than falling through an order-dependent first-wins path.
+    pub fn with_recovery_cases(
+        mut self,
+        mut recovery_cases: Vec<RecoveryCaseIr>,
+    ) -> gmeow_errors::Result<Self> {
+        recovery_cases.sort_by(|a, b| a.iri.cmp(&b.iri));
+        if let Some(duplicate) = recovery_cases
+            .windows(2)
+            .find(|pair| pair[0].iri == pair[1].iri)
+            .map(|pair| pair[0].iri.clone())
+        {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "Correspondence recovery-case IRI <{duplicate}> is duplicated; case identity must be unique"
+                ),
+            }));
+        }
+        self.recovery_cases = recovery_cases;
+        Ok(self)
+    }
+
     /// A deterministic full-content key for canonical equality, folding every field
     /// with explicit `name=value` framing and empty-string defaults.
     fn content_key(&self) -> String {
@@ -1907,10 +1974,22 @@ impl Correspondence {
             .grounding
             .then_some(format!("{SEP}grounding=True"))
             .unwrap_or_default();
+        let recovery = if self.recovery_cases.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "{SEP}recovery={}",
+                self.recovery_cases
+                    .iter()
+                    .map(RecoveryCaseIr::content_key)
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+        };
         format!(
             "{}{SEP}rel={}{SEP}class={}{SEP}kind={}{SEP}mnemo={}{SEP}det={}{SEP}\
              get={}{SEP}put={}{SEP}conf={}{SEP}ev={}{SEP}w={}{SEP}prob={}{SEP}\
-             at={}{SEP}pres={}{SEP}laws={claims}{endpoints}{grounding}",
+             at={}{SEP}pres={}{SEP}laws={claims}{endpoints}{grounding}{recovery}",
             self.iri,
             self.relation.as_str(),
             self.morphism_class.as_str(),

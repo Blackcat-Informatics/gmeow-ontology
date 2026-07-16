@@ -15,7 +15,7 @@
 //! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
 //! source into its named graph.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use purrdf::RdfDatasetBuilder;
@@ -1107,7 +1107,90 @@ pub(crate) fn assemble_object_level_edb(
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+    without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
+}
+
+/// Remove correspondence-owned recovery evidence from an otherwise object-level dataset.
+///
+/// A recovery case is executable meta-language: its formula seeds a source graph for the
+/// correspondence executor, but the formula tree is not an ontology ABox to saturate.  The
+/// compiled `graph/correspondence` projection is already excluded from the reasoning EDB; this
+/// function applies the same boundary to the canonical source envelope that remains in the
+/// default graph.  Besides avoiding false ontology facts, doing so keeps RDFC-1.0 labels for
+/// unrelated ontology blank nodes stable when recovery evidence grows.
+///
+/// Traversal follows only ownership links.  In particular, `logic:relation` and
+/// `logic:termIri` are deliberately not followed: their objects are ontology vocabulary terms,
+/// not nodes owned by the recovery case.
+fn without_recovery_case_envelopes(
+    dataset: &purrdf::RdfDataset,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    const RECOVERY_CASE: &str = "https://blackcatinformatics.ca/logic/recoveryCase";
+    const OWNERSHIP_LINKS: [&str; 11] = [
+        "https://blackcatinformatics.ca/logic/recoveryTransform",
+        "https://blackcatinformatics.ca/logic/not",
+        "https://blackcatinformatics.ca/logic/and",
+        "https://blackcatinformatics.ca/logic/or",
+        "https://blackcatinformatics.ca/logic/antecedent",
+        "https://blackcatinformatics.ca/logic/consequent",
+        "https://blackcatinformatics.ca/logic/iff",
+        "https://blackcatinformatics.ca/logic/forall",
+        "https://blackcatinformatics.ca/logic/exists",
+        "https://blackcatinformatics.ca/logic/argument",
+        "https://blackcatinformatics.ca/logic/quantifiedVariable",
+    ];
+
+    fn resource(term: &RdfTerm) -> bool {
+        matches!(term, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))
+    }
+
+    let quads: Vec<RdfQuad> = dataset.owned_quads().collect();
+    let mut owned: HashSet<(Option<RdfTerm>, RdfTerm)> = quads
+        .iter()
+        .filter(|quad| quad.predicate == RECOVERY_CASE)
+        .filter(|quad| resource(&quad.object))
+        .map(|quad| (quad.graph_name.clone(), quad.object.clone()))
+        .collect();
+
+    loop {
+        let before = owned.len();
+        for quad in &quads {
+            if owned.contains(&(quad.graph_name.clone(), quad.subject.clone()))
+                && OWNERSHIP_LINKS.contains(&quad.predicate.as_str())
+                && resource(&quad.object)
+            {
+                owned.insert((quad.graph_name.clone(), quad.object.clone()));
+            }
+        }
+        if owned.len() == before {
+            break;
+        }
+    }
+
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in quads {
+        let recovery_owned = quad.predicate == RECOVERY_CASE
+            || owned.contains(&(quad.graph_name.clone(), quad.subject.clone()));
+        if !recovery_owned {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in dataset.owned_reifiers() {
+        let recovery_owned = owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
+            || owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
+            || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone()));
+        if !recovery_owned {
+            builder.push_owned_reifier(&reifier);
+        }
+    }
+    for annotation in dataset.owned_annotations() {
+        if !owned.contains(&(annotation.graph.clone(), annotation.reifier.clone())) {
+            builder.push_owned_annotation(&annotation);
+        }
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze recovery-free reasoning EDB: {e}")))
 }
 
 /// Project a shipped snapshot back to the exact object-level EDB admitted by
@@ -1148,14 +1231,67 @@ pub fn snapshot_reasoning_edb(
             builder.push_owned_annotation(&annotation);
         }
     }
-    builder
+    let admitted = builder
         .freeze()
-        .map_err(|e| stage_err(&format!("freeze snapshot object-level reasoning EDB: {e}")))
+        .map_err(|e| stage_err(&format!("freeze snapshot object-level reasoning EDB: {e}")))?;
+    without_recovery_case_envelopes(admitted.as_ref())
 }
 
 #[cfg(test)]
 mod reasoning_edb_projection_tests {
     use super::*;
+
+    #[test]
+    fn recovery_formula_envelope_is_meta_level_but_referenced_terms_remain() {
+        let trig = b"@prefix ex: <https://example.test/> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            ex:ordinary ex:p [ ex:q ex:o ] .
+            GRAPH <https://blackcatinformatics.ca/gmeow/graph/imports> {
+                ex:Source ex:retained ex:yes .
+                ex:c logic:recoveryCase ex:case .
+                ex:case a logic:RecoveryCase ; logic:recoveryTransform _:root .
+                _:root a logic:Formula ;
+                    logic:quantifiedVariable _:var ;
+                    logic:forall _:implication .
+                _:var a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" .
+                _:implication a logic:Formula ;
+                    logic:antecedent _:source ; logic:consequent _:view .
+                _:source a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument _:sourceSubject, _:sourceClass .
+                _:sourceSubject a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" .
+                _:sourceClass a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Source .
+                _:view a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument _:viewSubject, _:viewClass .
+                _:viewSubject a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable \"x\" .
+                _:viewClass a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:View .
+            }";
+        let snapshot =
+            parse_dataset(trig, "application/trig", None).expect("parse recovery fixture");
+        let edb = snapshot_reasoning_edb(snapshot.as_ref()).expect("project reasoning EDB");
+        let quads: Vec<RdfQuad> = edb.owned_quads().collect();
+
+        assert!(quads.iter().any(|quad| {
+            quad.subject == RdfTerm::iri("https://example.test/Source")
+                && quad.predicate == "https://example.test/retained"
+        }));
+        assert!(quads.iter().any(|quad| {
+            quad.subject == RdfTerm::iri("https://example.test/ordinary")
+                && matches!(quad.object, RdfTerm::BlankNode(_))
+        }));
+        assert!(quads.iter().all(|quad| {
+            quad.predicate != "https://blackcatinformatics.ca/logic/recoveryCase"
+                && quad.subject != RdfTerm::iri("https://example.test/case")
+        }));
+        assert_eq!(
+            quads
+                .iter()
+                .filter(|quad| matches!(quad.subject, RdfTerm::BlankNode(_)))
+                .count(),
+            1,
+            "only the unrelated ordinary blank node remains"
+        );
+    }
 
     #[test]
     fn shipped_correspondence_and_alignment_targets_never_enter_reasoning() {

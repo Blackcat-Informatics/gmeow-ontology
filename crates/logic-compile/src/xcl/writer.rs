@@ -455,12 +455,15 @@ fn path_shape_ntriples(shape: &crate::ir::PathShapeIr) -> Vec<String> {
 }
 
 /// The set of correspondence node IRIs whose flat axioms are owned by the correspondence channel
-/// (the correspondence individuals + the singleton `correspondence-program` node).
+/// (the correspondence individuals, named recovery cases, and singleton
+/// `correspondence-program` node).
 fn correspondence_subjects(program: &LogicProgram) -> Vec<String> {
     let mut subjects: Vec<String> = program
         .correspondences
         .iter()
-        .map(|c| c.iri.clone())
+        .flat_map(|c| {
+            std::iter::once(c.iri.clone()).chain(c.recovery_cases.iter().map(|r| r.iri.clone()))
+        })
         .collect();
     subjects.push(format!(
         "{}correspondence-program",
