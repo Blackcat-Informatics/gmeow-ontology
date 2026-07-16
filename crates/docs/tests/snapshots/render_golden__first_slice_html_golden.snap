@@ -57,7 +57,7 @@ expression: "to_html(&model, &Page::Slice(slug))"
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>91311bd9d8d6</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>06d16d51d480</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
