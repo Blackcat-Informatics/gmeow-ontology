@@ -67,6 +67,25 @@ pub(crate) const GRAPH_QUALITY_ASSESSMENT: &str =
 /// fanout copy serves the superset gate / fanout writer (the correspondence-laws corpus
 /// follows the same twin-graph pattern).
 pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
+/// The per-slice authoring-packet corpus: a `gmeow:AuthoringPacket` for every in-repo
+/// slice batch (definition + axioms + bounded neighbourhood + grounding cross-table),
+/// assembled by [`gmeow_slice_brief::assemble_packet`] and attached by the dedicated
+/// `stage-slice-brief` producer. Folded as its own queryable named graph so a repo-free
+/// consumer reads every slice's authoring briefs straight out of `gmeow.gts` (the
+/// shippable authoring deliverable). Excluded from the reasoned object-level EDB exactly
+/// like `graph/quality-assessment` (it asserts a self-description corpus, not object-level
+/// axioms — `gts_compose` folds only the default graph, so this named graph never pollutes
+/// the composed EDB).
+pub(crate) const GRAPH_AUTHORING_BRIEFS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/authoring-briefs";
+/// The committed on-disk projection of the authoring-packet corpus (PIPELINE_SPINE §5:
+/// RDF travels as RDF, so the `gmeow:AuthoringPacket` triples are reconstructible from
+/// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph).
+/// Its `graph/fanout/<path>` reconstruction graph carries the SAME triples as
+/// [`GRAPH_AUTHORING_BRIEFS`]; the base graph serves the queryable bundle graph, the
+/// fanout copy serves the superset gate / fanout writer (the quality-assessment corpus
+/// follows the same twin-graph pattern).
+pub(crate) const AUTHORING_BRIEFS_PATH: &str = "generated/briefs/authoring-packets.nt";
 /// Internal byte-artifact lane member emitted by `stage-source-load`: the repo-wide
 /// slice-quality diagnostics report rendered as self-contained HTML from the SAME scoring
 /// pass that emits [`QUALITY_ASSESSMENT_PATH`]'s graph. It uses the `pipeline/` prefix so
@@ -209,6 +228,22 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 /// as a named graph in the emitted bundle (never a committed-file reconstruction rep).
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
+
+/// The narrowed authored corpus `stage-compile-logic` reads: the WHOLE merged authored
+/// dataset (`load_authored_dataset` — root ontology + every slice `module.ttl` + every
+/// `imports/*.ttl`) with the pure-documentation predicates in
+/// [`crate::stages::source_load::LOGIC_COMPILE_INPUT_DENYLIST`] removed. It is the SOUND
+/// (denylist) narrowing of the compile-logic input: the five augmentation readers
+/// (`derive_validation_shapes`, `extract_all_constraints`, `extract_correspondences`,
+/// `extract_leg_programs`, `MetaProgram::from_source_dataset`) read the OWL/RDFS/XSD
+/// restriction + `logic:`/`gmeow:` vocabulary + `rdfs:comment` caveats, never the stripped
+/// SKOS/Dublin-Core/PROV/VANN documentation triples, so the graph is reader-identical to
+/// the full corpus (the `logic_compile_input_subgraph_preserves_reader_output` soundness
+/// guard proves it). Attaching it as its own named graph on the `stage-source-load` product
+/// lets compile-logic declare a typed `consumed_entities` edge and drop the whole-corpus
+/// file list from its cache key — a documentation-only edit no longer re-runs the compiler.
+pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
 /// The seven `math:` producer graphs, one per native producer entrypoint — five bound to the
 /// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
@@ -569,14 +604,24 @@ pub(crate) fn build_self_description_dataset(
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let quality = gmeow_slice_quality::assessment_artifacts(root)
         .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
-    build_self_description_dataset_with_quality(root, &quality.nquads)
+    let authored_base = crate::stages::source_load::load_authored_dataset(root)?;
+    build_self_description_dataset_with_quality(root, authored_base.as_ref(), &quality.nquads)
 }
 
 /// Build the self-description named graphs with a caller-supplied slice-quality graph.
 /// `stage-source-load` uses this after scoring once so the same pass can also publish the
 /// diagnostics HTML; tests keep a wrapper that scores and calls this helper directly.
+///
+/// `authored_base` is the WHOLE merged authored dataset
+/// ([`crate::stages::source_load::load_authored_dataset`] — root ontology + slice modules +
+/// imports). It is the EXACT corpus `stage-compile-logic` used to re-parse for its five
+/// augmentation readers; the denylisted narrowing of it is published as
+/// [`GRAPH_LOGIC_COMPILE_INPUTS`] so compile-logic reads a typed entity instead. It is NOT
+/// the same dataset as the local `base` below (the authored DEFAULT graph — imports
+/// excluded, `.po` translations merged), so the two must not be conflated.
 pub(crate) fn build_self_description_dataset_with_quality(
     root: &Path,
+    authored_base: &purrdf::RdfDataset,
     quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
@@ -618,6 +663,17 @@ pub(crate) fn build_self_description_dataset_with_quality(
             provenance_nt.as_bytes(),
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+        // graph/logic-compile-inputs — the SOUND (denylist) narrowing of the WHOLE merged
+        // authored corpus `stage-compile-logic` reads (root ontology + slices + imports,
+        // documentation predicates stripped). Published here so compile-logic declares a
+        // typed `consumed_entities` edge on THIS graph and drops the whole-corpus file list
+        // from its cache key. Built from `authored_base` (the same `load_authored_dataset`
+        // compile-logic used), NOT the `base` authored-default above (which excludes imports
+        // and merges translations), so the five readers see a reader-identical corpus.
+        rooted_in_graph(
+            crate::stages::source_load::logic_compile_input_subgraph(authored_base)?.as_ref(),
+            GRAPH_LOGIC_COMPILE_INPUTS,
         )?,
     ];
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
@@ -774,6 +830,19 @@ fn assemble_carrier(
             .ok_or_else(|| stage_err("quality-assessment fanout path is not an RDF path"))?;
         rooted_in_graph(quality_assessment.as_ref(), &iri)?
     };
+    // graph/authoring-briefs — the per-slice `gmeow:AuthoringPacket` corpus, read off the
+    // DEDICATED stage-slice-brief producer's attached graph (a pure keyed fold,
+    // PIPELINE_SPINE §4 — it was assembled + attached ONCE at the DAG root). The base graph
+    // ships as a queryable bundle graph; its fanout twin re-roots the SAME triples into
+    // their `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/briefs/authoring-packets.nt` (RDF travels as RDF — the packet corpus lands
+    // in `generated/` too, not only as a bundle-internal named graph).
+    let authoring_briefs = producer_graph(upstream, "stage-slice-brief", GRAPH_AUTHORING_BRIEFS)?;
+    let authoring_briefs_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(AUTHORING_BRIEFS_PATH)
+            .ok_or_else(|| stage_err("authoring-briefs fanout path is not an RDF path"))?;
+        rooted_in_graph(authoring_briefs.as_ref(), &iri)?
+    };
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -806,6 +875,8 @@ fn assemble_carrier(
         correspondence_laws_fanout,
         quality_assessment,
         quality_assessment_fanout,
+        authoring_briefs,
+        authoring_briefs_fanout,
     ];
     // graph/math-producers/<name> — the seven `math:` producers' (five flagship producers,
     // the probability-model seam producer, and the p-value tri-slice producer) deterministic
@@ -3442,6 +3513,9 @@ impl SnapshotStage {
                 // into gmeow.gts as their own bundle-internal named graphs (Design A — the
                 // producer output ships).
                 "stage-math-producers".to_string(),
+                // The per-slice authoring-packet corpus (graph/authoring-briefs), folded
+                // into gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
+                "stage-slice-brief".to_string(),
                 // The SHACL→JSON-Schema export leaf: its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
                 // bytes, which `build_archive_blobs` folds into the `schemas-archive`
@@ -3577,7 +3651,12 @@ impl Stage for SnapshotStage {
         // denoting a logic:Formula that predicates over a well-framed math:PValue)
         // now ships inside `gmeow.gts` itself (Design A), not only in the
         // illustrative `examples/pvalue-tri-slice.ttl` fixture validated on disk.
-        "snapshot.v27-pvalue-tri-slice-producer"
+        // v28 additionally folds stage-slice-brief's authoring-packets graph
+        // (graph/authoring-briefs, a gmeow:AuthoringPacket per in-repo slice batch) into
+        // gmeow.gts as a bundle-internal named graph, plus its fanout twin into
+        // generated/briefs/authoring-packets.nt (RDF travels as RDF — the shippable
+        // authoring deliverable lands in `generated/` too, not only in the bundle graph).
+        "snapshot.v28-authoring-briefs-producer"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -6285,7 +6364,7 @@ mod logic_graph_golden_tests {
     #[test]
     fn graph_correspondence_fold_byte_golden() {
         let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
-            &gmeow_logic_compile::projections::correspondence::affine_triangle_worked_example(),
+            &crate::stages::compile_logic::affine_worked_example_program(),
         );
 
         let build = || {
@@ -7611,7 +7690,7 @@ mod term_entailments_tests {
         let compile = crate::stages::compile_logic::CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
-                upstream: &empty,
+                upstream: &upstream,
             })
             .expect("real compile-logic");
         upstream.insert("stage-compile-logic".to_string(), compile.product);

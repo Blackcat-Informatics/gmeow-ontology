@@ -28,6 +28,11 @@ htmlcov/
 # bundle. Engine-dependent and regenerated per release — never committed.
 generated/conformance/
 
+# Local content-addressed build cache written by `gmeow-dev sync` — a per-machine
+# incremental-rebuild store (multi-hundred-MB blobs), rebuilt on demand and never
+# a committed projection deliverable.
+generated/.pipeline-cache/
+
 # Editor/OS noise
 .DS_Store
 *.swp

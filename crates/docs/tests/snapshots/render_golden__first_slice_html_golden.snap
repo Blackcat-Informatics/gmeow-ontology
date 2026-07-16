@@ -128,7 +128,7 @@ ex:assertion a gmeow:AccessibilityAssertion ;
     gmeow:assertionPolarity gmeow:polarityFeature .
 </code></pre>
 <hr />
-<p><strong>Provenance:</strong> this page ← <code>stage-docs-render</code> ← <code>stage-compile-logic</code>
+<p><strong>Provenance:</strong> this page ← <code>stage-docs-render</code> ← <code>stage-compile-logic</code> ← <code>stage-source-load</code>
 Rendered from <code>gmeow.gts</code> by the dogfooded build pipeline.</p>
 
     </main>
