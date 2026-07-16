@@ -30,9 +30,10 @@ class QualityAssessment(ConfiguredBaseModel):
 
     A reified assessment of the quality of an entity or dataset, expressed as an observation
     about one or more quality dimensions. The result is typically a scalar quantity
-    (accuracy in metres, completeness as a percentage, etc.) or a categorical conformance
-    statement, carrying unit, reference frame, determinacy, and provenance in the same
-    bundle as every other GMEOW measurement (Principle 11).
+    (accuracy in metres, a normalized dimensionless completeness ratio, etc.) or a
+    categorical conformance statement, carrying its dimension, any applicable unit and
+    reference frame, determinacy, and provenance in the same bundle as every other GMEOW
+    measurement (Principle 11).
 
     When to use:
         - Use to record a quality verdict about an entity or dataset along one or more ISO 19157
@@ -47,8 +48,8 @@ class QualityAssessment(ConfiguredBaseModel):
     How to use:
         - Type the assessment as gmeow:QualityAssessment, name the subject with
           gmeow:assessedEntity, the dimension(s) with gmeow:qualityDimension, and the verdict with
-          gmeow:observationResult; reuse the Observation stack's method, vantage, unit, and frame
-          rather than minting quality-specific copies.
+          gmeow:observationResult; reuse the Observation stack's method, vantage, dimension, and
+          any applicable unit and frame rather than minting quality-specific copies.
 
     Examples:
         - ex:posAcc a gmeow:QualityAssessment ; gmeow:assessedEntity ex:roadLayer ;
@@ -68,7 +69,7 @@ class QualityAssessment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/QualityAssessment", "curie": "gmeow:QualityAssessment", "definitionDigest": "blake3:f3ffebbc8132c762f2118b743204e4e7ce8b257ba32475b28f7630257bd3379f", "iri": "https://blackcatinformatics.ca/gmeow/QualityAssessment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/QualityAssessment", "curie": "gmeow:QualityAssessment", "definitionDigest": "blake3:68c32bea4da1f1a19693dde3069f5a681172f146e6be6feb710cf49c2dd52f8a", "iri": "https://blackcatinformatics.ca/gmeow/QualityAssessment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

@@ -601,7 +601,7 @@ pub fn rust_item_names(rust_text: &str) -> BTreeSet<String> {
 /// derives by default (`rename_all = "kebab-case"`, matching `heck`): word
 /// boundaries fall at lower/digit→upper transitions and at the tail of an
 /// acronym run (upper→upper-then-lower), with each word lowercased and joined by
-/// `-`. E.g. `CheckGenerated`→`check-generated`, `Mcp`→`mcp`, `I18n`→`i18n`.
+/// `-`. E.g. `SliceQuality`→`slice-quality`, `Mcp`→`mcp`, `I18n`→`i18n`.
 fn variant_to_kebab(ident: &str) -> String {
     let chars: Vec<char> = ident.chars().collect();
     let mut words: Vec<String> = Vec::new();
@@ -981,6 +981,7 @@ static RUST_CALL_RE: OnceLock<Regex> = OnceLock::new();
 static RUST_TEST_ATTR_RE: OnceLock<Regex> = OnceLock::new();
 static CARGO_PKG_NAME_RE: OnceLock<Regex> = OnceLock::new();
 static DISPATCH_ARM_RE: OnceLock<Regex> = OnceLock::new();
+static XTASK_TARGET_RE: OnceLock<Regex> = OnceLock::new();
 
 /// A Makefile target's prerequisites and its recipe command lines (each a
 /// whitespace token list with simple `$(VAR)` references already expanded).
@@ -1141,9 +1142,39 @@ fn submake_targets(cmd: &[String]) -> Vec<String> {
         .collect()
 }
 
+/// Make targets declared by the `cargo xtask check` DAG. The xtask is the
+/// canonical aggregate scheduler, so static Make reachability must cross that
+/// delegation boundary instead of treating it as an opaque command.
+fn xtask_check_targets(root: &Path) -> BTreeSet<String> {
+    let Ok(text) = fs::read_to_string(root.join("crates/xtask/src/main.rs")) else {
+        return BTreeSet::new();
+    };
+    let Some(start) = text.find("const CHECK_DAG:") else {
+        return BTreeSet::new();
+    };
+    let body = &text[start..];
+    let body = body.find("];").map_or(body, |end| &body[..end]);
+    let re = XTASK_TARGET_RE.get_or_init(|| {
+        Regex::new(r#"\btarget\s*:\s*\"([^\"]+)\""#).expect("valid xtask target regex")
+    });
+    re.captures_iter(body)
+        .map(|capture| capture[1].to_string())
+        .collect()
+}
+
+fn invokes_xtask_check(cmd: &[String]) -> bool {
+    cmd.windows(3)
+        .any(|window| window == ["cargo", "xtask", "check"])
+}
+
 /// Transitive closure of targets reached by running `root`: itself, its
-/// prerequisites, and every `make <t>` sub-invocation, cycle-guarded.
-fn reached_targets(root: &str, recipes: &BTreeMap<String, TargetRecipe>) -> BTreeSet<String> {
+/// prerequisites, every `make <t>` sub-invocation, and the Make targets
+/// delegated to the canonical `cargo xtask check` DAG, cycle-guarded.
+fn reached_targets(
+    root: &str,
+    recipes: &BTreeMap<String, TargetRecipe>,
+    xtask_targets: &BTreeSet<String>,
+) -> BTreeSet<String> {
     let mut seen = BTreeSet::new();
     let mut stack = vec![root.to_string()];
     while let Some(t) = stack.pop() {
@@ -1160,6 +1191,13 @@ fn reached_targets(root: &str, recipes: &BTreeMap<String, TargetRecipe>) -> BTre
                 for sub in submake_targets(cmd) {
                     if !seen.contains(&sub) {
                         stack.push(sub);
+                    }
+                }
+                if invokes_xtask_check(cmd) {
+                    for delegated in xtask_targets {
+                        if !seen.contains(delegated) {
+                            stack.push(delegated.clone());
+                        }
                     }
                 }
             }
@@ -1483,6 +1521,7 @@ fn gate_lane_targets(
     text: &str,
     recipes: &BTreeMap<String, TargetRecipe>,
     vars: &BTreeMap<String, String>,
+    xtask_targets: &BTreeSet<String>,
 ) -> BTreeSet<String> {
     let mut roots: BTreeSet<String> = ["check", "rust-test", "full-release", "verify-release"]
         .into_iter()
@@ -1501,7 +1540,7 @@ fn gate_lane_targets(
     roots.extend(documented_workflow_targets(text));
     let mut lane: BTreeSet<String> = BTreeSet::new();
     for r in &roots {
-        lane.extend(reached_targets(r, recipes));
+        lane.extend(reached_targets(r, recipes, xtask_targets));
     }
     lane
 }
@@ -1515,9 +1554,10 @@ fn names_reached_by_target(
     handlers: &BTreeMap<String, String>,
     index: &FnIndex,
     test_names_by_pkg: &BTreeMap<String, BTreeSet<String>>,
+    xtask_targets: &BTreeSet<String>,
 ) -> BTreeSet<String> {
     let mut roots: BTreeSet<String> = BTreeSet::new();
-    for t in reached_targets(target, recipes) {
+    for t in reached_targets(target, recipes, xtask_targets) {
         let Some(recipe) = recipes.get(&t) else {
             continue;
         };
@@ -1564,7 +1604,8 @@ fn check_target_bindings(
     }
     let recipes = makefile_recipes(&makefile_text);
     let vars = makefile_variables(&makefile_text);
-    let lane = gate_lane_targets(&makefile_text, &recipes, &vars);
+    let xtask_targets = xtask_check_targets(root);
+    let lane = gate_lane_targets(&makefile_text, &recipes, &vars, &xtask_targets);
 
     // ── gate-lane membership (H3) ──────────────────────────────────────────
     for enforcement in enforcements.values() {
@@ -1576,7 +1617,7 @@ fn check_target_bindings(
                 findings.push(error(
                     "off-lane-target",
                     format!(
-                        "{name}: Makefile target {} exists but is reachable from no gate lane (check / CHECK_TARGETS / rust-test / release / maint-*)",
+                        "{name}: Makefile target {} exists but is reachable from no gate lane (check / xtask DAG / rust-test / release / maint-*)",
                         py_repr(target)
                     ),
                 ));
@@ -1630,7 +1671,14 @@ fn check_target_bindings(
             }
             let bound = cited_targets.iter().any(|target| {
                 let reachable = reach_cache.entry((*target).clone()).or_insert_with(|| {
-                    names_reached_by_target(target, &recipes, &handlers, &index, &test_names_by_pkg)
+                    names_reached_by_target(
+                        target,
+                        &recipes,
+                        &handlers,
+                        &index,
+                        &test_names_by_pkg,
+                        &xtask_targets,
+                    )
                 });
                 reachable.contains(symbol)
             });
@@ -2039,7 +2087,7 @@ mod tests {
     #[test]
     fn variant_to_kebab_matches_clap_default_rename() {
         assert_eq!(variant_to_kebab("Version"), "version");
-        assert_eq!(variant_to_kebab("CheckGenerated"), "check-generated");
+        assert_eq!(variant_to_kebab("SliceQuality"), "slice-quality");
         assert_eq!(
             variant_to_kebab("VerifyReleaseBundle"),
             "verify-release-bundle"
@@ -2060,17 +2108,17 @@ mod tests {
             \x20   /// tuple variant.\n\
             \x20   Info(InfoArgs),\n\
             \x20   /// struct variant with a field carrying its own attr.\n\
-            \x20   Regenerate {\n\
-            \x20       #[arg(long = \"check\")]\n\
-            \x20       check: bool,\n\
+            \x20   Sync {\n\
+            \x20       #[arg(long = \"mode\")]\n\
+            \x20       mode: String,\n\
             \x20   },\n\
             }\n";
         let got = cli_command_names_from_rust(rust);
         assert!(got.contains("version"));
         assert!(got.contains("info"));
-        assert!(got.contains("regenerate"));
+        assert!(got.contains("sync"));
         // A field attribute inside a variant body must not leak as a command.
-        assert!(!got.contains("check"));
+        assert!(!got.contains("mode"));
     }
 
     #[test]
@@ -2079,8 +2127,8 @@ mod tests {
             #[derive(Debug, Subcommand)]\n\
             pub enum Commands {\n\
             \x20   /// override wins over the kebab of the identifier.\n\
-            \x20   #[command(name = \"check-generated\")]\n\
-            \x20   CheckGenerated,\n\
+            \x20   #[command(name = \"sync-now\")]\n\
+            \x20   SyncNow,\n\
             \x20   /// a non-name command attr must not become an override.\n\
             \x20   #[command(disable_help_flag = true)]\n\
             \x20   Gts {\n\
@@ -2089,8 +2137,8 @@ mod tests {
             \x20   },\n\
             }\n";
         let got = cli_command_names_from_rust(rust);
-        assert!(got.contains("check-generated"));
-        assert!(!got.contains("check_generated"));
+        assert!(got.contains("sync-now"));
+        assert!(!got.contains("sync_now"));
         assert!(got.contains("gts"));
     }
 
@@ -2340,6 +2388,35 @@ mod tests {
             "{text}"
         );
         // `reached_fn` is on the test's call path → bound, no finding.
+        assert!(!text.contains("reach: symbol 'reached_fn'"), "{text}");
+    }
+
+    #[test]
+    fn xtask_check_binds_tests_run_by_its_declared_make_targets() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_binding_repo(
+            &tmp,
+            "check: ## workflow\n\tcargo xtask check\nrust-gate:\n\tcargo nextest run -p foo\n",
+            "meta:reach a meta:Gate ;\n\
+             meta:artifact \"crates/foo/src/lib.rs\" ; meta:symbol \"reached_fn\" ; meta:makeTarget \"check\" .\n\
+             meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title \"Be good\" ;\n\
+             meta:enforcedBy meta:reach .\n",
+        );
+        let xtask = tmp.path().join("crates/xtask/src");
+        fs::create_dir_all(&xtask).unwrap();
+        fs::write(
+            xtask.join("main.rs"),
+            "const CHECK_DAG: &[Task] = &[Task { name: \"tests\", target: \"rust-gate\", dependencies: &[] }];\n",
+        )
+        .unwrap();
+
+        let findings = constitution_full_report(
+            &tmp.path().join("constitution.ttl"),
+            &tmp.path().join("CONSTITUTION.md"),
+            tmp.path(),
+        );
+        let text: String = findings.iter().map(|f| f.message.clone() + "\n").collect();
+        assert!(!text.contains("unbound-symbol"), "{text}");
         assert!(!text.contains("reach: symbol 'reached_fn'"), "{text}");
     }
 

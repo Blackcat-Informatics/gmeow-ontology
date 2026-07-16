@@ -30,6 +30,25 @@ Every design decision, code modification, and schema change is governed by the n
   * **Mathematical / structural laws** are authored as real first-order `logic:Formula` ASTs (e.g. `math:continuityLaw`), attached via `math:definingLaw`/`math:preservesStructure`; a genuinely higher-order property that is not first-order axiomatizable is carried as an honest `logic:expressivenessBoundary` record (e.g. `math:compactnessBoundary`), never a faked formula.
   * **In short — OWL as a downstream *surface* is a code smell; OWL/RDFS declarative *axioms in `module.ttl`* are the canonical derive-source and are correct.** If a check cannot be expressed as an EL-safe axiom or a `logic:Constraint`, it is carried as flagged unsupported residue in the loss ledger and the check is relocated — a STOP-and-ask, never a self-granted hand-authored-shape exception.
 
+### No-optionality doctrine
+
+> **No-optionality forbids silent capability degradation; it does not forbid explicit feature selection.**
+
+For a selected operation and profile, every declared input, capability, invariant,
+and output is mandatory. Explicit profiles, sinks, output formats, and DAG branches
+are permitted when they are first-class, deterministic, cache-keyed, and fully
+validated. Missing capabilities must fail; they must never cause silent semantic
+degradation.
+
+Accordingly, CLI choices such as requesting documentation output, selecting an
+extended projection profile, choosing RDF 1.2 output, or naming an output path are
+valid optional inputs that define the requested DAG. Once selected, their stages
+and outputs are required. A missing cache causes recomputation, not skipped work.
+A missing dependency, source, or implementation must hard-fail rather than invoke
+a weaker parser, omit part of an output, retain stale bytes, or otherwise
+half-implement the selected operation. Rust `Option<T>` and conditional DAG edges
+are not themselves violations; opportunistic fallback with weaker semantics is.
+
 ---
 
 ## 2. Core Toolchain & Commands
@@ -85,8 +104,8 @@ enforce the transform, while a compile-time assertion pins purrdf's dist level t
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
 make validate-gts    # Validate generated/dist/gmeow.gts
-make regenerate # Rebuild ALL committed generated artifacts (the registry; parallel by default)
-make check-generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
+make sync # Rebuild ALL committed generated artifacts (the registry; parallel by default)
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl)
 make crate-check     # Verify Rust crate layering and acyclic crate DAGs
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
@@ -129,12 +148,14 @@ When you change canonical sources (ontology modules, mapping-dsl, statement-dsl)
 The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every committed artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
 
 ```bash
-make regenerate      # Rebuild ALL checked-in generated artifacts from canonical sources
-make commit          # Run regenerate, stage the artifacts, and commit (default message)
+make sync                        # Update every output family (local default)
+make sync SYNC_MODE=check        # Strict read-only verification (the CI default)
+make sync SYNC_VERBOSE=1         # Stream live DAG stages and sync boundaries
+make commit          # Run sync, stage the artifacts, and commit (default message)
 make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ```
 
-`make regenerate` runs the registered generators in topological order. Independent generators at the same topological level execute in parallel (default `-j` capped at the CPU count, with a memory-aware ceiling), and a source/output hash stamp cache under `.stamps/generators/` lets `regenerate` and `check-generated` skip generators whose inputs, implementation, and committed outputs have not changed. Override with `--no-skip-unchanged` or `-j 1` via the CLI if needed. It refreshes everything under `generated/`:
+`make sync` runs the registered pipeline exactly once in topological order and, by default, fans out the committed `generated/` tree, runtime `dist/` projections, and external documentation. `SYNC_OUTPUTS=generated` or `docs` explicitly narrows what is materialized without weakening the selected profile's dependencies or gates. Independent generators at the same topological level use every available CPU by default; `--jobs N` is an explicit local override, never a hidden low thread cap. Use `SYNC_VERBOSE=1` (or `gmeow-dev sync --verbose`) to stream live DAG stages and synchronization boundaries. A worktree-local clean manifest under `.cache/gmeow-sync/manifests/` hashes canonical inputs and witnesses every managed output, so a warm fixed-point run skips the pipeline entirely. On a miss, cumulative carrier snapshots are recomputed in memory rather than serialized into a multi-gigabyte stage cache. Update mode writes only byte-changed files and removes stale owned outputs; check mode renders and validates without touching files.
 
 * `generated/mappings/`, `generated/projections/`, `generated/queries/` — the `mappings` generator
 * `generated/statements/` — the `statements` generator (RDF 1.2 lead + OWL downcast)
@@ -146,12 +167,12 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 `make commit` stages only the generated artifacts above. If you also have source changes (for example in `dsl/mappings/` or a slice-local `mappings/` directory), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
 
 > [!TIP]
-> If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check-generated` to verify the full gate still passes.
+> If you suspect generated files are stale but do not want to commit yet, run `make sync SYNC_MODE=check`. It checks the complete fixed point without touching files.
 
 ### Release Outputs
 
 ```bash
-make docs            # Regenerate external docs: site/book/print/snippets, OKF, YAML-LD
+make sync SYNC_OUTPUTS=docs # Regenerate external site/book/print/snippet/model docs
 make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
@@ -163,10 +184,12 @@ packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
 release workflow explicitly writes the signed copy there before packaging.
 
 Documentation projections are never embedded in `gmeow.gts`. The static site,
-mdbook sources, print PDF/Typst, prompt snippets, OKF Markdown, JSON-LD, and
-YAML-LD are derived artifacts regenerated with `make docs`; Pages CI must use
-the source-backed `gmeow-dev export-docs` command. This keeps the logical GTS
-carrier separate from large, easily-derived presentation payloads (Principle 4).
+mdbook sources, print PDF/Typst, prompt snippets, and generated model docs are
+derived artifacts regenerated with `make sync SYNC_OUTPUTS=docs`; Pages CI must
+use the source-backed `gmeow-dev sync --mode update --outputs docs` command. The
+default `make sync` additionally materializes runtime export projections such as
+OKF Markdown, JSON-LD, and YAML-LD. This keeps the logical GTS carrier separate
+from large, easily-derived presentation payloads (Principle 4).
 
 ### Reasoning & Negative Tests
 
@@ -197,6 +220,13 @@ make rust-build      # Compile Rust workspace test binaries without running them
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
 
+Generic RDF 1.2 / RDF\* and SPARQL compliance belongs to PurRDF's own test
+suite. GMEOW does not duplicate that authority with queries that merely prove
+an upstream engine can execute. Repository query tests must assert expected
+GMEOW product behaviour. The separate `make reason-crosscheck` lane remains:
+it compares GMEOW's native reasoning calculus with the independent
+`purrdf-entail` oracle (Principles 4, 7, 18).
+
 ### Maintainer Tasks
 
 All maintainer-only work is prefixed with `maint-`. These targets may use
@@ -205,7 +235,6 @@ are intentionally outside the normal local `make check` path unless a workflow
 calls them explicitly.
 
 ```bash
-make maint-crosscheck               # Native purrdf query-answer cross-check
 make maint-extract TARGET=foaf      # Import/extract policy for one target
 make maint-refresh-target-axioms    # Re-vendor minimal target-axiom snapshots
 make maint-wikidata-live            # Network existence checks for Wikidata IDs
@@ -334,7 +363,7 @@ The Makefile is only a task runner. The actual compiler and validation logic liv
 
 ### Mapping Compiler
 
-Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), implemented by the native Rust pipeline stage in [crates/pipeline/src/stages/mappings.rs](./crates/pipeline/src/stages/mappings.rs) and the `gmeow-slice` emitters.
+Mapping compilation runs inside `gmeow-dev sync --mode update --outputs generated` (the `mappings` generator), implemented by the native Rust pipeline stage in [crates/pipeline/src/stages/mappings.rs](./crates/pipeline/src/stages/mappings.rs) and the `gmeow-slice` emitters.
 
 * **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/) and every slice-local `slices/<group>/<name>/mappings/` directory. The shared DSL vocabulary remains [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
 * **Generated outputs**:
@@ -344,33 +373,45 @@ Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), i
   * `generated/queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
 * **Hand-authored companion file**: `dsl/mappings/transforms.fno.ttl` is read by the compiler/lints but is authored, never generated.
 * **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
-* **Drift check**: `make check-generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
+* **Drift check**: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
 The mapping DSL has two main authoring units:
 
 * `gmeow:TermEquivalence` for pure cross-ontology links that compile to SSSOM rows.
 * `gmeow:ProjectionMapping` for directional, possibly lossy projections that compile to SPARQL branches and, when applicable, EDOAL/FnO/SSSOM artifacts.
 
-`logic:GroundingCorrespondence` is the explicit grounding marker on a
-`gmeow:TermEquivalence` frontend cell. It requires authored
-`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`, and
-compiles to a shipped content-addressed `logic:Correspondence` with named
-source and target endpoints. Formal and upper-ontology catalogs belong in
-[`slices/grounding/logic/mappings/`](./slices/grounding/logic/mappings/), never
-in a domain slice or a generated SSSOM table.
+`logic:GroundingCorrespondence` is the explicit grounding marker on either a
+`gmeow:TermEquivalence` frontend cell or a single-binding
+`gmeow:ProjectionMapping`. It requires `gmeow:justification`, named
+`logic:sourceEndpoint` and `logic:targetEndpoint` values, and explicit
+`logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`
+judgments; the complete contract is specified in
+[`LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md).
+The cell compiles to a shipped content-addressed `logic:Correspondence`. All
+external grounding belongs to exactly one
+grounding slice: linguistic and serialization catalogs in
+[`slices/grounding/lang/mappings/`](./slices/grounding/lang/mappings/),
+mathematical catalogs in
+[`slices/grounding/math/mappings/`](./slices/grounding/math/mappings/), and
+formal or upper-ontology catalogs in
+[`slices/grounding/logic/mappings/`](./slices/grounding/logic/mappings/).
+These laws ship in `gmeow.gts`; they are not disposable documentation
+projections. A domain slice must use the grounding term and must not re-author
+the external term or a competing correspondence. Incomplete marker metadata is
+a validation error.
 
 Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to satisfy review feedback. Patch the DSL source, re-run the compiler, and include the regenerated artifacts.
 
 ### Statement Compiler
 
-Statement compilation runs inside `gmeow regenerate` (the `statements` generator), implemented by the native Rust stage in [crates/pipeline/src/stages/statements.rs](./crates/pipeline/src/stages/statements.rs) and the `gmeow-rdf` statement codec.
+Statement compilation runs inside `gmeow-dev sync --mode update --outputs generated` (the `statements` generator), implemented by the native Rust stage in [crates/pipeline/src/stages/statements.rs](./crates/pipeline/src/stages/statements.rs) and the `gmeow-rdf` statement codec.
 
 * **Canonical input**: all Turtle files under [dsl/statements/](./dsl/statements/), plus the DSL vocabulary in [dsl/statements/vocabulary.ttl](./dsl/statements/vocabulary.ttl).
 * **Generated outputs**:
   * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine. rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
   * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
 * **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `maint-statements-docker-check` oracle lane.
-* **Drift check**: `make check-generated` performs the registered-generator check and fails if committed statement artifacts are stale.
+* **Drift check**: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` performs the registered-generator check and fails if committed statement artifacts are stale.
 
 Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `dsl/statements/`.
 
@@ -379,8 +420,8 @@ Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeo
 Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical. Treat that as binding:
 
 * Source changes belong in `slices/<group>/<name>/module.ttl`, slice-local `mappings/`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
-* Generated artifact changes must be reproducible by `make regenerate`.
-* If `make check-generated` reports drift, run `make regenerate` rather than hand-editing the output.
+* Generated artifact changes must be reproducible by `make sync`.
+* If `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` reports drift, run `make sync` rather than hand-editing the output.
 * If a generated artifact is nondeterministic, fix the compiler determinism bug. Do not normalize the artifact by hand.
 
 ### Vocabulary Index (llms.txt)
@@ -388,7 +429,7 @@ Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical.
 This project automatically generates a single-file, flat index of all classes,
 properties, and individuals (with CURIEs, parent classes, and definitions) at
 `dist/llms.txt` through the export stage of the registered build pipeline. It
-is **not checked in** — run `make regenerate` to produce it on demand.
+is **not checked in** — run `make sync` to produce it on demand.
 
 If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, generate and ingest `dist/llms.txt` to get a clean, context-efficient overview of the entire ontology.
 
@@ -398,7 +439,7 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 **The one rule:** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make docs` or `gmeow-dev export-docs`. It is never embedded in `generated/dist/gmeow.gts`.
+**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make sync SYNC_OUTPUTS=docs` or `gmeow-dev sync --mode update --outputs docs`. It is never embedded in `generated/dist/gmeow.gts`.
 
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment
@@ -457,8 +498,8 @@ them from canonical sources after the merge. `generated/dist/gmeow.gts` is `merg
 your branch copy without a conflict marker), so it too must be regenerated and committed:
 
 ```bash
-make regenerate          # reconcile all generated artifacts on the merged base
-make check-generated     # verify no drift remains
+make sync          # reconcile all generated artifacts on the merged base
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 ```
 
 ### Pull review feedback
@@ -504,8 +545,8 @@ Apply fixes **only in canonical source files** (Principle 4):
 Never patch generated artifacts by hand. After editing canonical sources, regenerate:
 
 ```bash
-make regenerate          # after ANY canonical-source change
-make check-generated     # verify no drift remains
+make sync          # after ANY canonical-source change
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 ```
 
 ### Validate before pushing

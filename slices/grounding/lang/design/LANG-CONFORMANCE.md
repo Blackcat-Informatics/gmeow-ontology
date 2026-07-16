@@ -9,8 +9,9 @@
 > every other GMEOW lowering. It is the language peer of
 > `slices/grounding/logic/design/LOGIC-CONFORMANCE.md` and
 > `slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md`. Where a sibling charter says
-> "established by shapes, competency queries, and the loss ledger", this document says *by which
-> shape, which query, which validator, and what failure is raised*.
+> "established by canonical constraints, competency queries, and the loss ledger", this document
+> says *by which axiom or constraint, which generated validation view, which validator, and what
+> failure is raised*.
 >
 > **Reading this charter.** The declarative present tense is normative: "X is enforced by G" means
 > a conforming realization enforces X through gate G, and a violation raises the named failure
@@ -18,10 +19,12 @@
 
 ## The gate taxonomy
 
-The taxonomy is inherited verbatim from the sibling conformance charters — every hard rule has
-exactly one *primary* gate that owns the failure, of one of these kinds, ordered from cheapest and
-most declarative to most procedural: **OWL axiom**, **SHACL Core**, **SHACL-SPARQL**,
-**source-lint**, **Rust validator**, **competency query**, **projection test**.
+The taxonomy is inherited from the sibling conformance charters — every hard rule has exactly one
+*primary* authority that owns the failure, of one of these kinds, ordered from cheapest and most
+declarative to most procedural: **OWL axiom + closed-world closure**, **`logic:` constraint**,
+**source-lint**, **Rust validator**, **competency query**, **projection test**. SHACL Core and
+SHACL-SPARQL are generated validation projections of those authorities, never primary authoring
+surfaces.
 
 Failure classes are IRIs in the `lang:` failure vocabulary (`lang:LangConformanceFailure`
 subclasses), so a violation is itself a typed, queryable object, not a log line.
@@ -32,14 +35,14 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| A form that denotes, is grammar-governed, or is translated is structured, not string-only | source-lint + SHACL Core | `lang:StringOnlyMeaningBearingForm` |
-| Every `lang:SurfaceForm` realizes a form or is typed `lang:UnanalyzedProse` (exactly one of the two) | SHACL-SPARQL | `lang:UndeclaredAnalysisStatus` |
-| Every `lang:Form` names exactly one sign system | SHACL Core | `lang:FormWithoutSignSystem` |
-| A sign system is an individual; a bare tag used as a system is ill-formed | source-lint | `lang:TagAsSignSystem` |
-| Form-slot indexes are unique per composed form | SHACL-SPARQL | `lang:DuplicateFormSlotIndex` |
-| Slot indexes are zero-based and contiguous (unconditional) | Rust validator | `lang:NonContiguousSlots` |
-| Morphological content is typed feature pairs, never an unparsed feature string | SHACL Core | `lang:UntypedMorphology` |
-| A hashing-facing surface form declares script, encoding, and normalization | SHACL Core | `lang:UnhashableSurface` |
+| A form that denotes, is grammar-governed, or is translated is structured, not string-only | source-lint + `logic:PathNodeKindConstraint` | `lang:StringOnlyForm` |
+| Every `lang:SurfaceForm` realizes a form or is typed `lang:UnanalyzedProse` (exactly one of the two) | `lang:SurfaceAnalysisStructureConstraint` | `lang:MisdeclaredAnalysis` |
+| Every `lang:Form` names exactly one sign system | OWL restriction + `lang:formInSignSystemClosure` | `lang:UnsituatedForm` |
+| A sign system is an individual; a bare tag used as a system is ill-formed | form-situatedness OWL/closure + source-lint | `lang:UnsituatedForm` |
+| Form-slot indexes are unique per composed form | `lang:FormSlotIndexUniquenessConstraint` | `lang:DuplicateSlotIndex` |
+| Slot indexes are zero-based and contiguous (unconditional) | `lang:SlotContiguityConstraint` + Rust validator | `lang:NonContiguousSlots` |
+| Morphological content is typed feature pairs, never an unparsed feature string | OWL value typing + class-scoped closure | `lang:UntypedMorphology` |
+| A hashing-facing surface form declares its material, script, normalization, and collation locale | `lang:SurfaceMaterialChoiceConstraint` + OWL/closure | `lang:UnhashableSurface` |
 | A `lang:WordForm` names its lexeme | SHACL Core | `lang:OrphanWordForm` |
 | A grammar names the sign system it licenses; a rule names its grammar | SHACL Core | `lang:UnanchoredGrammar` |
 | Form content keys are computed over structure only (no surface/encoding/rendering input) | Rust validator | `lang:SurfaceLeakInContentKey` |
@@ -48,31 +51,31 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| Form, sense, and denotation-record kinds are disjoint | OWL axiom (disjointness) | `lang:FregeConflation` |
-| A denotation names its form, target, kind, and context | SHACL Core | `lang:UnderspecifiedDenotation` |
-| A denotation attaches to a form, never to a surface form | SHACL Core | `lang:SurfaceLevelDenotation` |
-| `lang:viaSense` is present where the head lexeme has multiple recorded senses | SHACL-SPARQL | `lang:UnroutedAmbiguousDenotation` |
-| A denotation kind matches its target's type (formula-kind → `logic:` formula, …) | SHACL-SPARQL | `lang:DenotationKindMismatch` |
-| An interpretation *act* is a `gmeow:Activity`, never typed as an `Observation` | OWL axiom (disjointness) | `lang:ActObservationConflation` |
-| A reading-correctness claim is an `Observation` with a vantage | SHACL Core | `lang:UngroundedReadingClaim` |
+| Form, sense, and denotation-record kinds are disjoint | `lang:FregeDisjointnessAxiom` | `lang:FregeConflation` |
+| A denotation names its form, target, kind, and context | OWL value typing + class-scoped closure | `lang:UnderspecifiedDenotation` |
+| A denotation attaches to a form, never to a surface form | `lang:DenotationNonSurfaceConstraint` | `lang:SurfaceLevelDenotation` |
+| `lang:viaSense` is present where the head lexeme has multiple recorded senses | `lang:AmbiguousDenotationRoutingConstraint` | `lang:UnroutedAmbiguousDenotation` |
+| A denotation kind matches its target's type (formula-kind → `logic:` formula, …) | `lang:DenotationKindMatchConstraint` | `lang:DenotationKindMismatch` |
+| An interpretation *act* is a `gmeow:Activity`, never typed as an `Observation` | `lang:ActObservationDisjointnessAxiom` | `lang:ActObservationConflation` |
+| A reading-correctness claim is an `Observation` with a vantage | `lang:ReadingClaimVantageConstraint` | `lang:UngroundedReadingClaim` |
 | Co-resident readings are never structurally collapsed by any stage | Rust validator + projection test | `lang:SilentDisambiguation` |
-| An indexical denotation names its `lang:IndexicalAnchor` | SHACL-SPARQL | `lang:UnanchoredIndexical` |
-| Reading preference weights are confidences unless a `math:` probability frame is declared | source-lint + SHACL-SPARQL | `lang:ConfidenceAsProbability` (reused discipline) |
+| An indexical denotation names its `lang:IndexicalAnchor` | `lang:IndexicalAnchoredConstraint` | `lang:UnanchoredIndexical` |
+| Reading preference weights are confidences unless a `math:` probability frame is declared | source-lint + `lang:ConfidenceModelConstraint` | `lang:ConfidenceAsProbability` (reused discipline) |
 | A compositional lowering into `logic:` declares per-stage preservation | Rust validator | `lang:UndeclaredLoweringStage` |
 
 ### Rendering, transliteration, translation, and paraphrase rules
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| A rendering names its content, its convention, and its preservation | SHACL Core | `lang:UnderspecifiedRendering` |
+| A rendering names its content, its convention, and its preservation | OWL value typing + class-scoped closure | `lang:UnderspecifiedRendering` |
 | A rendering never substitutes for its content's identity | OWL axiom + source-lint | `lang:RenderingAsIdentity` |
-| A translation unit names source form, target form, and preservation | SHACL Core | `lang:UnderspecifiedTranslationUnit` |
-| String-pair units without form analysis are typed unanalyzed with the weakest judgment | SHACL-SPARQL | `lang:UnmarkedSurfaceTranslation` |
-| A translation names direction and method (with activity provenance for machine output) | SHACL Core | `lang:UnattributedTranslation` |
+| A translation unit names source form, target form, and preservation | OWL value typing + class-scoped closure | `lang:UnderspecifiedTranslationUnit` |
+| String-pair units without form analysis are typed unanalyzed with the weakest judgment | canonical unmarked-surface `logic:` constraints | `lang:UnmarkedSurfaceTranslation` |
+| A translation names method (with activity provenance for machine output) | OWL/closure + `lang:MachineTranslationProvenanceConstraint` | `lang:UnattributedTranslation` |
 | Document-level judgments are computed from unit judgments, never asserted over them | Rust validator | `lang:AssertedRollup` |
 | An untranslatable unit declares its gap/residue rather than being dropped or padded | SHACL-SPARQL + projection test | `lang:FabricatedEquivalence` |
-| A paraphrase declares its sameness kind (denotation/sense/force+content) | SHACL Core | `lang:UndeclaredParaphraseKind` |
-| A transliteration names source and target orthographies and its scheme | SHACL Core | `lang:UnanchoredTransliteration` |
+| A paraphrase declares its sameness kind (denotation/sense/force+content) | OWL restriction + `lang:paraphraseSamenessClosure` | `lang:UndeclaredParaphraseKind` |
+| A transliteration names source and target orthographies and its scheme | OWL/closure validation projection | `lang:UnanchoredTransliteration` |
 
 ### Projection rules
 
@@ -130,13 +133,14 @@ alone.
 | Records in content-sorted order; keys in generation order (`s p o v q st ev m ek`, plus the `@p`-only `bd it`) | Rust validator (`LANG-GMN.md`, the invalid-key-order block) | `lang:GmnNonCanonicalOrder` |
 | Confidences at two fractional digits; no scientific notation; one spelling per value | Rust validator (`LANG-GMN.md`, the invalid-number block) | `lang:GmnMalformedNumber` |
 | No record before the `@gmn` header pins the dialect coordinates | Rust validator (`LANG-GMN.md`, the invalid-missing-header block) | `lang:GmnUndeclaredDialectVersion` |
-| The declared `LL(1)` determinism class survives parse-table construction | Rust validator (the `grammars/gmn.ebnf` exact round-trip lift) | `lang:GmnNonDecodableGrammar` |
+| The declared `LL(1)` determinism class survives graph-derived `glyphToken` substitution and parse-table construction | Rust validator (the `grammars/gmn.ebnf` single replacement seam, then exact round-trip lift) | `lang:GmnNonDecodableGrammar` |
 | A compaction run never silently collapses co-resident readings (`gmeow:GmnCompaction` inputs included) | Rust validator (`tests/counter-examples/gmn-compaction-silent-disambiguation.ttl`, native lint) | `lang:SilentDisambiguation` (reused discipline) |
 | Every emitted morphological feature value is dispositioned — glyphed, alias-planed, or named-key-ruled — with no silent gap | SHACL-SPARQL (`tests/counter-examples/gmn-undispositioned-feature-value.ttl`) | `lang:GmnUndispositionedTerm` |
 | Every imported alias plane carries both its citation and its version | SHACL Core (`tests/counter-examples/gmn-plane-missing-version.ttl`) | `lang:GmnUnattributedPlane` |
 | Every GMN-script glyph carries its measured per-glyph token-cost feed — no silent gap in the glyph plane | SHACL-SPARQL (`tests/counter-examples/gmn-uncosted-script-glyph.ttl`) | `lang:GmnUncostedScriptGlyph` |
 | Every envelope generated by a `gmeow:processExport` crossing binds to the ring model (its serialized payload was admitted under a boundary ring) | SHACL-SPARQL (`tests/counter-examples/gmn-export-crossing-no-ring.ttl`) | `lang:GmnUnringedExportCrossing` |
 | The `@λ` lang-AST tabular batch reuses the CoNLL-U column order verbatim (`ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC`), never a rival scheme | Projection test (`GMN_LANG_AST_COLUMNS` pinned to the `ConlluToken` serializer order) | — (drift is a build failure) |
+| Every target with an executable graph-derived glyph binding has an explicit, evidence-backed `gmeow:GmnSymbolCandidate` disposition | slice-quality glyph-optimality axis (candidate population union executable registry targets) | `slice-quality.gmn-glyph-optimality.unaudited-executable-target` advisory |
 
 The coverage row is the graph-side reading of the charter's coverage gate: `lang:GmnUncoveredTerm`
 is the writer-tier failure of a document token the pinned dictionary cannot resolve at emit time,
@@ -148,6 +152,12 @@ glyph-plane sibling `lang:GmnUncostedScriptGlyph` closes the same silent gap ove
 inventory: every `lang:Grapheme` in `gmeow:gmnScript` — the IPA graphemes and the `*` operator glyph
 — must carry its measured `gmeow:gmnGlyphTokenCost`, the denominator derived by the script
 repertoire, so a glyph admitted without its cost feed reds `lang:GmnScriptGlyphCoverageShape`.
+The glyph-optimality axis closes the remaining authoring seam: its denominator is the union of the
+explicit candidate rows and executable registry targets owned by the scored slice. Consequently a
+new Denotation → Grapheme binding without a candidate lowers the score and names the target, even
+though the writer can already execute it. The canonical ⊑ binding is the worked regression: it targets
+`logic:subClassOf`, is dispositioned explicitly, and reaches `rdfs:subClassOf` only through the logic
+grounding correspondence.
 
 The export-ring row (`lang:GmnUnringedExportCrossing`, `lang:GmnExportRingBindingShape`) is the
 cross-slice reading of the mentation `gmeow:processExport` boundary: an envelope its own
@@ -187,3 +197,13 @@ scenarios of the manifesto:
   the harness asserts for that row.
 - **Cost shape**: focused fixtures stay on the default lane; exhaustive corpus-scale sweeps
   (full treebank lifts, whole-docs-tree typing) live in explicit `maint-` lanes.
+
+### Flagship discharge depth
+
+All five flagship guards remain deliberately marked `gmeow:structuralDischarge`. This is an honest
+expressiveness ledger, not an unexamined default: the first three test absence of required paths
+under explicit closed-world closure; the fourth executes a serializer/parser round trip; and the
+fifth joins recorded sense multiplicity to an absent routing edge. None is a DL contradiction the
+open-world reasoner can observe. Each scenario carries its specific `skos:note` rationale in
+`examples/flagship-acceptance.ttl`; a marker may move to `gmeow:reasonerDrivenDischarge` only after
+the native solver actually observes that scenario's failure at reasoning runtime.

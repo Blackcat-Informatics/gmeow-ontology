@@ -142,7 +142,7 @@ repo-maintenance server:
 | Tool | What it does |
 |---|---|
 | `validate()` | Run the native validation/check surface |
-| `regenerate()` | Rebuild generated artifacts |
+| `sync()` | Update or strictly check generated artifacts |
 | `reason()` | Run native reasoning over the bundled snapshot |
 | `constitution()` | Read the checked-out GMEOW Constitution |
 | `lookup_term(term, lang?)` | Resolve a term to label/definition/parents/alignments |

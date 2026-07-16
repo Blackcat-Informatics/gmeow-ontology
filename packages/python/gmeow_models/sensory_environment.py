@@ -29,7 +29,7 @@ class CoordinateMatrix(ConfiguredBaseModel):
     """Coordinate Matrix.
 
     A multi-dimensional numeric value expressed as a coordinate matrix or vector — the
-    generalisation of ScalarQuantity to vector, matrix, and tensor results. Carries a
+    generalisation of math:Quantity to vector, matrix, and tensor results. Carries a
     serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame
     (hasReferenceFrame), unit (gmeow:unit), and determinacy (hasDeterminacy). Used for
     colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality
@@ -49,7 +49,7 @@ class CoordinateMatrix(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CoordinateMatrix", "curie": "gmeow:CoordinateMatrix", "definitionDigest": "blake3:dff2bb366fc7894ee8f55fa3bcbf8c145eeb0fcd1d64d65d05baccb15443c73e", "iri": "https://blackcatinformatics.ca/gmeow/CoordinateMatrix"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CoordinateMatrix", "curie": "gmeow:CoordinateMatrix", "definitionDigest": "blake3:a19eaea83308956329266ebb4e88ecdaeb9a9dfdc6ceb820b17a55b43a362862", "iri": "https://blackcatinformatics.ca/gmeow/CoordinateMatrix"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -135,7 +135,7 @@ class SensoryPerception(ConfiguredBaseModel):
     made by a perceiver (vantage) about ambient conditions (observedFeature), yielding a
     result in a MentalReferenceFrame. A SensoryPerception is a StandpointClaim specialised
     to the sensory domain: the vantage is the perceiver, the observedFeature is the
-    SensoryEnvironment, and the observationResult is the perceived value (a ScalarQuantity,
+    SensoryEnvironment, and the observationResult is the perceived value (a math:Quantity,
     categorical individual, or structured percept descriptor). Competing perceptions coexist
     without collapse (Principle 9); superseded perceptions are suppressed, never deleted
     (Principle 10).
@@ -153,7 +153,7 @@ class SensoryPerception(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SensoryPerception", "curie": "gmeow:SensoryPerception", "definitionDigest": "blake3:8716b8d22c8c3f7b8cd984580608682037587a1ba16f11ef9fdd580734c77605", "iri": "https://blackcatinformatics.ca/gmeow/SensoryPerception"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SensoryPerception", "curie": "gmeow:SensoryPerception", "definitionDigest": "blake3:7af03b959ea90ffd1911b5a667267ce66fef296282a57197b0c95f131eabc036", "iri": "https://blackcatinformatics.ca/gmeow/SensoryPerception"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

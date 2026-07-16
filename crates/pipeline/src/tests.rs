@@ -6,8 +6,9 @@
 //! Turtle round-trip. P2: the self-verifying cache, provenance stamping, and
 //! scheduler determinism.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use crate::cache::{PipelineCache, stage_key};
 use crate::loader::{PipelineSpec, StageSpec, bind};
@@ -18,6 +19,8 @@ use crate::node::{
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
 use crate::scheduler::{RunContext, run};
+use gmeow_cli_core::Reporter;
+use gmeow_errors::Report;
 
 /// The resources / capabilities a stage with id `id` declares, mirroring the real
 /// stage impls so bind's agreement holds in fixtures: `r` (the reasoner) requires the
@@ -528,6 +531,49 @@ fn reason_diamond() -> PipelineSpec {
             spec("sink", &["a", "r"]),
         ],
     }
+}
+
+#[derive(Default)]
+struct RecordingReporter {
+    starts: Mutex<Vec<String>>,
+    ends: Mutex<Vec<String>>,
+}
+
+impl Reporter for RecordingReporter {
+    fn report(&self, _report: &Report) {}
+
+    fn stage_start(&self, stage: &str) {
+        self.starts.lock().unwrap().push(stage.to_string());
+    }
+
+    fn stage_end(&self, stage: &str, _elapsed: Duration) {
+        self.ends.lock().unwrap().push(stage.to_string());
+    }
+
+    fn summary(&self, _report: &Report) {}
+}
+
+#[test]
+fn scheduler_streams_each_stage_to_an_explicit_progress_sink() {
+    let spec = reason_diamond();
+    let graph = spec.validate().unwrap();
+    let runs = Arc::new(AtomicUsize::new(0));
+    let registry = compute_registry(&spec, &runs);
+    let bound = bind(&spec, &graph, &registry).unwrap();
+    let reporter = Arc::new(RecordingReporter::default());
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open(dir.path(), 4)
+        .unwrap()
+        .with_progress(reporter.clone());
+
+    run(&graph, &bound, &mut ctx).unwrap();
+
+    let mut starts = reporter.starts.lock().unwrap().clone();
+    let mut ends = reporter.ends.lock().unwrap().clone();
+    starts.sort();
+    ends.sort();
+    assert_eq!(starts, vec!["a", "r", "sink", "source"]);
+    assert_eq!(ends, starts, "every successful stage emits an end event");
 }
 
 #[test]

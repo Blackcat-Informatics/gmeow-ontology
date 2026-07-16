@@ -142,12 +142,14 @@ ex:restEnergy a math:Quantity ;
     rdfs:label "rest energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "8.187e-14"^^xsd:double .
 
 ex:kineticEnergy a math:Quantity ;
     rdfs:label "kinetic energy"@x-gmeow-english ;
     math:hasDimension ex:energyDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     math:quantityValue "1.5e-13"^^xsd:double .
 
 # --- A homogeneous dimensional expression (their sum) ------------------------ #

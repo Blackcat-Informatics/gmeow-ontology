@@ -305,7 +305,7 @@ single `gmeow:confidence` destroys the distinctions:
   - `class = affine`, **not** a low-confidence equivalence. Conflating "the relationship is
   fuzzy" with "I am unsure of the relationship" is the single most common alignment error.
 
-Every correspondence is **standpoint-indexed** (`logic:accordingTo`). The same pair may be
+Every correspondence is **standpoint-indexed** (`gmeow:accordingTo`). The same pair may be
 `iso` under one standpoint and `affine` under another, coexisting and contested. An *unindexed*
 correspondence holds in `gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills
 the silent-universality bug where a curated alignment is applied where it was never validated.
@@ -789,7 +789,7 @@ construction): the existing `dsl/mappings/` becomes a **frontend syntax** into
 `logic:Correspondence` first. A one-shot transpiler compiles each `gmeow:TermEquivalence` /
 `gmeow:ProjectionMapping` cell into a correspondence; the new pipeline must regenerate the
 committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the existing
-`check-generated mappings` golden set is the oracle); only then are the old DSL, emitters, and
+the strict `sync` mappings golden set is the oracle); only then are the old DSL, emitters, and
 `projection_lint`/`alignment_lint` deleted. Real files touched: `slices/grounding/logic/module.ttl`
 (or a new `slices/core/correspondence/` slice — see open question below);
 `crates/logic-compile/src/{ir.rs, projections/mod.rs, report.rs}`;

@@ -249,6 +249,48 @@ fn authored_affine_cell_matches_worked_example_oracle() {
     );
 }
 
+/// Standpoint indexing has one canonical RDF spelling across the ontology and the
+/// correspondence carrier: the declared `gmeow:accordingTo` annotation property.
+#[test]
+fn standpoint_index_round_trips_through_canonical_gmeow_property() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+
+    let standpoint = "https://blackcatinformatics.ca/gmeow/example/curatorStandpoint".to_owned();
+    let correspondence = Correspondence::new(
+        "https://blackcatinformatics.ca/gmeow/example/standpointIndexedCorrespondence",
+        CorrespondenceRelation::RelatedMatch,
+        MorphismClass::AffineCorrespondence,
+        MorphismKind::InstitutionMorphism,
+        false,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        Some(standpoint.clone()),
+        None,
+    )
+    .expect("standpoint-indexed correspondence");
+    let program = CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::Exact);
+    let nt = project_correspondence(&program);
+
+    assert!(
+        nt.contains(&format!("<{GMEOW_NAMESPACE}accordingTo>")),
+        "the carrier must emit the declared gmeow:accordingTo property:\n{nt}"
+    );
+    assert!(
+        !nt.contains(&format!("<{LOGIC_NAMESPACE}accordingTo>")),
+        "the undeclared legacy logic:accordingTo spelling must not be emitted:\n{nt}"
+    );
+
+    let dataset = parse_nt(&nt);
+    let re_derived = parse_correspondence(&dataset).expect("re-derive standpoint index");
+    assert_eq!(re_derived.correspondences[0].according_to, Some(standpoint));
+}
+
 /// The projection is deterministic (sorted, byte-stable across runs).
 #[test]
 fn projection_is_byte_deterministic() {

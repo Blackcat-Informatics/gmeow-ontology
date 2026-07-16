@@ -94,6 +94,9 @@ pub(crate) mod schema_ident;
 // of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
 // pydantic, and validate).
 pub mod shape_union_fresh;
+// The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
+// slice batch and folds the union into the carrier as graph/authoring-briefs.
+pub mod slice_brief;
 pub mod source_load;
 pub mod statements;
 // Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
@@ -120,6 +123,7 @@ pub fn register_default(registry: &mut StageRegistry) {
         Arc::new(goal_directed::GoalDirectedStage::new()),
     );
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
+    registry.register("slice-brief", Arc::new(slice_brief::SliceBriefStage::new()));
     registry.register(
         "math_producers",
         Arc::new(math_producers::MathProducersStage::new()),

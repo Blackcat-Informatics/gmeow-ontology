@@ -89,8 +89,8 @@ class IdentityContinuityAssessment(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    assessmentFromStage: list[str] | None = Field(default=None, description="The earlier subject stage a gmeow:IdentityContinuityAssessment compares — the 'from' side of the same/different verdict.", alias="gmeow:assessmentFromStage")
-    assessmentToStage: list[str] | None = Field(default=None, description="The later subject stage a gmeow:IdentityContinuityAssessment compares — the 'to' side of the same/different verdict.", alias="gmeow:assessmentToStage")
+    assessmentFromStage: list[str] | None = Field(default=None, description="Within gmeow:IdentityContinuityAssessment, values are node references constrained to gmeow:SubjectStage. The earlier subject stage a gmeow:IdentityContinuityAssessment compares — the 'from' side of the same/different verdict.", alias="gmeow:assessmentFromStage")
+    assessmentToStage: list[str] | None = Field(default=None, description="Within gmeow:IdentityContinuityAssessment, values are node references constrained to gmeow:SubjectStage. The later subject stage a gmeow:IdentityContinuityAssessment compares — the 'to' side of the same/different verdict.", alias="gmeow:assessmentToStage")
     continuityVerdict: list[ContinuityVerdictEnum] | None = Field(default=None, description="The same / different / indeterminate outcome a gmeow:IdentityContinuityAssessment (or gmeow:ContinuityDetermination) carries. A value, never owl:sameAs — competing verdicts on coexisting assessments are the norm (Principle 9).", alias="gmeow:continuityVerdict")
 
 
@@ -313,7 +313,7 @@ class EmbodimentAssignment(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    assignmentCarrier: list[str] | None = Field(default=None, description="The carrier surface a gmeow:EmbodimentAssignment puts to use — the device, avatar, account, terminal, or voice endpoint the subject acts through over the assignment's interval.", alias="gmeow:assignmentCarrier")
+    assignmentCarrier: list[str] | None = Field(default=None, description="Within gmeow:EmbodimentAssignment, values are node references constrained to gmeow:EmbodimentCarrierRole. The carrier surface a gmeow:EmbodimentAssignment puts to use — the device, avatar, account, terminal, or voice endpoint the subject acts through over the assignment's interval.", alias="gmeow:assignmentCarrier")
     assignmentSubject: list[Agent] | None = Field(default=None, description="The agent that acts through the carrier in a gmeow:EmbodimentAssignment — the subject side of the subject × carrier × interval × capabilities fact.", alias="gmeow:assignmentSubject")
 
 

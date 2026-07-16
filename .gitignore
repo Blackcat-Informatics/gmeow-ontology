@@ -11,7 +11,7 @@ htmlcov/
 # Ephemeral build products (published on release, never committed).
 # Committed generated artifacts live under generated/ (#287) — one root,
 # every path owned by a registered generator.
-# ontology-docs/ is on-demand `gmeow-dev export-docs` / `make docs` output
+# ontology-docs/ is on-demand `gmeow-dev sync --outputs docs` output
 # rendered from canonical repository sources; it is never committed.
 /dist/
 /dist/i18n/
@@ -23,14 +23,15 @@ htmlcov/
 # Stamp files (compilation freshness tracking)
 .stamps/
 
-# gmeow-pipeline content-addressed stage cache (#861): self-verifying, rebuilt
-# on demand, never committed (supersedes .stamps/ at the #861 cutover).
-generated/.pipeline-cache/
-
 # Release-as-evidence conformance verdicts (#673, §18): an ephemeral roll-up
 # produced fresh by `make conformance-report` and folded into the signed release
 # bundle. Engine-dependent and regenerated per release — never committed.
 generated/conformance/
+
+# Local content-addressed build cache written by `gmeow-dev sync` — a per-machine
+# incremental-rebuild store (multi-hundred-MB blobs), rebuilt on demand and never
+# a committed projection deliverable.
+generated/.pipeline-cache/
 
 # Editor/OS noise
 .DS_Store

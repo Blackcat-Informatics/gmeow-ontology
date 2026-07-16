@@ -50,3 +50,5 @@ ex:credMass a math:ProbabilityValue , math:RationalValue ;
     gmeow:hasReferenceFrame ex:posteriorFrame .
 
 ex:posteriorFrame a gmeow:ReferenceFrame .
+<http://example.org/math/ciLevel> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/credMass> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

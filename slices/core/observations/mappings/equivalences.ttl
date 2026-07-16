@@ -38,7 +38,7 @@ gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added: StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (observation-spine bridge): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (ScalarQuantity alias precedent): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue. Added (stream-to-trajectory design): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling. Added (spatial-measurement design): SpatialMeasurement and CoordinateObservation → sosa:Observation, iso19156:OM_Observation / OM_GeometryObservation, crmarc:S4_Observation; coordinateResult / geometryResult → sosa:hasResult. Added (sensory slice): Sensor → sosa:Sensor (precise alignment, superseding Agent broadMatch); SensorPlatform → sosa:Platform (precise alignment, superseding Agent relatedMatch); ObservableProperty → sosa:ObservableProperty; SensoryQuantity → sosa:Result; sensoryProperty → sosa:observedProperty; platformLocation → geo:location; Sensor → obi:device; observationMethod → oboe:Protocol / obi:assay; ObservableProperty → oboe:Characteristic / pato:quality; SensoryObservation → qb:Observation; unit → om:hasUnit.".
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. math:Quantity and math:quantityValue are the sole quantity/value authorities; their SOSA, OM, IVOA, LOINC, and QUDT grounding correspondences are authored by the math slice in mappings/quantity-bridges.ttl, while this catalog owns observation qualifiers and domain roles. Added: StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (observation-spine bridge): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (stream-to-trajectory design): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling. Added (spatial-measurement design): SpatialMeasurement and CoordinateObservation → sosa:Observation, iso19156:OM_Observation / OM_GeometryObservation, crmarc:S4_Observation; coordinateResult / geometryResult → sosa:hasResult. Added (sensory slice): Sensor → sosa:Sensor (precise alignment, superseding Agent broadMatch); SensorPlatform → sosa:Platform (precise alignment, superseding Agent relatedMatch); ObservableProperty → sosa:ObservableProperty; SensoryQuantity → sosa:Result; sensoryProperty → sosa:observedProperty; platformLocation → geo:location; Sensor → obi:device; observationMethod → oboe:Protocol / obi:assay; ObservableProperty → oboe:Characteristic / pato:quality; SensoryObservation → qb:Observation; unit → om:hasUnit.".
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -100,24 +100,6 @@ gmeow:eqObs007 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:comment "A Measurement is a kind of Observation; SOSA does not distinguish them." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
-gmeow:eqObs008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ScalarQuantity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Result ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
-gmeow:eqObs019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Quantity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Result ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "sosa:Result is broader (any result); gmeow:Quantity is the domain-neutral alias for ScalarQuantity (ScalarQuantity alias precedent).";
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 gmeow:eqObs017 a gmeow:TermEquivalence ;
@@ -400,17 +382,6 @@ gmeow:eqObs039 a gmeow:TermEquivalence ;
     gmeow:comment "CRMarchaeo S4 Observation covers stratigraphic and spatial observations in archaeological context." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
-# OM (Ontology of Units of Measure)
-
-gmeow:eqObs040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ScalarQuantity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject om:Measure ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "OM Measure is a broader concept; GMEOW ScalarQuantity bundles value, unit, determinacy, and granularity in one node. Related match for coordinate precision and uncertainty." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
 # StandpointTenure observation design — StandpointClaim as Observation: claimModality maps to SOSA result.
 
 gmeow:eqObs041 a gmeow:TermEquivalence ;
@@ -461,7 +432,7 @@ gmeow:eqObs045 a gmeow:TermEquivalence ;
     gmeow:alignObject sosa:Result ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a scalar numeric with unit+determinacy+granularity, equivalent to gmeow:ScalarQuantity (ScalarQuantity alias precedent, sensory slice).";
+    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a sensory-produced scalar numeric and specializes the sole math:Quantity authority.";
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 gmeow:eqObs046 a gmeow:TermEquivalence ;
@@ -664,15 +635,6 @@ gmeow:eqObs066 a gmeow:TermEquivalence ;
     gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
-gmeow:eqObs067 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ScalarQuantity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject obscore:observable ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "IVOA ObsCore observable is the measured physical quantity in an astronomical dataset (e.g. flux, counts)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
 # Media / Journalism — BBC + IPTC + OA
 gmeow:eqObs068 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:StandpointClaim ;
@@ -736,15 +698,6 @@ gmeow:eqObs074 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:comment "LOINC Method describes how a laboratory test was performed; close match to GMEOW ObservationMethod in clinical contexts." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
-gmeow:eqObs075 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ScalarQuantity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject loinc:Quantity ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "LOINC Quantity is the numeric result with unit in a lab test context." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 gmeow:eqObs076 a gmeow:TermEquivalence ;
@@ -820,24 +773,6 @@ gmeow:eqFibo004 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "links a monetary amount to its currency frame (subproperty of hasReferenceFrame)" ;
     gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
-
-gmeow:eqQudt004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Quantity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:QuantityValue ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "QUDT's value+unit bundle; GMEOW adds determinacy and provenance axes." ;
-    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
-
-gmeow:eqQudt005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:quantityValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:quantityValue ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "the numeric literal property of a quantity value" ;
-    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
 
 gmeow:eqQudt006 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:quantityUncertainty ;

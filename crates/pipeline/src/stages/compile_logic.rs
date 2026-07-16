@@ -10,7 +10,7 @@
 //! rail — they terminated on disk and in conformance fixtures. This stage makes the
 //! compiler a first-class DAG node: it parses the canonical logic source, runs every
 //! projection back-end once, and emits — as committed artifacts the single-pass
-//! regenerate/drift gate owns —
+//! update/drift gate owns —
 //!
 //! * the projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
 //!   Datalog, N3, gUFO, CLIF, CGIF and XCL projections, and the projection-report loss
@@ -66,7 +66,7 @@ pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";
 /// [`PipelineHandle::Logic`] handle to THIS graph's canonical digest, and
 /// `stage-snapshot` folds the same projection into the bundle under this IRI — so the
 /// in-graph carriage and the typed handle are the two faces of one content identity.
-pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
+pub const GRAPH_LOGIC: &str = gmeow_logic::reasoning_graphs::GRAPH_LOGIC;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the relational-core
 /// lowering of the compiled [`LogicProgram`] (C8) — the engine-agnostic
@@ -77,8 +77,7 @@ pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic"
 /// of one content identity. A downstream consumer reads this LOWERED lane WITHOUT
 /// re-lowering. When the full-FOL formula lowering lands, its richer lowering plugs into
 /// this SAME lane (same dialect + carried residue).
-pub const GRAPH_RELATIONAL_CORE: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/relational-core";
+pub const GRAPH_RELATIONAL_CORE: &str = gmeow_logic::reasoning_graphs::GRAPH_RELATIONAL_CORE;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the compiled
 /// [`CorrespondenceProgram`] (C10) — the `logic:Correspondence` carrier lane and
@@ -1312,10 +1311,15 @@ mod tests {
     /// REAL repo it runs EACH of the five compile-logic augmentation readers on BOTH the full
     /// authored base (`load_authored_dataset`) and the denylisted subgraph
     /// (`logic_compile_input_subgraph`) and asserts the IR output is identical — so the
-    /// stripped SKOS/Dublin-Core/PROV/VANN documentation predicates are provably never read.
-    /// If the denylist ever strips a read predicate, a reader's output diverges and this test
-    /// REDS. Non-vacuity is asserted FIRST (full validation-shape + constraint counts > 0) so
-    /// the test cannot pass on an empty corpus.
+    /// stripped predicate families (documentation: SKOS + RDFS presentational; alignment/
+    /// mapping: SKOS mapping predicates + SSSOM `semapv:`; foreign-domain example vocab: gUFO/
+    /// schema.org/FOAF/Wikidata; and the bibliographic-metadata families incl. Dublin Core/PROV/
+    /// VANN/VoID/DCAT/…) are provably never read. If the denylist ever strips a read predicate,
+    /// a reader's output diverges and this test REDS. Non-vacuity is asserted FIRST for EVERY
+    /// reader (validation shapes, constraints, correspondences, leg programs, and the meta-fold
+    /// root cause are each proven non-empty on the full corpus) so the test cannot pass
+    /// vacuously — the widened denylist most affects the correspondence-adjacent readers, so
+    /// their non-emptiness is load-bearing.
     ///
     /// On-gate: running the five readers over the whole corpus twice measures ~2.3s, well
     /// under the 25s budget, so it stays on the default gate (no `#[ignore]`).
@@ -1367,9 +1371,15 @@ mod tests {
             "extract_all_constraints must be reader-identical across the denylist narrowing"
         );
 
-        // Reader 3: authored correspondences.
+        // Reader 3: authored correspondences. Non-vacuity FIRST — the broadened denylist
+        // strips the SKOS mapping surface and SSSOM/foreign-domain vocab that sit adjacent to
+        // correspondence cells, so an empty correspondence set here would hide a regression.
         let (corr_full, corr_full_errs) = extract_correspondences(full.as_ref());
         let (corr_narrow, corr_narrow_errs) = extract_correspondences(narrow.as_ref());
+        assert!(
+            !corr_full.is_empty(),
+            "non-vacuity: the full corpus must extract at least one authored correspondence"
+        );
         assert_eq!(
             corr_full, corr_narrow,
             "extract_correspondences must be reader-identical across the denylist narrowing"
@@ -1380,8 +1390,14 @@ mod tests {
         );
 
         // Reader 4: the correspondence leg programs (over the SAME correspondences).
+        // Non-vacuity FIRST — the authored corpus carries gm: leg-path bodies (equivalence and
+        // structural cells), so an empty program set would mean the reader silently found none.
         let legs_full = extract_leg_programs(full.as_ref(), &corr_full);
         let legs_narrow = extract_leg_programs(narrow.as_ref(), &corr_narrow);
+        assert!(
+            !legs_full.is_empty(),
+            "non-vacuity: the full corpus must extract at least one correspondence leg program"
+        );
         assert_eq!(
             legs_full, legs_narrow,
             "extract_leg_programs must be reader-identical across the denylist narrowing"
