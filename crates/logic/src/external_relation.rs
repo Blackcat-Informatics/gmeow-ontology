@@ -1473,6 +1473,7 @@ where
 #[cfg(test)]
 mod tests {
     use std::sync::Mutex;
+    use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
 
     use super::*;
     use gmeow_logic_compile::ir::PreservationKind;
@@ -1649,6 +1650,34 @@ mod tests {
         }
     }
 
+    fn expect_batch_rejection(
+        batch: RelationBatch<i64>,
+        per_call_limit: usize,
+        bounds: Vec<Option<TermValue>>,
+    ) -> RelationExecutionError {
+        let provider = StaticProvider {
+            response: Ok(batch),
+            calls: Mutex::new(Vec::new()),
+        };
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            per_call_limit,
+            &provider,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(1, 16).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        execution
+            .resolve("https://example.org/relation/name-like", bounds)
+            .expect_err("malformed complete batch must be rejected atomically")
+    }
+
     #[test]
     fn complete_batches_are_validated_hashed_and_cached_before_budget_charge() {
         let provider = StaticProvider::complete(vec![
@@ -1738,6 +1767,248 @@ mod tests {
         );
         assert_eq!(execution.metrics.admitted_rows, 0);
         assert_eq!(execution.metrics.cache_hits, 0);
+    }
+
+    #[test]
+    fn bounds_limits_uniqueness_schema_arity_and_generation_are_enforced() {
+        let expected_generation = "https://example.org/index/generation/1".to_owned();
+        let cat_bound = vec![Some(TermValue::simple_literal("cat")), None];
+        let cases = [
+            (
+                RelationBatch {
+                    artifact_generation: expected_generation.clone(),
+                    rows: vec![relation_row("dog", "one", 7, "001")],
+                },
+                4,
+                "violates pushed bound",
+            ),
+            (
+                RelationBatch {
+                    artifact_generation: expected_generation.clone(),
+                    rows: vec![
+                        relation_row("cat", "one", 7, "001"),
+                        relation_row("cat", "two", 5, "002"),
+                    ],
+                },
+                1,
+                "beyond pushed limit",
+            ),
+            (
+                RelationBatch {
+                    artifact_generation: expected_generation.clone(),
+                    rows: vec![
+                        relation_row("cat", "one", 7, "001"),
+                        relation_row("cat", "one", 7, "002"),
+                    ],
+                },
+                4,
+                "duplicates an earlier tuple",
+            ),
+            (
+                RelationBatch {
+                    artifact_generation: expected_generation.clone(),
+                    rows: vec![RelationTuple {
+                        arguments: vec![
+                            TermValue::simple_literal("cat"),
+                            TermValue::simple_literal("not-an-iri"),
+                        ],
+                        annotation: 7,
+                        order_key: "001".to_owned(),
+                    }],
+                },
+                4,
+                "does not conform",
+            ),
+            (
+                RelationBatch {
+                    artifact_generation: expected_generation,
+                    rows: vec![RelationTuple {
+                        arguments: vec![TermValue::simple_literal("cat")],
+                        annotation: 7,
+                        order_key: "001".to_owned(),
+                    }],
+                },
+                4,
+                "has arity",
+            ),
+            (
+                RelationBatch {
+                    artifact_generation: "https://example.org/index/generation/stale".to_owned(),
+                    rows: vec![relation_row("cat", "one", 7, "001")],
+                },
+                4,
+                "expected",
+            ),
+        ];
+
+        for (batch, limit, detail) in cases {
+            let error = expect_batch_rejection(batch, limit, cat_bound.clone());
+            assert_eq!(error.kind, RelationExecutionFailureKind::ContractViolation);
+            assert_eq!(
+                error.invocation.status,
+                RelationInvocationStatus::ContractViolation
+            );
+            assert!(
+                error
+                    .invocation
+                    .detail
+                    .as_deref()
+                    .is_some_and(|value| value.contains(detail)),
+                "expected rejection detail containing {detail:?}, got {:?}",
+                error.invocation.detail
+            );
+            assert_eq!(error.invocation.admitted_rows, 0);
+        }
+    }
+
+    struct AtomicCancellation(AtomicBool);
+
+    impl RelationCancellation for AtomicCancellation {
+        fn is_cancelled(&self) -> bool {
+            self.0.load(AtomicOrdering::SeqCst)
+        }
+    }
+
+    struct CancelAfterProvider<'cancellation> {
+        cancellation: &'cancellation AtomicCancellation,
+    }
+
+    impl ExternalRelationProvider<i64> for CancelAfterProvider<'_> {
+        fn call(
+            &self,
+            _call: &RelationCall,
+            _cancellation: &dyn RelationCancellation,
+        ) -> Result<RelationBatch<i64>, RelationProviderError> {
+            self.cancellation.0.store(true, AtomicOrdering::SeqCst);
+            Ok(RelationBatch {
+                artifact_generation: "https://example.org/index/generation/1".to_owned(),
+                rows: vec![relation_row("cat", "one", 7, "001")],
+            })
+        }
+    }
+
+    #[test]
+    fn cancellation_is_checked_before_and_after_calls_without_admitting_rows() {
+        let cancelled = AtomicCancellation(AtomicBool::new(true));
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &NoopProvider,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(1, 4).unwrap(),
+            &cancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        let before = execution
+            .resolve("https://example.org/relation/name-like", vec![None, None])
+            .expect_err("pre-call cancellation must terminate the query");
+        assert_eq!(before.kind, RelationExecutionFailureKind::Cancelled);
+        assert_eq!(before.invocation.delivered_rows, 0);
+        assert_eq!(execution.metrics.provider_calls, 0);
+
+        let cancellation = AtomicCancellation(AtomicBool::new(false));
+        let provider = CancelAfterProvider {
+            cancellation: &cancellation,
+        };
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &provider,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(1, 4).unwrap(),
+            &cancellation,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        let after = execution
+            .resolve(
+                "https://example.org/relation/name-like",
+                vec![Some(TermValue::simple_literal("cat")), None],
+            )
+            .expect_err("post-call cancellation must discard the complete batch");
+        assert_eq!(after.kind, RelationExecutionFailureKind::Cancelled);
+        assert_eq!(after.invocation.delivered_rows, 1);
+        assert_eq!(after.invocation.admitted_rows, 0);
+        assert_eq!(execution.metrics.admitted_rows, 0);
+    }
+
+    #[test]
+    fn call_budget_and_stale_generation_incompleteness_are_typed() {
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &NoopProvider,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(1, 4).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        execution
+            .resolve(
+                "https://example.org/relation/name-like",
+                vec![Some(TermValue::simple_literal("cat")), None],
+            )
+            .expect("first distinct request is admitted");
+        let exhausted = execution
+            .resolve(
+                "https://example.org/relation/name-like",
+                vec![Some(TermValue::simple_literal("dog")), None],
+            )
+            .expect_err("second distinct request exceeds the call governor");
+        assert_eq!(
+            exhausted.kind,
+            RelationExecutionFailureKind::BudgetExhausted
+        );
+        assert_eq!(execution.metrics.provider_calls, 1);
+
+        let stale = StaticProvider {
+            response: Err(RelationProviderError::Incomplete {
+                kind: RelationProviderIncompletenessKind::StaleGeneration,
+                detail: "index generation changed during the call".to_owned(),
+            }),
+            calls: Mutex::new(Vec::new()),
+        };
+        let registration = RelationProviderRegistration::new(
+            descriptor("https://example.org/relation/name-like"),
+            4,
+            &stale,
+        )
+        .unwrap();
+        let providers = QueryRelationProviders::new(
+            vec![registration],
+            RelationProviderBudget::new(1, 4).unwrap(),
+            &NeverCancelled,
+        )
+        .unwrap();
+        let mut execution =
+            RelationExecution::new(&providers, &ZWeightSemiring, "query-contract").unwrap();
+        let stale = execution
+            .resolve("https://example.org/relation/name-like", vec![None, None])
+            .expect_err("stale generation cannot become semantic absence");
+        assert_eq!(
+            stale.kind,
+            RelationExecutionFailureKind::ProviderIncomplete(
+                RelationProviderIncompletenessKind::StaleGeneration
+            )
+        );
+        assert_eq!(
+            stale.invocation.status,
+            RelationInvocationStatus::Incomplete
+        );
     }
 
     #[test]
