@@ -10053,6 +10053,7 @@ logic:candidateNoOverTyping
 [ a logic:ClosureEntry ; logic:onClass logic:ContradictionWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/witnessIndividual" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContradictionWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/witnessWorld" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContradictionWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/witnessPremise" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass logic:RecoveryCase ; logic:closureKey "https://blackcatinformatics.ca/logic/recoveryTransform" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ClosureAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/closureEntailedAtom" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:SectionAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/dischargesSectionObligation" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass logic:CounterfactualAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/selectedByEntrenchment" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -10114,6 +10115,9 @@ logic:ContradictionWitness rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:allValuesFrom xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:allValuesFrom xsd:string ] .
 
+logic:RecoveryCase rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:recoveryTransform ; owl:allValuesFrom logic:Formula ] .
+
 # Global at-most-one semantics for the carriers legacy SHACL constrained with maxCount 1.
 logic:candidateSourceHash a owl:FunctionalProperty .
 logic:candidateExtractionProvenance a owl:FunctionalProperty .
@@ -10149,6 +10153,7 @@ logic:conjectureLifecycleState a owl:FunctionalProperty .
 logic:verdictProvenance a owl:FunctionalProperty .
 logic:witnessIndividual a owl:FunctionalProperty .
 logic:witnessWorld a owl:FunctionalProperty .
+logic:recoveryTransform a owl:FunctionalProperty .
 
 # Flagship acceptance witnesses: each required carrier is canonical, typed, and retains its
 # exact failure class through the generated validation-shape projection.
