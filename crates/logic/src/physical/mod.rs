@@ -57,6 +57,13 @@ mod magic;
 mod magic_generic;
 pub(crate) mod term_dag;
 pub(crate) mod term_key;
+// The three-consumer lowering into the shared `term_dag::TermDag`: `logic:`
+// (`gmeow_logic_compile::ir::Formula`/`Term`), `math:` (the RDF-authored
+// application/binding expression vocab), and `lang:` (a form + its one-way
+// `lang:`→`logic:` denotation) all lower into ONE arena, so alpha-equivalent
+// inputs authored in any surface intern to the SAME `NodeId` and content key.
+// Consumed by the unification / proof-object rungs to come.
+pub(crate) mod lower;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,

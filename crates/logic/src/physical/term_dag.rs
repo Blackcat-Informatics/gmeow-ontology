@@ -582,162 +582,12 @@ mod tests {
     }
 
     // ── (d) DAG ↔ ir.rs congruence ─────────────────────────────────────────────────────
-
-    // Reserved binder/connective operator IRIs, in a namespace disjoint from the object
-    // relation IRIs used by the corpus (`example.org`), so a connective App can never be
-    // conflated with an object-relation Atom.  The full three-consumer lowering (Task 3)
-    // formalizes this reservation; this focused lowering only needs the corpus it tests.
-    const OP_NS: &str = "https://blackcatinformatics.ca/logic/dag/op/";
-    const SORT_IRI: &str = "https://blackcatinformatics.ca/logic/dag/sort/individual";
-
-    /// Intern a reserved operator leaf.
-    fn op_leaf(dag: &mut TermDag, local: &str) -> NodeId {
-        dag.intern_leaf(iri(&format!("{OP_NS}{local}")))
-    }
-
-    /// Resolve a name against the binder-frame stack (innermost frame last) to a de-Bruijn
-    /// `(distance, slot)`, or `None` if free.
-    fn resolve_debruijn(env: &[Vec<String>], name: &str) -> Option<(u32, u16)> {
-        for (back, frame) in env.iter().rev().enumerate() {
-            if let Some(slot) = frame.iter().position(|v| v == name) {
-                return Some((back as u32, slot as u16));
-            }
-        }
-        None
-    }
-
-    /// Lower an `ir::Term` into the DAG under the current binder environment.
-    fn lower_term(
-        dag: &mut TermDag,
-        term: &Term,
-        env: &[Vec<String>],
-    ) -> gmeow_errors::Result<NodeId> {
-        Ok(match term {
-            Term::Iri(s) => dag.intern_leaf(iri(s)),
-            Term::Literal { lexical, datatype } => {
-                let tv = match datatype {
-                    None => TermValue::simple_literal(lexical.clone()),
-                    Some(dt) => TermValue::typed_literal(lexical.clone(), dt.clone()),
-                };
-                dag.intern_leaf(tv)
-            }
-            Term::Var(name) => match resolve_debruijn(env, name) {
-                Some((d, slot)) => dag.intern_bound(d, slot),
-                None => dag.intern_free(TermValue::simple_literal(name.clone())),
-            },
-            Term::SequenceMarker(_) => {
-                return Err(gmeow_errors::Diag::of_kind(
-                    gmeow_logic_compile::error::Ir {
-                        detail: "sequence markers are variadic and out of scope for the focused \
-                                 Task-2 DAG lowering (generalized in Task 3)"
-                            .to_owned(),
-                    },
-                ));
-            }
-        })
-    }
-
-    /// Flatten a commutative connective's same-tag operands, mirroring `ir.rs`'s
-    /// `flatten_commutative`, so `And[And[a,b],c] ≡ And[a,b,c]`.
-    fn flatten_commutative<'a>(is_and: bool, fs: &'a [Formula], out: &mut Vec<&'a Formula>) {
-        for f in fs {
-            match (is_and, f) {
-                (true, Formula::And(inner)) => flatten_commutative(is_and, inner, out),
-                (false, Formula::Or(inner)) => flatten_commutative(is_and, inner, out),
-                _ => out.push(f),
-            }
-        }
-    }
-
-    /// Lower an `ir::Formula` into the DAG.
-    ///
-    /// This is a FOCUSED lowering for the congruence corpus (the full three-consumer
-    /// lowering is Task 3).  It reproduces exactly the equivalences `ir::Formula::content_key`
-    /// decides: bound-variable alpha-renaming (via locally-nameless de-Bruijn), commutative
-    /// flatten+order-normalization of `And`/`Or`/`Iff`, and ordered `Implies`.
-    fn lower_formula(
-        dag: &mut TermDag,
-        f: &Formula,
-        env: &mut Vec<Vec<String>>,
-    ) -> gmeow_errors::Result<NodeId> {
-        Ok(match f {
-            Formula::Atom { relation, args } => {
-                let op = lower_term(dag, relation, env)?;
-                let mut arg_nodes = Vec::with_capacity(args.len());
-                for a in args {
-                    arg_nodes.push(lower_term(dag, a, env)?);
-                }
-                dag.intern_app(op, arg_nodes)
-            }
-            Formula::Not(b) => {
-                let op = op_leaf(dag, "not");
-                let child = lower_formula(dag, b, env)?;
-                dag.intern_app(op, vec![child])
-            }
-            Formula::And(fs) => {
-                let op = op_leaf(dag, "and");
-                lower_commutative(dag, true, op, fs, env)?
-            }
-            Formula::Or(fs) => {
-                let op = op_leaf(dag, "or");
-                lower_commutative(dag, false, op, fs, env)?
-            }
-            Formula::Implies(a, b) => {
-                let op = op_leaf(dag, "implies");
-                let la = lower_formula(dag, a, env)?;
-                let lb = lower_formula(dag, b, env)?;
-                dag.intern_app(op, vec![la, lb])
-            }
-            Formula::Iff(a, b) => {
-                let op = op_leaf(dag, "iff");
-                let mut pair = [lower_formula(dag, a, env)?, lower_formula(dag, b, env)?];
-                pair.sort();
-                dag.intern_app(op, pair.to_vec())
-            }
-            Formula::Forall { vars, body } => lower_binder(dag, "forall", vars, body, env)?,
-            Formula::Exists { vars, body } => lower_binder(dag, "exists", vars, body, env)?,
-        })
-    }
-
-    /// Lower a flattened, order-normalized commutative connective.  Interning the operands
-    /// yields NodeIds that are order-independent, so sorting them canonicalizes operand
-    /// order exactly as `ir.rs` sorts operand keys (duplicates preserved).
-    fn lower_commutative(
-        dag: &mut TermDag,
-        is_and: bool,
-        op: NodeId,
-        fs: &[Formula],
-        env: &mut Vec<Vec<String>>,
-    ) -> gmeow_errors::Result<NodeId> {
-        let mut operands: Vec<&Formula> = Vec::new();
-        flatten_commutative(is_and, fs, &mut operands);
-        let mut nodes = Vec::with_capacity(operands.len());
-        for f in operands {
-            nodes.push(lower_formula(dag, f, env)?);
-        }
-        nodes.sort();
-        Ok(dag.intern_app(op, nodes))
-    }
-
-    /// Lower a quantifier binder.  Each bound variable becomes a slot with an (untyped)
-    /// individual sort, so the binder's arity is captured; the body is lowered one
-    /// binder-depth deeper via a pushed frame.
-    fn lower_binder(
-        dag: &mut TermDag,
-        op_local: &str,
-        vars: &[String],
-        body: &Formula,
-        env: &mut Vec<Vec<String>>,
-    ) -> gmeow_errors::Result<NodeId> {
-        let op = op_leaf(dag, op_local);
-        let sort = dag.intern_leaf(iri(SORT_IRI));
-        let sorts = vec![sort; vars.len()];
-        env.push(vars.to_vec());
-        let body_node = lower_formula(dag, body, env);
-        env.pop();
-        let body_node = body_node?;
-        Ok(dag.intern_binder(op, sorts, body_node))
-    }
+    //
+    // The `logic:` lowering the congruence corpus exercises is the promoted, non-test
+    // three-consumer API [`crate::physical::lower::lower_logic_formula`] (Task 3), which
+    // reproduces exactly the equivalences `ir::Formula::content_key` decides. The Task-2
+    // focused helper that once lived here has been removed (greenfield: one lowering, not
+    // a test-local duplicate).
 
     fn tvar(name: &str) -> Term {
         Term::var(name).expect("non-empty var name")
@@ -900,8 +750,7 @@ mod tests {
         let mut dag = TermDag::new();
         let mut lowered: Vec<(&str, NodeId, String)> = Vec::with_capacity(corpus.len());
         for (label, formula) in &corpus {
-            let mut env: Vec<Vec<String>> = Vec::new();
-            let node = lower_formula(&mut dag, formula, &mut env)
+            let node = crate::physical::lower::lower_logic_formula(&mut dag, formula)
                 .unwrap_or_else(|e| panic!("lowering {label} failed: {e:?}"));
             lowered.push((label, node, formula.content_key()));
         }
