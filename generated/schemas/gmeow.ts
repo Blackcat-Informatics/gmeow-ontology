@@ -6061,10 +6061,6 @@ export interface FindingCluster {
 }
 
 export interface FlagshipScenario {
-    demonstratedByCompetency?: string,
-    demonstratedByExample?: string,
-    demonstratedByProducer?: string,
-    guardedByCounterExample?: string,
 }
 
 export interface ForgePlatform extends Entity {

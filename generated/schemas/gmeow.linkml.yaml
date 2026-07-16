@@ -1858,11 +1858,6 @@ classes:
   FlagshipScenario:
     class_uri: https://blackcatinformatics.ca/gmeow/FlagshipScenario
     title: flagship scenario
-    slots:
-    - demonstratedByCompetency
-    - demonstratedByExample
-    - demonstratedByProducer
-    - guardedByCounterExample
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -7236,19 +7231,16 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByCompetency
     title: demonstrated by competency
     range: uriorcurie
-    domain: FlagshipScenario
     multivalued: false
   demonstratedByExample:
     slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByExample
     title: demonstrated by example
     range: string
-    domain: FlagshipScenario
     multivalued: false
   demonstratedByProducer:
     slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByProducer
     title: demonstrated by producer
     range: string
-    domain: FlagshipScenario
     multivalued: false
   deonticModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/deonticModality
@@ -9286,7 +9278,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/guardedByCounterExample
     title: guarded by counter-example
     range: string
-    domain: FlagshipScenario
     multivalued: false
   guideBlob:
     slot_uri: https://blackcatinformatics.ca/gmeow/guideBlob

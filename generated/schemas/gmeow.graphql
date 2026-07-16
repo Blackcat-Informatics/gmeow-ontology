@@ -6613,10 +6613,6 @@ type FindingCluster {
 type FlagshipScenario {
   id: String
   iri: String
-  demonstratedByCompetency: String
-  demonstratedByExample: String
-  demonstratedByProducer: String
-  guardedByCounterExample: String
 }
 
 type ForgePlatform {

@@ -2010,7 +2010,7 @@
 
 <https://blackcatinformatics.ca/gmeow/coarsenTo-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/coarsenTo> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/coarsenTo> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/GranularityLevel> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/coarsenTo> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/coarsenTo-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/coarsenTo> ;
@@ -2699,10 +2699,6 @@
 <https://blackcatinformatics.ca/gmeow/hasEndInstant-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasEndInstant> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasEndInstant> ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/hasGranularity-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasGranularity> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasGranularity> ; sh:class <https://blackcatinformatics.ca/gmeow/GranularityLevel> ] .
 
 <https://blackcatinformatics.ca/gmeow/hasGranularity-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/hasGranularity> ;

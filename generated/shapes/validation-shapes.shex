@@ -2196,7 +2196,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/coarsenTo> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/coarsenTo-domain-shape> {
-  <https://blackcatinformatics.ca/gmeow/coarsenTo> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/coarsenTo> . {0,1} ;
 }
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/coarsenTo> (associate via ShapeMap)
@@ -3056,11 +3056,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasEndInstant> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/hasEndInstant-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/hasEndInstant> . {0,1} ;
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasGranularity> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/hasGranularity-domain-shape> {
-  <https://blackcatinformatics.ca/gmeow/hasGranularity> IRI ;
 }
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/hasGranularity> (associate via ShapeMap)

@@ -36,7 +36,7 @@ class KinRelationship(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/KinRelationship", "curie": "gmeow:KinRelationship", "definitionDigest": "blake3:7f1aff9d0a99cbd425991dffcf92d772d8903b67030d75ca71616aa3d76a1f5c", "iri": "https://blackcatinformatics.ca/gmeow/KinRelationship"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/KinRelationship", "curie": "gmeow:KinRelationship", "definitionDigest": "blake3:2121436cd0e93345f3bf1ad96e8d57d7d88d99a6d2cd4d7cfe5787f552cb8c31", "iri": "https://blackcatinformatics.ca/gmeow/KinRelationship"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
