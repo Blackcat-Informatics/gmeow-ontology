@@ -1222,6 +1222,23 @@ fn emit_term_value(g: &mut TripleSink, node: &str, term: &Term) {
         Term::SequenceMarker(name) => {
             g.add_lit(node, &logic("termSequenceMarker"), RdfLiteral::simple(name))
         }
+        Term::App { symbol, args } => {
+            // A compound function term is carried by a logic:FunctionTerm node the carrier
+            // points at via logic:termApplication: one reified logic:functionSymbol plus its
+            // ordered logic:argument carriers, emitted with the same index+value machinery a
+            // predication's arguments use — so `parse_function_term` reconstructs it and a
+            // nested application (`cons(H, cons(1, nil))`) round-trips losslessly.
+            let ft = format!("{node}/app");
+            g.add_iri(node, &logic("termApplication"), &ft);
+            g.add_iri(&ft, RDF_TYPE, &logic("FunctionTerm"));
+            g.add_iri(&ft, &logic("functionSymbol"), symbol);
+            for (i, arg) in args.iter().enumerate() {
+                let arg_node = format!("{ft}/arg/{i:04}");
+                g.add_iri(&ft, &logic("argument"), &arg_node);
+                emit_term_index(g, &arg_node, i);
+                emit_term_value(g, &arg_node, arg);
+            }
+        }
     }
 }
 

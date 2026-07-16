@@ -26,6 +26,11 @@ pub mod dag_profile;
 pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
+/// Native entailment by refutation (`A ⊨ C` iff `A ∪ ¬C` inconsistent): a thin
+/// composition over [`reason::dl_consistency`] plus the shared conclusion-shape
+/// negation calculus with sound reserved-namespace minting. Lives OUTSIDE `reason`
+/// so it is not folded into `reason::native_contract_hash` (it adds no rule).
+pub mod entail;
 /// The native EL/DL ↔ entail-oracle divergence cross-check: drives gmeow's own
 /// reasoner against [`entail_oracle`] and folds the comparison into the structured
 /// [`reason::ledger::DivergenceLedger`]. Docker-free and on-gate; lives OUTSIDE
@@ -44,6 +49,11 @@ pub mod explain;
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.
 pub(crate) mod facts;
 pub mod foundation;
+/// The goal-directed (backward) demonstrator façade — the single thin `pub` surface over
+/// the proof-carrying full-FOL backward engine (`crate::physical::resolve_fol` +
+/// `crate::physical::proof::check`), evaluating shipped structured demonstrators into
+/// proof-checked answers the pipeline folds into `graph/goal-directed` of `gmeow.gts`.
+pub mod goal_directed;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
 // gmeow-errors Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;

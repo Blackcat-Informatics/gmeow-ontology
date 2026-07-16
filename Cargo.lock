@@ -1759,6 +1759,7 @@ dependencies = [
  "foldhash 0.1.5",
  "gmeow-cost-measure",
  "gmeow-errors",
+ "gmeow-lang-form",
  "gmeow-logic-compile",
  "hashbrown 0.15.5",
  "iai-callgrind",

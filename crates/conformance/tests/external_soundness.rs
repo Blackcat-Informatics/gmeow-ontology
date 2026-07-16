@@ -22,11 +22,11 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use gmeow_conformance::external::{
-    ExternalOutcome, audit_vendorable, load_corpus_meta, outcome_from_szs, parse_szs_status,
-    parse_test_manifest,
+    ExternalOutcome, outcome_from_szs, parse_szs_status, parse_test_manifest,
 };
 use gmeow_conformance::paths::cases_root;
 use gmeow_conformance::profile::parse_profile;
+use gmeow_conformance::vendored::{audit_vendorable, load_corpus_meta};
 
 /// The external-corpus root, `conformance/logic/cases/external/`.
 fn external_root() -> std::path::PathBuf {
@@ -241,7 +241,7 @@ fn external_corpus_verdicts_match_their_third_party_source() {
         // verdict there, so `committed == declared` does NOT hold by construction.
         // The dedicated divergence gate (`el_divergence_gate`) pins those cases
         // exactly; this soundness check (committed == declared) must skip them.
-        if meta.lane == gmeow_conformance::external::Lane::Divergence {
+        if meta.lane == gmeow_conformance::vendored::Lane::Divergence {
             continue;
         }
 
