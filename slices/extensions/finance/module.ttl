@@ -1117,23 +1117,23 @@ logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/CryptoWallet> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/walletScheme> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/WalletScheme> ] .
-<https://blackcatinformatics.ca/gmeow/FinancialAccount> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/accountCurrency> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
-<https://blackcatinformatics.ca/gmeow/FinancialAccount> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/accountHolder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/FinancialAccount> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/accountType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/FinancialAccountType> ] .
-<https://blackcatinformatics.ca/gmeow/FinancialTransaction> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/transactionAmount> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
-<https://blackcatinformatics.ca/gmeow/Holding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/holdingAgent> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/Holding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/holdingAsset> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Asset> ] .
-<https://blackcatinformatics.ca/gmeow/Holding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/holdingQuantity> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Invoice> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/invoiceAmount> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
-<https://blackcatinformatics.ca/gmeow/LedgerAccount> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/ledgerAccountType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccountType> ] .
-<https://blackcatinformatics.ca/gmeow/Order> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/orderAmount> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
-<https://blackcatinformatics.ca/gmeow/Order> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/orderBuyer> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/Order> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/orderSeller> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/Posting> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/postingAccount> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccount> ] .
-<https://blackcatinformatics.ca/gmeow/Posting> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/postingAmount> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
-<https://blackcatinformatics.ca/gmeow/Posting> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/postingDirection> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/PostingDirection> ] .
-<https://blackcatinformatics.ca/gmeow/Posting> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/postingJournalEntry> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JournalEntry> ] .
+<https://blackcatinformatics.ca/gmeow/CryptoWallet> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/walletScheme> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/WalletScheme> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/accountCurrency> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/accountHolder> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/accountType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FinancialAccountType> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialTransaction> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/transactionAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingAgent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingAsset> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Asset> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingQuantity> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Invoice> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/invoiceAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/LedgerAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ledgerAccountType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccountType> ] .
+<https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderBuyer> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderSeller> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingAccount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccount> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingDirection> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/PostingDirection> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingJournalEntry> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/JournalEntry> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CryptoWallet> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/walletScheme" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/FinancialAccount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/accountHolder" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/FinancialTransaction> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/transactionAmount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -1156,7 +1156,7 @@ logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # transaction-parties disjunction, the two-posting count, and the               #
 # posting-direction value set. The gmeow:Agent obligations on                   #
 # ledgerAccountHolder / invoiceIssuer / invoiceRecipient hold under reasoning    #
-# (gmeow:Organization rdfs:subClassOf gmeow:Agent), so they ground              #
+# (gmeow:Organization logic:subClassOf gmeow:Agent), so they ground              #
 # declaratively via owl:allValuesFrom gmeow:Agent.                              #
 # =========================================================================== #
 
@@ -1210,23 +1210,23 @@ gmeow:JournalEntryPostingsCountConstraint
     logic:message "A JournalEntry must have at least two postings (gmeow:journalEntryPostings)." .
 
 # postingDirection sh:in value set → owl:oneOf antecedent (declarative sh:in).
-gmeow:Posting rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:postingDirection ; owl:allValuesFrom [ owl:oneOf ( gmeow:postingDirectionDebit gmeow:postingDirectionCredit ) ] ] .
+gmeow:Posting logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:postingDirection ; logic:allValuesFrom [ logic:oneOf ( gmeow:postingDirectionDebit gmeow:postingDirectionCredit ) ] ] .
 
-# Data-sound gmeow:Agent obligations (gmeow:Organization rdfs:subClassOf gmeow:Agent).
-gmeow:LedgerAccount rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ledgerAccountHolder ; owl:allValuesFrom gmeow:Agent ] .
+# Data-sound gmeow:Agent obligations (gmeow:Organization logic:subClassOf gmeow:Agent).
+gmeow:LedgerAccount logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:ledgerAccountHolder ; logic:allValuesFrom gmeow:Agent ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:LedgerAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/ledgerAccountHolder" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:Invoice rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:invoiceIssuer ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:invoiceRecipient ; owl:allValuesFrom gmeow:Agent ] .
+gmeow:Invoice logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:invoiceIssuer ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:invoiceRecipient ; logic:allValuesFrom gmeow:Agent ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceIssuer" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceRecipient" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # JournalEntry: at least two postings, projected as a BARE sh:minCount 2 (owl:Thing
 # filler collapses the qualified count to the plain minimum the legacy shape stated).
-gmeow:JournalEntry rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:journalEntryPostings ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+gmeow:JournalEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:journalEntryPostings ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
 
 # The double-entry balance invariant: within each currency, the sum of a JournalEntry's debit
 # postings equals the sum of its credit postings. A first-class aggregate-balance constraint

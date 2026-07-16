@@ -184,14 +184,14 @@ logic:povuDescLink a logic:Formula ; logic:relation logic:linkVia ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "subj" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] , [ logic:termIndex 2 ; logic:termVariable "this" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Profile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Class> ] .
+<https://blackcatinformatics.ca/gmeow/Profile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Class> ] .
 
 # Required descriptive spine of a Profile (self-description is the point of the
 # meta-pattern): at least one label, a definition, and one descriptor property.
-# The min-qualified idiom (owl:onClass owl:Thing) is the in-fragment form the
+# The min-qualified idiom (logic:onClass owl:Thing) is the in-fragment form the
 # native reasoner decides — it degrades to the unqualified sh:minCount 1 the
 # retired hand-authored shape enforced, without minting existential witnesses.
-gmeow:Profile rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty skos:definition ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:profileDescriptor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:Profile logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty skos:definition ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:profileDescriptor ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .

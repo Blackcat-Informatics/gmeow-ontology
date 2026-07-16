@@ -1917,33 +1917,33 @@ gmeow:DutyModalityConstraint
     logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality (#352)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Criterion> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentRubric> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Rubric> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessedEvent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Condition> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Criterion> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/penaltyPole> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
-<https://blackcatinformatics.ca/gmeow/Criterion> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rewardPole> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/precedenceHigher> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
-<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/precedenceLower> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
-<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/precedenceScope> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/NormativeSystem> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreScale> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scaleMax> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreScale> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scaleMin> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreScale> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/scaleStep> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Criterion> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentRubric> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Rubric> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedEvent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Condition> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Criterion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/penaltyPole> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
+<https://blackcatinformatics.ca/gmeow/Criterion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/rewardPole> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/precedenceHigher> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
+<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/precedenceLower> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
+<https://blackcatinformatics.ca/gmeow/PrecedenceTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/precedenceScope> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/NormativeSystem> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreAnchor> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreAnchor> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scaleMax> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scaleMin> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scaleStep> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Assessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assessmentScoreValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Assessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assessmentTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Assessment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -1972,7 +1972,7 @@ gmeow:DutyModalityConstraint
 # =========================================================================== #
 # Canonical logic: grounding for the norms closed-world constraints. Each        #
 # canonical constraint also formalizes the corresponding validation-shape IRI.  #
-# Sugar records ground the value sets (owl:oneOf), the unique-language facet,    #
+# Sugar records ground the value sets (logic:oneOf), the unique-language facet,    #
 # and the bare-literal existence obligations.                                   #
 # =========================================================================== #
 
@@ -2000,11 +2000,11 @@ gmeow:PrecedenceTenureScopeConstraint logic:formalizes gmeow:PrecedenceTenureSha
 gmeow:CriterionRewardPoleConstraint logic:formalizes gmeow:CriterionShape .
 gmeow:CriterionPenaltyPoleConstraint logic:formalizes gmeow:CriterionShape .
 
-# sh:in value sets → owl:oneOf antecedent (the derive projects a declarative sh:in).
-gmeow:ConditionGroup rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:allValuesFrom [ owl:oneOf ( gmeow:operatorAll gmeow:operatorAny gmeow:operatorNone ) ] ] .
-gmeow:Exemplar rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:exemplarPolarity ; owl:allValuesFrom [ owl:oneOf ( gmeow:polarityPositive gmeow:polarityNegative gmeow:polarityCautionary ) ] ] .
+# sh:in value sets → logic:oneOf antecedent (the derive projects a declarative sh:in).
+gmeow:ConditionGroup logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:groupOperator ; logic:allValuesFrom [ logic:oneOf ( gmeow:operatorAll gmeow:operatorAny gmeow:operatorNone ) ] ] .
+gmeow:Exemplar logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:exemplarPolarity ; logic:allValuesFrom [ logic:oneOf ( gmeow:polarityPositive gmeow:polarityNegative gmeow:polarityCautionary ) ] ] .
 
 # sh:uniqueLang facet → declarative logic:UniqueLangConstraint sugar (localizable prose).
 gmeow:ScoreAnchorMeaningUniqueLangConstraint
@@ -2042,12 +2042,12 @@ gmeow:ConditionParameterNameConstraint
     logic:message "A ConditionParameter must carry exactly one gmeow:parameterName." .
 
 # ConditionExpression: gmeow:expressionLanguage is functional per expression (max 1).
-gmeow:ConditionExpression rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:expressionLanguage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:ConditionExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionLanguage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # ConditionExpression: gmeow:expressionText is a single mandatory literal (min 1, max 1);
 # an rdfs:Literal data-range filler projects the declarative sh:minCount/maxCount without a
 # category-error IRI node-kind on the literal-valued path.
-gmeow:ConditionExpression rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:expressionText ; owl:minQualifiedCardinality 1 ; owl:onDataRange rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:expressionText ; owl:maxQualifiedCardinality 1 ; owl:onDataRange rdfs:Literal ] .
+gmeow:ConditionExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionText ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionText ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .

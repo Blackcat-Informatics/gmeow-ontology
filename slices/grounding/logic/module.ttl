@@ -7715,7 +7715,7 @@ logic:ValueRangeConstraint
 
 logic:UniqueLangConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unique Language Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a per-property unique-language constraint: a logic:onClass target and a logic:valuePath predicate whose language-tagged literal values must each carry a DISTINCT language tag (no two values on that path share a tag). Expands declaratively to a sh:uniqueLang true property component on the target class node shape; a language-tagged prose predicate localizes at most once per language. Frontend-only authoring shortcut with no ShEx form (the uniqueLang facet is a disclosed ShEx drop)."@x-gmeow-english ;
@@ -7739,7 +7739,7 @@ logic:AggregateConstraint
 
 logic:AggregateBalanceConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Aggregate Balance Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a double-entry balance constraint: a logic:onClass target whose postings (logic:balancePostingPredicate) are partitioned by a partition predicate (logic:balancePartitionPredicate) into a debit side (logic:balanceDebitValue) and a credit side (logic:balanceCreditValue), each posting's numeric amount is read via logic:balanceAmountNodePredicate then logic:balanceValuePredicate, and the group key via logic:balanceAmountNodePredicate then logic:balanceGroupPredicate; within every group the two partition-sums must be EQUAL. Generalizes the single-aggregate logic:AggregateConstraint to a partitioned two-sum equality over a value-key group. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity plus a structured balance satellite, lowered to a SELECT $this … GROUP BY $this ?group HAVING(sumDebits != sumCredits) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -10601,7 +10601,7 @@ logic:fsfcMembership a logic:Formula ; logic:relation rdfs:subClassOf ;
 # the gmeow:UnwiredFlagshipScenario failure identity the guard fixture resolves.     #
 # =========================================================================== #
 
-gmeow:FlagshipScenario a owl:Class ;
+gmeow:FlagshipScenario a logic:Kind , owl:Class ;
     rdfs:label "flagship scenario"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -10617,20 +10617,20 @@ gmeow:FlagshipScenario a owl:Class ;
 # ClosedWorldClosure opt-in (sh:minCount 1 without minting a reasoner witness); at-most-one is a
 # functional property (the four scenario-only predicates) or a scoped max-qualified restriction
 # (the shared gmeow:enforcesFailureClass annotation, kept single-valued only on a flagship scenario).
-gmeow:FlagshipScenario rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:demonstratedByExample ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:demonstratedByProducer ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:guardedByCounterExample ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:demonstratedByCompetency ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:enforcesFailureClass ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:enforcesFailureClass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:FlagshipScenario logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByExample ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByProducer ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:guardedByCounterExample ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByCompetency ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:enforcesFailureClass ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:enforcesFailureClass ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByExample" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/guardedByCounterExample" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByCompetency" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/enforcesFailureClass" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:UnwiredFlagshipScenario a owl:Class ;
+gmeow:UnwiredFlagshipScenario a logic:Category , owl:Class ;
     rdfs:label "unwired flagship scenario"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -10641,8 +10641,8 @@ gmeow:UnwiredFlagshipScenario a owl:Class ;
     gmeow:howToUse "In a grounding slice, make <Slice>UnwiredFlagshipScenario a subclass of only its own <Slice>ConformanceFailure root; this spec-layer marker itself is never a subclass target. The shared gmeow:FlagshipScenarioShape (not a per-slice shape) already carries gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario, so slice authors do not redeclare that annotation."@x-gmeow-english .
 
 gmeow:demonstratedByExample a owl:DatatypeProperty , owl:FunctionalProperty ;
-    rdfs:domain gmeow:FlagshipScenario ;
-    rdfs:range xsd:string ;
+    logic:domain gmeow:FlagshipScenario ;
+    logic:range xsd:string ;
     rdfs:label "demonstrated by example"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -10652,7 +10652,7 @@ gmeow:demonstratedByExample a owl:DatatypeProperty , owl:FunctionalProperty ;
     gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative, like gmeow:exampleFile) and avoid naming more than one worked example per scenario."@x-gmeow-english .
 
 gmeow:demonstratedByCompetency a owl:ObjectProperty , owl:FunctionalProperty ;
-    rdfs:domain gmeow:FlagshipScenario ;
+    logic:domain gmeow:FlagshipScenario ;
     rdfs:label "demonstrated by competency"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -10662,8 +10662,8 @@ gmeow:demonstratedByCompetency a owl:ObjectProperty , owl:FunctionalProperty ;
     gmeow:avoidWhen "Avoid a literal here (the value is an IRI into tests/competency.ttl) and avoid pointing at a competency question that carries no gmeow:cqExpectRow — the cross-check requires a pinned green competency."@x-gmeow-english .
 
 gmeow:demonstratedByProducer a owl:DatatypeProperty , owl:FunctionalProperty ;
-    rdfs:domain gmeow:FlagshipScenario ;
-    rdfs:range xsd:string ;
+    logic:domain gmeow:FlagshipScenario ;
+    logic:range xsd:string ;
     rdfs:label "demonstrated by producer"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -10673,8 +10673,8 @@ gmeow:demonstratedByProducer a owl:DatatypeProperty , owl:FunctionalProperty ;
     gmeow:avoidWhen "Avoid omitting it (the producer binding is required) and avoid naming a producer the discharge harness does not actually run — an unrun label is not a discharged acceptance bar."@x-gmeow-english .
 
 gmeow:guardedByCounterExample a owl:DatatypeProperty , owl:FunctionalProperty ;
-    rdfs:domain gmeow:FlagshipScenario ;
-    rdfs:range xsd:string ;
+    logic:domain gmeow:FlagshipScenario ;
+    logic:range xsd:string ;
     rdfs:label "guarded by counter-example"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;

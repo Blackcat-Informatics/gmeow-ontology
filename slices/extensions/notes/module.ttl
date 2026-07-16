@@ -337,9 +337,9 @@ logic:supCmDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Annotation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/annotationMotivation> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Annotation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/annotationTarget> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Highlight> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/annotationTargetSpan> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Annotation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/annotationMotivation> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Annotation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/annotationTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Highlight> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/annotationTargetSpan> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Annotation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/annotationMotivation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Annotation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/annotationTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Highlight> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/annotationTargetSpan" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -347,10 +347,10 @@ logic:supCmDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # --- Wave B1 shape-drain: annotation cardinality + note content / suppression grounding ---
 # gmeow:WebAnnotationShape — every Annotation has exactly one target, at most one body, and
 # exactly one motivation.
-gmeow:Annotation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:annotationTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:annotationBody ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:annotationMotivation ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:Annotation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:annotationTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:annotationBody ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:annotationMotivation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # gmeow:CommentHasParentShape — a Comment references exactly one parent. The retired shape also
 # carried sh:class gmeow:Entity on gmeow:commentParent; that closed-world class check is a
@@ -359,9 +359,9 @@ gmeow:Annotation rdfs:subClassOf
 # redundant explicit gmeow:Entity the guidance forbids, so projecting sh:class gmeow:Entity would
 # red make validate). The commentParent range stays the open-world rdfs:range gmeow:Entity already
 # declared on the property; only the exactly-one cardinality is closed-world here.
-gmeow:Comment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:commentParent ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:commentParent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:Comment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:commentParent ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:commentParent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # gmeow:NoteContentShape — a Note must carry gmeow:noteContent or at least one rdfs:label.
 gmeow:NoteContentConstraint
@@ -378,6 +378,6 @@ gmeow:NoteContentConstraint
 
 # gmeow:NoteContentShape node-level sh:or → the OrProperties node-component projection: a Note
 # carries gmeow:noteContent or at least one rdfs:label.
-gmeow:Note rdfs:subClassOf [ owl:unionOf (
-    [ a owl:Restriction ; owl:onProperty gmeow:noteContent ; owl:someValuesFrom owl:Thing ]
-    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:someValuesFrom owl:Thing ] ) ] .
+gmeow:Note logic:subClassOf [ owl:unionOf (
+    [ a logic:Restriction ; logic:onProperty gmeow:noteContent ; logic:someValuesFrom owl:Thing ]
+    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:someValuesFrom owl:Thing ] ) ] .

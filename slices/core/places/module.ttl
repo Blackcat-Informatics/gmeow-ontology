@@ -5462,37 +5462,37 @@ logic:ctrGran a logic:Formula ; logic:relation gmeow:hasGranularity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ancestor" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/CadastralReference> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/referenceAuthority> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/CadastralReference> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/referenceJurisdiction> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/CadastralReference> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/referenceType> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ContainmentTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/containmentChild> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ContainmentTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/containmentParent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ContainmentTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/LandTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/LandTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/tenureParty> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/LandTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/tenurePlace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/LandTenure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/tenureType> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Place> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasCentroid> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Geometry> ] .
-<https://blackcatinformatics.ca/gmeow/Pose> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasPoseOrientation> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Orientation> ] .
-<https://blackcatinformatics.ca/gmeow/Pose> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasPosePosition> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/SpatialCoordinates> ] .
-<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/proximityTo> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/determinacyModel> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Determinacy> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/dimensionCount> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameKind> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasAxis> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Axis> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasMetricKind> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/MetricKind> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/parentFrame> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
-<https://blackcatinformatics.ca/gmeow/ReferenceFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/transformsTo> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
-<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/overlayAuthority> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/overlayPlace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceAuthority> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceJurisdiction> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/containmentChild> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/containmentParent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureParty> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenurePlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Place> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasCentroid> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Geometry> ] .
+<https://blackcatinformatics.ca/gmeow/Pose> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasPoseOrientation> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Orientation> ] .
+<https://blackcatinformatics.ca/gmeow/Pose> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasPosePosition> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/SpatialCoordinates> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/proximityTo> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/determinacyModel> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Determinacy> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/dimensionCount> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameKind> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasAxis> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Axis> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasMetricKind> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MetricKind> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/parentFrame> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/transformsTo> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/overlayAuthority> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/overlayPlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceAuthority" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceJurisdiction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -5524,19 +5524,19 @@ logic:ctrGran a logic:Formula ; logic:relation gmeow:hasGranularity ;
 # --- Wave B2 shape-drain: places at-most-one restorations (non-functional paths) ---
 # gmeow:hasPosePosition / gmeow:hasPoseOrientation / gmeow:hasCentroid carry a per-shape sh:maxCount 1
 # but are NOT globally owl:FunctionalProperty, so the bound rides a class-scoped max-qualified
-# antecedent (owl:onClass owl:Thing degrades to the plain sh:maxCount 1 the oracle compares).
-gmeow:Pose rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hasPosePosition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasPoseOrientation ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:Place rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hasCentroid ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+# antecedent (logic:onClass owl:Thing degrades to the plain sh:maxCount 1 the oracle compares).
+gmeow:Pose logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPosePosition ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPoseOrientation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Place logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasCentroid ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # gmeow:CadastralReferenceShape — a CadastralReference records exactly one gmeow:referenceValue.
-# referenceValue is literal-valued, so the existence axiom ranges over rdfs:Literal (owl:allValuesFrom
+# referenceValue is literal-valued, so the existence axiom ranges over rdfs:Literal (logic:allValuesFrom
 # owl:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject the literal); the closure entry
 # projects sh:minCount 1, and the owl:FunctionalProperty contract supplies the sh:maxCount 1.
-gmeow:CadastralReference rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:referenceValue ; owl:allValuesFrom rdfs:Literal ] .
+gmeow:CadastralReference logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:referenceValue ; logic:allValuesFrom rdfs:Literal ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:CadastralReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/referenceValue" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # --- Wave B2 shape-drain: places procedural residue (logic: canon; project to generated/shapes) ---

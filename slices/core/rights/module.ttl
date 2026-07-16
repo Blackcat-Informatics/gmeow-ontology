@@ -2355,12 +2355,12 @@ gmeow:PrivacyNoticeAttributionConstraint
 <https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TrademarkStatus> ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintOperator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/leftOperand> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightWork> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/LogicalConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintLogic> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/LogicalConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/logicConstraintMember> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/constraintOperator> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/leftOperand> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/copyrightWork> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LogicalConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/constraintLogic> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LogicalConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/logicConstraintMember> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AtomicConstraint> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/constraintOperator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AtomicConstraint> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/leftOperand" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Copyright> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/copyrightHolder" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -2412,9 +2412,9 @@ gmeow:LogicalConstraintMemberCountConstraint
     logic:message "A logical constraint must combine at least two member constraints (gmeow:logicConstraintMember)." .
 
 # LogicalConstraint: gmeow:constraintLogic is functional per constraint (max 1).
-gmeow:LogicalConstraint rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:constraintLogic ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:LogicalConstraint logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:constraintLogic ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # LogicalConstraint: at least two member constraints, as a BARE sh:minCount 2.
-gmeow:LogicalConstraint rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:logicConstraintMember ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+gmeow:LogicalConstraint logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:logicConstraintMember ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .

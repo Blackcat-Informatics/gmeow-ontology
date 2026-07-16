@@ -998,15 +998,15 @@ logic:cdwIndep a logic:Formula ; logic:relation gmeow:sourceIndependence ;
 # gmeow:HasGranularityShape — every gmeow:hasGranularity value is a gmeow:GranularityLevel (the
 # value's own resolution level). The domain-restriction + ClosedWorldClosure opt-in projects the
 # targetSubjectsOf property-value class check the retired shape carried.
-gmeow:hasGranularity rdfs:domain
-    [ a owl:Restriction ; owl:onProperty gmeow:hasGranularity ; owl:allValuesFrom gmeow:GranularityLevel ] .
+gmeow:hasGranularity logic:domain
+    [ a logic:Restriction ; logic:onProperty gmeow:hasGranularity ; logic:allValuesFrom gmeow:GranularityLevel ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasGranularity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # gmeow:CoarsenToShape — gmeow:coarsenTo points at a single gmeow:GranularityLevel (the coarsest
 # level a value may be disclosed at); multiple, possibly conflicting, markers are ill-formed.
 # Functional (one coarsest level per value) supplies the exactly-one bound; the domain restriction +
 # closure opt-in supplies the value-class check; the reachability warning rides its own record.
-gmeow:coarsenTo rdfs:domain
-    [ a owl:Restriction ; owl:onProperty gmeow:coarsenTo ; owl:allValuesFrom gmeow:GranularityLevel ] .
+gmeow:coarsenTo logic:domain
+    [ a logic:Restriction ; logic:onProperty gmeow:coarsenTo ; logic:allValuesFrom gmeow:GranularityLevel ] .
 gmeow:coarsenTo a owl:FunctionalProperty .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/coarsenTo" ; logic:closureValue logic:ClosedWorldClosure ] .

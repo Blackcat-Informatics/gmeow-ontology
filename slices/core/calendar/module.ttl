@@ -808,16 +808,16 @@ logic:supEvDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Availability> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/availabilityAgent> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/Availability> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/availabilitySlot> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
-<https://blackcatinformatics.ca/gmeow/Availability> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/availabilityStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/AvailabilityStatus> ] .
-<https://blackcatinformatics.ca/gmeow/EventInvitation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/invitationEvent> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Event> ] .
-<https://blackcatinformatics.ca/gmeow/EventInvitation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/invitationInvitee> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/EventInvitation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/invitationStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/InvitationStatus> ] .
-<https://blackcatinformatics.ca/gmeow/Reminder> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/reminderAction> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReminderAction> ] .
-<https://blackcatinformatics.ca/gmeow/Reminder> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/reminderTarget> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Event> ] .
-<https://blackcatinformatics.ca/gmeow/Task> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/taskStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TaskStatus> ] .
-<https://blackcatinformatics.ca/gmeow/TimeZone> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/timeZoneIanaId> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/Availability> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/availabilityAgent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Availability> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/availabilitySlot> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
+<https://blackcatinformatics.ca/gmeow/Availability> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/availabilityStatus> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AvailabilityStatus> ] .
+<https://blackcatinformatics.ca/gmeow/EventInvitation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/invitationEvent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Event> ] .
+<https://blackcatinformatics.ca/gmeow/EventInvitation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/invitationInvitee> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/EventInvitation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/invitationStatus> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/InvitationStatus> ] .
+<https://blackcatinformatics.ca/gmeow/Reminder> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/reminderAction> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReminderAction> ] .
+<https://blackcatinformatics.ca/gmeow/Reminder> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/reminderTarget> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Event> ] .
+<https://blackcatinformatics.ca/gmeow/Task> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/taskStatus> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/TaskStatus> ] .
+<https://blackcatinformatics.ca/gmeow/TimeZone> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/timeZoneIanaId> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Availability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/availabilityAgent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Availability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/availabilitySlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Availability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/availabilityStatus" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -834,22 +834,22 @@ logic:supEvDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # the derive projects) restoring the sh:maxCount the retired hand-authored calendar
 # well-formedness shapes carried; the sh:minCount + class ride the migrated
 # owl:allValuesFrom + logic:ClosedWorldClosure sibling axioms above.
-gmeow:Availability rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:availabilityAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:availabilitySlot ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:availabilityStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:EventInvitation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:invitationEvent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:invitationStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:Task rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:taskStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:Reminder rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:reminderTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:reminderAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:reminderTrigger ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:reminderTrigger ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
-gmeow:TimeZone rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:timeZoneIanaId ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
+gmeow:Availability logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:availabilityAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:availabilitySlot ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:availabilityStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:EventInvitation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:invitationEvent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:invitationStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Task logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:taskStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Reminder logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:TimeZone logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:timeZoneIanaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 # EventSchedule wiring choice: at least one of a template event or a recurrence rule
 # (the disjunctive-requiredness image of the retired gmeow:ScheduleHasRuleShape sh:or).
@@ -858,7 +858,7 @@ gmeow:ScheduleHasRuleConstraint
     rdfs:label "Schedule has rule or template constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: an gmeow:EventSchedule anchors at least one gmeow:scheduleTemplateEvent (an gmeow:Event) or gmeow:scheduleRecurrenceRule (a gmeow:RecurrenceRule); the value-class of each alternative rides the migrated owl:allValuesFrom range axioms on those properties."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: an gmeow:EventSchedule anchors at least one gmeow:scheduleTemplateEvent (an gmeow:Event) or gmeow:scheduleRecurrenceRule (a gmeow:RecurrenceRule); the value-class of each alternative rides the migrated logic:allValuesFrom range axioms on those properties."@x-gmeow-english ;
     logic:formalizes gmeow:ScheduleHasRuleShape ;
     logic:onClass gmeow:EventSchedule ;
     logic:anyOf gmeow:scheduleTemplateEvent , gmeow:scheduleRecurrenceRule ;
