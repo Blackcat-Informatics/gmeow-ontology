@@ -3072,6 +3072,7 @@ export enum PipelineStageEnum {
     stage_export_result_shapes = "stage-export-result-shapes",
     stage_export_schemas = "stage-export-schemas",
     stage_export_yaml_ld = "stage-export-yaml-ld",
+    stage_goal_directed = "stage-goal-directed",
     stage_gts_compose = "stage-gts-compose",
     stage_gts_sink = "stage-gts-sink",
     stage_mappings = "stage-mappings",

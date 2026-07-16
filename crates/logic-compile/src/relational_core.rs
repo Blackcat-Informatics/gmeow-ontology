@@ -1027,6 +1027,14 @@ fn formula_term_to_rc(term: &Term, is_object: bool) -> Result<RcTerm, &'static s
         Term::SequenceMarker(_) => {
             Err("sequence marker (variadic) is not representable in the relational core")
         }
+        // The relational core is function-free (flat Datalog): a compound function term has no
+        // subject/predicate/object slot. This is the seam where a later step lowers an
+        // application — e.g. by flattening `cons(H, T)` to a reifier individual with functional
+        // argument predicates — rather than silently dropping structure here.
+        Term::App { .. } => Err(
+            "compound function term (application) is not representable in the function-free \
+                 relational core",
+        ),
     }
 }
 

@@ -23655,6 +23655,9 @@ enums:
       stage-export-yaml-ld:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-yaml-ld
         title: 'export: yaml ld'
+      stage-goal-directed:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-goal-directed
+        title: goal directed
       stage-gts-compose:
         meaning: https://blackcatinformatics.ca/gmeow/stage-gts-compose
         title: gts compose
