@@ -36,6 +36,7 @@
 //! runtime (the [`crate::physical::id`] doctrine).
 
 use std::hash::BuildHasher;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use hashbrown::HashTable;
 use purrdf::TermValue;
@@ -44,6 +45,22 @@ use smallvec::SmallVec;
 use crate::facts::TermInterner;
 use crate::physical::id::{MetaId, NodeId, TermId};
 use crate::physical::term_key;
+
+/// The process-global source of the next [`ArenaId`] brand. Starts at 1 so a defaulted
+/// `ArenaId(0)` (were one ever constructed by mistake) can never alias a live arena.
+static NEXT_ARENA_BRAND: AtomicU64 = AtomicU64::new(1);
+
+/// A process-unique brand identifying the [`TermDag`] arena that minted a [`NodeId`].
+///
+/// A [`NodeId`] is a dense per-DAG slot handle whose numeric index is only meaningful within
+/// the arena that minted it; two independent DAGs mint overlapping index ranges. The brand
+/// closes that gap: a caller holding a [`NodeId`] of unknown provenance carries the brand of
+/// the arena it came from (via [`crate::query_ir::StructNode`]), and [`TermDag::contains_node`]
+/// rejects any handle whose brand is not this arena's — so a foreign node can never be silently
+/// resolved against the wrong arena. Like every runtime handle it is NEVER serialized and NEVER
+/// hashed for provenance (the content key remains the persistent identity).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct ArenaId(u64);
 
 /// A structured-term DAG node.
 ///
@@ -157,8 +174,12 @@ fn key_hash(key: &str) -> u64 {
 ///
 /// Mirrors [`crate::facts::TermInterner`]: dense insertion-ordered handles, the content
 /// key stored once in a side arena, and a borrowed-key [`HashTable`] probe.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(crate) struct TermDag {
+    /// This arena's process-unique brand, minted at construction. Carried by no node — it is
+    /// the identity a [`NodeId`] of unknown provenance is validated AGAINST in
+    /// [`Self::contains_node`].
+    arena: ArenaId,
     /// Atomic leaves reuse the fact interner verbatim: intern a [`TermValue`] → [`TermId`].
     atoms: TermInterner,
     /// Nodes in insertion order (slot = [`NodeId`] index).
@@ -176,10 +197,32 @@ pub(crate) struct TermDag {
     meta_count: usize,
 }
 
+impl Default for TermDag {
+    /// A fresh, empty DAG minting a new process-unique [`ArenaId`] brand.
+    fn default() -> Self {
+        Self {
+            arena: ArenaId(NEXT_ARENA_BRAND.fetch_add(1, Ordering::Relaxed)),
+            atoms: TermInterner::default(),
+            nodes: Vec::new(),
+            keys: Vec::new(),
+            free_meta: Vec::new(),
+            by_key: HashTable::new(),
+            meta_count: 0,
+        }
+    }
+}
+
 impl TermDag {
     /// A fresh, empty DAG.
     pub(crate) fn new() -> Self {
         Self::default()
+    }
+
+    /// This arena's process-unique brand — the identity a caller records (via
+    /// [`crate::query_ir::StructNode`]) so a held [`NodeId`] can later be validated against the
+    /// arena that minted it in [`Self::contains_node`].
+    pub(crate) fn arena(&self) -> ArenaId {
+        self.arena
     }
 
     // ── Accessors ───────────────────────────────────────────────────────────────
@@ -239,15 +282,22 @@ impl TermDag {
         self.nodes.len()
     }
 
-    /// Whether `id` was minted by THIS DAG (its slot is in range).
+    /// Whether the branded handle `(id, arena)` was minted by THIS DAG.
     ///
     /// A [`NodeId`] is meaningful only within the DAG that minted it, so a caller holding a
     /// [`NodeId`] of unknown provenance (e.g. the structured backward resolver
-    /// [`crate::physical::resolve_fol`] guarding a `QTerm::Struct` node against a fresh
-    /// dispatch DAG) tests membership here rather than risking the per-DAG [`Self::data`]
-    /// panic.
-    pub(crate) fn contains_node(&self, id: NodeId) -> bool {
-        id.index() < self.nodes.len()
+    /// [`crate::physical::resolve_fol`] guarding a `QTerm::Struct` node) tests membership here
+    /// rather than risking the per-DAG [`Self::data`] panic — OR, worse, silently resolving a
+    /// FOREIGN node whose numeric index merely happens to fall in this arena's range.
+    ///
+    /// Two SEPARATE conditions, both mandatory: the `arena` brand must be THIS arena's (so a
+    /// node minted by any other DAG is rejected outright), AND the slot index must be in range.
+    /// The bounds check alone is unsound across arenas; the brand check makes membership an
+    /// identity test, not an index-range coincidence.
+    pub(crate) fn contains_node(&self, id: NodeId, arena: ArenaId) -> bool {
+        let same_arena = arena == self.arena;
+        let in_bounds = id.index() < self.nodes.len();
+        same_arena && in_bounds
     }
 
     // ── Constructors ──────────────────────────────────────────────────────────────

@@ -1552,12 +1552,17 @@ pub(crate) fn resolve_native(
     program: &QProgram,
     budget: &Budget,
 ) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
+    // A bare-`QProgram` entry owns no structured-term arena; a parsed program is flat, so the
+    // fresh DAG is unused. A caller holding a STRUCTURED program interned into a live DAG calls
+    // `resolve_native_under` directly, passing that owning arena so the `Struct` nodes resolve.
+    let mut dag = super::term_dag::TermDag::new();
     resolve_native_under(
         "gmeow-backward-unscoped-v1",
         foreign,
         world,
         program,
         budget,
+        &mut dag,
     )
 }
 
@@ -1566,12 +1571,17 @@ pub(crate) fn resolve_native(
 /// The contract hash participates in the immutable plan identity; callers that change
 /// profile/resource semantics cannot accidentally reuse a plan compiled under an older
 /// contract even when their lowered rule text happens to match.
+///
+/// `dag` is the structured-term arena a STRUCTURED program's `Struct` nodes were interned into
+/// — the caller's OWNING arena, so the full-FOL resolver resolves against genuine nodes rather
+/// than a fresh (empty) arena that rejects every node. A flat program never touches `dag`.
 pub(crate) fn resolve_native_under(
     contract_hash: &str,
     foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
+    dag: &mut super::term_dag::TermDag,
 ) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
     // (0) Gate cut (reuse the structural detector the dispatch gate uses).  Arithmetic
     // is no longer a whole-program gap — the closed builtin set is evaluated natively;
@@ -1590,12 +1600,11 @@ pub(crate) fn resolve_native_under(
     // well-founded negation, proof-carrying answers. The parser produces only flat terms, so
     // this branch never fires for a parsed production program — the flat path below stays
     // byte-identical. A structured program travels with the DAG its `Struct` nodes were
-    // interned into; at this bare-`QProgram` boundary dispatch owns no such DAG, so
-    // `resolve_native_fol` guards node membership and returns a typed gap rather than
-    // resolving against a foreign node.
+    // interned into, and the caller passes that OWNING arena as `dag`; `resolve_native_fol`
+    // validates arena identity and resolves against the genuine nodes (a foreign arena is a
+    // typed gap, never a fabricated answer).
     if super::resolve_fol::program_is_structured(program) {
-        let mut dag = super::term_dag::TermDag::new();
-        return super::resolve_fol::resolve_native_fol(&mut dag, program, budget);
+        return super::resolve_fol::resolve_native_fol(dag, program, budget);
     }
 
     // The backward leg handles a SINGLE goal atom; a multi-atom conjunctive goal is a

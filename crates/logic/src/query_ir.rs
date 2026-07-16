@@ -24,6 +24,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::physical::id::NodeId;
+use crate::physical::term_dag::ArenaId;
 use crate::seam::BudgetStatus;
 
 /// Wrap a query-program parse condition message as a typed diagnostic on the
@@ -87,23 +88,33 @@ pub enum QTerm {
 /// live DAG) or read the wrapped node, matching the doctrine that a `NodeId` is never a
 /// serialized/public identity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StructNode(NodeId);
+pub struct StructNode(NodeId, ArenaId);
 
 impl StructNode {
     /// Wrap a DAG node handle as a structured-term payload (crate-internal — only a live DAG
-    /// mints a `NodeId`).
+    /// mints a `NodeId`), branded with the arena that minted it.
+    ///
+    /// The `arena` brand ([`crate::physical::term_dag::TermDag::arena`]) travels WITH the node
+    /// so a later membership test ([`crate::physical::term_dag::TermDag::contains_node`]) is an
+    /// arena-identity check, not a numeric index-range coincidence — a node from a foreign DAG
+    /// is rejected even when its index happens to fall in the target arena's range.
     ///
     /// The parser produces only flat terms, so a `Struct` is constructed exclusively by
     /// crate-internal callers holding a live DAG — currently the resolver's own tests and the
     /// shipped structured demonstrators; the flat production surface never reaches it.
     #[allow(dead_code)]
-    pub(crate) fn new(node: NodeId) -> Self {
-        Self(node)
+    pub(crate) fn new(node: NodeId, arena: ArenaId) -> Self {
+        Self(node, arena)
     }
 
     /// The wrapped DAG node handle.
     pub(crate) fn node(self) -> NodeId {
         self.0
+    }
+
+    /// The brand of the arena that minted [`Self::node`].
+    pub(crate) fn arena(self) -> ArenaId {
+        self.1
     }
 }
 

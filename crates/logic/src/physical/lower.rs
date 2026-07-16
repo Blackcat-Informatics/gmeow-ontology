@@ -172,6 +172,19 @@ fn lower_term_in(dag: &mut TermDag, term: &Term, env: &[Vec<String>]) -> Result<
                  fail rather than a silent single-term coercion"
             )));
         }
+        Term::App { symbol, args } => {
+            // The `logic:` authoring surface and the typed-IR frontend now express a compound
+            // function term, but lowering it into this arena's `NodeData::App` node is the
+            // deliberate seam for a later step. Hard-fail with the exact symbol/arity rather
+            // than silently coercing it to a leaf, so nothing downstream mistakes an
+            // un-lowered application for a resolved term.
+            return Err(ir_err(format!(
+                "compound function term {symbol}/{} is not yet lowered into the physical term \
+                 DAG; this is the seam for the application-lowering step, and lowering it is a \
+                 hard fail rather than a silent single-term coercion",
+                args.len()
+            )));
+        }
     })
 }
 

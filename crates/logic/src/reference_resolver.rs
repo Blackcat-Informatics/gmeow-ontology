@@ -53,6 +53,19 @@ fn reference_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reference { detail })
 }
 
+/// A [`QTerm::Struct`] argument reaching `role` in the declarative SLD oracle — a HARD
+/// FAIL (greenfield no-optionality doctrine forbids silently wildcarding an unsupported
+/// term). Structured programs are routed to `resolve_fol` upstream, so this guard should
+/// never fire on a shipped path; if it does, it is a routing bug and must be surfaced as
+/// a typed error, never matched against arbitrary EDB/IDB state.
+fn struct_unsupported(role: &str) -> gmeow_errors::Diag {
+    reference_err(format!(
+        "a structured (compound) term is not supported as {role} by the declarative \
+         reference oracle (structured programs route to resolve_fol; a Struct term \
+         reaching here is a routing bug, never a silent wildcard match)"
+    ))
+}
+
 // ── Public entry point ────────────────────────────────────────────────────────
 
 /// Resolve `program` against `world` using the declarative SLD oracle.
@@ -284,8 +297,8 @@ impl<'a> ResolveState<'a> {
         // unbound Vars are represented as the empty string (wildcard).
         let key = (
             atom.pred.clone(),
-            term_canonical_or_wildcard(&atom.args[0]),
-            term_canonical_or_wildcard(&atom.args[1]),
+            term_canonical_or_wildcard(&atom.args[0])?,
+            term_canonical_or_wildcard(&atom.args[1])?,
         );
 
         if seen.contains(&key) {
@@ -372,11 +385,16 @@ impl<'a> ResolveState<'a> {
         let subj_term: Option<TermValue> = match &atom.args[0] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             // A bare number is never an EDB subject in oracle-resolved programs.
-            QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
+            QTerm::Var(_) | QTerm::Num(_) => None,
+            // G14: a structured (compound) term is NEVER a silent wildcard here. Structured
+            // programs route to `resolve_fol` upstream, so this is a hard-fail guard against
+            // a routing bug matching arbitrary EDB, not a documented reachable path.
+            QTerm::Struct(_) => return Err(struct_unsupported("an EDB subject")),
         };
         let obj_term: Option<TermValue> = match &atom.args[1] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
-            QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
+            QTerm::Var(_) | QTerm::Num(_) => None,
+            QTerm::Struct(_) => return Err(struct_unsupported("an EDB object")),
         };
 
         // Collect matching DerivedQuads into a Vec to release the iterator borrow.
@@ -602,14 +620,19 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
 // ── Term conversion helpers ───────────────────────────────────────────────────
 
 /// Return the canonical string for a `QTerm::Const`, or `""` for a `Var` (wildcard).
-fn term_canonical_or_wildcard(t: &QTerm) -> String {
+///
+/// # Errors
+///
+/// Hard-fails on a [`QTerm::Struct`] IDB call argument (G14): a structured term is never a
+/// silent wildcard memo key here — structured programs route to `resolve_fol` upstream, so
+/// reaching this arm is a routing bug that must surface as a typed error.
+fn term_canonical_or_wildcard(t: &QTerm) -> gmeow_errors::Result<String> {
     match t {
-        QTerm::Const(c) => c.clone(),
-        QTerm::Var(_) => String::new(),
+        QTerm::Const(c) => Ok(c.clone()),
+        QTerm::Var(_) => Ok(String::new()),
         // A bare number canonicalizes to its decimal text for memo-keying purposes.
-        QTerm::Num(n) => n.to_string(),
-        // A structured term never reaches the flat oracle; a wildcard-empty key for exhaustiveness.
-        QTerm::Struct(_) => String::new(),
+        QTerm::Num(n) => Ok(n.to_string()),
+        QTerm::Struct(_) => Err(struct_unsupported("an IDB call argument")),
     }
 }
 
@@ -961,5 +984,112 @@ mod tests {
         )
         .unwrap();
         assert_eq!(fail.bindings.len(), 0, "2 > 5 prunes the branch: {fail:?}");
+    }
+
+    // ── G14: a Struct argument to the reference oracle hard-fails ────────────
+
+    /// Build a `QTerm::Struct` wrapping some arbitrary node in a fresh, disposable
+    /// `TermDag` — the reference oracle never dereferences the wrapped node (it is
+    /// supposed to reject the term BEFORE any lookup), so the arena's contents are
+    /// irrelevant; only the term's variant matters for this guard.
+    fn struct_term() -> QTerm {
+        let mut dag = crate::physical::term_dag::TermDag::new();
+        let node = dag.intern_leaf(TermValue::iri("https://example.org/opaque"));
+        QTerm::Struct(crate::query_ir::StructNode::new(node, dag.arena()))
+    }
+
+    #[test]
+    fn struct_argument_to_edb_hard_fails() {
+        let base = "https://example.org/";
+        let (store, world_nn) = make_world(&[(
+            &format!("{base}a"),
+            &format!("{base}p"),
+            &format!("{base}b"),
+        )]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+
+        // No rules ⇒ `p` is EDB.
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ?- ex:p(ex:a, ex:b).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+        let mut state = ResolveState {
+            foreign: &foreign,
+            world: &world_nn,
+            program: &prog,
+            idb: BTreeSet::new(),
+            budget: &budget,
+            answers: Vec::new(),
+            steps: 0,
+            status: BudgetStatus::Ok,
+        };
+
+        let atom = QAtom {
+            pred: format!("{base}p"),
+            args: vec![struct_term(), QTerm::Const(format!("<{base}b>"))],
+        };
+        let mut seen = BTreeSet::new();
+        let result = state.resolve_edb(&atom, &[], &BTreeMap::new(), &mut seen);
+        assert!(
+            result.is_err(),
+            "a Struct EDB subject must be a typed hard-fail, not a wildcard match: {result:?}"
+        );
+        assert!(
+            result
+                .unwrap_err()
+                .message()
+                .contains("structured (compound) term"),
+            "the error must name the structured-term guard"
+        );
+    }
+
+    #[test]
+    fn struct_argument_to_idb_hard_fails() {
+        let base = "https://example.org/";
+        let (store, world_nn) = make_world(&[(
+            &format!("{base}a"),
+            &format!("{base}parentOf"),
+            &format!("{base}b"),
+        )]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:ancestorOf(X, Y) :- ex:parentOf(X, Y).\n\
+             ?- ex:ancestorOf(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+        let pred = format!("{base}ancestorOf");
+        let mut state = ResolveState {
+            foreign: &foreign,
+            world: &world_nn,
+            program: &prog,
+            idb: BTreeSet::from([pred.clone()]),
+            budget: &budget,
+            answers: Vec::new(),
+            steps: 0,
+            status: BudgetStatus::Ok,
+        };
+
+        let atom = QAtom {
+            pred,
+            args: vec![struct_term(), QTerm::Var("Y".to_owned())],
+        };
+        let mut seen = BTreeSet::new();
+        let result = state.resolve_idb(&atom, &[], &BTreeMap::new(), &mut seen);
+        assert!(
+            result.is_err(),
+            "a Struct IDB call argument must be a typed hard-fail, not a wildcard memo key: {result:?}"
+        );
+        assert!(
+            result
+                .unwrap_err()
+                .message()
+                .contains("structured (compound) term"),
+            "the error must name the structured-term guard"
+        );
     }
 }
