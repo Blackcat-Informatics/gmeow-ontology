@@ -1145,6 +1145,7 @@ fn without_recovery_case_envelopes(
     }
 
     let quads: Vec<RdfQuad> = dataset.owned_quads().collect();
+    let reifiers: Vec<purrdf::RdfReifier> = dataset.owned_reifiers().collect();
     let mut owned: HashSet<(Option<RdfTerm>, RdfTerm)> = quads
         .iter()
         .filter(|quad| quad.predicate == RECOVERY_CASE)
@@ -1162,6 +1163,24 @@ fn without_recovery_case_envelopes(
                 owned.insert((quad.graph_name.clone(), quad.object.clone()));
             }
         }
+        // A reifier binds a name to a triple occurrence: when the reified statement
+        // touches recovery-owned territory (its subject or object is owned), the
+        // reifier's own identity is recovery-owned too. Folding that into the SAME
+        // fixed-point closure (rather than a one-shot pass below) makes pruning
+        // transitive across nested reification: RDF 1.2 allows annotating an
+        // annotation by reifying its `~reifier` triple (`<<~r1 :note "x">> :certainty
+        // 0.9 .`), so an outer reifier whose statement subject/object IS an inner
+        // pruned reifier's identity becomes owned here too, and on the next
+        // iteration any annotation keyed on THAT outer reifier is caught below.
+        for reifier in &reifiers {
+            if resource(&reifier.reifier)
+                && !owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
+                && (owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
+                    || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone())))
+            {
+                owned.insert((reifier.graph.clone(), reifier.reifier.clone()));
+            }
+        }
         if owned.len() == before {
             break;
         }
@@ -1175,7 +1194,7 @@ fn without_recovery_case_envelopes(
             builder.push_owned_quad(&quad);
         }
     }
-    for reifier in dataset.owned_reifiers() {
+    for reifier in reifiers {
         let recovery_owned = owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
             || owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
             || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone()));
@@ -1183,6 +1202,10 @@ fn without_recovery_case_envelopes(
             builder.push_owned_reifier(&reifier);
         }
     }
+    // Every annotation quad keyed on a pruned reifier is dropped here too: `owned`
+    // now includes every reifier identity pruned above (directly, or transitively
+    // through nested reification of an annotation triple), so no dangling
+    // RDF-star metadata can reference a reifier that no longer exists in the EDB.
     for annotation in dataset.owned_annotations() {
         if !owned.contains(&(annotation.graph.clone(), annotation.reifier.clone())) {
             builder.push_owned_annotation(&annotation);
@@ -1290,6 +1313,117 @@ mod reasoning_edb_projection_tests {
                 .count(),
             1,
             "only the unrelated ordinary blank node remains"
+        );
+    }
+
+    /// G7: an RDF-star annotation keyed on a reifier that `without_recovery_case_envelopes`
+    /// prunes must be pruned too — including TRANSITIVELY, when the pruned reifier's
+    /// identity is itself reified again (RDF 1.2 permits annotating an annotation by
+    /// reifying its `~reifier` triple). Zero dangling annotation metadata may survive;
+    /// unrelated, ordinary annotations must be untouched.
+    #[test]
+    fn without_recovery_case_envelopes_prunes_annotations_on_pruned_reifiers() {
+        const EX: &str = "https://example.test/";
+        let recovery_case = RdfTerm::iri(format!("{EX}case"));
+
+        // Seeds `owned` directly: the recovery-case object.
+        let seed = RdfQuad::new(
+            RdfTerm::iri(format!("{EX}c")),
+            "https://blackcatinformatics.ca/logic/recoveryCase",
+            recovery_case.clone(),
+        );
+
+        // Reifier r1 reifies a statement whose SUBJECT is the recovery-case node, so r1
+        // is recovery-owned via the subject/object rule (not because r1's own identity
+        // was ever directly asserted as a recoveryCase object).
+        let r1 = RdfTerm::iri(format!("{EX}evidenceStmt"));
+        let r1_statement = RdfTriple::new(
+            recovery_case.clone(),
+            format!("{EX}hasEvidence"),
+            RdfTerm::iri(format!("{EX}blob")),
+        );
+        let r1_reifier = purrdf::RdfReifier::new(r1.clone(), r1_statement).in_graph(None);
+        let r1_annotation = purrdf::RdfAnnotation::new(
+            r1.clone(),
+            format!("{EX}confidence"),
+            RdfTerm::iri(format!("{EX}high")),
+        )
+        .in_graph(None);
+
+        // Reifier r3 reifies the ANNOTATION triple `(r1, metaNote, r1)` — i.e. it
+        // reifies a triple whose subject is r1's own identity term. r3 is only
+        // recovery-owned TRANSITIVELY: r1 becomes owned first (via its statement's
+        // subject), and only then does r3's statement (subject = r1) become owned.
+        let r3 = RdfTerm::iri(format!("{EX}metaStmt"));
+        let r3_statement = RdfTriple::new(
+            r1.clone(),
+            format!("{EX}metaNote"),
+            RdfTerm::iri(format!("{EX}annotated")),
+        );
+        let r3_reifier = purrdf::RdfReifier::new(r3.clone(), r3_statement).in_graph(None);
+        let r3_annotation = purrdf::RdfAnnotation::new(
+            r3.clone(),
+            format!("{EX}derivedNote"),
+            RdfTerm::iri(format!("{EX}something")),
+        )
+        .in_graph(None);
+
+        // An ordinary, unrelated reifier + annotation that never touches recovery-case
+        // territory — must survive untouched.
+        let r2 = RdfTerm::iri(format!("{EX}otherStmt"));
+        let r2_statement = RdfTriple::new(
+            RdfTerm::iri(format!("{EX}ordinarySubj")),
+            format!("{EX}ordinaryPred"),
+            RdfTerm::iri(format!("{EX}ordinaryObj")),
+        );
+        let r2_reifier = purrdf::RdfReifier::new(r2.clone(), r2_statement).in_graph(None);
+        let r2_annotation = purrdf::RdfAnnotation::new(
+            r2.clone(),
+            format!("{EX}note"),
+            RdfTerm::iri(format!("{EX}fine")),
+        )
+        .in_graph(None);
+
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&seed);
+        builder.push_owned_reifier(&r1_reifier);
+        builder.push_owned_annotation(&r1_annotation);
+        builder.push_owned_reifier(&r3_reifier);
+        builder.push_owned_annotation(&r3_annotation);
+        builder.push_owned_reifier(&r2_reifier);
+        builder.push_owned_annotation(&r2_annotation);
+        let dataset = builder.freeze().expect("valid RDF 1.2 fixture");
+
+        let edb = without_recovery_case_envelopes(dataset.as_ref())
+            .expect("prune recovery-case envelope");
+
+        let reifiers: Vec<purrdf::RdfReifier> = edb.owned_reifiers().collect();
+        let annotations: Vec<purrdf::RdfAnnotation> = edb.owned_annotations().collect();
+
+        assert!(
+            !reifiers.iter().any(|r| r.reifier == r1),
+            "recovery-owned reifier r1 must be pruned"
+        );
+        assert!(
+            !reifiers.iter().any(|r| r.reifier == r3),
+            "transitively recovery-owned reifier r3 must be pruned"
+        );
+        assert!(
+            reifiers.iter().any(|r| r.reifier == r2),
+            "unrelated reifier r2 must survive"
+        );
+
+        assert!(
+            !annotations.iter().any(|a| a.reifier == r1),
+            "annotation keyed on pruned reifier r1 must be gone (zero dangling metadata)"
+        );
+        assert!(
+            !annotations.iter().any(|a| a.reifier == r3),
+            "annotation keyed on transitively pruned reifier r3 must be gone"
+        );
+        assert!(
+            annotations.iter().any(|a| a.reifier == r2),
+            "unrelated annotation on r2 must survive"
         );
     }
 
