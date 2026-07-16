@@ -9,11 +9,176 @@
 //! there is no secondary engine, silent approximation, or demotion route.
 
 use crate::annotation::{
-    AnnotatedAnswerSet, AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
+    AnnotatedAnswerSet, AnnotationContract, AnnotationFactRef, AnnotationRequest,
+    TupleAnnotationAlgebra,
 };
 use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QProgram};
-use crate::seam::WorldFactSource;
+use crate::seam::{RdfViewFactSource, WorldFactSource, WorldSourceIdentity, WorldSourceMetrics};
+use purrdf::{DatasetView, FallibleDatasetView, ViewOperationStatus};
+
+/// Stable identities under which a view-backed answer was computed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QueryExecutionIdentity {
+    /// Immutable RDF source generation and provider contract.
+    pub source: WorldSourceIdentity,
+    /// Content identity of the compiled GMEOW engine.
+    pub engine_descriptor_hash: String,
+    /// Content identity of this query's profile and resource contract.
+    pub query_contract_hash: String,
+}
+
+impl QueryExecutionIdentity {
+    fn current(source: WorldSourceIdentity, profile: &str, budget: &Budget) -> Self {
+        Self::for_contract(source, query_contract_hash(profile, budget))
+    }
+
+    pub(crate) fn for_contract(source: WorldSourceIdentity, query_contract_hash: String) -> Self {
+        Self {
+            source,
+            engine_descriptor_hash: crate::runtime::EngineContract::current().descriptor_hash,
+            query_contract_hash,
+        }
+    }
+}
+
+/// Combined backend and logic-source evidence for one view-backed execution.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QueryExecutionEvidence<BackendEvidence> {
+    /// Backend-specific evidence, such as PurRDF page/byte/generation accounting.
+    pub backend: BackendEvidence,
+    /// Deterministic number of pushed patterns and RDF rows delivered to logic.
+    pub source: WorldSourceMetrics,
+}
+
+/// Evidence for an infallible resident or validated succinct-pack view.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ResidentViewEvidence {
+    /// View-reported quad cardinality, when known without enumeration.
+    pub len_hint: Option<usize>,
+    /// View-reported deterministic statistics discriminator.
+    pub stats_fingerprint: u64,
+}
+
+/// A view-backed answer certified complete under its source and engine identities.
+#[derive(Debug, Clone)]
+pub struct CompleteViewQuery<BackendEvidence> {
+    /// Complete, dataset-independent GMEOW answer set.
+    pub answer: AnswerSet,
+    /// Backend and source-access evidence captured after result materialization.
+    pub evidence: QueryExecutionEvidence<BackendEvidence>,
+    /// Source generation plus engine and per-query contract identities.
+    pub identity: QueryExecutionIdentity,
+}
+
+/// A view-backed annotated answer certified complete under source and engine identities.
+#[derive(Debug, Clone)]
+pub struct CompleteAnnotatedViewQuery<Element, BackendEvidence> {
+    /// Complete score-carrying GMEOW answer set with direct source lineage.
+    pub answer: AnnotatedAnswerSet<Element>,
+    /// Backend and source-access evidence captured after result materialization.
+    pub evidence: QueryExecutionEvidence<BackendEvidence>,
+    /// Source generation plus engine and annotated-query contract identities.
+    pub identity: QueryExecutionIdentity,
+}
+
+impl<BackendEvidence> CompleteViewQuery<BackendEvidence> {
+    /// Decompose the completeness certificate.
+    #[must_use]
+    pub fn into_parts(
+        self,
+    ) -> (
+        AnswerSet,
+        QueryExecutionEvidence<BackendEvidence>,
+        QueryExecutionIdentity,
+    ) {
+        (self.answer, self.evidence, self.identity)
+    }
+}
+
+/// Public return type for dispatch over an operationally fallible RDF view.
+pub type FallibleViewQueryResult<OperationalError, BackendEvidence> = Result<
+    CompleteViewQuery<BackendEvidence>,
+    Box<FallibleViewQueryError<OperationalError, BackendEvidence>>,
+>;
+
+/// Public return type for annotated dispatch over an operationally fallible RDF view.
+pub type FallibleAnnotatedViewQueryResult<Element, OperationalError, BackendEvidence> = Result<
+    CompleteAnnotatedViewQuery<Element, BackendEvidence>,
+    Box<FallibleViewQueryError<OperationalError, BackendEvidence>>,
+>;
+
+/// Failure of GMEOW dispatch over an operationally fallible RDF view.
+#[derive(Debug)]
+pub enum FallibleViewQueryError<OperationalError, BackendEvidence> {
+    /// Query/profile/native evaluation failed while the RDF view remained ready.
+    Query {
+        /// Ordinary GMEOW diagnostic.
+        diagnostic: gmeow_errors::Diag,
+        /// Backend and source-access evidence at the final ready checkpoint.
+        evidence: QueryExecutionEvidence<BackendEvidence>,
+        /// Source and engine identities for the failed attempt.
+        identity: QueryExecutionIdentity,
+    },
+    /// Lazy RDF access failed. This takes precedence over an evaluator diagnostic.
+    Operational {
+        /// Sticky typed provider, budget, cancellation, deadline, or generation error.
+        error: OperationalError,
+        /// Backend and source-access evidence at the failure boundary.
+        evidence: QueryExecutionEvidence<BackendEvidence>,
+        /// Source and engine identities for the failed attempt.
+        identity: QueryExecutionIdentity,
+    },
+}
+
+impl<OperationalError, BackendEvidence> FallibleViewQueryError<OperationalError, BackendEvidence> {
+    /// Borrow the evidence carried by either failure variant.
+    #[must_use]
+    pub const fn evidence(&self) -> &QueryExecutionEvidence<BackendEvidence> {
+        match self {
+            Self::Query { evidence, .. } | Self::Operational { evidence, .. } => evidence,
+        }
+    }
+
+    /// Borrow the operational root cause, when lazy RDF access failed.
+    #[must_use]
+    pub const fn operational_error(&self) -> Option<&OperationalError> {
+        match self {
+            Self::Query { .. } => None,
+            Self::Operational { error, .. } => Some(error),
+        }
+    }
+
+    /// Borrow the ordinary query diagnostic, when the view remained ready.
+    #[must_use]
+    pub const fn diagnostic(&self) -> Option<&gmeow_errors::Diag> {
+        match self {
+            Self::Query { diagnostic, .. } => Some(diagnostic),
+            Self::Operational { .. } => None,
+        }
+    }
+
+    /// Borrow the source and engine identities carried by the failed attempt.
+    #[must_use]
+    pub const fn identity(&self) -> &QueryExecutionIdentity {
+        match self {
+            Self::Query { identity, .. } | Self::Operational { identity, .. } => identity,
+        }
+    }
+}
+
+impl<OperationalError: std::fmt::Display, BackendEvidence> std::fmt::Display
+    for FallibleViewQueryError<OperationalError, BackendEvidence>
+{
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Query { diagnostic, .. } => diagnostic.fmt(formatter),
+            Self::Operational { error, .. } => {
+                write!(formatter, "operational RDF query failure: {error}")
+            }
+        }
+    }
+}
 
 /// Content identity of the backward execution contract available at this boundary.
 ///
@@ -56,6 +221,20 @@ pub(crate) fn query_contract_hash(profile: &str, budget: &Budget) -> String {
     hasher.finalize().to_hex().to_string()
 }
 
+pub(crate) fn annotated_query_contract_hash(
+    profile: &str,
+    budget: &Budget,
+    annotation: &AnnotationContract,
+) -> String {
+    let base_contract = query_contract_hash(profile, budget);
+    let annotation_frame = annotation.canonical_key();
+    blake3::hash(
+        format!("gmeow-annotated-query-contract-v1:{base_contract}:{annotation_frame}").as_bytes(),
+    )
+    .to_hex()
+    .to_string()
+}
+
 /// Resolve `program` against `world` with the native physical core.
 ///
 /// # Errors
@@ -83,6 +262,106 @@ pub fn dispatch_query(
                 ),
             }))
         }
+    }
+}
+
+/// Resolve directly over an infallible resident or validated succinct-pack RDF view.
+///
+/// Only rows selected by the compiled query's source patterns are converted to
+/// [`crate::seam::DerivedQuad`]; the complete dataset is never copied into a
+/// [`crate::store::WorldStore`] or [`crate::seam::WorldFactSnapshot`].
+///
+/// # Errors
+///
+/// Returns an ordinary GMEOW diagnostic for profile, source-contract, or native
+/// evaluation failure. Unsupported source/evaluator capabilities are refused rather
+/// than emulated by whole-view materialization.
+pub fn dispatch_query_view<V: DatasetView>(
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+) -> gmeow_errors::Result<CompleteViewQuery<ResidentViewEvidence>> {
+    let identity = QueryExecutionIdentity::current(source_identity, profile, budget);
+    let source = RdfViewFactSource::new(view, profile, identity.source.clone());
+    let answer = dispatch_query(&source, world, program, profile, budget)?;
+    Ok(CompleteViewQuery {
+        answer,
+        evidence: QueryExecutionEvidence {
+            backend: ResidentViewEvidence {
+                len_hint: view.len_hint(),
+                stats_fingerprint: view.stats_fingerprint(),
+            },
+            source: source.metrics(),
+        },
+        identity,
+    })
+}
+
+/// Resolve directly over an operationally fallible RDF view.
+///
+/// The view is checked before execution and after all answer materialization. A
+/// provider failure is sticky and takes precedence over any diagnostic produced from
+/// the now-incomplete internal rows; partial answers never cross this boundary.
+/// PurRDF's typed provider/budget/cancellation/deadline/stale-generation error and
+/// exact request evidence remain intact in the generic result.
+pub fn dispatch_query_fallible_view<V>(
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+) -> FallibleViewQueryResult<V::Error, V::Evidence>
+where
+    V: FallibleDatasetView,
+{
+    let identity = QueryExecutionIdentity::current(source_identity, profile, budget);
+    if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
+        return Err(Box::new(FallibleViewQueryError::Operational {
+            error,
+            evidence: QueryExecutionEvidence {
+                backend: evidence,
+                source: WorldSourceMetrics::default(),
+            },
+            identity,
+        }));
+    }
+
+    let source = RdfViewFactSource::new(view, profile, identity.source.clone());
+    let evaluation = dispatch_query(&source, world, program, profile, budget);
+    let source_metrics = source.metrics();
+    match view.operation_status() {
+        ViewOperationStatus::Failed { error, evidence } => {
+            Err(Box::new(FallibleViewQueryError::Operational {
+                error,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }))
+        }
+        ViewOperationStatus::Ready { evidence } => match evaluation {
+            Ok(answer) => Ok(CompleteViewQuery {
+                answer,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }),
+            Err(diagnostic) => Err(Box::new(FallibleViewQueryError::Query {
+                diagnostic,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            })),
+        },
     }
 }
 
@@ -115,13 +394,7 @@ where
     profile_gate::reject_cut(program)?;
     profile_gate::check_builtin_profile(program, profile)?;
 
-    let base_contract = query_contract_hash(profile, budget);
-    let annotation_frame = annotation.contract.canonical_key();
-    let contract_hash = blake3::hash(
-        format!("gmeow-annotated-query-contract-v1:{base_contract}:{annotation_frame}").as_bytes(),
-    )
-    .to_hex()
-    .to_string();
+    let contract_hash = annotated_query_contract_hash(profile, budget, annotation.contract);
     match crate::physical::resolve_native_annotated_under(
         &contract_hash,
         foreign,
@@ -138,6 +411,118 @@ where
                 ),
             }))
         }
+    }
+}
+
+/// Resolve an annotated query directly over a resident or succinct-pack RDF view.
+///
+/// The asserted-fact callback observes the owned RDF 1.2 values admitted through
+/// the view source. Derived answers retain their direct source tuple keys; no
+/// snapshot or post-hoc score join is introduced.
+///
+/// # Errors
+///
+/// Returns an ordinary GMEOW diagnostic for profile, annotation-contract,
+/// source-contract, or native evaluation failure.
+pub fn dispatch_query_annotated_view<V, A, F>(
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    annotation: AnnotationRequest<'_, A, F>,
+) -> gmeow_errors::Result<CompleteAnnotatedViewQuery<A::Element, ResidentViewEvidence>>
+where
+    V: DatasetView,
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let identity = QueryExecutionIdentity::for_contract(
+        source_identity,
+        annotated_query_contract_hash(profile, budget, annotation.contract),
+    );
+    let source = RdfViewFactSource::new(view, profile, identity.source.clone());
+    let answer = dispatch_query_annotated(&source, world, program, profile, budget, annotation)?;
+    Ok(CompleteAnnotatedViewQuery {
+        answer,
+        evidence: QueryExecutionEvidence {
+            backend: ResidentViewEvidence {
+                len_hint: view.len_hint(),
+                stats_fingerprint: view.stats_fingerprint(),
+            },
+            source: source.metrics(),
+        },
+        identity,
+    })
+}
+
+/// Resolve an annotated query directly over an operationally fallible RDF view.
+///
+/// The same preflight/final completeness checkpoints as ordinary fallible dispatch
+/// apply. A provider failure wins over an internal annotation diagnostic and no
+/// partial answer or partial annotation crosses the boundary.
+pub fn dispatch_query_annotated_fallible_view<V, A, F>(
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    annotation: AnnotationRequest<'_, A, F>,
+) -> FallibleAnnotatedViewQueryResult<A::Element, V::Error, V::Evidence>
+where
+    V: FallibleDatasetView,
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let identity = QueryExecutionIdentity::for_contract(
+        source_identity,
+        annotated_query_contract_hash(profile, budget, annotation.contract),
+    );
+    if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
+        return Err(Box::new(FallibleViewQueryError::Operational {
+            error,
+            evidence: QueryExecutionEvidence {
+                backend: evidence,
+                source: WorldSourceMetrics::default(),
+            },
+            identity,
+        }));
+    }
+
+    let source = RdfViewFactSource::new(view, profile, identity.source.clone());
+    let evaluation = dispatch_query_annotated(&source, world, program, profile, budget, annotation);
+    let source_metrics = source.metrics();
+    match view.operation_status() {
+        ViewOperationStatus::Failed { error, evidence } => {
+            Err(Box::new(FallibleViewQueryError::Operational {
+                error,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }))
+        }
+        ViewOperationStatus::Ready { evidence } => match evaluation {
+            Ok(answer) => Ok(CompleteAnnotatedViewQuery {
+                answer,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }),
+            Err(diagnostic) => Err(Box::new(FallibleViewQueryError::Query {
+                diagnostic,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            })),
+        },
     }
 }
 

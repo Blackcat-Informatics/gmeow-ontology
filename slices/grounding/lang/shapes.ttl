@@ -21,6 +21,7 @@ lang:FormSituatedShape
     rdfs:label "Form situatedness shape"@x-gmeow-english ;
     skos:definition "Every lang:Form names exactly one lang:SignSystem through lang:inSignSystem — a form with none or with two is ill-formed. Functionality is expressed as a SHACL cardinality bound rather than an OWL characteristic to keep the term profile EL-clean."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:formInSignSystemClosure ;
     gmeow:enforcesFailureClass lang:UnsituatedForm ;
     sh:targetClass lang:Form ;
     sh:property [
@@ -38,6 +39,7 @@ lang:SurfaceAnalysisShape
     rdfs:label "Surface analysis shape"@x-gmeow-english ;
     skos:definition "Every lang:SurfaceForm declares exactly one lang:AnalysisLevel, and its structure matches the declared level: a parsed surface realizes a lang:ComposedForm, a raw surface is typed lang:UnanalyzedProse, and no surface both realizes an analyzed form and is typed unanalyzed prose."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:surfaceAnalysisLevelClosure , lang:SurfaceAnalysisStructureConstraint ;
     gmeow:enforcesFailureClass lang:MisdeclaredAnalysis ;
     sh:targetClass lang:SurfaceForm ;
     sh:property [
@@ -71,32 +73,12 @@ lang:SurfaceAnalysisShape
         """ ;
     ] .
 
-lang:SlotIndexUniqueShape
-    a sh:NodeShape ;
-    rdfs:label "Slot index uniqueness shape"@x-gmeow-english ;
-    skos:definition "Two lang:FormSlot individuals of one lang:ComposedForm never share a lang:slotIndex, so constituent order is unambiguous."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:DuplicateSlotIndex ;
-    sh:targetClass lang:ComposedForm ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "Two form slots of one composed form share a slot index." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/lang/formSlot> ?s1 .
-                $this <https://blackcatinformatics.ca/lang/formSlot> ?s2 .
-                ?s1 <https://blackcatinformatics.ca/lang/slotIndex> ?i .
-                ?s2 <https://blackcatinformatics.ca/lang/slotIndex> ?i .
-                FILTER(?s1 != ?s2)
-            }
-        """ ;
-    ] .
-
 lang:SlotContiguityShape
     a sh:NodeShape ;
     rdfs:label "Slot contiguity shape"@x-gmeow-english ;
     skos:definition "A lang:ComposedForm's slot indexes are zero-based and contiguous, enforced unconditionally: the minimum index is 0 and the maximum index is the slot count minus one, so a gap (an index skipped) or a non-zero start is rejected. The native crates/validate structural_lint gate carries the same rule as the charter's designated Rust-validator primary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:SlotContiguityConstraint ;
     gmeow:enforcesFailureClass lang:NonContiguousSlots ;
     sh:targetClass lang:ComposedForm ;
     sh:sparql [
@@ -115,50 +97,12 @@ lang:SlotContiguityShape
         """ ;
     ] .
 
-lang:SlotIndexPresentShape
-    a sh:NodeShape ;
-    rdfs:label "Slot index presence shape"@x-gmeow-english ;
-    skos:definition "Every lang:FormSlot declares exactly one integer lang:slotIndex — a slot with no index cannot take its place in the contiguous constituent order, and the contiguity aggregation of lang:SlotContiguityShape would silently skip an index-less slot, so its presence is mandated by plain cardinality rather than left to the aggregate arithmetic."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:NonContiguousSlots ;
-    sh:targetClass lang:FormSlot ;
-    sh:property [
-        sh:path lang:slotIndex ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:integer ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:FormSlot must declare exactly one integer lang:slotIndex." ;
-    ] .
-
-lang:DependencyIntegrityShape
-    a sh:NodeShape ;
-    rdfs:label "Dependency integrity shape"@x-gmeow-english ;
-    skos:definition "A lang:dependsOn head reference stays within the lang:Analysis its slot belongs to and does not participate in a dependency cycle of any length."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:DanglingDependency ;
-    sh:targetClass lang:FormSlot ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A dependency head reference leaves its analysis or forms a cycle." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                {
-                    $this <https://blackcatinformatics.ca/lang/dependsOn> ?h .
-                    $this <https://blackcatinformatics.ca/lang/inAnalysis> ?a .
-                    FILTER NOT EXISTS { ?h <https://blackcatinformatics.ca/lang/inAnalysis> ?a . }
-                } UNION {
-                    $this <https://blackcatinformatics.ca/lang/dependsOn>+ $this .
-                }
-            }
-        """ ;
-    ] .
-
 lang:TypedMorphologyShape
     a sh:NodeShape ;
     rdfs:label "Typed morphology shape"@x-gmeow-english ;
     skos:definition "A lang:MorphFeature draws its key and value from a feature inventory: exactly one lang:featureKey that is a lang:FeatureKey individual, and at least one lang:featureValue that is a lang:FeatureValue individual — never a bare string."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:morphFeatureKeyClosure , lang:morphFeatureValueClosure ;
     gmeow:enforcesFailureClass lang:UntypedMorphology ;
     sh:targetClass lang:MorphFeature ;
     sh:property [
@@ -184,6 +128,11 @@ lang:SurfaceMaterialShape
     rdfs:label "Surface material identity shape"@x-gmeow-english ;
     skos:definition "A lang:SurfaceForm declares the material identity a stable hash needs: its text, script, Unicode normalization, and collation locale. A surface with an undeclared normalization is ill-formed for the candidateSourceHash discipline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes
+        lang:SurfaceMaterialChoiceConstraint ,
+        lang:surfaceScriptClosure ,
+        lang:surfaceNormalizationClosure ,
+        lang:surfaceCollationClosure ;
     gmeow:enforcesFailureClass lang:UnhashableSurface ;
     sh:targetClass lang:SurfaceForm ;
     sh:or (
@@ -217,6 +166,11 @@ lang:AnchorCompleteShape
     rdfs:label "Anchor completeness shape"@x-gmeow-english ;
     skos:definition "A lang:SurfaceAnchor declares its source, start and end offsets, and offset space — an anchor without a source and a span in a declared offset space locates nothing."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes
+        lang:anchorSourceClosure ,
+        lang:anchorStartClosure ,
+        lang:anchorEndClosure ,
+        lang:anchorOffsetSpaceClosure ;
     gmeow:enforcesFailureClass lang:UnanchoredOffset ;
     sh:targetClass lang:SurfaceAnchor ;
     sh:property [
@@ -253,6 +207,7 @@ lang:SlotFormStructuralShape
     rdfs:label "Slot-form structural shape"@x-gmeow-english ;
     skos:definition "A lang:slotForm holds a structured form resource, never a bare literal — a form that carries inferential weight is a structured object, not a string."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:SlotFormNodeKindConstraint ;
     gmeow:enforcesFailureClass lang:StringOnlyForm ;
     sh:targetSubjectsOf lang:slotForm ;
     sh:property [
@@ -267,6 +222,7 @@ lang:RealizesStructuralShape
     rdfs:label "Realizes structural shape"@x-gmeow-english ;
     skos:definition "A lang:realizes holds a structured form resource, never a bare literal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:RealizesNodeKindConstraint ;
     gmeow:enforcesFailureClass lang:StringOnlyForm ;
     sh:targetSubjectsOf lang:realizes ;
     sh:property [
@@ -281,6 +237,7 @@ lang:FormHeadStructuralShape
     rdfs:label "Form-head structural shape"@x-gmeow-english ;
     skos:definition "A lang:formHead holds a structured form resource, never a bare literal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:FormHeadNodeKindConstraint ;
     gmeow:enforcesFailureClass lang:StringOnlyForm ;
     sh:targetSubjectsOf lang:formHead ;
     sh:property [
@@ -295,6 +252,7 @@ lang:GraphemeGroundedShape
     rdfs:label "Grapheme grounding shape"@x-gmeow-english ;
     skos:definition "A lang:Grapheme belongs to the repertoire of the lang:Script it declares: the script lists it through lang:hasGrapheme."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:graphemeScriptClosure , lang:GraphemeRepertoireConstraint ;
     gmeow:enforcesFailureClass lang:UngroundedGrapheme ;
     sh:targetClass lang:Grapheme ;
     sh:property [
@@ -329,6 +287,11 @@ lang:DenotationRecordShape
     rdfs:label "Denotation record shape"@x-gmeow-english ;
     skos:definition "A lang:Denotation is a fully specified reified record: it names its form (lang:denotedForm), its kind (lang:denotationKind, a lang:DenotationKind individual), its target (lang:denotationTarget), and its context (lang:denotationContext). A meaning assignment is never a bare edge, and a context-free denotation is ill-formed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes
+        lang:denotationFormClosure ,
+        lang:denotationKindClosure ,
+        lang:denotationTargetClosure ,
+        lang:denotationContextClosure ;
     gmeow:enforcesFailureClass lang:UnderspecifiedDenotation ;
     sh:targetClass lang:Denotation ;
     sh:property [
@@ -361,91 +324,12 @@ lang:DenotationRecordShape
         sh:message "A lang:Denotation must name its lang:denotationContext." ;
     ] .
 
-lang:DenotationNonSurfaceShape
-    a sh:NodeShape ;
-    rdfs:label "Denotation non-surface shape"@x-gmeow-english ;
-    skos:definition "A lang:Denotation attaches to a lang:Form that is not a lang:SurfaceForm — meaning attaches above the byte level, so a denotation hung on a surface form is ill-formed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:SurfaceLevelDenotation ;
-    sh:targetClass lang:Denotation ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A lang:Denotation attaches to a lang:SurfaceForm; meaning attaches above the byte level." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/lang/denotedForm> ?f .
-                ?f a <https://blackcatinformatics.ca/lang/SurfaceForm> .
-            }
-        """ ;
-    ] .
-
-lang:AmbiguityRoutingShape
-    a sh:NodeShape ;
-    rdfs:label "Ambiguity routing shape"@x-gmeow-english ;
-    skos:definition "Where a denotation's head lexeme has more than one recorded lang:Sense, the denotation routes through one via lang:viaSense — routing through the triangle is what prevents the record from silently resolving an ambiguity it never examined."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation ;
-    sh:targetClass lang:Denotation ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "The denoted form's head lexeme has more than one sense but the denotation omits lang:viaSense." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                {
-                    SELECT $this (COUNT(DISTINCT ?s) AS ?n) WHERE {
-                        $this <https://blackcatinformatics.ca/lang/denotedForm> ?f .
-                        ?f <https://blackcatinformatics.ca/lang/lexemeOf> ?lex .
-                        ?s <https://blackcatinformatics.ca/lang/senseOf> ?lex .
-                    } GROUP BY $this
-                }
-                FILTER( ?n > 1 )
-                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/lang/viaSense> ?vs . }
-            }
-        """ ;
-    ] .
-
-lang:DenotationKindMatchShape
-    a sh:NodeShape ;
-    rdfs:label "Denotation kind-match shape"@x-gmeow-english ;
-    skos:definition "A lang:denotationKind matches its target's type: denotesLogicFormula targets a logic:Formula, denotesLogicType a logic:Type, denotesLogicTerm a logic:Individual, denotesClass an owl:Class, and denotesByDescription a lang:Intension. The kind fixes the target's type."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:DenotationKindMismatch ;
-    sh:targetClass lang:Denotation ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A denotation kind does not match its target's type." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                {
-                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesLogicFormula> .
-                    $this <https://blackcatinformatics.ca/lang/denotationTarget> ?t .
-                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/logic/Formula> . }
-                } UNION {
-                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesLogicType> .
-                    $this <https://blackcatinformatics.ca/lang/denotationTarget> ?t .
-                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/logic/Type> . }
-                } UNION {
-                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesLogicTerm> .
-                    $this <https://blackcatinformatics.ca/lang/denotationTarget> ?t .
-                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/logic/Individual> . }
-                } UNION {
-                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesClass> .
-                    $this <https://blackcatinformatics.ca/lang/denotationTarget> ?t .
-                    FILTER NOT EXISTS { ?t a <http://www.w3.org/2002/07/owl#Class> . }
-                } UNION {
-                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesByDescription> .
-                    $this <https://blackcatinformatics.ca/lang/denotationTarget> ?t .
-                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/Intension> . }
-                }
-            }
-        """ ;
-    ] .
-
 lang:ReadingClaimGroundedShape
     a sh:NodeShape ;
     rdfs:label "Reading-claim grounded shape"@x-gmeow-english ;
     skos:definition "A gmeow:Observation that is a claim about a lang:Reading (through lang:aboutReading) names its gmeow:vantage — the claim that a reading is correct is a vantage-held observation, never a groundless assertion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:ReadingClaimVantageConstraint ;
     gmeow:enforcesFailureClass lang:UngroundedReadingClaim ;
     sh:targetSubjectsOf lang:aboutReading ;
     sh:property [
@@ -455,49 +339,12 @@ lang:ReadingClaimGroundedShape
         sh:message "A reading-correctness claim must name its gmeow:vantage." ;
     ] .
 
-lang:IndexicalAnchoredShape
-    a sh:NodeShape ;
-    rdfs:label "Indexical anchored shape"@x-gmeow-english ;
-    skos:definition "An indexical denotation (lang:isIndexical true) is read by a lang:InterpretationAct that names a lang:IndexicalAnchor through lang:anchorsIndexical — an indexical form denotes only relative to an anchor, and an indexical denotation whose act names none is ill-formed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:UnanchoredIndexical ;
-    sh:targetClass lang:Denotation ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "An indexical denotation's interpretation act names no lang:IndexicalAnchor." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/lang/isIndexical> true .
-                ?r <https://blackcatinformatics.ca/lang/denotation> $this .
-                ?act <https://blackcatinformatics.ca/lang/producedReading> ?r .
-                FILTER NOT EXISTS { ?act <https://blackcatinformatics.ca/lang/anchorsIndexical> ?a . }
-            }
-        """ ;
-    ] .
-
-lang:ConfidenceNotProbabilityShape
-    a sh:NodeShape ;
-    rdfs:label "Confidence-not-probability shape"@x-gmeow-english ;
-    skos:definition "A reading-preference claim (a gmeow:Observation about a lang:Reading) that carries a logic:probability declares a logic:probabilityModel — a preference weight is a logic:confidence unless an actual probability model is present. Treating un-modelled confidence as a probability is the named failure this reuses from the logic: and math: siblings."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:ConfidenceAsProbability ;
-    sh:targetSubjectsOf lang:aboutReading ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A reading claim carries a logic:probability with no declared logic:probabilityModel." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/logic/probability> ?p .
-                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/probabilityModel> ?m . }
-            }
-        """ ;
-    ] .
-
 lang:FregeDisjointShape
     a sh:NodeShape ;
     rdfs:label "Frege disjointness shape"@x-gmeow-english ;
     skos:definition "A node is never typed as two corners of the Frege triangle (lang:Form, lang:Sense, lang:Denotation). A SECONDARY finding surface for the OWL disjointness that is the primary gate: string identity never implies form identity; form identity never implies sense identity; sense identity never implies co-reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:FregeDisjointnessAxiom ;
     gmeow:enforcesFailureClass lang:FregeConflation ;
     sh:targetClass lang:Sense , lang:Denotation ;
     sh:sparql [
@@ -524,10 +371,12 @@ lang:ActObservationDisjointShape
     rdfs:label "Act–observation disjointness shape"@x-gmeow-english ;
     skos:definition "A lang:InterpretationAct is never typed as a gmeow:Observation. A SECONDARY finding surface for the OWL disjointness that is the primary gate: the interpretation act is the process, never the claim about its readings."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:ActObservationDisjointnessAxiom ;
     gmeow:enforcesFailureClass lang:ActObservationConflation ;
     sh:targetClass lang:InterpretationAct ;
     sh:not [
         a sh:NodeShape ;
+        logic:formalizes lang:ActObservationDisjointnessAxiom ;
         sh:class <https://blackcatinformatics.ca/gmeow/Observation> ;
     ] ;
     sh:message "A lang:InterpretationAct is typed as a gmeow:Observation; the act is not the claim." .
@@ -547,6 +396,11 @@ lang:RenderingRecordShape
     rdfs:label "Rendering record shape"@x-gmeow-english ;
     skos:definition "A lang:Rendering is a fully specified reified crossing: it names the content it renders (lang:renderedContent), the convention governing it (lang:renderingConvention), the preservation judgment carried on its logic:Correspondence (lang:renderingPreservation), and exactly one lang:renderingKind that is a lang:RenderingKind individual. A rendering that names neither what it renders, nor its convention, nor its kind realizes nothing inspectable."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes
+        lang:renderingContentClosure ,
+        lang:renderingConventionClosure ,
+        lang:renderingPreservationClosure ,
+        lang:renderingKindClosure ;
     gmeow:enforcesFailureClass lang:UnderspecifiedRendering ;
     sh:targetClass lang:Rendering ;
     sh:property [
@@ -577,28 +431,15 @@ lang:RenderingRecordShape
         sh:message "A lang:Rendering must name exactly one lang:renderingKind individual." ;
     ] .
 
-lang:RenderingNotIdentityShape
-    a sh:NodeShape ;
-    rdfs:label "Rendering non-identity shape"@x-gmeow-english ;
-    skos:definition "A lang:Rendering never renders itself: a rendering realizes content as a distinct form, so a rendering that is its own lang:renderedContent is a crossing that never happened. A SECONDARY finding surface — the primary lang:RenderingAsIdentity enforcement (content and produced form being one node) is a native gate — so the SHACL harness still fires the self-reference case."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:RenderingAsIdentity ;
-    sh:targetClass lang:Rendering ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A lang:Rendering is its own lang:renderedContent; a self-identical rendering is a crossing that never happened." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/lang/renderedContent> $this .
-            }
-        """ ;
-    ] .
-
 lang:TranslationUnitShape
     a sh:NodeShape ;
     rdfs:label "Translation unit shape"@x-gmeow-english ;
     skos:definition "A lang:TranslationUnit declares both forms of its crossing — its lang:translationSource and lang:translationTarget — and names the single logic:Correspondence carrying its law-spine through lang:translationCorrespondence. Requiring the carried correspondence is how the unit's preservation judgment is enforced structurally: the logic:preservationKind lives on that Correspondence, so a unit that names none carries no inspectable, judged crossing."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes
+        lang:translationSourceClosure ,
+        lang:translationTargetClosure ,
+        lang:translationCorrespondenceClosure ;
     gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit ;
     sh:targetClass lang:TranslationUnit ;
     sh:property [
@@ -623,56 +464,12 @@ lang:TranslationUnitShape
         sh:message "A lang:TranslationUnit must carry exactly one logic:Correspondence through lang:translationCorrespondence." ;
     ] .
 
-lang:UnmarkedSurfaceTranslationShape
-    a sh:NodeShape ;
-    rdfs:label "Unmarked surface translation shape"@x-gmeow-english ;
-    skos:definition "A lang:TranslationUnit whose lang:translationSource or lang:translationTarget is a lang:SurfaceForm that realizes no analyzed form (no lang:realizes) is honest only if that surface is typed lang:UnanalyzedProse AND its carried logic:Correspondence carries the weakest preservation judgment (logic:Unsupported or logic:ValidationOnly). The gate fires when EITHER conjunct is absent: a surface-only side that is not typed lang:UnanalyzedProse, OR one whose logic:Correspondence claims a stronger-than-weakest preservation over that surface. Either way a strong crossing is claimed over an unmarked or unanalyzed surface — the fabrication risk this gate flags."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
-    sh:targetClass lang:TranslationUnit ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A surface-only translation side realizes no analyzed form yet is not typed lang:UnanalyzedProse, or carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                {
-                    # source surface realizes nothing yet is not typed unanalyzed prose
-                    $this <https://blackcatinformatics.ca/lang/translationSource> ?s .
-                    ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> .
-                    FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . }
-                    FILTER NOT EXISTS { ?s a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
-                } UNION {
-                    # source surface realizes nothing yet claims a stronger-than-weakest crossing
-                    $this <https://blackcatinformatics.ca/lang/translationSource> ?s .
-                    ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> .
-                    $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
-                    FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . }
-                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . }
-                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . }
-                } UNION {
-                    # target surface realizes nothing yet is not typed unanalyzed prose
-                    $this <https://blackcatinformatics.ca/lang/translationTarget> ?t .
-                    ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> .
-                    FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . }
-                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
-                } UNION {
-                    # target surface realizes nothing yet claims a stronger-than-weakest crossing
-                    $this <https://blackcatinformatics.ca/lang/translationTarget> ?t .
-                    ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> .
-                    $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
-                    FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . }
-                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . }
-                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . }
-                }
-            }
-        """ ;
-    ] .
-
 lang:TranslationAttributionShape
     a sh:NodeShape ;
     rdfs:label "Translation attribution shape"@x-gmeow-english ;
     skos:definition "A lang:TranslationUnit names the lang:translationMethod that produced its crossing — a lang:TranslationMethod individual (human, machine, or compositional) — because whether a crossing was made by a human, a machine, or a compositional rule run is provenance the crossing must carry. Where the method is lang:methodMachine, the crossing further names the activity that generated it through gmeow:wasGeneratedBy: a machine translation with no generating activity hides what made it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:translationMethodClosure , lang:MachineTranslationProvenanceConstraint ;
     gmeow:enforcesFailureClass lang:UnattributedTranslation ;
     sh:targetClass lang:TranslationUnit ;
     sh:property [
@@ -699,6 +496,7 @@ lang:ParaphraseKindShape
     rdfs:label "Paraphrase kind shape"@x-gmeow-english ;
     skos:definition "A lang:Paraphrase names exactly one lang:paraphraseSamenessKind — a lang:ParaphraseSamenessKind individual (same denotation, same sense, or same force and content). A paraphrase that declares no sameness kind claims an equivalence without saying which corner of the Frege triangle it holds fixed, smuggling in an equivalence without content."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:paraphraseSamenessClosure ;
     gmeow:enforcesFailureClass lang:UndeclaredParaphraseKind ;
     sh:targetClass lang:Paraphrase ;
     sh:property [
@@ -709,52 +507,6 @@ lang:ParaphraseKindShape
         sh:class lang:ParaphraseSamenessKind ;
         sh:severity sh:Violation ;
         sh:message "A lang:Paraphrase must name exactly one lang:paraphraseSamenessKind individual." ;
-    ] .
-
-lang:TransliterationAnchorShape
-    a sh:NodeShape ;
-    rdfs:label "Transliteration anchor shape"@x-gmeow-english ;
-    skos:definition "A lang:TransliterationMap declares the orthographies it maps between — its lang:transliterationSourceOrthography and lang:transliterationTargetOrthography — and the naming scheme it grafts through lang:transliterationScheme. A transliteration between undeclared orthographies, or with no named scheme, maps nothing reconstructible."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:UnanchoredTransliteration ;
-    sh:targetClass lang:TransliterationMap ;
-    sh:property [
-        sh:path lang:transliterationSourceOrthography ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:TransliterationMap must declare its lang:transliterationSourceOrthography." ;
-    ] ;
-    sh:property [
-        sh:path lang:transliterationTargetOrthography ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:TransliterationMap must declare its lang:transliterationTargetOrthography." ;
-    ] ;
-    sh:property [
-        sh:path lang:transliterationScheme ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:TransliterationMap must declare its lang:transliterationScheme." ;
-    ] .
-
-lang:ProjectionEmissionDeclaredShape
-    a sh:NodeShape ;
-    rdfs:label "Projection emission declared shape"@x-gmeow-english ;
-    skos:definition "Every lang:ProjectionEmission declares the target it lowers to through lang:projectionTargetName and the preservation kind of its crossing through logic:preservationKind — an emission with no preservation kind has entered the loss ledger with an undeclared judgment. Only this statically-checkable minimum is a SHACL shape; the join-requiring projection contract failures (undeclared unsupported constructs, unrecorded epistemic loss, projection-scoped silent disambiguation, and refuted exactness) are native Rust gates."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:MissingPreservationKind ;
-    sh:targetClass lang:ProjectionEmission ;
-    sh:property [
-        sh:path logic:preservationKind ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:ProjectionEmission must declare its logic:preservationKind (reusing the logic: loss-ledger vocabulary verbatim)." ;
-    ] ;
-    sh:property [
-        sh:path lang:projectionTargetName ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:ProjectionEmission must name the external target it lowers to through lang:projectionTargetName." ;
     ] .
 
 # =========================================================================== #
@@ -774,6 +526,7 @@ lang:GmnCodepointCanonicalShape
     rdfs:label "GMN canonical codepoint shape"@x-gmeow-english ;
     skos:definition "Every gmeow:gmnCodepoints value is the canonical codepoint-explicit spelling: one or more space-separated \"U+XXXX\"-style groups of four to six uppercase hexadecimal digits. Targeted at every subject carrying gmeow:gmnCodepoints, so the rule reaches writer-projected glyph tables wherever they land."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnCodepointCanonicalConstraint ;
     gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
     sh:targetSubjectsOf gmeow:gmnCodepoints ;
     sh:property [
@@ -789,6 +542,7 @@ lang:GmnScriptCodepointPresenceShape
     rdfs:label "GMN script codepoint presence shape"@x-gmeow-english ;
     skos:definition "Every grapheme in the repertoire of gmeow:gmnScript carries a gmeow:gmnCodepoints spelling — the GMN glyph table is codepoint-explicit by rule. Targeted at the gmeow:gmnScript node itself and quantified over its lang:hasGrapheme members, so the doctrine script with an empty repertoire validates vacuously while any admitted glyph must name its codepoints."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnScriptCodepointPresenceConstraint ;
     gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
     sh:targetNode gmeow:gmnScript ;
     sh:sparql [
@@ -802,56 +556,12 @@ lang:GmnScriptCodepointPresenceShape
         """ ;
     ] .
 
-lang:GmnConfusableGlyphShape
-    a sh:NodeShape ;
-    rdfs:label "GMN confusable glyph shape"@x-gmeow-english ;
-    skos:definition "No two distinct graphemes of gmeow:gmnScript are related by gmeow:gmnConfusableWith — the confusables blocklist of the GMN orthography over its seeded pairs. The seeded pairs are data-level anchors of the UTS #39 skeleton rule; the full skeleton computation belongs to the GMN validator, so this gate enforces exactly what the graph states: an admitted inventory never co-hosts a declared-confusable pair."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:GmnConfusableGlyph ;
-    sh:targetSubjectsOf gmeow:gmnConfusableWith ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "Two distinct graphemes of the GMN script are a declared gmeow:gmnConfusableWith pair; the orthography's confusables blocklist forbids co-resident confusables." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/gmnConfusableWith> ?g2 .
-                $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
-                ?g2 <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
-                FILTER($this != ?g2)
-            }
-        """ ;
-    ] .
-
-lang:GmnGlyphCollisionShape
-    a sh:NodeShape ;
-    rdfs:label "GMN glyph collision shape"@x-gmeow-english ;
-    skos:definition "No two distinct graphemes of one lang:Script share an identical gmeow:gmnCodepoints value unless BOTH are sigil-scoped: the record-initial sigil discipline (gmeow:gmnSigilScope on each glyph) is the single lawful cross-plane reuse — μ the math sigil versus μ the in-record measure symbol — and an unscoped collision is ambiguity in the glyph table itself."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:GmnGlyphCollision ;
-    sh:targetSubjectsOf gmeow:gmnCodepoints ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "Two distinct graphemes of one script share an identical gmeow:gmnCodepoints value without both carrying a gmeow:gmnSigilScope; unscoped glyph collisions are forbidden." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp .
-                $this <https://blackcatinformatics.ca/lang/inScript> ?s .
-                ?g2 <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp .
-                ?g2 <https://blackcatinformatics.ca/lang/inScript> ?s .
-                FILTER($this != ?g2)
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc1 .
-                    ?g2 <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc2 .
-                }
-            }
-        """ ;
-    ] .
-
 lang:GmnEnvelopeContractShape
     a sh:NodeShape ;
     rdfs:label "GMN envelope contract shape"@x-gmeow-english ;
     skos:definition "Every gmeow:GmnEnvelope carries its full eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence — a logic:Correspondence, never a boolean flag)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes gmeow:GmnEnvelope ;
     gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField ;
     sh:targetClass gmeow:GmnEnvelope ;
     sh:property [
@@ -924,6 +634,7 @@ lang:GmnDictionaryAliasInjectivityShape
     rdfs:label "GMN dictionary alias injectivity shape"@x-gmeow-english ;
     skos:definition "No two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary bind two different gmeow:gmnDictionaryEntryTerm values to the same gmeow:gmnDictionaryEntryAlias string — the alias table is a bijection over its covered term set, per dictionary version."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnDictionaryAliasInjectivityConstraint ;
     gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision ;
     sh:targetClass gmeow:GmnDictionary ;
     sh:sparql [
@@ -960,6 +671,7 @@ lang:GmnRingLatticeWellFormedShape
     rdfs:label "GMN ring lattice well-formedness shape"@x-gmeow-english ;
     skos:definition "Every gmeow:GmnSecurityRing carries exactly one gmeow:gmnRingLevel drawn from gmeow:GmnRingLevel, and every gmeow:gmnRingCompartment value it carries (zero or more; an empty set is well-formed) is a declared gmeow:GmnCompartment individual. This gates the AUTHORED lattice coordinates the gmeow:gmnRingWithin derivation reads from, never the derived relation itself."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes gmeow:GmnSecurityRing ;
     gmeow:enforcesFailureClass lang:GmnRingLatticeMalformed ;
     sh:targetClass gmeow:GmnSecurityRing ;
     sh:property [
@@ -984,6 +696,7 @@ lang:GmnVersionOverclaimShape
     rdfs:label "GMN version overclaim shape"@x-gmeow-english ;
     skos:definition "The GMN version machinery never claims more than its lineage discharges. A migration crossing (a subject of gmeow:gmnMigratesTo — the logic:Correspondence itself, or a lang:TranslationUnit carrying one) whose correspondence claims logic:mnemomorphic true is honest only over an additive bump: when the destination version's gmeow:VersionMembership carries a gmeow:versionScale other than gmeow:scaleMinor or gmeow:scaleTrivial, the scale's own classification says the change is not recoverable, so the recoverability witness is an overclaim. Separately, a gmeow:gmnAcceptWindow greater than 1 is silent tolerance, not judged migration."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnVersionOverclaimConstraint ;
     gmeow:enforcesFailureClass lang:GmnVersionOverclaim ;
     sh:targetSubjectsOf gmeow:gmnMigratesTo , gmeow:gmnAcceptWindow ;
     sh:sparql [
@@ -1017,6 +730,7 @@ lang:GmnCompactionProvenanceShape
     rdfs:label "GMN compaction provenance shape"@x-gmeow-english ;
     skos:definition "Every gmeow:GmnCompaction is fully provenance-linked: at least one gmeow:gmnCompacts edge to a source it condenses, and the attributing gmeow:vantage its gmeow:StandpointClaim nature requires — the compaction is a reified NEW claim held from a standpoint, auditable exactly because its sources and its holder are named."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes gmeow:GmnCompaction ;
     gmeow:enforcesFailureClass lang:GmnCompactionWithoutProvenance ;
     sh:targetClass gmeow:GmnCompaction ;
     sh:property [
@@ -1033,94 +747,9 @@ lang:GmnCompactionProvenanceShape
         sh:message "A gmeow:GmnCompaction must name the standpoint holding it through gmeow:vantage (it is a gmeow:StandpointClaim)." ;
     ] .
 
-lang:GmnCompactionOverclaimShape
-    a sh:NodeShape ;
-    rdfs:label "GMN compaction overclaim shape"@x-gmeow-english ;
-    skos:definition "A gmeow:GmnCompaction's correspondence never claims a preservation stronger than logic:ValidationOnly: no logic:mnemomorphic true, no logic:ExactPreservation, no logic:SoundUnderApproximation. Compaction is get-leg-only (the GMN-1 → GMN-2 crossing gmeow:gmnCorrGmnToCompacted is a validation-only bridge view), so any logic:Correspondence the compaction record links — however the link is authored — must carry the honest weak judgment."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:GmnCompactionOverclaim ;
-    sh:targetClass gmeow:GmnCompaction ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:GmnCompaction links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation; compaction is validation-only." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this ?link ?c .
-                ?c a <https://blackcatinformatics.ca/logic/Correspondence> .
-                {
-                    ?c <https://blackcatinformatics.ca/logic/mnemomorphic> true .
-                } UNION {
-                    ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
-                } UNION {
-                    ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
-                }
-            }
-        """ ;
-    ] .
-
 # =========================================================================== #
 # Linguistic symbology plane gates: coverage and imported-plane attribution   #
 # =========================================================================== #
-
-lang:GmnLangCoverageShape
-    a sh:NodeShape ;
-    rdfs:label "GMN linguistic coverage shape"@x-gmeow-english ;
-    skos:definition "Every morphological lang:FeatureValue the GMN linguistic surface emits carries a disposition in the symbology plane: a lang:Denotation binds it to a glyph, a named key, or an imported alias. The denominator is derived — the shape quantifies over the lang:FeatureValue population by type, not over a hand-listed set — so a value added without a disposition is a silent gap the gate catches. Coverage is total by rule; an undispositioned value is lang:GmnUndispositionedTerm."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:GmnUndispositionedTerm ;
-    sh:targetClass lang:FeatureValue ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A lang:FeatureValue carries no lang:Denotation dispositioning it in the GMN symbology plane; coverage is total, so every emitted term is glyphed, alias-planed, or named-key-ruled." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                FILTER NOT EXISTS {
-                    ?d a <https://blackcatinformatics.ca/lang/Denotation> .
-                    ?d <https://blackcatinformatics.ca/lang/denotationTarget> $this .
-                }
-            }
-        """ ;
-    ] .
-
-lang:GmnImportedPlaneAttributionShape
-    a sh:NodeShape ;
-    rdfs:label "GMN imported-plane attribution shape"@x-gmeow-english ;
-    skos:definition "Every lang:GmnImportedPlane carries both its citation and its version: at least one gmeow:cites edge naming the source work and at least one dcterms:hasVersion literal pinning the edition. An external standard imported verbatim is meaningless without the source it cites and the edition it was drawn from; a plane missing either is lang:GmnUnattributedPlane."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:GmnUnattributedPlane ;
-    sh:targetClass lang:GmnImportedPlane ;
-    sh:property [
-        sh:path <https://blackcatinformatics.ca/gmeow/cites> ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:GmnImportedPlane must cite its source work through gmeow:cites." ;
-    ] ;
-    sh:property [
-        sh:path <http://purl.org/dc/terms/hasVersion> ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:GmnImportedPlane must pin its edition through dcterms:hasVersion." ;
-    ] .
-
-lang:GmnScriptGlyphCoverageShape
-    a sh:NodeShape ;
-    rdfs:label "GMN script-glyph token-cost coverage shape"@x-gmeow-english ;
-    skos:definition "Every lang:Grapheme in the GMN script (lang:inScript gmeow:gmnScript) carries a measured token cost through gmeow:gmnGlyphTokenCost: the per-glyph feed the glyph-versus-named-key disposition is read off. The population is derived — the shape scopes to the gmeow:gmnScript repertoire by lang:inScript, not to a hand-listed set — so a glyph admitted to the shared inventory (an IPA grapheme, the `*` operator glyph) without its cost feed is a silent gap the gate catches, complementing the lang:FeatureValue coverage of lang:GmnLangCoverageShape. A GMN-script glyph with no gmeow:gmnGlyphTokenCost is lang:GmnUncostedScriptGlyph."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:GmnUncostedScriptGlyph ;
-    sh:targetClass lang:Grapheme ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." ;
-        sh:select """
-            SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost> ?c .
-                }
-            }
-        """ ;
-    ] .
 
 # =========================================================================== #
 # Mentation <-> lang binding gate: gmeow:processExport                       #
@@ -1140,6 +769,7 @@ lang:GmnExportRingBindingShape
     rdfs:label "GMN export-ring binding shape"@x-gmeow-english ;
     skos:definition "Every gmeow:GmnEnvelope generated by an activity typed gmeow:mentalProcessType gmeow:processExport (mentation's externalization/communication episode, the emit member of the train/audit/export triple) declares a gmeow:gmnSecurityRing. The binding runs through the envelope's existing gmeow:wasGeneratedBy provenance field — the 'generating activity' hook the eight-field contract already names — so mentation asserts no lang term and gains no gmeow:sliceDependsOn edge on lang; this slice alone reads the mentation individual its own envelope already points at. An export crossing a serialization boundary with an unringed envelope is exactly the disclosure gap this gate catches."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnExportRingBindingConstraint ;
     gmeow:enforcesFailureClass lang:GmnUnringedExportCrossing ;
     sh:targetClass gmeow:GmnEnvelope ;
     sh:sparql [
@@ -1164,23 +794,3 @@ lang:GmnExportRingBindingShape
 # gmeow:FlagshipScenario's gmeow:enforcesFailureClass names a lang:LangConformanceFailure
 # subclass — the slice-local part of the contract.
 # =========================================================================== #
-
-lang:FlagshipScenarioShape
-    a sh:NodeShape ;
-    rdfs:label "Flagship scenario failure-range shape"@x-gmeow-english ;
-    skos:definition "The lang: slice's THIN failure-range gate for gmeow:FlagshipScenario: it checks only that the scenario's gmeow:enforcesFailureClass names a lang:LangConformanceFailure subclass — the typed failure its counter-example raises. The shared cardinality wiring (an example, a competency, a producer, a counter-example, and an enforcing class, each exactly once) is carried by the shared gmeow:FlagshipScenarioShape in shapes/gmeow-shapes.ttl; this slice contributes only the slice-namespaced failure-range check."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
-    gmeow:enforcesFailureClass lang:UnwiredFlagshipScenario ;
-    sh:targetClass gmeow:FlagshipScenario ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass must name a lang:LangConformanceFailure subclass — the typed failure its counter-example raises; naming a class that is not a conformance failure leaves the scenario unwired (lang:UnwiredFlagshipScenario)." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?fc .
-                FILTER NOT EXISTS {
-                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/lang/LangConformanceFailure> .
-                }
-            }
-        """ ;
-    ] .

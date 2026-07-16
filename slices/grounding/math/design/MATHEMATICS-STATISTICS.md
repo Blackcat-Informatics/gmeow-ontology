@@ -14,7 +14,7 @@
 > [`MATHEMATICS-PROJECTIONS.md`](MATHEMATICS-PROJECTIONS.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
@@ -182,8 +182,9 @@ ex:treatmentEffectEstimate
     math:estimator ex:olsEstimator .
 
 ex:treatmentEffectQuantity
-    a gmeow:Quantity ;
-    gmeow:quantityValue "1.42"^^xsd:decimal ;
+    a math:Quantity ;
+    math:quantityValue "1.42"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
     gmeow:unit ex:outcomeScoreUnit ;
     gmeow:hasReferenceFrame ex:trialOutcomeScale .
 

@@ -190,3 +190,17 @@ fn fanout_second_run_skips_every_file() {
     );
     assert_eq!(second.skipped, second.produced);
 }
+
+#[test]
+fn fanout_removes_stale_owned_artifacts() {
+    let tmp_dir = seed_bundle_only_root("stale");
+    let tmp = tmp_dir.path();
+    let stale = tmp.join("generated/obsolete/nested/old.ttl");
+    fs::create_dir_all(stale.parent().unwrap()).unwrap();
+    fs::write(&stale, b"stale").unwrap();
+
+    let report = gmeow_pipeline::fanout(tmp, 8).expect("fanout reconciles stale files");
+    assert_eq!(report.removed, 1);
+    assert!(!stale.exists());
+    assert!(!tmp.join("generated/obsolete").exists());
+}

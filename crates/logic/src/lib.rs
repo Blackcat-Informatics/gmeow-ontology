@@ -65,6 +65,8 @@ pub mod profile_gate;
 pub mod provenance;
 pub mod query_ir;
 pub mod reason;
+/// The shared named-graph boundary of the object-level reasoning EDB.
+pub mod reasoning_graphs;
 pub mod reference_resolver;
 pub mod relational_core;
 pub mod result;

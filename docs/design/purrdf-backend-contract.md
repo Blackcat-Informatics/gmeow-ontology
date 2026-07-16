@@ -5,9 +5,10 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # purrdf backend contract (P2)
 
-Companion to [`PURRDF-PLAN.md`](./PURRDF-PLAN.md). The PLAN requires this contract to
-be **specified before implementing P2** — the answers here decide the trait shapes,
-in particular whether the erased (`&mut dyn`) layer is mandatory.
+Companion to [`PURRDF-PLAN.md`](./PURRDF-PLAN.md). PurRDF owns the physical RDF
+dataset, paging, pack, parser/serializer, and operation-evidence contracts; this
+document records the boundary GMEOW consumes. GMEOW owns the RDF 1.2 semantic
+language, calculus, and conformance layered over that boundary.
 
 This document is normative for the purrdf backend traits (`DatasetView`,
 `DatasetMut`, `TermFactory`, `RdfParserBackend`, `SparqlEngine`, and
@@ -65,20 +66,23 @@ substrate. SPARQL **UPDATE** and **transactions** are a backend concern
 trait (P2d), never on `DatasetView` (read-only), and an UPDATE is atomic per the
 backend's transaction semantics (oxigraph: serializable in-memory).
 
-## C5 — Cancellation
+## C5 — Cancellation and bounded lazy reads
 
-Long-running backend operations (a SPARQL query, a bulk load) accept cooperative
-cancellation through the iterator-drop / early-`break` model: dropping the cursor
-stops the work. No separate cancellation token is introduced in P2a (the read view's
-iterators are pull-based and stop when dropped). A token-based API is added only if a
-backend needs to cancel work that is already in flight off-thread (not the case for
-the in-memory oxigraph backend).
+Resident iterators remain pull-based: dropping a cursor stops further work. A lazy
+paged operation additionally exposes provider, page/byte-budget, cancellation,
+deadline, and generation failures through its operation-scoped fallible view. The
+first failure is sticky; iterators stop, and an engine must sample the operation
+status after all result materialization before it can certify completeness.
 
 ## C6 — Error model
 
-- The read view is **infallible** for a frozen, validated `RdfDataset`: `quads`,
-  `quad_refs`, `resolve`, `quads_for_pattern` cannot fail (validation happened at
-  freeze). They therefore return values/iterators, not `Result`.
+- The resident read view is **infallible** for a frozen, validated `RdfDataset`:
+  `quads`, `quad_refs`, `resolve`, `quads_for_pattern` cannot fail (validation
+  happened at freeze). They therefore return values/iterators, not `Result`.
+- `FallibleDatasetView` preserves that iterator shape for lazy providers while making
+  the operational result explicit through preflight/final `operation_status`
+  checkpoints. A provider failure or exhausted resource budget means computational
+  incompleteness, never an empty RDF graph.
 - Fallible backend operations (parse, load, SPARQL eval, serialize) return
   `Result<_, RdfDiagnostic>` — the kernel's structured, SARIF-free diagnostic type
   (the single error currency; backends map their native errors into it). This keeps
@@ -86,12 +90,12 @@ the in-memory oxigraph backend).
 
 ## C7 — Capability negotiation
 
-Backends advertise support via `RdfStoreCapabilities` (named graphs, quoted triples,
-reifiers, annotations, source locations, loss records, lookaside). Consumers query
-`capabilities()` and degrade *their own* behavior (e.g. skip reifier emission) rather
-than the backend silently dropping data. New capabilities are added to the struct
-additively (it is `#[non_exhaustive]`-eligible if external backends appear; today it
-is kernel-internal).
+Views advertise representational support via `RdfStoreCapabilities` (named graphs,
+triple terms, reifiers, annotations, source locations, loss records, lookaside).
+The backend never silently drops data. A GMEOW operation that requires a missing
+capability refuses explicitly; an operation whose declared DAG path does not use that
+capability continues normally. This is operation selection, not an optional-dependency
+fallback or a half-capable alternate implementation.
 
 ## C8 — Thread-safety
 
@@ -106,6 +110,7 @@ Rayon-style fan-out over a shared `&RdfDataset` is sound today.
 | Trait | Layer | Parcel | Object-safe? |
 |---|---|---|---|
 | `DatasetView` | static read | **P2a** | no (RPITIT) — fine, selection is compile-time |
+| `FallibleDatasetView` | operation-scoped lazy read | PurRDF paging | no; static view plus typed status/evidence |
 | `DatasetMut` | static write | **P5** | no |
 | `TermFactory` | interning | **P2d** | no object-safety requirement |
 | `RdfParserBackend` | ingress | **P2d** over P6 events | erased only if runtime registry needed |

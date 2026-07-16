@@ -156,10 +156,10 @@ pub const STANDING_REFERENCE_PAGES: &[&str] = &[
 ];
 
 /// The one-line description of the offline snippet corpus — the flattened
-/// prompt-ready per-term cards written by `gmeow-dev export-docs --format
+/// prompt-ready per-term cards written by `gmeow-dev sync --mode update --outputs docs
 /// snippets`. Shared verbatim by every `llms.txt`-family surface (docs site +
 /// MCP/consumer) so they cannot drift.
-pub const SNIPPETS_CORPUS_NOTE: &str = "`gmeow-dev export-docs --format snippets` writes one prompt-ready Markdown card per term to `terms/<slug>.md` — the offline, agent-ingestible projection of these docs.";
+pub const SNIPPETS_CORPUS_NOTE: &str = "`gmeow-dev sync --mode update --outputs docs` writes one prompt-ready Markdown card per term to `terms/<slug>.md` — the offline, agent-ingestible projection of these docs.";
 
 /// Build the linkless **Reference** [`LlmsSection`] every MCP/consumer
 /// `llms.txt`-family surface must carry: [`STANDING_REFERENCE_PAGES`] as

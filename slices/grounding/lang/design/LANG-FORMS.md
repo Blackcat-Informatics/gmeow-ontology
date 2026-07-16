@@ -12,9 +12,9 @@
 > [`LANG-PROJECTIONS.md`](LANG-PROJECTIONS.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
-> projection loss ledger — not a claim that any implementation already realizes X except as those
-> gates demonstrate.
+> realization implements X, established by canonical OWL/`logic:` authorities in `module.ttl`,
+> their generated validation projections, competency queries, and the projection loss ledger —
+> not a claim that any implementation already realizes X except as those gates demonstrate.
 
 ## Purpose
 
@@ -194,7 +194,8 @@ ex:sentSurface
 ```
 
 Constituent order (`cats` before `chase` before `mice`) is explicit and inversion-safe: swapping
-slot forms is a different sentence, and the shape gate forbids two slots sharing index `0`. The
+slot forms is a different sentence, and `lang:FormSlotIndexUniquenessConstraint` forbids two slots
+sharing index `0`; SHACL is its generated validation view. The
 byte string is one surface hung off the form; an NFD copy, a shouting-case copy, or a Braille
 transcription would be further surfaces of the *same* composed form. What the sentence *means* —
 its denotation into a `logic:` formula — attaches to the form, never to the surface, and is the

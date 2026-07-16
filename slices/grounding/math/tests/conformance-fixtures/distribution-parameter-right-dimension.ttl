@@ -22,7 +22,7 @@ ex:areaLengthSquared a math:DimensionExponent ;
 ex:varianceRole a math:DistributionParameterRole ;
     math:quantityDimension ex:areaDimension .
 
-ex:areaQuantity a gmeow:Quantity ;
+ex:areaQuantity a math:Quantity ;
     math:hasDimension ex:areaDimension .
 
 ex:welldimensionedParameter a math:DistributionParameter ;
