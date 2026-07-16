@@ -22,6 +22,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierLabelShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -33,6 +34,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierLabelRegisteredConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierLabelShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -44,6 +46,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputCalibrationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -55,6 +58,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputLabelPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -66,6 +70,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputNoInnerAffectConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -77,6 +82,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputProducedByPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -88,6 +94,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputScorePresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -99,6 +106,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputSemanticsPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -110,6 +118,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputTargetPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutputShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -121,6 +130,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectCompositeConstituentPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectComposite> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectCompositeShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectComposite> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -132,6 +142,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -143,6 +154,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectDecisionSingleLabelConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectDecision> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectDecisionShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectDecision> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -154,6 +166,7 @@
 <https://blackcatinformatics.ca/gmeow/AffectScaleProfileRangeConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectScaleProfileShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -173,9 +186,22 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/fullName> ?v0 . } UNION { $this <https://blackcatinformatics.ca/gmeow/hasNamePart> ?v1 . } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/AppraisalDimensionRequiresValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AppraisalShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/AppraisalFramedValueConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AppraisalShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -187,6 +213,7 @@
 <https://blackcatinformatics.ca/gmeow/AppraisalReadsSomethingConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AppraisalShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -198,6 +225,7 @@
 <https://blackcatinformatics.ca/gmeow/AppraisalScaleProfileIsProfileConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AppraisalShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -206,9 +234,22 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ?p . FILTER NOT EXISTS { ?p a <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/AppraisalValueRequiresDimensionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AppraisalShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/ArcSamplePositionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ArcSample> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ArcSampleShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ArcSample> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -220,6 +261,7 @@
 <https://blackcatinformatics.ca/gmeow/ArcSampleStateConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ArcSample> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ArcSampleShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ArcSample> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -347,6 +389,28 @@
         sh:severity sh:Violation ;
         sh:message "A CausalLink must state exactly one gmeow:causalModality (an IRI — the vocabulary is OPEN per Principle 9): if you reified, you had a reason." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/causalModality> ?v0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/CharacterArcSubjectConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/CharacterArcShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CharacterArc> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A CharacterArc must have exactly one gmeow:arcSubject." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/arcSubject> ?v0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/CharacterArcTypeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/CharacterArcShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CharacterArc> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A CharacterArc must have exactly one gmeow:arcType." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/arcType> ?v0 . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ClaimCredenceBandConsistencyConstraintProceduralConstraintShape>
@@ -572,6 +636,7 @@
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityBasisPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservationShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -583,6 +648,7 @@
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityMetricPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservationShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -594,6 +660,7 @@
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityNoStoredMagnitudeConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservationShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -605,6 +672,7 @@
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityNormPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservationShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -616,6 +684,7 @@
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityWeightingIriConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservationShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -737,6 +806,7 @@
 <https://blackcatinformatics.ca/gmeow/ExclusiveAffectiveClaimConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectiveClaim> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ExclusiveClaimShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectiveClaim> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -800,8 +870,20 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/trademarkStatus> ?st . FILTER ( ?st IN (<https://blackcatinformatics.ca/gmeow/trademarkStatusExpired>, <https://blackcatinformatics.ca/gmeow/trademarkStatusCancelled>) ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/FrameAxisPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/FrameProfileShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must have at least one coordinate axis." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasAxis> ?v0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/FrameAxisTypeConstraintProceduralConstraintShape>
     a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/FrameProfileShape> ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
     sh:sparql [
@@ -813,13 +895,25 @@
 
 <https://blackcatinformatics.ca/gmeow/FrameDimensionCountConstraintProceduralConstraintShape>
     a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/FrameProfileShape> ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:message "A reference frame's dimension count (gmeow:dimensionCount) must equal its number of coordinate axes (gmeow:hasAxis)." ;
+        sh:message "A reference frame's dimension count must equal its number of coordinate axes." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasAxis> ?value . $this <https://blackcatinformatics.ca/gmeow/dimensionCount> ?rhs . } GROUP BY $this ?rhs HAVING ( COUNT(DISTINCT ?value) != ?rhs )""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/FrameRealmPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/FrameProfileShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must declare its frame realm." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/frameRealm> ?v0 . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/GateFatalUpsetConstraintProceduralConstraintShape>
@@ -859,6 +953,17 @@
         sh:severity sh:Violation ;
         sh:message "Genre must not be subclassed (Principle 9)." ;
         sh:select """SELECT $this WHERE { ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf> $this . FILTER ( ?sub != $this ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/GeocodeCodeChoiceConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/GeocodeShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Geocode> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/what3words> ?v7 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geocodeValue> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/geohash> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mgrs> ?v3 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/mileMarker> ?v4 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/plusCode> ?v5 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/unLocode> ?v6 . } } } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/GraftPermissionModalityConstraintProceduralConstraintShape>
@@ -1117,6 +1222,7 @@
 <https://blackcatinformatics.ca/gmeow/ModelInferenceRunIdentifierPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRunShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1128,6 +1234,7 @@
 <https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionPresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRunShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1139,6 +1246,7 @@
 <https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionUniqueConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRunShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1150,6 +1258,7 @@
 <https://blackcatinformatics.ca/gmeow/MotifLabelConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Motif> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/MotifShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Motif> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1161,6 +1270,7 @@
 <https://blackcatinformatics.ca/gmeow/MotifOccursInSegmentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Motif> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/MotifShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Motif> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1183,6 +1293,7 @@
 <https://blackcatinformatics.ca/gmeow/NarrationUsageModeConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrationUsage> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrationUsageShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrationUsage> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1194,6 +1305,7 @@
 <https://blackcatinformatics.ca/gmeow/NarrationUsageSegmentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrationUsage> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrationUsageShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrationUsage> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1205,6 +1317,7 @@
 <https://blackcatinformatics.ca/gmeow/NarrationUsageSubjectConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrationUsage> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrationUsageShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrationUsage> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1216,6 +1329,7 @@
 <https://blackcatinformatics.ca/gmeow/NarrativeDiscourseAnchorConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrameShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1224,9 +1338,21 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> <https://blackcatinformatics.ca/gmeow/axisDiscourseTime> . $this <https://blackcatinformatics.ca/gmeow/storyTimeOf> ?x . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/NarrativePositionLocatorConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativePositionShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrativePosition> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativePosition must carry a positionOrdinal or a positionLabel (or both)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/positionLabel> ?v0 . } UNION { $this <https://blackcatinformatics.ca/gmeow/positionOrdinal> ?v1 . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/NarrativeStoryAnchorConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrameShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1238,6 +1364,7 @@
 <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrameAxisConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrameShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -1345,6 +1472,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/acceptsCurrency> ?cur . FILTER NOT EXISTS { ?cur <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmCurrency> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/OrientationRepresentationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/OrientationShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Orientation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Orientation must carry at least one of: a complete unit quaternion (x,y,z,w); complete Euler angles with eulerOrder (yaw,pitch,roll,order); a heading; a bearing; or a homogeneous coordinate matrix." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/quaternionX> ?qx . $this <https://blackcatinformatics.ca/gmeow/quaternionY> ?qy . $this <https://blackcatinformatics.ca/gmeow/quaternionZ> ?qz . $this <https://blackcatinformatics.ca/gmeow/quaternionW> ?qw . } UNION { $this <https://blackcatinformatics.ca/gmeow/yaw> ?yaw . $this <https://blackcatinformatics.ca/gmeow/pitch> ?pitch . $this <https://blackcatinformatics.ca/gmeow/roll> ?roll . $this <https://blackcatinformatics.ca/gmeow/eulerOrder> ?eord . } UNION { $this <https://blackcatinformatics.ca/gmeow/heading> ?h . } UNION { $this <https://blackcatinformatics.ca/gmeow/bearing> ?b . } UNION { $this <https://blackcatinformatics.ca/gmeow/hasCoordinateMatrix> ?m . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/OrnamentProfileApplicationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/OrnamentProfile> ;
@@ -1444,6 +1582,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/personaRegister> ?v0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/PlaceNamingAppellationBindingConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/PlaceNamingHasPlayersShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/NameUsage> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A name-usage that names a gmeow:Place must bind a gmeow:PlaceName via gmeow:usageAppellation." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/usageNamed> ?place . ?place a <https://blackcatinformatics.ca/gmeow/Place> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/usageAppellation> ?app . ?app a <https://blackcatinformatics.ca/gmeow/PlaceName> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/PlaceNamingHasPlayersConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/NameUsage> ;
@@ -1541,6 +1690,50 @@
         sh:severity sh:Violation ;
         sh:message "ProjectionLoss must not be subclassed (Principle 9)." ;
         sh:select """SELECT $this WHERE { ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf> $this . FILTER ( ?sub != $this ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProximityObservedFeaturePresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProximityMeasurementShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must name exactly one starting entity (gmeow:observedFeature)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?v0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProximityResultPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProximityMeasurementShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/observationResult> ?v0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProximityResultTypeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProximityMeasurementShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/observationResult> ?v . FILTER NOT EXISTS { { ?v a <https://blackcatinformatics.ca/gmeow/ScalarQuantity> . } UNION { ?v a <https://blackcatinformatics.ca/gmeow/Quantity> . } UNION { ?v a <https://blackcatinformatics.ca/gmeow/MeasuredValue> . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProximityToPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProximityMeasurementShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must name exactly one target entity (gmeow:proximityTo)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/proximityTo> ?v0 . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ReadingOrderAccordingToConstraintProceduralConstraintShape>
@@ -1920,6 +2113,7 @@
 <https://blackcatinformatics.ca/gmeow/SupersededPlaceSuppressionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Place> ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/SupersededPlaceSuppressionShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Place> ;
     sh:sparql [
         a sh:SPARQLConstraint ;

@@ -180,7 +180,7 @@ class CausalLink(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CausalLink", "curie": "gmeow:CausalLink", "definitionDigest": "blake3:ca384aa56770b3d12629c507d765d36ecb9152e32e70f4cb5ba32d7e497234b3", "iri": "https://blackcatinformatics.ca/gmeow/CausalLink"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CausalLink", "curie": "gmeow:CausalLink", "definitionDigest": "blake3:0746848c0556ad5ccd759f4396d9d14e780ceadafe605a8b65d90d348ad15b0b", "iri": "https://blackcatinformatics.ca/gmeow/CausalLink"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
