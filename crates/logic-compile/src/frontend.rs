@@ -248,6 +248,14 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
     )
 }
 
+/// Recovery-case ownership links are correspondence-calculus structure, not domain
+/// axioms.  Their formula tree is reconstructed into [`RecoveryCaseIr`] by the shared
+/// correspondence reader; retaining these edges in `LogicProgram::axioms` as well would
+/// duplicate one semantic object across the generic projection and correspondence lanes.
+fn is_recovery_case_structural_predicate(prop_local: &str) -> bool {
+    matches!(prop_local, "recoveryCase" | "recoveryTransform")
+}
+
 /// The reserved `logic:` predicate-local names that carry a `logic:Constraint` (or a compact
 /// constraint-sugar record) — its integrity/severity/message/formalizes annotations, the sugar
 /// pattern parameters, and the aggregate-comparison satellite. Like the formula-structural
@@ -386,12 +394,29 @@ fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     subjects
 }
 
+/// Collect the IRIs / blank-node ids of every `logic:RecoveryCase` node reached as the
+/// object of some `logic:recoveryCase` edge — i.e. every recovery case OWNED by a
+/// correspondence. A `logic:RecoveryCase` node typed but never reached this way is
+/// authored recovery evidence with no owner, so it must not be silently dropped.
+fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
+    let recovery_case_pred = logic_iri("recoveryCase");
+    default_graph_quads(store)
+        .into_iter()
+        .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
+        .map(|quad| term_str(&quad.object))
+        .collect()
+}
+
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
     // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
+
+    // Recovery cases owned by some correspondence (via `logic:recoveryCase`); a
+    // `logic:RecoveryCase` typing not in this set is orphaned evidence (see step 2 below).
+    let owned_recovery_cases = collect_owned_recovery_cases(store);
 
     // Class-expression restrictions authored in logic: (`C logic:subClassOf
     // [ a logic:Restriction ; logic:onProperty P ; logic:someValuesFrom D ]`) lift
@@ -463,6 +488,9 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_formula_structural_predicate(p_local) {
             continue;
         }
+        if is_recovery_case_structural_predicate(p_local) {
+            continue;
+        }
         // Rule-aggregation triples (the reduce spec carried on a logic:Rule node) are consumed
         // by extract_rules; they are rule structure, never domain facts, and must not pollute
         // the axiom set or the canonical round-trip.
@@ -522,7 +550,26 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // `extract_formulas`. Keeping it as a generic class-membership axiom as well would give
         // the same authored node two IR homes; the CL writer would then emit a constructorless
         // duplicate under the source IRI alongside the content-addressed formula tree.
-        if o_local == "Formula" {
+        if matches!(o_local, "Formula" | "TermCarrier") {
+            continue;
+        }
+        // A `logic:RecoveryCase` type triple is owned by the correspondence that reaches it
+        // via `logic:recoveryCase`, exactly like Formula/TermCarrier above. A RecoveryCase that
+        // is NOT reached that way is unowned recovery evidence — an authoring error, not
+        // something to swallow — so it is hard-failed here instead of silently vanishing.
+        if o_local == "RecoveryCase" {
+            let case_iri = subject_str(&quad.subject);
+            if !owned_recovery_cases.contains(&case_iri) {
+                diagnostics.push(Diagnostic::error(
+                    "ORPHAN_RECOVERY_CASE",
+                    format!(
+                        "{case_iri:?} is typed logic:RecoveryCase but is not referenced by any \
+                         logic:Correspondence via logic:recoveryCase; unowned recovery evidence \
+                         must not disappear silently"
+                    ),
+                    Some(case_iri),
+                ));
+            }
             continue;
         }
         // A `logic:Constraint` / constraint-sugar type triple is consumed by the constraint +
@@ -2798,6 +2845,15 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             referenced.insert(term_str(&obj));
         }
     }
+    // A formula reached as a correspondence recovery transform is owned by that
+    // first-class `logic:RecoveryCase`, not a free-standing assertion.  Keep one semantic
+    // home while still validating every node in the shared formula parser below.
+    let recovery_transform_pred = nn(&logic_iri("recoveryTransform"));
+    for case in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("RecoveryCase"))) {
+        for obj in objects(store, &case, &recovery_transform_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -2891,7 +2947,7 @@ fn one_child_subject(
 /// The parser is deliberately strict: every node has exactly one constructor family; singleton
 /// constructors have exactly one child; `and`/`or` have at least two children; `iff` has exactly
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
-fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
+pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
 }
 
@@ -4654,6 +4710,7 @@ pub fn parse_logic_dataset(
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
         .with_correspondences(correspondences)
+        .map_err(|e| LogicParseError(e.message().to_owned()))?
         .with_transaction_programs(transaction_programs)
         .with_formulas(formulas)
         .with_constraints(constraints);

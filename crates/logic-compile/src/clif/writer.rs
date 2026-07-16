@@ -322,16 +322,15 @@ fn meta_predications(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>
     //     them — and with a different lexical form (the path channel emits typed `xsd:integer`
     //     depths, the axiom channel a plain literal), defeating dedup and breaking idempotence.
     //     Exclude any axiom whose subject is a path-shape node.
-    let corr_subjects = correspondence_subjects(program);
+    let corr_ownership = crate::projections::correspondence::CorrespondenceOwnership::build(
+        &program.correspondences,
+    );
     let path_subjects: std::collections::HashSet<&str> =
         program.path_shapes.iter().map(|p| p.iri.as_str()).collect();
     let axioms: Vec<_> = program
         .axioms
         .iter()
-        .filter(|a| {
-            !is_correspondence_owned(&a.subject, &corr_subjects)
-                && !path_subjects.contains(a.subject.as_str())
-        })
+        .filter(|a| !corr_ownership.owns(&a.subject) && !path_subjects.contains(a.subject.as_str()))
         .cloned()
         .collect();
     let canon_meta = LogicProgram::new(
@@ -551,37 +550,6 @@ fn path_shape_predications(shape: &crate::ir::PathShapeIr) -> Vec<String> {
         ));
     }
     out
-}
-
-/// The set of correspondence node IRIs whose flat axioms are owned by the correspondence
-/// channel (the correspondence individuals + the singleton `correspondence-program` node).
-/// Their law-claim / caveat child nodes are matched by IRI prefix in [`is_correspondence_owned`].
-fn correspondence_subjects(program: &LogicProgram) -> Vec<String> {
-    let mut subjects: Vec<String> = program
-        .correspondences
-        .iter()
-        .map(|c| c.iri.clone())
-        .collect();
-    // The `project_correspondence` wrapper node (one per build).
-    subjects.push(format!(
-        "{}correspondence-program",
-        crate::ir::LOGIC_NAMESPACE
-    ));
-    subjects
-}
-
-/// Whether `subject` is a correspondence node (exact match) or one of its child nodes (the
-/// `project_correspondence` law-claim IRIs are minted as `<corr-iri>/lawclaim/<i>`, so an
-/// IRI-prefix test catches them).
-fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
-    // Zero-allocation prefix test: a child node is `<corr-iri>/…`, so strip the parent IRI
-    // and require the remainder to start with `/` (avoids a `format!` per axiom×correspondence).
-    corr_subjects.iter().any(|c| {
-        subject == c
-            || subject
-                .strip_prefix(c.as_str())
-                .is_some_and(|r| r.starts_with('/'))
-    })
 }
 
 /// Parse RDF `bytes` of `media_type` and emit each quad as a sorted-later CL predication.
