@@ -4,27 +4,34 @@
 //! Acceptance coverage for query-scoped annotated external relations.
 
 use std::collections::BTreeSet;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
+use std::sync::{Arc, Mutex};
 
 use gmeow_logic::annotation::{AnnotationContract, AnnotationRequest};
 use gmeow_logic::dispatch::{
     RelationAnnotationRequest, RelationQueryError, dispatch_query_annotated,
-    dispatch_query_annotated_with_relations,
+    dispatch_query_annotated_with_relations, dispatch_query_annotated_with_relations_fallible_view,
+    dispatch_query_annotated_with_relations_view,
 };
 use gmeow_logic::external_relation::{
     ExternalRelationProvider, NeverCancelled, QueryRelationProviders, RelationAnnotationDimension,
     RelationBatch, RelationCall, RelationCancellation, RelationExecutionFailureKind,
     RelationInvocationStatus, RelationOrderDirection, RelationOrdering, RelationProviderBudget,
-    RelationProviderDescriptor, RelationProviderError, RelationProviderIncompletenessKind,
-    RelationProviderRegistration, RelationTuple,
+    RelationProviderDescriptor, RelationProviderError, RelationProviderFailureKind,
+    RelationProviderIncompletenessKind, RelationProviderRegistration, RelationTuple,
 };
 use gmeow_logic::provenance::{ZWeightSemiring, term_display};
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
-use gmeow_logic::seam::{BudgetStatus, WorldFactSnapshot};
+use gmeow_logic::seam::{BudgetStatus, WorldFactSnapshot, WorldSourceIdentity};
 use gmeow_logic::store::WorldStore;
+use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::result_shape::ColumnKind;
-use purrdf::TermValue;
+use purrdf::ir::InMemoryPageProvider;
+use purrdf::{
+    PageGeneration, PagedDataset, PagedQueryError, PagedQueryLimits, RdfDataset, RdfDatasetBuilder,
+    RdfQuad, RdfTerm, TermValue,
+};
 
 const WORLD: &str = "https://example.org/world/hybrid";
 const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
@@ -48,6 +55,17 @@ fn unscored(_: gmeow_logic::annotation::AnnotationFactRef<'_>) -> Option<i64> {
     None
 }
 
+fn hard_graph_score(fact: gmeow_logic::annotation::AnnotationFactRef<'_>) -> Option<i64> {
+    (fact.predicate == ex("status")).then_some(2)
+}
+
+fn source_identity(generation: u64) -> WorldSourceIdentity {
+    WorldSourceIdentity::new(
+        format!("https://example.org/source/generation/{generation}"),
+        "https://example.org/source/contract/hybrid-v1",
+    )
+}
+
 fn scratch_score(fact: gmeow_logic::annotation::AnnotationFactRef<'_>) -> Option<i64> {
     (fact.predicate == LEXICAL).then(|| match term_display(fact.object).as_str() {
         "<https://example.org/doc/one>" => 7,
@@ -63,6 +81,21 @@ fn row(query: &str, document: &str, annotation: i64, order_key: &str) -> Relatio
         annotation,
         order_key: order_key.to_owned(),
     }
+}
+
+fn resident_hybrid_dataset() -> Arc<RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    for (document, status) in [("doc/one", "active"), ("doc/two", "inactive")] {
+        builder.push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(ex(document)),
+                ex("status"),
+                RdfTerm::iri(ex(status)),
+            )
+            .in_graph(RdfTerm::iri(WORLD)),
+        );
+    }
+    builder.freeze().expect("valid resident hybrid dataset")
 }
 
 struct TableProvider {
@@ -129,6 +162,25 @@ impl ExternalRelationProvider<i64> for IncompleteProvider {
         Err(RelationProviderError::Incomplete {
             kind: RelationProviderIncompletenessKind::UncertifiedUniverse,
             detail: "candidate universe cannot be certified".to_owned(),
+        })
+    }
+}
+
+struct PreparedFailureProvider {
+    prepared_rows: AtomicBool,
+}
+
+impl ExternalRelationProvider<i64> for PreparedFailureProvider {
+    fn call(
+        &self,
+        _call: &RelationCall,
+        _cancellation: &dyn RelationCancellation,
+    ) -> Result<RelationBatch<i64>, RelationProviderError> {
+        let _prepared = row("cat", "doc/one", 7, "001");
+        self.prepared_rows.store(true, AtomicOrdering::SeqCst);
+        Err(RelationProviderError::Failure {
+            kind: RelationProviderFailureKind::Internal,
+            detail: "provider failed after preparing an uncommitted row".to_owned(),
         })
     }
 }
@@ -205,14 +257,24 @@ fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
         row("cat", "doc/two", 5, "002"),
         row("dog", "doc/three", 3, "003"),
     ]);
+    let unused_vector = TableProvider::new(vec![row("cat", "doc/one", 99, "001")]);
     let providers = QueryRelationProviders::new(
-        vec![registration(
-            LEXICAL,
-            "https://example.org/provider/lexical",
-            "https://example.org/model/bm25-v1",
-            RelationAnnotationDimension::Similarity,
-            &provider,
-        )],
+        vec![
+            registration(
+                LEXICAL,
+                "https://example.org/provider/lexical",
+                "https://example.org/model/bm25-v1",
+                RelationAnnotationDimension::Similarity,
+                &provider,
+            ),
+            registration(
+                VECTOR,
+                "https://example.org/provider/vector-unused",
+                "https://example.org/model/embedding-unused",
+                RelationAnnotationDimension::Distance,
+                &unused_vector,
+            ),
+        ],
         RelationProviderBudget::new(8, 32).unwrap(),
         &NEVER_CANCELLED,
     )
@@ -227,14 +289,30 @@ fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
     )
     .expect("provider/RDF join program");
 
-    let result = query(&snapshot(&store), &program, &providers).expect("complete hybrid query");
+    let source = snapshot(&store);
+    let contract = AnnotationContract::exact();
+    let result = dispatch_query_annotated_with_relations(
+        &source,
+        WORLD,
+        &program,
+        PROFILE,
+        &Budget::default(),
+        RelationAnnotationRequest::new(
+            AnnotationRequest::new(&ZWeightSemiring, &contract, hard_graph_score),
+            &providers,
+        ),
+    )
+    .expect("complete hybrid query");
     assert_eq!(result.answer.status, BudgetStatus::Ok);
     assert_eq!(result.answer.answers.len(), 1);
     assert_eq!(
         result.answer.answers[0].binding["D"],
         format!("<{}>", ex("doc/one"))
     );
-    assert_eq!(result.answer.answers[0].annotation, 7);
+    assert_eq!(
+        result.answer.answers[0].annotation, 14,
+        "provider and asserted-RDF annotations compose through otimes"
+    );
     assert!(
         result.answer.answers[0]
             .derivations
@@ -253,6 +331,7 @@ fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
         1,
         "identical recursive rounds hit cache"
     );
+    assert!(unused_vector.calls().is_empty());
     assert_eq!(
         provider.calls()[0].bounds[0],
         Some(TermValue::iri(ex("cat")))
@@ -269,6 +348,20 @@ fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
             GENERATION.to_owned(),
         )])
     );
+    let invocation = result
+        .receipt
+        .invocations
+        .iter()
+        .find(|invocation| invocation.status == RelationInvocationStatus::Complete)
+        .expect("complete lexical invocation receipt");
+    assert_eq!(invocation.model_iri, "https://example.org/model/bm25-v1");
+    assert_eq!(invocation.artifact_generation, GENERATION);
+    assert!(
+        invocation
+            .request_iri
+            .starts_with("https://blackcatinformatics.ca/.well-known/genid/external-request/")
+    );
+    assert_eq!(invocation.response_hash.as_deref().map(str::len), Some(64));
 }
 
 #[test]
@@ -453,6 +546,58 @@ fn bounded_provider_matches_equivalent_scratch_world_without_materializing_noise
 }
 
 #[test]
+fn unbound_calls_keep_total_order_and_merge_provider_preservation() {
+    let provider = TableProvider::new(vec![
+        row("cat", "doc/two", 5, "002"),
+        row("dog", "doc/three", 3, "003"),
+        row("cat", "doc/one", 7, "001"),
+    ]);
+    let mut lossy_descriptor = descriptor(
+        LEXICAL,
+        "https://example.org/provider/lexical",
+        "https://example.org/model/bm25-v1",
+        RelationAnnotationDimension::Rank,
+        vec![ColumnKind::Iri, ColumnKind::Iri],
+    );
+    lossy_descriptor.preservation =
+        PreservationClaim::for_unsupported(["https://example.org/construct/index-cutoff"]);
+    let providers = QueryRelationProviders::new(
+        vec![RelationProviderRegistration::new(lossy_descriptor, 8, &provider).unwrap()],
+        RelationProviderBudget::new(2, 8).unwrap(),
+        &NEVER_CANCELLED,
+    )
+    .unwrap();
+    let program = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ?- ex:relation/lexical(Q, D).\n",
+    )
+    .expect("unbound provider goal");
+    let store = WorldStore::new();
+    store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
+    let result = query(&snapshot(&store), &program, &providers).expect("complete unbound prefix");
+
+    assert_eq!(provider.calls().len(), 1);
+    assert_eq!(provider.calls()[0].bounds, vec![None, None]);
+    assert_eq!(result.answer.answers.len(), 3);
+    assert_eq!(result.receipt.metrics.bound_calls, 0);
+    assert_eq!(
+        result.answer.preservation.polarities,
+        BTreeSet::from([PreservationKind::SoundUnder])
+    );
+    assert_eq!(
+        result.answer.preservation.unsupported_constructs,
+        BTreeSet::from(["https://example.org/construct/index-cutoff".to_owned()])
+    );
+    assert!(result.answer.answers.iter().all(|answer| {
+        answer.derivations.iter().any(|derivation| {
+            derivation.provider_sources.iter().all(|source| {
+                source.annotation_dimension_iri == RelationAnnotationDimension::Rank.iri()
+            })
+        })
+    }));
+}
+
+#[test]
 fn incomplete_provider_is_typed_and_registration_does_not_escape_the_query() {
     let providers = QueryRelationProviders::new(
         vec![registration(
@@ -503,6 +648,48 @@ fn incomplete_provider_is_typed_and_registration_does_not_escape_the_query() {
     )
     .expect("no ambient provider registry exists");
     assert!(ordinary.answers.is_empty());
+}
+
+#[test]
+fn provider_failure_after_row_preparation_exposes_no_partial_answer() {
+    let provider = PreparedFailureProvider {
+        prepared_rows: AtomicBool::new(false),
+    };
+    let providers = QueryRelationProviders::new(
+        vec![registration(
+            LEXICAL,
+            "https://example.org/provider/failing",
+            "https://example.org/model/failing",
+            RelationAnnotationDimension::Similarity,
+            &provider,
+        )],
+        RelationProviderBudget::new(2, 8).unwrap(),
+        &NEVER_CANCELLED,
+    )
+    .unwrap();
+    let store = WorldStore::new();
+    store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
+    let program = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ?- ex:relation/lexical(ex:cat, D).\n",
+    )
+    .unwrap();
+
+    let error = query(&snapshot(&store), &program, &providers)
+        .expect_err("a failed provider cannot return a partial answer set");
+    assert!(provider.prepared_rows.load(AtomicOrdering::SeqCst));
+    let RelationQueryError::Provider { error, receipt } = error else {
+        panic!("expected a typed provider failure");
+    };
+    assert_eq!(
+        error.kind,
+        RelationExecutionFailureKind::ProviderFailure(RelationProviderFailureKind::Internal)
+    );
+    assert_eq!(error.invocation.status, RelationInvocationStatus::Failed);
+    assert_eq!(error.invocation.delivered_rows, 0);
+    assert_eq!(error.invocation.admitted_rows, 0);
+    assert_eq!(receipt.metrics.admitted_rows, 0);
+    assert_eq!(receipt.invocations.len(), 1);
 }
 
 #[test]
@@ -608,4 +795,163 @@ fn provider_head_collision_wrong_algebra_and_rdf12_triple_terms_are_explicit() {
         result.answer.answers[0].derivations[0].provider_sources[0].arguments,
         vec![term_display(&triple)]
     );
+}
+
+#[test]
+fn resident_and_fallible_views_share_the_provider_semantics_and_identity() {
+    let provider = TableProvider::new(vec![
+        row("cat", "doc/one", 7, "001"),
+        row("cat", "doc/two", 5, "002"),
+    ]);
+    let providers = QueryRelationProviders::new(
+        vec![registration(
+            LEXICAL,
+            "https://example.org/provider/lexical",
+            "https://example.org/model/bm25-v1",
+            RelationAnnotationDimension::Similarity,
+            &provider,
+        )],
+        RelationProviderBudget::new(4, 8).unwrap(),
+        &NEVER_CANCELLED,
+    )
+    .unwrap();
+    let program = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ex:eligible(Q, D) :- ex:relation/lexical(Q, D), ex:status(D, ex:active).\n\
+         ?- ex:eligible(ex:cat, D).\n",
+    )
+    .unwrap();
+    let resident = resident_hybrid_dataset();
+    let identity = source_identity(31);
+    let contract = AnnotationContract::exact();
+    let resident_result = dispatch_query_annotated_with_relations_view(
+        resident.as_ref(),
+        identity.clone(),
+        WORLD,
+        &program,
+        PROFILE,
+        &Budget::default(),
+        RelationAnnotationRequest::new(
+            AnnotationRequest::new(&ZWeightSemiring, &contract, hard_graph_score),
+            &providers,
+        ),
+    )
+    .expect("resident provider query");
+
+    let paged = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
+        vec![resident],
+        PageGeneration(31),
+    )))
+    .expect("sealed paged dataset");
+    let view = paged.query_view(PagedQueryLimits::UNBOUNDED);
+    let paged_result = dispatch_query_annotated_with_relations_fallible_view(
+        &view,
+        identity,
+        WORLD,
+        &program,
+        PROFILE,
+        &Budget::default(),
+        RelationAnnotationRequest::new(
+            AnnotationRequest::new(&ZWeightSemiring, &contract, hard_graph_score),
+            &providers,
+        ),
+    )
+    .expect("fallible paged provider query");
+
+    assert_eq!(resident_result.result, paged_result.result);
+    assert_eq!(resident_result.identity, paged_result.identity);
+    assert_eq!(resident_result.evidence.source.delivered_quads(), 1);
+    assert_eq!(paged_result.evidence.source.delivered_quads(), 1);
+    assert_eq!(provider.calls().len(), 2, "provider caches are query-local");
+}
+
+#[test]
+fn fallible_view_keeps_rdf_operational_and_relation_failures_disjoint() {
+    let resident = resident_hybrid_dataset();
+    let paged = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
+        vec![resident.clone()],
+        PageGeneration(41),
+    )))
+    .expect("sealed paged dataset");
+    let direct = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ?- ex:relation/lexical(ex:cat, D).\n",
+    )
+    .unwrap();
+    let incomplete = QueryRelationProviders::new(
+        vec![registration(
+            LEXICAL,
+            "https://example.org/provider/incomplete",
+            "https://example.org/model/incomplete",
+            RelationAnnotationDimension::Similarity,
+            &IncompleteProvider,
+        )],
+        RelationProviderBudget::new(2, 8).unwrap(),
+        &NEVER_CANCELLED,
+    )
+    .unwrap();
+    let contract = AnnotationContract::exact();
+    let view = paged.query_view(PagedQueryLimits::UNBOUNDED);
+    let relation_error = dispatch_query_annotated_with_relations_fallible_view(
+        &view,
+        source_identity(41),
+        WORLD,
+        &direct,
+        PROFILE,
+        &Budget::default(),
+        RelationAnnotationRequest::new(
+            AnnotationRequest::new(&ZWeightSemiring, &contract, unscored),
+            &incomplete,
+        ),
+    )
+    .expect_err("provider incompleteness is a relation failure");
+    assert!(relation_error.operational_error().is_none());
+    assert!(matches!(
+        relation_error.relation_error(),
+        Some(RelationQueryError::Provider { .. })
+    ));
+
+    let provider = TableProvider::new(vec![row("cat", "doc/one", 7, "001")]);
+    let providers = QueryRelationProviders::new(
+        vec![registration(
+            LEXICAL,
+            "https://example.org/provider/lexical",
+            "https://example.org/model/bm25-v1",
+            RelationAnnotationDimension::Similarity,
+            &provider,
+        )],
+        RelationProviderBudget::new(2, 8).unwrap(),
+        &NEVER_CANCELLED,
+    )
+    .unwrap();
+    let join = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ex:eligible(Q, D) :- ex:relation/lexical(Q, D), ex:status(D, ex:active).\n\
+         ?- ex:eligible(ex:cat, D).\n",
+    )
+    .unwrap();
+    let limited = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
+        vec![resident],
+        PageGeneration(42),
+    )))
+    .expect("sealed limited paged dataset");
+    let view = limited.query_view(PagedQueryLimits::new(0, u64::MAX));
+    let operational_error = dispatch_query_annotated_with_relations_fallible_view(
+        &view,
+        source_identity(42),
+        WORLD,
+        &join,
+        PROFILE,
+        &Budget::default(),
+        RelationAnnotationRequest::new(
+            AnnotationRequest::new(&ZWeightSemiring, &contract, hard_graph_score),
+            &providers,
+        ),
+    )
+    .expect_err("RDF page budget failure must discard internal evaluation");
+    assert!(operational_error.relation_error().is_none());
+    assert!(matches!(
+        operational_error.operational_error(),
+        Some(PagedQueryError::PageBudgetExceeded { .. })
+    ));
 }
