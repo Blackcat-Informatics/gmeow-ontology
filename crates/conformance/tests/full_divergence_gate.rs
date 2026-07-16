@@ -136,8 +136,13 @@ fn read_expected_status(case: &Path, slug: &str) -> String {
 /// future reasoner change turning an honest gap into a confidently wrong
 /// answer. All violations are collected and reported together, not just the
 /// first.
+///
+/// Off-gate (`_heavy_offgate`): re-runs the live reasoner over all 154 cases, so
+/// in a debug build it exceeds the default nextest slow-timeout backstop. It runs
+/// in the exhaustive `maint-heavy` lane, alongside the other whole-corpus W3C
+/// conformance proofs; the fast coverage-floor test below stays on the default gate.
 #[test]
-fn never_a_wrong_decided_verdict() {
+fn never_a_wrong_decided_verdict_heavy_offgate() {
     let cases = discover_case_slugs();
     let mut failures: Vec<String> = Vec::new();
     for (slug, case) in &cases {
@@ -173,8 +178,11 @@ fn never_a_wrong_decided_verdict() {
 /// deliberate implementation of OWL Full semantics is drift, not progress),
 /// or the committed golden/profile going stale. Frozen values are read from
 /// each case's OWN committed files — nothing is hardcoded here.
+///
+/// Off-gate (`_heavy_offgate`): like the soundness test above, it re-runs the
+/// reasoner over all 154 cases and runs in the `maint-heavy` lane.
 #[test]
-fn native_reproduces_the_frozen_gap() {
+fn native_reproduces_the_frozen_gap_heavy_offgate() {
     let cases = discover_case_slugs();
     let mut failures: Vec<String> = Vec::new();
     for (slug, case) in &cases {
