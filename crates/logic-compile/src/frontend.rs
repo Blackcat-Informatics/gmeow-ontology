@@ -4592,6 +4592,7 @@ pub fn parse_logic_dataset(
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
         .with_correspondences(correspondences)
+        .map_err(|e| LogicParseError(e.message().to_owned()))?
         .with_transaction_programs(transaction_programs)
         .with_formulas(formulas)
         .with_constraints(constraints);

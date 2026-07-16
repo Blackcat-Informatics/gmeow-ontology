@@ -2008,6 +2008,43 @@ impl Correspondence {
     }
 }
 
+/// Hard-fail if the same `logic:RecoveryCase` IRI is declared by two DIFFERENT
+/// correspondences in `correspondences`. Called from [`LogicProgram::with_correspondences`]
+/// — the one place a program's whole correspondence set is assembled and therefore the
+/// only place a cross-correspondence collision can be seen at all.
+///
+/// [`Correspondence::with_recovery_cases`] already rejects a duplicate IRI WITHIN one
+/// correspondence at construction, so any duplicate this function finds is necessarily
+/// owned by two distinct correspondences; not deduping (silently keeping the first) would
+/// hide a real authoring error, since the RDF subject would then alias two intended
+/// `logic:recoveryTransform` meanings.
+fn assert_unique_recovery_case_iris(
+    correspondences: &[Correspondence],
+) -> gmeow_errors::Result<()> {
+    let mut cases: Vec<(&str, &str)> = correspondences
+        .iter()
+        .flat_map(|c| {
+            c.recovery_cases
+                .iter()
+                .map(move |case| (case.iri.as_str(), c.iri.as_str()))
+        })
+        .collect();
+    cases.sort_by(|a, b| a.0.cmp(b.0));
+    if let Some(pair) = cases.windows(2).find(|w| w[0].0 == w[1].0) {
+        let (case_iri, first_owner) = pair[0];
+        let (_, second_owner) = pair[1];
+        return Err(Diag::of_kind(crate::error::Ir {
+            detail: format!(
+                "logic:RecoveryCase IRI <{case_iri}> is declared by two different \
+                 correspondences (<{first_owner}> and <{second_owner}>); recovery-case \
+                 identity must be unique across the whole program, not merely within one \
+                 correspondence"
+            ),
+        }));
+    }
+    Ok(())
+}
+
 // --------------------------------------------------------------------------- //
 // Full first-order formula AST (the typed full-FOL core)
 // --------------------------------------------------------------------------- //
@@ -2609,11 +2646,24 @@ impl LogicProgram {
     /// sorted order.  Kept separate from [`Self::new`] so existing call sites are
     /// untouched and the byte-pinned canonical key of a correspondence-free program is
     /// unchanged (the correspondences segment is append-only when present).
-    pub fn with_correspondences(mut self, correspondences: Vec<Correspondence>) -> Self {
+    ///
+    /// `logic:RecoveryCase` IRIs are global RDF subjects, so their uniqueness must hold
+    /// across the WHOLE program, not merely within one correspondence:
+    /// [`Correspondence::with_recovery_cases`] only ever sees its own owning
+    /// correspondence's case list, so a case IRI reused by a SECOND correspondence would
+    /// alias two distinct `logic:recoveryTransform` definitions onto one RDF subject — a
+    /// non-injective projection. This is the one place every correspondence in the
+    /// program is visible together, so the cross-correspondence collision is hard-failed
+    /// here rather than silently accepted.
+    pub fn with_correspondences(
+        mut self,
+        correspondences: Vec<Correspondence>,
+    ) -> gmeow_errors::Result<Self> {
         let mut correspondences = correspondences;
         correspondences.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert_unique_recovery_case_iris(&correspondences)?;
         self.correspondences = correspondences;
-        self
+        Ok(self)
     }
 
     /// Attach the program's full-FOL [`Formula`] nodes, canonicalizing them into sorted
