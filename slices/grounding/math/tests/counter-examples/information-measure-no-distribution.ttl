@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# The counterexample supplies an entropy's logarithm base and information unit but
+# omits its required probability distribution (math:overDistribution), isolating
+# math:IncompleteInformationMeasure via the derived QualifiedMinCount constraint.
+ex:entropy a math:Entropy ;
+    math:informationBase math:logBaseTwo ;
+    math:informationUnit math:bit .

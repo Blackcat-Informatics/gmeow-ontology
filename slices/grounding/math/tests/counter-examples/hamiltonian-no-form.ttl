@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+ex:system a math:HamiltonianSystem ;
+    math:stateSpace ex:phaseSpace ;
+    math:hamiltonianFunction ex:hamiltonian ;
+    math:generatesFlow ex:flow .
+
+ex:phaseSpace a math:SmoothManifold ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:smoothStructure .
+ex:hamiltonian a math:HamiltonianFunction ;
+    math:domain ex:phaseSet ;
+    math:codomain ex:scalarSet .
+ex:phaseSet a math:Set .
+ex:scalarSet a math:Set .
+ex:flow a math:HamiltonianFlow .

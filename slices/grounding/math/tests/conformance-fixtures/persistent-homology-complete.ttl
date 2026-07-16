@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/coverage/> .
+
+ex:analysis a math:PersistentHomology ;
+    math:analysisInput ex:pointCloud ;
+    math:overFiltration ex:filtration ;
+    math:analysisOutput ex:diagram .
+
+ex:pointCloud a math:MathematicalObject .
+ex:diagram a math:PersistenceDiagram , math:MathematicalObject .
+ex:filtration a math:Filtration ;
+    math:filtrationAmbient ex:pointCloud ;
+    math:filtrationIndexKind math:lengthDimension ;
+    math:hasFiltrationStage ex:stage .
+ex:stage a math:FiltrationStage ;
+    math:filtrationThreshold ex:epsilon ;
+    math:stageStructure ex:complex .
+ex:epsilon a math:Quantity ;
+    math:quantityValue "1.0"^^xsd:decimal ;
+    math:hasDimension math:lengthDimension ;
+    gmeow:unit ex:scaleUnit ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
+ex:complex a math:VietorisRipsComplex , math:TopologicalSpace .

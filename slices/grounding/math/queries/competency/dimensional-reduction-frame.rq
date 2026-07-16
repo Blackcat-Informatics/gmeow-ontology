@@ -1,0 +1,12 @@
+# External-corpus coverage: reusable dimensional-reduction frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?analysis ?input (STR(?dimension) AS ?targetDimension) ?result
+WHERE {
+  ?analysis a math:DimensionalReduction ;
+            math:analysisInput ?input ;
+            math:targetDimension ?dimension ;
+            math:analysisOutput ?result .
+  ?result a math:Embedding .
+}
+ORDER BY ?analysis

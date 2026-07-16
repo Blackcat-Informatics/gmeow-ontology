@@ -225,8 +225,8 @@ msgid "Estimate"
 msgstr "估计值"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|skos:definition"
-msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."
-msgstr "一个估计值：一个产出的值，它估计一个估计目标（math:estimatesEstimand），并在相关时估计一个模型参数（math:estimatedParameter），承载其值（math:estimateValue）与产出它的估计量（math:estimator）。它是 math:MathematicalObject 的子类，也是过程／结果／主张分离中的结构化结果对象——既非分析活动，亦非所持的主张。R 中 broom 的 tidy 三元组将模型系数提升到这些对象之上。"
+msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."
+msgstr "一个估计值：一个产出的值，它估计一个估计目标（math:estimatesEstimand），并在相关时估计一个模型参数（math:estimatedParameter），承载其值（math:estimateValue）与产出它的估计量（math:estimator）。它是 math:MathematicalObject 的子类，也是过程／结果／主张分离中的结构化结果对象——既非分析活动，亦非所持的主张，并且绝不是裸数：它同时固定估计什么（其估计目标和／或被估参数）以及如何估计（产出它的估计量）；既不命名目标量或模型参数，或不命名估计量的估计值，是欠指定的（math:UnderspecifiedEstimate）。R 中 broom 的 tidy 三元组将模型系数提升到这些对象之上。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|rdfs:label"
 msgid "Estimator"
@@ -1461,3 +1461,1427 @@ msgstr "无支撑的解析性质"
 msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
 msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
 msgstr "当一个 math:AnalyticProperty 不解析为任何定义律时引发的失败——它既不携带指向真实一阶 logic:Formula（math:nonAffinityLaw、math:convexityLaw、math:boundednessLaw）的 math:definingLaw 弧，也不携带指向诚实 logic:expressivenessBoundary 边界记录（math:smoothnessBoundary）的弧。单调性或解析性质主张必须由真实定律或已记录边界支撑，绝非裸标志；裸解析性质标记在构造上不可编写。由受护存在性 logic:Constraint math:AnalyticPropertyBackedConstraint（每个 math:AnalyticProperty 都要求一个 math:definingLaw）强制执行，降级为 SHACL sh:sparql 约束。"
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|rdfs:label"
+msgid "Cell Complex"
+msgstr "胞腔复形"
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|skos:definition"
+msgid "A topological space assembled from cells by attaching each cell boundary to lower-dimensional cells. It is not merely a partition or mesh: cell dimensions and attaching maps are constitutive."
+msgstr "由胞腔组装而成的拓扑空间，其中每个胞腔的边界附着到较低维胞腔。 它不仅仅是划分或网格：胞腔维数与粘贴映射是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|rdfs:label"
+msgid "Simplicial Complex"
+msgstr "单纯复形"
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|skos:definition"
+msgid "A cell complex whose cells are simplices and which is closed under taking faces, with intersections occurring along common faces. It is not an arbitrary cell complex: simplex cells and face closure are required."
+msgstr "以单纯形为胞腔、对取面封闭且交集沿公共面的胞腔复形。 它不是任意胞腔复形：单纯形胞腔与面闭包是必需条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|rdfs:label"
+msgid "Chain Complex"
+msgstr "链复形"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|skos:definition"
+msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."
+msgstr "由边界映射连接的分次模序列，其中任意相邻映射的复合为零。 它不只是一个分次集合：边界映射的平方为零定律是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|rdfs:label"
+msgid "Boundary Operator"
+msgstr "边界算子"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|skos:definition"
+msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."
+msgstr "链复形上降一次的平方为零运算，其同调记录模去边界后的闭链。 它不是一般导数，也不是无类型的几何边界运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|rdfs:label"
+msgid "Coboundary Operator"
+msgstr "上边缘算子"
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|skos:definition"
+msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."
+msgstr "上链复形上升一次的平方为零运算，与边界算子对偶。 它不是任意的 delta 算子：上链分次与平方为零定律是必需条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|rdfs:label"
+msgid "Vietoris–Rips Complex"
+msgstr "Vietoris–Rips 复形"
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|skos:definition"
+msgid "The simplicial complex at a scale whose simplices are finite point sets with all pairwise distances at most that scale. It is not a Čech complex: pairwise distance bounds do not require one common ball intersection."
+msgstr "给定尺度下的单纯复形，其单纯形是两两距离均不超过该尺度的有限点集。 它不是 Čech 复形：成对距离界并不要求所有球具有公共交集。"
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|rdfs:label"
+msgid "Čech Complex"
+msgstr "Čech 复形"
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|skos:definition"
+msgid "The nerve simplicial complex of a family of equal-radius balls, with a simplex for each subfamily having nonempty total intersection. It is not a Vietoris–Rips complex: a common intersection, not merely pairwise proximity, licenses a simplex."
+msgstr "等半径球族的神经复形，每个总交非空的子族对应一个单纯形。 它不是 Vietoris–Rips 复形：许可单纯形的是公共交集，而不只是成对接近。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|rdfs:label"
+msgid "Alpha Complex"
+msgstr "Alpha 复形"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|skos:definition"
+msgid "A scale-indexed subcomplex of a Delaunay complex that captures the homotopy type of the union of restricted balls. It is not the full Delaunay complex or an arbitrary proximity complex."
+msgstr "Delaunay 复形的尺度索引子复形，捕获受限球并集的同伦型。 它既不是完整的 Delaunay 复形，也不是任意邻近复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|rdfs:label"
+msgid "Persistent Homology"
+msgstr "持久同调"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|skos:definition"
+msgid "A topological-data-analysis activity that computes homology across a declared filtration and emits persistence summaries; it is the method, not the filtration itself."
+msgstr "沿已声明滤过计算同调并产生持久性摘要的拓扑数据分析活动；它是方法而非滤过本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|rdfs:label"
+msgid "Persistence Diagram"
+msgstr "持久图"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|skos:definition"
+msgid "A multiset of birth–death points summarizing the lifetimes of homological features in a filtration. It is not the filtration or the persistent-homology activity that produced it."
+msgstr "由出生–死亡点组成的多重集，概括滤过中同调特征的寿命。 它不是产生该结果的滤过或持久同调活动。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|rdfs:label"
+msgid "Persistence Barcode"
+msgstr "持久条形码"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|skos:definition"
+msgid "A family of intervals representing the same persistent-module decomposition encoded by feature birth and death lifetimes. It is not a persistence diagram, although the two may encode equivalent interval data."
+msgstr "用特征出生和死亡区间表示同一持久模分解的一族区间。 它不是持久图，尽管二者可以编码等价的区间数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|rdfs:label"
+msgid "Persistence Landscape"
+msgstr "持久景观"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|skos:definition"
+msgid "A sequence of real-valued functions derived from persistence intervals that places persistent-homology summaries in a statistical function space. It is not a raw barcode or diagram: it is their function-valued transform."
+msgstr "由持久区间导出的一列实值函数，将持久同调摘要置于统计函数空间。 它不是原始条形码或图，而是它们的函数值变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|rdfs:label"
+msgid "Betti Summary"
+msgstr "Betti 摘要"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|skos:definition"
+msgid "A degree-indexed collection of Betti numbers for a declared complex, space, filtration stage, or persistence result. It is not one unscoped Betti number."
+msgstr "按次数索引的 Betti 数集合，对应已声明复形、空间、滤过阶段或持久结果。 它不是一个没有作用域的单一 Betti 数。"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|rdfs:label"
+msgid "Betti Number"
+msgstr "Betti 数"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|skos:definition"
+msgid "The rank of a homology group in a specified degree, counting independent topological features of that degree. It is not a simplex count or an Euler characteristic."
+msgstr "指定次数同调群的秩，计数该次数的独立拓扑特征。 它不是单纯形计数或 Euler 示性数。"
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|rdfs:label"
+msgid "Mapper Construction"
+msgstr "Mapper 构造"
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|skos:definition"
+msgid "A topological-data-analysis activity that covers the range of a filter function, clusters inverse images, and forms their nerve graph or complex. It is not clustering or dimensional reduction alone: the cover and nerve construction are required."
+msgstr "覆盖过滤函数值域、聚类逆像并形成其神经图或复形的拓扑数据分析活动。 它不只是聚类或降维：覆盖与神经构造都是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|rdfs:label"
+msgid "Multiparameter Persistence"
+msgstr "多参数持久性"
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|skos:definition"
+msgid "Persistent-homology analysis over a filtration indexed by a partially ordered parameter space of dimension greater than one. It is not a collection of unrelated one-parameter persistence runs."
+msgstr "在维数大于一的偏序参数空间所索引滤过上进行的持久同调分析。 它不是若干互不相关的单参数持久性运行的集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|rdfs:label"
+msgid "Zigzag Persistence"
+msgstr "之字形持久性"
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|skos:definition"
+msgid "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence."
+msgstr "结构映射可向前或向后的序列上的持久同调分析，允许增加与删除。 它不是仅含前向映射的普通持久性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|rdfs:label"
+msgid "Scalar Field"
+msgstr "标量场"
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|skos:definition"
+msgid "A function assigning a scalar to each point of its declared domain."
+msgstr "为其已声明定义域的每个点赋予一个标量的函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|rdfs:label"
+msgid "Vector Field"
+msgstr "向量场"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|skos:definition"
+msgid "A function assigning to each point of a manifold a vector in the tangent space at that point."
+msgstr "为流形每个点赋予该点切空间向量的函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|rdfs:label"
+msgid "Flow"
+msgstr "流"
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|skos:definition"
+msgid "A parameterized family of transformations describing the evolution generated by a vector field or dynamical system."
+msgstr "描述向量场或动力系统所生成演化的一族参数化变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|rdfs:label"
+msgid "Symplectic Form"
+msgstr "辛形式"
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|skos:definition"
+msgid "A closed nondegenerate differential two-form on a smooth even-dimensional manifold."
+msgstr "光滑偶数维流形上的闭且非退化微分二形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|rdfs:label"
+msgid "Hamiltonian Function"
+msgstr "哈密顿函数"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|skos:definition"
+msgid "A scalar function on a symplectic state space whose symplectic gradient generates the Hamiltonian flow."
+msgstr "辛状态空间上的标量函数，其辛梯度生成哈密顿流。"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|rdfs:label"
+msgid "Hamiltonian Flow"
+msgstr "哈密顿流"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|skos:definition"
+msgid "The flow generated by a Hamiltonian function through a declared symplectic form."
+msgstr "由哈密顿函数通过已声明辛形式生成的流。"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|rdfs:label"
+msgid "Hamiltonian System"
+msgstr "哈密顿系统"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|skos:definition"
+msgid "A dynamical system framed by a symplectic state space and a Hamiltonian function that generates its flow."
+msgstr "由辛状态空间和生成其流的哈密顿函数所框定的动力系统。"
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|rdfs:label"
+msgid "Cellular Sheaf"
+msgstr "胞腔层"
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|skos:definition"
+msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."
+msgstr "胞腔复形上的层，为每个胞腔赋予茎，并为每个面关系赋予兼容限制映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
+msgid "Sheaf Stalk"
+msgstr "层茎"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|skos:definition"
+msgid "The local value object assigned by a sheaf to a point or cell of its base space."
+msgstr "层赋予其基空间某个点或胞腔的局部值对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|rdfs:label"
+msgid "Restriction Map"
+msgstr "限制映射"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|skos:definition"
+msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."
+msgstr "沿包含或关联关系在层茎间传输局部数据并服从恒等与复合律的层态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|rdfs:label"
+msgid "Sheaf Section"
+msgstr "层截面"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|skos:definition"
+msgid "A compatible assignment of local stalk values over a region of a sheaf's base space."
+msgstr "在层的基空间某一区域上对局部茎值的兼容赋值。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|rdfs:label"
+msgid "Sheaf Cohomology"
+msgstr "层上同调"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|skos:definition"
+msgid "The cohomological invariants measuring obstructions to gluing local sheaf data into global sections."
+msgstr "度量将局部层数据粘合为全局截面之障碍的上同调不变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|rdfs:label"
+msgid "Sheaf Laplacian"
+msgstr "层拉普拉斯算子"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|skos:definition"
+msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."
+msgstr "由胞腔层上边缘映射与内积构造、度量局部数据不兼容性的拉普拉斯算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|rdfs:label"
+msgid "Hodge Laplacian"
+msgstr "Hodge 拉普拉斯算子"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|skos:definition"
+msgid "The degree-wise operator formed from a boundary or coboundary and its adjoint, whose kernel is the harmonic component."
+msgstr "由边界或上边缘及其伴随按次数构成的算子，其核为调和分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|rdfs:label"
+msgid "Hodge Decomposition"
+msgstr "Hodge 分解"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|skos:definition"
+msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."
+msgstr "在已声明内积下将链、上链或流正交分解为恰当、余恰当和调和分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|rdfs:label"
+msgid "Harmonic Component"
+msgstr "调和分量"
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the kernel of the applicable Hodge Laplacian."
+msgstr "位于适用 Hodge 拉普拉斯算子核中的 Hodge 分解分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|rdfs:label"
+msgid "Exact Component"
+msgstr "恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the applicable boundary or coboundary operator."
+msgstr "位于适用边界或上边缘算子像中的 Hodge 分解分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|rdfs:label"
+msgid "Coexact Component"
+msgstr "余恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."
+msgstr "位于边界或上边缘算子伴随之像中的 Hodge 分解分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|rdfs:label"
+msgid "Dimensional Reduction"
+msgstr "降维"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|skos:definition"
+msgid "An analysis activity that maps data to a declared lower-dimensional representation and records its input, target dimension, and output embedding."
+msgstr "将数据映射到已声明低维表示并记录输入、目标维数与输出嵌入的分析活动。"
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|rdfs:label"
+msgid "UMAP Reduction"
+msgstr "UMAP 降维"
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|skos:definition"
+msgid "A dimensionality-reduction analysis using the Uniform Manifold Approximation and Projection method with its metric and neighborhood parameters declared."
+msgstr "使用 UMAP 方法且声明度量与邻域参数的降维分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|rdfs:label"
+msgid "Isomap Reduction"
+msgstr "Isomap 降维"
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|skos:definition"
+msgid "A dimensionality-reduction analysis that approximates geodesic distances on a neighborhood graph before embedding them in a lower-dimensional space."
+msgstr "先在邻域图上近似测地距离再嵌入低维空间的降维分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|rdfs:label"
+msgid "Spectral Initialization"
+msgstr "谱初始化"
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|skos:definition"
+msgid "An initialization obtained from eigenvectors of a declared graph, kernel, covariance, or Laplacian operator."
+msgstr "从已声明图、核、协方差算子或拉普拉斯算子的特征向量得到的初始化。"
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|rdfs:label"
+msgid "Reduction Path"
+msgstr "降维路径"
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|skos:definition"
+msgid "An ordered record of intermediate representations and transformations in a staged dimensionality-reduction procedure."
+msgstr "分阶段降维过程中各中间表示与变换的有序记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|rdfs:label"
+msgid "Reconstruction Map"
+msgstr "重构映射"
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|skos:definition"
+msgid "A map from a reduced or embedded representation toward a source-space reconstruction, with exactness, approximation, and round-trip loss declared rather than assumed."
+msgstr "从降维或嵌入表示指向源空间重构的映射，并显式声明精确性、近似性及往返损失。"
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|rdfs:label"
+msgid "Intrinsic Dimension"
+msgstr "内在维数"
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|skos:definition"
+msgid "The estimated minimum number of coordinates needed to describe a dataset or manifold at a declared scale and under a declared estimator."
+msgstr "在已声明尺度和估计器下描述数据集或流形所需坐标的估计最小数量。"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|rdfs:label"
+msgid "Information Measure"
+msgstr "信息测度"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|skos:definition"
+msgid "A mathematically framed quantity measuring uncertainty, dependence, divergence, or information relative to declared distributions, logarithm base, and units."
+msgstr "相对于已声明分布、对数底和单位度量不确定性、依赖、散度或信息的数学量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|rdfs:label"
+msgid "Information Entropy"
+msgstr "信息熵"
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|skos:definition"
+msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."
+msgstr "已声明概率分布的不确定性测度，其对数底和单位属于框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|rdfs:label"
+msgid "Mutual Information"
+msgstr "互信息"
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|skos:definition"
+msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."
+msgstr "联合分布与其边缘分布乘积之间的散度，用以度量统计依赖。"
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|rdfs:label"
+msgid "Kullback–Leibler Divergence"
+msgstr "Kullback–Leibler 散度"
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|skos:definition"
+msgid "The directed expected log-density ratio from one declared probability distribution to another, not a symmetric distance."
+msgstr "从一个已声明概率分布指向另一个的对数密度比期望，不是对称距离。"
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|rdfs:label"
+msgid "Cross Entropy"
+msgstr "交叉熵"
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|skos:definition"
+msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."
+msgstr "一个已声明分布赋予从另一分布抽取结果的负对数似然期望。"
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|rdfs:label"
+msgid "Fisher Information"
+msgstr "Fisher 信息"
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|skos:definition"
+msgid "The expected curvature or score variance of a parametric likelihood with respect to a declared parameter."
+msgstr "参数似然相对于已声明参数的期望曲率或得分方差。"
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|rdfs:label"
+msgid "Surprisal"
+msgstr "自信息量"
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|skos:definition"
+msgid "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."
+msgstr "结果已声明概率的负对数，并记录对数底与单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|rdfs:label"
+msgid "Logarithm Base"
+msgstr "对数底"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|skos:definition"
+msgid "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."
+msgstr "确定信息测度尺度的已声明对数底——底 2（比特）、底 e（奈特）或底 10（哈特莱）。底是每个信息测度框架的组成部分，绝非隐式默认；三个规范底是命名个体 math:logBaseTwo、math:logBaseE 和 math:logBaseTen。"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|rdfs:label"
+msgid "Information Unit"
+msgstr "信息单位"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|skos:definition"
+msgid "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."
+msgstr "表达信息测度大小所用的单位，与其对数底配对——比特（底 2）、奈特（底 e）或哈特莱（底 10）。三个规范单位是命名个体 math:bit、math:nat 和 math:hartley。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|rdfs:label"
+msgid "Joint Distribution"
+msgstr "联合分布"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|skos:definition"
+msgid "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."
+msgstr "两个或多个随机变量上的联合概率分布，由此可恢复每个边缘分布。math:Distribution 的子类；互信息在联合分布上取得，度量其相对于边缘分布乘积的散度。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|rdfs:label"
+msgid "Incomplete Information Measure"
+msgstr "不完整信息测度"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|skos:definition"
+msgid "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."
+msgstr "当信息测度缺少必需的框架组成部分时引发的失败——其概率分布、对数底、信息单位、散度的参考分布、Fisher 信息的似然模型或得分参数，或自信息量的结果。信息测度仅相对于完整且已声明的框架才有定义；带有隐式分布、底或单位的裸不确定性、散度或信息标记是不良构成的。"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|rdfs:label"
+msgid "over distribution"
+msgstr "在分布上"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|skos:definition"
+msgid "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."
+msgstr "将信息测度关联到其所取的概率分布——熵、自信息量、交叉熵或散度的 P，或互信息的联合分布。定义域 math:InformationMeasure，值域 math:Distribution（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|rdfs:label"
+msgid "reference distribution"
+msgstr "参考分布"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|skos:definition"
+msgid "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."
+msgstr "将散度或交叉熵关联到其参考（第二）分布 Q——用以评估主分布 P 的模型分布。定义域 math:InformationMeasure，值域 math:Distribution（以散文陈述）。方向 P→Q 是固定的，因此 Kullback–Leibler 散度不对称。"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|rdfs:label"
+msgid "information base"
+msgstr "信息底"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|skos:definition"
+msgid "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."
+msgstr "将信息测度关联到确定其尺度的对数底——底 2、底 e 或底 10。定义域 math:InformationMeasure，值域 math:LogarithmBase（以散文陈述）。底是测度框架的一部分，绝非隐式默认；缺少它的测度是不良构成的（math:IncompleteInformationMeasure）。"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|rdfs:label"
+msgid "information unit"
+msgstr "信息单位"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|skos:definition"
+msgid "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."
+msgstr "将信息测度关联到表达其大小所用的单位——比特（底 2）、奈特（底 e）或哈特莱（底 10）——与已声明的对数底配对。定义域 math:InformationMeasure，值域 math:InformationUnit（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|rdfs:label"
+msgid "likelihood model"
+msgstr "似然模型"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|skos:definition"
+msgid "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."
+msgstr "将 Fisher 信息关联到其度量得分函数曲率的参数似然模型。定义域 math:FisherInformation，值域 math:Distribution（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|rdfs:label"
+msgid "score parameter"
+msgstr "得分参数"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|skos:definition"
+msgid "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."
+msgstr "将 Fisher 信息关联到取对数似然得分及其期望曲率所依据的模型参数。定义域 math:FisherInformation，值域 math:DistributionParameter（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|rdfs:label"
+msgid "of outcome"
+msgstr "关于结果"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|skos:definition"
+msgid "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."
+msgstr "将自信息量关联到其在分布下取已声明概率之负对数的单个结果。定义域 math:Surprisal，值域 math:MathematicalObject（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|rdfs:label"
+msgid "measure value"
+msgstr "测度值"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
+msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
+msgstr "将信息测度关联到其在已声明单位下计算所得大小的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此诸如均匀两结果分布的香农熵之类的参考计算被记录为恰好 1/1 比特。定义域 math:InformationMeasure，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|rdfs:label"
+msgid "over sheaf"
+msgstr "在层上"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|skos:definition"
+msgid "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "将霍奇分解关联到其所在的胞腔层，该层的层拉普拉斯算子与上边缘映射定义其恰当、上恰当与调和子空间。定义域 math:HodgeDecomposition，值域 math:CellularSheaf（以散文陈述）。该载体是分解框架的组成部分，绝非隐式；缺少它的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|rdfs:label"
+msgid "Hodge boundary operator"
+msgstr "霍奇边缘算子"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|skos:definition"
+msgid "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "将霍奇分解关联到其边缘算子，该算子的像是恰当分量、其伴随的像是上恰当分量。定义域 math:HodgeDecomposition，值域 math:BoundaryOperator（以散文陈述）。该算子是分解的构成要素——恰当/上恰当的分离相对于它而定义；边缘算子被省略或类型错误的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|rdfs:label"
+msgid "exact component"
+msgstr "恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."
+msgstr "将霍奇分解关联到其恰当分量——位于适用边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:ExactComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
+msgid "coexact component"
+msgstr "上恰当分量"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
+msgstr "将霍奇分解关联到其上恰当分量——位于伴随边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:CoexactComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|rdfs:label"
+msgid "harmonic component"
+msgstr "调和分量"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."
+msgstr "将霍奇分解关联到其调和分量——位于适用霍奇拉普拉斯算子核中的部分，与恰当与上恰当部分皆正交。定义域 math:HodgeDecomposition，值域 math:HarmonicComponent（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|rdfs:label"
+msgid "reconstruction residual"
+msgstr "重构残差"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其重构残差范数的精确 math:RationalValue——信号减去其恰当、上恰当与调和分量之和。霍奇分解定理使该残差恰好为零，以精确对 0/1 携带，绝非小数；非零残差将见证重构失败。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|rdfs:label"
+msgid "exact–coexact inner product"
+msgstr "恰当–上恰当内积"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其恰当与上恰当分量内积 ⟨exact, coexact⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|rdfs:label"
+msgid "exact–harmonic inner product"
+msgstr "恰当–调和内积"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其恰当与调和分量内积 ⟨exact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|rdfs:label"
+msgid "coexact–harmonic inner product"
+msgstr "上恰当–调和内积"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "将霍奇分解关联到其上恰当与调和分量内积 ⟨coexact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|rdfs:label"
+msgid "Incomplete Hodge Decomposition"
+msgstr "不完整霍奇分解"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:definition"
+msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
+msgstr "当霍奇分解缺少必需的框架组成部分时引发的失败——它所分解的信号、其恰当、上恰当或调和分量、其边缘算子、其载体层、见证重构的精确残差，或三个精确的成对正交性内积之一。霍奇分解仅相对于完整且已声明的框架才有定义；边缘算子、重构残差或分量正交性为隐式的裸分离是不良构成的。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|rdfs:label"
+msgid "Metric Space"
+msgstr "度量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|skos:definition"
+msgid "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."
+msgstr "度量空间 (X, d)：集合 X 连同一个距离函数 d，该函数非负、恰好在对角线上为零、对称并满足三角不等式。每个度量空间都诱导一个拓扑（度量球构成一组基），因此它是 math:TopologicalSpace 的子类，但距离函数是构成性的，无法仅从拓扑中恢复。它是 Mapper 构造的滤波函数与聚类规则所定义于其上的源；以已声明度量采样的点云即是一个度量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|rdfs:label"
+msgid "Cover"
+msgstr "覆盖"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|skos:definition"
+msgid "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "空间的覆盖：一族有限的相互重叠的集合（其 math:CoverElement 成员，通过 math:hasCoverElement 命名），其并集包含被覆盖的空间。在 Mapper 构造中，覆盖取自滤波函数的陪域，相邻覆盖元之间的重叠正是产生输出神经边的原因。覆盖是已声明且有限枚举的，绝非隐式的分辨率参数；缺少它的 Mapper 构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|rdfs:label"
+msgid "Cover Element"
+msgstr "覆盖元"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|skos:definition"
+msgid "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."
+msgstr "math:Cover 的单个元素：其族覆盖空间的相互重叠集合之一（通常是一个开集或区间）。math:Set 的子类。两个重叠的覆盖元在它们的逆像中所发现的聚类之间诱导一条边；覆盖元携带具体的外延（对于实值滤波，是一个带端点与包含性的区间），这使覆盖成为确定的，而非自由的分辨率选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|rdfs:label"
+msgid "Clustering Rule"
+msgstr "聚类规则"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|skos:definition"
+msgid "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "应用于每个覆盖元逆像以将其划分为聚类的、已声明且确定的规则——例如在固定距离阈值（math:clusteringThreshold）处的单连接聚类。math:MathematicalObject 的子类，将该规则命名为一等对象，使 Mapper 的节点集可复现，而绝非某未指定聚类步骤的输出。聚类规则被省略或留给约定的 Mapper 构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|rdfs:label"
+msgid "Nerve Complex"
+msgstr "神经复形"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|skos:definition"
+msgid "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."
+msgstr "被覆盖且被聚类的空间的神经：一个单纯复形，其顶点是每个覆盖元逆像中所发现的聚类，其 k-单形记录 k+1 个聚类的非空交。它是 math:SimplicialComplex 的子类；Mapper 构造的输出神经是其一维骨架图连同来自多路聚类重叠的任何更高单形。它是 Mapper 构造的输出，而非计算它所依据的源复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|rdfs:label"
+msgid "Incomplete Mapper Construction"
+msgstr "不完整 Mapper 构造"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|skos:definition"
+msgid "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."
+msgstr "当 Mapper 构造缺少必需的框架组成部分时引发的失败——其源度量空间、其滤波（透镜）函数、滤波陪域的覆盖、应用于每个覆盖元逆像内部的聚类规则，或输出神经复形。Mapper 构造仅相对于完整且已声明的框架才有定义；滤波、覆盖或聚类规则为隐式的裸图是不良构成的，因为没有它们，节点集与边集都不可复现。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|rdfs:label"
+msgid "source metric space"
+msgstr "源度量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|skos:definition"
+msgid "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到它所采样的源度量空间——带有已声明距离函数的点云（或空间），滤波函数与聚类规则皆定义于其上。定义域 math:MapperConstruction，值域 math:MetricSpace（以散文陈述）。源是构造框架的组成部分，绝非隐式；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|rdfs:label"
+msgid "filter function"
+msgstr "滤波函数"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|skos:definition"
+msgid "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到滤波（透镜）函数，该函数将其源度量空间映射到取覆盖所依据的陪域——一个实值高度、一个偏心率或一个密度估计。定义域 math:MapperConstruction，值域 math:Function（以散文陈述）。滤波是构成性的：整个覆盖/聚类流水线通过它被拉回，因此滤波函数被省略的构造没有可拉回的覆盖，是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|rdfs:label"
+msgid "cover scheme"
+msgstr "覆盖方案"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|skos:definition"
+msgid "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到其滤波函数陪域的 math:Cover——一族有限的相互重叠的覆盖元，其逆像被聚类，其重叠产生神经的边。定义域 math:MapperConstruction，值域 math:Cover（以散文陈述）。覆盖是已声明且有限枚举的，绝非隐式的分辨率/增益参数；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
+msgid "clustering rule"
+msgstr "聚类规则关系"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
+msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到应用于每个覆盖元逆像以产生神经顶点的确定性 math:ClusteringRule——例如在固定距离阈值处的单连接聚类。定义域 math:MapperConstruction，值域 math:ClusteringRule（以散文陈述）。该规则是框架的组成部分，使节点集可复现；聚类被省略或留给约定的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|rdfs:label"
+msgid "output nerve"
+msgstr "输出神经"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|skos:definition"
+msgid "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "将 Mapper 构造关联到它所产生的 math:NerveComplex——一个单纯复形（其一维骨架图加上任何更高单形），其顶点是每个覆盖元的聚类，其单形记录聚类重叠。定义域 math:MapperConstruction，值域 math:NerveComplex（以散文陈述）。神经是构造的已声明输出；缺少它的构造是不良构成的（math:IncompleteMapperConstruction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|rdfs:label"
+msgid "has cover element"
+msgstr "具有覆盖元"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|skos:definition"
+msgid "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."
+msgstr "将 math:Cover 关联到其 math:CoverElement 成员之一——覆盖族中单个相互重叠的集合。定义域 math:Cover，值域 math:CoverElement（以散文陈述）。枚举覆盖元正是使覆盖成为确定的原因：该族被显式列出，而非由分辨率与增益概括。"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|rdfs:label"
+msgid "clustering threshold"
+msgstr "聚类阈值"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|skos:definition"
+msgid "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."
+msgstr "将 math:ClusteringRule 关联到它合并点所在距离阈值的精确 math:RationalValue——以精确的分子/分母对携带的单连接截断值，绝非小数，因此聚类可复现。定义域 math:ClusteringRule，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
+msgid "Vector-Symbolic Operation"
+msgstr "向量符号运算"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|skos:definition"
+msgid "An operation in a declared vector-symbolic architecture that composes or retrieves distributed representations."
+msgstr "在已声明向量符号架构中组合或检索分布式表示的运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|rdfs:label"
+msgid "Vector Binding"
+msgstr "向量绑定"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|skos:definition"
+msgid "A vector-symbolic operation combining two representations into a representation of their association."
+msgstr "将两个表示组合成其关联表示的向量符号运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|rdfs:label"
+msgid "Vector Bundling"
+msgstr "向量束集"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|skos:definition"
+msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."
+msgstr "将多个表示叠加成保持相似性聚合的向量符号运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|rdfs:label"
+msgid "Vector Unbinding"
+msgstr "向量解绑"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|skos:definition"
+msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."
+msgstr "在给定另一因子及绑定律时近似或精确恢复一个已绑定因子的向量符号运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|rdfs:label"
+msgid "Quadratic Space"
+msgstr "二次空间"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|skos:definition"
+msgid "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."
+msgstr "配备已声明二次形式并包括标量域与退化性质的向量空间。 它不是缺少该形式的裸向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|rdfs:label"
+msgid "Quadratic Form"
+msgstr "二次形式"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|skos:definition"
+msgid "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."
+msgstr "向量空间上的二次齐次标量值函数；当标量特征允许时确定其伴随双线性形式。 它不是其伴随双线性形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|rdfs:label"
+msgid "Graded Algebra"
+msgstr "分次代数"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|skos:definition"
+msgid "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."
+msgstr "分解为按次数索引分量且乘法遵守已声明分次律的代数。 它不是任意直和分解：乘法必须遵守分次。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|rdfs:label"
+msgid "Grading"
+msgstr "分次"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|skos:definition"
+msgid "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."
+msgstr "将代数或模分解为按索引的齐次分量，并带有运算如何组合次数的定律。 它不是对元素的简单分区或标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|rdfs:label"
+msgid "Exterior Algebra"
+msgstr "外代数"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|skos:definition"
+msgid "The graded alternating algebra generated by a vector space under the exterior product. It is not a Clifford algebra: repeated generators vanish and no quadratic-form contribution is retained."
+msgstr "由向量空间在外积下生成的分次交错代数。 它不是 Clifford 代数：重复生成元为零，并且不保留二次型贡献。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|rdfs:label"
+msgid "Clifford Algebra"
+msgstr "Clifford 代数"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|skos:definition"
+msgid "The unital associative algebra generated by a quadratic space under the relation v² equals its quadratic form; its field, signature, basis, grading, and product convention must be explicit. It is not an exterior algebra because its product retains the quadratic-form contribution."
+msgstr "由二次空间按 v² 等于其二次形式之关系生成的含幺结合代数；标量域、符号差、基、分次和乘积约定必须显式。 它不是外代数，因为其乘积保留二次型贡献。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|rdfs:label"
+msgid "Basis Blade"
+msgstr "基刀片"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|skos:definition"
+msgid "A homogeneous Clifford or exterior basis element formed as an ordered product of distinct basis generators. It is not an arbitrary multivector or a sum of blades."
+msgstr "由不同基生成元的有序乘积形成的齐次 Clifford 或外代数基元素。 它不是任意多向量或若干刃的和。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|rdfs:label"
+msgid "Clifford Anticommutation Witness"
+msgstr "Clifford 反交换见证"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|skos:definition"
+msgid "A calculated record that names two distinct Clifford generators and verifies that reversing their geometric-product order negates the result."
+msgstr "命名两个不同 Clifford 生成元并验证颠倒其几何乘积次序会使结果变号的计算记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|rdfs:label"
+msgid "Multivector"
+msgstr "多向量"
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|skos:definition"
+msgid "An element of a Clifford algebra expressed as a sum of homogeneous blade components across one or more grades. It is not necessarily a vector or a grade-one element."
+msgstr "Clifford 代数中表示为一个或多个次数齐次刀片分量之和的元素。 它不一定是向量或一次元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|rdfs:label"
+msgid "Clifford Product"
+msgstr "Clifford 乘积"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|skos:definition"
+msgid "A bilinear product operation defined within a declared Clifford algebra and governed by its quadratic form."
+msgstr "在已声明 Clifford 代数中定义并由其二次形式支配的双线性乘积运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|rdfs:label"
+msgid "Geometric Product"
+msgstr "几何积"
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|skos:definition"
+msgid "The associative Clifford product combining inner and exterior contributions according to the declared quadratic form. It is not the scalar product or exterior product alone."
+msgstr "按已声明二次形式结合内积与外积贡献的结合 Clifford 乘积。 它不只是标量积或外积。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|rdfs:label"
+msgid "Exterior Product"
+msgstr "外积"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|skos:definition"
+msgid "The alternating graded product, conventionally written with a wedge, that vanishes when a generator is repeated. It is not logical conjunction or the full geometric product."
+msgstr "通常写作楔形符号的分次交错乘积，生成元重复时为零。 它不是逻辑合取，也不是完整几何积。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|rdfs:label"
+msgid "Left Contraction"
+msgstr "左缩并"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|skos:definition"
+msgid "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."
+msgstr "在已声明约定下选取 Clifford 乘积次数差分量的降次乘积。 它不是对称内积：操作数顺序与缩并约定都会影响结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|rdfs:label"
+msgid "Grade Projection"
+msgstr "次数投影"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|skos:definition"
+msgid "The operation selecting the homogeneous component of a multivector at a declared grade. It is not coordinate selection or extraction of one basis coefficient."
+msgstr "选取多向量在已声明次数上的齐次分量之运算。 它不是坐标选择或单一基系数提取。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|rdfs:label"
+msgid "Clifford Involution"
+msgstr "Clifford 对合"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|skos:definition"
+msgid "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."
+msgstr "Clifford 代数上的二阶运算，并声明其对次数及乘积次序的作用。 它不是任意代数自同态：连续应用两次必须返回输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|rdfs:label"
+msgid "Clifford Reversion"
+msgstr "Clifford 逆序"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|skos:definition"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."
+msgstr "在每个刀片中反转基生成元次序的 Clifford 反对合。 它不是次数对合；其依赖次数的符号来自顺序反转。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|rdfs:label"
+msgid "Grade Involution"
+msgstr "分次对合"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|skos:definition"
+msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
+msgstr "对奇次分量取负而保持偶次分量的 Clifford 对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|rdfs:label"
+msgid "Clifford Conjugation"
+msgstr "Clifford 共轭"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|skos:definition"
+msgid "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."
+msgstr "Clifford 代数中分次对合与逆序的复合。 它既不只是逆序，也不只是次数对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|rdfs:label"
+msgid "Rotor"
+msgstr "旋量子"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|skos:definition"
+msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
+msgstr "可逆偶多向量，其夹心作用在已声明约定下实现正交变换。 它不是任意偶多向量：可逆性与夹心作用是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|rdfs:label"
+msgid "Spinor"
+msgstr "旋量"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|skos:definition"
+msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
+msgstr "与二次空间相关的已声明旋表示或旋量模中的元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|rdfs:label"
+msgid "Dirac Operator"
+msgstr "Dirac 算子"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|skos:definition"
+msgid "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."
+msgstr "由 Clifford 乘法及旋量丛上的兼容联络构成的一阶微分算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|rdfs:label"
+msgid "Direct-Sum Decomposition"
+msgstr "直和分解"
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|skos:definition"
+msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."
+msgstr "将一个数学对象分解为显式命名、两两交为零且在已声明范畴中共同张成全部的加项。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|rdfs:label"
+msgid "Clifford Module Decomposition"
+msgstr "Clifford 模分解"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|skos:definition"
+msgid "The vector-space or module decomposition of an extended Clifford algebra into an embedded base-algebra summand and the new-generator multiple of that summand; it is not an algebra direct sum."
+msgstr "将扩展 Clifford 代数按向量空间或模分解为嵌入基代数加项及其新生成元倍数；它不是代数直和。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|rdfs:label"
+msgid "Clifford Extension"
+msgstr "Clifford 扩展"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|skos:definition"
+msgid "A declared extension from a base Clifford algebra to one with an additional generator, recording both signatures and the embedding convention."
+msgstr "从基 Clifford 代数到增加一个生成元之代数的已声明扩展，记录两端符号差和嵌入约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|rdfs:label"
+msgid "Faithful Representation"
+msgstr "忠实表示"
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|skos:definition"
+msgid "A group representation whose kernel is trivial, so distinct represented group elements induce distinct transformations."
+msgstr "核为平凡群的群表示，因而不同群元素诱导不同变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|rdfs:label"
+msgid "Equivariant Map"
+msgstr "等变映射"
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|skos:definition"
+msgid "A morphism between spaces carrying group actions that commutes with the declared actions."
+msgstr "在带群作用的空间间与已声明作用可交换的态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|rdfs:label"
+msgid "analysis output"
+msgstr "分析输出"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|skos:definition"
+msgid "Relates a mathematical analysis activity to an explicit result object it produced; interpretation of that result remains a separate standpoint-indexed claim."
+msgstr "将数学分析活动关联到其产生的显式结果对象；结果解释仍是独立的立场索引主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|rdfs:label"
+msgid "target dimension"
+msgstr "目标维数"
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|skos:definition"
+msgid "The non-negative integer dimension requested as the output dimension of a dimensionality-reduction analysis."
+msgstr "降维分析请求作为输出维数的非负整数。"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|rdfs:label"
+msgid "uses initialization"
+msgstr "使用初始化"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|skos:definition"
+msgid "Relates an iterative mathematical analysis to the explicit initialization from which its optimization or iteration begins."
+msgstr "将迭代数学分析关联到其优化或迭代开始时的显式初始化。"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|rdfs:label"
+msgid "reconstruction of"
+msgstr "所重构者"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|skos:definition"
+msgid "Relates a reconstructed mathematical object to the representation, projection, or source object it attempts to recover."
+msgstr "将重构数学对象关联到其试图恢复的表示、投影或源对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|rdfs:label"
+msgid "symplectic form"
+msgstr "辛形式"
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|skos:definition"
+msgid "Relates a Hamiltonian system or smooth state space to the closed nondegenerate two-form that frames its Hamiltonian dynamics."
+msgstr "将哈密顿系统或光滑状态空间关联到框定其动力学的闭非退化二形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|rdfs:label"
+msgid "state space"
+msgstr "状态空间"
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|skos:definition"
+msgid "Relates a dynamical or Hamiltonian system to the mathematical space containing its states."
+msgstr "将动力系统或哈密顿系统关联到包含其状态的数学空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|rdfs:label"
+msgid "Hamiltonian function"
+msgstr "哈密顿函数"
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|skos:definition"
+msgid "Relates a Hamiltonian system to the scalar function whose symplectic gradient generates its evolution."
+msgstr "将哈密顿系统关联到其辛梯度生成演化的标量函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|rdfs:label"
+msgid "generates flow"
+msgstr "生成流"
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|skos:definition"
+msgid "Relates a vector field, Hamiltonian function, or dynamical system to the flow it generates."
+msgstr "将向量场、哈密顿函数或动力系统关联到其生成的流。"
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|rdfs:label"
+msgid "sheaf base complex"
+msgstr "层基复形"
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|skos:definition"
+msgid "Relates a cellular sheaf to the cell complex on which its stalks and restriction maps are indexed."
+msgstr "将胞腔层关联到索引其茎和限制映射的胞腔复形。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|rdfs:label"
+msgid "has stalk"
+msgstr "具有茎"
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|skos:definition"
+msgid "Relates a sheaf to one of its local stalk objects."
+msgstr "将一个层关联到其局部茎对象之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|rdfs:label"
+msgid "stalk over cell"
+msgstr "胞腔上的茎"
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|skos:definition"
+msgid "Relates a cellular-sheaf stalk to the cell of the base complex to which it is assigned."
+msgstr "将胞腔层茎关联到其被赋予的基复形胞腔。"
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|rdfs:label"
+msgid "restriction map"
+msgstr "限制映射"
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|skos:definition"
+msgid "Relates a sheaf to one of its compatible restriction maps between stalks."
+msgstr "将一个层关联到其茎之间的兼容限制映射之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|rdfs:label"
+msgid "has section"
+msgstr "具有截面"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|skos:definition"
+msgid "Relates a sheaf to a local or global compatible section."
+msgstr "将一个层关联到局部或全局兼容截面。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|rdfs:label"
+msgid "has Laplacian"
+msgstr "具有拉普拉斯算子"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|skos:definition"
+msgid "Relates a complex, sheaf, or graded space to the Laplacian operator defined on it."
+msgstr "将复形、层或分次空间关联到其上定义的拉普拉斯算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|rdfs:label"
+msgid "decomposes flow"
+msgstr "分解流"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|skos:definition"
+msgid "Relates a Hodge decomposition to the flow, chain, or cochain it separates into exact, coexact, and harmonic components."
+msgstr "将 Hodge 分解关联到其分成恰当、余恰当和调和分量的流、链或上链。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|rdfs:label"
+msgid "has quadratic form"
+msgstr "具有二次形式"
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|skos:definition"
+msgid "Relates a quadratic space or Clifford algebra to the quadratic form governing its metric relation."
+msgstr "将二次空间或 Clifford 代数关联到支配其度量关系的二次形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
+msgid "scalar field"
+msgstr "标量域"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
+msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
+msgstr "将向量空间、二次空间、模或代数关联到解释其运算的显式标量域。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|rdfs:label"
+msgid "has grading"
+msgstr "具有分次"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|skos:definition"
+msgid "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."
+msgstr "将分次代数或模关联到把它分解为齐次分量的显式分次。"
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|rdfs:label"
+msgid "Clifford involution"
+msgstr "Clifford 对合"
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|skos:definition"
+msgid "Relates a Clifford algebra to a supported involution such as reversion, grade involution, or Clifford conjugation."
+msgstr "将 Clifford 代数关联到逆序、分次对合或 Clifford 共轭等受支持对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|rdfs:label"
+msgid "has basis blade"
+msgstr "具有基刀片"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|skos:definition"
+msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
+msgstr "将 Clifford 代数关联到其有序生成元基所诱导的齐次基刀片之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|rdfs:label"
+msgid "has anticommutation witness"
+msgstr "具有反交换见证"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|skos:definition"
+msgid "Relates a Clifford algebra to a calculated witness for one distinct-generator anticommutation law."
+msgstr "将 Clifford 代数关联到不同生成元反交换律的一个计算见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|rdfs:label"
+msgid "left generator"
+msgstr "左生成元"
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the generator occurring on the left in its forward product."
+msgstr "将反交换见证关联到其正向乘积左侧的生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|rdfs:label"
+msgid "right generator"
+msgstr "右生成元"
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the distinct generator occurring on the right in its forward product."
+msgstr "将反交换见证关联到其正向乘积右侧的不同生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|rdfs:label"
+msgid "blade grade"
+msgstr "刀片次数"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|skos:definition"
+msgid "The non-negative integer grade of a homogeneous basis blade."
+msgstr "齐次基刀片的非负整数次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|rdfs:label"
+msgid "generator index"
+msgstr "生成元索引"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|skos:definition"
+msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
+msgstr "Clifford 生成元在代数已声明有序基中的正整数位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|rdfs:label"
+msgid "generator square"
+msgstr "生成元平方"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|skos:definition"
+msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
+msgstr "已声明 Clifford 基生成元在代数符号差约定下的精确标量平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|rdfs:label"
+msgid "pseudoscalar square"
+msgstr "伪标量平方"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|skos:definition"
+msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
+msgstr "已声明 Clifford 代数与基约定中最高次伪标量的精确标量平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|rdfs:label"
+msgid "anticommutation verified"
+msgstr "已验证反交换"
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|skos:definition"
+msgid "The boolean result of exactly checking the named distinct-generator anticommutation witness."
+msgstr "精确检查所命名不同生成元反交换见证的布尔结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|rdfs:label"
+msgid "decomposed object"
+msgstr "被分解对象"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|skos:definition"
+msgid "Relates a decomposition record to the mathematical object decomposed."
+msgstr "将分解记录关联到被分解的数学对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|rdfs:label"
+msgid "direct summand"
+msgstr "直和加项"
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|skos:definition"
+msgid "Relates a direct-sum decomposition to one of its explicitly identified summands."
+msgstr "将直和分解关联到其显式标识加项之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|rdfs:label"
+msgid "module base summand"
+msgstr "模基加项"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the embedded base-algebra summand."
+msgstr "将 Clifford 模分解关联到嵌入的基代数加项。"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|rdfs:label"
+msgid "module extension summand"
+msgstr "模扩展加项"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the summand obtained by left multiplication with the new extension generator."
+msgstr "将 Clifford 模分解关联到以新扩展生成元左乘所得加项。"
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|rdfs:label"
+msgid "split/join verified"
+msgstr "已验证拆分/合并"
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|skos:definition"
+msgid "The boolean result of an exact round trip through a declared Clifford extension split and join."
+msgstr "通过已声明 Clifford 扩展拆分和合并进行精确往返的布尔结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|rdfs:label"
+msgid "base algebra"
+msgstr "基代数"
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the lower-generator Clifford algebra being embedded."
+msgstr "将 Clifford 扩展关联到被嵌入的较少生成元 Clifford 代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|rdfs:label"
+msgid "extended algebra"
+msgstr "扩展代数"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the Clifford algebra obtained after adjoining the declared generator."
+msgstr "将 Clifford 扩展关联到加入已声明生成元后得到的代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|rdfs:label"
+msgid "extension generator"
+msgstr "扩展生成元"
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|skos:definition"
+msgid "Relates a Clifford extension to the additional basis generator, including its grade and exact square."
+msgstr "将 Clifford 扩展关联到额外基生成元，包括其次数和精确平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|rdfs:label"
+msgid "represented object"
+msgstr "被表示对象"
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|skos:definition"
+msgid "Relates a mathematical representation to the group, algebra, or structured object it represents."
+msgstr "将数学表示关联到其表示的群、代数或结构化对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|rdfs:label"
+msgid "representation map"
+msgstr "表示映射"
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|skos:definition"
+msgid "Relates a representation record to the explicit morphism realizing the representation."
+msgstr "将表示记录关联到实现该表示的显式态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|rdfs:label"
+msgid "equivariant map"
+msgstr "等变映射"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|skos:definition"
+msgid "Relates a representation or structured comparison to the explicit map proved to commute with the declared group actions."
+msgstr "将表示或结构化比较关联到已证明与群作用可交换的显式映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|rdfs:label"
+msgid "equivariant under"
+msgstr "关于其等变"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|skos:definition"
+msgid "Relates an equivariant map to the group action or symmetry with which it commutes."
+msgstr "将等变映射关联到其与之可交换的群作用或对称性。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|rdfs:label"
+msgid "Incomplete Persistent-Homology Analysis"
+msgstr "不完整持久同调分析"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|skos:definition"
+msgid "The failure raised when a persistent-homology analysis lacks its input, filtration, or persistence-summary output."
+msgstr "持久同调分析缺少输入、滤过或持久性摘要输出时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|rdfs:label"
+msgid "Incomplete Dimensionality-Reduction Analysis"
+msgstr "不完整降维分析"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|skos:definition"
+msgid "The failure raised when a dimensionality-reduction analysis lacks its input, target dimension, or output embedding."
+msgstr "降维分析缺少输入、目标维数或输出嵌入时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|rdfs:label"
+msgid "Incomplete Hamiltonian System"
+msgstr "不完整哈密顿系统"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|skos:definition"
+msgid "The failure raised when a Hamiltonian system lacks its smooth state space, symplectic form, Hamiltonian function, or generated Hamiltonian flow."
+msgstr "哈密顿系统缺少光滑状态空间、辛形式、哈密顿函数或所生成哈密顿流时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|rdfs:label"
+msgid "Incomplete Cellular Sheaf"
+msgstr "不完整胞腔层"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|skos:definition"
+msgid "The failure raised when a cellular sheaf lacks its base complex, stalks, or restriction maps."
+msgstr "胞腔层缺少基复形、茎或限制映射时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|rdfs:label"
+msgid "Incomplete Clifford Algebra"
+msgstr "不完整 Clifford 代数"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|skos:definition"
+msgid "The failure raised when a Clifford algebra lacks its scalar field, signature, basis blades, grading, product/involution frame, or exact vector-space dimension."
+msgstr "Clifford 代数缺少标量域、符号差、基刀片、分次、乘积或对合框架、或精确向量空间维数时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|rdfs:label"
+msgid "Incomplete Clifford Extension"
+msgstr "不完整 Clifford 扩展"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|skos:definition"
+msgid "The failure raised when a Clifford extension lacks its base algebra, extended algebra, or additional generator."
+msgstr "Clifford 扩展缺少基代数、扩展代数或额外生成元时引发的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|rdfs:label"
+msgid "Metric Signature"
+msgstr "度量符号差"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|skos:definition"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."
+msgstr "实二次空间、度量张量、二次形式或 Clifford 代数共享的签名 (p,q)，由 math:signaturePositive 与 math:signatureNegative 承载。它是结构化对象，且 p+q 等于载体维数。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|rdfs:label"
+msgid "space dimension"
+msgstr "空间维数"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|skos:definition"
+msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
+msgstr "坐标空间、切空间、代数载体或其他显式线性对象的非负整数向量空间维数；它不同于物理量纲 math:hasDimension。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|rdfs:label"
+msgid "metric signature"
+msgstr "度量符号差"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
+msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
+msgstr "将度量张量、二次空间、二次形式或 Clifford 代数关联到其结构化且共享的 math:MetricSignature (p,q)。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgid "has basis"
+msgstr "具有基"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
+msgstr "将向量空间、二次空间或 Clifford 代数关联到其载体的 math:Basis；Clifford 基确定精确乘积所用的有序生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
+msgid "analysis input"
+msgstr "分析输入"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|skos:definition"
+msgid "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."
+msgstr "将数学分析活动关联到其显式分析对象；对于要求输入的分析，缺少此关系即为不良构。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|rdfs:label"
+msgid "Vector-Symbolic Capacity"
+msgstr "向量符号容量"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|skos:definition"
+msgid "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."
+msgstr "向量符号运算的容量描述符：一个一等数学对象，携带（通过 math:capacityBound）关于多少个表示可被绑定或叠加进单个向量、直至恢复退化到低于运算的恢复损失契约之前的精确 math:RationalValue 界。math:MathematicalObject 的子类。容量是已声明的，绝非维度的隐式后果；缺少它的向量符号运算是不良构成的（math:IncompleteVectorSymbolicOperation），因为叠加串扰压倒检索的临界点此时未被说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|rdfs:label"
+msgid "Recovery-Loss Contract"
+msgstr "恢复损失契约"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|skos:definition"
+msgid "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "向量符号运算的恢复损失（保真度）契约：一个一等数学对象，携带（通过 math:lossBound）关于恢复的操作数与原始操作数之间差异的精确 math:RationalValue 损失界——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数。math:MathematicalObject 的子类。恢复是近似的，除非精确代数证明相反，因此该契约是构成性的：保真度被留作隐式的解绑不能宣称可逆性，而缺少该契约的向量符号运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|rdfs:label"
+msgid "Incomplete Vector-Symbolic Operation"
+msgstr "不完整向量符号运算"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|skos:definition"
+msgid "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."
+msgstr "当向量符号运算缺少必需的框架组成部分时引发的失败——它所组合于其中的 math:VectorSpace、固定其坐标的 math:Basis、其操作数向量（绑定或捆绑需两个或更多；解绑需绑定向量、键与恢复的操作数）、其容量描述符，或其恢复损失（保真度）契约。向量符号运算仅相对于完整且已声明的框架才有定义；容量或恢复损失契约为隐式的裸绑定、捆绑或解绑是不良构成的，因为没有容量，叠加串扰的极限未被说明；没有损失界，运算无法宣称可逆性——恢复是近似的，除非精确代数证明相反。"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|rdfs:label"
+msgid "over vector space"
+msgstr "在向量空间上"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到它在其中组合分布式表示的 math:VectorSpace——其向量被绑定、捆绑或解绑的环境空间。定义域 math:VectorSymbolicOperation，值域 math:VectorSpace（以散文陈述）。该空间是运算框架的组成部分，绝非隐式；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|rdfs:label"
+msgid "over basis"
+msgstr "在基上"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到固定其向量空间坐标的 math:Basis，使操作数向量与结果向量具有无歧义的分量且绑定律可复现。定义域 math:VectorSymbolicOperation，值域 math:Basis（以散文陈述）。基是运算框架的组成部分，绝非隐式；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|rdfs:label"
+msgid "vsa operand"
+msgstr "vsa 操作数"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|skos:definition"
+msgid "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."
+msgstr "将 math:VectorBinding 或 math:VectorBundling 关联到它所组合的操作数 math:Vector 之一——绑定的一个因子或捆绑的一个加项。定义域 math:VectorBinding 或 math:VectorBundling，值域 math:Vector（以散文陈述）。绑定与捆绑各取两个或更多操作数；声明更少的运算是不良构成的（math:IncompleteVectorSymbolicOperation），因为单个操作数无从组合。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|rdfs:label"
+msgid "bound vector"
+msgstr "绑定向量"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|skos:definition"
+msgid "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到它从中恢复操作数的复合 math:Vector——解绑所作用于的先前已绑定表示。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。绑定向量是解绑框架的组成部分，绝非隐式；缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|rdfs:label"
+msgid "unbinding key"
+msgstr "解绑键"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|skos:definition"
+msgid "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到为检索一个已绑定因子而提供的键（线索）math:Vector——原始绑定的另一个操作数，或其在已声明绑定律下的逆。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。没有键，就没有东西可用来探测绑定向量，因此缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|rdfs:label"
+msgid "recovered operand"
+msgstr "恢复的操作数"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|skos:definition"
+msgid "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将 math:VectorUnbinding 关联到它所产生的 math:Vector——绑定操作数的检索估计，当精确代数使绑定可逆时为精确值，否则为带噪近似。定义域 math:VectorUnbinding，值域 math:Vector（以散文陈述）。恢复的操作数是解绑的已声明输出；缺少它的解绑是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|rdfs:label"
+msgid "operation capacity"
+msgstr "运算容量"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到 math:VectorSymbolicCapacity 描述符，该描述符界定多少个表示可被绑定或叠加、直至恢复退化之前。定义域 math:VectorSymbolicOperation，值域 math:VectorSymbolicCapacity（以散文陈述）。容量是已声明的，绝非维度的隐式后果；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
+msgid "recovery-loss contract"
+msgstr "恢复损失契约关系"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "将向量符号运算关联到陈述检索精确保真度的 math:RecoveryLossContract——当精确代数使其可逆时损失 0/1，否则为一个已声明的正有理数。定义域 math:VectorSymbolicOperation，值域 math:RecoveryLossContract（以散文陈述）。恢复是近似的，除非精确代数证明相反，因此该契约是构成性的；缺少它的运算是不良构成的（math:IncompleteVectorSymbolicOperation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|rdfs:label"
+msgid "capacity bound"
+msgstr "容量界"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|skos:definition"
+msgid "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."
+msgstr "将 math:VectorSymbolicCapacity 关联到它在恢复退化之前可绑定或叠加的表示的最大数目的精确 math:RationalValue——以精确的分子/分母对携带，绝非小数，因此容量可复现。定义域 math:VectorSymbolicCapacity，值域 math:RationalValue（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|rdfs:label"
+msgid "loss bound"
+msgstr "损失界"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
+msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
+msgstr "将 math:RecoveryLossContract 关联到其恢复损失界的精确 math:RationalValue——当精确代数使运算可逆时恰为 0/1，否则为一个已声明的正有理数——以精确的分子/分母对携带，绝非小数。定义域 math:RecoveryLossContract，值域 math:RationalValue（以散文陈述）。"
