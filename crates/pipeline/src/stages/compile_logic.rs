@@ -10,7 +10,7 @@
 //! rail — they terminated on disk and in conformance fixtures. This stage makes the
 //! compiler a first-class DAG node: it parses the canonical logic source, runs every
 //! projection back-end once, and emits — as committed artifacts the single-pass
-//! regenerate/drift gate owns —
+//! update/drift gate owns —
 //!
 //! * the projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
 //!   Datalog, N3, gUFO, CLIF, CGIF and XCL projections, and the projection-report loss
@@ -66,7 +66,7 @@ pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";
 /// [`PipelineHandle::Logic`] handle to THIS graph's canonical digest, and
 /// `stage-snapshot` folds the same projection into the bundle under this IRI — so the
 /// in-graph carriage and the typed handle are the two faces of one content identity.
-pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
+pub const GRAPH_LOGIC: &str = gmeow_logic::reasoning_graphs::GRAPH_LOGIC;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the relational-core
 /// lowering of the compiled [`LogicProgram`] (C8) — the engine-agnostic
@@ -77,8 +77,7 @@ pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic"
 /// of one content identity. A downstream consumer reads this LOWERED lane WITHOUT
 /// re-lowering. When the full-FOL formula lowering lands, its richer lowering plugs into
 /// this SAME lane (same dialect + carried residue).
-pub const GRAPH_RELATIONAL_CORE: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/relational-core";
+pub const GRAPH_RELATIONAL_CORE: &str = gmeow_logic::reasoning_graphs::GRAPH_RELATIONAL_CORE;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the compiled
 /// [`CorrespondenceProgram`] (C10) — the `logic:Correspondence` carrier lane and

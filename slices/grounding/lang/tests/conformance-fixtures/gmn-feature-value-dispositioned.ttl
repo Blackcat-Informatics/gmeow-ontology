@@ -12,7 +12,7 @@
 ex:valDispositioned a lang:FeatureValue ;
     lang:inFeatureInventory lang:udUniversalFeatures .
 
-ex:glossDispositioned a lang:WordForm ;
+ex:glossDispositioned a lang:Form ;
     lang:inSignSystem gmeow:leipzigGlossingRules .
 
 ex:denDispositioned a lang:Denotation ;

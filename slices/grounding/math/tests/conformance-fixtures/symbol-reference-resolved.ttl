@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: one AST occurrence resolves to exactly one local symbol.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:resolvedReference a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:resolvedSymbol .
+
+ex:resolvedSymbol a math:MathematicalSymbol .

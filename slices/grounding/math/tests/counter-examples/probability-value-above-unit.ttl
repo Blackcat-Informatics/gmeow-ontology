@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Counter-example for math:ProbabilityValueRangeShape (Rule P1): a math:ProbabilityValue
-# whose gmeow:quantityValue magnitude (1.5) lies ABOVE the closed unit interval [0, 1].
-# Single violation: the range gate on gmeow:quantityValue fires — shacl.MaxInclusiveConstraintComponent
+# whose math:quantityValue magnitude (1.5) lies ABOVE the closed unit interval [0, 1].
+# Single violation: the range gate on math:quantityValue fires — shacl.MaxInclusiveConstraintComponent
 # (math:ProbabilityOutOfBounds). It carries a gmeow:hasReferenceFrame so the framing gate
 # math:ProbabilityValueFramedShape (P3) stays SATISFIED, it is not typed math:OddsValue /
 # math:LogOddsValue so math:ProbabilityScaleDisjointShape (P2) stays satisfied, and it
@@ -17,7 +17,8 @@
 @prefix ex:    <http://example.org/math/> .
 
 ex:aboveUnitProbability a math:ProbabilityValue ;
-    gmeow:quantityValue "1.5"^^xsd:decimal ;
+    math:quantityValue "1.5"^^xsd:decimal ;
     gmeow:hasReferenceFrame ex:forecastFrame .
 
 ex:forecastFrame a gmeow:ReferenceFrame .
+<http://example.org/math/aboveUnitProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

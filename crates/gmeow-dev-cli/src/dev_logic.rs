@@ -280,7 +280,7 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
             println!("--mode {mode}: no drift");
             return 0;
         }
-        return match run_full(&root, jobs, RunMode::Regenerate) {
+        return match run_full(&root, jobs, RunMode::Update) {
             Ok(_) => {
                 println!("{rel}");
                 0
@@ -293,7 +293,7 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
     let jobs = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
-    match run_full(&root, jobs, RunMode::Regenerate) {
+    match run_full(&root, jobs, RunMode::Update) {
         Ok(_) => {
             println!("logic: artifacts compiled");
             0

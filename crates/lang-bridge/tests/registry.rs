@@ -12,8 +12,8 @@ use gmeow_lang_bridge::registry::{
     assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{
-    ConlluBridge, EbnfBridge, Formalism, exact_round_trip_holds, is_exact_correspondence,
-    parse_grammar, serialize_grammar,
+    ConlluBridge, EbnfBridge, Formalism, LangFailure, exact_round_trip_holds,
+    is_exact_correspondence, parse_grammar, serialize_grammar,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 
@@ -199,6 +199,28 @@ fn ontolex_target_carries_soundunder_over_the_lang_lexicon() {
         .expect("an OntoLex RDF artifact");
     assert!(ttl.contains("lemon/ontolex#LexicalEntry"), "{ttl}");
     assert!(ttl.contains("lemon/ontolex#LexicalSense"), "{ttl}");
+}
+
+#[test]
+fn gmn1_target_never_defaults_a_missing_current_codebook() {
+    let input = LangProjectionInput {
+        lang_models: vec![NamedSource {
+            name: "prefix-only".to_owned(),
+            bytes: b"@prefix lang: <https://blackcatinformatics.ca/lang/> .\nlang:Form lang:denotedForm lang:Form .\n"
+                .to_vec(),
+        }],
+        ..Default::default()
+    };
+    let error = target("gmn1")
+        .emit(&input)
+        .expect_err("a selected GMN target cannot run without its pinned dictionary");
+    assert_eq!(error.failure_class, LangFailure::SilentIngestDrop);
+    assert!(
+        error
+            .construct
+            .contains("version-pinned resolution cannot default"),
+        "a missing carrier dictionary must hard-fail with an explicit diagnostic: {error:?}"
+    );
 }
 
 // ── CoNLL-U: one artifact per co-resident reading (no silent winner) ────────────────

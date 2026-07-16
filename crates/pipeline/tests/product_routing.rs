@@ -9,7 +9,7 @@
 //! compile diagnostics. This gate proves each is routed:
 //!
 //! * IR + loss ledger + diagnostics are first-class `stage-compile-logic` DAG
-//!   products (committed artifacts the regenerate/drift gate owns), and
+//!   products (committed artifacts the update/drift gate owns), and
 //! * the loss ledger rides the assembled bundle as the `projection-ledger` named
 //!   graph while the compile diagnostics union into the `diagnostics` graph.
 //!

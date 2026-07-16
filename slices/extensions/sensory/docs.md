@@ -46,9 +46,8 @@ data, not a schema change.
 ### gmeow:SensoryQuantity
 
 The scalar result of a sensory observation — value × unit × determinacy × granularity.
-Declared `owl:equivalentClass gmeow:ScalarQuantity` following the ScalarQuantity alias precedent alias
-precedent: the same construct under its domain-specific name, so the sensor stack reads
-naturally without forking the quantity facility.
+Declared `rdfs:subClassOf math:Quantity`: a domain specialization whose sensory provenance is
+meaningful, while `math:Quantity` remains the sole quantity authority.
 
 ## The observation itself
 

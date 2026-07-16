@@ -16,7 +16,7 @@
 ex:english a lang:SignSystem .
 ex:turtle a lang:SignSystem .
 ex:latin a lang:Script .
-ex:turtleGrammar a lang:Grammar .
+ex:turtleGrammar a lang:Grammar ; lang:grammarFor ex:turtle .
 
 # The abstract content: a sentence-level composed form.
 ex:sentence a lang:ComposedForm ; lang:inSignSystem ex:english .

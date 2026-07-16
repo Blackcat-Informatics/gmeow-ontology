@@ -36,3 +36,5 @@ ex:diceSpace a math:ProbabilitySpace ;
 ex:sixFaces a math:SampleSpace .
 ex:powerAlg a math:PowerSetSigmaAlgebra .
 ex:diceMeasure a math:ProbabilityMeasure .
+<http://example.org/math/contProb> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
+<http://example.org/math/diceProb> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

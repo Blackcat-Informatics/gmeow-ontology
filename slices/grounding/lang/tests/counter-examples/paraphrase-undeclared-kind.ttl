@@ -13,6 +13,8 @@
 ex:english a lang:SignSystem .
 
 ex:origClause a lang:ComposedForm ; lang:inSignSystem ex:english .
+ex:plainClause a lang:ComposedForm ; lang:inSignSystem ex:english .
 
 ex:paraNoKind a lang:Paraphrase ;
-    lang:paraphraseOf ex:origClause .
+    lang:paraphraseOf ex:origClause ;
+    lang:paraphraseForm ex:plainClause .

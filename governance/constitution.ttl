@@ -66,11 +66,11 @@ meta:gate-rdf12-codec a meta:Gate ;
     meta:artifact "queries/codecs/rdf12-project.rq", "queries/codecs/rdf12-to-owl.rq" .
 
 meta:gate-generator-registry a meta:Gate ;
-    rdfs:label "pipeline DAG registry: single-pass regenerate / drift gates"@x-gmeow-english ;
+    rdfs:label "pipeline DAG registry: single-pass update / drift gates"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_full" ;
-    meta:cliCommand "regenerate", "check-generated", "compile-gts" ;
-    meta:makeTarget "check-generated", "regenerate" ;
+    meta:cliCommand "sync", "compile-gts" ;
+    meta:makeTarget "sync" ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
         "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
@@ -78,10 +78,10 @@ meta:gate-generator-registry a meta:Gate ;
         "research-objects", "references", "export", "okf", "bench", "conformance" .
 
 meta:gate-docs-export a meta:Gate ;
-    rdfs:label "documentation export surface: source-backed export-docs projection"@x-gmeow-english ;
+    rdfs:label "documentation export surface: source-backed sync projection"@x-gmeow-english ;
     meta:artifact "crates/gmeow-dev-cli/src/dev_project.rs", "crates/gmeow-dev-cli/src/lib.rs" ;
-    meta:symbol "export_docs" ;
-    meta:cliCommand "export-docs" .
+    meta:symbol "sync_docs" ;
+    meta:cliCommand "sync" .
 
 meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
@@ -106,13 +106,6 @@ meta:tests-alignment a meta:TestSuite ;
     meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs",
         "crates/pipeline/tests/correspondence_soundness_parity.rs",
         "crates/validate/tests/conformance_coreference.rs" .
-
-meta:gate-crosscheck a meta:Gate ;
-    rdfs:label "committed-query soundness crosscheck — every committed query answers on the native purrdf engine (rdflib retired)"@x-gmeow-english ;
-    meta:artifact "crates/gmeow-dev-cli/src/dev_gates.rs" ;
-    meta:symbol "crosscheck_queries" ;
-    meta:makeTarget "maint-crosscheck" ;
-    meta:cliCommand "crosscheck-queries" .
 
 meta:gate-reasoning a meta:Gate ;
     rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free) cross-checked against the purrdf-entail oracle"@x-gmeow-english ;
@@ -370,7 +363,7 @@ meta:gate-release-evidence a meta:Gate ;
 # (generated/bench/cost-ledger.md, the stage-export-cost-ledger leaf). Integer
 # counts and boolean verdicts only (no wall-clock, no peak-RSS, no total-allocation
 # scalars — those are report-only), so the ledger is reproduced byte-for-byte from
-# the committed baseline without ever running a benchmark; check-generated reddens
+# the committed baseline without ever running a benchmark; strict sync reddens
 # on any count divergence. The richer honesty surface — a fresh run vs the committed
 # baseline — is a cost-regression gmeow:Finding routed through the shared divergence
 # ledger (content-addressed identity).
@@ -380,7 +373,7 @@ meta:gate-cost-ledger a meta:Gate ;
         "generated/bench/cost-ledger.md",
         "bench/cost-baseline.json" ;
     meta:symbol "CostLedgerStage" ;
-    meta:makeTarget "check-generated", "regenerate" .
+    meta:makeTarget "sync" .
 
 # The instruction-count corroboration lane (off-gate). iai-callgrind measures
 # RETIRED INSTRUCTIONS under Valgrind Callgrind — a machine-independent, run-to-run
@@ -432,7 +425,7 @@ meta:Principle6 a meta:Principle ;
 meta:Principle7 a meta:Principle ;
     meta:number 7 ;
     meta:title "Verified by construction" ;
-    meta:enforcedBy meta:gate-generator-registry, meta:gate-crosscheck .
+    meta:enforcedBy meta:gate-generator-registry .
 
 meta:Principle8 a meta:Principle ;
     meta:number 8 ;
@@ -536,7 +529,7 @@ meta:tests-lane-purity a meta:Gate ;
 # (i) the repo-static purity seal red-fails on a hand-authored computational
 # SHACL-AF/RDFQuery construct in the authored sources lacking a logic:formalizes
 # back-reference; (ii) the emitted SHACL-AF projection is a generated artifact the
-# single-pass regenerate / check-generated drift gate owns. Sharpens Principles
+# single-pass sync drift gate owns. Sharpens Principles
 # 17 + 4 + 12 (no new numbered principle).
 meta:gate-projection-compute-purity a meta:Gate ;
     rdfs:label "computation surfaces are projections of logic:, not extensions of SHACL/SPARQL"@x-gmeow-english ;
@@ -546,8 +539,8 @@ meta:gate-projection-compute-purity a meta:Gate ;
         "slices/grounding/logic/design/LOGIC-SHACL-AF.md",
         "slices/grounding/logic/design/LOGIC-RDFQUERY.md" ;
     meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
-    meta:cliCommand "crate-check", "check-generated" ;
-    meta:makeTarget "crate-check", "check-generated" .
+    meta:cliCommand "crate-check", "sync" ;
+    meta:makeTarget "crate-check", "sync" .
 
 # The shape-half peer of gate-projection-compute-purity: an open-world FOL axiom
 # (irreflexivity / acyclicity / relatum-distinctness) is authored in the logic: canon
@@ -564,8 +557,8 @@ meta:gate-projection-shape-purity a meta:Gate ;
         "generated/shapes/constraint-shapes.ttl",
         "slices/grounding/logic/design/LOGIC-VALIDATION.md" ;
     meta:symbol "check_projection_shape_purity", "render_constraint_shapes" ;
-    meta:cliCommand "crate-check", "check-generated" ;
-    meta:makeTarget "crate-check", "check-generated" .
+    meta:cliCommand "crate-check", "sync" ;
+    meta:makeTarget "crate-check", "sync" .
 
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;

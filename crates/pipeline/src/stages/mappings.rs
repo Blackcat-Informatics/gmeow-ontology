@@ -165,7 +165,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // Prefix-consistency gate (§2): no authored source may shadow a registry
     // prefix with a foreign namespace — a shadow desynchronizes authored CURIEs from
     // the registry-driven shortener. Hard-fail before emitting any artifact
-    // (no-optionality); this makes `regenerate` / `check-generated` / `make check`
+    // (no-optionality); this makes update / strict sync / `make check`
     // all reject a shadow.
     let prefix_problems = lint_prefix_consistency(root, &vocab).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -188,7 +188,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
     // restatement in the wrong place — it must live in the slice that defines its
     // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
-    // makes `regenerate` / `check-generated` / `make check` reject a stray cell.
+    // makes update / strict sync / `make check` reject a stray cell.
     let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -1221,7 +1221,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // every set it emits that has a committed counterpart, the bytes MUST match
         // exactly (the lowering's parity contract). The total set count vs committed
         // is subject to the committed-vs-local env/staleness drift and is the CI
-        // `check-generated` gate, not asserted here.
+        // strict-sync gate, not asserted here.
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut overlap = 0usize;
@@ -1664,7 +1664,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     #[test]
     fn fno_is_well_formed_ntriples() {
         // Wiring check: the FnO correspondence lowering produces a non-empty FnO
-        // catalog that parses. (Committed-byte/iso parity is the CI `check-generated`
+        // catalog that parses. (Committed-byte/iso parity is the CI strict-sync
         // gate, env-matched.)
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;

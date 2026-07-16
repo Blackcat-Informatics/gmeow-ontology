@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The reference layer keeps a concept, its symbol, its notation, its definition,
+# and the AST that formalizes it as distinct, explicitly connected resources.
+# The ACT section then uses the same local mathematical identities as source and
+# target objects of functors and natural transformations.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/math/reference-act/> .
+
+ex:linearAlgebra a math:MathematicalTheory ;
+    rdfs:label "linear algebra"@en .
+
+ex:matrixContext a math:MathematicalContext ;
+    math:definedInTheory ex:linearAlgebra .
+
+ex:infixMatrixNotation a math:MathematicalNotation ;
+    math:definedInTheory ex:linearAlgebra .
+
+ex:matrixMultiplicationConcept a math:MathematicalConcept ;
+    math:definedInTheory ex:linearAlgebra ;
+    math:hasMathematicalSymbol ex:matrixProductSymbol ;
+    math:hasNotation ex:infixMatrixNotation ;
+    math:usesDefinition ex:matrixProductDefinition ;
+    math:formalizesExpression ex:matrixProductAst .
+
+ex:matrixProductSymbol a math:MathematicalSymbol ;
+    rdfs:label "matrix multiplication symbol"@en ;
+    math:definedInTheory ex:linearAlgebra ;
+    math:hasNotation ex:infixMatrixNotation .
+
+ex:matrixProductDefinition a math:MathematicalDefinition ;
+    math:definedInTheory ex:linearAlgebra ;
+    math:informalGloss "Multiply two compatible matrices in the declared order." ;
+    math:formalizesExpression ex:matrixProductAst .
+
+ex:matrixExpressionType a math:ExpressionType ;
+    math:definedInTheory ex:linearAlgebra .
+
+ex:matrixProductAst a math:ApplicationExpression ;
+    math:operator math:Multiplication ;
+    math:expressionType ex:matrixExpressionType ;
+    math:argumentSlot ex:matrixProductSlot0 , ex:matrixProductSlot1 ;
+    math:normalForm ex:matrixProductNormalForm .
+
+ex:matrixProductNormalForm a math:ApplicationExpression ;
+    math:operator math:Multiplication ;
+    math:expressionType ex:matrixExpressionType ;
+    math:argumentSlot ex:normalSlot0 , ex:normalSlot1 .
+
+ex:leftMatrixRef a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:leftMatrixSymbol .
+ex:rightMatrixRef a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:rightMatrixSymbol .
+ex:leftMatrixSymbol a math:MathematicalSymbol ; math:definedInTheory ex:linearAlgebra .
+ex:rightMatrixSymbol a math:MathematicalSymbol ; math:definedInTheory ex:linearAlgebra .
+
+ex:matrixProductSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:leftMatrixRef .
+ex:matrixProductSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:rightMatrixRef .
+ex:normalSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:leftMatrixRef .
+ex:normalSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:rightMatrixRef .
+
+# Applied category theory: categories are mathematical objects; functors and
+# natural transformations are morphisms with explicit source and target objects.
+ex:sourceCategory a math:Category .
+ex:targetCategory a math:Category .
+
+ex:freeFunctor a math:Functor ;
+    math:sourceObject ex:sourceCategory ;
+    math:targetObject ex:targetCategory ;
+    math:composesWith ex:forgetfulFunctor .
+
+ex:forgetfulFunctor a math:Functor ;
+    math:sourceObject ex:targetCategory ;
+    math:targetObject ex:sourceCategory .
+
+ex:alternateFunctor a math:Functor ;
+    math:sourceObject ex:sourceCategory ;
+    math:targetObject ex:targetCategory .
+
+ex:comparisonTransformation a math:NaturalTransformation ;
+    math:sourceObject ex:freeFunctor ;
+    math:targetObject ex:alternateFunctor .
