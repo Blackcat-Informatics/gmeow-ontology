@@ -1374,3 +1374,22 @@ ASK {
     math:InformationUnit logic:subClassOf math:MathematicalObject .
 }""" ;
     gmeow:saRationale "The information-theoretic coverage family MUST keep each measure a specialization of math:InformationMeasure, keep a mutual information's operand a math:JointDistribution specializing math:Distribution, and keep the logarithm base and information unit first-class mathematical objects. These canonical logic:subClassOf edges prevent entropy, divergence, and Fisher information from collapsing into a single untyped scoring token and exercise the exact semantic edges the completeness restrictions and competency frame rely on." .
+
+# --- External-concept Hodge-decomposition taxonomy is logic-owned (MUST) ----- #
+
+ex:saExternalHodgeTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:HodgeDecomposition logic:subClassOf math:MathematicalObject .
+    math:ExactComponent logic:subClassOf math:MathematicalObject .
+    math:CoexactComponent logic:subClassOf math:MathematicalObject .
+    math:HarmonicComponent logic:subClassOf math:MathematicalObject .
+    math:HodgeLaplacian logic:subClassOf math:Operation .
+    math:SheafLaplacian logic:subClassOf math:Operation .
+    math:BoundaryOperator logic:subClassOf math:Operation .
+    math:CellularSheaf logic:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "The Hodge-decomposition coverage family MUST keep the decomposition and its exact, coexact, and harmonic components first-class mathematical objects, keep the Hodge and sheaf Laplacians and the boundary operator operations, and keep the cellular-sheaf carrier a mathematical object. These canonical logic:subClassOf edges prevent the exact/coexact/harmonic split from collapsing into a single untyped flow token and exercise the exact semantic edges the completeness restrictions and reconstruction/orthogonality competency frame rely on." .

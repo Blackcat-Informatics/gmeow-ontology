@@ -6143,6 +6143,28 @@ gmeow:gmnCandidateMathHodgeLaplacian
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# The sheaf Laplacian of a Hodge decomposition warrants its own symbol decision:
+# its conventional capital-L (or capital-delta) glyph is ambiguous with the graph
+# Laplacian, the Lagrangian, and the Hodge Laplacian, and it carries the
+# sheaf/complex frame a flat glyph cannot hold. The disposition is
+# gmnDispositionNamedKey, so no glyph enters the executable GMN glyph table and
+# the pinned gmnGlyphTableVersion is unchanged.
+gmeow:gmnCandidateMathSheafLaplacian
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: sheaf Laplacian"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the capital-L notation of math:SheafLaplacian, the operator whose kernel is the harmonic component of a Hodge decomposition."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:SheafLaplacian ;
+    gmeow:gmnCandidateGlyph "L" ;
+    gmeow:gmnAsciiFallback "sheaf_laplacian" ;
+    gmeow:gmnSpokenLabel "sheaf Laplacian" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The bare capital L denotes the graph Laplacian, the Lagrangian, a length, and a lower-triangular factor, and the sheaf Laplacian is defined over a declared cellular sheaf and its coboundary maps a flat glyph cannot carry; the `sheaf_laplacian` key keeps the operator's sheaf/complex frame explicit and adopts no glyph, so the GMN glyph-table version is unchanged." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # --- Information-theoretic operators: framed named keys, no adopted glyph --- #
 # The entropy, mutual-information, and KL-divergence functionals each carry a
 # mandatory distribution/base/unit frame that a single flat capital letter cannot
