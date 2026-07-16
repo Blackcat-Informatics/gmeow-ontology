@@ -3170,12 +3170,14 @@ mod tests {
 
     #[test]
     fn scanner_discovers_root_shape_files_and_skips_generated() {
-        // The real repo: the root shapes/ directory is in the universe now.
+        // The real repo: the root shapes/gmeow-shapes.ttl is now fully drained (every check is a
+        // canonical logic: constraint or a derived OWL/RDFS axiom), so it declares NO sh:NodeShape
+        // and the scanner correctly SKIPS it — a shape-free file is not a legacy-shape obligation.
         let mut files = Vec::new();
         collect_legacy_shape_files(&repo_root().join("shapes"), &mut files);
         assert!(
-            files.iter().any(|p| p.ends_with("gmeow-shapes.ttl")),
-            "{files:?}"
+            !files.iter().any(|p| p.ends_with("gmeow-shapes.ttl")),
+            "the drained root shapes file carries no sh:NodeShape and must not be scanned: {files:?}"
         );
 
         // A synthetic tree: an authored declarer is found; a generated/ declarer and a

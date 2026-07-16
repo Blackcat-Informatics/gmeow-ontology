@@ -331,7 +331,7 @@ class ConditionExpression(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionExpression", "curie": "gmeow:ConditionExpression", "definitionDigest": "blake3:2133b9b720b54288f7c5cc9f7d375b47e345ac888d4078e1607596b07d50c58f", "iri": "https://blackcatinformatics.ca/gmeow/ConditionExpression"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionExpression", "curie": "gmeow:ConditionExpression", "definitionDigest": "blake3:5bb58632598d43495ebd5e6534f1851676e1824aa5c7817af9e17fd57a4e852f", "iri": "https://blackcatinformatics.ca/gmeow/ConditionExpression"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

@@ -264,7 +264,7 @@ class JournalEntry(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JournalEntry", "curie": "gmeow:JournalEntry", "definitionDigest": "blake3:79ba4acbf3e43a5822d87550accb37e38383c09b605bd6819c464286cc283794", "iri": "https://blackcatinformatics.ca/gmeow/JournalEntry"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JournalEntry", "curie": "gmeow:JournalEntry", "definitionDigest": "blake3:92006bb3b3b190741ab46edfd3a5c6bca5de343aec9b599f98cae85f69c984fc", "iri": "https://blackcatinformatics.ca/gmeow/JournalEntry"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
