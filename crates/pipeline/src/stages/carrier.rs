@@ -2118,7 +2118,7 @@ fn build_validation_shape_typed_blobs(
 /// Build the generated-fanout archive [`REP_GENERATED`]: the byte-exact `generated/`
 /// fanout members that ride as opaque byte projections (as opposed to named-graph
 /// folds). Each rides in from a sink-consumed stage product — either projected from
-/// THIS run's carrier dataset (lpg / schemas) or read off its producing export leaf's
+/// THIS run's carrier dataset (lpg) or read off its producing export leaf's
 /// product (the render ran once, in the leaf; the presenter never re-renders from
 /// disk). Byte-decorated RDF reports whose committed form carries generated comments /
 /// section markers ride here rather than as canonical graph folds. The bytes are
@@ -2135,9 +2135,15 @@ fn build_fanout_opaque_blob(
         &mut members,
         crate::stages::lpg::render_from_dataset(carrier)?,
     );
+    // The generated developer-schema surfaces (LinkML/TypeScript/GraphQL + the
+    // GraphQL name map): schemas moved from a carrier projection to a fresh
+    // SHACL-shape-union compilation (the same source json-schema/pydantic compile
+    // through), so it can no longer be re-derived from the in-memory carrier alone
+    // — read off the stage-export-schemas product instead (rendered once, in the
+    // leaf), like the other source-reading export leaves below.
     take_opaque(
         &mut members,
-        crate::stages::schemas::render_schemas_from_dataset(carrier)?,
+        producer_artifacts("stage-export-schemas", upstream)?,
     );
 
     // source-reading export leaves: read their ALREADY-rendered output off the producing

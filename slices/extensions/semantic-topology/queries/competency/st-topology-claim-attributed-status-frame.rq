@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: frame a topology claim's attributed status — the vantage it is claimed
+# from, and the gmeow:Finding-carried, defeasible status (with its severity) it lands as.
+# Over the worked example this returns exactly one row, proving a computed feature lands as
+# a vantage-attributed, defeasible claim, never an anonymous global truth.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?claim ?vantage ?finding ?severity WHERE {
+    ?claim a gmeow:TopologyClaim ;
+        gmeow:vantage ?vantage ;
+        gmeow:wasDerivedFrom ?finding .
+    ?finding a gmeow:Finding ;
+        gmeow:findingSeverity ?severity .
+}
+ORDER BY ?claim

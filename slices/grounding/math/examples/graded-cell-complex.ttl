@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A worked graded cell complex: an oriented simplicial triangle. It demonstrates
+# the graded-cell surface — a math:Cell carrying its grade through
+# math:cellDimension, the unsigned codimension-1 face relation math:incidentTo, the
+# open math:CellOrientation vocabulary, and the reified signed math:CellIncidence
+# coefficients of the boundary ∂(faceABC) = edgeAB + edgeBC − edgeAC.
+#
+# It covers the PRESENCE of the boundary signs (±1 on each incidence). It does NOT
+# assert the boundary-square-zero coherence law (∂∘∂ = 0); that is a separate
+# downstream constraint predicating over math:incidentTo.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix exg:  <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
+
+# The complex assembled from its seven graded cells.
+exg:triangle a math:SimplicialComplex ;
+    rdfs:label "oriented triangle (2-simplex)"@x-gmeow-english ;
+    math:hasCell exg:faceABC ,
+        exg:edgeAB , exg:edgeBC , exg:edgeAC ,
+        exg:vertexA , exg:vertexB , exg:vertexC .
+
+# The three grades, as situated, exact natural numbers.
+exg:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ;
+    rdfs:label "0"@x-gmeow-english .
+exg:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ;
+    rdfs:label "1"@x-gmeow-english .
+exg:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ;
+    rdfs:label "2"@x-gmeow-english .
+
+# The 2-cell (face), oriented, incident to its three 1-cell faces.
+exg:faceABC a math:Cell ;
+    rdfs:label "face ABC"@x-gmeow-english ;
+    math:cellDimension exg:dim2 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo exg:edgeAB , exg:edgeBC , exg:edgeAC .
+
+# The three 1-cells (edges), each incident to its two 0-cell endpoints.
+exg:edgeAB a math:Cell ;
+    rdfs:label "edge A→B"@x-gmeow-english ;
+    math:cellDimension exg:dim1 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo exg:vertexA , exg:vertexB .
+exg:edgeBC a math:Cell ;
+    rdfs:label "edge B→C"@x-gmeow-english ;
+    math:cellDimension exg:dim1 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo exg:vertexB , exg:vertexC .
+exg:edgeAC a math:Cell ;
+    rdfs:label "edge A→C"@x-gmeow-english ;
+    math:cellDimension exg:dim1 ;
+    math:orientation math:negativelyOriented ;
+    math:incidentTo exg:vertexA , exg:vertexC .
+
+# The three 0-cells (vertices).
+exg:vertexA a math:Cell ; rdfs:label "vertex A"@x-gmeow-english ; math:cellDimension exg:dim0 .
+exg:vertexB a math:Cell ; rdfs:label "vertex B"@x-gmeow-english ; math:cellDimension exg:dim0 .
+exg:vertexC a math:Cell ; rdfs:label "vertex C"@x-gmeow-english ; math:cellDimension exg:dim0 .
+
+# The reified signed boundary coefficients: ∂(faceABC) = +edgeAB + edgeBC − edgeAC.
+exg:incFaceAB a math:CellIncidence ;
+    rdfs:label "⟨faceABC : edgeAB⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exg:faceABC ;
+    math:incidenceFace exg:edgeAB ;
+    math:incidenceSign 1 .
+exg:incFaceBC a math:CellIncidence ;
+    rdfs:label "⟨faceABC : edgeBC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exg:faceABC ;
+    math:incidenceFace exg:edgeBC ;
+    math:incidenceSign 1 .
+exg:incFaceAC a math:CellIncidence ;
+    rdfs:label "⟨faceABC : edgeAC⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface exg:faceABC ;
+    math:incidenceFace exg:edgeAC ;
+    math:incidenceSign -1 .

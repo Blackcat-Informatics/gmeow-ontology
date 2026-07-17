@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: frame a gmeow:ComplexCompilation — the complex and filtration it produced,
+# and the correspondence and preservation/loss records it emitted. Over the worked example
+# this returns exactly one fully-resolved row, proving a compilation is auditable
+# (correspondence) and honest about loss (preservation) rather than a black box.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?compilation ?complex ?filtration ?correspondence ?preservation WHERE {
+    ?compilation a gmeow:ComplexCompilation ;
+        gmeow:compilesToComplex ?complex ;
+        gmeow:compilesToFiltration ?filtration ;
+        gmeow:recordsCorrespondence ?correspondence ;
+        gmeow:recordsPreservation ?preservation .
+}
+ORDER BY ?compilation
