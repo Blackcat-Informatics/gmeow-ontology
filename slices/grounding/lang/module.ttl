@@ -2555,12 +2555,12 @@ gmeow:GmnEnvelope
     rdfs:subClassOf gmeow:AttestationArtifact ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Envelope"@x-gmeow-english ;
-    skos:definition "A GMN envelope: the attested carrier of a GMN payload — a gmeow:AttestationArtifact whose bytes are a GMN document plus its integrity and versioning header. An envelope reuses the attestation and versions vocabulary by reference rather than re-minting it: byte-exact identity is a gmeow:contentDigest, semantic fingerprints are gmeow:versionFingerprint literals, and the asserting standpoint is carried through the gmeow:accordingTo pattern. It declares its own dialect coordinates through gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion, its boundary ring through gmeow:gmnSecurityRing, and its losslessness judgment through gmeow:gmnEnvelopeCorrespondence — a logic:Correspondence, never a boolean flag."@x-gmeow-english ;
+    skos:definition "A GMN envelope: the attested carrier of a GMN payload — a gmeow:AttestationArtifact whose bytes are a GMN document plus its integrity and versioning header. An envelope reuses the attestation and versions vocabulary by reference rather than re-minting it: byte-exact identity is a gmeow:contentDigest, semantic fingerprints are gmeow:versionFingerprint literals, and the asserting standpoint is carried through the gmeow:accordingTo pattern. It declares its own dialect coordinates through gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion, the exact codebook it decodes against through gmeow:gmnCodebookDigest, its boundary ring through gmeow:gmnSecurityRing, and its losslessness judgment through gmeow:gmnEnvelopeCorrespondence — a logic:Correspondence, never a boolean flag."@x-gmeow-english ;
     skos:example "ex:env a gmeow:GmnEnvelope ; gmeow:gmnSchemaVersion \"1\" ; gmeow:gmnSecurityRing gmeow:gmnRingCore ; gmeow:gmnEnvelopeCorrespondence ex:corr ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid carrying a losslessness boolean on the envelope — the judgment lives on the logic:Correspondence named by gmeow:gmnEnvelopeCorrespondence — and avoid re-minting digest, fingerprint, or standpoint properties that attestation and versions already provide."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one envelope per serialized GMN payload; set gmeow:contentDigest for byte identity, the three gmeow:gmn*Version literals for its dialect coordinates, one gmeow:gmnSecurityRing, and point gmeow:gmnEnvelopeCorrespondence at the logic:Correspondence judging its crossing back to the normal form."@x-gmeow-english ;
+    gmeow:howToUse "Mint one envelope per serialized GMN payload; set gmeow:contentDigest for byte identity, the three gmeow:gmn*Version literals for its dialect coordinates, gmeow:gmnCodebookDigest for the codebook identity it decodes against, one gmeow:gmnSecurityRing, and point gmeow:gmnEnvelopeCorrespondence at the logic:Correspondence judging its crossing back to the normal form."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use for the attested, versioned, ring-classified carrier of a GMN document — the unit that crosses a serialization boundary."@x-gmeow-english .
 
@@ -2594,7 +2594,123 @@ gmeow:GmnCodebook
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use for the coding-theoretic frame of GMN — the codebook + declared rate + fidelity triple that makes the dialect a source code over the LLM token channel rather than an ad-hoc syntax."@x-gmeow-english .
 
+gmeow:GmnConformancePack
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Conformance Pack"@x-gmeow-english ;
+    skos:definition "The self-certifying bundle of GMN-1: a gmeow:InformationObject whose content-addressed root IS the GMN-1 version identity. A pack gmeow:references the four parts a conforming reader needs to certify a document — a gmeow:GmnCodebook, the grammar it licenses forms under, the dictionary alias bijection, and a frozen conformance-vector corpus — and carries exactly one gmeow:gmnPackRoot, the Merkle root over those parts. The pack is self-certifying because its root recomputes from the parts it names: a consumer that trusts the root has, by construction, pinned every part, so the pack version and the parts it bundles can never drift apart silently."@x-gmeow-english ;
+    skos:example "ex:pack a gmeow:GmnConformancePack ; gmeow:references gmeow:gmnCodebookCurrent ; gmeow:gmnPackRoot \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid publishing a pack root that is not the recomputed Merkle root over the parts the pack gmeow:references — a root that does not recompute makes the pack self-certify a bundle it does not actually pin — and avoid a pack that omits any of its four parts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnConformancePack per shipped GMN-1 version; link its codebook, grammar, dictionary bijection, and frozen conformance-vector corpus through gmeow:references, and set one gmeow:gmnPackRoot to the Merkle root recomputed over those parts."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use for the self-certifying GMN-1 bundle whose content-addressed root is the version identity — the unit that pins a codebook, grammar, dictionary, and conformance corpus together."@x-gmeow-english .
+
+gmeow:GmnErr
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Err"@x-gmeow-english ;
+    skos:definition "A GMN @err record: a typed, in-dialect error report about a rejected prior record. When a reader rejects a record it answers with a gmeow:GmnErr — a reified NEW claim about the rejected record, with its own identity, standpoint, and confidence — that names the rejected record through gmeow:gmnRepairId and the failure it raised through gmeow:gmnRepairClass. An @err is never an in-place mutation of the record it rejects: the rejected record survives, and the error is an additional standpoint-held claim about it, so the rejection is auditable against exactly what was rejected."@x-gmeow-english ;
+    skos:example "ex:err a gmeow:GmnErr ; gmeow:gmnRepairId \"r-0007\" ; gmeow:gmnRepairClass lang:GmnMalformedNumber ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating an @err as an edit or deletion of the rejected record — it is an additional claim about it — and avoid an @err that names neither its target through gmeow:gmnRepairId nor its failure class through gmeow:gmnRepairClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnErr per rejected record; name the rejected record with gmeow:gmnRepairId, the raised failure with gmeow:gmnRepairClass, and carry the error's own standpoint and confidence on the StandpointClaim layer; leave the rejected record in place."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a GMN @err — a typed, standpoint-held claim that a named prior record was rejected under a named conformance-failure class."@x-gmeow-english .
+
+gmeow:GmnPatch
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Patch"@x-gmeow-english ;
+    skos:definition "A GMN @patch record: a correction that restates fields of an identified prior record. A gmeow:GmnPatch is a reified NEW claim about the record it corrects — with its own identity, standpoint, and confidence — that names the corrected record through gmeow:gmnRepairId and carries the restated field values. A patch never overwrites its target: the prior record survives, reachable beside the patch, so the correction is an additional standpoint-held claim that can always be audited against what it restated rather than a destructive edit."@x-gmeow-english ;
+    skos:example "ex:patch a gmeow:GmnPatch ; gmeow:gmnRepairId \"r-0007\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating a patch as an in-place rewrite of its target — it is an additional claim restating fields, and deleting or overwriting the prior record fabricates certainty — and avoid a patch that names no target through gmeow:gmnRepairId."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnPatch per correction; name the corrected record with gmeow:gmnRepairId, carry the restated field values, and hold the patch's own standpoint and confidence on the StandpointClaim layer; leave the prior record in place."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a GMN @patch — a standpoint-held correction that restates fields of a named prior record without destroying it."@x-gmeow-english .
+
+gmeow:GmnRetract
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Retract"@x-gmeow-english ;
+    skos:definition "A GMN @retract record: a withdrawal of an identified prior record. A gmeow:GmnRetract is a reified NEW claim about the record it withdraws — with its own identity, standpoint, and confidence — that names the withdrawn record through gmeow:gmnRepairId. A retraction never deletes its target: the withdrawn record survives beside the retraction, so the withdrawal is an additional standpoint-held claim about it — a recorded change of stance that can be audited — rather than an erasure that would fabricate a history in which the record never existed."@x-gmeow-english ;
+    skos:example "ex:ret a gmeow:GmnRetract ; gmeow:gmnRepairId \"r-0007\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating a retraction as a deletion of its target — it is an additional claim withdrawing the record, and erasing the prior record fabricates a history — and avoid a retraction that names no target through gmeow:gmnRepairId."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnRetract per withdrawal; name the withdrawn record with gmeow:gmnRepairId and hold the retraction's own standpoint and confidence on the StandpointClaim layer; leave the withdrawn record in place."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a GMN @retract — a standpoint-held withdrawal of a named prior record that preserves the record it withdraws."@x-gmeow-english .
+
 # --- GMN properties ----------------------------------------------------------- #
+
+gmeow:gmnCodebookDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn codebook digest"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The content-addressed identity of a gmeow:GmnCodebook: an algorithm-tagged digest literal (e.g. \"blake3:…\") that is a Merkle root over the codebook's per-part digest leaves — its gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion coordinates, its script graphemes, its ten-role sigil table, its dictionary alias bijection, its glyph table, and its declared rate. It is the digest an encoding declares to pin exactly which codebook it decodes against — hashing the codebook's parts rather than any one serialization, so two codebooks with the same parts share one identity regardless of how they were written down. Not functional: a codebook may carry digests under several algorithms."@x-gmeow-english ;
+    skos:example "ex:env gmeow:gmnCodebookDigest \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid hashing a single serialization of the codebook rather than its per-part leaves — a Merkle root over the parts is stable across renderings — and avoid making it functional; one codebook may legitimately carry digests under several algorithms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:gmnCodebookDigest with an algorithm-prefixed literal (\"blake3:…\") naming the recomputed Merkle root of the codebook's parts; an envelope carries it to declare which codebook frame it decodes against, and the native GMN gate rejects a declaration that does not equal the codebook's recomputed root."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin the exact codebook an encoding decodes against by its content-addressed Merkle-root identity, rather than trusting a version label alone."@x-gmeow-english .
+
+gmeow:gmnPackRoot
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn pack root"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The content-addressed root of a gmeow:GmnConformancePack: an algorithm-tagged digest literal (e.g. \"blake3:…\") that is a Merkle root over the pack's parts — its referenced codebook, grammar, dictionary bijection, and frozen conformance-vector corpus. This root IS the GMN-1 version identity: a pack is self-certifying exactly because its root recomputes from the parts it names, so a consumer that trusts the root has, by construction, pinned every part the pack bundles. Not functional: a pack may carry roots under several algorithms."@x-gmeow-english ;
+    skos:example "ex:pack gmeow:gmnPackRoot \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating the pack root as a free label — it is a recomputed Merkle root over the pack's named parts, not an asserted version string — and avoid making it functional; one pack may carry roots under several algorithms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Compute one gmeow:gmnPackRoot per gmeow:GmnConformancePack as the Merkle root over the parts it gmeow:references, and publish it as the pack's content-addressed identity; a consumer recomputes it from the parts to certify the pack."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the content-addressed root of a conformance pack — the Merkle root over its parts that serves as the GMN-1 version identity."@x-gmeow-english .
+
+gmeow:gmnRepairId
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn repair id"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The stable identifier of the prior record a GMN repair record addresses — the target record id an @err, @patch, or @retract names. A repair record is a new standpoint-held claim ABOUT an identified earlier record, never an in-place edit of it, so it must name its target by a stable id rather than by position; gmeow:gmnRepairId carries that id so the repaired record and its repairs stay joinable without mutating either."@x-gmeow-english ;
+    skos:example "ex:patch gmeow:gmnRepairId \"r-0007\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid identifying the target by document position or by mutating the original record — a repair addresses a stable record id and leaves the target in place — and avoid reusing one id for two distinct records."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnRepairId on each gmeow:GmnErr, gmeow:GmnPatch, or gmeow:GmnRetract to the stable id of the record it addresses; the reader joins the repair to its target by this id."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the stable target-record identifier a GMN repair record addresses."@x-gmeow-english .
+
+gmeow:gmnRepairClass
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn repair class"@x-gmeow-english ;
+    rdfs:range lang:LangConformanceFailure ;
+    skos:definition "Names the lang:LangConformanceFailure subclass a GMN @err record reports: when a reader rejects a record it answers with a gmeow:GmnErr whose gmeow:gmnRepairClass points at the typed failure class the rejection raised, so the error is a queryable, typed object rather than a free-text reason. Range the failure-class hierarchy (lang:LangConformanceFailure and its subclasses) — the same vocabulary the conformance gates raise — so an in-band @err and a gate finding name failures in one shared taxonomy."@x-gmeow-english ;
+    skos:example "ex:err gmeow:gmnRepairClass lang:GmnMalformedNumber ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid carrying the failure as a free-text string or minting a rival error vocabulary — a gmeow:GmnErr names a lang:LangConformanceFailure subclass the gates already define — and avoid pointing it at a class outside that hierarchy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:gmnRepairClass from a gmeow:GmnErr at the lang:LangConformanceFailure subclass its rejection raised; pair it with gmeow:gmnRepairId to name the rejected record."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to type a GMN @err record by the conformance-failure class it reports, in the shared lang: failure taxonomy."@x-gmeow-english .
 
 gmeow:gmnFixity
     a owl:ObjectProperty ;
@@ -4386,7 +4502,7 @@ lang:GmnMissingEnvelopeField
     rdfs:subClassOf lang:LangConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Missing Envelope Field"@x-gmeow-english ;
-    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited. The same shape also fires this class when an envelope declares MORE than one gmeow:gmnDictionaryVersion or gmeow:gmnSecurityRing — a version-pinned coordinate that is not exactly one is as ill-formed as one that is absent."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its nine-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its declared codebook identity (gmeow:gmnCodebookDigest), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited. The same shape also fires this class when an envelope declares MORE than one gmeow:gmnDictionaryVersion or gmeow:gmnSecurityRing — a version-pinned coordinate that is not exactly one is as ill-formed as one that is absent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:GmnDictionaryAliasCollision
@@ -4459,6 +4575,14 @@ lang:GmnUndeclaredDialectVersion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Undeclared Dialect Version"@x-gmeow-english ;
     skos:definition "The failure raised when a GMN document reaches a reader without its dialect coordinates — a payload whose envelope header does not pin the gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion it was serialized under. An undeclared version is not defaultable: aliases and glyphs are meaningful only against their pinned tables, so the reader must refuse rather than guess. Its enforcing validator is the GMN parser/writer, which reads the header before any record; the graph-side counterpart on an envelope individual is lang:GmnMissingEnvelopeField."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnCodebookDigestMismatch
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Codebook Digest Mismatch"@x-gmeow-english ;
+    skos:definition "The failure raised when an envelope's declared gmeow:gmnCodebookDigest does not equal the codebook's recomputed Merkle-root digest: the encoding claims a codebook identity the actual codebook does not have, so decode would run against the wrong frame — a different alias table, glyph table, or sigil discipline than the one the document was written under. The declared digest is a content address, not a hint, so a reader must refuse rather than decode against a codebook the digest does not name. Its enforcing validator is the native GMN gate that recomputes the codebook's Merkle root over its per-part leaves and compares it to the declared value — a computed cross-node check whose state lives in the codebook and the recomputation, not in the graph a SHACL shape can see."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:GmnNonDecodableGrammar
@@ -6928,6 +7052,7 @@ gmeow:GmnEnvelope rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:accordingTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:wasGeneratedBy ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnCodebookDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnEnvelopeCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] .
 
 gmeow:GmnCompaction rdfs:subClassOf
