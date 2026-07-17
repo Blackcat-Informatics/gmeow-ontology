@@ -26,7 +26,6 @@ from __future__ import annotations
 from ._base import ConfiguredBaseModel as ConfiguredBaseModel
 from .__about__ import __version__ as __version__
 from ._envelope import *  # noqa: F401,F403
-from ._spec import *  # noqa: F401,F403
 from .accessibility import *  # noqa: F401,F403
 from .accounts import *  # noqa: F401,F403
 from .affect import *  # noqa: F401,F403
@@ -339,7 +338,6 @@ __all__ = [
     "Expression",
     "ExpressionLanguageEnum",
     "ExtractedRelationship",
-    "FeedPosting",
     "FeedPostingKindEnum",
     "FinancialAccount",
     "FinancialAccountTypeEnum",
@@ -498,7 +496,6 @@ __all__ = [
     "Logic_SectionAcceptanceWitness",
     "Logic_TermCarrier",
     "LogicalConstraint",
-    "Magnitude",
     "MaintenanceStatusEnum",
     "Manifestation",
     "ManifestationFormatEnum",
@@ -735,7 +732,6 @@ __all__ = [
     "PromptRoleEnum",
     "PronounSet",
     "ProximityMeasurement",
-    "Quality",
     "QualityAssessment",
     "QualityAxisEnum",
     "QualityDimensionEnum",
@@ -979,7 +975,6 @@ __all__ = [
     "VirtualLocationTypeEnum",
     "Voice",
     "WalletSchemeEnum",
-    "WebPage",
     "WeightingPolicyEnum",
     "__version__",
 ]

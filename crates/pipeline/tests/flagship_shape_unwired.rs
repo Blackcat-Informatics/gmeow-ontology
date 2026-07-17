@@ -3,11 +3,12 @@
 
 //! The shared `gmeow:FlagshipScenarioShape` unwired-detection negative fixture.
 //!
-//! Task 1 hoisted the flagship cardinality wiring into the SHARED
-//! `gmeow:FlagshipScenarioShape` (`shapes/gmeow-shapes.ttl`) and deleted the per-slice
-//! `flagship-scenario-unwired.ttl` counter-examples (the now-thin per-slice shapes can no
-//! longer raise MinCount). A rule with no negative fixture is not enforced — so the shared
-//! shape MUST have a negative fixture proving its unwired-detection gate bites.
+//! The flagship cardinality wiring is authored declaratively in the logic grounding slice
+//! (`gmeow:FlagshipScenario` min-1/max-1 restrictions) and PROJECTED to the derived
+//! `gmeow:FlagshipScenario-shape` in `generated/shapes/validation-shapes.ttl`; the per-slice
+//! `flagship-scenario-unwired.ttl` counter-examples were deleted (the now-thin per-slice shapes
+//! can no longer raise MinCount). A rule with no negative fixture is not enforced — so the shared
+//! projected shape MUST have a negative fixture proving its unwired-detection gate bites.
 //!
 //! This test constructs, in-memory, a `gmeow:FlagshipScenario` that wires every required link
 //! EXCEPT `gmeow:demonstratedByProducer`, validates it against the shared shapes graph, and
@@ -45,13 +46,14 @@ const UNWIRED_SCENARIO: &str = r#"
 
 #[test]
 fn shared_flagship_shape_bites_on_a_missing_required_link() {
-    // The shared shapes graph carries gmeow:FlagshipScenarioShape (the cardinality gate) and
-    // its gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario annotation.
+    // The projected validation-shape surface carries the derived gmeow:FlagshipScenario-shape (the
+    // cardinality gate) and its gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario annotation.
     let shapes_path = shared_shapes_path();
-    let shapes_text = std::fs::read_to_string(&shapes_path).expect("read shared gmeow-shapes.ttl");
-    let shapes = parse_shapes(&shapes_text).expect("shared shapes parse");
+    let shapes_text =
+        std::fs::read_to_string(&shapes_path).expect("read projected validation-shapes.ttl");
+    let shapes = parse_shapes(&shapes_text).expect("projected shapes parse");
 
-    // The shape -> failure-class map, resolved from the shared shapes: the FlagshipScenarioShape
+    // The shape -> failure-class map, resolved from the projected surface: the flagship gate
     // resolves to gmeow:UnwiredFlagshipScenario.
     let shape_class = shape_class_map(std::slice::from_ref(&shapes_path));
 

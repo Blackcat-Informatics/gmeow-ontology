@@ -69,6 +69,15 @@ pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
 pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
 /// Committed logical path of the first-class RDF list functions (§5).
 pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.ttl";
+/// Committed logical path of the shape-grounding certificate ledger: one entry per
+/// `logic:formalizes` record on the projected constraint surfaces
+/// (`generated/shapes/constraint-shapes.ttl` + `generated/shapes/procedural-constraints.ttl`),
+/// each carrying a preservation judgment RE-DERIVED this run by the certify/oracle
+/// machinery ([`gmeow_validate::shape_grounding`]) — the loss-ledger doctrine applied to
+/// the shape migration: "equivalence was proven" is a committed machine-checked fact,
+/// not transient console output. Emitted as EXACTLY the canonical fold so it rides as an
+/// RDF-fanout named graph (like the projection report).
+pub const SHAPE_GROUNDING_LEDGER_PATH: &str = "generated/logic/shape-grounding-ledger.ttl";
 
 const LEGACY_MAPPING_SOURCE_BANNER: &str = "from mapping-dsl/";
 const CANONICAL_MAPPING_SOURCE_BANNER: &str = "from canonical mapping sources";
@@ -624,6 +633,70 @@ fn build_union_report(
     Ok(report.into_bytes())
 }
 
+/// Assemble the shape-grounding certificate ledger over THIS run's projected constraint
+/// surfaces: `generated/shapes/procedural-constraints.ttl` (off the consumed
+/// `stage-compile-logic` product) and `generated/shapes/constraint-shapes.ttl` (off the
+/// consumed `stage-export-constraint-shapes` product). For every `logic:formalizes`
+/// record the shared machinery ([`gmeow_validate::shape_grounding`]) RE-DERIVES the
+/// preservation judgment — the oracle read, the executable-SHACL parse, and the
+/// lift/certify round-trip all run afresh each regenerate — and the ledger is emitted as
+/// EXACTLY the canonical fold so it rides as an RDF-fanout named graph (superset gate).
+///
+/// Hard-fail semantics (no-optionality): a missing surface, an underivable record, or an
+/// empty record scan (the surfaces are never record-free) is a stage error.
+fn build_shape_grounding_ledger(
+    upstream: &BTreeMap<String, crate::node::StageProduct>,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let stage_err = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message,
+        })
+    };
+    let surface = |stage: &str,
+                   path: &str|
+     -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .ok_or_else(|| {
+                stage_err(format!(
+                    "shape-grounding ledger: missing {path} in the {stage} product \
+                     (fail-closed, no stale disk read)"
+                ))
+            })?;
+        purrdf::parse_dataset(bytes, "text/turtle", None)
+            .map_err(|e| stage_err(format!("shape-grounding ledger: parse {path}: {e}")))
+    };
+    // Deterministic surface order: the FOL-constraint surface, then the
+    // procedural-constraint surface (the certificates are re-sorted by record IRI, so
+    // the order only scopes the duplicate-record ambiguity check).
+    let surfaces = vec![
+        surface(
+            "stage-export-constraint-shapes",
+            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
+        )?,
+        surface(
+            "stage-compile-logic",
+            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+        )?,
+    ];
+    let certs = gmeow_validate::shape_grounding::derive_grounding_certificates(&surfaces)
+        .map_err(|e| stage_err(format!("shape-grounding ledger: {e}")))?;
+    // Fail closed: both surfaces carry logic:formalizes records by construction, so an
+    // empty certificate set means the record scan silently missed them.
+    if certs.is_empty() {
+        return Err(stage_err(
+            "shape-grounding ledger: the projected constraint surfaces yielded ZERO \
+             logic:formalizes records — the record scan missed the surfaces (fail-closed)"
+                .to_string(),
+        ));
+    }
+    canon_fanout_ttl(&gmeow_validate::shape_grounding::render_grounding_ledger(
+        &certs,
+    ))
+}
+
 /// Compute the FINAL report header correspondence/uplift counts. This is the SINGLE owner
 /// of `correspondenceCount` / `lawfulUpliftCount` / `claimedUpliftCount`: it composes the
 /// curated affine-gate BASE compile-logic ships on the channel (`base_correspondence_count`
@@ -868,10 +941,15 @@ pub struct MappingsStage {
 impl MappingsStage {
     /// Construct the stage. It consumes the compile-logic product to obtain the logic
     /// projection rows + report-header counts it unions with the correspondence ledger
-    /// when assembling the final `generated/logic/projection-report.ttl`.
+    /// when assembling the final `generated/logic/projection-report.ttl` (plus the
+    /// procedural-constraint surface the shape-grounding ledger re-certifies), and the
+    /// constraint-shapes export leaf for the FOL-constraint surface of the same ledger.
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-compile-logic".to_string()],
+            consumes: vec![
+                "stage-compile-logic".to_string(),
+                "stage-export-constraint-shapes".to_string(),
+            ],
         }
     }
 }
@@ -887,9 +965,11 @@ impl Stage for MappingsStage {
         "stage-mappings"
     }
     fn consumes(&self) -> &[String] {
-        // Reads dsl/mappings + slice mapping cells from the root, AND the compile-logic
-        // product (the logic projection rows + header counts) so it can assemble the
-        // FINAL projection report over the union with the correspondence ledger.
+        // Reads dsl/mappings + slice mapping cells from the root, the compile-logic
+        // product (the logic projection rows + header counts for the FINAL projection
+        // report, plus the procedural-constraint surface the shape-grounding ledger
+        // re-certifies), AND the constraint-shapes export leaf (the FOL-constraint
+        // surface of the same ledger — THIS run's bytes, never a stale disk read).
         &self.consumes
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
@@ -904,10 +984,11 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        // v10: added the dsl mapping-purity gate (alignment linkage must be authored
-        // in slices, not dsl/mappings/). Bump busts the stage cache so the new gate
-        // runs against existing cached inputs.
-        "mappings.v10-dsl-linkage-purity-gate"
+        // v11: added the shape-grounding certificate ledger
+        // (generated/logic/shape-grounding-ledger.ttl) — every logic:formalizes record's
+        // preservation judgment re-derived per regenerate over the fresh constraint
+        // surfaces. Bump busts the stage cache so the ledger is emitted on cached inputs.
+        "mappings.v11-shape-grounding-ledger"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -994,6 +1075,17 @@ impl Stage for MappingsStage {
         artifacts.insert(
             PROJECTION_REPORT_PATH.to_string(),
             canon_fanout_ttl_bytes(&report)?,
+        );
+
+        // The shape-grounding certificate ledger: RE-DERIVE every `logic:formalizes`
+        // record's preservation judgment against THIS run's projected constraint
+        // surfaces — the procedural-constraint surface off the consumed compile-logic
+        // product and the FOL-constraint surface off the consumed constraint-shapes
+        // export leaf (never a stale disk read; PIPELINE_SPINE §3). A record whose
+        // judgment cannot be derived is a stage error, never a skipped entry.
+        artifacts.insert(
+            SHAPE_GROUNDING_LEDGER_PATH.to_string(),
+            build_shape_grounding_ledger(input.upstream)?,
         );
 
         // Carry the union of the RDF outputs (`.ttl` / `.nq` / `.nt` — the alignment
@@ -1459,10 +1551,16 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         assert_eq!(bytes, &committed, "claim view drifted from committed");
     }
 
-    #[test]
-    fn projection_report_unions_logic_and_correspondence_rows() {
+    /// Run the REAL upstream producers (compile-logic + the constraint-shapes export
+    /// leaf) and the REAL mappings stage — the exact upstream set `MappingsStage`
+    /// consumes in the production DAG. Shared by the projection-report union test and
+    /// the shape-grounding ledger test so both exercise the same wiring. Returns the
+    /// mappings product AND the upstream products (so a caller can re-read the consumed
+    /// surfaces without re-running the producers).
+    fn run_mappings_with_real_upstream() -> (StageProduct, BTreeMap<String, StageProduct>) {
         use crate::node::StageInput;
         use crate::stages::compile_logic::CompileLogicStage;
+        use crate::stages::constraint_shapes::ConstraintShapesStage;
 
         let root = repo_root();
         // Run the real compile-logic stage to get the logic-projections channel, then the
@@ -1475,20 +1573,36 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                 upstream: &compile_upstream,
             })
             .expect("compile-logic");
+        let constraint_shapes = ConstraintShapesStage
+            .run(StageInput {
+                root: &root,
+                upstream: &BTreeMap::new(),
+            })
+            .expect("constraint-shapes");
         let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
         up.insert("stage-compile-logic".to_string(), compile.product);
-        let out = MappingsStage::new()
+        up.insert(
+            "stage-export-constraint-shapes".to_string(),
+            constraint_shapes.product,
+        );
+        let product = MappingsStage::new()
             .run(StageInput {
                 root: &root,
                 upstream: &up,
             })
-            .expect("mappings");
-        let report = std::str::from_utf8(
-            out.product
-                .artifact(PROJECTION_REPORT_PATH)
-                .expect("report"),
-        )
-        .expect("utf8 report");
+            .expect("mappings")
+            .product;
+        (product, up)
+    }
+
+    #[test]
+    fn projection_report_unions_logic_and_correspondence_rows() {
+        let root = repo_root();
+        // Run the real compile-logic stage to get the logic-projections channel, then the
+        // real mappings stage to assemble the FINAL projection report over the union.
+        let (out, _upstream) = run_mappings_with_real_upstream();
+        let report = std::str::from_utf8(out.artifact(PROJECTION_REPORT_PATH).expect("report"))
+            .expect("utf8 report");
 
         // The report carries the correspondence rows (the whole point of the union): at
         // least one row per alignment dialect.
@@ -1569,6 +1683,72 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "the logic projection rows must be byte-identical between the freshly \
              assembled report and the committed report; only correspondence + lang: \
              projection rows differ"
+        );
+    }
+
+    /// The shape-grounding certificate ledger: one re-derived certificate per
+    /// `logic:formalizes` record on THIS run's projected constraint surfaces, with the
+    /// entry count EQUAL to the surfaces' record count (count-consistency — no record is
+    /// skipped, none is invented), every entry carrying a re-derived
+    /// `logic:preservationKind`, and the artifact emitted as its own canonical fold
+    /// (structural idempotence: re-canonicalizing is a byte no-op).
+    #[test]
+    fn shape_grounding_ledger_covers_every_formalizes_record() {
+        let (out, upstream) = run_mappings_with_real_upstream();
+        let ledger = std::str::from_utf8(
+            out.artifact(SHAPE_GROUNDING_LEDGER_PATH)
+                .expect("shape-grounding ledger artifact"),
+        )
+        .expect("utf8 ledger");
+
+        // Count the formalizes records on the SAME fresh surfaces the stage consumed
+        // (read off the upstream products the helper already ran — no re-run).
+        let constraint_ttl = upstream["stage-export-constraint-shapes"]
+            .artifact(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH)
+            .expect("constraint shapes");
+        let procedural_ttl = upstream["stage-compile-logic"]
+            .artifact(crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH)
+            .expect("procedural constraints");
+        let mut expected = 0usize;
+        for bytes in [constraint_ttl, procedural_ttl] {
+            let ds = purrdf::parse_dataset(bytes, "text/turtle", None).expect("surface parses");
+            expected += gmeow_validate::shape_grounding::formalizes_records(&ds)
+                .values()
+                .map(std::collections::BTreeSet::len)
+                .sum::<usize>();
+        }
+        assert!(expected > 0, "the surfaces must carry formalizes records");
+        // Count-consistency, quad-exact: the ledger re-states EVERY surface
+        // logic:formalizes record (no record skipped, none invented) and carries exactly
+        // one re-derived judgment per record subject.
+        let ledger_ds =
+            purrdf::parse_dataset(ledger.as_bytes(), "text/turtle", None).expect("ledger parses");
+        let ledger_records = gmeow_validate::shape_grounding::formalizes_records(&ledger_ds);
+        assert_eq!(
+            ledger_records
+                .values()
+                .map(std::collections::BTreeSet::len)
+                .sum::<usize>(),
+            expected,
+            "the ledger must carry EXACTLY one certificate entry per surface \
+             logic:formalizes record (count-consistency)"
+        );
+        assert_eq!(
+            ledger.matches("logic:preservationKind logic:").count(),
+            ledger_records.len(),
+            "every record carries exactly one re-derived preservation judgment"
+        );
+        // The committed bytes ARE the canonical fold: re-canonicalizing is a byte no-op
+        // (the structural idempotence guarantee — a second regenerate cannot differ).
+        let recanon = purrdf::turtle_normalize::canonical_turtle(
+            ledger.as_bytes(),
+            &crate::stages::superset::rdf_prefixes(),
+        )
+        .expect("re-canonicalize");
+        assert_eq!(
+            recanon.as_bytes(),
+            ledger.as_bytes(),
+            "the ledger must be emitted as exactly its own canonical fold"
         );
     }
 
