@@ -776,6 +776,58 @@ mod tests {
         );
     }
 
+    // ── Test 2c: G5 — check rejects a `not Undefined` negation justification ───────
+
+    #[test]
+    fn check_rejects_undefined_negative_premise() {
+        // G5 regression: a `by_rule` proof of `p(a) :- not q(a)` whose negative premise
+        // `q(a)` is merely NON-TRUE (Undefined — a member of Γ(W), not proven
+        // well-founded-FALSE) must be REJECTED. Negation-as-failure is sound only over a
+        // genuinely FALSE atom; "not proven true" is not the same as "proven false".
+        let mut dag = TermDag::new();
+        let q_a = ground_atom(&mut dag, Q, &[A]);
+        let p_a = ground_atom(&mut dag, P, &[A]);
+        let rule_tid = reifier_handle(&mut dag, RULE);
+
+        // by_rule(p(a); rule; []) with the rule's sole body atom NEGATIVE (`not q(a)`).
+        let proof = proof_by_rule(&mut dag, p_a, rule_tid, &[]);
+
+        // (a) q(a) is Undefined (∈ Γ(W)): present in `not_false` ⇒ rejected.
+        let mut ctx_undefined = RuleCtx::default();
+        ctx_undefined.rules.insert(
+            rule_tid,
+            GroundClause {
+                head: p_a,
+                pos: vec![],
+                neg: vec![q_a],
+            },
+        );
+        ctx_undefined.not_false.insert(q_a);
+        assert!(
+            matches!(
+                check(&mut dag, proof, &ctx_undefined),
+                Err(ProofError::NegativePremiseNotFalse { .. })
+            ),
+            "a `not q(a)` justification where q(a) is merely Undefined must be rejected"
+        );
+
+        // (b) Control: q(a) is genuinely FALSE (absent from `not_false`) ⇒ accepted.
+        let mut ctx_false = RuleCtx::default();
+        ctx_false.rules.insert(
+            rule_tid,
+            GroundClause {
+                head: p_a,
+                pos: vec![],
+                neg: vec![q_a],
+            },
+        );
+        assert_eq!(
+            check(&mut dag, proof, &ctx_false),
+            Ok(p_a),
+            "a genuinely well-founded-FALSE negative premise is a valid justification"
+        );
+    }
+
     // ── Test 3: derivation_iri byte-parity with mint_derivation_id / RuleApplication ─
 
     #[test]

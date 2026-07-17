@@ -367,6 +367,26 @@ fn canon_rec(
 /// Render a ground term to a deterministic functional surface: an IRI/literal leaf to its
 /// lexical/IRI text, and `op(arg, …)` for an application (a nullary application is bare
 /// `op`). Used for the answer-binding surfaces.
+///
+/// # Binders (G10)
+///
+/// A [`NodeData::Binder`] renders its FULL de-Bruijn-faithful structure — `op[sorts…].body`
+/// — rather than collapsing to an opaque literal. Bound occurrences inside `body` already
+/// render as `_b{debruijn}.{slot}` (locally-nameless, alpha-invariant), so two
+/// structurally-distinct binder terms render to two distinct surfaces and two alpha-equal
+/// ones render identically.
+///
+/// # NOT an identity key (G11)
+///
+/// This surface is **human-facing** — the `goalDirectedAtom` binding literal — and is **NOT**
+/// the answer identity/dedup key. The `op(arg,…)` application join and the `op[sorts…].body`
+/// binder join are **comma-delimited**, so the rendering is **NON-INJECTIVE over comma-bearing
+/// content**: an IRI or literal whose lexical text legally contains a comma (or a compound
+/// sort) can make two structurally DISTINCT terms render to the SAME string — e.g. the 2-ary
+/// `f(a, b)` and the 1-ary application of the single IRI leaf `"a,b"` both render `"f(a,b)"`.
+/// [`project`] therefore dedups (and orders on tie) by the arena CONTENT KEY ([`TermDag::key`],
+/// the engine's content address for answer tables and rule identity), NEVER by this rendered
+/// string — so a genuinely distinct answer is never silently dropped (a completeness bug).
 pub(crate) fn render(dag: &TermDag, node: NodeId) -> String {
     match dag.data(node) {
         NodeData::Leaf(tid) | NodeData::Free(tid) => render_atom(dag.atom_value(*tid)),
@@ -380,7 +400,16 @@ pub(crate) fn render(dag: &TermDag, node: NodeId) -> String {
             let inner: Vec<String> = args.iter().map(|a| render(dag, *a)).collect();
             format!("{}({})", render(dag, op), inner.join(","))
         }
-        NodeData::Binder { .. } => "<binder>".to_owned(),
+        NodeData::Binder { op, sorts, body } => {
+            let (op, sorts, body) = (*op, sorts.clone(), *body);
+            let sort_strs: Vec<String> = sorts.iter().map(|s| render(dag, *s)).collect();
+            format!(
+                "{}[{}].{}",
+                render(dag, op),
+                sort_strs.join(","),
+                render(dag, body)
+            )
+        }
     }
 }
 
@@ -470,28 +499,85 @@ struct BodySolution {
     negs: Vec<NodeId>,
 }
 
-/// Solve a clause body left-to-right against the CURRENT answer tables, returning every
-/// completed solution. A positive literal joins the stored answers of its (demanded)
-/// subgoal; a negative literal is *delayed* (its subgoal is demanded but the derivation is
-/// not constrained), recording the ground negated atom. A negated literal that is not ground
-/// once reached flounders.
+/// Solve a clause body against the CURRENT answer tables, returning every completed
+/// solution.
+///
+/// # Safe literal selection (SLG safe-computation rule / SIPS)
+///
+/// Body literals are NOT processed in bare authored order: at each step the solver selects,
+/// among the not-yet-processed literals, the FIRST one (in original-index order, for
+/// determinism) that is *safe* to resolve now — a positive literal is always safe (it
+/// PRODUCES bindings by joining the demanded subgoal's stored answers), while a negative
+/// literal is safe only once every one of its variables is already bound by an
+/// already-selected positive literal (its instantiated atom is ground). This is the
+/// standard mode-constrained selection function real SLG/tabling engines use: `not A`
+/// consumes bindings, it never produces them, so selecting it before its variables are
+/// bound is unsound NAF-over-an-open-goal, not a sound answer. Selecting a SAFE literal
+/// first means the authored conjunct order of e.g. `win(X) :- move(X, Y), not win(Y).` and
+/// its reversal `win(X) :- not win(Y), move(X, Y).` both resolve identically: `not win(Y)`
+/// is deferred until `move(X, Y)` — wherever it sits in the body — has bound `Y`.
+///
+/// A positive literal joins the stored answers of its (demanded) subgoal; a negative
+/// literal is *delayed* (its subgoal is demanded but the derivation is not constrained),
+/// recording the ground negated atom. Floundering — [`Engine::floundered`] — is raised ONLY
+/// when NO remaining literal is safe under ANY selection order (every remaining literal is a
+/// negative atom with a variable no positive literal, present or absent, could ever bind),
+/// never merely because the authored order happened to place a negative literal first.
+///
+/// `remaining` is a `u64` bitmask over body-literal indices (bit `i` set ⇒ `body[i]` is
+/// not yet selected) rather than a heap-allocated index list — the caller
+/// ([`resolve_fol`]) rejects any clause body wider than 64 literals up front
+/// ([`UnsupportedKind::ClauseBodyTooWide`]), so every mask built here and in
+/// [`expand_round`] is guaranteed to fit.
 fn solve_body(
     dag: &mut TermDag,
     engine: &mut Engine,
     ctx: &SortContext,
     body: &[FolLit],
-    idx: usize,
+    remaining: u64,
     state: BodySolution,
     out: &mut Vec<BodySolution>,
 ) {
     if engine.floundered {
         return;
     }
-    if idx == body.len() {
+    if remaining == 0 {
         out.push(state);
         return;
     }
-    match body[idx] {
+    // Scan the mask in ascending (original-index-preserving) order and select the FIRST safe
+    // literal. When the authored order is already safe this picks the lowest set bit every
+    // time, so a program with no negation-before-binding hazard behaves byte-identically to
+    // plain left-to-right solving.
+    let mut chosen: Option<usize> = None;
+    for (i, lit) in body.iter().enumerate() {
+        if remaining & (1u64 << i) == 0 {
+            continue;
+        }
+        let safe = match *lit {
+            FolLit::Pos(_) => true,
+            FolLit::Neg(atom) => {
+                let a = apply(dag, &state.subst, atom);
+                is_ground(dag, a)
+            }
+        };
+        if safe {
+            chosen = Some(i);
+            break;
+        }
+    }
+    let sel = match chosen {
+        Some(i) => i,
+        None => {
+            // Every remaining literal is negative and unbound under EVERY selection order —
+            // no positive literal remains that could ever ground it. Genuine floundering, a
+            // declared gap, never a fabricated answer.
+            engine.floundered = true;
+            return;
+        }
+    };
+    let rest: u64 = remaining & !(1u64 << sel);
+    match body[sel] {
         FolLit::Pos(atom) => {
             let a = apply(dag, &state.subst, atom);
             engine.register_call(dag, a);
@@ -506,18 +592,16 @@ fn solve_body(
                         premises,
                         negs: state.negs.clone(),
                     };
-                    solve_body(dag, engine, ctx, body, idx + 1, next, out);
+                    solve_body(dag, engine, ctx, body, rest, next, out);
                 }
             }
         }
         FolLit::Neg(atom) => {
             let a = apply(dag, &state.subst, atom);
-            if !is_ground(dag, a) {
-                // A negated variable still unbound when the NAF literal is reached: NAF over
-                // an unbound goal is unsound — a declared floundering gap, never a wrong answer.
-                engine.floundered = true;
-                return;
-            }
+            debug_assert!(
+                is_ground(dag, a),
+                "safe selection guarantees a negative literal is ground when chosen"
+            );
             // Demand A so its own rules are grounded; DELAY the truth check to the WFS phase.
             engine.register_call(dag, a);
             engine.record_atom(dag, a);
@@ -528,7 +612,7 @@ fn solve_body(
                 premises: state.premises.clone(),
                 negs,
             };
-            solve_body(dag, engine, ctx, body, idx + 1, next, out);
+            solve_body(dag, engine, ctx, body, rest, next, out);
         }
     }
 }
@@ -594,7 +678,27 @@ fn expand_round(
                 premises: Vec::new(),
                 negs: Vec::new(),
             };
-            solve_body(dag, engine, ctx, &renamed.body, 0, seed, &mut solutions);
+            // A full mask over the body's literal indices. `n >= 64` is already unreachable
+            // (`resolve_fol` rejects any body wider than 64 literals up front), but the
+            // explicit branch keeps the `1u64 << n` shift self-evidently safe (a bare
+            // `(1u64 << n) - 1` would debug-panic on overflow at `n == 64`).
+            let n = renamed.body.len();
+            let remaining: u64 = if n == 0 {
+                0
+            } else if n >= 64 {
+                u64::MAX
+            } else {
+                (1u64 << n) - 1
+            };
+            solve_body(
+                dag,
+                engine,
+                ctx,
+                &renamed.body,
+                remaining,
+                seed,
+                &mut solutions,
+            );
             if engine.floundered {
                 return Vec::new();
             }
@@ -949,8 +1053,11 @@ fn project(
     w: &BTreeSet<String>,
     proofs: &HashMap<String, NodeId>,
 ) -> gmeow_errors::Result<Vec<FolBinding>> {
-    // Candidate true atoms in deterministic content-key order.
-    let mut rows: Vec<FolBinding> = Vec::new();
+    // Candidate true atoms in deterministic content-key order. Each row carries a CONTENT
+    // identity key (built from the arena content address of every goal-variable binding) used
+    // for dedup and tie-order — never the rendered binding surface, which comma-joins compound
+    // terms and is therefore non-injective over comma-bearing content (see [`render`] § G11).
+    let mut rows: Vec<(String, FolBinding)> = Vec::new();
     let mut seen: BTreeSet<String> = BTreeSet::new();
     let true_atoms: Vec<(String, NodeId)> = engine
         .atoms
@@ -970,9 +1077,24 @@ fn project(
             continue;
         }
         let mut binding: Binding = BTreeMap::new();
+        // The CONTENT identity of this answer: each goal variable paired with the arena content
+        // key of its resolved sub-term. Length-framed so the concatenation is injective (a name
+        // or key legally containing the delimiter cannot forge a collision). The rendered
+        // surface goes into `binding` for the human-facing literal; `dag.key` is the identity.
+        let mut identity = String::new();
         for (meta_node, name) in &program.goal_vars {
             let resolved = apply(dag, &s, *meta_node);
-            binding.insert(name.clone(), render(dag, resolved));
+            let rendered = render(dag, resolved);
+            let key = dag.key(resolved);
+            identity.push_str(&(name.len() as u64).to_string());
+            identity.push(':');
+            identity.push_str(name);
+            identity.push('=');
+            identity.push_str(&(key.len() as u64).to_string());
+            identity.push(':');
+            identity.push_str(key);
+            identity.push(';');
+            binding.insert(name.clone(), rendered);
         }
         let proof = proofs.get(&atom_key).copied().ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
@@ -982,27 +1104,28 @@ fn project(
                 ),
             })
         })?;
-        // Deterministic dedup by the full binding surface.
-        let dedup_key = binding
-            .iter()
-            .map(|(k, v)| format!("{k}={v}"))
-            .collect::<Vec<_>>()
-            .join(";");
-        if seen.insert(dedup_key) {
-            rows.push(FolBinding {
-                bindings: binding,
-                atom,
-                proof,
-            });
+        // Deterministic dedup by the CONTENT identity — two answers whose surfaces collide
+        // under comma-joining but whose content differs BOTH survive (completeness).
+        if seen.insert(identity.clone()) {
+            rows.push((
+                identity,
+                FolBinding {
+                    bindings: binding,
+                    atom,
+                    proof,
+                },
+            ));
         }
     }
-    // Sort rows by their binding surface for a stable, deterministic answer order.
+    // Sort rows by their binding surface for a stable, deterministic answer order, breaking a
+    // rendered-surface tie (a comma-join collision) by the content identity so colliding
+    // answers still order deterministically and byte-stably.
     rows.sort_by(|a, b| {
-        let ka: Vec<(&String, &String)> = a.bindings.iter().collect();
-        let kb: Vec<(&String, &String)> = b.bindings.iter().collect();
-        ka.cmp(&kb)
+        let ka: Vec<(&String, &String)> = a.1.bindings.iter().collect();
+        let kb: Vec<(&String, &String)> = b.1.bindings.iter().collect();
+        ka.cmp(&kb).then_with(|| a.0.cmp(&b.0))
     });
-    Ok(rows)
+    Ok(rows.into_iter().map(|(_, b)| b).collect())
 }
 
 // ── The core entry ──────────────────────────────────────────────────────────────────
@@ -1021,6 +1144,15 @@ pub(crate) fn resolve_fol(
     ctx: &SortContext,
     budget: &Budget,
 ) -> gmeow_errors::Result<FolControl> {
+    // Upfront guard: `solve_body` represents the not-yet-selected body literals as a `u64`
+    // bitmask (one bit per literal). Renaming ([`rename_clause`]) only renames variables — it
+    // never adds or removes body literals — so checking authored arity here, BEFORE any
+    // grounding, guarantees every mask built later (in `expand_round`/`solve_body`) fits. A
+    // body wider than 64 literals is an explicit typed refusal, never a silent truncation.
+    if program.clauses.iter().any(|c| c.body.len() > 64) {
+        return Ok(FolControl::Unsupported(UnsupportedKind::ClauseBodyTooWide));
+    }
+
     let mut engine = Engine::new(program.meta_sorts.clone());
     // Seed: demand the goal, and record any explicitly ground goal atom.
     engine.register_call(dag, program.goal);

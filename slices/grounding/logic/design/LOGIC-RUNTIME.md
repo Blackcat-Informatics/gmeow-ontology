@@ -441,11 +441,17 @@ and dense node ids never escaping the runtime — backs:
   **deterministic sound partial** answer set (`BudgetStatus::Exhausted`); an unsupported goal shape is
   a typed `Unsupported` hard failure — no external oracle, no demotion.
 
-These are shipped and observable: the `stage-goal-directed` pipeline stage evaluates authored
-goal-directed demonstrators through this engine and folds their proof-carrying structured answers and
-three-valued WFS verdicts into the `graph/goal-directed` named graph of `gmeow.gts`. What remains
-staged is the *incremental* form: these backward capabilities are batch, and incremental well-founded
-maintenance is the longest-standing perf gap.
+These are shipped and observable, and driven entirely from authored slice content — not Rust
+constants. A goal-directed program is an authored `logic:ReasoningProgram` cell (a clause set over
+the ordinary `logic:Formula`/`logic:FunctionTerm` shape, a `logic:programQuery` goal, optional
+`logic:verdictProbe` atoms, and a `logic:evaluationMode`); the `stage-goal-directed` pipeline stage
+consumes those compiled programs plus the reasoner's derived `rdfs:subClassOf` closure (which supplies
+the order-sort lattice), lowers each clause/query/probe through the shared structured-term arena
+lowering, evaluates it on this backward engine, and folds the proof-carrying structured answers and
+three-valued WFS verdicts — together with the authored program itself — into the `graph/goal-directed`
+named graph of `gmeow.gts`. The same production path is reachable interactively through
+`gmeow logic backward`. What remains staged is the *incremental* form: these backward capabilities are
+batch, and incremental well-founded maintenance is the longest-standing perf gap.
 
 ### Native arithmetic and comparison builtins
 
