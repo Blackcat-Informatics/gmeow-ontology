@@ -1610,3 +1610,27 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   (hoisted to LazyLock statics), the missing ValidationRun-level fold-wiring test (added), and
   the stale Python/PyO3-consumer docstrings (removed). Nothing else was scoped down, proxied,
   or moved off-gate.
+
+## 2026-07-17 — #1524 stable operational ReasoningSession (branch paudley/1524-reasoning-session)
+
+- RESIDUAL WEAKER PROXY (plan-relative, not an issue-requirement gap): the approved plan's
+  AC2 called for derived-tuple-annotation parity over BOTH the Z-weight (multiplicity) and the
+  MinProofHeight semirings. The incremental maintainer genuinely computes only the Z-weight
+  multiplicity (+ one canonical per-fact proof witness: firing rule IRI + premise set). SHIPPED:
+  provenance() surfaces the full maintained closure's per-fact witnesses and the Z-weight, and
+  the AC2 test asserts these match full recomputation (reason_program → InferredAxiom) on
+  rule-identity + premise-SET + weight. MinProofHeight annotation parity is NOT delivered because
+  the DBSP incremental circuit does not compute a proof-height semiring. The issue text itself
+  names no specific semiring, so no issue acceptance criterion is unmet; this is recorded as an
+  honest below-plan item. FORWARD PATH: carry a MinProofHeight (shortest-proof) semiring through
+  the incremental circuit's witness reconstruction so provenance() can expose proof-height
+  annotations comparable to the reasoner's, then extend the AC2 test to assert that second
+  semiring. Not done on this branch (net-new annotation machinery in the maintainer, not a fix).
+
+- BY-DESIGN BOUNDARY (not a descope): the ReasoningSession façade composes with the paged
+  world-source's resident and paged views (open / open_paged) but exposes no succinct-pack
+  constructor, and restore/restart re-materialize the authorized-EDB closure and adopt the
+  durable journal head rather than serializing/replaying the DBSP circuit (approach-a checkpoint,
+  chosen over serializing the load-bearing iteration history). Both match the shipped contract and
+  the issue's acceptance criteria; the pack path and a page-incremental maintainer are net-new
+  capabilities beyond this issue, not fixes to a regression.
