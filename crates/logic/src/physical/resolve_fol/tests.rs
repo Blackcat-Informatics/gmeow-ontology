@@ -955,6 +955,50 @@ fn g8_structured_dispatch_enforces_max_answers_and_marks_partial() {
     }
 }
 
+// ── Gap B: clause body wider than 64 literals is a typed refusal, never a silent cap ──
+
+#[test]
+fn clause_body_wider_than_64_literals_is_unsupported() {
+    // p :- q0, q1, …, q64.  (65 distinct positive atoms) ?- p.
+    // `solve_body` represents the not-yet-selected body literals as a `u64` bitmask (one
+    // bit per literal); a body this wide cannot fit, so `resolve_fol` must reject it
+    // up front as a typed `ClauseBodyTooWide` gap rather than silently truncate/overflow
+    // the mask.
+    let mut dag = TermDag::new();
+    let p = atom(&mut dag, "p", vec![]);
+    let body: Vec<FolLit> = (0..65)
+        .map(|i| FolLit::Pos(atom(&mut dag, &format!("q{i}"), vec![])))
+        .collect();
+    assert_eq!(body.len(), 65, "test setup: body wider than 64 literals");
+
+    let program = FolProgram {
+        clauses: vec![FolClause {
+            head: p,
+            body,
+            rule_iri: rule_iri(&mut dag, 0),
+        }],
+        goal: p,
+        goal_vars: vec![],
+        meta_sorts: HashMap::new(),
+    };
+
+    match resolve_fol(&mut dag, &program, &empty_ctx(), &Budget::default()).unwrap() {
+        FolControl::Unsupported(kind) => {
+            assert_eq!(
+                kind,
+                UnsupportedKind::ClauseBodyTooWide,
+                "a body wider than 64 literals must be the typed ClauseBodyTooWide refusal"
+            );
+        }
+        FolControl::Decided(o) => {
+            panic!(
+                "a clause body wider than the u64 mask must NOT be silently evaluated: {:?}",
+                o.answers
+            )
+        }
+    }
+}
+
 // ── Safe literal selection (SIPS): body-literal order independence ──────────────────
 
 #[test]

@@ -515,29 +515,38 @@ struct BodySolution {
 /// when NO remaining literal is safe under ANY selection order (every remaining literal is a
 /// negative atom with a variable no positive literal, present or absent, could ever bind),
 /// never merely because the authored order happened to place a negative literal first.
+///
+/// `remaining` is a `u64` bitmask over body-literal indices (bit `i` set ⇒ `body[i]` is
+/// not yet selected) rather than a heap-allocated index list — the caller
+/// ([`resolve_fol`]) rejects any clause body wider than 64 literals up front
+/// ([`UnsupportedKind::ClauseBodyTooWide`]), so every mask built here and in
+/// [`expand_round`] is guaranteed to fit.
 fn solve_body(
     dag: &mut TermDag,
     engine: &mut Engine,
     ctx: &SortContext,
     body: &[FolLit],
-    remaining: &[usize],
+    remaining: u64,
     state: BodySolution,
     out: &mut Vec<BodySolution>,
 ) {
     if engine.floundered {
         return;
     }
-    if remaining.is_empty() {
+    if remaining == 0 {
         out.push(state);
         return;
     }
-    // Scan `remaining` in its (original-index-preserving) order and select the FIRST safe
-    // literal. When the authored order is already safe this picks `remaining[0]` every time,
-    // so a program with no negation-before-binding hazard behaves byte-identically to plain
-    // left-to-right solving.
+    // Scan the mask in ascending (original-index-preserving) order and select the FIRST safe
+    // literal. When the authored order is already safe this picks the lowest set bit every
+    // time, so a program with no negation-before-binding hazard behaves byte-identically to
+    // plain left-to-right solving.
     let mut chosen: Option<usize> = None;
-    for &i in remaining {
-        let safe = match body[i] {
+    for (i, lit) in body.iter().enumerate() {
+        if remaining & (1u64 << i) == 0 {
+            continue;
+        }
+        let safe = match *lit {
             FolLit::Pos(_) => true,
             FolLit::Neg(atom) => {
                 let a = apply(dag, &state.subst, atom);
@@ -559,7 +568,7 @@ fn solve_body(
             return;
         }
     };
-    let rest: Vec<usize> = remaining.iter().copied().filter(|&i| i != sel).collect();
+    let rest: u64 = remaining & !(1u64 << sel);
     match body[sel] {
         FolLit::Pos(atom) => {
             let a = apply(dag, &state.subst, atom);
@@ -575,7 +584,7 @@ fn solve_body(
                         premises,
                         negs: state.negs.clone(),
                     };
-                    solve_body(dag, engine, ctx, body, &rest, next, out);
+                    solve_body(dag, engine, ctx, body, rest, next, out);
                 }
             }
         }
@@ -595,7 +604,7 @@ fn solve_body(
                 premises: state.premises.clone(),
                 negs,
             };
-            solve_body(dag, engine, ctx, body, &rest, next, out);
+            solve_body(dag, engine, ctx, body, rest, next, out);
         }
     }
 }
@@ -661,13 +670,24 @@ fn expand_round(
                 premises: Vec::new(),
                 negs: Vec::new(),
             };
-            let remaining: Vec<usize> = (0..renamed.body.len()).collect();
+            // A full mask over the body's literal indices. `n >= 64` is already unreachable
+            // (`resolve_fol` rejects any body wider than 64 literals up front), but the
+            // explicit branch keeps the `1u64 << n` shift self-evidently safe (a bare
+            // `(1u64 << n) - 1` would debug-panic on overflow at `n == 64`).
+            let n = renamed.body.len();
+            let remaining: u64 = if n == 0 {
+                0
+            } else if n >= 64 {
+                u64::MAX
+            } else {
+                (1u64 << n) - 1
+            };
             solve_body(
                 dag,
                 engine,
                 ctx,
                 &renamed.body,
-                &remaining,
+                remaining,
                 seed,
                 &mut solutions,
             );
@@ -1097,6 +1117,15 @@ pub(crate) fn resolve_fol(
     ctx: &SortContext,
     budget: &Budget,
 ) -> gmeow_errors::Result<FolControl> {
+    // Upfront guard: `solve_body` represents the not-yet-selected body literals as a `u64`
+    // bitmask (one bit per literal). Renaming ([`rename_clause`]) only renames variables — it
+    // never adds or removes body literals — so checking authored arity here, BEFORE any
+    // grounding, guarantees every mask built later (in `expand_round`/`solve_body`) fits. A
+    // body wider than 64 literals is an explicit typed refusal, never a silent truncation.
+    if program.clauses.iter().any(|c| c.body.len() > 64) {
+        return Ok(FolControl::Unsupported(UnsupportedKind::ClauseBodyTooWide));
+    }
+
     let mut engine = Engine::new(program.meta_sorts.clone());
     // Seed: demand the goal, and record any explicitly ground goal atom.
     engine.register_call(dag, program.goal);
