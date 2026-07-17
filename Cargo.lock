@@ -1930,6 +1930,7 @@ dependencies = [
  "purrdf",
  "rayon",
  "regex",
+ "roxmltree",
  "rstest",
  "serde",
  "serde_json",

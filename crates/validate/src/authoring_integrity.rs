@@ -291,9 +291,314 @@ fn detect_slice_discipline(manifests: &[(PathBuf, Dataset)], root: &Path) -> Res
     Ok(findings)
 }
 
+// ── R2: imports / profile / catalog closure + module-IRI ─────────────────────
+
+const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
+const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
+const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+const TIER_CORE: &str = "https://blackcatinformatics.ca/gmeow/tierCore";
+const TIER_EXTENSION: &str = "https://blackcatinformatics.ca/gmeow/tierExtension";
+const TIER_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/tierProfile";
+const FULL_PROFILE: &str = "generated/profiles/full.ttl";
+const CLAIMS_PROFILE: &str = "generated/profiles/claims.ttl";
+const CATALOG_FILE: &str = "catalog-v001.xml";
+
+/// The tier of a slice, classified from its `gmeow:sliceTier` IRI.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Tier {
+    Core,
+    Extension,
+    Profile,
+}
+
+fn classify_tier(iri: &str) -> Option<Tier> {
+    match iri {
+        TIER_CORE => Some(Tier::Core),
+        TIER_EXTENSION => Some(Tier::Extension),
+        TIER_PROFILE => Some(Tier::Profile),
+        _ => None,
+    }
+}
+
+/// One discovered slice: its IRI, the parsed tier (`None` = tierless, owned by the
+/// slice-discipline gate), and the raw tier IRIs (to detect an unrecognized value).
+struct SliceRec {
+    iri: String,
+    tier: Option<Tier>,
+    raw_tiers: Vec<String>,
+}
+
+/// Every slice declared by a `manifest.ttl` under `slices_dir`, with its tier.
+fn read_slices(slices_dir: &Path) -> Result<Vec<SliceRec>> {
+    let mut out = Vec::new();
+    for manifest in all_manifests(slices_dir) {
+        let ds = parse_ttl(&manifest)?;
+        for iri in ds
+            .subjects_of_type(SLICE_CLASS)
+            .map_err(|e| parse_err(&manifest, &e.to_string()))?
+        {
+            let raw_tiers = ds
+                .object_iris(&iri, SLICE_TIER)
+                .map_err(|e| parse_err(&manifest, &e.to_string()))?;
+            let tier = if raw_tiers.len() == 1 {
+                classify_tier(&raw_tiers[0])
+            } else {
+                None
+            };
+            out.push(SliceRec {
+                iri,
+                tier,
+                raw_tiers,
+            });
+        }
+    }
+    out.sort_by(|a, b| a.iri.cmp(&b.iri));
+    Ok(out)
+}
+
+/// Every `slices/*/*/module.ttl` — the minting slice modules the catalog and
+/// module-IRI gates key on. Deterministically sorted.
+fn slice_module_files(slices_dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![slices_dir.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() && !path.is_symlink() {
+                stack.push(path);
+            } else if path.file_name().is_some_and(|n| n == "module.ttl") {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// The `owl:Ontology` subject IRI of a module (the first, matching the retired
+/// Python which took `[0]`); `None` when the module declares no ontology.
+fn module_ontology_iri(ds: &Dataset, path: &Path) -> Result<Option<String>> {
+    let mut subjects = ds
+        .subjects_of_type(OWL_ONTOLOGY)
+        .map_err(|e| parse_err(path, &e.to_string()))?;
+    subjects.sort();
+    Ok(subjects.into_iter().next())
+}
+
+/// A profile document's `owl:imports` IRI set (union across its `owl:Ontology`
+/// subjects, named-node objects only).
+fn profile_imports(repo_root: &Path, rel_path: &str) -> Result<std::collections::BTreeSet<String>> {
+    let path = repo_root.join(rel_path);
+    let ds = parse_ttl(&path)?;
+    let mut out = std::collections::BTreeSet::new();
+    for subject in ds
+        .subjects_of_type(OWL_ONTOLOGY)
+        .map_err(|e| parse_err(&path, &e.to_string()))?
+    {
+        for iri in ds
+            .object_iris(&subject, OWL_IMPORTS)
+            .map_err(|e| parse_err(&path, &e.to_string()))?
+        {
+            out.insert(iri);
+        }
+    }
+    Ok(out)
+}
+
+/// Profile & partition closure: `full` imports the root plus every extension,
+/// `claims` is a strict subset of core, and every slice carries exactly one
+/// recognized tier (the retired `test_full_profile_imports_every_slice`,
+/// `test_claims_profile_is_genuinely_sub_core`). A tierless slice is owned by the
+/// slice-discipline gate and NOT re-reported here.
+pub fn profile_closure_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let slices = read_slices(&repo_root.join("slices"))?;
+    let full_imports = profile_imports(repo_root, FULL_PROFILE)?;
+    let claims_imports = profile_imports(repo_root, CLAIMS_PROFILE)?;
+    Ok(detect_profile_closure(
+        &slices,
+        &full_imports,
+        &claims_imports,
+    ))
+}
+
+fn detect_profile_closure(
+    slices: &[SliceRec],
+    full_imports: &std::collections::BTreeSet<String>,
+    claims_imports: &std::collections::BTreeSet<String>,
+) -> Vec<Finding> {
+    use std::collections::BTreeSet;
+    let core: BTreeSet<&str> = slices
+        .iter()
+        .filter(|s| s.tier == Some(Tier::Core))
+        .map(|s| s.iri.as_str())
+        .collect();
+    let extensions: BTreeSet<&str> = slices
+        .iter()
+        .filter(|s| s.tier == Some(Tier::Extension))
+        .map(|s| s.iri.as_str())
+        .collect();
+
+    let mut findings = Vec::new();
+
+    // A slice that has a sliceTier value but it is not one of the three recognized
+    // tiers is a partition break (a tierless slice is the discipline gate's job).
+    for s in slices {
+        if s.tier.is_none() && !s.raw_tiers.is_empty() {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_PROFILE_CLOSURE,
+                format!(
+                    "slice {iri} has unrecognized gmeow:sliceTier {tiers:?} — a slice must be \
+                     exactly one of tierCore / tierExtension / tierProfile",
+                    iri = s.iri,
+                    tiers = s.raw_tiers,
+                ),
+                Some(s.iri.clone()),
+            ));
+        }
+    }
+
+    // full.ttl imports == {ontology IRI} ∪ extensions.
+    let mut expected_full: BTreeSet<&str> = extensions.clone();
+    expected_full.insert(ONTOLOGY_IRI);
+    let full_set: BTreeSet<&str> = full_imports.iter().map(String::as_str).collect();
+    if full_set != expected_full {
+        let extra: Vec<&&str> = full_set.difference(&expected_full).collect();
+        let missing: Vec<&&str> = expected_full.difference(&full_set).collect();
+        findings.push(finding(
+            Severity::Error,
+            codes::AUTHORING_PROFILE_CLOSURE,
+            format!(
+                "generated/profiles/full.ttl owl:imports must equal the root plus every extension. \
+                 extra: {extra:?}; missing: {missing:?}"
+            ),
+            None,
+        ));
+    }
+
+    // claims.ttl imports ⊊ core (strict subset).
+    let claims_set: BTreeSet<&str> = claims_imports.iter().map(String::as_str).collect();
+    if !(claims_set.is_subset(&core) && claims_set != core) {
+        let extra: Vec<&&str> = claims_set.difference(&core).collect();
+        findings.push(finding(
+            Severity::Error,
+            codes::AUTHORING_PROFILE_CLOSURE,
+            format!(
+                "generated/profiles/claims.ttl owl:imports must be a STRICT subset of core. \
+                 not-in-core: {extra:?}"
+            ),
+            None,
+        ));
+    }
+
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    findings
+}
+
+/// Catalog closure: every slice module's `owl:Ontology` IRI is mapped in the
+/// generated OASIS catalog (the retired `test_all_modules_are_in_catalog`).
+pub fn catalog_closure_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let catalog_names = catalog_uri_names(repo_root)?;
+    let mut module_iris: Vec<(String, PathBuf)> = Vec::new();
+    for module in slice_module_files(&repo_root.join("slices")) {
+        let ds = parse_ttl(&module)?;
+        if let Some(iri) = module_ontology_iri(&ds, &module)? {
+            module_iris.push((iri, module));
+        }
+    }
+    let mut findings = Vec::new();
+    for (iri, module) in module_iris {
+        if !catalog_names.contains(&iri) {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_CATALOG_MISSING_MODULE,
+                format!(
+                    "module {file} declares owl:Ontology {iri} which is absent from {CATALOG_FILE}",
+                    file = rel(&module, repo_root),
+                ),
+                Some(iri),
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    Ok(findings)
+}
+
+/// The `name` attribute of every `<uri>` element in the OASIS catalog, parsed with
+/// a real read-only XML DOM (comments/CDATA/entities handled — never a substring
+/// scan). Matched by local element name, so the catalog's default namespace does
+/// not hide the entries.
+fn catalog_uri_names(repo_root: &Path) -> Result<std::collections::BTreeSet<String>> {
+    let path = repo_root.join(CATALOG_FILE);
+    let text = std::fs::read_to_string(&path).map_err(|e| io_err(&path, &e))?;
+    parse_catalog_names(&text, &path)
+}
+
+/// Parse the OASIS catalog XML text into the set of `<uri>` `name` attributes.
+/// Matched by local element name so the catalog's default namespace does not hide
+/// the entries; a real DOM parse handles comments/CDATA/entities.
+fn parse_catalog_names(text: &str, path: &Path) -> Result<std::collections::BTreeSet<String>> {
+    let doc = roxmltree::Document::parse(text)
+        .map_err(|e| parse_err(path, &format!("catalog XML: {e}")))?;
+    let mut names = std::collections::BTreeSet::new();
+    for node in doc.descendants() {
+        if node.is_element()
+            && node.tag_name().name() == "uri"
+            && let Some(name) = node.attribute("name")
+        {
+            names.insert(name.to_string());
+        }
+    }
+    Ok(names)
+}
+
+/// Module-IRI discipline: each slice module's `owl:Ontology` IRI equals its
+/// location-derived IRI `…/gmeow/slices/<slice-dir-name>` — the parent directory
+/// name, never the group segment (the retired `test_module_iri_matches_filename`).
+pub fn module_iri_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let mut findings = Vec::new();
+    for module in slice_module_files(&repo_root.join("slices")) {
+        let ds = parse_ttl(&module)?;
+        let slice_dir = module
+            .parent()
+            .and_then(|p| p.file_name())
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+        let expected = format!("{GMEOW_NS}slices/{slice_dir}");
+        match module_ontology_iri(&ds, &module)? {
+            Some(iri) if iri == expected => {}
+            Some(iri) => findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_MODULE_IRI_MISMATCH,
+                format!(
+                    "module {file} declares owl:Ontology {iri} but its location requires {expected}",
+                    file = rel(&module, repo_root),
+                ),
+                Some(iri),
+            )),
+            None => findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_MODULE_IRI_MISMATCH,
+                format!(
+                    "module {file} declares no owl:Ontology (expected {expected})",
+                    file = rel(&module, repo_root),
+                ),
+                None,
+            )),
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    Ok(findings)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeSet;
 
     fn ds(ttl: &str) -> Dataset {
         let prefixes = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -401,6 +706,113 @@ mod tests {
             )
             .unwrap()
             .is_empty()
+        );
+    }
+
+    fn slice(iri: &str, tier: Option<Tier>) -> SliceRec {
+        SliceRec {
+            iri: iri.to_string(),
+            tier,
+            raw_tiers: match tier {
+                Some(Tier::Core) => vec![TIER_CORE.to_string()],
+                Some(Tier::Extension) => vec![TIER_EXTENSION.to_string()],
+                Some(Tier::Profile) => vec![TIER_PROFILE.to_string()],
+                None => Vec::new(),
+            },
+        }
+    }
+
+    fn iset(items: &[&str]) -> BTreeSet<String> {
+        items.iter().map(|s| (*s).to_string()).collect()
+    }
+
+    #[test]
+    fn profile_closure_clean_on_a_well_formed_partition() {
+        let slices = vec![
+            slice("g/core-a", Some(Tier::Core)),
+            slice("g/ext-a", Some(Tier::Extension)),
+            slice("g/prof-a", Some(Tier::Profile)),
+        ];
+        // full = ontology ∪ {ext}, claims ⊊ core.
+        let full = iset(&[ONTOLOGY_IRI, "g/ext-a"]);
+        let claims = iset(&[]); // strict subset of {core-a}
+        assert!(detect_profile_closure(&slices, &full, &claims).is_empty());
+    }
+
+    #[test]
+    fn profile_closure_flags_full_missing_an_extension() {
+        let slices = vec![
+            slice("g/core-a", Some(Tier::Core)),
+            slice("g/ext-a", Some(Tier::Extension)),
+        ];
+        let full = iset(&[ONTOLOGY_IRI]); // missing ext-a
+        let claims = iset(&[]);
+        let findings = detect_profile_closure(&slices, &full, &claims);
+        assert!(findings.iter().any(|f| f.message.contains("full.ttl")));
+    }
+
+    #[test]
+    fn profile_closure_flags_claims_not_strict_subset() {
+        let slices = vec![slice("g/core-a", Some(Tier::Core))];
+        let full = iset(&[ONTOLOGY_IRI]);
+        // claims == core (not STRICT) → violation.
+        let claims = iset(&["g/core-a"]);
+        let findings = detect_profile_closure(&slices, &full, &claims);
+        assert!(findings.iter().any(|f| f.message.contains("claims.ttl")));
+    }
+
+    #[test]
+    fn profile_closure_flags_unrecognized_tier_but_not_a_tierless_slice() {
+        // A tierless slice is the discipline gate's job — NOT re-reported here.
+        // (A real core slice is present so the claims⊊core check is well-formed;
+        // claims ⊊ {core-a} holds for the empty claims set.)
+        let clean = vec![
+            slice("g/core-a", Some(Tier::Core)),
+            slice("g/tierless", None),
+        ];
+        let full = iset(&[ONTOLOGY_IRI]);
+        assert!(detect_profile_closure(&clean, &full, &iset(&[])).is_empty());
+
+        // A slice WITH a sliceTier value that is not one of the three IS flagged.
+        let bogus = SliceRec {
+            iri: "g/bogus".to_string(),
+            tier: None,
+            raw_tiers: vec!["https://blackcatinformatics.ca/gmeow/tierBogus".to_string()],
+        };
+        let findings = detect_profile_closure(
+            &[slice("g/core-a", Some(Tier::Core)), bogus],
+            &full,
+            &iset(&[]),
+        );
+        assert!(findings.iter().any(|f| f.message.contains("unrecognized")));
+    }
+
+    #[test]
+    fn catalog_names_parse_ignores_comments_and_default_namespace() {
+        let xml = "<?xml version=\"1.0\"?>\n\
+             <!-- a comment mentioning uri name= that must not be scanned -->\n\
+             <catalog xmlns=\"urn:oasis:names:tc:entity:xmlns:xml:catalog\">\n\
+               <uri name=\"https://blackcatinformatics.ca/gmeow/slices/temporal\" uri=\"a.ttl\"/>\n\
+               <uri name=\"https://blackcatinformatics.ca/gmeow\" uri=\"b.ttl\"/>\n\
+             </catalog>";
+        let names = parse_catalog_names(xml, Path::new("catalog-v001.xml")).unwrap();
+        assert_eq!(names.len(), 2);
+        assert!(names.contains("https://blackcatinformatics.ca/gmeow/slices/temporal"));
+        // The commented-out text is not harvested.
+        assert!(!names.iter().any(|n| n.contains("must not be scanned")));
+    }
+
+    #[test]
+    fn module_iri_expected_is_the_slice_dir_not_the_group() {
+        // The expected IRI derives from the immediate parent dir (slice name),
+        // never the grandparent group segment.
+        let module = PathBuf::from("slices/core/temporal/module.ttl");
+        let slice_dir = module.parent().unwrap().file_name().unwrap();
+        assert_eq!(slice_dir, "temporal");
+        let expected = format!("{GMEOW_NS}slices/{}", slice_dir.to_string_lossy());
+        assert_eq!(
+            expected,
+            "https://blackcatinformatics.ca/gmeow/slices/temporal"
         );
     }
 }

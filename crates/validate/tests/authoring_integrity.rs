@@ -83,3 +83,74 @@ fn slice_discipline_is_clean_across_the_committed_manifests() {
             .join("\n")
     );
 }
+
+fn joined(findings: &[gmeow_errors::Finding]) -> String {
+    findings
+        .iter()
+        .map(|f| f.message.clone())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[test]
+fn profile_and_partition_closure_is_clean() {
+    let root = repo_root();
+    // Non-vacuity: the profile documents must exist and the partition must have
+    // genuinely populated core + extension sets (guarded by the detector's
+    // full == ontology ∪ extensions check, which is non-trivial only when
+    // extensions is non-empty).
+    assert!(
+        root.join("generated/profiles/full.ttl").is_file(),
+        "generated/profiles/full.ttl missing"
+    );
+    assert!(
+        root.join("generated/profiles/claims.ttl").is_file(),
+        "generated/profiles/claims.ttl missing"
+    );
+
+    let findings = authoring_integrity::profile_closure_findings(&root).expect("profile closure");
+    assert!(
+        findings.is_empty(),
+        "profile/partition closure defects:\n{}",
+        joined(&findings)
+    );
+}
+
+#[test]
+fn every_slice_module_is_in_the_catalog() {
+    let root = repo_root();
+    // Non-vacuity: the catalog must parse to a genuinely populated name set.
+    let names = purrdf_free_catalog_names(&root);
+    assert!(
+        names > 1,
+        "catalog parsed {names} <uri> entries — the closure check would be vacuous"
+    );
+
+    let findings = authoring_integrity::catalog_closure_findings(&root).expect("catalog closure");
+    assert!(
+        findings.is_empty(),
+        "slice modules absent from catalog-v001.xml:\n{}",
+        joined(&findings)
+    );
+}
+
+/// A local re-parse of the catalog `<uri>` name count for the non-vacuity guard —
+/// independent of the detector, so a broken detector cannot make the guard pass.
+fn purrdf_free_catalog_names(root: &Path) -> usize {
+    let text = std::fs::read_to_string(root.join("catalog-v001.xml")).expect("read catalog");
+    let doc = roxmltree::Document::parse(&text).expect("parse catalog");
+    doc.descendants()
+        .filter(|n| n.is_element() && n.tag_name().name() == "uri")
+        .count()
+}
+
+#[test]
+fn every_slice_module_iri_matches_its_location() {
+    let root = repo_root();
+    let findings = authoring_integrity::module_iri_findings(&root).expect("module iri");
+    assert!(
+        findings.is_empty(),
+        "module owl:Ontology IRIs that do not match their location:\n{}",
+        joined(&findings)
+    );
+}
