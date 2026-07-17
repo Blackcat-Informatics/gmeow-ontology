@@ -3,10 +3,13 @@
 #
 # A conforming chain complex: the filled oriented triangle with its two-level signed
 # incidences (∂∘∂ = 0 at every vertex), its math:Cycle and bounding math:Boundary, the
-# math:HomologyGroup H₁ = Z/B they generate, and the constant sheaf whose cohomology
-# recovers that cellular homology. Every codimension-2 (coface, far-face) group's signed
-# incidence-sign-product sum is 0, so it satisfies math:BoundarySquareZeroConstraint and
-# math:GeneralBoundarySquareZeroConstraint and validates with no findings.
+# math:HomologyGroup H₁ = Z/B they generate, and the constant sheaf whose degree-1 sheaf
+# COHOMOLOGY H¹(X;F) — a different, contravariant construction from H₁ = Z/B — naturally
+# corresponds to it at that same degree (math:constantSheafRecoversHomologyLaw; NOT the
+# first sheaf-cohomology math:GluingObstruction reading, a structurally distinct role).
+# Every codimension-2 (coface, far-face) group's signed incidence-sign-product sum is 0,
+# so it satisfies math:BoundarySquareZeroConstraint and math:GeneralBoundarySquareZeroConstraint
+# and validates with no findings.
 
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .

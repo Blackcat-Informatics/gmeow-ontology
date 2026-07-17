@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A genuinely-gluing global section over a NON-IDENTITY math:SheafRestrictionMap: the
+# general cellular-sheaf gluing condition is restriction(sourceValue) = targetValue, of
+# which the raw source/target agreement other fixtures in this suite exercise is only the
+# identity-map special case (a math:ConstantSheaf). Here the restriction map's declared
+# math:RestrictionImage records a genuinely non-identity action — it sends the source
+# value 3 to 6, a doubling — and the target stalk carries the value 6, so applying the
+# map to the source value agrees with the target: restriction(3) = 6 = 6. The section
+# still glues (math:SectionGluingInconsistency inert) even though 3 ≠ 6 raw, proving the
+# corrected constraint checks the TRANSPORTED value, never the raw source, against the
+# target.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/gluing-nonidentity/> .
+
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:base ;
+    math:hasStalk ex:vertexStalk , ex:edgeStalk ;
+    math:restrictionMap ex:vertexToEdge ;
+    math:hasGlobalSection ex:globalSection .
+ex:base a math:CellComplex .
+ex:subregion a math:CellComplex .
+
+# The source stalk carries 3; the target stalk carries 6 — NOT raw-equal to the source,
+# but exactly the image the non-identity restriction map declares for that source value.
+ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertex ; math:stalkValue 3 .
+ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edge ; math:stalkValue 6 .
+ex:vertexToEdge a math:SheafRestrictionMap ;
+    math:sourceObject ex:vertexStalk ;
+    math:targetObject ex:edgeStalk ;
+    math:restrictionImage ex:vertexToEdgeImage .
+
+# The non-identity action: restriction(3) = 6, a doubling — NOT the identity map.
+ex:vertexToEdgeImage a math:RestrictionImage ;
+    math:imageSourceValue 3 ; math:imageTargetValue 6 .
+
+# The global section over the ENTIRE base — the map's declared image (3 ↦ 6) agrees
+# with the target stalk's declared value (6), so it glues.
+ex:globalSection a math:GlobalSection ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:base .
+
+# A local section over a proper subcomplex — legitimately scoped smaller.
+ex:localSection a math:LocalSection ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:subregion .
+
+# The H¹ obstruction class, anchored to the sheaf whose lifting it reasons about.
+ex:gluingObstruction a math:GluingObstruction ;
+    math:obstructionOf ex:sheaf .
+
+ex:vertex a math:MathematicalObject .
+ex:edge a math:MathematicalObject .

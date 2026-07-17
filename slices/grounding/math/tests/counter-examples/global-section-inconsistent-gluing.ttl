@@ -4,12 +4,14 @@
 # Counter-example for math:SectionGluingInconsistency: a correctly-scoped
 # math:GlobalSection (math:sectionRegion = the whole ex:base) whose stalk values do
 # NOT restrict consistently along a math:SheafRestrictionMap — the source stalk
-# carries math:stalkValue 1 and the target stalk carries 2, so the identity-transport
-# gluing condition 1 = 2 fails and the per-restriction-map equality constraint
-# math:SectionGluingConsistencyConstraint fires. Validation MUST emit
-# shacl.SPARQLConstraintComponent (and no other finding): the scope is right
-# (math:MisscopedSection inert) and the frame is complete (math:IncompleteGlobalSection
-# inert), so the failure to GLUE is isolated — presence of a section is not global truth.
+# carries math:stalkValue 1, the map's declared math:RestrictionImage records that it
+# sends that value to 1 (an identity action), but the target stalk carries 2, so the
+# general gluing condition restriction(1) = 2, i.e. 1 = 2, fails and the
+# per-restriction-map equality constraint math:SectionGluingConsistencyConstraint
+# fires. Validation MUST emit shacl.SPARQLConstraintComponent (and no other finding):
+# the scope is right (math:MisscopedSection inert) and the frame is complete
+# (math:IncompleteGlobalSection inert), so the failure to GLUE is isolated —
+# presence of a section is not global truth.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/gluing/> .
 
@@ -23,10 +25,14 @@ ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertex ; math:stalkValu
 ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edge ; math:stalkValue 2 .
 ex:vertexToEdge a math:SheafRestrictionMap ;
     math:sourceObject ex:vertexStalk ;
-    math:targetObject ex:edgeStalk .
+    math:targetObject ex:edgeStalk ;
+    math:restrictionImage ex:vertexToEdgeImage .
+ex:vertexToEdgeImage a math:RestrictionImage ;
+    math:imageSourceValue 1 ; math:imageTargetValue 1 .
 
-# Correctly scoped to the whole base, but the stalk values disagree across the
-# restriction map — the local data do not glue.
+# Correctly scoped to the whole base, but the map's declared image of the source
+# value (1 ↦ 1) disagrees with the target stalk's declared value (2) — the local
+# data do not glue.
 ex:globalSection a math:GlobalSection ;
     math:overSheaf ex:sheaf ;
     math:sectionRegion ex:base .
