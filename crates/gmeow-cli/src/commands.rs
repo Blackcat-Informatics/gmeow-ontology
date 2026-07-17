@@ -2945,13 +2945,16 @@ fn slice_brief_from_bundle(
 /// term/exemplar counts, coverage margins, and the covered-term IRIs (whose full
 /// definitions resolve via `gmeow lookup`).
 fn render_bundle_brief_human(out: &serde_json::Value) -> String {
+    // Write directly into the buffer (infallible into a `String`) rather than allocating a fresh
+    // `format!` string per line/term.
+    use std::fmt::Write as _;
     let mut s = String::new();
     let slice = out.get("slice").and_then(|v| v.as_str()).unwrap_or("?");
     let count = out
         .get("packet_count")
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
-    s.push_str(&format!("slice {slice} — {count} packet(s)\n"));
+    let _ = writeln!(s, "slice {slice} — {count} packet(s)");
     if let Some(packets) = out.get("packets").and_then(|v| v.as_array()) {
         for p in packets {
             let iri = p.get("packet_iri").and_then(|v| v.as_str()).unwrap_or("?");
@@ -2962,13 +2965,14 @@ fn render_bundle_brief_human(out: &serde_json::Value) -> String {
                 .get("grounding")
                 .and_then(|v| v.as_array())
                 .map_or(0, Vec::len);
-            s.push_str(&format!(
-                "\n{iri}\n  axis {axis}, batch {batch}, {terms} term(s), {grounding} grounding cell(s)\n"
-            ));
+            let _ = writeln!(
+                s,
+                "\n{iri}\n  axis {axis}, batch {batch}, {terms} term(s), {grounding} grounding cell(s)"
+            );
             if let Some(covers) = p.get("covers_terms").and_then(|v| v.as_array()) {
                 for t in covers {
                     if let Some(t) = t.as_str() {
-                        s.push_str(&format!("  - {t}\n"));
+                        let _ = writeln!(s, "  - {t}");
                     }
                 }
             }
