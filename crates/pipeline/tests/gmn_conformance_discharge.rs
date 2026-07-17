@@ -6,18 +6,25 @@
 //! Every GMN row of the `lang:` CONFORMANCE matrix ([`LANG-CONFORMANCE.md`], the "GMN dialect
 //! rules" table) is discharged HERE by EXECUTION, not by fixture existence:
 //!
-//! * **Validator tier** (the five [`gmeow_lang_bridge::Gmn1Error`] classes) — the four labeled
+//! * **Validator tier** (the six [`gmeow_lang_bridge::Gmn1Error`] classes) — the four labeled
 //!   `INVALID — lang:Gmn…` blocks are EXTRACTED from the normative [`LANG-GMN.md`] charter and
 //!   driven through the production [`gmeow_lang_bridge::gmn1_read`] codec; each raises EXACTLY
-//!   its labeled class. `GmnNonDecodableGrammar` (the residual class, which carries no INVALID
-//!   block) is driven from a non-decodable input. The VALID header form is extracted and reads
+//!   its labeled class. The two residual classes carry no INVALID block and are driven from
+//!   synthetic inputs: `GmnNonDecodableGrammar` from a non-decodable read input, and
+//!   `GmnGraphOutOfDomain` from a named-graph model pushed through [`gmeow_lang_bridge::gmn1_write`]
+//!   (the honest default-graph domain boundary). The VALID header form is extracted and reads
 //!   back `Ok`.
 //! * **SHACL tier** (thirteen `lang:Gmn*Shape` gates) — each counter-example is pushed through
 //!   [`support::flagship_discharge::triggered_slice_failures`] (native structural lint ∪ native
 //!   SHACL, filtered to `lang:`, merged with `module.ttl`) and its trip set is asserted EXACTLY
 //!   (never mere membership); its worked example raises nothing.
-//! * **Native lint** (`lang:SilentDisambiguation`) — driven through the native
-//!   `structural_lint_dataset` (`crates/validate/src/lint.rs check_silent_disambiguation`).
+//! * **Native tier** — two `Rust` gates that see graph-level state no codec byte-parse or SHACL
+//!   shape can: (1) `lang:SilentDisambiguation`, driven through the native
+//!   `structural_lint_dataset` (`crates/validate/src/lint.rs check_silent_disambiguation`); and
+//!   (2) `lang:GmnCodebookDigestMismatch`, driven through the native codebook-digest gate
+//!   ([`gmeow_pipeline::stages::gmn1_gate::check_gmn1_codebook_digest`]) which recomputes the
+//!   codebook Merkle root and refuses an envelope whose declared `gmeow:gmnCodebookDigest`
+//!   disagrees.
 //! * **Build assert** (the `@λ` column ruling) — the `GMN_LANG_AST_COLUMNS` constant is
 //!   re-exercised against the PRODUCTION CoNLL-U serializer's emitted column order, the same
 //!   invariant `crates/lang-bridge/src/gmn_symbology.rs` pins at build time.
@@ -32,11 +39,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_lang_bridge::{
-    ConlluDoc, ConlluSentence, ConlluToken, GMN_LANG_AST_COLUMNS, Gmn1Document, Gmn1Error,
-    GmnDictionary, TokenId, gmn1_read, round_trip_check, serialize_conllu,
+    ConlluDoc, ConlluSentence, ConlluToken, GMN_LANG_AST_COLUMNS, Gmn0Model, Gmn1Document,
+    Gmn1Error, GmnDictionary, TokenId, gmn1_read, gmn1_write, round_trip_check, serialize_conllu,
 };
+use gmeow_pipeline::stages::gmn1_gate;
 use gmeow_validate::lint::structural_lint_dataset;
 use gmeow_validate::store::dataset_from_paths;
+use purrdf::{RdfQuad, RdfTerm};
 mod support;
 use support::flagship_discharge::{
     SliceSpec, load_scoped_shapes, local_name, minimal_lint_config, native_failure_classes,
@@ -70,13 +79,15 @@ fn worked_dir() -> PathBuf {
     lang_root().join("tests").join("conformance-fixtures")
 }
 
-/// The set of `lang:` failure-class local names for the FIVE typed codec classes, resolved
+/// The set of `lang:` failure-class local names for the SIX typed codec classes, resolved
 /// through the production [`Gmn1Error`] IRI constants. Enumerated WITHOUT a wildcard so a new
 /// `Gmn1Error` variant forces an edit here (mirroring the codec's own exhaustive
-/// `failure_class` witness) — the validator-tier drift surface.
+/// `failure_class` witness) — the validator-tier drift surface. `GmnNonCanonicalCodepoint`
+/// (the non-NFC literal class) reuses one of these IRIs and is not a distinct tier row.
 fn codec_classes() -> BTreeSet<String> {
     [
         Gmn1Error::CLASS_UNCOVERED_TERM,
+        Gmn1Error::CLASS_GRAPH_OUT_OF_DOMAIN,
         Gmn1Error::CLASS_NON_CANONICAL_ORDER,
         Gmn1Error::CLASS_MALFORMED_NUMBER,
         Gmn1Error::CLASS_UNDECLARED_DIALECT_VERSION,
@@ -218,6 +229,24 @@ fn validator_tier_rows_discharge_via_production_codec() {
         .expect_err("an unknown sigil is non-decodable grammar");
     assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
 
+    // GmnGraphOutOfDomain: the second residual class (also no normative INVALID block). It is a
+    // WRITE-side domain boundary — a quad carrying a named graph is outside the default-graph
+    // GMN-0 normal form — so it is driven through the production `gmn1_write`, not `gmn1_read`.
+    let named_graph_model = Gmn0Model {
+        quads: vec![RdfQuad {
+            subject: RdfTerm::Iri("https://blackcatinformatics.ca/gmeow/gate1".to_owned()),
+            predicate: "https://blackcatinformatics.ca/gmeow/hasState".to_owned(),
+            object: RdfTerm::Iri("https://blackcatinformatics.ca/gmeow/doorGate1".to_owned()),
+            graph_name: Some(RdfTerm::Iri(
+                "https://blackcatinformatics.ca/gmeow/namedGraph1".to_owned(),
+            )),
+            location: None,
+        }],
+    };
+    let err = gmn1_write(&named_graph_model, &dict)
+        .expect_err("a named-graph quad is out of the default-graph GMN-0 domain");
+    assert_eq!(err.failure_class(), Gmn1Error::CLASS_GRAPH_OUT_OF_DOMAIN);
+
     // VALID header form: the first lone `@gmn{…}` fenced block of the charter reads back Ok.
     let header_block = all_fenced_blocks(&md)
         .into_iter()
@@ -259,7 +288,7 @@ struct ShaclRow {
 /// The thirteen SHACL-tier GMN conformance rows (fourteen counter-examples — the envelope
 /// contract carries two). Each `trips` set is asserted EXACTLY. The export-ring row's trip set
 /// is the irreducible two-class pair (see the module.ttl / LANG-CONFORMANCE.md note): a
-/// ring-less export envelope's firing condition is a strict subset of the eight-field contract's
+/// ring-less export envelope's firing condition is a strict subset of the nine-field contract's
 /// ring `sh:minCount 1`, so `GmnMissingEnvelopeField` co-fires by construction. Asserting the
 /// exact two-class set is set-equality, NOT membership — no assertion is weakened.
 fn shacl_rows() -> Vec<ShaclRow> {
@@ -356,6 +385,24 @@ fn shacl_rows() -> Vec<ShaclRow> {
 const NATIVE_COUNTER: &str = "gmn-compaction-silent-disambiguation.ttl";
 const NATIVE_WORKED: &str = "gmn-compaction-honest.ttl";
 const NATIVE_CLASS: &str = "SilentDisambiguation";
+
+/// The native GMN codebook-digest gate row (`lang:GmnCodebookDigestMismatch`) — NOT a SHACL
+/// shape and NOT the per-record codec validator: the native gate
+/// ([`gmn1_gate::check_gmn1_codebook_digest`]) recomputes the codebook Merkle root and refuses
+/// an envelope whose declared digest disagrees. Its counter-example is the graph-tier
+/// `negative-graph/envelope-digest-mismatch.ttl` fixture (a wrong declared digest); its worked
+/// example the nine-field `gmn-envelope-complete.ttl` (which declares the real recomputed digest).
+const NATIVE_GMN_GATE_CLASS: &str = "GmnCodebookDigestMismatch";
+const NATIVE_GMN_GATE_COUNTER: &str = "envelope-digest-mismatch.ttl";
+const NATIVE_GMN_GATE_WORKED: &str = "gmn-envelope-complete.ttl";
+
+/// The graph-tier negative fixtures the native codebook-digest gate is driven over.
+fn negative_graph_dir() -> PathBuf {
+    lang_root()
+        .join("tests")
+        .join("gmn1-vectors")
+        .join("negative-graph")
+}
 
 /// The build-assert row carries no failure class; its matrix cell is the em-dash marker.
 const BUILD_MARKER: &str = "—";
@@ -471,6 +518,92 @@ fn native_silent_disambiguation_row_discharges() {
         worked.is_empty(),
         "the honest-compaction worked example must raise nothing, got {worked:?}"
     );
+}
+
+#[test]
+fn native_codebook_digest_row_discharges() {
+    let root = repo_root();
+
+    // The counter-example: an envelope declaring a codebook digest the real codebook does not
+    // have. Driven through the SAME native gate `run.rs` wires on-gate — a mismatch trips
+    // EXACTLY lang:GmnCodebookDigestMismatch, naming the offending envelope.
+    let counter = negative_graph_dir().join(NATIVE_GMN_GATE_COUNTER);
+    let report = gmn1_gate::check_gmn1_codebook_digest(&root, std::slice::from_ref(&counter))
+        .expect("codebook-digest gate runs without a hard I/O error");
+    assert!(
+        !report.is_clean(),
+        "the digest-mismatch counter must trip the native codebook-digest gate, not pass vacuously"
+    );
+    assert_eq!(
+        report.checked, 1,
+        "the counter declares exactly one envelope codebook digest to check, got {}",
+        report.checked
+    );
+    let classes: BTreeSet<String> = report
+        .mismatches
+        .iter()
+        .map(|m| local_name(m.failure_class()))
+        .collect();
+    assert_eq!(
+        classes,
+        set_of(&[NATIVE_GMN_GATE_CLASS]),
+        "the counter must raise EXACTLY lang:{NATIVE_GMN_GATE_CLASS}, got {classes:?}"
+    );
+
+    // The worked example: the nine-field envelope declaring the REAL recomputed digest — the
+    // gate checks it (checked == 1) and raises nothing.
+    let worked = worked_dir().join(NATIVE_GMN_GATE_WORKED);
+    let clean = gmn1_gate::check_gmn1_codebook_digest(&root, std::slice::from_ref(&worked))
+        .expect("codebook-digest gate runs over the worked example");
+    assert!(
+        clean.is_clean(),
+        "the complete-envelope worked example declares the real digest and must raise nothing, \
+         got {:?}",
+        clean.mismatches
+    );
+    assert_eq!(
+        clean.checked, 1,
+        "the worked example declares exactly one envelope codebook digest, got {}",
+        clean.checked
+    );
+}
+
+/// A falsifiable doctrine lint: the GMN-1 charter must NEVER frame its default-graph boundary as
+/// a "lossy lens" / silent drop, and every remaining `lossy` occurrence must be scoped to GMN-2
+/// (the honest lossy-compaction variety), never to GMN-1. A regression here (recasting the honest
+/// `lang:GmnGraphOutOfDomain` boundary as tolerated loss) hard-fails the gate.
+#[test]
+fn lang_gmn_charter_carries_no_lossy_lens_framing() {
+    let md = std::fs::read_to_string(lang_root().join("design").join("LANG-GMN.md"))
+        .expect("LANG-GMN.md readable");
+    let lower = md.to_lowercase();
+
+    const BANNED: &[&str] = &[
+        "lossy lens",
+        "lossy-lens",
+        "lossy narrow",
+        "silently drop",
+        "section-retraction with narrow",
+    ];
+    for phrase in BANNED {
+        assert!(
+            !lower.contains(phrase),
+            "LANG-GMN.md must not frame the GMN-1 boundary as {phrase:?}: the default-graph \
+             refusal is an honest typed boundary (lang:GmnGraphOutOfDomain), never a lossy lens \
+             or a silent drop"
+        );
+    }
+
+    for (i, line) in md.lines().enumerate() {
+        if line.to_lowercase().contains("lossy") {
+            assert!(
+                line.contains("GMN-2"),
+                "LANG-GMN.md line {} uses 'lossy' outside a GMN-2 scope — a GMN-1 line must never \
+                 call itself lossy: {line:?}",
+                i + 1
+            );
+        }
+    }
 }
 
 #[test]
@@ -608,9 +741,14 @@ fn completeness_invariant_leaves_no_fixture_existence_only_row() {
         discharged_fixtures.insert(row.counter.to_owned());
         discharged_classes.insert(row.class.to_owned());
     }
-    // (C) native lint + build assert.
+    // (C) native tier (the silent-disambiguation lint AND the codebook-digest gate) + build
+    // assert. The codebook-digest gate's counter-example lives under tests/gmn1-vectors/
+    // negative-graph/, NOT the tests/counter-examples/ corpus part (1) reconciles, so only its
+    // CLASS joins the discharged set here — it is discharged by execution in
+    // `native_codebook_digest_row_discharges`, not by a counter-examples fixture.
     discharged_fixtures.insert(NATIVE_COUNTER.to_owned());
     discharged_classes.insert(NATIVE_CLASS.to_owned());
+    discharged_classes.insert(NATIVE_GMN_GATE_CLASS.to_owned());
     discharged_classes.insert(BUILD_MARKER.to_owned());
 
     // ── (1) Every counter-example fixture on disk has an asserted discharge. ─────────────
@@ -630,7 +768,7 @@ fn completeness_invariant_leaves_no_fixture_existence_only_row() {
          real matrix row"
     );
 
-    // ── (2a) VALIDATOR tier: codec classes == doc INVALID labels ∪ {NonDecodableGrammar}. ─
+    // ── (2a) VALIDATOR tier: codec classes == doc INVALID labels ∪ the two residuals. ─────
     let codec = codec_classes();
     let mut doc_plus_residual = extract_invalid_blocks(&md_gmn)
         .keys()
@@ -641,11 +779,15 @@ fn completeness_invariant_leaves_no_fixture_existence_only_row() {
         doc_block_classes(),
         "the LANG-GMN.md INVALID blocks must name exactly the four validator classes"
     );
+    // The two residual validator classes carry no normative INVALID block (they are driven from
+    // synthetic inputs in `validator_tier_rows_discharge_via_production_codec`): the non-decodable
+    // grammar residual and the honest default-graph domain boundary.
     doc_plus_residual.insert("GmnNonDecodableGrammar".to_owned());
+    doc_plus_residual.insert("GmnGraphOutOfDomain".to_owned());
     assert_eq!(
         codec, doc_plus_residual,
-        "the codec's five failure classes must set-equal the four doc INVALID labels plus the \
-         residual GmnNonDecodableGrammar"
+        "the codec's six failure classes must set-equal the four doc INVALID labels plus the \
+         two residuals GmnNonDecodableGrammar and GmnGraphOutOfDomain"
     );
 
     // ── (2b) SHACL tier: ontology enforcesFailureClass (Gmn*) == matrix SHACL rows. ───────
@@ -655,8 +797,10 @@ fn completeness_invariant_leaves_no_fixture_existence_only_row() {
         "the slice's Gmn* enforcesFailureClass set must set-equal the discharged SHACL rows"
     );
 
-    // Partition the matrix rows by tier (by class, so the SilentDisambiguation row — whose gate
-    // cell also says 'Rust validator' — lands in the native tier, not the validator tier).
+    // Partition the matrix rows by tier (by class). Two rows land in the native tier by class:
+    // the SilentDisambiguation lint (whose gate cell also says 'Rust validator') and the
+    // GmnCodebookDigestMismatch codebook-digest gate — neither a codec byte-parse class nor a
+    // SHACL shape, so both are checked out of the codec/SHACL branches explicitly.
     let mut matrix_validator = BTreeSet::new();
     let mut matrix_shacl = BTreeSet::new();
     let mut matrix_native = BTreeSet::new();
@@ -664,7 +808,7 @@ fn completeness_invariant_leaves_no_fixture_existence_only_row() {
     for class in &matrix_rows {
         if class == BUILD_MARKER {
             matrix_build.insert(class.clone());
-        } else if class == NATIVE_CLASS {
+        } else if class == NATIVE_CLASS || class == NATIVE_GMN_GATE_CLASS {
             matrix_native.insert(class.clone());
         } else if codec.contains(class) {
             matrix_validator.insert(class.clone());
@@ -682,8 +826,9 @@ fn completeness_invariant_leaves_no_fixture_existence_only_row() {
     );
     assert_eq!(
         matrix_native,
-        set_of(&[NATIVE_CLASS]),
-        "the matrix native-lint tier is exactly lang:SilentDisambiguation"
+        set_of(&[NATIVE_CLASS, NATIVE_GMN_GATE_CLASS]),
+        "the matrix native tier is exactly lang:SilentDisambiguation (native lint) plus \
+         lang:GmnCodebookDigestMismatch (native codebook-digest gate)"
     );
     assert_eq!(
         matrix_build,

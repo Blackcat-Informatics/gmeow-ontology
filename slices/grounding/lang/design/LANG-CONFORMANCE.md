@@ -164,7 +164,7 @@ grounding correspondence.
 The export-ring row (`lang:GmnUnringedExportCrossing`, `lang:GmnExportRingBindingShape`) is the
 cross-slice reading of the mentation `gmeow:processExport` boundary: an envelope its own
 `gmeow:wasGeneratedBy` names as an export crossing must bind a `gmeow:gmnSecurityRing`. Its firing
-condition — a ring-less export envelope — is a strict *subset* of the general eight-field envelope
+condition — a ring-less export envelope — is a strict *subset* of the general nine-field envelope
 contract's ring requirement, so this row's counter-example (`gmn-export-crossing-no-ring.ttl`)
 necessarily co-fires `lang:GmnMissingEnvelopeField` alongside `lang:GmnUnringedExportCrossing`: the
 two-class trip set is structurally irreducible (an envelope cannot lack its ring for the export
