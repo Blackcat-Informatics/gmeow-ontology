@@ -21,8 +21,9 @@
 use gmeow_errors::Diag;
 
 use crate::ir::{
-    AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr, Formula, LogicProgram,
-    PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr, Formula, JoinAggregate,
+    LogicProgram, PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue, Term,
+    ValidationShapeIr,
 };
 
 use super::sparql_lower::{sparql_literal, sparql_predicate};
@@ -1481,10 +1482,72 @@ fn aggregate_select(agg: &AggregateComparison) -> String {
     )
 }
 
-/// The whole `sh:select` query body of a constraint: the aggregate `GROUP BY`/`HAVING` form when
-/// the constraint carries an [`AggregateComparison`] satellite, else the range-restricted
-/// `guard ∧ ¬φ` violation query lowered from the integrity formula.
+/// Lower a [`JoinAggregate`] to a whole `SELECT $this ?far … GROUP BY $this ?far HAVING(…)` query
+/// selecting the (focus, far-endpoint) groups that VIOLATE the invariant. Each leg is a reified
+/// relation record `?rK`: its source triple anchors the join on the ALREADY-BOUND endpoint (`$this`
+/// for the first leg, the preceding leg's target `?j{K-1}` for every later leg), then the target
+/// triple binds this leg's endpoint `?jK` and the value triple binds its leaf `?vK`. Anchoring the
+/// source triple on the bound endpoint first makes the store use its incidence index (the
+/// object-keyed lookup of records incident to a cell) instead of scanning all records, so the query
+/// scales with the number of incidence RECORDS, not with cells² — there is no cartesian product.
+/// The aggregate is the group `function` of the PRODUCT `?v1 * … * ?vN` of the joined leaf values;
+/// the group key is `$this` (the first leg's source) and `?jN` (the last leg's target, the far
+/// endpoint). Because a `sh:SPARQLConstraint` `sh:select` returns violations, the `HAVING` uses the
+/// comparator's logical negation (`=` ↦ `!=`, …). Variable names are byte-deterministic (`?rK`
+/// records, `?jK` endpoints, `?vK` values) so regeneration is stable.
+fn join_aggregate_select(ja: &JoinAggregate) -> String {
+    let mut where_pats: Vec<String> = Vec::new();
+    let mut value_vars: Vec<String> = Vec::with_capacity(ja.legs.len());
+    for (idx, leg) in ja.legs.iter().enumerate() {
+        let k = idx + 1;
+        let record = format!("?r{k}");
+        // The source endpoint is the focus for the first leg, else the shared join variable the
+        // preceding leg bound (`leg[k-1].target = leg[k].source`).
+        let src = if idx == 0 {
+            "$this".to_owned()
+        } else {
+            format!("?j{}", idx)
+        };
+        let tgt = format!("?j{k}");
+        let val = format!("?v{k}");
+        // Index-friendly join order: anchor on the bound source endpoint, then bind the target and
+        // the leaf value.
+        where_pats.push(format!(
+            "{record} {} {src} .",
+            sparql_predicate(&leg.source)
+        ));
+        where_pats.push(format!(
+            "{record} {} {tgt} .",
+            sparql_predicate(&leg.target)
+        ));
+        where_pats.push(format!("{record} {} {val} .", sparql_predicate(&leg.value)));
+        if let Some(rt) = &leg.record_type {
+            where_pats.push(format!("{record} a {} .", iri_term(rt)));
+        }
+        value_vars.push(val);
+    }
+    let far = format!("?j{}", ja.legs.len());
+    let product = value_vars.join(" * ");
+    let inner = format!("{}({product})", ja.function);
+    let op = ja.comparator.negated().as_sparql();
+    let threshold = match &ja.threshold_datatype {
+        Some(dt) => format!("{}^^<{dt}>", sparql_literal(&ja.threshold_lexical)),
+        None => sparql_literal(&ja.threshold_lexical),
+    };
+    format!(
+        "SELECT $this {far} WHERE {{ {} }} GROUP BY $this {far} HAVING ( {inner} {op} {threshold} )",
+        where_pats.join(" ")
+    )
+}
+
+/// The whole `sh:select` query body of a constraint: the multi-hop-join `GROUP BY`/`HAVING` form
+/// when the constraint carries a [`JoinAggregate`] satellite, the single-path aggregate `GROUP
+/// BY`/`HAVING` form when it carries an [`AggregateComparison`] satellite, else the
+/// range-restricted `guard ∧ ¬φ` violation query lowered from the integrity formula.
 fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
+    if let Some(ja) = &c.join_aggregate {
+        return Ok(join_aggregate_select(ja));
+    }
     match &c.aggregate {
         Some(agg) => Ok(aggregate_select(agg)),
         None => Ok(format!("SELECT $this WHERE {{ {} }}", violation_where(c)?)),
@@ -3394,6 +3457,128 @@ ex:aggv a logic:AggregateConstraint ;\n\
         assert!(
             !flagged.iter().any(|f| f.contains("good")),
             "the conforming node must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    /// The two-leg boundary-square-zero (∂²=0) join-aggregate demonstrator: a coface hops via an
+    /// incidence record to an intermediate cell, then via a second incidence record to a far face,
+    /// and the SUM of the incidence-sign PRODUCT over the intermediate cells must be 0 per
+    /// (coface, far-face) group. Reused by the projection and end-to-end tests.
+    const JOIN_AGG_SUGAR: &str = "ex:boundarySquareZero a logic:JoinAggregateConstraint ;\n\
+         logic:onClass ex:TopCell ;\n\
+         logic:aggFunction \"SUM\" ;\n\
+         logic:aggComparator \"=\" ;\n\
+         logic:aggThreshold 0 ;\n\
+         logic:joinPath (\n\
+           [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+         ) ;\n\
+         logic:formalizes ex:BoundaryOperator .";
+
+    #[test]
+    fn join_aggregate_multi_hop_projects_deterministic_group_by_having() {
+        let b = project_sugar(JOIN_AGG_SUGAR);
+        // The focus is the coface (the top cell); the join is anchored on $this.
+        assert!(b.contains("sh:targetClass <https://ex/TopCell>"), "{b}");
+        // Leg 1 anchors on the bound focus $this via the source predicate, then binds the
+        // intermediate endpoint ?j1 and the leaf value ?v1 (index-friendly ordering).
+        assert!(
+            b.contains("?r1 <https://ex/incidenceCoface> $this . ?r1 <https://ex/incidenceFace> ?j1 . ?r1 <https://ex/incidenceSign> ?v1 . ?r1 a <https://ex/Incidence> ."),
+            "leg 1 must anchor on $this and bind ?j1/?v1: {b}"
+        );
+        // Leg 2 re-binds the SHARED join variable ?j1 as its source (the multi-hop join), binds the
+        // far endpoint ?j2, and the second leaf value ?v2.
+        assert!(
+            b.contains("?r2 <https://ex/incidenceCoface> ?j1 . ?r2 <https://ex/incidenceFace> ?j2 . ?r2 <https://ex/incidenceSign> ?v2 . ?r2 a <https://ex/Incidence> ."),
+            "leg 2 must re-bind ?j1 and bind ?j2/?v2: {b}"
+        );
+        // The group key is (focus, far endpoint); the aggregate is the SUM of the sign PRODUCT.
+        assert!(b.contains("SELECT $this ?j2 WHERE"), "{b}");
+        assert!(b.contains("GROUP BY $this ?j2"), "{b}");
+        // Invariant is `=` 0, so the violation-selecting HAVING negates it to `!=`.
+        assert!(
+            b.contains(
+                "HAVING ( SUM(?v1 * ?v2) != '0'^^<http://www.w3.org/2001/XMLSchema#integer> )"
+            ),
+            "{b}"
+        );
+        // No cartesian product over cells: every triple pattern is a record-anchored join, so no
+        // FILTER-cross or bare cell×cell pattern is emitted.
+        assert!(!b.contains("NOT EXISTS"), "{b}");
+    }
+
+    #[test]
+    fn join_aggregate_projection_is_byte_deterministic() {
+        // Two independent parses of the same source produce byte-identical SPARQL (stable variable
+        // names + clause order), so regeneration is stable.
+        let a = project_sugar(JOIN_AGG_SUGAR);
+        let b = project_sugar(JOIN_AGG_SUGAR);
+        assert_eq!(a, b, "join-aggregate projection must be byte-deterministic");
+    }
+
+    #[test]
+    fn join_aggregate_boundary_square_zero_validates_against_a_graph() {
+        // End-to-end: the generated multi-hop-join GROUP BY/HAVING SELECT must be valid SPARQL and
+        // flag exactly the top cell whose ∂² ≠ 0. `good` is a triangle whose signed incidences make
+        // every (coface, far-vertex) group sum to 0; `bad` has one flipped sign so a group sums to
+        // -2 ≠ 0.
+        use purrdf::shapes::engine::validate_graphs;
+        let src = format!("{SUGAR_PREFIXES}{JOIN_AGG_SUGAR}");
+        let (program, _) = crate::frontend::parse_logic_str(&src, None).expect("parse");
+        let shapes_ttl = project_procedural_constraints(&program);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let int = "<http://www.w3.org/2001/XMLSchema#integer>";
+        // A signed incidence record `coface → face` with sign `s`, as four N-Triples over a fresh
+        // labeled blank node (the data graph is parsed as N-Triples, so no `[]`/`;` sugar).
+        let mut rec = 0u32;
+        let mut inc = |coface: &str, face: &str, s: i32| {
+            rec += 1;
+            let r = format!("_:rec{rec}");
+            format!(
+                "{r} {ty} <https://ex/Incidence> .\n\
+                 {r} <https://ex/incidenceCoface> <{coface}> .\n\
+                 {r} <https://ex/incidenceFace> <{face}> .\n\
+                 {r} <https://ex/incidenceSign> \"{s}\"^^{int} .\n"
+            )
+        };
+        let mut data = String::new();
+        // GOOD triangle: T over edges a,b,c over vertices p,q,r; ∂² = 0 in every group.
+        data.push_str(&format!("<https://ex/T> {ty} <https://ex/TopCell> .\n"));
+        data.push_str(&inc("https://ex/T", "https://ex/a", 1));
+        data.push_str(&inc("https://ex/T", "https://ex/b", 1));
+        data.push_str(&inc("https://ex/T", "https://ex/c", 1));
+        data.push_str(&inc("https://ex/a", "https://ex/p", -1));
+        data.push_str(&inc("https://ex/a", "https://ex/q", 1));
+        data.push_str(&inc("https://ex/b", "https://ex/q", -1));
+        data.push_str(&inc("https://ex/b", "https://ex/r", 1));
+        data.push_str(&inc("https://ex/c", "https://ex/r", -1));
+        data.push_str(&inc("https://ex/c", "https://ex/p", 1));
+        // BAD triangle: same shape but the c→p sign is flipped, so group (Tb, pb) sums to -2 ≠ 0.
+        data.push_str(&format!("<https://ex/Tb> {ty} <https://ex/TopCell> .\n"));
+        data.push_str(&inc("https://ex/Tb", "https://ex/ab", 1));
+        data.push_str(&inc("https://ex/Tb", "https://ex/bb", 1));
+        data.push_str(&inc("https://ex/Tb", "https://ex/cb", 1));
+        data.push_str(&inc("https://ex/ab", "https://ex/pb", -1));
+        data.push_str(&inc("https://ex/ab", "https://ex/qb", 1));
+        data.push_str(&inc("https://ex/bb", "https://ex/qb", -1));
+        data.push_str(&inc("https://ex/bb", "https://ex/rb", 1));
+        data.push_str(&inc("https://ex/cb", "https://ex/rb", -1));
+        data.push_str(&inc("https://ex/cb", "https://ex/pb", -1)); // flipped: should be +1
+        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("/Tb")),
+            "the ∂²≠0 top cell must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged
+                .iter()
+                .any(|f| f.contains("/T>") || f.ends_with("/T")),
+            "the ∂²=0 top cell must NOT be flagged; flagged: {flagged:?}"
         );
     }
 
