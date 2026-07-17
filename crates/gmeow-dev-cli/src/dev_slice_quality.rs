@@ -1222,8 +1222,11 @@ fn base_rubric_at(root: &Path, base: &str) -> gmeow_errors::Result<Option<Rubric
 
     // Distributed half: every discovered slice's module.ttl read at base, unioned (the
     // rubric slice is itself discovered, so the union carries the tier ladder + axes the
-    // widened load requires).
-    let mut union_texts: Vec<String> = Vec::new();
+    // widened load requires). Track each text's rel-path label alongside it so a
+    // cross-file governance collision at base can be diagnosed with both offending
+    // filenames — the same precision the working-tree loader gives via
+    // `detect_cross_file_governance_collisions`.
+    let mut union_labeled: Vec<(String, String)> = Vec::new();
     for dir in gmeow_slice_quality::discover_slice_dirs(&root.join("slices")) {
         let rel = dir
             .join("module.ttl")
@@ -1234,10 +1237,18 @@ fn base_rubric_at(root: &Path, base: &str) -> gmeow_errors::Result<Option<Rubric
         match git_show_base(root, base, &rel) {
             BaseFile::Absent => {}
             BaseFile::Error(e) => return Err(sqe(e)),
-            BaseFile::Contents(text) => union_texts.push(text),
+            BaseFile::Contents(text) => union_labeled.push((rel, text)),
         }
     }
-    let union_refs: Vec<&str> = union_texts.iter().map(String::as_str).collect();
+    let collision_refs: Vec<(&str, &str)> = union_labeled
+        .iter()
+        .map(|(rel, text)| (rel.as_str(), text.as_str()))
+        .collect();
+    gmeow_slice_quality::detect_cross_file_governance_collisions_texts(&collision_refs)?;
+    let union_refs: Vec<&str> = union_labeled
+        .iter()
+        .map(|(_, text)| text.as_str())
+        .collect();
     let widened = gmeow_slice_quality::rubric::load_rubric(
         &*gmeow_slice_quality::dataset_from_texts(&union_refs)?,
     )?;

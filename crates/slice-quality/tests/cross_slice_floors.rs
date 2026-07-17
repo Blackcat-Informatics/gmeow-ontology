@@ -205,3 +205,55 @@ fn centralized_axis_authored_outside_rubric_hard_fails() {
         .expect_err("load_repo_rubric must also hard fail on the same violation");
     assert!(err2.message().contains("axisRogue"), "{}", err2.message());
 }
+
+/// (d) The TEXT-based collision entry point
+/// (`detect_cross_file_governance_collisions_texts`) — used by the ratchet gate's
+/// merge-base reconstruction, which reads base module bytes via `git show` rather
+/// than on-disk paths — must name BOTH offending source labels on a same-key
+/// collision, sharing the same collision core as the path-based
+/// `load_repo_floors` guard covered by (b) above.
+#[test]
+fn cross_file_collision_texts_names_both_labels() {
+    let text_a = format!(
+        "{PREFIXES}gmeow:floorCollideA a gmeow:AxisFloorCommitment ;\n\
+         \x20   gmeow:floorSlice <{GMEOW}slices/collide-text> ;\n\
+         \x20   gmeow:floorAxis gmeow:axisMaximalGrounding ;\n\
+         \x20   gmeow:floorValue 0.3 .\n"
+    );
+    let text_b = format!(
+        "{PREFIXES}gmeow:floorCollideB a gmeow:AxisFloorCommitment ;\n\
+         \x20   gmeow:floorSlice <{GMEOW}slices/collide-text> ;\n\
+         \x20   gmeow:floorAxis gmeow:axisMaximalGrounding ;\n\
+         \x20   gmeow:floorValue 0.9 .\n"
+    );
+
+    let err = gmeow_slice_quality::detect_cross_file_governance_collisions_texts(&[
+        ("slices/a/module.ttl", text_a.as_str()),
+        ("slices/b/module.ttl", text_b.as_str()),
+    ])
+    .expect_err("the same (slice, axis) key authored under two different labels must hard fail");
+    let message = err.message();
+    assert!(
+        message.contains("slices/a/module.ttl") && message.contains("slices/b/module.ttl"),
+        "the collision message must name BOTH offending source labels, got: {message}"
+    );
+
+    // Two DISTINCT keys across the two texts must NOT collide.
+    let text_c = format!(
+        "{PREFIXES}gmeow:floorDistinctC a gmeow:AxisFloorCommitment ;\n\
+         \x20   gmeow:floorSlice <{GMEOW}slices/distinct-c> ;\n\
+         \x20   gmeow:floorAxis gmeow:axisMaximalGrounding ;\n\
+         \x20   gmeow:floorValue 0.3 .\n"
+    );
+    let text_d = format!(
+        "{PREFIXES}gmeow:floorDistinctD a gmeow:AxisFloorCommitment ;\n\
+         \x20   gmeow:floorSlice <{GMEOW}slices/distinct-d> ;\n\
+         \x20   gmeow:floorAxis gmeow:axisMaximalGrounding ;\n\
+         \x20   gmeow:floorValue 0.9 .\n"
+    );
+    gmeow_slice_quality::detect_cross_file_governance_collisions_texts(&[
+        ("slices/c/module.ttl", text_c.as_str()),
+        ("slices/d/module.ttl", text_d.as_str()),
+    ])
+    .expect("two distinct (slice, axis) keys across different labels must not collide");
+}

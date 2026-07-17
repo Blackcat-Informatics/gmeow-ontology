@@ -305,98 +305,155 @@ fn centralized_authority_violation(canonical: &Rubric, widened: &Rubric) -> gmeo
 /// files. A same-file duplicate is intentionally NOT reported here; it still
 /// hard-fails downstream via `rubric::load_rubric`'s own guard.
 ///
+/// Thin path-based wrapper over [`detect_cross_file_collisions_labeled`]: each
+/// module is parsed from disk and labeled by its own path (`Path::display`),
+/// matching the diagnostic wording this crate has always emitted for the
+/// working-tree loader ([`repo_rubric`]).
+///
 /// # Errors
 /// Returns a message naming both source files when the same key is authored in two
 /// DIFFERENT governance modules. Propagates a read/parse failure for any module.
 fn detect_cross_file_governance_collisions(modules: &[PathBuf]) -> gmeow_errors::Result<()> {
-    let mut axis_floor_keys: std::collections::BTreeMap<(String, String), &Path> =
-        std::collections::BTreeMap::new();
-    let mut tier_floor_keys: std::collections::BTreeMap<String, &Path> =
-        std::collections::BTreeMap::new();
-    let mut ceiling_keys: std::collections::BTreeMap<(String, String), &Path> =
-        std::collections::BTreeMap::new();
-
+    let mut labeled: Vec<(String, Arc<RdfDataset>)> = Vec::with_capacity(modules.len());
     for module in modules {
-        let ds = dataset_from_paths(&[module.as_path()])?;
+        labeled.push((
+            module.display().to_string(),
+            dataset_from_paths(&[module.as_path()])?,
+        ));
+    }
+    detect_cross_file_collisions_labeled(&labeled)
+}
 
-        let floor_slice_p = graph::id(&ds, &graph::g("floorSlice"));
-        let floor_axis_p = graph::id(&ds, &graph::g("floorAxis"));
-        let ceiling_slice_p = graph::id(&ds, &graph::g("ceilingSlice"));
-        let ceiling_vocab_p = graph::id(&ds, &graph::g("ceilingVocabulary"));
+/// Detect a DISTRIBUTED governance commitment key
+/// (`(slice, axis)` / `slice` / `(slice, vocabulary)`) authored in more than one
+/// governance SOURCE, over IN-MEMORY Turtle documents rather than on-disk paths.
+/// The text-based counterpart to [`detect_cross_file_governance_collisions`],
+/// sharing the SAME collision core ([`detect_cross_file_collisions_labeled`]) so
+/// the two entry points can never diverge in which keys collide or how the
+/// message is worded.
+///
+/// Used by the ratchet gate's merge-base reconstruction (`base_rubric_at` in
+/// `gmeow-dev-cli`), which reads base module bytes via `git show <base>:<path>`
+/// (text blobs, not on-disk files) and therefore cannot call the path-based
+/// entry point directly — this lets the base comparand report a cross-file
+/// collision identically to the working tree (naming both source labels)
+/// instead of falling back to `rubric::load_rubric`'s less-precise ambiguous-IRI
+/// guard.
+///
+/// # Errors
+/// Returns a message naming both source labels when the same key is authored in
+/// two DIFFERENT sources. Propagates a parse failure for any text.
+pub fn detect_cross_file_governance_collisions_texts(
+    labeled_texts: &[(&str, &str)],
+) -> gmeow_errors::Result<()> {
+    let mut labeled: Vec<(String, Arc<RdfDataset>)> = Vec::with_capacity(labeled_texts.len());
+    for (label, text) in labeled_texts {
+        labeled.push(((*label).to_owned(), dataset_from_texts(&[text])?));
+    }
+    detect_cross_file_collisions_labeled(&labeled)
+}
 
-        for iri in graph::instances_of(&ds, &graph::g("AxisFloorCommitment")) {
-            let Some(sid) = graph::id(&ds, &iri) else {
+/// The shared collision-detection core: keys a DISTRIBUTED governance commitment
+/// (`(slice, axis)` / `slice` / `(slice, vocabulary)`) over every `(label, dataset)`
+/// source, hard-failing naming both labels when the same key is authored twice
+/// under two DIFFERENT labels. A same-label duplicate is intentionally NOT
+/// reported here; it still hard-fails downstream via `rubric::load_rubric`'s own
+/// per-key IRI guard. Both [`detect_cross_file_governance_collisions`] (path-based)
+/// and [`detect_cross_file_governance_collisions_texts`] (text-based) delegate here
+/// so the two can never diverge.
+///
+/// # Errors
+/// Returns a message naming both source labels when the same key is authored under
+/// two DIFFERENT labels.
+fn detect_cross_file_collisions_labeled(
+    sources: &[(String, Arc<RdfDataset>)],
+) -> gmeow_errors::Result<()> {
+    let mut axis_floor_keys: std::collections::BTreeMap<(String, String), &str> =
+        std::collections::BTreeMap::new();
+    let mut tier_floor_keys: std::collections::BTreeMap<String, &str> =
+        std::collections::BTreeMap::new();
+    let mut ceiling_keys: std::collections::BTreeMap<(String, String), &str> =
+        std::collections::BTreeMap::new();
+
+    for (label, ds) in sources {
+        let floor_slice_p = graph::id(ds, &graph::g("floorSlice"));
+        let floor_axis_p = graph::id(ds, &graph::g("floorAxis"));
+        let ceiling_slice_p = graph::id(ds, &graph::g("ceilingSlice"));
+        let ceiling_vocab_p = graph::id(ds, &graph::g("ceilingVocabulary"));
+
+        for iri in graph::instances_of(ds, &graph::g("AxisFloorCommitment")) {
+            let Some(sid) = graph::id(ds, &iri) else {
                 continue;
             };
             let (Some(slice), Some(axis)) = (
-                floor_slice_p.and_then(|p| graph::one_iri(&ds, sid, p)),
-                floor_axis_p.and_then(|p| graph::one_iri(&ds, sid, p)),
+                floor_slice_p.and_then(|p| graph::one_iri(ds, sid, p)),
+                floor_axis_p.and_then(|p| graph::one_iri(ds, sid, p)),
             ) else {
                 continue;
             };
             let key = (slice, axis);
             match axis_floor_keys.get(&key) {
-                Some(prior) if *prior != module.as_path() => {
+                Some(prior) if *prior != label.as_str() => {
                     return Err(cross_file_collision_err(
                         "AxisFloorCommitment",
                         &format!("slice {} axis {}", key.0, key.1),
                         prior,
-                        module,
+                        label,
                     ));
                 }
                 Some(_) => {}
                 None => {
-                    axis_floor_keys.insert(key, module.as_path());
+                    axis_floor_keys.insert(key, label.as_str());
                 }
             }
         }
 
-        for iri in graph::instances_of(&ds, &graph::g("SliceTierFloor")) {
-            let Some(sid) = graph::id(&ds, &iri) else {
+        for iri in graph::instances_of(ds, &graph::g("SliceTierFloor")) {
+            let Some(sid) = graph::id(ds, &iri) else {
                 continue;
             };
-            let Some(slice) = floor_slice_p.and_then(|p| graph::one_iri(&ds, sid, p)) else {
+            let Some(slice) = floor_slice_p.and_then(|p| graph::one_iri(ds, sid, p)) else {
                 continue;
             };
             match tier_floor_keys.get(&slice) {
-                Some(prior) if *prior != module.as_path() => {
+                Some(prior) if *prior != label.as_str() => {
                     return Err(cross_file_collision_err(
                         "SliceTierFloor",
                         &format!("slice {slice}"),
                         prior,
-                        module,
+                        label,
                     ));
                 }
                 Some(_) => {}
                 None => {
-                    tier_floor_keys.insert(slice, module.as_path());
+                    tier_floor_keys.insert(slice, label.as_str());
                 }
             }
         }
 
-        for iri in graph::instances_of(&ds, &graph::g("ProjectionCeilingCommitment")) {
-            let Some(sid) = graph::id(&ds, &iri) else {
+        for iri in graph::instances_of(ds, &graph::g("ProjectionCeilingCommitment")) {
+            let Some(sid) = graph::id(ds, &iri) else {
                 continue;
             };
             let (Some(slice), Some(vocab)) = (
-                ceiling_slice_p.and_then(|p| graph::one_iri(&ds, sid, p)),
-                ceiling_vocab_p.and_then(|p| graph::one_iri(&ds, sid, p)),
+                ceiling_slice_p.and_then(|p| graph::one_iri(ds, sid, p)),
+                ceiling_vocab_p.and_then(|p| graph::one_iri(ds, sid, p)),
             ) else {
                 continue;
             };
             let key = (slice, vocab);
             match ceiling_keys.get(&key) {
-                Some(prior) if *prior != module.as_path() => {
+                Some(prior) if *prior != label.as_str() => {
                     return Err(cross_file_collision_err(
                         "ProjectionCeilingCommitment",
                         &format!("slice {} vocabulary {}", key.0, key.1),
                         prior,
-                        module,
+                        label,
                     ));
                 }
                 Some(_) => {}
                 None => {
-                    ceiling_keys.insert(key, module.as_path());
+                    ceiling_keys.insert(key, label.as_str());
                 }
             }
         }
@@ -405,19 +462,19 @@ fn detect_cross_file_governance_collisions(modules: &[PathBuf]) -> gmeow_errors:
     Ok(())
 }
 
-/// Build the cross-file-collision diagnostic naming both offending source files.
+/// Build the cross-file-collision diagnostic naming both offending source labels
+/// (a path's `Display` rendering for the working-tree caller, a rel-path label for
+/// the base-reconstruction caller).
 fn cross_file_collision_err(
     kind: &str,
     key_desc: &str,
-    file_a: &Path,
-    file_b: &Path,
+    label_a: &str,
+    label_b: &str,
 ) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(error::Rubric {
         detail: format!(
             "duplicate gmeow:{kind} for {key_desc} authored in two different governance \
-             modules: {} and {}",
-            file_a.display(),
-            file_b.display()
+             modules: {label_a} and {label_b}"
         ),
     })
 }
