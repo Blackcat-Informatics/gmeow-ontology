@@ -1416,3 +1416,37 @@ razor note; zero issue-numbers in repo docs). No human sign-off was required (no
   Rust") was dismissed as a verified false positive — the repo pins nightly (rust-toolchain.toml)
   and let_chains is stable since Rust 1.88; the code compiles clean. Reply posted in-thread; no
   code change (rewriting correct code to satisfy an incorrect premise would be needless churn).
+
+## 2026-07-17 — Pydantic package cutover to purrdf::shapes::pydantic (flat single-module package)
+
+User-approved capability regression: `stage-export-pydantic` was cut over from gmeow's
+~2800-line hand-rolled slice-routed Pydantic renderer to
+`purrdf::shapes::pydantic::emit_pydantic`. purrdf's emitter produces a FLAT single-module
+package (`gmeow_models/{_base,models,__init__}.py` + `py.typed`), so the following
+capabilities the prior renderer delivered are DROPPED, not re-homed:
+
+- **Per-slice modules.** The prior renderer routed each class into its owning slice's own
+  module (`gmeow_models/<slice>.py`, ~40 modules), so a slice's models were independently
+  importable and a module's docstring carried the slice's tier/DOI header. purrdf emits every
+  model into ONE flat `gmeow_models/models.py`.
+- **Docs-digest linkage.** Every model's `json_schema_extra` used to carry `definitionDigest`
+  (the term's `gmeow:definitionDigest`) and a rich class docstring (definition, when-to-use /
+  avoid / how-to-use, worked examples, a runnable usage doctest, and a docs back-link URL).
+  purrdf's emitter carries no docs-model integration, so these are gone; a model class now
+  carries only its compiled-schema identity (no term-prose linkage).
+- **Generated package `README.md`.** The prior renderer emitted a `gmeow_models/README.md`
+  package-orientation file; `emit_pydantic` does not.
+
+Wheel-version stamping is NOT dropped: `gmeow_models/__about__.py` (the ontology's
+`owl:versionInfo`, PEP 440-validated) is still gmeow-orchestrated and stamped alongside
+purrdf's artifacts, and `packages/python/pyproject.toml`'s `[tool.hatch.version]` still reads
+it unchanged.
+
+Forward path: https://github.com/Blackcat-Informatics/purrdf/issues/130 (upstream feature
+request for per-slice module routing, per-class docs/definition-digest linkage in
+`json_schema_extra`, and optional caller-supplied wheel/package version stamping).
+
+The off-gate `packages/python/tests/test_conformance.py` (LIVE Pydantic conformance —
+`make maint-pydantic-conformance`) asserted the OLD per-slice/docs-digest layout and was
+DELETED as testing a layout that no longer exists (greenfield); the on-gate Rust structural
+gate is unaffected.
