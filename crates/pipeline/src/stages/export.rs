@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `export` export leaf: CSV/CSVW/Markdown/JSONL/llms.txt + the
+//! The `export` export leaf: CSVW/Markdown/JSONL/llms.txt + the
 //! dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, SKOS, OBO Graphs,
 //! ShEx) under git-ignored `dist/`.
 //!
@@ -17,6 +17,20 @@
 //! (`purrdf::gts::nquads::to_nquads` / `purrdf::gts::trig::to_trig`), with internal
 //! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
 //! exactly as the Python `write_nquads` / `write_trig` do.
+//!
+//! SKOS ([`render_skos`]), OBO Graphs ([`render_obographs`]), and CSVW
+//! ([`render_csvw`]) are purrdf 0.7.0 native projections
+//! (`purrdf::project_skos` / `purrdf::project_obo_graphs` /
+//! `purrdf::project_csvw_exact`), retiring the former hand-rolled SKOS Turtle / OBO
+//! Graphs JSON writers and the curated class/property/individual CSV + CSVW
+//! descriptor tables. gmeow owns only the scoping decision (see
+//! [`skos_source_dataset`] / [`obo_graphs_source_dataset`] / [`default_graph_dataset`])
+//! and the caller-owned semantic-role vocabulary (see [`skos_config`] /
+//! [`obo_graphs_config`] / [`csvw_config`]); purrdf owns the encoding. The CSVW
+//! surface is a deliberate scope change: it now emits purrdf's generic, always-
+//! lossless RDF-1.2-in-CSV package (`csvw-metadata.json` +
+//! `terms.csv`/`quads.csv`/`reifiers.csv`/`annotations.csv`) instead of the retired
+//! curated term-dictionary tables.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -591,53 +605,6 @@ impl J {
                     out.push_str(": ");
                     v.compact_opt(out, ascii);
                 }
-                out.push('}');
-            }
-        }
-    }
-
-    /// `json.dumps(obj, indent=2, ensure_ascii=False)`.
-    fn pretty(&self, indent: usize, out: &mut String) {
-        let pad = "  ".repeat(indent);
-        let pad1 = "  ".repeat(indent + 1);
-        match self {
-            J::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
-            J::Str(s) => out.push_str(&json_str(s)),
-            J::RawNum(n) => out.push_str(n),
-            J::Arr(items) => {
-                if items.is_empty() {
-                    out.push_str("[]");
-                    return;
-                }
-                out.push_str("[\n");
-                for (i, it) in items.iter().enumerate() {
-                    out.push_str(&pad1);
-                    it.pretty(indent + 1, out);
-                    if i + 1 < items.len() {
-                        out.push(',');
-                    }
-                    out.push('\n');
-                }
-                out.push_str(&pad);
-                out.push(']');
-            }
-            J::Obj(entries) => {
-                if entries.is_empty() {
-                    out.push_str("{}");
-                    return;
-                }
-                out.push_str("{\n");
-                for (i, (k, v)) in entries.iter().enumerate() {
-                    out.push_str(&pad1);
-                    out.push_str(&json_str(k));
-                    out.push_str(": ");
-                    v.pretty(indent + 1, out);
-                    if i + 1 < entries.len() {
-                        out.push(',');
-                    }
-                    out.push('\n');
-                }
-                out.push_str(&pad);
                 out.push('}');
             }
         }
@@ -1227,218 +1194,101 @@ fn term_record(t: &Term) -> J {
     J::Obj(rec)
 }
 
-// ── CSV (csv.DictWriter QUOTE_MINIMAL, lineterminator "\r\n") ───────────────────
+// ── CSVW (purrdf project_csvw_exact — the generic lossless RDF-1.2-in-CSV package) ──
 
-fn csv_field(s: &str) -> String {
-    if s.contains([',', '"', '\n', '\r']) {
-        format!("\"{}\"", s.replace('"', "\"\""))
-    } else {
-        s.to_string()
-    }
+fn err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        stage: "stage-export-export".to_string(),
+        message: message.into(),
+    })
 }
 
-fn csv_row(cols: &[String]) -> String {
-    cols.iter()
-        .map(|c| csv_field(c))
-        .collect::<Vec<_>>()
-        .join(",")
-        + "\r\n"
-}
-
-const ADVISORY_COLUMNS: &[&str] = &[
-    "boxRoles",
-    "scopeNotes",
-    "examples",
-    "useWhen",
-    "avoidWhen",
-    "howToUse",
-    "useForConsumer",
-    "avoidForConsumer",
-];
-
-fn advisory_cells(t: &Term) -> Vec<String> {
-    vec![
-        t.box_roles.join("; "),
-        t.scope_notes.join("; "),
-        t.examples.join("; "),
-        t.use_when.join("; "),
-        t.avoid_when.join("; "),
-        t.how_to_use.join("; "),
-        t.use_for_consumer.join("; "),
-        t.avoid_for_consumer.join("; "),
-    ]
-}
-
-/// Insert per-language label/definition columns after "definition" (en-only here).
-fn lang_columns(base: &[&str], languages: &[&str]) -> Vec<String> {
-    let mut extra: Vec<String> = Vec::new();
-    for lang in languages {
-        extra.push(format!("label_{lang}"));
-        extra.push(format!("definition_{lang}"));
-    }
-    extra.push("label_fallback".to_string());
-    extra.push("definition_fallback".to_string());
-    let mut out: Vec<String> = Vec::new();
-    for col in base {
-        out.push((*col).to_string());
-        if *col == "definition" {
-            out.extend(extra.iter().cloned());
+/// Extract the RDF DEFAULT-GRAPH quads (+ their reifiers/annotations) verbatim into
+/// a standalone [`RdfDataset`] — the same default-graph scope [`DEFAULT_SCOPE`]
+/// reads elsewhere in this leaf (the ontology's own TBox/ABox; ~98K quads, never the
+/// ~2.3M-quad whole carrier's reasoning/diagnostics/corpora graphs — see `lpg.rs`'s
+/// module doc for why an unscoped carrier projection balloons to gigabytes).
+fn default_graph_dataset(
+    dataset: &RdfDataset,
+) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
+    use purrdf::RdfDatasetBuilder;
+    let mut b = RdfDatasetBuilder::new();
+    for q in dataset.owned_quads() {
+        if q.graph_name.is_none() {
+            b.push_owned_quad(&q);
         }
     }
-    out
-}
-
-/// The shared label/definition + per-language cells (after "definition").
-fn lang_cells(t: &Term, languages: &[&str]) -> Vec<String> {
-    let mut cells = vec![t.label.clone(), t.definition.clone()];
-    for lang in languages {
-        cells.push(t.labels.get(*lang).cloned().unwrap_or_default());
-        cells.push(t.definitions.get(*lang).cloned().unwrap_or_default());
-    }
-    cells.push(if t.label_fallback { "true" } else { "false" }.to_string());
-    cells.push(
-        if t.definition_fallback {
-            "true"
-        } else {
-            "false"
+    for r in dataset.owned_reifiers() {
+        if r.graph.is_none() {
+            b.push_owned_reifier(&r);
         }
-        .to_string(),
-    );
-    cells
-}
-
-fn class_columns() -> Vec<&'static str> {
-    let mut c = vec!["curie", "label", "definition"];
-    c.extend(ADVISORY_COLUMNS);
-    c.extend(["subClassOf", "alignments", "iri"]);
-    c
-}
-fn property_columns() -> Vec<&'static str> {
-    let mut c = vec!["curie", "label", "definition"];
-    c.extend(ADVISORY_COLUMNS);
-    c.extend([
-        "propertyKind",
-        "domain",
-        "range",
-        "functional",
-        "subPropertyOf",
-        "alignments",
-        "iri",
-    ]);
-    c
-}
-fn individual_columns() -> Vec<&'static str> {
-    let mut c = vec!["curie", "label", "definition"];
-    c.extend(ADVISORY_COLUMNS);
-    c.extend(["types", "alignments", "iri"]);
-    c
-}
-
-fn write_class_csv(classes: &[&Term], languages: &[&str]) -> Vec<u8> {
-    let cols = lang_columns(&class_columns(), languages);
-    let mut s = csv_row(&cols);
-    for t in classes {
-        let mut row = vec![t.curie.clone()];
-        row.extend(lang_cells(t, languages));
-        row.extend(advisory_cells(t));
-        row.push(t.parents.join("; "));
-        row.push(t.alignments.join("; "));
-        row.push(t.iri.clone());
-        s.push_str(&csv_row(&row));
     }
-    s.into_bytes()
-}
-
-fn write_property_csv(properties: &[&Term], languages: &[&str]) -> Vec<u8> {
-    let cols = lang_columns(&property_columns(), languages);
-    let mut s = csv_row(&cols);
-    for t in properties {
-        let mut row = vec![t.curie.clone()];
-        row.extend(lang_cells(t, languages));
-        row.extend(advisory_cells(t));
-        row.push(t.prop_kind.to_string());
-        row.push(t.domain.clone());
-        row.push(t.range.clone());
-        row.push(if t.functional { "true" } else { "false" }.to_string());
-        row.push(t.sub_property_of.join("; "));
-        row.push(t.alignments.join("; "));
-        row.push(t.iri.clone());
-        s.push_str(&csv_row(&row));
+    for a in dataset.owned_annotations() {
+        if a.graph.is_none() {
+            b.push_owned_annotation(&a);
+        }
     }
-    s.into_bytes()
+    b.freeze()
+        .map_err(|e| err(format!("default-graph dataset freeze: {e}")))
 }
 
-fn write_individual_csv(individuals: &[&Term], languages: &[&str]) -> Vec<u8> {
-    let cols = lang_columns(&individual_columns(), languages);
-    let mut s = csv_row(&cols);
-    for t in individuals {
-        let mut row = vec![t.curie.clone()];
-        row.extend(lang_cells(t, languages));
-        row.extend(advisory_cells(t));
-        row.push(t.types.join("; "));
-        row.push(t.alignments.join("; "));
-        row.push(t.iri.clone());
-        s.push_str(&csv_row(&row));
-    }
-    s.into_bytes()
+/// The gmeow-owned [`purrdf::CsvwConfig`]: the exact profile ignores `vocabulary`/
+/// `mode` (those drive the OTHER RDF↔CSVW-standard conversion this leaf never uses),
+/// but `CsvwConfig` is one shared mandatory-everything struct, so real W3C namespace
+/// IRIs are still supplied (never a fabricated placeholder).
+fn csvw_config() -> Result<purrdf::CsvwConfig, gmeow_errors::Diag> {
+    let limits = purrdf::ProjectionLimits::new(
+        16,            // max_artifacts: exactly 5 (metadata + terms/quads/reifiers/annotations)
+        1_000_000_000, // max_artifact_bytes: the gmeow-cli `export` command re-derives its
+        // source via `purrdf::gts::flattened_dataset_from_bytes` (every named graph
+        // folded into the default graph — see that fn's own doc), so
+        // `default_graph_dataset` sees the WHOLE ~2.1M-quad carrier there, not the
+        // pipeline stage's own ~98K-quad true default graph. Measured worst case
+        // (the full committed `gmeow.gts`, flattened): ~627MB `quads.csv`, ~133MB
+        // `terms.csv`, ~761MB total package, ~34s. These bounds carry headroom above
+        // that measured worst case.
+        1_500_000_000, // max_total_bytes
+        1_600_000_000, // max_archive_bytes
+        16,            // max_term_depth
+    )
+    .map_err(|e| err(format!("CSVW ProjectionLimits: {e}")))?;
+    let context = purrdf::CsvwContext::new("http://www.w3.org/ns/csvw", BTreeMap::new())
+        .map_err(|e| err(format!("CsvwContext: {e}")))?;
+    let vocabulary = purrdf::CsvwVocabulary::new(
+        "http://www.w3.org/ns/csvw#",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        RDFS,
+        XSD,
+    )
+    .map_err(|e| err(format!("CsvwVocabulary: {e}")))?;
+    purrdf::CsvwConfig::new(
+        format!("{NAMESPACE}dist/csvw/"),
+        context,
+        format!("{NAMESPACE}dist/csvw/table-group"),
+        vocabulary,
+        purrdf::CsvwMode::Standard,
+        limits,
+        8_000_000, // max_records: covers the flattened-carrier worst case above
+    )
+    .map_err(|e| err(format!("CsvwConfig: {e}")))
 }
 
-// ── CSVW descriptor ─────────────────────────────────────────────────────────────
-
-fn write_csvw(title: &str, languages: &[&str]) -> Vec<u8> {
-    let table = |url: &str, cols: Vec<String>| -> J {
-        J::Obj(vec![
-            ("url".into(), J::Str(url.to_string())),
-            (
-                "tableSchema".into(),
-                J::Obj(vec![(
-                    "columns".into(),
-                    J::Arr(
-                        cols.into_iter()
-                            .map(|c| {
-                                J::Obj(vec![
-                                    ("name".into(), J::Str(c.clone())),
-                                    ("titles".into(), J::Str(c)),
-                                ])
-                            })
-                            .collect(),
-                    ),
-                )]),
-            ),
-        ])
-    };
-    let descriptor = J::Obj(vec![
-        (
-            "@context".into(),
-            J::Str("http://www.w3.org/ns/csvw".into()),
-        ),
-        (
-            "dc:title".into(),
-            J::Str(format!("{title} — term dictionaries")),
-        ),
-        ("dc:source".into(), J::Str(ONTOLOGY_IRI.into())),
-        (
-            "tables".into(),
-            J::Arr(vec![
-                table(
-                    "gmeow-classes.csv",
-                    lang_columns(&class_columns(), languages),
-                ),
-                table(
-                    "gmeow-properties.csv",
-                    lang_columns(&property_columns(), languages),
-                ),
-                table(
-                    "gmeow-individuals.csv",
-                    lang_columns(&individual_columns(), languages),
-                ),
-            ]),
-        ),
-    ]);
-    let mut s = String::new();
-    descriptor.pretty(0, &mut s);
-    s.push('\n');
-    s.into_bytes()
+/// Render the generic lossless CSVW package (`csvw-metadata.json` +
+/// `terms.csv`/`quads.csv`/`reifiers.csv`/`annotations.csv`) from the carrier
+/// `dataset`, scoped to the default graph (see [`default_graph_dataset`]). Replaces
+/// the retired hand-rolled `write_class_csv`/`write_property_csv`/
+/// `write_individual_csv`/`write_csvw` curated term tables — a deliberate drop of
+/// the curated columns in favor of purrdf's exact, always-lossless RDF encoding.
+fn render_csvw(dataset: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let scoped = default_graph_dataset(dataset)?;
+    let config = csvw_config()?;
+    let projection = purrdf::project_csvw_exact(scoped.as_ref(), &config)
+        .map_err(|e| err(format!("project_csvw_exact: {e}")))?;
+    Ok(projection
+        .package
+        .artifacts()
+        .map(|(path, bytes)| (format!("{DIST_DIR}/csvw/{path}"), bytes.to_vec()))
+        .collect())
 }
 
 // ── JSONL ───────────────────────────────────────────────────────────────────────
@@ -2317,73 +2167,179 @@ fn write_statements_jsonl(view: &FoldView) -> Vec<u8> {
     (rows.join("\n") + "\n").into_bytes()
 }
 
-// ── SKOS extract ─────────────────────────────────────────────────────────────────
-
-fn ttl_literal(text: &str, lang: Option<&str>) -> String {
-    let lit = json_str(text);
-    match lang {
-        Some(l) => format!("{lit}@{l}"),
-        None => lit,
-    }
-}
+// ── SKOS extract (purrdf project_skos) ────────────────────────────────────────────
 
 const SKOS_MATCHES: &[&str] = &["exactMatch", "closeMatch", "relatedMatch"];
 
-fn write_skos(view: &FoldView, title: &str, version: &str) -> Vec<u8> {
+// Every role purrdf requires but gmeow's data never populates still names the REAL
+// SKOS predicate (never a fabricated placeholder) — purrdf's role vocabulary is
+// mandatory-and-complete by design (see the `SkosSourceRoles`/`SkosTargetRoles` doc
+// comments); an unpopulated role simply never matches a source quad.
+const SKOS_ROLE_NARROWER: &str = "http://www.w3.org/2004/02/skos/core#narrower";
+const SKOS_ROLE_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
+const SKOS_ROLE_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
+const SKOS_ROLE_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
+const SKOS_ROLE_BROAD_MATCH: &str = "http://www.w3.org/2004/02/skos/core#broadMatch";
+const SKOS_ROLE_NARROW_MATCH: &str = "http://www.w3.org/2004/02/skos/core#narrowMatch";
+const SKOS_ROLE_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
+const SKOS_ROLE_IN_SCHEME: &str = "http://www.w3.org/2004/02/skos/core#inScheme";
+const SKOS_ROLE_HAS_TOP_CONCEPT: &str = "http://www.w3.org/2004/02/skos/core#hasTopConcept";
+const SKOS_ROLE_TOP_CONCEPT_OF: &str = "http://www.w3.org/2004/02/skos/core#topConceptOf";
+const SKOS_ROLE_ALT_LABEL: &str = "http://www.w3.org/2004/02/skos/core#altLabel";
+const SKOS_ROLE_HIDDEN_LABEL: &str = "http://www.w3.org/2004/02/skos/core#hiddenLabel";
+const SKOS_ROLE_NOTATION: &str = "http://www.w3.org/2004/02/skos/core#notation";
+const SKOS_ROLE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#note";
+const SKOS_ROLE_CHANGE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#changeNote";
+const SKOS_ROLE_EDITORIAL_NOTE: &str = "http://www.w3.org/2004/02/skos/core#editorialNote";
+const SKOS_ROLE_EXAMPLE: &str = "http://www.w3.org/2004/02/skos/core#example";
+const SKOS_ROLE_HISTORY_NOTE: &str = "http://www.w3.org/2004/02/skos/core#historyNote";
+const SKOS_ROLE_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
+
+/// The gmeow-owned [`purrdf::SkosConfig`]: SOURCE interprets gmeow's own
+/// `owl:Class`/`rdfs:label`/`rdfs:subClassOf` taxonomy (never standard SKOS
+/// predicates on the source side — that is gmeow's actual vocabulary); TARGET emits
+/// the real `skos:Concept`/`skos:prefLabel`/`skos:broader` surface. `skos:definition`
+/// and the three match predicates are identity source→target: gmeow's alignments
+/// graph already carries real `skos:exactMatch`/`closeMatch`/`relatedMatch` rows.
+fn skos_config() -> Result<purrdf::SkosConfig, gmeow_errors::Diag> {
+    let source_classes =
+        purrdf::SkosClassRoles::new(RDF_TYPE, format!("{OWL}Class"), format!("{OWL}Ontology"))
+            .map_err(|e| err(format!("SkosClassRoles (source): {e}")))?;
+    let target_classes = purrdf::SkosClassRoles::new(
+        RDF_TYPE,
+        format!("{SKOS}Concept"),
+        format!("{SKOS}ConceptScheme"),
+    )
+    .map_err(|e| err(format!("SkosClassRoles (target): {e}")))?;
+
+    let source_labels = purrdf::SkosLabelRoles::new(
+        format!("{RDFS}label"),
+        SKOS_ROLE_ALT_LABEL,
+        SKOS_ROLE_HIDDEN_LABEL,
+        SKOS_ROLE_NOTATION,
+    )
+    .map_err(|e| err(format!("SkosLabelRoles (source): {e}")))?;
+    let target_labels = purrdf::SkosLabelRoles::new(
+        format!("{SKOS}prefLabel"),
+        SKOS_ROLE_ALT_LABEL,
+        SKOS_ROLE_HIDDEN_LABEL,
+        SKOS_ROLE_NOTATION,
+    )
+    .map_err(|e| err(format!("SkosLabelRoles (target): {e}")))?;
+
+    let documentation = purrdf::SkosDocumentationRoles::new(
+        SKOS_ROLE_NOTE,
+        SKOS_ROLE_CHANGE_NOTE,
+        format!("{SKOS}definition"),
+        SKOS_ROLE_EDITORIAL_NOTE,
+        SKOS_ROLE_EXAMPLE,
+        SKOS_ROLE_HISTORY_NOTE,
+        SKOS_ROLE_SCOPE_NOTE,
+    )
+    .map_err(|e| err(format!("SkosDocumentationRoles: {e}")))?;
+
+    let source_relations = purrdf::SkosRelationRoles::new(
+        format!("{RDFS}subClassOf"),
+        SKOS_ROLE_NARROWER,
+        SKOS_ROLE_RELATED,
+        SKOS_ROLE_CLOSE_MATCH,
+        SKOS_ROLE_EXACT_MATCH,
+        SKOS_ROLE_BROAD_MATCH,
+        SKOS_ROLE_NARROW_MATCH,
+        SKOS_ROLE_RELATED_MATCH,
+        SKOS_ROLE_IN_SCHEME,
+        SKOS_ROLE_HAS_TOP_CONCEPT,
+        SKOS_ROLE_TOP_CONCEPT_OF,
+    )
+    .map_err(|e| err(format!("SkosRelationRoles (source): {e}")))?;
+    let target_relations = purrdf::SkosRelationRoles::new(
+        format!("{SKOS}broader"),
+        SKOS_ROLE_NARROWER,
+        SKOS_ROLE_RELATED,
+        SKOS_ROLE_CLOSE_MATCH,
+        SKOS_ROLE_EXACT_MATCH,
+        SKOS_ROLE_BROAD_MATCH,
+        SKOS_ROLE_NARROW_MATCH,
+        SKOS_ROLE_RELATED_MATCH,
+        SKOS_ROLE_IN_SCHEME,
+        SKOS_ROLE_HAS_TOP_CONCEPT,
+        SKOS_ROLE_TOP_CONCEPT_OF,
+    )
+    .map_err(|e| err(format!("SkosRelationRoles (target): {e}")))?;
+
+    let source = purrdf::SkosSourceRoles::new(
+        source_classes,
+        source_labels,
+        documentation.clone(),
+        source_relations,
+    )
+    .map_err(|e| err(format!("SkosSourceRoles: {e}")))?;
+    let target = purrdf::SkosTargetRoles::new(
+        target_classes,
+        target_labels,
+        documentation,
+        target_relations,
+    )
+    .map_err(|e| err(format!("SkosTargetRoles: {e}")))?;
+
+    let limits = purrdf::ProjectionLimits::new(8, 128_000_000, 256_000_000, 300_000_000, 16)
+        .map_err(|e| err(format!("SKOS ProjectionLimits: {e}")))?;
+    purrdf::SkosConfig::new(
+        source,
+        target,
+        ONTOLOGY_IRI,
+        purrdf::SkosGraphSelection::DefaultGraph,
+        limits,
+        500_000,
+    )
+    .map_err(|e| err(format!("SkosConfig: {e}")))
+}
+
+/// Build the exact scoped RDF-1.2 source [`RdfDataset`] [`skos_config`]'s role model
+/// consumes — mirroring the retired hand-rolled `write_skos`'s reads exactly:
+/// gmeow-namespace `owl:Class` subjects from the default graph, their
+/// `rdfs:label`/`skos:definition` texts (one per public language, matching
+/// `write_skos`'s per-language dedup), `rdfs:subClassOf` edges restricted to
+/// in-scope classes, and the `exactMatch`/`closeMatch`/`relatedMatch` rows from
+/// [`ALIGNMENTS_GRAPH`]. purrdf's SKOS projector has no "broader-less ⇒ top concept"
+/// inference (unlike the retired writer), so a broader-less class's top-concept
+/// membership is asserted explicitly as a synthetic `skos:hasTopConcept` source row.
+fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
+    use purrdf::{RdfDatasetBuilder, RdfLiteral};
+
     let mut classes: Vec<usize> = view
         .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .collect();
-    classes.sort_by_key(|&a| curie(view.lex(a)));
-    let class_iris: BTreeSet<String> = classes.iter().map(|&t| view.lex(t).to_string()).collect();
+    classes.sort_by_key(|&a| view.lex(a));
+    let class_iris: BTreeSet<&str> = classes.iter().map(|&t| view.lex(t)).collect();
 
-    let mut lines: Vec<String> = vec![
-        "# The GMEOW vocabulary as a SKOS concept scheme — a LOSSY projection:".into(),
-        "# classes only (typed skos:Concept on their original IRIs);".into(),
-        "# subClassOf → skos:broader; SKOS mapping rows carried from the".into(),
-        "# alignments graph. OWL axioms, properties, and individuals are".into(),
-        "# dropped. STANDALONE: never merge with the OWL form (class punning).".into(),
-        "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .".into(),
-        "@prefix dcterms: <http://purl.org/dc/terms/> .".into(),
-        "@prefix owl: <http://www.w3.org/2002/07/owl#> .".into(),
-        format!("@prefix gmeow: <{NAMESPACE}> ."),
-        String::new(),
-        format!("<{ONTOLOGY_IRI}> a skos:ConceptScheme ;"),
-        format!(
-            "    dcterms:title {} ;",
-            ttl_literal(&format!("{title} — SKOS extract"), None)
-        ),
-        format!("    owl:versionInfo {} .", ttl_literal(version, None)),
-    ];
+    let mut builder = RdfDatasetBuilder::new();
+    let rdf_type = builder.intern_iri(RDF_TYPE);
+    let owl_class = builder.intern_iri(&format!("{OWL}Class"));
+    let rdfs_label = builder.intern_iri(&format!("{RDFS}label"));
+    let skos_definition = builder.intern_iri(&format!("{SKOS}definition"));
+    let rdfs_sub_class_of = builder.intern_iri(&format!("{RDFS}subClassOf"));
+    let has_top_concept = builder.intern_iri(SKOS_ROLE_HAS_TOP_CONCEPT);
+    let scheme = builder.intern_iri(ONTOLOGY_IRI);
 
-    let mut top_concepts: Vec<String> = Vec::new();
-    let mut bodies: Vec<String> = Vec::new();
     for &t in &classes {
-        let c = curie(view.lex(t));
-        let mut broader: BTreeSet<String> = BTreeSet::new();
-        for o in view.objects(t, &format!("{RDFS}subClassOf"), DEFAULT_SCOPE) {
-            if view.is_iri(o) && class_iris.contains(view.lex(o)) {
-                broader.insert(curie(view.lex(o)));
-            }
-        }
-        let broader: Vec<String> = broader.into_iter().collect();
-        if broader.is_empty() {
-            top_concepts.push(c.clone());
-        }
-        let mut stanza: Vec<String> = vec![
-            format!("{c} a skos:Concept ;"),
-            format!("    skos:inScheme <{ONTOLOGY_IRI}> ;"),
-        ];
+        let subject = builder.intern_iri(view.lex(t));
+        builder.push_quad(subject, rdf_type, owl_class, None);
+
         let mut seen_labels: BTreeSet<String> = BTreeSet::new();
         for (text, lang, _fallback) in view.public_texts(t, &format!("{RDFS}label")) {
             if let Some(l) = lang
                 && seen_labels.insert(l.clone())
             {
-                stanza.push(format!(
-                    "    skos:prefLabel {} ;",
-                    ttl_literal(&text, Some(&l))
-                ));
+                let obj = builder.intern_literal(RdfLiteral {
+                    lexical_form: text,
+                    datatype: None,
+                    language: Some(l),
+                    direction: None,
+                });
+                builder.push_quad(subject, rdfs_label, obj, None);
             }
         }
         let mut seen_defs: BTreeSet<String> = BTreeSet::new();
@@ -2391,38 +2347,174 @@ fn write_skos(view: &FoldView, title: &str, version: &str) -> Vec<u8> {
             if let Some(l) = lang
                 && seen_defs.insert(l.clone())
             {
-                stanza.push(format!(
-                    "    skos:definition {} ;",
-                    ttl_literal(&text, Some(&l))
-                ));
+                let obj = builder.intern_literal(RdfLiteral {
+                    lexical_form: text,
+                    datatype: None,
+                    language: Some(l),
+                    direction: None,
+                });
+                builder.push_quad(subject, skos_definition, obj, None);
             }
         }
-        for b in &broader {
-            stanza.push(format!("    skos:broader {b} ;"));
+
+        let mut broader: BTreeSet<&str> = BTreeSet::new();
+        for o in view.objects(t, &format!("{RDFS}subClassOf"), DEFAULT_SCOPE) {
+            if view.is_iri(o) && class_iris.contains(view.lex(o)) {
+                broader.insert(view.lex(o));
+            }
         }
+        if broader.is_empty() {
+            let obj = builder.intern_iri(view.lex(t));
+            builder.push_quad(scheme, has_top_concept, obj, None);
+        } else {
+            for b in broader {
+                let obj = builder.intern_iri(b);
+                builder.push_quad(subject, rdfs_sub_class_of, obj, None);
+            }
+        }
+
         for (p, o) in view.predicate_objects(t, ALIGNMENTS_GRAPH) {
             let p_local = view.lex(p).rsplit('#').next().unwrap_or("");
             if SKOS_MATCHES.contains(&p_local) && view.is_iri(o) {
-                stanza.push(format!("    skos:{p_local} <{}> ;", view.lex(o)));
+                let pred = builder.intern_iri(view.lex(p));
+                let obj = builder.intern_iri(view.lex(o));
+                builder.push_quad(subject, pred, obj, None);
             }
         }
-        let last = stanza.len() - 1;
-        stanza[last] = stanza[last].trim_end_matches(" ;").to_string() + " .";
-        bodies.push(String::new());
-        bodies.extend(stanza);
     }
 
-    for c in &top_concepts {
-        lines.push(format!("<{ONTOLOGY_IRI}> skos:hasTopConcept {c} ."));
-    }
-    let mut all = lines;
-    all.extend(bodies);
-    (all.join("\n") + "\n").into_bytes()
+    builder
+        .freeze()
+        .map_err(|e| err(format!("SKOS source dataset freeze: {e}")))
 }
 
-// ── OBO Graphs JSON ──────────────────────────────────────────────────────────────
+/// Group a purrdf [`purrdf::LossLedger`] by `(code, note)` and trace it — no runtime
+/// RDF→(SKOS|OBO Graphs) lowering loss is ever silently dropped. Mirrors `lpg.rs`'s
+/// `report_lpg_losses`; `tracing`'s `target:` field must be a literal, so `surface`
+/// rides as an ordinary field instead of a per-call `target`.
+fn report_projection_losses(surface: &str, ledger: &purrdf::LossLedger) {
+    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    for loss in ledger.entries() {
+        let subject = loss
+            .location
+            .as_deref()
+            .and_then(|location| location.subject.as_deref())
+            .unwrap_or("<unlocated>");
+        grouped
+            .entry((loss.code.as_ref(), loss.note.as_ref()))
+            .or_default()
+            .push(subject);
+    }
+    for ((construct, reason), mut subjects) in grouped {
+        subjects.sort_unstable();
+        subjects.dedup();
+        let examples = subjects
+            .iter()
+            .take(5)
+            .copied()
+            .collect::<Vec<_>>()
+            .join(", ");
+        let suffix = if subjects.len() > 5 {
+            format!(" (+{} more)", subjects.len() - 5)
+        } else {
+            String::new()
+        };
+        tracing::info!(
+            target: "export_projection_loss",
+            surface = surface,
+            construct = construct,
+            subjects = subjects.len(),
+            reason = reason,
+            examples = %format!("{examples}{suffix}"),
+            "lossy drop projecting the scoped default-graph RDF",
+        );
+    }
+}
 
-fn write_obographs(view: &FoldView, version: &str) -> Vec<u8> {
+fn render_skos(view: &FoldView) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let source = skos_source_dataset(view)?;
+    let config = skos_config()?;
+    let projection = purrdf::project_skos(source.as_ref(), &config)
+        .map_err(|e| err(format!("project_skos: {e}")))?;
+    report_projection_losses("skos", &projection.loss_ledger);
+    Ok(projection.turtle)
+}
+
+// ── OBO Graphs JSON (purrdf project_obo_graphs) ───────────────────────────────────
+
+/// The gmeow-owned [`purrdf::OboGraphsConfig`]: standard RDF/RDFS/OWL vocabulary
+/// (real IRIs throughout — OBO Graphs 0.3.2 has no gmeow-specific roles). The
+/// metadata roles gmeow's filtered source never populates (synonyms/xref/subset)
+/// still name the real oboInOwl vocabulary, matching [`skos_config`]'s
+/// never-fabricate-a-placeholder discipline.
+fn obo_graphs_config() -> Result<purrdf::OboGraphsConfig, gmeow_errors::Diag> {
+    let rdf = purrdf::OboRdfRoles::new(
+        RDF_TYPE,
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
+        RDF_FIRST,
+        RDF_REST,
+        RDF_NIL,
+        format!("{XSD}string"),
+        format!("{XSD}boolean"),
+    )
+    .map_err(|e| err(format!("OboRdfRoles: {e}")))?;
+    let owl = purrdf::OboOwlRoles::new(
+        format!("{RDFS}label"),
+        format!("{RDFS}comment"),
+        format!("{RDFS}subClassOf"),
+        format!("{RDFS}subPropertyOf"),
+        format!("{RDFS}domain"),
+        format!("{RDFS}range"),
+        format!("{OWL}Ontology"),
+        format!("{OWL}Class"),
+        format!("{OWL}NamedIndividual"),
+        format!("{OWL}ObjectProperty"),
+        format!("{OWL}AnnotationProperty"),
+        format!("{OWL}DatatypeProperty"),
+        format!("{OWL}equivalentClass"),
+        format!("{OWL}intersectionOf"),
+        format!("{OWL}Restriction"),
+        format!("{OWL}onProperty"),
+        format!("{OWL}someValuesFrom"),
+        format!("{OWL}allValuesFrom"),
+        format!("{OWL}propertyChainAxiom"),
+        format!("{OWL}deprecated"),
+    )
+    .map_err(|e| err(format!("OboOwlRoles: {e}")))?;
+    let metadata = purrdf::OboMetadataRoles::new(
+        format!("{SKOS}definition"),
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+        "http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym",
+        "http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym",
+        "http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym",
+        "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
+        "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+        "http://www.geneontology.org/formats/oboInOwl#inSubset",
+        format!("{OWL}versionInfo"),
+    )
+    .map_err(|e| err(format!("OboMetadataRoles: {e}")))?;
+    let vocabulary = purrdf::OboGraphsVocabulary::new(rdf, owl, metadata)
+        .map_err(|e| err(format!("OboGraphsVocabulary: {e}")))?;
+    let limits = purrdf::ProjectionLimits::new(8, 128_000_000, 256_000_000, 300_000_000, 16)
+        .map_err(|e| err(format!("OBO Graphs ProjectionLimits: {e}")))?;
+    purrdf::OboGraphsConfig::new(ONTOLOGY_IRI, vocabulary, limits, 500_000)
+        .map_err(|e| err(format!("OboGraphsConfig: {e}")))
+}
+
+/// Build the exact scoped RDF-1.2 source [`RdfDataset`] [`obo_graphs_config`]'s role
+/// model consumes — mirroring the retired hand-rolled `write_obographs`'s reads
+/// exactly: gmeow-namespace `owl:Class` subjects from the default graph, their
+/// `rdfs:label`/`skos:definition` texts, and IRI-only `rdfs:subClassOf` edges (never
+/// a blank-node restriction — purrdf's OBO Graphs mapper parses `owl:Restriction`
+/// blank-node shapes strictly and hard-fails on an unrecognized OWL expression
+/// shape, so this leaf never feeds it one). The ontology header's `owl:versionInfo`
+/// is carried onto the graph itself.
+fn obo_graphs_source_dataset(
+    view: &FoldView,
+    version: &str,
+) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
+    use purrdf::{RdfDatasetBuilder, RdfLiteral};
+
     let label_iri = format!("{RDFS}label");
     let definition_iri = format!("{SKOS}definition");
     let mut classes: Vec<usize> = view
@@ -2432,76 +2524,55 @@ fn write_obographs(view: &FoldView, version: &str) -> Vec<u8> {
         .collect();
     classes.sort_by(|&a, &b| view.lex(a).cmp(view.lex(b)));
 
-    let mut nodes: Vec<J> = Vec::new();
-    let mut edges: Vec<J> = Vec::new();
-    let mut node_ids: BTreeSet<String> = BTreeSet::new();
-    let mut edge_objs: BTreeSet<String> = BTreeSet::new();
+    let mut builder = RdfDatasetBuilder::new();
+    let rdf_type = builder.intern_iri(RDF_TYPE);
+    let owl_class = builder.intern_iri(&format!("{OWL}Class"));
+    let rdfs_label = builder.intern_iri(&label_iri);
+    let skos_definition = builder.intern_iri(&definition_iri);
+    let rdfs_sub_class_of = builder.intern_iri(&format!("{RDFS}subClassOf"));
+    let owl_version_info = builder.intern_iri(&format!("{OWL}versionInfo"));
+    let graph_id = builder.intern_iri(ONTOLOGY_IRI);
+
+    let version_obj = builder.intern_literal(RdfLiteral::simple(version));
+    builder.push_quad(graph_id, owl_version_info, version_obj, None);
+
     for &t in &classes {
-        let iri = view.lex(t).to_string();
-        let mut node: Vec<(String, J)> = vec![
-            ("id".into(), J::Str(iri.clone())),
-            ("type".into(), J::Str("CLASS".into())),
-        ];
+        let subject = builder.intern_iri(view.lex(t));
+        builder.push_quad(subject, rdf_type, owl_class, None);
+
         let (label, _fb) = view.public_text_with_fallback(t, &label_iri);
         if !label.is_empty() {
-            node.push(("lbl".into(), J::Str(label)));
+            let obj = builder.intern_literal(RdfLiteral::simple(label));
+            builder.push_quad(subject, rdfs_label, obj, None);
         }
         let (definition, _fb) = view.public_text_with_fallback(t, &definition_iri);
         if !definition.is_empty() {
-            node.push((
-                "meta".into(),
-                J::Obj(vec![(
-                    "definition".into(),
-                    J::Obj(vec![("val".into(), J::Str(definition))]),
-                )]),
-            ));
+            let obj = builder.intern_literal(RdfLiteral::simple(definition));
+            builder.push_quad(subject, skos_definition, obj, None);
         }
-        node_ids.insert(iri.clone());
-        nodes.push(J::Obj(node));
         for o in view.objects(t, &format!("{RDFS}subClassOf"), DEFAULT_SCOPE) {
             if view.is_iri(o) {
-                let obj = view.lex(o).to_string();
-                edge_objs.insert(obj.clone());
-                edges.push(J::Obj(vec![
-                    ("sub".into(), J::Str(iri.clone())),
-                    ("pred".into(), J::Str("is_a".into())),
-                    ("obj".into(), J::Str(obj)),
-                ]));
+                let obj = builder.intern_iri(view.lex(o));
+                builder.push_quad(subject, rdfs_sub_class_of, obj, None);
             }
         }
     }
-    for iri in edge_objs.difference(&node_ids) {
-        nodes.push(J::Obj(vec![
-            ("id".into(), J::Str(iri.clone())),
-            ("type".into(), J::Str("CLASS".into())),
-        ]));
-    }
 
-    let doc = J::Obj(vec![(
-        "graphs".into(),
-        J::Arr(vec![J::Obj(vec![
-            ("id".into(), J::Str(ONTOLOGY_IRI.into())),
-            (
-                "meta".into(),
-                J::Obj(vec![
-                    ("version".into(), J::Str(version.into())),
-                    (
-                        "basicPropertyValues".into(),
-                        J::Arr(vec![J::Obj(vec![
-                            ("pred".into(), J::Str("http://www.w3.org/2000/01/rdf-schema#comment".into())),
-                            ("val".into(), J::Str("LOSSY projection: GMEOW classes and IRI-only is_a edges; blank-node restrictions, properties, and individuals are dropped. The RDF 1.2 grounding slices are canonical.".into())),
-                        ])]),
-                    ),
-                ]),
-            ),
-            ("nodes".into(), J::Arr(nodes)),
-            ("edges".into(), J::Arr(edges)),
-        ])]),
-    )]);
-    let mut s = String::new();
-    doc.pretty(0, &mut s);
-    s.push('\n');
-    s.into_bytes()
+    builder
+        .freeze()
+        .map_err(|e| err(format!("OBO Graphs source dataset freeze: {e}")))
+}
+
+fn render_obographs(view: &FoldView, version: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let source = obo_graphs_source_dataset(view, version)?;
+    let config = obo_graphs_config()?;
+    let projection = purrdf::project_obo_graphs(source.as_ref(), &config)
+        .map_err(|e| err(format!("project_obo_graphs: {e}")))?;
+    report_projection_losses("obographs", &projection.loss_ledger);
+    projection
+        .document
+        .to_canonical_json(&config)
+        .map_err(|e| err(format!("OBO Graphs canonical JSON: {e}")))
 }
 
 // ── ShEx ─────────────────────────────────────────────────────────────────────────
@@ -2693,32 +2764,9 @@ pub(crate) fn render_all_with_languages(
     let view = FoldView::with_requested(dataset, requested.clone());
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
-    let languages: Vec<&str> = requested.iter().map(String::as_str).collect();
-
-    let classes: Vec<&Term> = terms.iter().filter(|t| t.category == "class").collect();
-    let properties: Vec<&Term> = terms.iter().filter(|t| t.category == "property").collect();
-    let individuals: Vec<&Term> = terms
-        .iter()
-        .filter(|t| t.category == "individual")
-        .collect();
 
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    out.insert(
-        format!("{DIST_DIR}/gmeow-classes.csv"),
-        write_class_csv(&classes, &languages),
-    );
-    out.insert(
-        format!("{DIST_DIR}/gmeow-properties.csv"),
-        write_property_csv(&properties, &languages),
-    );
-    out.insert(
-        format!("{DIST_DIR}/gmeow-individuals.csv"),
-        write_individual_csv(&individuals, &languages),
-    );
-    out.insert(
-        format!("{DIST_DIR}/gmeow-terms.csvw.json"),
-        write_csvw(&title, &languages),
-    );
+    out.extend(render_csvw(dataset)?);
     out.insert(format!("{DIST_DIR}/gmeow-terms.jsonl"), write_jsonl(&terms));
     out.insert(
         format!("{DIST_DIR}/gmeow-terms.md"),
@@ -2744,13 +2792,10 @@ pub(crate) fn render_all_with_languages(
         format!("{DIST_DIR}/gmeow-statements.jsonl"),
         write_statements_jsonl(&view),
     );
-    out.insert(
-        format!("{DIST_DIR}/gmeow-skos.ttl"),
-        write_skos(&view, &title, &version),
-    );
+    out.insert(format!("{DIST_DIR}/gmeow-skos.ttl"), render_skos(&view)?);
     out.insert(
         format!("{DIST_DIR}/gmeow-obographs.json"),
-        write_obographs(&view, &version),
+        render_obographs(&view, &version)?,
     );
     out.insert(format!("{DIST_DIR}/gmeow.shex"), write_shex(&view));
     Ok(out)
@@ -2921,12 +2966,13 @@ mod tests {
         let graph = read_fold(&root).expect("read fold");
         let arts = render_all(&graph, &repo_modeled_defs()).expect("render");
 
-        // All 14 expected logical paths present and non-empty.
+        // All expected logical paths present and non-empty.
         let expected = [
-            "gmeow-classes.csv",
-            "gmeow-properties.csv",
-            "gmeow-individuals.csv",
-            "gmeow-terms.csvw.json",
+            "csvw/csvw-metadata.json",
+            "csvw/terms.csv",
+            "csvw/quads.csv",
+            "csvw/reifiers.csv",
+            "csvw/annotations.csv",
             "gmeow-terms.jsonl",
             "gmeow-terms.md",
             "llms.txt",
@@ -2944,20 +2990,22 @@ mod tests {
             assert!(!bytes.is_empty(), "{path} is empty");
         }
 
-        // CSV re-parses: header + at least one data row, comma-consistent column count.
-        let csv =
-            String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-classes.csv")].clone()).unwrap();
-        let mut rows = csv.split("\r\n").filter(|l| !l.is_empty());
-        let header = rows.next().expect("csv header");
-        let ncols = header.split(',').count();
-        assert!(ncols >= 13, "class csv header columns {ncols}");
-        let data_rows = rows.count();
-        assert!(data_rows > 0, "class csv has no data rows");
+        // CSVW (purrdf project_csvw_exact): metadata is valid JSON; terms.csv/quads.csv
+        // re-parse with a header + at least one data row.
+        let csvw_metadata =
+            String::from_utf8(arts[&format!("{DIST_DIR}/csvw/csvw-metadata.json")].clone())
+                .unwrap();
+        serde_json::from_str::<serde_json::Value>(&csvw_metadata)
+            .expect("csvw-metadata.json is valid json");
+        for member in ["terms.csv", "quads.csv"] {
+            let csv =
+                String::from_utf8(arts[&format!("{DIST_DIR}/csvw/{member}")].clone()).unwrap();
+            let mut rows = csv.lines().filter(|l| !l.is_empty());
+            rows.next().expect("csv header");
+            assert!(rows.count() > 0, "{member} has no data rows");
+        }
 
-        // CSVW + obographs + JSONL re-parse as JSON.
-        let csvw =
-            String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-terms.csvw.json")].clone()).unwrap();
-        serde_json::from_str::<serde_json::Value>(&csvw).expect("csvw is valid json");
+        // obographs + JSONL re-parse as JSON.
         let obo =
             String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-obographs.json")].clone()).unwrap();
         serde_json::from_str::<serde_json::Value>(&obo).expect("obographs is valid json");
@@ -2977,9 +3025,15 @@ mod tests {
         let nq = arts[&format!("{DIST_DIR}/gmeow.nq")].clone();
         assert!(!nq.is_empty());
 
-        // SKOS / ShEx are non-empty text with their banners.
+        // SKOS / OBO Graphs / ShEx carry their expected substance (purrdf 0.7.0
+        // projections — see the module doc). purrdf's native Turtle serializer emits
+        // full IRIs for the SKOS namespace (no `skos:` CURIE prefix declared), so
+        // assert on the expanded predicate/class IRIs, not a CURIE form.
         let skos = String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-skos.ttl")].clone()).unwrap();
-        assert!(skos.contains("skos:ConceptScheme"));
+        assert!(skos.contains("http://www.w3.org/2004/02/skos/core#ConceptScheme"));
+        assert!(skos.contains("http://www.w3.org/2004/02/skos/core#Concept"));
+        assert!(skos.contains("http://www.w3.org/2004/02/skos/core#prefLabel"));
+        assert!(obo.contains("\"nodes\""));
         let shex = String::from_utf8(arts[&format!("{DIST_DIR}/gmeow.shex")].clone()).unwrap();
         assert!(shex.contains("PREFIX gmeow:"));
     }

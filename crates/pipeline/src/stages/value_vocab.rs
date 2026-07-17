@@ -31,7 +31,7 @@
 //! derivation the LinkML/TS/GraphQL schema leaf ([`crate::stages::schemas`]) also
 //! uses, so the two surfaces read the same individuals off the same store.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -40,7 +40,6 @@ use serde_json::{Value, json};
 
 use crate::gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS};
 use crate::stages::export::{DEFAULT_SCOPE, FoldView};
-use crate::stages::schema_ident::{local_name, sanitize_identifier};
 
 /// The open-value-vocabulary metaclass: a class typed `logic:AbstractIndividualType`
 /// declares its members as `gmeow:` individuals (Principle 17).
@@ -153,31 +152,6 @@ pub(crate) fn derive_value_vocabs(view: &FoldView<'_>, ns: &Namespaces) -> Vec<V
         });
     }
     vocabs
-}
-
-/// The member ident for one value CURIE: the CURIE's local name (after the prefix and
-/// any path), leading-digit guarded, then made unique against `used` by appending `_`.
-/// Mirrors `pydantic::register_enum` so the SHACL-`sh:in` enums and these value-vocab
-/// enums name their members by the identical rule.
-fn member_ident(value: &str, used: &mut BTreeSet<String>) -> String {
-    let after_prefix = value.split_once(':').map_or(value, |(_, rest)| rest);
-    let mut ident = sanitize_identifier(local_name(after_prefix), "value");
-    if matches!(ident.chars().next(), Some(c) if c.is_ascii_digit()) {
-        ident.insert(0, 'n');
-    }
-    while !used.insert(ident.clone()) {
-        ident.push('_');
-    }
-    ident
-}
-
-/// The `(ident, value)` StrEnum members for a value vocabulary's sorted member CURIEs.
-pub(crate) fn enum_member_idents(members: &[String]) -> Vec<(String, String)> {
-    let mut used: BTreeSet<String> = BTreeSet::new();
-    members
-        .iter()
-        .map(|value| (member_ident(value, &mut used), value.clone()))
-        .collect()
 }
 
 /// Whether a `$def` value is a standalone value-vocabulary enum (a bare

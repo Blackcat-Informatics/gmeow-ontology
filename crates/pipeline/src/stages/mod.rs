@@ -85,6 +85,10 @@ pub mod research_objects;
 pub mod result_shape_composition;
 pub mod result_shapes;
 pub mod rule_severity;
+// The ONE shared enriched-CompiledSchema builder every SHACL-derived schema surface
+// (json-schema, schemas) compiles through — dedups the compile+enrich+pretty-print
+// sequence so both surfaces read byte-identical `$defs`.
+pub(crate) mod schema_compile;
 pub mod schemas;
 // Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
 // renderer and the Pydantic package emitter share ONE copy of each rule.
