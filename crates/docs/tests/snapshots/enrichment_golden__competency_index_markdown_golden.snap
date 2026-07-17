@@ -1,10 +1,11 @@
 ---
 source: crates/docs/tests/enrichment_golden.rs
+assertion_line: 92
 expression: head
 ---
 # Competency questions
 
-**203** competency question(s) — declarative SPARQL questions the ontology must answer, each pinning an expected result over the asserted merged ontology (or its RDFS/native-reasoned closure, when the question opts in).
+**221** competency question(s) — declarative SPARQL questions the ontology must answer, each pinning an expected result over the asserted merged ontology (or its RDFS/native-reasoned closure, when the question opts in).
 
 ## GMEOW Affect Module
 

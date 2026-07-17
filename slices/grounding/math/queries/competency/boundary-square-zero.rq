@@ -1,0 +1,16 @@
+# Competency question (native gmeow:reasoningLogic lane): "Does the boundary square-zero
+# law, evaluated as a real first-order logic:Formula over a concrete simplicial triangle,
+# ENTAIL that the two intermediate edges of a codimension-2 diamond are a cancelling
+# pair?"  Firing math:boundarySquareZeroLaw over the pre-reified incidence atoms of the
+# triangle DERIVES the binary consequent math:cancellingPairRel(edgeAB, edgeAC) — the two
+# edges composing faceABC to vertexA with opposite sign products. That triple exists in
+# the reasoned closure ONLY because the law fired; nothing asserts it. VALUES pins the
+# query to edgeAB so the answer is exactly one row {edgeAB, edgeAC}. Removing the law
+# formula makes the answer empty.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX excc: <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/>
+
+SELECT ?b ?bp WHERE {
+    VALUES ?b { excc:edgeAB }
+    ?b math:cancellingPairRel ?bp .
+}

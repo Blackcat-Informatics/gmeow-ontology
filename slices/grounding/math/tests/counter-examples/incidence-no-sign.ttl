@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the math:CellIncidence frame: an incidence naming its coface
+# and face but carrying NO math:incidenceSign, so validation MUST emit
+# shacl.QualifiedMinCountConstraintComponent (and no other finding), isolating
+# math:UnorientedIncidence. The two referenced cells are complete (each declares a
+# situated, exact math:cellDimension) so the missing sign is the single violation.
+# Bound by ex:ecIncidenceNoSign.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:incNoSign a math:CellIncidence ;
+    math:incidenceCoface ex:faceABC ;
+    math:incidenceFace ex:edgeAB .
+
+ex:faceABC a math:Cell ; math:cellDimension ex:dim2 .
+ex:edgeAB a math:Cell ; math:cellDimension ex:dim1 .
+
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .

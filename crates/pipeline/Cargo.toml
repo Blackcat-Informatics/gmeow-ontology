@@ -118,12 +118,6 @@ sha1 = "0.10"
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
 blake3 = "1"
-# The parquet leaf (#861 P4) writes the 5 dictionary-encoded gts_db tables as
-# columnar Parquet. arrow builds the in-memory record batches; parquet serializes
-# them. Deterministic: fixed row order, no writer timestamps in metadata.
-arrow-array = "56"
-arrow-schema = "56"
-parquet = { version = "56", default-features = false, features = ["arrow", "snap"] }
 serde = { version = "1", features = ["derive"] }
 # Stage products use compact binary encoding in the content-addressed cache; JSON
 # remains the deterministic human-readable cache index and several export formats.
@@ -140,10 +134,9 @@ ciborium = "0.2"
 # minimal structural axiom subset. The on-gate path uses `allow_network=false` (snapshots /
 # fixtures only), so this is never on the gate. Same pin as the slice crate's fetcher.
 ureq = "3"
-# The OKF import lane (`cli_ops::okf_import`) shells the external `gts from-okf`
-# codec into a scratch snapshot before reading it back, so it needs a
-# self-cleaning system temp dir on the consumer runtime path (works from a
-# read-only install). Same pin as the test-side tempdir usage.
+# Self-cleaning system temp dirs for the consumer runtime path (works from a
+# read-only install) — used by the cache, source-load, and validation lanes.
+# Same pin as the test-side tempdir usage.
 tempfile = "3"
 # Structured, subscriber-controlled sink for library-internal telemetry that has
 # no reporter in scope (opt-in per-stage timing, claim-audit phase timing, the
@@ -170,10 +163,6 @@ insta = { version = "1.48", features = ["json"] }
 # The release-as-evidence fold tests build a deterministic Ed25519 signing key +
 # a synthetic OpenPGP public-key armor; same dalek the snapshot signer uses.
 ed25519-dalek = "2"
-# The parquet leaf's round-trip test re-reads written bytes through the parquet
-# reader, which takes a `ChunkReader` — `bytes::Bytes` is the simplest in-memory
-# one (already in the tree as a parquet dependency).
-bytes = "1"
 # Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
 # seeds to prove that output order is independent of input collection order.
 ahash = "0.8"

@@ -18,7 +18,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 
 ## Definition
 
-The terminal gts ARCHIVE writer \(the ONE canonical exit / narrow waist\): serialize the assembled carrier to generated/dist/gmeow\.gts\. GTS is exit\-only — produced here and nowhere else; every fold\-reading export leaf reads the carrier dataset off the gmeow:stage\-snapshot bundle, never these bytes\. The carrier is taken off the snapshot bundle \(no re\-assembly — the razor: transform transport→form at most once\), and the by\-reference blob archives are folded in alongside it: the fresh JSON\-Schema/OpenAPI \(gmeow:stage\-export\-json\-schema\), the compiled axiom surface \(gmeow:stage\-compile\-logic\), the native reasoning reports \(gmeow:stage\-reason\), the byte\-decorated RDF 1\.2 statement lanes \(gmeow:stage\-statements\), and the SHACL diagnostics SARIF/findings \(gmeow:stage\-validate\)\. The embedded executable\-docs 'try it' surface reasons over the object\-level EDB, whose authored self\-description graphs ride on gmeow:stage\-source\-load \(read, never re\-loaded\)\. The opaque fanout members \(references, bench, agreement matrix, apache config, matrix, eval/research\-object sidecars, metadata void/dcat\) ride in from their producing export leaves — rendered once, in the leaf, never re\-rendered in the terminal \(the transform\-once razor\)\.
+The terminal gts ARCHIVE writer \(the ONE canonical exit / narrow waist\): serialize the assembled carrier to generated/dist/gmeow\.gts\. GTS is exit\-only — produced here and nowhere else; every fold\-reading export leaf reads the carrier dataset off the gmeow:stage\-snapshot bundle, never these bytes\. The carrier is taken off the snapshot bundle \(no re\-assembly — the razor: transform transport→form at most once\), and the by\-reference blob archives are folded in alongside it: the fresh JSON\-Schema/OpenAPI \(gmeow:stage\-export\-json\-schema\), the compiled axiom surface \(gmeow:stage\-compile\-logic\), the native reasoning reports \(gmeow:stage\-reason\), the byte\-decorated RDF 1\.2 statement lanes \(gmeow:stage\-statements\), and the SHACL diagnostics SARIF/findings \(gmeow:stage\-validate\)\. The embedded executable\-docs 'try it' surface reasons over the object\-level EDB, whose authored self\-description graphs ride on gmeow:stage\-source\-load \(read, never re\-loaded\)\. The opaque fanout members \(references, bench, agreement matrix, apache config, matrix, eval/research\-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces\) ride in from their producing export leaves — rendered once, in the leaf, never re\-rendered in the terminal \(the transform\-once razor\)\.
 
 ## For developers
 
@@ -79,6 +79,7 @@ This term is a stage of the [build pipeline](../../pipeline/index.md) — a type
 - [`gmeow:stage-export-references`](../stage-export-references/index.md)
 - [`gmeow:stage-export-research-objects`](../stage-export-research-objects/index.md)
 - [`gmeow:stage-export-result-shapes`](../stage-export-result-shapes/index.md)
+- [`gmeow:stage-export-schemas`](../stage-export-schemas/index.md)
 - [`gmeow:stage-mappings`](../stage-mappings/index.md)
 - [`gmeow:stage-reason`](../stage-reason/index.md)
 - [`gmeow:stage-snapshot`](../stage-snapshot/index.md)

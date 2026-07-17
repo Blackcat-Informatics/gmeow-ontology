@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:CompilationPreservationBoundaryConstraint: a
+# gmeow:ComplexCompilation whose correspondence (with a genuine row) and
+# standpoint/world/time context are all present and valid, and whose
+# gmeow:CompilationPreservationRecord carries EXACTLY ONE logic:preservationKind
+# (satisfying the exact-one cardinality restriction, so that is NOT the violation under
+# test) — but the kind is logic:SoundUnderApproximation, a genuinely lossy rung, and the
+# record names NO logic:expressivenessBoundary. Claiming less than exact preservation
+# without naming what was dropped is the honesty gap Principle 17 forbids, so the ∀→∃
+# SPARQL constraint MUST reject it with shacl.SPARQLConstraintComponent, and nothing else.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:compilationBad a gmeow:ComplexCompilation ;
+    gmeow:recordsCorrespondence ex:corr ;
+    gmeow:recordsPreservation ex:pres ;
+    gmeow:compilationStandpoint ex:sp ;
+    gmeow:compilationWorld ex:w ;
+    gmeow:compilationTimeScope ex:t .
+
+ex:corr a gmeow:CellSourceCorrespondence ;
+    gmeow:correspondenceCell ex:cell .
+ex:cell a math:Cell ;
+    gmeow:cellSource ex:span .
+ex:span a gmeow:EvidenceSpan .
+ex:pres a gmeow:CompilationPreservationRecord ;
+    logic:preservationKind logic:SoundUnderApproximation .   # lossy kind, NO boundary named
+ex:sp a gmeow:Standpoint .
+ex:w a logic:PossibleWorld .
+ex:t a gmeow:TimeScopedRelation .

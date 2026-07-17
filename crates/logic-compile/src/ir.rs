@@ -2181,6 +2181,17 @@ impl Term {
         matches!(self, Self::App { .. })
     }
 
+    /// `true` iff this term carries a [`Term::Var`] or [`Term::SequenceMarker`] anywhere
+    /// (recursing into a compound [`Term::App`]'s arguments) — i.e. it is NON-ground. An IRI
+    /// or literal is ground; an application is ground iff every argument is.
+    pub(crate) fn has_variable(&self) -> bool {
+        match self {
+            Self::Var(_) | Self::SequenceMarker(_) => true,
+            Self::Iri(_) | Self::Literal { .. } => false,
+            Self::App { args, .. } => args.iter().any(Term::has_variable),
+        }
+    }
+
     /// The canonical key fragment for this term under a binding environment `env`
     /// (innermost binder last). A `Var`/`SequenceMarker` whose name is bound resolves
     /// to its binder-relative token; a free one resolves to a stable `free_<name>`.
@@ -2514,6 +2525,23 @@ impl Formula {
         }
     }
 
+    /// `true` iff this formula carries NO free/authored variable anywhere — every argument
+    /// term is ground ([`Term::has_variable`] is false), recursing through every connective,
+    /// quantifier, and negation. Used to reject a non-ground `logic:verdictProbe` (a probe
+    /// reports one GROUND atom's three-valued verdict — a variable-bearing probe has no
+    /// single verdict to report and is a hard fail, never a silent `false`).
+    pub fn is_ground(&self) -> bool {
+        match self {
+            Self::Atom { relation, args } => {
+                !relation.has_variable() && !args.iter().any(Term::has_variable)
+            }
+            Self::Not(f) => f.is_ground(),
+            Self::And(fs) | Self::Or(fs) => fs.iter().all(Formula::is_ground),
+            Self::Implies(a, b) | Self::Iff(a, b) => a.is_ground() && b.is_ground(),
+            Self::Forall { body, .. } | Self::Exists { body, .. } => body.is_ground(),
+        }
+    }
+
     /// The normalizing walk. `env` maps an authored bound name to its binder-relative
     /// token (innermost binder last); `depth` is the number of enclosing quantifier
     /// blocks (used to build de-Bruijn-style tokens `q{depth}_{i}`).
@@ -2600,6 +2628,315 @@ fn binder_key(
 }
 
 // --------------------------------------------------------------------------- //
+// Reasoning programs (`logic:ReasoningProgram`)
+// --------------------------------------------------------------------------- //
+
+/// The closed evaluation-strategy set a [`ReasoningProgramIr`] selects via
+/// `logic:evaluationMode` — mirrors the `logic:EvaluationMode` individuals in
+/// `module.ttl`. Deliberately has **no catch-all/unknown variant**: an unrecognized mode
+/// IRI is unrepresentable in this type, so the front-end MUST reject it as a hard-fail
+/// diagnostic at parse time rather than either defaulting silently or smuggling an opaque
+/// string through as a would-be "mode" the rest of the compiler cannot dispatch on
+/// (no-optionality: explicit feature selection is fine, silent degradation is not).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvaluationMode {
+    /// `logic:BackwardEvaluation` — goal-directed SLG-WFS backward resolution: tabled
+    /// (SLG) demand-driven answer keying, structured-term unification over
+    /// [`Term::App`] arguments, explicit proof objects per derived answer, and
+    /// three-valued well-founded negation for `logic:not`-negated body literals.
+    Backward,
+}
+
+impl EvaluationMode {
+    /// The `module.ttl` local name of the individual selecting this mode
+    /// (`logic:BackwardEvaluation` ⇒ `"BackwardEvaluation"`).
+    pub fn as_str(self) -> &'static str {
+        match self {
+            EvaluationMode::Backward => "BackwardEvaluation",
+        }
+    }
+
+    /// Parse a `module.ttl` local name into a mode; `None` for anything outside the
+    /// closed set. The caller turns `None` into a hard-fail diagnostic — never a silent
+    /// default to [`EvaluationMode::Backward`].
+    pub fn from_local(s: &str) -> Option<Self> {
+        match s {
+            "BackwardEvaluation" => Some(EvaluationMode::Backward),
+            _ => None,
+        }
+    }
+}
+
+/// The owning lexical scope of a `logic:variableSort` declaration inside a
+/// [`ReasoningProgramIr`]. Each clause, the query, and each verdict probe is a SEPARATE
+/// variable scope (a fresh set of metavariables): the same authored variable name in two
+/// different clauses denotes two unrelated variables, so a sort declared on `X` in one
+/// clause must NOT constrain an unrelated `X` in another. Carrying the scope with every
+/// `(name → sort)` declaration is what keeps [`ReasoningProgramIr::variable_sorts`] a
+/// per-scope map rather than a program-global one.
+///
+/// A scope is identified by the CONTENT KEY of the clause/probe it belongs to (stable across
+/// the canonical clause sort [`ReasoningProgramIr::new`] applies), never a positional index —
+/// so the scope survives reordering exactly like every other content-addressed identity here.
+///
+/// A content key alone is NOT unique: two STRUCTURALLY-IDENTICAL clauses (say `p(X):-q(X)`
+/// authored twice, one with `X:Nat` and one with `X:Real`) share a `content_key`, yet they
+/// are DIFFERENT variable scopes whose `X`s must carry different sorts. The `occurrence`
+/// disambiguates them: it is the number of PRIOR clauses (resp. probes) sharing the same
+/// `content_key`, so the *n*-th occurrence of a given key is scope *n*. This index is stable
+/// across [`ReasoningProgramIr::new`]'s clause canonicalization: `new` sorts clauses with a
+/// STABLE sort (`sort_by_cached_key(Formula::sort_key)`) and two clauses with an identical
+/// `content_key` have an identical `sort_key` (`Formula::sort_key == Formula::content_key`),
+/// so their relative order — and hence each one's occurrence index — is preserved between the
+/// frontend's authoring order and the post-sort order the lowerer walks.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum VariableSortScope {
+    /// A variable occurring in the clause whose [`Formula::content_key`] is `key`, further
+    /// disambiguated by `occurrence` (the number of prior clauses sharing that same key) so
+    /// two structurally-identical clauses with different `logic:variableSort` declarations key
+    /// distinct scopes.
+    Clause {
+        /// The owning clause's [`Formula::content_key`].
+        key: String,
+        /// The clause's occurrence index among clauses sharing that `content_key`.
+        occurrence: usize,
+    },
+    /// A variable occurring in the single program query.
+    Query,
+    /// A variable occurring in the verdict probe whose [`Formula::content_key`] is `key`,
+    /// disambiguated by `occurrence` exactly as for [`Self::Clause`].
+    /// (A probe MUST be ground — see [`ReasoningProgramIr::new`] — so this scope carries no
+    /// declarations in practice; it exists so the scope taxonomy is total over every position
+    /// a `logic:variableSort` could syntactically attach to.)
+    Probe {
+        /// The owning probe's [`Formula::content_key`].
+        key: String,
+        /// The probe's occurrence index among probes sharing that `content_key`.
+        occurrence: usize,
+    },
+}
+
+impl VariableSortScope {
+    /// A stable string token for this scope, folded into [`ReasoningProgramIr::content_key`].
+    ///
+    /// The occurrence suffix is emitted ONLY for `occurrence > 0`, so a program with no
+    /// duplicate-`content_key` clauses/probes (every occurrence is 0 — the case for the entire
+    /// shipped corpus) produces the exact same token it did before occurrence disambiguation
+    /// existed, keeping [`ReasoningProgramIr::content_key`] / [`LogicProgram::canonical_key`] /
+    /// the shipped `gmeow.gts` byte-identical.
+    fn key_token(&self) -> String {
+        match self {
+            VariableSortScope::Clause { key, occurrence } => {
+                if *occurrence == 0 {
+                    format!("clause{SEP}{key}")
+                } else {
+                    format!("clause{SEP}{key}{SEP}{occurrence}")
+                }
+            }
+            VariableSortScope::Query => "query".to_owned(),
+            VariableSortScope::Probe { key, occurrence } => {
+                if *occurrence == 0 {
+                    format!("probe{SEP}{key}")
+                } else {
+                    format!("probe{SEP}{key}{SEP}{occurrence}")
+                }
+            }
+        }
+    }
+}
+
+/// A compiled `logic:ReasoningProgram`: a named clause set plus a goal, evaluated under a
+/// selected strategy. Reuses the SAME [`Formula`] type the forward relational-core lane
+/// already lowers from for [`Self::clauses`] / [`Self::query`] / [`Self::verdict_probes`] —
+/// there is no second, program-specific clause language. `logic:evaluationMode` is a
+/// strategy SELECTOR over one strategy-neutral clause set, not a program-kind split, so a
+/// future forward-chase [`EvaluationMode`] member evaluates the identical clauses without
+/// re-authoring (see `module.ttl`'s `logic:ReasoningProgram` definition).
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReasoningProgramIr {
+    /// IRI of the `logic:ReasoningProgram` individual (identity / sort key).
+    pub iri: String,
+    /// The selected evaluation strategy (`logic:evaluationMode`; functional, exactly one).
+    pub mode: EvaluationMode,
+    /// The clause set (`logic:clause`): atomic facts and Horn rules (each the SAME
+    /// [`Formula`] shape the forward relational-core lane consumes), in canonical
+    /// (sort-key) order. Never empty — [`Self::new`] hard-fails a clause-free program
+    /// (`logic:ReasoningProgramClauseConstraint`).
+    pub clauses: Vec<Formula>,
+    /// The single goal atom (`logic:programQuery`) the engine resolves against
+    /// [`Self::clauses`]. Functional at the vocabulary level
+    /// (`logic:ReasoningProgramQueryConstraint` + the `owl:FunctionalProperty`
+    /// declaration), so a program carries EXACTLY one.
+    pub query: Formula,
+    /// Zero or more three-valued verdict probes (`logic:verdictProbe`), in canonical
+    /// (sort-key) order. Each MUST be an atomic [`Formula::Atom`] — a probe reports a
+    /// single atom's well-founded verdict, never a compound formula's.
+    pub verdict_probes: Vec<Formula>,
+    /// Per-scope, per-variable order-sort declarations (`logic:variableSort` on a
+    /// `logic:TermCarrier` reached from [`Self::clauses`] or [`Self::query`]):
+    /// `(owning scope, variable name, sort IRI)` triples, deduplicated and sorted for
+    /// determinism — the seed for the order-sorted unification context a backward-resolution
+    /// engine builds. The scope ([`VariableSortScope`]) is REQUIRED because each clause / the
+    /// query is a fresh variable scope: the same authored name in two clauses is two unrelated
+    /// variables, so a sort declared on `X` in clause 1 must not constrain an unrelated `X` in
+    /// clause 2. A variable with no authored sort simply has no entry (sort-checking is opt-in
+    /// per variable, not a closed-world requirement).
+    pub variable_sorts: Vec<(VariableSortScope, String, String)>,
+    /// Per-constant order-sort declarations: `(constant IRI, `rdf:type` IRI)` pairs for
+    /// every `Term::Iri` constant appearing in argument position across [`Self::clauses`],
+    /// [`Self::query`], and [`Self::verdict_probes`], deduplicated and sorted for
+    /// determinism. A constant carries ALL of its asserted `rdf:type` object IRIs (never
+    /// just the first) — the order-sort narrowing that actually discriminates on a lattice
+    /// edge happens downstream (a type absent from the reasoned subsort closure is simply
+    /// ignored there), so this IR-level capture stays a complete, unfiltered readout of the
+    /// source's `rdf:type` assertions. A constant with no declared type simply has no entry
+    /// (it is order-sort top, not a hard-fail) — a downstream backward-resolution lowerer
+    /// populates an order-sorted unification context's constant-typing map from this field,
+    /// mirroring [`Self::variable_sorts`]'s role for the per-metavariable sort map.
+    pub constant_sorts: Vec<(String, String)>,
+}
+
+impl ReasoningProgramIr {
+    /// Construct a reasoning program, canonicalizing [`Self::clauses`],
+    /// [`Self::verdict_probes`], [`Self::variable_sorts`], and [`Self::constant_sorts`]
+    /// into sorted order.
+    ///
+    /// **Hard-fails** (mirrors [`LogicProgram::with_formulas`]'s trivially-Horn guard and
+    /// `module.ttl`'s `logic:ReasoningProgramClauseConstraint` /
+    /// `logic:ReasoningProgramQueryConstraint`) on:
+    /// * an empty IRI or `clauses` (a program with nothing to resolve its goal against);
+    /// * a `verdict_probes` entry that is not an atomic [`Formula::Atom`] (a probe reports
+    ///   one atom's three-valued verdict, never a compound formula's);
+    /// * a `verdict_probes` entry that is NON-ground (carries a variable): a probe reports
+    ///   ONE ground atom's well-founded verdict, so a variable-bearing probe like `win(X)` has
+    ///   no single verdict to report — it lowers to `win(?0)` whose three-valued truth is a
+    ///   silent MISREPORT, so it is a hard fail here rather than a fabricated `false`;
+    /// * the same variable name paired with two DIFFERENT sort IRIs WITHIN ONE SCOPE in
+    ///   `variable_sorts` (an ambiguous order-sort context the unifier cannot seed
+    ///   deterministically). The SAME name in two DIFFERENT scopes (clauses, or a clause and
+    ///   the query) may carry different sorts — they are unrelated variables — so the guard
+    ///   fires only within a single [`VariableSortScope`].
+    ///
+    /// `constant_sorts` carries NO analogous conflict guard: unlike a variable (whose order-
+    /// sort context must be unambiguous), a constant legitimately carries several asserted
+    /// `rdf:type`s at once (`ex:one a math:Integer, math:PositiveNumber`), so multiple
+    /// entries for the same constant IRI are expected and kept, merely deduplicated.
+    pub fn new(
+        iri: impl Into<String>,
+        mode: EvaluationMode,
+        clauses: Vec<Formula>,
+        query: Formula,
+        verdict_probes: Vec<Formula>,
+        variable_sorts: Vec<(VariableSortScope, String, String)>,
+        constant_sorts: Vec<(String, String)>,
+    ) -> gmeow_errors::Result<Self> {
+        let iri = iri.into();
+        if iri.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "ReasoningProgramIr.iri must be a non-empty IRI string".to_owned(),
+            }));
+        }
+        if clauses.is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "ReasoningProgramIr {iri} requires at least one logic:clause; a program \
+                     with no clauses has nothing to resolve its goal against"
+                ),
+            }));
+        }
+        for probe in &verdict_probes {
+            if !matches!(probe, Formula::Atom { .. }) {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "ReasoningProgramIr {iri} logic:verdictProbe must be an atomic \
+                         logic:Formula (a single predication); found a compound formula"
+                    ),
+                }));
+            }
+            if !probe.is_ground() {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "ReasoningProgramIr {iri} logic:verdictProbe must be a GROUND atom (a \
+                         probe reports one ground atom's three-valued well-founded verdict); a \
+                         variable-bearing probe has no single verdict to report"
+                    ),
+                }));
+            }
+        }
+        let mut clauses = clauses;
+        clauses.sort_by_cached_key(Formula::sort_key);
+        let mut verdict_probes = verdict_probes;
+        verdict_probes.sort_by_cached_key(Formula::sort_key);
+        let mut variable_sorts = variable_sorts;
+        variable_sorts.sort();
+        variable_sorts.dedup();
+        // A conflict is the SAME variable name in the SAME scope carrying two distinct sorts.
+        // After the sort+dedup, entries sharing a `(scope, name)` prefix are adjacent, so any
+        // surviving adjacent pair with equal scope+name necessarily differs only in sort.
+        for pair in variable_sorts.windows(2) {
+            if pair[0].0 == pair[1].0 && pair[0].1 == pair[1].1 {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "ReasoningProgramIr {iri} logic:variableSort assigns variable {:?} two \
+                         distinct sorts ({:?} and {:?}) within one scope ({:?}); an order-sort \
+                         context must be unambiguous per scope",
+                        pair[0].1, pair[0].2, pair[1].2, pair[0].0
+                    ),
+                }));
+            }
+        }
+        let mut constant_sorts = constant_sorts;
+        constant_sorts.sort();
+        constant_sorts.dedup();
+        Ok(Self {
+            iri,
+            mode,
+            clauses,
+            query,
+            verdict_probes,
+            variable_sorts,
+            constant_sorts,
+        })
+    }
+
+    /// The content key: the IRI bound to the mode, the clause/query/probe content keys
+    /// (each clause/probe already canonically sorted), the variable-sort pairs, and the
+    /// constant-sort pairs. Two reasoning programs are the same iff they share this key.
+    pub fn content_key(&self) -> String {
+        let clauses = self
+            .clauses
+            .iter()
+            .map(Formula::content_key)
+            .collect::<Vec<_>>()
+            .join(",");
+        let probes = self
+            .verdict_probes
+            .iter()
+            .map(Formula::content_key)
+            .collect::<Vec<_>>()
+            .join(",");
+        let sorts = self
+            .variable_sorts
+            .iter()
+            .map(|(scope, v, s)| format!("{}{SEP}{v}{SEP}{s}", scope.key_token()))
+            .collect::<Vec<_>>()
+            .join(",");
+        let const_sorts = self
+            .constant_sorts
+            .iter()
+            .map(|(c, s)| format!("{c}{SEP}{s}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        format!(
+            "{}{SEP}{}{SEP}[{clauses}]{SEP}{}{SEP}[{probes}]{SEP}[{sorts}]{SEP}[{const_sorts}]",
+            self.iri,
+            self.mode.as_str(),
+            self.query.content_key(),
+        )
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // Top-level container
 // --------------------------------------------------------------------------- //
 
@@ -2646,6 +2983,12 @@ pub struct LogicProgram {
     /// [`LogicProgram::with_constraints`]; empty for the historical constraint-free corpus,
     /// so the canonical key is byte-unchanged there.
     pub constraints: Vec<ConstraintIr>,
+    /// Compiled `logic:ReasoningProgram` nodes in canonical (IRI) order — the authored
+    /// clause-set-plus-goal surface that drives the native reasoning engine directly from
+    /// slice content. Attached via [`LogicProgram::with_reasoning_programs`]; empty for the
+    /// historical reasoning-program-free corpus, so the canonical key is byte-unchanged
+    /// there.
+    pub reasoning_programs: Vec<ReasoningProgramIr>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -2675,6 +3018,7 @@ impl LogicProgram {
             formulas: Vec::new(),
             validation_shapes: Vec::new(),
             constraints: Vec::new(),
+            reasoning_programs: Vec::new(),
             source_iri,
         }
     }
@@ -2787,6 +3131,24 @@ impl LogicProgram {
         self
     }
 
+    /// Attach the program's `logic:ReasoningProgram` nodes, canonicalizing them into IRI
+    /// order. Kept separate from [`Self::new`] so existing call sites are untouched and the
+    /// byte-pinned canonical key of a reasoning-program-free program is unchanged (the
+    /// reasoning-programs segment is append-only at the fixed tail when present). Mirrors
+    /// [`Self::with_constraints`]: the IRI is the program's identity, so two reasoning
+    /// programs sharing one would make `canonical_key` depend on supply order — a hard
+    /// invariant violation, rejected rather than silently kept.
+    pub fn with_reasoning_programs(mut self, reasoning_programs: Vec<ReasoningProgramIr>) -> Self {
+        let mut reasoning_programs = reasoning_programs;
+        reasoning_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert!(
+            reasoning_programs.windows(2).all(|w| w[0].iri != w[1].iri),
+            "LogicProgram.reasoning_programs must not contain duplicate program IRIs"
+        );
+        self.reasoning_programs = reasoning_programs;
+        self
+    }
+
     /// A single deterministic, order-independent content key for the whole
     /// program (the Rust analogue of the Python `canonical()` dict — used for
     /// content-hash comparison and equality assertions).  Because the collections
@@ -2881,6 +3243,17 @@ impl LogicProgram {
             key.push_str("\nCONSTRAINTS\n");
             key.push_str(&constraints);
         }
+        // Append-only at the FIXED tail: a reasoning-program-free program keeps its exact key.
+        if !self.reasoning_programs.is_empty() {
+            let programs = self
+                .reasoning_programs
+                .iter()
+                .map(ReasoningProgramIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nREASONINGPROGRAMS\n");
+            key.push_str(&programs);
+        }
         key
     }
 }
@@ -2889,6 +3262,7 @@ mod constraint;
 mod validation;
 pub use constraint::{
     AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, ConstraintIr,
+    JoinAggregate, JoinLeg,
 };
 pub use validation::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,

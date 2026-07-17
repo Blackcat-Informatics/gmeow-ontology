@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:MultiparameterFunctionalDependenceConstraint: a
+# math:MultiparameterFiltration with TWO stages whose math:multiIndex coordinates are
+# functionally dependent via an AFFINE map (t, 2t) — NOT the literal diagonal (t, t)
+# math:DiagonalDegenerateFiltrationConstraint alone would catch. Stage 1 sits at (1, 2)
+# and stage 2 at (2, 4): the second coordinate is always exactly twice the first, so no
+# pair of stages ever varies one coordinate while holding the other fixed — at every
+# pair BOTH coordinates differ together. The coordinate-independence witness the
+# general constraint requires (two stages sharing one math:componentValue node while
+# differing at the other) therefore cannot exist, so
+# math:MultiparameterFunctionalDependenceConstraint fires — shacl.SPARQLConstraintComponent
+# (math:DiagonalDegenerateFiltration). ISOLATION: the filtration IS complete for its
+# frame (math:filtrationIndexPoset and two math:hasFiltrationStage cells present), so
+# math:IncompleteMultiparameterFiltration stays silent; a math:multiIndex IS present on
+# both stages, so math:CollapsedMultiparameterFiltration cannot fire; neither stage's
+# OWN multi-index repeats a componentValue node across its two positions, so the
+# single-stage math:DiagonalDegenerateFiltrationConstraint stays silent too — isolating
+# this cross-stage functional-dependence detection specifically. So EXACTLY ONE finding.
+# Back-reference: math:DiagonalDegenerateFiltration, math:MultiparameterFunctionalDependenceConstraint
+# (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecMultiparameterAffineDegenerate).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/affine/> .
+
+ex:affine a math:MultiparameterFiltration ;
+    math:filtrationIndexPoset ex:grid ;
+    math:hasFiltrationStage ex:stage1 , ex:stage2 .
+
+ex:grid a math:MathematicalObject .
+
+# Stage 1 at (1, 2).
+ex:stage1 a math:FiltrationStage ; math:multiIndex ex:index1 .
+ex:index1 a math:Vector ; math:hasComponent ex:s1c0 , ex:s1c1 .
+ex:s1c0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue ex:one .
+ex:s1c1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue ex:two .
+
+# Stage 2 at (2, 4) — the second coordinate is always exactly TWICE the first, an
+# affine (t, 2t) dependence, not the literal diagonal.
+ex:stage2 a math:FiltrationStage ; math:multiIndex ex:index2 .
+ex:index2 a math:Vector ; math:hasComponent ex:s2c0 , ex:s2c1 .
+ex:s2c0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue ex:two .
+ex:s2c1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue ex:four .
+
+ex:one  a math:RationalValue ; math:numerator 1 ; math:denominator 1 ; math:isExact true .
+ex:two  a math:RationalValue ; math:numerator 2 ; math:denominator 1 ; math:isExact true .
+ex:four a math:RationalValue ; math:numerator 4 ; math:denominator 1 ; math:isExact true .

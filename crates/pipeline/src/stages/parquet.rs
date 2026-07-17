@@ -3,257 +3,113 @@
 
 //! The `parquet` export leaf (P4): columnar gts_db tables (dist/, gitignored).
 //!
-//! Projects the folded gts
-//! `Graph` into one Parquet file per non-empty table of the dictionary-encoded
-//! integer-id schema — `terms`, `quads`, `reifiers`, `annotations`, `blobs` — the
-//! columnar interchange form for DataFrame/SQL consumers (DuckDB, pandas, polars,
-//! Spark) who should not need an RDF parser. LOSSLESS: the tables jointly carry
-//! every term, quad, reifier binding, statement annotation, and inline blob.
+//! Projects the WHOLE composed carrier — terms/quads/reifiers/annotations/blobs
+//! of every named graph, never scoped to one graph — into five Parquet files via
+//! purrdf 0.7.0's native columnar codec (`purrdf::columnar::write`), the columnar
+//! interchange form for DataFrame/SQL consumers (DuckDB, pandas, polars, Spark)
+//! who should not need an RDF parser. LOSSLESS: the five tables jointly carry
+//! every term, quad, reifier binding, statement annotation, and blob purrdf's
+//! codec is given.
 //!
-//! The exporter builds Arrow record batches in a stable enumerate-order (`graph.terms` /
-//! `graph.quads` / …) so ids are stable, and serializes them with the `parquet`
-//! crate's writer. Outputs live under git-ignored `dist/parquet/`, so the bar is
-//! structural validity (re-reads with the expected row counts) + determinism
-//! (fixed row order), not byte-parity — Parquet bytes embed writer metadata that
-//! varies across library versions, so equivalence is checked semantically.
+//! purrdf owns the dictionary encoding, the Parquet Data Page V2 physical
+//! layout, and the compression; gmeow owns only the carrier→`DatasetView` hookup,
+//! the (always-empty) blob store — the carrier transport is RDF only, blob
+//! payloads live in the gts archive by reference, never in the in-memory
+//! carrier — and the `dist/parquet/<table>.parquet` path mapping. Retires
+//! gmeow's hand-rolled Arrow record-batch builders and `parquet`-crate writer
+//! (the former genuine port of the gts_db table dump).
+//!
+//! Outputs live under git-ignored `dist/parquet/`, so the bar is structural
+//! validity + round-trip fidelity + determinism (purrdf's codec is
+//! byte-deterministic by construction — fixed dictionary order, fixed row
+//! order), not byte-parity across library versions.
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
-use arrow_array::{ArrayRef, BinaryArray, Int64Array, RecordBatch, StringArray};
-use arrow_schema::{DataType, Field, Schema};
-use parquet::arrow::ArrowWriter;
-use parquet::basic::Compression;
-use parquet::file::properties::WriterProperties;
-use purrdf::RdfDataset;
+use purrdf::columnar::{Compression, Table};
+use purrdf::{ContentStore, RdfDataset};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::read_fold_upstream;
-// The gts-`Graph` arena read shape, materialized over the native carrier — the SAME
-// adapter the `yaml_ld` leaf uses (no per-leaf shim). GTS is exit-only.
-use crate::stages::fold_arena::{Graph, TermKind};
 
 /// The generator's output directory (under the git-ignored dist/ tree).
 pub const PARQUET_DIR: &str = "dist/parquet";
 
-/// The five relational tables, in dependency-free (gts_db `_INSERTS`) order.
-const TABLES: &[&str] = &["terms", "quads", "reifiers", "annotations", "blobs"];
-
-fn term_kind_int(kind: TermKind) -> i64 {
-    match kind {
-        TermKind::Iri => 0,
-        TermKind::Literal => 1,
-        TermKind::Bnode => 2,
-        TermKind::Triple => 3,
-    }
-}
-
-/// Build the `terms` record batch: `(id, kind, lex, datatype, lang, reifier)`
-/// in `graph.terms` enumerate order (mirror gts_db `_rows["terms"]`).
-fn terms_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
-    let mut id: Vec<i64> = Vec::with_capacity(graph.terms.len());
-    let mut kind: Vec<i64> = Vec::with_capacity(graph.terms.len());
-    let mut lex: Vec<Option<String>> = Vec::with_capacity(graph.terms.len());
-    let mut datatype: Vec<Option<i64>> = Vec::with_capacity(graph.terms.len());
-    let mut lang: Vec<Option<String>> = Vec::with_capacity(graph.terms.len());
-    let mut reifier: Vec<Option<i64>> = Vec::with_capacity(graph.terms.len());
-    for (i, t) in graph.terms.iter().enumerate() {
-        id.push(i as i64);
-        kind.push(term_kind_int(t.kind));
-        lex.push(t.value.clone());
-        datatype.push(t.datatype.map(|d| d as i64));
-        lang.push(t.lang.clone());
-        reifier.push(t.reifier.map(|r| r as i64));
-    }
-    let schema = Schema::new(vec![
-        Field::new("id", DataType::Int64, false),
-        Field::new("kind", DataType::Int64, false),
-        Field::new("lex", DataType::Utf8, true),
-        Field::new("datatype", DataType::Int64, true),
-        Field::new("lang", DataType::Utf8, true),
-        Field::new("reifier", DataType::Int64, true),
-    ]);
-    let cols: Vec<ArrayRef> = vec![
-        Arc::new(Int64Array::from(id)),
-        Arc::new(Int64Array::from(kind)),
-        Arc::new(StringArray::from(lex)),
-        Arc::new(Int64Array::from(datatype)),
-        Arc::new(StringArray::from(lang)),
-        Arc::new(Int64Array::from(reifier)),
-    ];
-    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("terms batch: {e}"),
-        })
+fn err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        stage: "stage-export-parquet".into(),
+        message: message.into(),
     })
 }
 
-/// Build the `quads` record batch: `(s, p, o, g)` in `graph.quads` order.
-fn quads_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
-    let mut s: Vec<i64> = Vec::with_capacity(graph.quads.len());
-    let mut p: Vec<i64> = Vec::with_capacity(graph.quads.len());
-    let mut o: Vec<i64> = Vec::with_capacity(graph.quads.len());
-    let mut g: Vec<Option<i64>> = Vec::with_capacity(graph.quads.len());
-    for &(qs, qp, qo, qg) in &graph.quads {
-        s.push(qs as i64);
-        p.push(qp as i64);
-        o.push(qo as i64);
-        g.push(qg.map(|x| x as i64));
+/// Report purrdf's runtime [`purrdf::LossLedger`] as ONE tracing event (target
+/// `parquet_loss`) per distinct `(code, note)` so no RDF→columnar projection
+/// loss is ever silently dropped. Columnar projection is lossless by
+/// construction (see [`purrdf::columnar::write`]'s doc), so this currently
+/// never fires — it exists so a future loss is observable rather than silent.
+fn report_parquet_losses(ledger: &purrdf::LossLedger) {
+    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    for loss in ledger.entries() {
+        let subject = loss
+            .location
+            .as_deref()
+            .and_then(|location| location.subject.as_deref())
+            .unwrap_or("<unlocated>");
+        grouped
+            .entry((loss.code.as_ref(), loss.note.as_ref()))
+            .or_default()
+            .push(subject);
     }
-    let schema = Schema::new(vec![
-        Field::new("s", DataType::Int64, false),
-        Field::new("p", DataType::Int64, false),
-        Field::new("o", DataType::Int64, false),
-        Field::new("g", DataType::Int64, true),
-    ]);
-    let cols: Vec<ArrayRef> = vec![
-        Arc::new(Int64Array::from(s)),
-        Arc::new(Int64Array::from(p)),
-        Arc::new(Int64Array::from(o)),
-        Arc::new(Int64Array::from(g)),
-    ];
-    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("quads batch: {e}"),
-        })
-    })
-}
-
-/// Build the `reifiers` record batch: `(reifier, s, p, o)` in insertion order.
-fn reifiers_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
-    let mut reifier: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
-    let mut s: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
-    let mut p: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
-    let mut o: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
-    for &(r, (rs, rp, ro)) in &graph.reifiers {
-        reifier.push(r as i64);
-        s.push(rs as i64);
-        p.push(rp as i64);
-        o.push(ro as i64);
+    for ((construct, reason), mut subjects) in grouped {
+        subjects.sort_unstable();
+        subjects.dedup();
+        let examples = subjects
+            .iter()
+            .take(5)
+            .copied()
+            .collect::<Vec<_>>()
+            .join(", ");
+        let suffix = if subjects.len() > 5 {
+            format!(" (+{} more)", subjects.len() - 5)
+        } else {
+            String::new()
+        };
+        tracing::info!(
+            target: "parquet_loss",
+            construct = construct,
+            subjects = subjects.len(),
+            reason = reason,
+            examples = %format!("{examples}{suffix}"),
+            "lossy drop projecting the carrier RDF to the columnar Parquet surface",
+        );
     }
-    let schema = Schema::new(vec![
-        Field::new("reifier", DataType::Int64, false),
-        Field::new("s", DataType::Int64, false),
-        Field::new("p", DataType::Int64, false),
-        Field::new("o", DataType::Int64, false),
-    ]);
-    let cols: Vec<ArrayRef> = vec![
-        Arc::new(Int64Array::from(reifier)),
-        Arc::new(Int64Array::from(s)),
-        Arc::new(Int64Array::from(p)),
-        Arc::new(Int64Array::from(o)),
-    ];
-    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("reifiers batch: {e}"),
-        })
-    })
 }
 
-/// Build the `annotations` record batch: `(reifier, predicate, value)` in order.
-fn annotations_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
-    let mut reifier: Vec<i64> = Vec::with_capacity(graph.annotations.len());
-    let mut predicate: Vec<i64> = Vec::with_capacity(graph.annotations.len());
-    let mut value: Vec<i64> = Vec::with_capacity(graph.annotations.len());
-    for &(r, p, v) in &graph.annotations {
-        reifier.push(r as i64);
-        predicate.push(p as i64);
-        value.push(v as i64);
-    }
-    let schema = Schema::new(vec![
-        Field::new("reifier", DataType::Int64, false),
-        Field::new("predicate", DataType::Int64, false),
-        Field::new("value", DataType::Int64, false),
-    ]);
-    let cols: Vec<ArrayRef> = vec![
-        Arc::new(Int64Array::from(reifier)),
-        Arc::new(Int64Array::from(predicate)),
-        Arc::new(Int64Array::from(value)),
-    ];
-    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("annotations batch: {e}"),
-        })
-    })
-}
-
-/// Build the `blobs` record batch: `(digest, bytes)` in insertion order.
-/// Lazy (undecoded) blob payloads surface as empty bytes — the by-reference loss
-/// is intentional (blobs can be multi-TB); the digest stays the join key.
-/// Build the (always-empty) `blobs` record batch.
-///
-/// The carrier transport is RDF only: blob payloads live in the gts archive by
-/// reference, never in the in-memory carrier (the by-reference doctrine). So a
-/// carrier-sourced columnar projection emits no blob rows — `render_parquet` skips the
-/// empty table. The relational blob channel is a gts-archive concern, surfaced by the
-/// terminal gts writer, not this RDF export leaf.
-fn blobs_batch() -> Result<RecordBatch, gmeow_errors::Diag> {
-    let schema = Schema::new(vec![
-        Field::new("digest", DataType::Utf8, false),
-        Field::new("bytes", DataType::Binary, false),
-    ]);
-    let cols: Vec<ArrayRef> = vec![
-        Arc::new(StringArray::from(Vec::<String>::new())),
-        Arc::new(BinaryArray::from(Vec::<&[u8]>::new())),
-    ];
-    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("blobs batch: {e}"),
-        })
-    })
-}
-
-/// Serialize a record batch to Parquet bytes (snappy, deterministic layout).
-fn write_parquet(batch: &RecordBatch) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let mut buf: Vec<u8> = Vec::new();
-    let props = WriterProperties::builder()
-        .set_compression(Compression::SNAPPY)
-        .build();
-    let mut writer = ArrowWriter::try_new(&mut buf, batch.schema(), Some(props)).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("parquet writer: {e}"),
-        })
-    })?;
-    writer.write(batch).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("parquet write: {e}"),
-        })
-    })?;
-    writer.close().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("parquet close: {e}"),
-        })
-    })?;
-    Ok(buf)
-}
-
-/// Render the per-table Parquet projection of a folded gts graph. Only non-empty
-/// tables are written, keyed by their logical `dist/parquet/<table>.parquet` path.
+/// Render the five-table Parquet projection of the WHOLE carrier `dataset` via
+/// purrdf's columnar codec. All five `dist/parquet/<table>.parquet` files are
+/// always produced (including valid zero-row files, e.g. `blobs.parquet` — the
+/// carrier is RDF-only in memory, so blobs is always empty today) — purrdf's
+/// closed `Table::ALL` set never omits an empty table.
 pub(crate) fn render_parquet(
     dataset: &RdfDataset,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let graph = Graph::from_dataset(dataset);
-    let graph = &graph;
-    let batches: BTreeMap<&str, RecordBatch> = {
-        let mut m: BTreeMap<&str, RecordBatch> = BTreeMap::new();
-        m.insert("terms", terms_batch(graph)?);
-        m.insert("quads", quads_batch(graph)?);
-        m.insert("reifiers", reifiers_batch(graph)?);
-        m.insert("annotations", annotations_batch(graph)?);
-        m.insert("blobs", blobs_batch()?);
-        m
-    };
+    // The carrier transport is RDF only: blob payloads live in the gts archive
+    // by reference, never in the in-memory dataset — an empty content store
+    // reproduces that today, and purrdf hard-fails digest verification rather
+    // than silently degrading if that ever stops being true.
+    let blobs = ContentStore::new();
+    let written = purrdf::columnar::write(dataset, &blobs, Compression::Zstd)
+        .map_err(|e| err(format!("columnar::write: {e}")))?;
+    report_parquet_losses(&written.losses);
+
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for table in TABLES {
-        let batch = &batches[table];
-        if batch.num_rows() == 0 {
-            continue; // duckdb path skips empty tables
-        }
+    for (table, bytes) in written.files.iter() {
         out.insert(
-            format!("{PARQUET_DIR}/{table}.parquet"),
-            write_parquet(batch)?,
+            format!("{PARQUET_DIR}/{}", table.file_name()),
+            bytes.to_vec(),
         );
     }
+    debug_assert_eq!(out.len(), Table::ALL.len());
     Ok(out)
 }
 
@@ -287,13 +143,15 @@ impl Stage for ParquetStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "parquet.v1"
+        "parquet.v1-purrdf"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let graph = read_fold_upstream(input.upstream)?;
+        // Consume THIS run's snapshot carrier dataset DIRECTLY off the product bundle —
+        // no re-parse of the gmeow.gts bytes (GTS is exit-only).
+        let dataset = read_fold_upstream(input.upstream)?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_parquet(graph.as_ref())?,
+            render_parquet(dataset.as_ref())?,
         )))
     }
 }
@@ -301,7 +159,7 @@ impl Stage for ParquetStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+    use purrdf::datasets_isomorphic;
     use std::path::Path;
 
     fn repo_root() -> std::path::PathBuf {
@@ -312,60 +170,49 @@ mod tests {
             .unwrap()
     }
 
-    /// Read a Parquet blob back and return its total row count.
-    fn parquet_row_count(bytes: &[u8]) -> usize {
-        let reader = ParquetRecordBatchReaderBuilder::try_new(bytes::Bytes::copy_from_slice(bytes))
-            .expect("parquet reader")
-            .build()
-            .expect("parquet batches");
-        reader.map(|b| b.expect("batch").num_rows()).sum()
-    }
-
+    /// Every table is present, byte-deterministic across two renders, and the
+    /// round trip (`purrdf::columnar::read` over the written files) reconstructs
+    /// a dataset isomorphic to the source carrier — over the committed
+    /// `generated/dist/gmeow.gts` carrier, the same production input this stage
+    /// projects.
     #[test]
-    fn parquet_tables_reread_with_expected_row_counts() {
+    fn parquet_tables_present_deterministic_and_round_trip() {
         let root = repo_root();
         let dataset = crate::stages::export::read_fold(&root).expect("read fold");
-        let graph = Graph::from_dataset(dataset.as_ref());
         let arts = render_parquet(dataset.as_ref()).expect("render");
 
-        // terms and quads are always non-empty for the committed fold.
-        assert!(
-            arts.contains_key(&format!("{PARQUET_DIR}/terms.parquet")),
-            "terms.parquet must be produced"
-        );
-        assert!(
-            arts.contains_key(&format!("{PARQUET_DIR}/quads.parquet")),
-            "quads.parquet must be produced"
-        );
-
-        // Each produced file re-reads via the parquet reader with the row count
-        // that matches the source model (enumerate-order parity).
-        let expected: BTreeMap<&str, usize> = BTreeMap::from([
-            ("terms", graph.terms.len()),
-            ("quads", graph.quads.len()),
-            ("reifiers", graph.reifiers.len()),
-            ("annotations", graph.annotations.len()),
-            // The carrier holds RDF only — blob payloads are by-reference, never in the
-            // in-memory transport — so the blobs table is always empty (and skipped).
-            ("blobs", 0),
-        ]);
-        for table in TABLES {
-            let path = format!("{PARQUET_DIR}/{table}.parquet");
-            match arts.get(&path) {
-                Some(bytes) => {
-                    assert!(!bytes.is_empty(), "{path} is empty");
-                    let n = parquet_row_count(bytes);
-                    assert_eq!(n, expected[table], "{path} row count mismatch");
-                    assert!(n > 0, "{path} written but empty — empties must be skipped");
-                }
-                None => {
-                    assert_eq!(expected[table], 0, "{table} non-empty but not written");
-                }
-            }
+        // All five tables are always produced (purrdf's closed Table::ALL set).
+        for table in Table::ALL {
+            let path = format!("{PARQUET_DIR}/{}", table.file_name());
+            assert!(arts.contains_key(&path), "{path} must be produced");
+            assert!(!arts[&path].is_empty(), "{path} must be non-empty bytes");
         }
+        assert_eq!(arts.len(), Table::ALL.len());
 
         // Determinism: a second render is byte-identical per table.
         let arts2 = render_parquet(dataset.as_ref()).expect("render2");
         assert_eq!(arts, arts2, "parquet render is not deterministic");
+
+        // Round trip: read the written files back and assert dataset isomorphism
+        // with the source carrier — a non-tautological check that the codec did
+        // not silently drop or corrupt terms/quads/reifiers/annotations.
+        let files: [Vec<u8>; 5] =
+            Table::ALL.map(|table| arts[&format!("{PARQUET_DIR}/{}", table.file_name())].clone());
+        let read_back = purrdf::columnar::read(&purrdf::columnar::ParquetFiles::from_array(files))
+            .expect("columnar::read round trip");
+        assert!(
+            read_back.losses.is_empty(),
+            "round-trip read reported unexpected losses: {:?}",
+            read_back.losses
+        );
+        assert_eq!(
+            read_back.dataset.quad_count(),
+            dataset.quad_count(),
+            "round-tripped quad count must match the source carrier"
+        );
+        assert!(
+            datasets_isomorphic(dataset.as_ref(), &read_back.dataset),
+            "round-tripped dataset must be isomorphic to the source carrier"
+        );
     }
 }
