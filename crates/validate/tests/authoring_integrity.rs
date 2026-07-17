@@ -154,3 +154,79 @@ fn every_slice_module_iri_matches_its_location() {
         joined(&findings)
     );
 }
+
+#[test]
+fn coverage_fixtures_use_only_declared_terms() {
+    let root = repo_root();
+    let declared = authoring_integrity::declared_ontology_terms(&root).expect("declared terms");
+    // Non-vacuity on the EXTRACTED set: the declared authority must be populated,
+    // not merely the file globs.
+    assert!(
+        declared.len() > 50,
+        "declared-term set is implausibly small ({}) — the authority is vacuous",
+        declared.len()
+    );
+    let findings = authoring_integrity::coverage_fixture_undeclared_findings(&root, &declared)
+        .expect("fixture term check");
+    assert!(
+        findings.is_empty(),
+        "coverage fixtures reference undeclared terms:\n{}",
+        joined(&findings)
+    );
+}
+
+#[test]
+fn slice_examples_use_only_declared_terms() {
+    let root = repo_root();
+    let declared = authoring_integrity::declared_ontology_terms(&root).expect("declared terms");
+    let findings = authoring_integrity::example_undeclared_term_findings(&root, &declared)
+        .expect("example term check");
+    assert!(
+        findings.is_empty(),
+        "slice examples reference undeclared terms:\n{}",
+        joined(&findings)
+    );
+}
+
+#[test]
+fn slice_source_localizable_literals_are_language_tagged() {
+    let root = repo_root();
+    let findings =
+        authoring_integrity::slice_source_untagged_findings(&root).expect("slice source langtag");
+    assert!(
+        findings.is_empty(),
+        "untagged localizable literals in slice source:\n{}",
+        joined(&findings)
+    );
+}
+
+#[test]
+fn nonslice_authored_localizable_literals_are_language_tagged() {
+    let root = repo_root();
+    let findings = authoring_integrity::nonslice_authored_untagged_findings(&root)
+        .expect("non-slice source langtag");
+    assert!(
+        findings.is_empty(),
+        "untagged localizable literals in non-slice authored source:\n{}",
+        joined(&findings)
+    );
+}
+
+#[test]
+fn docs_examples_use_only_allowlisted_terms() {
+    let root = repo_root();
+    // Non-vacuity on the EXTRACTED docs-term set: a broken fence/inline regex that
+    // yielded nothing would make "no unallowlisted terms" trivially true.
+    let extracted = authoring_integrity::docs_gmeow_terms(&root).expect("docs term extraction");
+    assert!(
+        !extracted.is_empty(),
+        "no gmeow: terms extracted from docs/*.md — the extractor is vacuous"
+    );
+
+    let findings = authoring_integrity::docs_undeclared_findings(&root).expect("docs term check");
+    assert!(
+        findings.is_empty(),
+        "docs examples reference unallowlisted GMEOW terms:\n{}",
+        joined(&findings)
+    );
+}
