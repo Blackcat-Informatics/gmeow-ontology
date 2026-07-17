@@ -1,5 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:946a8fafaa79acc9,gmeow:examples/claim-hogwarts-exists,gmeow:veridicalityLicensedFalsehood,claimVeridicality,gmeow:examples/standpoint-publisher,2026-03-01T00:00:00Z,0.95,,,,,,
-edge:bc8e8776f06a6e9b,gmeow:examples/standpointclaim-downstream-belief-001,gmeow:veridicalityUntrue,claimVeridicality,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.75,,,,,,
-edge:cc42358ad0393333,gmeow:examples/standpointclaim-dupe-belief-001,gmeow:veridicalityUntrue,claimVeridicality,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.8,,,,,,
-edge:fbbfa3469f05ef47,gmeow:examples/claim-hogwarts-in-canon,gmeow:veridicalityLicensedFalsehood,claimVeridicality,gmeow:examples/standpoint-publisher,2026-06-07T00:00:00Z,0.95,,,,,,

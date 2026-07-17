@@ -1450,3 +1450,22 @@ The off-gate `packages/python/tests/test_conformance.py` (LIVE Pydantic conforma
 `make maint-pydantic-conformance`) asserted the OLD per-slice/docs-digest layout and was
 DELETED as testing a layout that no longer exists (greenfield); the on-gate Rust structural
 gate is unaffected.
+
+## 2026-07-17 — LinkML/TypeScript/GraphQL developer schemas now cover exactly the SHACL shape union
+
+The purrdf cutover moved the LinkML/TypeScript/GraphQL developer schemas from a hand-rolled
+OWL→LinkML projection to purrdf's SHACL-derived `CompiledSchema` basis — the SAME basis JSON
+Schema and Pydantic already used. Consequence: the developer schemas now cover exactly the
+SHACL shape union. OWL-only / RBox properties that have no derived SHACL property shape are no
+longer in these surfaces, even though the retired OWL→LinkML projection formerly included them.
+Concretely, `gmeow:resentDate` and `gmeow:resentMessageId` (email slice, `gmeow:graphBoxRole
+gmeow:boxRBox`, non-functional DatatypeProperties) are absent from
+`generated/schemas/gmeow.linkml.yaml` and were already absent from
+`generated/schemas/gmeow.schema.json` and `packages/python/gmeow_models/models.py` (the
+pre-existing SHACL-derived surfaces), proving the SHACL basis never carried them — this is not
+a projection bug, it is the intended unification. They remain in the canonical OWL/RDF layer;
+their non-functional semantic is enforced there by the ontology-level structural assertion
+(`slices/extensions/email/tests/structural.ttl`), not by the developer schema.
+
+Forward path: author a SHACL property shape (via the slice's `module.ttl` declarative axioms)
+for any such property that should appear in the developer schemas.

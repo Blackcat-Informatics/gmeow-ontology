@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:2fe92b301b2601f7,gmeow:examples/event-disinformation-001,gmeow:examples/standpointclaim-disinformation-origin-intent-001,deceptiveIntentClaim,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.8,,,,,,

@@ -1,0 +1,4 @@
+neo4j_token:string,rdf_iri:string
+RdfProp_75e10c08dad9d2e2d19cf936b0859a6c890ebc184d4ad469b426ff29bba01540,https://blackcatinformatics.ca/gmeow/spdxLicenseId
+RdfProp_831e3e10674d398540d2ae45f05d9b354b0a5d933fb4fdc2cc47a7b60aa98da6,https://blackcatinformatics.ca/gmeow/validUntil
+RdfProp_a4227e0614d7249f063d9cf7155f2728304c3ddb81ecff3314285bf8944a9f52,https://blackcatinformatics.ca/gmeow/eventTime

@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:566f110f76607ce6,gmeow:examples/music/bar17,gmeow:examples/music/metricStructure-4_4-plus-3_8,assignedMeter,gmeow:examples/music/standpoint-transcriber-b,,0.8,,,,gmeow:unequivocal,,
-edge:ca52397263298f46,gmeow:examples/music/bar17,gmeow:metricStructure78,assignedMeter,gmeow:examples/music/standpoint-transcriber-a,,0.85,,,,gmeow:unequivocal,,

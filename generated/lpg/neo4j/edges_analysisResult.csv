@@ -1,4 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:219c570bebec720e,gmeow:examples/music/spectral-key-claim,gmeow:pitchValue12EDOE4,analysisResult,gmeow:examples/music/standpoint-tonal-analyst,,0.75,,,,gmeow:probable,,
-edge:3eb1462115038332,gmeow:examples/music/spectral-key-claim,gmeow:pitchValue12EDOE4,analysisResult,gmeow:examples/music/standpoint-spectral-analyst,,0.9,,,,gmeow:refuted,,
-edge:b310fdfef323bb65,gmeow:fixtureRomanNumeralGermanSixthClaim,gmeow:harmonicFunctionGermanSixth,analysisResult,gmeow:examples/music/ai-chord-model-v3,2026-06-14T00:00:00Z,0.72,,gmeow:examples/music/ai-chord-model-v3,,gmeow:unequivocal,,
