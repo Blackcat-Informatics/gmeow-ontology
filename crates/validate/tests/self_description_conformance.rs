@@ -80,6 +80,20 @@ fn has_iri_triple(ds: &RdfDataset, subj: &str, pred: &str, obj: &str) -> bool {
         .is_some()
 }
 
+/// Whether `<s> <p>` is asserted with *any* object. Used for predicate-absence: the logo
+/// must carry no `gmeow:depicts` assertion at all, not merely none pointing at the Work.
+fn has_predicate(ds: &RdfDataset, subj: &str, pred: &str) -> bool {
+    let (Some(sid), Some(pid)) = (
+        ds.term_id_by_value(&TermValue::iri(subj)),
+        ds.term_id_by_value(&TermValue::iri(pred)),
+    ) else {
+        return false;
+    };
+    ds.quads_for_pattern(Some(sid), Some(pid), None, GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
 /// Whether `<s> <p>` has a literal object whose lexical form equals `lex`.
 fn has_literal_triple(ds: &RdfDataset, subj: &str, pred: &str, lex: &str) -> bool {
     let (Some(sid), Some(pid)) = (
@@ -213,10 +227,11 @@ fn models_project_repository_and_brand_assets() {
         &g("mediaType"),
         "image/svg+xml"
     ));
-    // Negative: the logo is the emblem OF GMEOW, it does not gmeow:depicts GMEOW.
+    // Negative: the logo is the emblem OF GMEOW, it does not gmeow:depicts anything —
+    // predicate-absence, so a stray `depicts <other>` cannot slip past the invariant.
     assert!(
-        !has_iri_triple(&ds, &s("logo-svg"), &g("depicts"), WORK),
-        "logo-svg must NOT gmeow:depicts the Work (it is an emblem, not a depiction)"
+        !has_predicate(&ds, &s("logo-svg"), &g("depicts")),
+        "logo-svg must carry no gmeow:depicts assertion (it is an emblem, not a depiction)"
     );
 
     // Social preview PNG derived from the SVG.
@@ -299,8 +314,17 @@ fn canonical_abstract_is_standardized() {
     // ALIGNMENT_TARGETS is the in-crate authored alignment list (the Python port), so the
     // advertised number can never silently drift from what GMEOW actually aligns to.
     let stated = format!("{} external vocabularies", ALIGNMENT_TARGETS.len());
+    // Require a numeric left boundary: a bare `contains` would let a wrong larger count
+    // pass (e.g. "186 external vocabularies" contains "86 external vocabularies"). The
+    // matched digit run must not be the tail of a longer number.
+    let states_exact_count = canonical.match_indices(&stated).any(|(at, _)| {
+        canonical[..at]
+            .chars()
+            .next_back()
+            .is_none_or(|c| !c.is_ascii_digit())
+    });
     assert!(
-        canonical.contains(&stated),
+        states_exact_count,
         "canonical abstract must state {stated:?} (== ALIGNMENT_TARGETS.len())"
     );
 
