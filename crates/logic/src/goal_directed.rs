@@ -10,15 +10,15 @@
 //! single thin, honest `pub` façade over them: it holds a corpus of shipped
 //! *goal-directed demonstrator programs* (structured — function-symbol — logic programs
 //! the flat query text-parser cannot express, so they are built directly against the
-//! resolver's `TermDag`), evaluates each through [`resolve_fol`], validates every answer's
-//! proof with [`check`], and projects the checked answers + their content-addressed
+//! resolver's `TermDag`), evaluates each through [`resolve_fol`](crate::physical::resolve_fol::resolve_fol), validates every answer's
+//! proof with [`check`](crate::physical::proof::check), and projects the checked answers + their content-addressed
 //! derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.
 //!
 //! It is NOT a fork of the engine: it constructs programs and reads back the engine's own
-//! [`FolOutcome`], never re-implementing resolution. Task 8 appends the substantial
+//! [`FolOutcome`](crate::physical::resolve_fol::FolOutcome), never re-implementing resolution. Task 8 appends the substantial
 //! demonstrators (append/member, WFS negation, math sub-sort) to
-//! [`shipped_demonstrators`]; this module ships the minimal Peano-addition demonstrator so
+//! `shipped_demonstrators`; this module ships the minimal Peano-addition demonstrator so
 //! the stage has a real, proof-checked answer to fold.
 
 use std::collections::{BTreeMap, HashMap};
@@ -53,7 +53,7 @@ pub struct GoalDirectedAnswer {
     /// The goal variable → resolved sub-term surface map (deterministic, sorted keys).
     pub bindings: BTreeMap<String, String>,
     /// The content-addressed derivation IRI of this answer's proof
-    /// ([`derivation_iri`] — byte-identical to the forward reasoner's rule-application id).
+    /// ([`derivation_iri`](crate::physical::proof::derivation_iri) — byte-identical to the forward reasoner's rule-application id).
     pub derivation_iri: String,
     /// Whether the proof [`check`]ed and re-derived exactly [`Self::atom`]. Always `true`
     /// for a shipped answer (a proof that fails to check HARD-fails the evaluation).

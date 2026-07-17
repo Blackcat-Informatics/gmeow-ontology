@@ -291,7 +291,7 @@ fn main() -> gmeow_errors::Result<()> {
     let mut corpus_ledgers: BTreeMap<String, Value> = BTreeMap::new();
     for (corpus, comps) in &comps_by_corpus {
         let rows = compare_external_corpus(corpus, comps);
-        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         let findings = divergence_findings(&ledger);
         let tally = agreement_tally(corpus, comps);
         let graph = emit_divergence_nq(corpus, comps);
@@ -1569,7 +1569,7 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
     let mut regression_findings: Vec<Value> = Vec::new();
     for (corpus, comps) in &comps_by_corpus {
         let rows = compare_external_corpus(corpus, comps);
-        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         regressions += ledger.corpus_only;
         for f in divergence_findings(&ledger) {
             if f.code == "reason.divergence.corpus-only" {
@@ -1658,7 +1658,7 @@ fn run_parallelism_regression_check(
         published: published_token,
     };
     let rows = compare_external_corpus("relational-core-mini", &[comparison]);
-    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = build_ledger(Vec::new(), Vec::new(), rows);
     if ledger.corpus_only == 0 {
         eprintln!(
             "✓ rule-parallel cost-regression check: four-worker structural evidence matches {}.",
@@ -2216,7 +2216,7 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
     let mut findings: Vec<Value> = Vec::new();
     for (corpus, comps) in &comps_by_corpus {
         let rows = compare_external_corpus(corpus, comps);
-        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         disagreements += ledger.corpus_only;
         for f in divergence_findings(&ledger) {
             if f.code == "reason.divergence.corpus-only" {
@@ -2317,7 +2317,7 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
             // hard-fail report, each carrying its content-addressed ledger identity.
             if tally.corpus_only > 0 || tally.dl_gap > 0 {
                 let rows = compare_external_corpus(corpus, comps);
-                let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+                let ledger = build_ledger(Vec::new(), Vec::new(), rows);
                 for f in divergence_findings(&ledger) {
                     if f.code == "reason.divergence.corpus-only"
                         || f.code == "reason.divergence.dl-gap"
