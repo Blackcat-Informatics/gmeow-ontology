@@ -256,6 +256,12 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
+    /// Authoring-candidate propose/verify seam: submit a verdict-gated candidate to the
+    /// append-only candidate library, withdraw one, or list what has been admitted.
+    Candidate {
+        #[command(subcommand)]
+        command: CandidateCommands,
+    },
     /// Decide whether a premise RDF graph ENTAILS a conclusion (`A ⊨ C`), natively,
     /// by refutation over the DL consistency calculus. Prints `entailed`,
     /// `not-entailed`, or an honest `gap:<shape>` when the conclusion is outside the
@@ -266,6 +272,12 @@ pub enum Commands {
         premise: PathBuf,
         /// The conclusion RDF graph `C`.
         conclusion: PathBuf,
+    },
+    /// Native `logic:` reasoning-engine tools, driven directly over authored
+    /// `logic:` cells (no repository or pipeline run required).
+    Logic {
+        #[command(subcommand)]
+        command: LogicCommands,
     },
     /// GMEOW slice-quality tools: score an external slice directory against the embedded bundle.
     Slice {
@@ -376,9 +388,17 @@ pub enum SliceCommands {
     /// committed `generated/briefs/authoring-packets.nt` is the canonical repo projection
     /// of this brief for in-repo slices; this command is its live, checkout-free twin.
     Brief {
-        /// Path to the slice directory to brief.
-        dir: PathBuf,
-        /// Restrict to the subdomain axis (defined-term local-name prefix).
+        /// Path to the slice directory to brief by LIVE re-assembly over the slice's own
+        /// sources (needs a checkout with `generated/shapes/`). Mutually exclusive with
+        /// `--from-bundle`; exactly one of the two must be given.
+        dir: Option<PathBuf>,
+        /// Serve the PRE-ASSEMBLED packet(s) for this slice (short-name `ai` or full slice
+        /// IRI) straight from the embedded gmeow.gts bundle — checkout-free. Mutually
+        /// exclusive with `dir`.
+        #[arg(long = "from-bundle")]
+        from_bundle: Option<String>,
+        /// Restrict to the subdomain axis (defined-term local-name prefix; bundle default
+        /// `whole`).
         #[arg(long)]
         axis: Option<String>,
         /// The zero-based batch index of the 25-term chunk to cover (out of range
@@ -433,6 +453,110 @@ pub enum ConjectureCommands {
         /// `--max-steps`). Omitted = unbounded.
         #[arg(long = "max-answers")]
         max_answers: Option<usize>,
+    },
+}
+
+/// The `gmeow candidate` nested subcommands — the neurosymbolic propose/verify seam over the
+/// native `gmeow_pipeline` engine (the same shared cores the MCP `submit_candidate` /
+/// `withdraw_candidate` / `list_candidates` tools run: one implementation, not two).
+#[derive(Debug, Subcommand)]
+pub enum CandidateCommands {
+    /// Test a candidate `logic:` formula against a KB and — ONLY if the isolated-world verdict
+    /// CORROBORATES it (admissible) — APPEND it to the append-only candidate library
+    /// (`GMEOW_CANDIDATE_PATH`, else `~/.gmeow/candidates.gts`). A refuted or open candidate is
+    /// never admitted and writes nothing.
+    Submit {
+        /// A Turtle `logic:` document naming exactly one candidate formula.
+        #[arg(long = "formula")]
+        formula: PathBuf,
+        /// A Turtle KB the candidate is tested against.
+        #[arg(long = "kb")]
+        kb: PathBuf,
+        /// The REQUIRED reified standpoint scope IRI (Principle 9).
+        #[arg(long = "standpoint")]
+        standpoint: String,
+        /// Optionally, the `math:Conjecture` twin IRI (as `gmeow conjecture test`).
+        #[arg(long = "math-conjecture")]
+        math_conjecture: Option<String>,
+        /// Optional provenance: the slice IRI this candidate is proposed FOR.
+        #[arg(long = "for-slice")]
+        for_slice: Option<String>,
+        /// Optional provenance: the `gmeow:AuthoringPacket` IRI this candidate answers.
+        #[arg(long = "for-packet")]
+        for_packet: Option<String>,
+        /// Compute and print the verdict but WRITE NOTHING to the library.
+        #[arg(long = "dry-run")]
+        dry_run: bool,
+        /// Optional derived-closure-size ceiling (steps). Omitted = unbounded.
+        #[arg(long = "max-steps")]
+        max_steps: Option<u64>,
+        /// Optional derived-closure-size ceiling (answer bindings). Omitted = unbounded.
+        #[arg(long = "max-answers")]
+        max_answers: Option<usize>,
+    },
+    /// Withdraw a persisted candidate (P10 supersession, never deletion): append a compensating
+    /// "withdrawn" segment. An unknown or already-withdrawn id is a hard error.
+    Withdraw {
+        /// The candidate node IRI to withdraw.
+        #[arg(long = "candidate-id")]
+        candidate_id: String,
+        /// An optional author reason recorded with the withdrawal.
+        #[arg(long = "reason")]
+        reason: Option<String>,
+        /// Witness the withdrawal but WRITE NOTHING.
+        #[arg(long = "dry-run")]
+        dry_run: bool,
+    },
+    /// List every admitted candidate with its effective disposition (in-library | withdrawn) and
+    /// target provenance. A missing library is an empty list.
+    List {
+        /// Filter by target-slice provenance (a slice IRI).
+        #[arg(long = "slice")]
+        slice: Option<String>,
+        /// Filter by effective disposition: `in-library` or `withdrawn`.
+        #[arg(long = "disposition")]
+        disposition: Option<String>,
+    },
+}
+
+/// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
+#[derive(Debug, Subcommand)]
+pub enum LogicCommands {
+    /// Evaluate one or more authored `logic:ReasoningProgram` cells through the
+    /// native proof-carrying SLG-WFS backward (goal-directed) engine
+    /// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
+    /// production path `stage-goal-directed` folds into `gmeow.gts`'s
+    /// `graph/goal-directed`, run interactively over a caller-supplied cell
+    /// instead of through a full pipeline regeneration. Prints every
+    /// proof-checked answer (atom, bindings, derivation IRI) and every
+    /// three-valued well-founded verdict, in the engine's own deterministic
+    /// order. Hard-fails (never a silent empty success) on a missing
+    /// `--program-file`, a cell carrying zero `logic:ReasoningProgram`
+    /// individuals, or a `--program-iri` naming no program in the cell.
+    Backward {
+        /// A Turtle document naming one or more `logic:ReasoningProgram`
+        /// individuals, e.g. `slices/grounding/logic/examples/reasoning-programs.ttl`.
+        #[arg(long = "program-file")]
+        program_file: PathBuf,
+        /// Evaluate only the `logic:ReasoningProgram` with this exact IRI
+        /// (default: evaluate every program the cell carries). A bare CURIE
+        /// (`ex:peanoAdd`) is NOT accepted — pass the program's full IRI.
+        #[arg(long = "program-iri")]
+        program_iri: Option<String>,
+        /// An additional Turtle document whose told `rdfs:subClassOf` edges seed
+        /// the order-sorted unification lattice — e.g.
+        /// `slices/grounding/math/module.ttl`, whose `math:Integer ⊑
+        /// math:RationalNumber ⊑ math:RealNumber ⊑ …` chain the engine composes
+        /// into `math:Integer ⊑ math:RealNumber` internally (the engine computes
+        /// its own reflexive-transitive closure over whatever covering edges it
+        /// is given, so passing the told chain is sufficient — never a
+        /// pre-reasoned closure). Default: use ONLY the `rdfs:subClassOf` edges
+        /// told in `--program-file` itself. A program whose sort obligation
+        /// needs an edge absent from every source resolves to ZERO order-sorted
+        /// answers for that obligation — a correct, honest gap, never a silent
+        /// hardcoded fallback to some vocabulary's subsort tower.
+        #[arg(long = "subsort-source")]
+        subsort_source: Option<PathBuf>,
     },
 }
 
@@ -626,10 +750,54 @@ pub fn run() -> i32 {
                 max_answers,
             ),
         },
+        Commands::Candidate { command } => match command {
+            CandidateCommands::Submit {
+                formula,
+                kb,
+                standpoint,
+                math_conjecture,
+                for_slice,
+                for_packet,
+                dry_run,
+                max_steps,
+                max_answers,
+            } => commands::candidate_submit(
+                reporter,
+                &formula,
+                &kb,
+                &standpoint,
+                math_conjecture.as_deref(),
+                for_slice.as_deref(),
+                for_packet.as_deref(),
+                dry_run,
+                max_steps,
+                max_answers,
+            ),
+            CandidateCommands::Withdraw {
+                candidate_id,
+                reason,
+                dry_run,
+            } => commands::candidate_withdraw(reporter, &candidate_id, reason.as_deref(), dry_run),
+            CandidateCommands::List { slice, disposition } => {
+                commands::candidate_list(reporter, slice.as_deref(), disposition.as_deref())
+            }
+        },
         Commands::Entails {
             premise,
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
+        Commands::Logic { command } => match command {
+            LogicCommands::Backward {
+                program_file,
+                program_iri,
+                subsort_source,
+            } => commands::logic_backward(
+                reporter,
+                &program_file,
+                program_iri.as_deref(),
+                subsort_source.as_deref(),
+            ),
+        },
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {
                 commands::slice_quality(reporter, &dir, &format)
@@ -641,10 +809,18 @@ pub fn run() -> i32 {
             } => commands::slice_lint(reporter, &dir, min_tier.as_deref(), &format),
             SliceCommands::Brief {
                 dir,
+                from_bundle,
                 axis,
                 batch,
                 format,
-            } => commands::slice_brief(reporter, &dir, axis.as_deref(), batch, &format),
+            } => commands::slice_brief(
+                reporter,
+                dir.as_deref(),
+                from_bundle.as_deref(),
+                axis.as_deref(),
+                batch,
+                &format,
+            ),
             SliceCommands::ProjectionCeilings { format } => {
                 commands::slice_projection_ceilings(reporter, &format)
             }

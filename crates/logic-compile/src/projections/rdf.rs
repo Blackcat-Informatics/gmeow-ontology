@@ -1113,6 +1113,23 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         emit_formula(&mut g, &f_node, formula);
     }
 
+    // `program.reasoning_programs` (`logic:ReasoningProgram`) is DELIBERATELY not re-emitted
+    // here, exactly like `program.constraints` / `program.validation_shapes` /
+    // `program.path_shapes` / `program.correspondences` above: none of those collections is
+    // re-serialized by this projection either. This projection carries only the content that
+    // genuinely CHANGES shape between the source graph and the IR (formula-tree nodes
+    // reassembled from term-carrier triples, rule/contract nodes reassembled from reified
+    // structural triples) — content the frontend can only reconstruct from a byte-identical
+    // re-emission. A `logic:ReasoningProgram`'s clause/query/probe formulas are ALREADY
+    // ordinary reified `logic:Formula` trees authored verbatim in the source graph (the same
+    // shape `emit_formula` would produce), so the authored triples themselves are the
+    // canonical round-trip surface for reasoning-program content — the source graph is
+    // preserved verbatim by the surrounding slice pipeline, not reconstructed through this
+    // compiled-IR-only projection. Re-deriving a second reified copy here would source-fork
+    // the same clause set under a fresh set of minted IRIs, which is the anti-pattern
+    // `extract_formulas`'s "referenced" exclusion set (clause/programQuery/verdictProbe
+    // roots) exists to prevent on the read side.
+    //
     // Exact target: drops nothing, so it interns nothing into the loss store (its
     // read-back is empty and its report/ledger rows carry no `gmeow:lossyDrop`).
     rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", &[])

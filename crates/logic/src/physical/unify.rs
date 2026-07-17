@@ -992,6 +992,55 @@ mod tests {
         );
     }
 
+    // ── Test 1d: a DEEP nested clash after a partial bind leaves NO bindings ────────────
+
+    #[test]
+    fn deep_nested_clash_after_partial_bind_leaves_no_bindings() {
+        // G11(b) regression: the SAME rollback contract as
+        // `failed_unification_after_partial_bind_leaves_no_bindings`, but the mismatch is
+        // several constructor layers down rather than at the top level — the arena
+        // lowering makes deep structure reachable, so the guard must hold at depth too.
+        // `f(X, s(s(s(zero))))` vs `f(a, s(s(zero)))` binds `X := a` on argument 0, THEN
+        // descends three `s` constructors deep into argument 1 before clashing
+        // (`s(zero)` — a compound `App` — against the rigid `Leaf` `zero`).
+        let mut dag = TermDag::new();
+        let f = iri(&mut dag, "https://example.org/f");
+        let s = iri(&mut dag, "https://example.org/s");
+        let zero = iri(&mut dag, "https://example.org/zero");
+        let a = iri(&mut dag, "https://example.org/a");
+        let (_x, x_node) = dag.fresh_meta();
+
+        // s(s(s(zero))) — three nested `s` constructors deep.
+        let s_zero = dag.intern_app(s, vec![zero]);
+        let s_s_zero = dag.intern_app(s, vec![s_zero]);
+        let left_deep = dag.intern_app(s, vec![s_s_zero]);
+        // s(s(zero)) — one constructor shallower, so the mismatch surfaces two `s`
+        // constructors down (`s(zero)` vs the bare `zero`).
+        let right_deep = dag.intern_app(s, vec![s_zero]);
+
+        let left = dag.intern_app(f, vec![x_node, left_deep]);
+        let right = dag.intern_app(f, vec![a, right_deep]);
+
+        let mut subst = Subst::new();
+        let outcome = unify(&mut dag, left, right, &mut subst);
+        assert!(
+            matches!(outcome, Unified::Clash { .. }),
+            "f(X,s(s(s(zero)))) vs f(a,s(s(zero))) must clash several constructors deep, \
+             got {outcome:?}"
+        );
+        assert_eq!(
+            subst.bound_count(),
+            0,
+            "a failed unification must bind NOTHING even at depth, though X was bound to a \
+             while unifying argument 0 before the deep argument-1 clash"
+        );
+        assert_eq!(
+            subst.resolve(&dag, x_node),
+            x_node,
+            "X must remain its own (unbound) representative after the rollback"
+        );
+    }
+
     // ── Test 2: substitution round-trip / no capture ────────────────────────────────────
 
     #[test]

@@ -8033,6 +8033,86 @@ logic:SequenceMarker
     skos:definition "A variadic argument placeholder (the Common Logic '…x' form) that binds a sequence of terms rather than a single term, generalizing the fixed arity-three atom to predications of any arity. A term-carrier argument whose value is a logic:termSequenceMarker denotes one; keeping it a distinct kind stops a single-term variable from being mistaken for a sequence one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# ── The authored logic:ReasoningProgram surface (TBox + RBox) ─────────────────
+# A general, mode-annotated authoring envelope over the EXISTING clause
+# constructs above: logic:Formula atoms/Horn rules via logic:antecedent /
+# logic:consequent, logic:not for negated body literals, and
+# logic:termApplication / logic:FunctionTerm / logic:functionSymbol for
+# compound terms. It mints no second clause language — a logic:ReasoningProgram
+# is a named clause set plus a goal, evaluated under a selected strategy.
+
+logic:ReasoningProgram
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Program"@x-gmeow-english ;
+    skos:definition "A named clause set evaluated under a selected strategy: the authored surface that drives the native reasoning engine directly from slice content. A logic:ReasoningProgram carries a set of logic:clause atoms — facts and Horn rules, the SAME logic:Formula clause shape the forward relational-core lane already consumes, so there is no separate clause language — exactly one logic:programQuery goal atom whose logic:termVariable term-carriers are the answer variables the engine binds, zero or more logic:verdictProbe atoms whose three-valued well-founded verdict is projected independently of the query's bindings, and exactly one logic:evaluationMode selecting the evaluation strategy. 'Backward' resolution is a STRATEGY over a clause set, not a kind of program: keeping the mode a selector on a shared clause set, rather than splitting programs into forward and backward kinds, is what lets the SAME authored clauses later be evaluated forward once a chase strategy is added, without re-authoring."@x-gmeow-english ;
+    skos:example "A program with two logic:clause facts, a rule concluding path(X,Z) from edge(X,Y) and path(Y,Z), one logic:programQuery path(a, V), and logic:evaluationMode logic:BackwardEvaluation resolves V by goal-directed SLG-WFS backward resolution over the clause set."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author a separate forward-only or backward-only program class; author one logic:ReasoningProgram and select the strategy on logic:evaluationMode, since the clause set itself is strategy-neutral."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Author one or more logic:clause facts/rules using the existing logic:Formula / logic:antecedent / logic:consequent / logic:not shape, attach exactly one logic:programQuery goal atom, optionally attach logic:verdictProbe atoms, and select exactly one logic:evaluationMode."@x-gmeow-english ;
+    gmeow:useWhen "Use when a slice needs to author a normal logic program — a clause set plus a goal query — directly as data the native engine evaluates, rather than describing reasoning behavior only in prose."@x-gmeow-english .
+
+logic:EvaluationMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Mode"@x-gmeow-english ;
+    skos:definition "The closed value class of the evaluation strategy a logic:ReasoningProgram selects via logic:evaluationMode — which procedure resolves the SAME authored clause set. Its sole individual today is logic:BackwardEvaluation, the goal-directed SLG-WFS backward-resolution strategy; the set is closed and a misspelt or otherwise-unrecognized value is rejected. A forward chase over the identical clause shape is a future member of this same closed set, not a competing program kind, which is why evaluation strategy is carried as a selector value rather than a class distinction on logic:ReasoningProgram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:BackwardEvaluation
+    a owl:NamedIndividual ,
+        logic:EvaluationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Backward Evaluation"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationMode value selecting goal-directed SLG-WFS backward resolution: subsumptive demand-driven answer keying (SLG tabling), structured-term unification over logic:FunctionTerm arguments, explicit proof objects for each derived answer, and three-valued well-founded negation for logic:not-negated body literals. The one evaluation strategy this vocabulary supports today; contrast a future forward-chase member of logic:EvaluationMode over the identical clause set."@x-gmeow-english .
+
+logic:evaluationMode
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:EvaluationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluation mode"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to the single logic:EvaluationMode strategy it selects to resolve its clause set. Functional: a program selects exactly one strategy, never a mix. An unrecognized or unsupported mode value is a HARD FAIL at compile time — explicit feature selection under the closed logic:EvaluationMode set, never a silent fallback to a weaker or default strategy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:clause
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "clause"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to each authored clause: an atomic fact or a Horn rule whose logic:antecedent body atoms entail its logic:consequent head, with any body atom optionally logic:not-negated. Reuses the SAME logic:Formula clause shape the forward relational-core lane already lowers from — there is no separate, program-specific clause language. Multi-valued; a program with no clauses is malformed (logic:ReasoningProgramClauseConstraint)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:programQuery
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "program query"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to the single goal atom it resolves against its clause set. Functional: a program declares exactly one goal (logic:ReasoningProgramQueryConstraint requires it; the owl:FunctionalProperty declaration caps it at one). The goal's logic:termVariable term-carriers are the answer variables the engine binds and returns, distinct from a logic:verdictProbe atom's three-valued verdict projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:verdictProbe
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "verdict probe"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to zero or more atoms whose three-valued (true/false/undefined) well-founded verdict is projected as a standalone win/move-style check, rather than an answer-variable binding. Distinct from logic:programQuery: a probe reports which of the three verdicts an atom carries under the well-founded model, while the query resolves variable bindings for its single goal. Multi-valued; a program may carry no probes at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:variableSort
+    a owl:ObjectProperty ;
+    rdfs:domain logic:TermCarrier ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "variable sort"@x-gmeow-english ;
+    skos:definition "Assigns an order-sort to a variable term-carrier: the reasoned class (any math:, logic:, or domain-slice owl:Class, not only the numeric tower) the term-carrier's bound variable ranges over, consumed to build the order-sorted unification context a backward-resolution engine unifies structured terms under. It is ONE case of a general sort-assignment pattern, not a variable-only special case: logic:variableSort is the named extension point where a future logic:functionSort (assigning a rank/sort signature to a function symbol rather than a variable) slots in, so nothing here precludes rank-sorted compound terms later. It is not a value restriction on an ordinary OWL property; it is metadata the typed-IR frontend reads to seed sort-checked unification."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:hasFormula
     a owl:ObjectProperty ;
     rdfs:range logic:Formula ;
@@ -8798,6 +8878,38 @@ logic:FunctionTermArityConstraint
     gmeow:graphBoxRole gmeow:boxCBox ;
     gmeow:howToUse "Require one or more logic:argument carriers on each function term, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
     gmeow:useWhen "Use when validating a compound function-term node reached through a carrier's logic:termApplication."@x-gmeow-english .
+
+logic:ReasoningProgramClauseConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:ReasoningProgram ;
+    logic:onClass logic:ReasoningProgram ;
+    logic:requires logic:clause ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:ReasoningProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Program Clause Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:ReasoningProgram to carry at least one logic:clause. A program with no clauses has nothing to resolve its goal against and is malformed. It is not the query check: the required goal atom is validated separately by logic:ReasoningProgramQueryConstraint."@x-gmeow-english ;
+    skos:example "A logic:ReasoningProgram with a logic:programQuery but no logic:clause violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this constraint to check clause well-formedness; each clause's own logic:Formula constructor-selection constraints apply independently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require one or more logic:Formula-valued logic:clause edges on each declared reasoning program before constructing its clause set."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating an authored logic:ReasoningProgram before compiling it to the native engine's clause set."@x-gmeow-english .
+
+logic:ReasoningProgramQueryConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:ReasoningProgram ;
+    logic:onClass logic:ReasoningProgram ;
+    logic:requires logic:programQuery ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:ReasoningProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Program Query Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:ReasoningProgram to carry a logic:programQuery. Paired with the owl:FunctionalProperty declaration on logic:programQuery (which caps it at one), it makes a program bear EXACTLY one goal atom. It is not the clause-set check: a program's facts and rules are validated separately by logic:ReasoningProgramClauseConstraint."@x-gmeow-english ;
+    skos:example "A logic:ReasoningProgram with logic:clause facts but no logic:programQuery violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a default goal from the clause set; a query-less program is malformed, not defaulted to some implicit answer atom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require exactly one logic:Formula-valued logic:programQuery on each declared reasoning program before constructing its goal."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating an authored logic:ReasoningProgram before compiling it to the native engine's goal resolution."@x-gmeow-english .
 
 logic:TermCarrierIndexConstraint
     a logic:GuardedImplicationConstraint ;
