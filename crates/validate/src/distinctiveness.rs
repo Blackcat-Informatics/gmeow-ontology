@@ -69,16 +69,13 @@ pub struct Collision {
 /// The same key repeated under one skeleton is one member, not a collision with itself.
 /// Deterministic: groups follow `BTreeMap` skeleton order, members `BTreeSet` order.
 #[must_use]
-pub fn collisions(items: &[(String, String)]) -> Vec<Collision> {
+pub fn collisions(items: impl IntoIterator<Item = (String, String)>) -> Vec<Collision> {
     let mut by_skeleton: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for (key, skeleton) in items {
         if skeleton.trim().is_empty() {
             continue;
         }
-        by_skeleton
-            .entry(skeleton.clone())
-            .or_default()
-            .insert(key.clone());
+        by_skeleton.entry(skeleton).or_default().insert(key);
     }
     by_skeleton
         .into_iter()
@@ -97,16 +94,18 @@ pub fn collisions(items: &[(String, String)]) -> Vec<Collision> {
 /// translation) are legitimate and pass. An empty `msgstr` skeleton is skipped.
 /// Deterministic (`BTreeMap`/`BTreeSet` order).
 #[must_use]
-pub fn distinctiveness_violations(triples: &[(String, String, String)]) -> Vec<Collision> {
+pub fn distinctiveness_violations(
+    triples: impl IntoIterator<Item = (String, String, String)>,
+) -> Vec<Collision> {
     // msgstr skeleton -> (distinct msgid skeletons, member keys).
     let mut by_target: BTreeMap<String, (BTreeSet<String>, BTreeSet<String>)> = BTreeMap::new();
     for (msgid_skel, msgstr_skel, key) in triples {
         if msgstr_skel.trim().is_empty() {
             continue;
         }
-        let entry = by_target.entry(msgstr_skel.clone()).or_default();
-        entry.0.insert(msgid_skel.clone());
-        entry.1.insert(key.clone());
+        let entry = by_target.entry(msgstr_skel).or_default();
+        entry.0.insert(msgid_skel);
+        entry.1.insert(key);
     }
     by_target
         .into_iter()
@@ -152,7 +151,7 @@ mod tests {
             ("ex:D".to_owned(), "   ".to_owned()), // empty skeleton — skipped
             ("ex:E".to_owned(), String::new()),    // empty — skipped
         ];
-        let got = collisions(&items);
+        let got = collisions(items);
         assert_eq!(got.len(), 1, "one N=2 group: {got:#?}");
         assert_eq!(got[0].skeleton, "avoid a partial quaternion.");
         assert_eq!(got[0].members, vec!["ex:A".to_owned(), "ex:B".to_owned()]);
@@ -165,7 +164,7 @@ mod tests {
             ("ex:A".to_owned(), skeleton("same text.")),
             ("ex:A".to_owned(), skeleton("same text.")),
         ];
-        assert!(collisions(&items).is_empty());
+        assert!(collisions(items).is_empty());
     }
 
     #[test]
@@ -184,7 +183,7 @@ mod tests {
             ),
         ];
         assert!(
-            distinctiveness_violations(&twins).is_empty(),
+            distinctiveness_violations(twins).is_empty(),
             "identical source → shared translation is legitimate"
         );
         // Two DISTINCT sources collapsed to one translation → FLAG.
@@ -200,7 +199,7 @@ mod tests {
                 "rights:play|rdfs:label".to_owned(),
             ),
         ];
-        let got = distinctiveness_violations(&collapsed);
+        let got = distinctiveness_violations(collapsed);
         assert_eq!(got.len(), 1, "the collapsed distinction reds: {got:#?}");
         assert_eq!(got[0].skeleton, "lire");
         assert_eq!(
@@ -218,6 +217,6 @@ mod tests {
             (skeleton("read"), String::new(), "a".to_owned()),
             (skeleton("play"), "   ".to_owned(), "b".to_owned()),
         ];
-        assert!(distinctiveness_violations(&empties).is_empty());
+        assert!(distinctiveness_violations(empties).is_empty());
     }
 }

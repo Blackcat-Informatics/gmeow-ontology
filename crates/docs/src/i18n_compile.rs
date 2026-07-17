@@ -806,7 +806,7 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
         // sources means the translation collapsed a distinction the source made — a hard
         // reject. Twin sources (same English label on a class and its property twin)
         // sharing one translation legitimately do NOT collide (identical msgid skeleton).
-        for c in distinctiveness_violations(&xlat_triples) {
+        for c in distinctiveness_violations(xlat_triples) {
             report.errors.push(format!(
                 "{rel}: msgstr {:?} collides across {} distinct sources — a translation must preserve every distinction its source makes: {}",
                 c.skeleton,
