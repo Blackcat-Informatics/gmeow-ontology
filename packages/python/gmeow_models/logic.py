@@ -942,7 +942,7 @@ class Logic_ReasoningProgram(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/ReasoningProgram", "curie": "logic:ReasoningProgram", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/logic/ReasoningProgram"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/ReasoningProgram", "curie": "logic:ReasoningProgram", "definitionDigest": "blake3:0dc533d4450d4be637cfc792f4e18489c9f6199858029682ef7d642953b2d474", "iri": "https://blackcatinformatics.ca/logic/ReasoningProgram"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
