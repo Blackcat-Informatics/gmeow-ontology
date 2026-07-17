@@ -491,6 +491,7 @@ __all__ = [
     "Logic_NonEntailmentObligation",
     "Logic_NotificationWaitSchema",
     "Logic_Plan",
+    "Logic_ReasoningProgram",
     "Logic_RecoveryCase",
     "Logic_RefutationAcceptanceWitness",
     "Logic_SectionAcceptanceWitness",
