@@ -37,7 +37,7 @@ use std::collections::BTreeMap;
 
 use sha2::{Digest, Sha256};
 
-use gmeow_docs::i18n::parse_po;
+use gmeow_docs::i18n_compile::{language_from_po, live_translation_target, parse_po};
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
@@ -126,8 +126,8 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
                     ),
                 })
             })?;
-            let parsed = parse_po(text);
-            let lang = parsed.language.trim().to_string();
+            let lang = language_from_po(text)?.unwrap_or_default();
+            let lang = lang.trim().to_string();
             if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
                 continue;
             }
@@ -135,20 +135,26 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
             // rather than minting a materially-underspecified rendering.
             let _ = script_for_lang(&lang)?;
             langs.insert(lang.clone());
-            for entry in &parsed.entries {
+            for entry in &parse_po(text, false)? {
                 if entry.msgctxt.is_empty() || !entry.msgctxt.contains('|') {
                     continue;
                 }
                 let Some((term_iri, _predicate)) = entry.msgctxt.split_once('|') else {
                     continue;
                 };
+                // A machine-seeded `#, fuzzy` entry is not a reviewed translation: it is
+                // treated as not-yet-live (English fallback), identical to an untranslated
+                // entry, so unreviewed content never surfaces as a live rendered form in the
+                // gmeow.gts projection — matching `Translations::lookup` and the coverage axis.
+                // The fuzzy-gating lives in the shared `live_translation_target` policy.
+                let msgstr = live_translation_target(entry).to_string();
                 pages
                     .entry((lang.clone(), term_iri.to_string()))
                     .or_default()
                     .push(EntryRef {
                         msgctxt: entry.msgctxt.clone(),
-                        msgstr: entry.msgstr.clone(),
-                        present: !entry.msgstr.is_empty(),
+                        present: !msgstr.is_empty(),
+                        msgstr,
                     });
             }
         }
@@ -600,12 +606,13 @@ mod tests {
                 if artifact.role != ArtifactRole::TranslationCatalog {
                     continue;
                 }
-                let parsed = parse_po(std::str::from_utf8(&artifact.content).unwrap());
-                let lang = parsed.language.trim().to_string();
+                let text = std::str::from_utf8(&artifact.content).unwrap();
+                let lang = language_from_po(text).unwrap().unwrap_or_default();
+                let lang = lang.trim().to_string();
                 if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
                     continue;
                 }
-                for entry in &parsed.entries {
+                for entry in &parse_po(text, false).unwrap() {
                     if let Some((term, _)) = entry.msgctxt.split_once('|') {
                         pages.insert((lang.clone(), term.to_string()));
                     }
