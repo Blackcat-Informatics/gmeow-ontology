@@ -53036,7 +53036,6 @@
           }
         },
         "required": [
-          "math:filtrationThreshold",
           "math:stageStructure"
         ],
         "type": "object"

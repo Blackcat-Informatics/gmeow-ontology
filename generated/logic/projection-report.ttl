@@ -72719,6 +72719,7 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/SectionGluingConsistencyConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/SetBuilderMemberConditionNodeKindConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/SetExtentDisjointConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/StageIndexPresenceConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/TangentSpaceDimensionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/TheoremWarrantConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "full-FOL, standpoint/world/time-indexed, and aggregate-comparison (COUNT/SUM threshold) integrity conditions exceed that fragment; there is no formula-level aggregate term, so an aggregate comparison cannot be expressed as a genuine GROUP BY sub-SELECT and is carried-and-flagged, not projected" ,
@@ -124699,7 +124700,7 @@
 
 logic:projection-report
     a logic:ProjectionReport ;
-    logic:axiomCount 692 ;
+    logic:axiomCount 693 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 7 ;

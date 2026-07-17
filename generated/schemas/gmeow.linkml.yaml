@@ -670,7 +670,6 @@ classes:
   CellSourceCorrespondence:
     class_uri: https://blackcatinformatics.ca/gmeow/CellSourceCorrespondence
     title: Cell-Source Correspondence
-    is_a: InformationObject
     slots:
     - correspondenceCell
   Certification:
@@ -806,15 +805,12 @@ classes:
   CompilationMissingContext:
     class_uri: https://blackcatinformatics.ca/gmeow/CompilationMissingContext
     title: Compilation Missing Context
-    is_a: TopologyConformanceFailure
   CompilationPreservationRecord:
     class_uri: https://blackcatinformatics.ca/gmeow/CompilationPreservationRecord
     title: Compilation Preservation Record
-    is_a: InformationObject
   ComplexCompilation:
     class_uri: https://blackcatinformatics.ca/gmeow/ComplexCompilation
     title: Complex Compilation
-    is_a: Activity
     slots:
     - compilationScenario
     - compilationStandpoint
@@ -3990,7 +3986,6 @@ classes:
   ResultObjectConflation:
     class_uri: https://blackcatinformatics.ca/gmeow/ResultObjectConflation
     title: Result Object Conflation
-    is_a: TopologyConformanceFailure
   RetrievalEvent:
     class_uri: https://blackcatinformatics.ca/gmeow/RetrievalEvent
     title: Retrieval Event
@@ -4704,7 +4699,6 @@ classes:
   TopologyClaim:
     class_uri: https://blackcatinformatics.ca/gmeow/TopologyClaim
     title: Topology Claim
-    is_a: StandpointClaim
     slots:
     - claimForComputation
     - claimLocalSection
@@ -4714,11 +4708,9 @@ classes:
   TopologyClaimMissingStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/TopologyClaimMissingStatus
     title: Topology Claim Missing Status
-    is_a: TopologyConformanceFailure
   TopologyComputation:
     class_uri: https://blackcatinformatics.ca/gmeow/TopologyComputation
     title: Topology Computation
-    is_a: Activity
     slots:
     - assertsGlobalTruth
     - computationOverCompilation
@@ -4730,7 +4722,6 @@ classes:
   TopologyResult:
     class_uri: https://blackcatinformatics.ca/gmeow/TopologyResult
     title: Topology Result
-    is_a: InformationObject
     slots:
     - resultArtifact
   Trademark:

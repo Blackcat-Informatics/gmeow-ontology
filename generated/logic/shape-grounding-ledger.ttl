@@ -1827,6 +1827,12 @@ math:SetExtentDisjointConstraintProceduralConstraintShape
     logic:formalizes math:SetExtentShape ;
     logic:preservationKind logic:ValidationOnly .
 
+math:StageIndexPresenceConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass math:UnderspecifiedFiltration ;
+    logic:formalizes math:FiltrationStage ;
+    logic:preservationKind logic:ValidationOnly .
+
 math:TangentSpaceDimensionConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     gmeow:enforcesFailureClass math:DimensionMismatch ;

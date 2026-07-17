@@ -51,6 +51,7 @@
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim' .
+<https://blackcatinformatics.ca/logic/JoinAggregateConstraint> <https://blackcatinformatics.ca/logic/subClassOf> <https://blackcatinformatics.ca/logic/ConstraintSugar> .
 <https://blackcatinformatics.ca/logic/MereologyProfile> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> .
 <https://blackcatinformatics.ca/logic/Path> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TemporalFramework> .
 <https://blackcatinformatics.ca/logic/PossibleWorld> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> .

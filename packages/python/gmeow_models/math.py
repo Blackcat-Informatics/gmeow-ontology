@@ -1946,15 +1946,20 @@ class Math_Filtration(ConfiguredBaseModel):
 class Math_FiltrationStage(ConfiguredBaseModel):
     """Filtration Stage.
 
-    One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued
-    threshold ε it sits at through math:filtrationThreshold (a math:Quantity) and the
-    substructure present at that threshold through math:stageStructure (a
-    math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of
+    One stage of a math:Filtration: an (index, substructure) cell naming the index it sits
+    at and the substructure present there through math:stageStructure (a
+    math:TopologicalSpace — the sub-space Kε of the ambient object at that index). The index
+    is the real-valued threshold ε through math:filtrationThreshold (a math:Quantity) for a
+    one-parameter math:Filtration, OR a math:multiIndex tuple for a
+    math:MultiparameterFiltration whose stages sit in a parameter poset INSTEAD of on a
+    single real line — a stage carries one XOR the other. A subclass of
     math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage.
     Stages are ordered by their thresholds, and the monotonicity law
     math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a
-    math:subsetOf the structure at a higher one. A stage missing its threshold or its
-    structure is ill-formed (math:UnderspecifiedFiltration).
+    math:subsetOf the structure at a higher one. A stage missing its structure, or naming
+    NEITHER a math:filtrationThreshold nor a math:multiIndex (it sits at no index at all),
+    is ill-formed (math:UnderspecifiedFiltration; the threshold-or-multi-index obligation is
+    math:StageIndexPresenceConstraint).
 
     Usage:
         >>> from gmeow_models.math import Math_FiltrationStage
@@ -1975,7 +1980,7 @@ class Math_FiltrationStage(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    filtrationThreshold: str = Field(description="Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range math:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold.", alias="math:filtrationThreshold")
+    filtrationThreshold: str | None = Field(default=None, description="Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of a ONE-PARAMETER stage in the filtration. Domain math:FiltrationStage, range math:Quantity (stated in prose). A one-parameter stage names AT MOST one; a math:MultiparameterFiltration's stages carry a math:multiIndex tuple INSTEAD, so the threshold is not unconditionally required — a stage naming neither a threshold nor a math:multiIndex is ill-formed (math:UnderspecifiedFiltration via math:StageIndexPresenceConstraint). The monotonicity law math:filtrationMonotonicityLaw orders one-parameter stages by this threshold.", alias="math:filtrationThreshold")
     stageStructure: str = Field(description="Relates a math:FiltrationStage to the substructure present at its threshold — the sub-space Kε of the filtered object at ε. Domain math:FiltrationStage, range math:TopologicalSpace (stated in prose). Every stage names exactly one; a stage without its structure is ill-formed (math:UnderspecifiedFiltration). The structure at a lower threshold is a math:subsetOf the structure at a higher one (math:filtrationMonotonicityLaw).", alias="math:stageStructure")
 
 

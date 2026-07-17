@@ -3645,6 +3645,18 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/hasElement> ?v0 . $this <https://blackcatinformatics.ca/math/memberCondition> ?v1 . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/StageIndexPresenceConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/FiltrationStage> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UnderspecifiedFiltration> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/FiltrationStage> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FiltrationStage must carry either a math:filtrationThreshold (a one-parameter index) or a math:multiIndex (a multiparameter index tuple); a stage carrying neither names no position in the filtration and is ill-formed (math:UnderspecifiedFiltration)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/filtrationThreshold> ?thr . } UNION { $this <https://blackcatinformatics.ca/math/multiIndex> ?mi . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/TangentSpaceDimensionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/TangentSpaceDimensionShape> ;

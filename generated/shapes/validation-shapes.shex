@@ -6467,7 +6467,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/math/FiltrationStage> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/FiltrationStage-shape> {
   <https://blackcatinformatics.ca/math/stageStructure> IRI ;
-  <https://blackcatinformatics.ca/math/filtrationThreshold> NONLITERAL ;
+  <https://blackcatinformatics.ca/math/filtrationThreshold> NONLITERAL {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/FisherInformation> (associate via ShapeMap)
