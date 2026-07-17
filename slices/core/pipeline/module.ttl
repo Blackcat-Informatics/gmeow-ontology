@@ -764,12 +764,16 @@ gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: schemas"@x-gmeow-english ;
-    skos:definition "Project the carrier dataset to LinkML + downstream schema artifacts. A fold-reading export leaf over the carrier: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
+    skos:definition "Render the LinkML YAML, TypeScript declaration, and GraphQL SDL developer schema surfaces (plus the GraphQL canonical name map) via purrdf's native SHACL-derived emitters (purrdf::shapes::linkml/typescript/graphql), retiring the hand-rolled OWL→LinkML model. A fresh-union leaf: it reads the AUTHORED shape files from disk and consumes the same four generated-shape producers as the JSON-Schema/Pydantic leaves — gmeow:stage-compile-logic, gmeow:stage-export-result-shapes, gmeow:stage-export-frame-shapes, and gmeow:stage-export-constraint-shapes — so the union's generated/shapes/*.ttl members are THIS run's product bytes, never the previous run's committed files (the stale-disk-fold class), and the compiled `$defs` agree with the packed JSON Schema/Pydantic package by construction (the shared schema_compile builder). The sink folds its fresh output into REP_GENERATED."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "schemas" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes ;
     gmeow:producesFormat "linkml" .
 
 gmeow:stage-export-catalog
@@ -1030,7 +1034,7 @@ gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1052,6 +1056,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-result-shapes ,
+        gmeow:stage-export-schemas ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
         gmeow:stage-export-projection-ceilings ,
