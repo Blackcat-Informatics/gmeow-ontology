@@ -420,8 +420,8 @@ pub enum GmnCommands {
     Digest {
         /// The RDF (Turtle) input to digest.
         input: PathBuf,
-        /// The lang `module.ttl` carrying `gmeow:gmnCodebookCurrent` + `gmeow:gmnDictV3`
-        /// (default: `slices/grounding/lang/module.ttl`).
+        /// Override the embedded bundle's `gmeow:gmnCodebookCurrent` + `gmeow:gmnDictV3` with a
+        /// lang `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
         #[arg(long = "lang-module")]
         lang_module: Option<PathBuf>,
         /// Output serialization: `text` (two labeled lines, default) or `json`.
@@ -433,7 +433,8 @@ pub enum GmnCommands {
     Encode {
         /// The RDF (Turtle) input to encode.
         input: PathBuf,
-        /// The lang `module.ttl` (default: `slices/grounding/lang/module.ttl`).
+        /// Override the embedded bundle's codebook/dictionary with a lang `module.ttl` file
+        /// (default: the embedded `gmeow.gts` snapshot).
         #[arg(long = "lang-module")]
         lang_module: Option<PathBuf>,
     },
@@ -441,31 +442,34 @@ pub enum GmnCommands {
     Decode {
         /// The GMN-1 (`.gmn`) document to decode.
         input: PathBuf,
-        /// The lang `module.ttl` (default: `slices/grounding/lang/module.ttl`).
+        /// Override the embedded bundle's codebook/dictionary with a lang `module.ttl` file
+        /// (default: the embedded `gmeow.gts` snapshot).
         #[arg(long = "lang-module")]
         lang_module: Option<PathBuf>,
         /// Output serialization: `nquads` (canonical, default) or `turtle`.
         #[arg(long = "format", short = 'f', value_enum, default_value_t = DecodeFormat::Nquads)]
         format: DecodeFormat,
     },
-    /// The conformance driver: over the frozen vector corpus, prove every positive
+    /// The conformance driver: over a frozen vector corpus, prove every positive
     /// vector is byte-frozen + round-trips, every codec-tier negative raises its
-    /// recorded class, and the recomputed pack root matches the shipped pack. Exits
-    /// non-zero on any failure.
+    /// recorded class, and the recomputed codebook digest + pack root match the bundle's
+    /// declarations. Exits non-zero on any failure.
     Verify {
-        /// The frozen vector corpus dir (default:
-        /// `slices/grounding/lang/tests/gmn1-vectors`).
+        /// The frozen vector corpus dir. Defaults to the in-repo corpus
+        /// (`slices/grounding/lang/tests/gmn1-vectors`) when present; REQUIRED outside a checkout
+        /// (the corpus is a test artifact, not shipped in the bundle).
         #[arg(long = "vectors")]
         vectors: Option<PathBuf>,
-        /// The lang `module.ttl` (default: `slices/grounding/lang/module.ttl`).
+        /// Override the embedded bundle's codebook/dictionary with a lang `module.ttl` file
+        /// (default: the embedded `gmeow.gts` snapshot).
         #[arg(long = "lang-module")]
         lang_module: Option<PathBuf>,
-        /// The authored GMN grammar the pack root hashes (default:
-        /// `slices/grounding/lang/grammars/gmn.ebnf`).
+        /// Override the embedded bundle's grammar leaf with an authored GMN grammar file to hash
+        /// (default: the `gmeow:gmnGrammarDigest` in the embedded `gmeow.gts` snapshot).
         #[arg(long = "grammar")]
         grammar: Option<PathBuf>,
-        /// The shipped conformance-pack projection (default:
-        /// `generated/projections/lang/gmn1/conformance-pack.ttl`).
+        /// Override the embedded bundle's pack-root declaration with a conformance-pack projection
+        /// file (default: the `gmeow:gmnPackRoot` in the embedded `gmeow.gts` snapshot).
         #[arg(long = "pack")]
         pack: Option<PathBuf>,
     },
