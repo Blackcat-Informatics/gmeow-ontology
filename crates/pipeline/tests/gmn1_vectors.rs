@@ -14,7 +14,7 @@
 //! and prove the per-claim inversion + idempotence witnesses.
 //!
 //! To (re)freeze the outputs after a deliberate codec/corpus change, run this test with
-//! `GMN1_VECTORS_BLESS=1` — it rewrites every `<name>.gmn` and `manifest.ttl` from the current
+//! `GMN1_VECTORS_BLESS=1` — it rewrites every `<name>.gmn` and `vector-manifest.ttl` from the current
 //! codec, then the ordinary (unblessed) run byte-compares against them.
 //!
 //! # Tiers
@@ -122,7 +122,7 @@ fn dict() -> GmnDictionary {
 }
 
 /// Recompute the codebook's content-addressed Merkle digest from the live carrier — the value
-/// the frozen corpus is pinned against in `manifest.ttl`.
+/// the frozen corpus is pinned against in `vector-manifest.ttl`.
 fn recomputed_codebook_digest() -> String {
     let ds = lang_module_dataset();
     let codebook = resolve_current_codebook(&ds).expect("current codebook resolves");
@@ -189,7 +189,7 @@ fn positive_vectors_freeze_byte_exact_and_round_trip() {
     }
 }
 
-/// The frozen corpus is pinned to the codebook it was derived against: `manifest.ttl`'s
+/// The frozen corpus is pinned to the codebook it was derived against: `vector-manifest.ttl`'s
 /// `gmeow:gmnCodebookDigest` must equal the digest recomputed from the live carrier. A codebook
 /// change without a re-freeze reds here, catching a silently-stale corpus.
 #[test]
@@ -197,12 +197,12 @@ fn manifest_pins_the_frozen_codebook_digest() {
     let dir = vectors_dir();
     if bless_enabled() {
         std::fs::write(
-            dir.join("manifest.ttl"),
+            dir.join("vector-manifest.ttl"),
             manifest_text(&recomputed_codebook_digest()),
         )
-        .expect("write manifest.ttl");
+        .expect("write vector-manifest.ttl");
     }
-    let manifest = parse_ttl(&dir.join("manifest.ttl"));
+    let manifest = parse_ttl(&dir.join("vector-manifest.ttl"));
     let pinned: Vec<String> = manifest
         .owned_quads()
         .filter(|q| q.predicate == GMN_CODEBOOK_DIGEST)
@@ -211,13 +211,13 @@ fn manifest_pins_the_frozen_codebook_digest() {
     assert_eq!(
         pinned.len(),
         1,
-        "manifest.ttl must pin exactly one gmeow:gmnCodebookDigest, found {}",
+        "vector-manifest.ttl must pin exactly one gmeow:gmnCodebookDigest, found {}",
         pinned.len()
     );
     assert_eq!(
         pinned[0],
         recomputed_codebook_digest(),
-        "manifest.ttl's pinned codebook digest is stale vs the live carrier — re-freeze the \
+        "vector-manifest.ttl's pinned codebook digest is stale vs the live carrier — re-freeze the \
          corpus with GMN1_VECTORS_BLESS=1"
     );
 }
@@ -517,7 +517,7 @@ fn bless_positive_outputs(d: &GmnDictionary, dir: &Path) {
     }
 }
 
-/// The generated `manifest.ttl`: pins the codebook digest the corpus was frozen against and
+/// The generated `vector-manifest.ttl`: pins the codebook digest the corpus was frozen against and
 /// lists every positive vector. Regenerated under `GMN1_VECTORS_BLESS`.
 fn manifest_text(digest: &str) -> String {
     let mut s = String::new();

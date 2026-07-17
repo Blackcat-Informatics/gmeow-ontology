@@ -18,7 +18,7 @@
 //! `crates/pipeline/src/stages/gmn1_gate.rs::load_lang_dictionary` — the SAME
 //! codebook the production gate, the shipped-projection lint, and the frozen corpus
 //! are all pinned against, so the digests this surface prints recompute to the
-//! values `manifest.ttl` / `conformance-pack.ttl` declare.
+//! values `vector-manifest.ttl` / `conformance-pack.ttl` declare.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -424,15 +424,15 @@ pub fn verify(
     // ── (C) codebook digest + pack root recompute-and-assert ──
     let recomputed_digest = codebook_digest(&codebook, &dict);
     // The frozen corpus pins the codebook it was derived against.
-    let manifest = vectors.join("manifest.ttl");
+    let manifest = vectors.join("vector-manifest.ttl");
     if manifest.is_file() {
         match pinned_literal(reporter, &manifest, GMN_CODEBOOK_DIGEST) {
             Ok(Some(pinned)) if pinned == recomputed_digest => {}
             Ok(Some(pinned)) => failures.push(format!(
-                "manifest.ttl pins codebook digest {pinned} but the live carrier recomputes to {recomputed_digest}"
+                "vector-manifest.ttl pins codebook digest {pinned} but the live carrier recomputes to {recomputed_digest}"
             )),
             Ok(None) => failures.push(
-                "manifest.ttl declares no gmeow:gmnCodebookDigest".to_owned(),
+                "vector-manifest.ttl declares no gmeow:gmnCodebookDigest".to_owned(),
             ),
             Err(code) => return code,
         }
