@@ -22,7 +22,6 @@ class AttestationTypeEnum(StrEnum):
     attestationTypeC2PA = "gmeow:attestationTypeC2PA"
     attestationTypeCoherenceCertificate = "gmeow:attestationTypeCoherenceCertificate"
     attestationTypeConformanceVerdict = "gmeow:attestationTypeConformanceVerdict"
-    attestationTypeCrossCheckAgreement = "gmeow:attestationTypeCrossCheckAgreement"
     attestationTypeDSSE = "gmeow:attestationTypeDSSE"
     attestationTypeDocumentationArtifact = "gmeow:attestationTypeDocumentationArtifact"
     attestationTypeEAT = "gmeow:attestationTypeEAT"

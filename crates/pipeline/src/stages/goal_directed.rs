@@ -16,7 +16,7 @@
 //! `gmeow_logic::goal_directed::evaluate_reasoning_programs` — which compiles each program,
 //! validates every answer's proof, and returns RDF-serializable data — then routes the
 //! projected N-Triples into [`GRAPH_GOAL_DIRECTED`]. `stage-snapshot`'s
-//! [`crate::stages::carrier::assemble_carrier`] folds that named graph into `gmeow.gts` (the
+//! `assemble_carrier` folds that named graph into `gmeow.gts` (the
 //! shippable deliverable), so a repo-free consumer reads every proof-checked backward answer
 //! straight out of the bundle.
 //!

@@ -1798,8 +1798,8 @@ pub fn soundness_gate(
                     row.subject, row.world, row.detail
                 ));
             }
-            // Agree / NativeOnly / OracleOnly are not produced by
-            // compare_external_corpus; ignore them here.
+            // Agree is not produced by compare_external_corpus as a failing row;
+            // ignore it here.
             _ => {}
         }
     }
@@ -1992,7 +1992,7 @@ fn grade_tptp_corpus(
         .map_err(|e| ce(format!("cannot write {}: {e}", out_nq.display())))?;
 
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
-    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), rows);
     println!(
         "graded={} agree={} corpus_only={} dl_gap={} capability_gaps={capability_gaps}",
         comparisons.len(),
@@ -2236,7 +2236,7 @@ fn grade_ontouml_corpus(
         .map_err(|e| ce(format!("cannot write {}: {e}", out_nq.display())))?;
 
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
-    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), rows);
     println!(
         "graded={} agree={} corpus_only={} dl_gap={} capability_gaps={capability_gaps}",
         comparisons.len(),
@@ -2387,7 +2387,7 @@ fn grade_suite_corpus(
 
     // Derive counts from the ledger so they match the emitted graph exactly.
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
-    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), rows);
 
     let graded = comparisons.len();
     let agree = ledger.agree;
@@ -2661,7 +2661,7 @@ fn grade_ore_corpus(
     // `inconsistent` verdict on a curated-consistent real-world ontology is a
     // soundness defect and the only hard-fail condition.
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
-    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), rows);
     soundness_gate(&ledger, &BTreeSet::new(), &dl_gap_slugs).map_err(|offenders| {
         let list = offenders.join("\n  ");
         ce(format!(
@@ -2907,7 +2907,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
                 published: published.to_owned(),
             }],
         );
-        gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows)
+        gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), rows)
     }
 
     /// A synthetic CorpusOnly row (native decided WRONG) must always cause a

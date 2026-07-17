@@ -397,14 +397,6 @@ gmeow:attestationTypeConformanceVerdict
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
-gmeow:attestationTypeCrossCheckAgreement
-    a gmeow:AttestationType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
-    rdfs:label "cross-check agreement matrix"@x-gmeow-english ;
-    skos:definition "An attestation recording the agreement matrix between two or more independent reasoners or validators over the same input — the native EL/DL engine cross-checked in-process against the purrdf::entail OWL-RL oracle — listing matched entailments, divergences, and per-reasoner timing. Distinct from a quality report in that it certifies inter-engine agreement, not a single engine's metrics."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxCBox .
-
 gmeow:attestationTypeDocumentationArtifact
     a gmeow:AttestationType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;

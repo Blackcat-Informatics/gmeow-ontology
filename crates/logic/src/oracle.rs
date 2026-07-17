@@ -7,8 +7,8 @@
 //! The native physical core (`crate::physical`) is the sole production authority.
 //! This module carries the neutral typed rows used by the structured native
 //! materialization adapters.
-//! The independent backward resolver and the `purrdf::entail` cross-check remain
-//! comparison surfaces only; neither is a production fallback.
+//! The independent backward resolver is a comparison surface only; it is not a
+//! production fallback.
 //!
 //! # Neutral vocabulary
 //!

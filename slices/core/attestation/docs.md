@@ -28,7 +28,7 @@ assertion is true.
 
 | Vocabulary | Purpose |
 |---|---|
-| `gmeow:AttestationType` | What kind of attestation this is (`slsaProvenance`, `inToto`, `verifiableCredential`, `c2pa`, `eat`, `signedRdf`, `scitt`, `nanopublication`, `blockchainClaim`, `gitSignedTag`, `releaseManifest`, `qualityReport`, `aiOutput`, `crossCheckAgreement`, `conformanceVerdict`). |
+| `gmeow:AttestationType` | What kind of attestation this is (`slsaProvenance`, `inToto`, `verifiableCredential`, `c2pa`, `eat`, `signedRdf`, `scitt`, `nanopublication`, `blockchainClaim`, `gitSignedTag`, `releaseManifest`, `qualityReport`, `aiOutput`, `conformanceVerdict`). |
 | `gmeow:SignatureScheme` | The cryptographic algorithm (`rsaSha256`, `ed25519`, `ecdsaSecp256k1`, `ecdsaP256`, `bls12-381`). |
 | `gmeow:VerificationStatus` | Outcome of verification (`verified`, `failed`, `unverified`, `expired`, `revoked`, `policyFailed`, `finalityPending`). |
 | `gmeow:LedgerFinalityStatus` | Finality state of a ledger transaction/block (`pending`, `confirmed`, `finalized`, `orphaned`, `reorged`). |
@@ -169,18 +169,14 @@ ex:ctEntry a gmeow:TransparencyLogEntry ;
 ## Release-as-evidence: GMEOW dogfoods its own attestations
 
 GMEOW's own signed release is the flagship use of this slice (CONSTITUTION.md §18,
-the *release-as-evidence* clause). `make full-release` runs the native authority gate,
-the Java/Docker `classic-cross-check` oracle lane, and the public conformance + perf
-suites, then folds **every** result into a single signed `gmeow.gts` bundle: each
+the *release-as-evidence* clause). `make full-release` runs the native authority gate
+and the public conformance + perf suites, then folds **every** result into a single
+signed `gmeow.gts` bundle: each
 artifact rides as a BLAKE3-content-addressed blob, described by a `gmeow:Attestation`
 envelope in a dedicated `graph/attestations` named graph that binds the envelope to its
-blob by `gmeow:contentDigest`. Two `AttestationType` individuals exist for the evidence
-kinds the prior vocabulary could not name:
+blob by `gmeow:contentDigest`. One `AttestationType` individual exists for the evidence
+kind the prior vocabulary could not name:
 
-- `gmeow:attestationTypeCrossCheckAgreement` — a native↔oracle agreement matrix
-  (matched entailments, divergences, per-reasoner timing), distinct from a generic
-  quality report in that it certifies *inter-engine agreement*. It backs the native
-  gap-zero DL-EL divergence ledger — the in-process purrdf-entail cross-check.
 - `gmeow:attestationTypeConformanceVerdict` — the public conformance-suite verdicts,
   rolled up by `make conformance-report` (a Rust `gmeow-conformance` binary that runs
   every case through the native cores and emits one deterministic canonical-JSON

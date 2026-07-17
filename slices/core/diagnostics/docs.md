@@ -120,8 +120,7 @@ the same position.
 
 `gmeow-dev feedback` folds **every** GMEOW-owned `make check` surface into one canonical report
 (a few surfaces are folded standalone rather than as literal `make check` targets — `box-roles` is
-a `reason-native` sub-audit; the `reason-crosscheck` subsumption cross-check, by contrast, now runs
-on-gate as its own `make check` target),
+a `reason-native` sub-audit),
 then writes `dist/gmeow-feedback.{json,sarif,html,gts}` — so the self-attesting bundle is the
 complete picture of the developer gate, not just validation (Principle 5: maximal information
 flow). Each surface owns its own `Severity`/`code` semantics via a `to_diagnostics_report()` function
@@ -143,7 +142,6 @@ stays driven solely by the validation result** — per-surface hard gating lives
 | `box-roles` | `box-roles.missing`, `box-roles.invalid` | `error` (term source in `path`) |
 | `audit` | `audit.{ungrounded,contradicted,stale}-*`, `audit.shacl-{error,warning}` | heuristic flags → `warning`; SHACL errors → `error` |
 | `generator` | `generator.{drift,orphan,problem}` | `error`; per-finding `tool` = generator name (covers statement + mapping drift) |
-| `reason-crosscheck` | `reason.divergence.{oracle-only,dl-gap,corpus-only}` | native↔oracle subsumption divergence ledger, a Rust-backed report; `NativeOnly` rows are EXPECTED native enrichment (native ⊇ oracle) and are skipped, never failures; the failing/divergence categories are `OracleOnly`, `DlGap`, and `CorpusOnly` |
 
 The mapping-compiler surface is now **landed**: native compiler failures surface as
 `mapping-compile.dsl-error`, and the SSSOM validator + native `gmeow_slice.lint_projection` trio →
