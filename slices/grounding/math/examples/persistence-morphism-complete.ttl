@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed math:PersistenceMorphism: a map of persistence modules — a natural
+# transformation between two math:PersistenceModule functors. It names its domain
+# module through math:morphismSource and its codomain module through
+# math:morphismTarget, both well-formed math:PersistenceModule individuals. A subclass
+# of the existing math:Morphism (U1-light reuse of the object-layer morphism parent).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix expx: <https://blackcatinformatics.ca/gmeow/examples/math/persistence-morphism/> .
+
+expx:morphism a math:PersistenceMorphism ;
+    rdfs:label "map induced by an inclusion of point clouds"@x-gmeow-english ;
+    math:morphismSource expx:sourceModule ;
+    math:morphismTarget expx:targetModule .
+
+expx:sourceModule a math:PersistenceModule ;
+    rdfs:label "source persistence module"@x-gmeow-english ;
+    math:moduleIndex expx:indexPoset ;
+    math:structureMap expx:sourceTransition .
+
+expx:targetModule a math:PersistenceModule ;
+    rdfs:label "target persistence module"@x-gmeow-english ;
+    math:moduleIndex expx:indexPoset ;
+    math:structureMap expx:targetTransition .
+
+expx:indexPoset a math:MathematicalObject ; rdfs:label "shared index poset"@x-gmeow-english .
+expx:sourceTransition a math:MathematicalObject ; rdfs:label "source structure map"@x-gmeow-english .
+expx:targetTransition a math:MathematicalObject ; rdfs:label "target structure map"@x-gmeow-english .

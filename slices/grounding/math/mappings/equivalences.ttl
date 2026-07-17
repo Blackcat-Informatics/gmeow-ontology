@@ -2582,3 +2582,48 @@ gmeow:eqMathGluingObstructionWd a gmeow:TermEquivalence, logic:GroundingCorrespo
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
+
+# --- Multiparameter / zigzag persistence objects → Wikidata (issue #1527) ---- #
+# All three QIDs verified via the Wikidata search API. math:PersistenceModule is a
+# concept item (closeMatch); the zigzag and multidimensional persistence objects are
+# aligned to their defining scholarly-article items (relatedMatch, the OEIS/mathlib
+# by-reference form), since neither has a distinct concept item — never an invented QID.
+
+gmeow:eqMathPersistenceModuleWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:PersistenceModule ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q117101306 ;
+    logic:sourceEndpoint math:PersistenceModule ; logic:targetEndpoint wd:Q117101306 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Persistence module" ;
+    gmeow:comment "math:PersistenceModule is the algebraic functor P: (index poset) → Vect a persistence computation decomposes; wd:Q117101306 (Persistence module) names the same concept. closeMatch, not exactMatch: the gmeow object additionally commits to the math:Functor typing and the math:moduleIndex/math:structureMap frame, a close but not invertibly identical counterpart. QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathZigzagDiagramWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:ZigzagDiagram ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q59442785 ;
+    logic:sourceEndpoint math:ZigzagDiagram ; logic:targetEndpoint wd:Q59442785 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Zigzag Persistence" ;
+    gmeow:comment "math:ZigzagDiagram is the sequence whose structure maps may point forward or backward that zigzag persistence computes over; wd:Q59442785 (Zigzag Persistence) is the defining scholarly article (Carlsson–de Silva) introducing the construction. The object aligned to its defining reference, so skos:relatedMatch, not identity. QID verified via the Wikidata search API (instance-of scholarly article)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathMultiparameterFiltrationWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:MultiparameterFiltration ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q59442784 ;
+    logic:sourceEndpoint math:MultiparameterFiltration ; logic:targetEndpoint wd:Q59442784 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Computing Multidimensional Persistence" ;
+    gmeow:comment "math:MultiparameterFiltration is a filtration indexed by a poset of dimension ≥ 2; wd:Q59442784 (Computing Multidimensional Persistence, Carlsson–Singh–Zomorodian) is the defining scholarly article of the multidimensional/multiparameter persistence line, which established that there is no complete discrete invariant (math:multiparameterInvariantBoundary). The object aligned to its defining reference, so skos:relatedMatch, not identity — no distinct concept item exists. QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

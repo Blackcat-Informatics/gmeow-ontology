@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the math:PersistenceModule frame (issue #1527): a math:PersistenceModule
+# naming its math:moduleIndex but omitting any math:structureMap — the functor has vector spaces
+# but no functorial transition maps. The min-1 qualified restriction on math:structureMap derives
+# a sh:qualifiedMinCount property shape, so validation MUST emit
+# shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceModule).
+# ISOLATION: the math:moduleIndex arm is satisfied, so only the math:structureMap arm fires; the
+# node is not also a math:PersistenceLifetime, so math:PersistenceModuleLifetimeConflation stays silent.
+# Back-reference: math:IncompletePersistenceModule (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecPersistenceModuleIncomplete).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:module a math:PersistenceModule ;
+    math:moduleIndex ex:indexPoset .             # names the index but NO math:structureMap
+
+ex:indexPoset a math:MathematicalObject .

@@ -7914,6 +7914,78 @@ math:GluingObstruction
     skos:definition "The first-cohomology (H¹) witness recording WHY a family of math:LocalSections of a math:CellularSheaf may fail to lift to a single math:GlobalSection: the obstruction-to-gluing class whose non-vanishing certifies that consistent local data does not assemble into global truth. It names the sheaf it obstructs through math:obstructionOf. It is NOT a math:SheafRestrictionMap (it does not transport data; it measures the failure of transported data to agree), NOT a mere local disagreement on one overlap (a single pairwise mismatch is a coboundary, not necessarily a cohomology class), and NOT itself a section — it is the cohomological reason a global section may not exist."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Multiparameter / zigzag persistence OBJECTS (issue #1527, Commit D) ----- #
+# The shipped math:MultiparameterPersistence and math:ZigzagPersistence are
+# ANALYSIS ACTIVITIES (⊑ math:PersistentHomology ⊑ gmeow:Activity). The OBJECTS
+# those activities range over — a filtration indexed by a poset of dimension ≥ 2,
+# the algebraic persistence module (a functor to vector spaces), a map of such
+# modules, and a diagram whose structure maps may reverse — are distinct
+# mathematical objects, minted here, distinctly named, and cross-linked to their
+# activities through rdfs:seeAlso. The non-collapse guards below (frames, cross-node
+# logic:Constraints, an owl:disjointWith conflation, and an honest
+# logic:expressivenessBoundary) make executable the one principle these objects
+# exist to protect: a genuinely multi-parameter or bidirectional construction must
+# never silently degrade to the one-parameter, forward-only case.
+
+math:MultiparameterFiltration
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Multiparameter Filtration"@x-gmeow-english ;
+    rdfs:seeAlso math:MultiparameterPersistence , math:Filtration , math:multiparameterInvariantBoundary ;
+    skos:definition "A filtration indexed by a POSET of dimension ≥ 2: a monotone family of substructures of an ambient object indexed not by a single real threshold ε but by a partially ordered parameter space (a distance × density grid, a scale × codensity plane), named through math:filtrationIndexPoset. A subclass of math:MathematicalObject. Its stages are the EXISTING math:FiltrationStage cells reached through the EXISTING math:hasFiltrationStage, but each stage carries a math:multiIndex — a math:Vector giving the stage's coordinates in the parameter poset — RATHER than the single real math:filtrationThreshold that a one-parameter math:Filtration's stages carry. It is NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso) that ranges over it — that is a gmeow:Activity, this is the mathematical object it filters. It is NOT a single-parameter math:Filtration: a multiparameter filtration whose stages carry only a real math:filtrationThreshold and no math:multiIndex has collapsed to one parameter (math:CollapsedMultiparameterFiltration), and one whose 2-index coordinates are functionally dependent — a diagonal (t, t) — is genuinely one-parametric despite the 2-tuple (math:DiagonalDegenerateFiltration). Carlsson–Zomorodian proved there is NO complete discrete invariant of multiparameter persistence (math:multiparameterInvariantBoundary), the principled reason it cannot be reduced to a family of one-parameter runs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistenceModule
+    a owl:Class ; logic:subClassOf math:MathematicalObject , math:Functor ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence Module"@x-gmeow-english ;
+    rdfs:seeAlso math:MultiparameterPersistence , math:PersistenceLifetime , math:Functor ;
+    skos:definition "The ALGEBRAIC object a persistence computation decomposes: the functor P assigning a vector space to each point of an index poset and a linear map to each comparable pair, P: (index poset as a category) → Vect. A subclass of math:MathematicalObject AND of the EXISTING math:Functor grounding — a persistence module IS a functor on its math:moduleIndex poset, so it reuses the shipped category-theory referent rather than minting a parallel structure (L1 reuse). It names the index poset it is defined over through math:moduleIndex and its comparable-pair transition maps through math:structureMap. It is NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso) that produces or decomposes it, and it is NOT a math:PersistenceLifetime — the birth–death interval of ONE feature is a single decorated bar, whereas a persistence module is the whole functor whose barcode decomposition those intervals summarise. The two are held owl:disjointWith (math:PersistenceModuleLifetimeConflation): a lifetime handed where a module is required is a caught error, never a silent one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:PersistenceModuleLifetimeConflation .
+
+math:PersistenceMorphism
+    a owl:Class ; logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence Morphism"@x-gmeow-english ;
+    rdfs:seeAlso math:PersistenceModule , math:MultiparameterPersistence ;
+    skos:definition "A map of persistence modules: a natural transformation between two math:PersistenceModule functors — a commuting family of linear maps, one at each index, intertwining the two modules' structure maps. A subclass of the EXISTING math:Morphism (U1-light: it reuses the object-layer morphism parent rather than re-deriving a category-theory frame). It names its domain module through math:morphismSource and its codomain module through math:morphismTarget, both math:PersistenceModule individuals. It is NOT a math:PersistenceModule itself (it is a map BETWEEN modules), and NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso). A persistence morphism naming no source or no target says nothing about which modules it relates and is ill-formed (math:IncompletePersistenceMorphism)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ZigzagDiagram
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Zigzag Diagram"@x-gmeow-english ;
+    rdfs:seeAlso math:ZigzagPersistence , math:Filtration ;
+    skos:definition "A sequence of spaces (or vector spaces) whose structure maps may point FORWARD or BACKWARD — V₀ → V₁ ← V₂ → V₃ ← … — permitting both additions and removals rather than the monotone inclusions of an ordinary filtration. A subclass of math:MathematicalObject. It names its structure maps through math:zigzagArrow, and each arrow declares its orientation through math:arrowDirection, a member of the OPEN math:ArrowDirection vocabulary (math:forwardArrow or math:backwardArrow). It is NOT the analysis activity math:ZigzagPersistence (rdfs:seeAlso) that computes over it — that is a gmeow:Activity, this is the diagram object. It is NOT ordinary forward-only persistence: a zigzag diagram that declares no math:backwardArrow has collapsed to the single-parameter forward-only case and is degenerate (math:DegenerateZigzagDiagram) — the backward arrow is exactly what distinguishes a zigzag from a filtration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# The open arrow-direction vocabulary — minted like math:CellOrientation: an OPEN
+# family of math:NamedIndividuals (never an owl:oneOf enumeration), so a new
+# orientation convention joins by minting an individual.
+math:ArrowDirection
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Arrow Direction"@x-gmeow-english ;
+    skos:definition "The direction a math:ZigzagDiagram structure map points: one of math:forwardArrow or math:backwardArrow. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), exactly like math:CellOrientation, so a new orientation convention joins by minting an individual. A math:zigzagArrow names its direction through math:arrowDirection. It is the qualitative forward/backward sense of a single arrow, NOT the ±1 math:incidenceSign of a boundary and NOT a numeric coordinate; the presence of at least one math:backwardArrow is what keeps a zigzag from collapsing to a forward-only filtration (math:DegenerateZigzagDiagram)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the type of a zigzag structure map's orientation — a forward map or a backward map."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not model it as an owl:oneOf enumeration; a new direction convention joins by minting a math:NamedIndividual."@x-gmeow-english ;
+    gmeow:howToUse "Attach one of its members to a math:zigzagArrow through math:arrowDirection."@x-gmeow-english ;
+    skos:example "exz:arrow1 math:arrowDirection math:backwardArrow ."@x-gmeow-english .
+
+math:forwardArrow
+    a owl:NamedIndividual , math:ArrowDirection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "forward arrow"@x-gmeow-english ;
+    skos:definition "Forward direction: the math:ArrowDirection naming a zigzag structure map that points from the earlier space to the later one (Vᵢ → Vᵢ₊₁), the inclusion-like direction an ordinary filtration uses. A member of the open math:ArrowDirection vocabulary."@x-gmeow-english .
+
+math:backwardArrow
+    a owl:NamedIndividual , math:ArrowDirection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "backward arrow"@x-gmeow-english ;
+    skos:definition "Backward direction: the math:ArrowDirection naming a zigzag structure map that points from the later space back to the earlier one (Vᵢ ← Vᵢ₊₁), the reversal that only a zigzag admits. A member of the open math:ArrowDirection vocabulary; a math:ZigzagDiagram with no backward arrow has collapsed to forward-only persistence (math:DegenerateZigzagDiagram)."@x-gmeow-english .
+
 math:SheafCohomology
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -8670,6 +8742,56 @@ math:stalkValue
     skos:definition "Relates a math:SheafStalk to the exact integer value a math:GlobalSection of the sheaf assigns to it, carried as an xsd:integer so the gluing condition is checkable rather than asserted. Domain math:SheafStalk, range xsd:integer (stated in prose). For a sheaf carrying a single global section (the demonstrator case), the value transported along an identity/constant math:SheafRestrictionMap must agree at the map's source and target stalks; a declared assignment that disagrees across a restriction map witnesses the H¹ obstruction executably (math:SectionGluingInconsistency). It is NOT a general vector-valued stalk assignment (the exact-integer form is the executable identity-transport case) and NOT a decimal approximation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Multiparameter / zigzag persistence relations (issue #1527, Commit D) --- #
+
+math:filtrationIndexPoset
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filtration index poset"@x-gmeow-english ;
+    skos:definition "Relates a math:MultiparameterFiltration to the partially ordered PARAMETER SPACE its stages are indexed by — the poset of dimension ≥ 2 (a distance × density grid, a scale × codensity plane) whose points the math:multiIndex tuples name. Domain math:MultiparameterFiltration, range math:MathematicalObject (the parameter poset, stated in prose). It is what makes a multiparameter filtration more than a bag of one-parameter runs: the index is a genuine poset, not a single real line. A multiparameter filtration naming no index poset is ill-formed (math:IncompleteMultiparameterFiltration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:multiIndex
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "multi-index"@x-gmeow-english ;
+    skos:definition "Relates a math:FiltrationStage of a math:MultiparameterFiltration to the math:Vector giving its coordinates in the parameter poset — the multi-index (t₁, t₂, …) that REPLACES the single real math:filtrationThreshold a one-parameter stage carries. Domain math:FiltrationStage, range math:Vector (stated in prose); the vector's coordinates are its indexed math:hasComponent cells over exact math:RationalValue. A stage of a multiparameter filtration carries a math:multiIndex, NOT a math:filtrationThreshold; a multiparameter filtration whose stages carry only a real threshold and no multi-index has collapsed to one parameter (math:CollapsedMultiparameterFiltration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:moduleIndex
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "module index"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceModule to the index poset it is a functor over — the source category of the functor P: (index poset) → Vect. Domain math:PersistenceModule, range math:MathematicalObject (the index poset, stated in prose). Together with the math:structureMap transition maps it fixes the functor's data; a persistence module naming no index is ill-formed (math:IncompletePersistenceModule)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:structureMap
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "structure map"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceModule to one of its comparable-pair transition maps — the linear map P(s ≤ t): P(s) → P(t) the functor assigns to a comparable pair of its math:moduleIndex poset. Domain math:PersistenceModule, range math:MathematicalObject (a linear map, stated in prose). The structure maps are the functor's action on morphisms; a persistence module naming no structure map has vector spaces but no functorial glue and is ill-formed (math:IncompletePersistenceModule)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:morphismSource
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "morphism source"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceMorphism to the math:PersistenceModule it maps FROM — the domain module of the natural transformation. Domain math:PersistenceMorphism, range math:PersistenceModule (stated in prose). It is the persistence-specific source edge, kept distinct from the general math:sourceObject a math:Functor uses for its source math:Category. A persistence morphism naming no source is ill-formed (math:IncompletePersistenceMorphism)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:morphismTarget
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "morphism target"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceMorphism to the math:PersistenceModule it maps TO — the codomain module of the natural transformation. Domain math:PersistenceMorphism, range math:PersistenceModule (stated in prose). It is the persistence-specific target edge, kept distinct from the general math:targetObject a math:Functor uses for its target math:Category. A persistence morphism naming no target is ill-formed (math:IncompletePersistenceMorphism)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:zigzagArrow
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "zigzag arrow"@x-gmeow-english ;
+    skos:definition "Relates a math:ZigzagDiagram to one of its structure maps — an arrow between two consecutive spaces of the sequence, carrying its orientation through math:arrowDirection. Domain math:ZigzagDiagram, range a math:Morphism structure map (stated in prose). The diagram is the family of its arrows; whether any arrow is a math:backwardArrow is what keeps the diagram from collapsing to a forward-only filtration (math:DegenerateZigzagDiagram)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:arrowDirection
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "arrow direction"@x-gmeow-english ;
+    skos:definition "Relates a math:zigzagArrow structure map to the math:ArrowDirection it carries — math:forwardArrow or math:backwardArrow. Domain a math:zigzagArrow value, range math:ArrowDirection (stated in prose). It records the arrow's forward/backward sense, the datum a math:ZigzagDiagram is queried on to confirm it is genuinely bidirectional; a diagram whose arrows are all math:forwardArrow is degenerate (math:DegenerateZigzagDiagram)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:hasLaplacian
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has Laplacian"@x-gmeow-english ;
@@ -9032,6 +9154,69 @@ math:UnanchoredGluingObstruction
     skos:definition "The failure raised when a math:GluingObstruction names no math:obstructionOf sheaf — an H¹ obstruction class floating free of the math:CellularSheaf whose local-to-global lifting it is supposed to obstruct. An obstruction is defined only relative to the sheaf whose sections may fail to glue; one that names no sheaf certifies nothing and is ill-formed. It is NOT a math:SheafRestrictionMap and NOT a section — it is the cohomological reason a global section may not exist, and it must say which sheaf it reasons about."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Multiparameter / zigzag persistence failures (issue #1527, Commit D) ---- #
+
+math:IncompleteMultiparameterFiltration
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Multiparameter Filtration"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MultiparameterFiltration lacks its frame — its math:filtrationIndexPoset (the parameter poset its stages index into) or any math:hasFiltrationStage cell. A multiparameter filtration is defined only relative to a declared poset and at least one stage; a bare token naming no poset or no stage says nothing about what it filters and is ill-formed. The declarative missing-frame gate: it is DISTINCT from math:CollapsedMultiparameterFiltration (stages present but carrying only a single real math:filtrationThreshold and no math:multiIndex, the cross-node SPARQL guard) and from math:DiagonalDegenerateFiltration (a functionally dependent 2-index)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CollapsedMultiparameterFiltration
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Collapsed Multiparameter Filtration"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MultiparameterFiltration's stages carry ONLY a single real math:filtrationThreshold and NO math:multiIndex — a nominally multi-parameter filtration that has silently degraded to the one-parameter case, indexed by a single real line rather than a poset of dimension ≥ 2. A multiparameter filtration MUST index its stages by multi-index tuples; one whose every stage is a bare one-parameter threshold is not multiparameter at all. Enforced by the cross-node existence logic:Constraint math:CollapsedMultiparameterFiltrationConstraint (a multiparameter filtration must have at least one stage carrying a math:multiIndex), lowered to a SHACL sh:sparql constraint (shacl.SPARQLConstraintComponent). It is NOT math:IncompleteMultiparameterFiltration (that is the missing-poset/missing-stage frame) — here the stages are present but one-parametric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DiagonalDegenerateFiltration
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Diagonal Degenerate Filtration"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MultiparameterFiltration carries a stage whose math:multiIndex tuple has two coordinates at DISTINCT positions that are functionally dependent — the diagonal (t, t) case — so the 2-index is genuinely one-parametric despite wearing a 2-tuple. A stage that reindexes a single parameter along the diagonal buys none of the extra discrimination a real two-parameter poset gives; it is a one-parameter run in multiparameter clothing. Enforced by the cross-node equality logic:Constraint math:DiagonalDegenerateFiltrationConstraint (two components of a stage's math:multiIndex at distinct indices carrying the same math:componentValue), lowered to a SHACL sh:sparql constraint (shacl.SPARQLConstraintComponent). It is subtler than math:CollapsedMultiparameterFiltration: there a multi-index is absent, here it is present but degenerate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompletePersistenceModule
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Persistence Module"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PersistenceModule lacks its frame — its math:moduleIndex (the index poset it is a functor over) or any math:structureMap (a comparable-pair transition map). A persistence module is the functor P: (index poset) → Vect; one naming no index, or naming vector spaces with no functorial transition maps, is not a module at all and is ill-formed. The declarative frame gate deriving a sh:qualifiedMinCount; distinct from math:PersistenceModuleLifetimeConflation (a module conflated with a math:PersistenceLifetime)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompletePersistenceMorphism
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Persistence Morphism"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PersistenceMorphism does not name BOTH endpoints — its math:morphismSource (the domain math:PersistenceModule) and its math:morphismTarget (the codomain math:PersistenceModule). A map of persistence modules is defined only by the two modules it relates; one missing its source or its target relates nothing and is ill-formed. The declarative frame gate deriving a sh:qualifiedMinCount on each endpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DegenerateZigzagDiagram
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Degenerate Zigzag Diagram"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ZigzagDiagram declares NO math:backwardArrow — every math:zigzagArrow points forward, so the diagram has collapsed to ordinary forward-only single-parameter persistence and buys none of the additions-and-removals a zigzag exists to model. A zigzag is distinguished from a filtration exactly by admitting backward maps; one with none is a filtration wearing a zigzag label. Enforced by the cross-node existence logic:Constraint math:DegenerateZigzagDiagramConstraint (a zigzag diagram must have at least one arrow whose math:arrowDirection is math:backwardArrow), lowered to a SHACL sh:sparql constraint (shacl.SPARQLConstraintComponent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistenceModuleLifetimeConflation
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence-Module–Lifetime Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when one node is typed BOTH a math:PersistenceModule and a math:PersistenceLifetime — the whole algebraic functor P: (index poset) → Vect conflated with the birth–death interval of a SINGLE feature. A module is the object whose barcode decomposition the lifetimes summarise; a lifetime is one decorated bar of that barcode, so the two are held owl:disjointWith. Because math:PersistenceModule and math:PersistenceLifetime BOTH descend from math:MathematicalObject their disjointness is NOT entailed by their parents and is asserted DIRECTLY (math:PersistenceModule owl:disjointWith math:PersistenceLifetime); the native DL coherence gate forces any individual typed both to owl:Nothing, and the paired SHACL shape (math:PersistenceModuleLifetimeConflationShape) surfaces the same conflation as a sh:not [ sh:class math:PersistenceLifetime ] finding (shacl.NotConstraintComponent) so a consumer selects on the specific class, never on the shared word 'persistence'. Wired exactly like math:ProbabilityScaleConflation and math:CalibrationSenseConflation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# The honest non-collapse boundary (mirrors math:compactnessBoundary form): the
+# principled reason multiparameter persistence cannot be reduced to one-parameter
+# runs is STRONGER than the structural guards above — Carlsson–Zomorodian proved
+# there is no complete discrete invariant, a genuinely second-order non-existence
+# claim carried in the loss ledger rather than faked as a first-order formula.
+math:multiparameterInvariantBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "multiparameter persistence: no complete discrete invariant (an honest recorded boundary)"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing math:MultiparameterFiltration's non-collapse: Carlsson and Zomorodian (The Theory of Multidimensional Persistence, Discrete & Computational Geometry 42(1), 2009) proved that multiparameter persistence admits NO complete discrete invariant — unlike the one-parameter case, whose barcode is a complete discrete invariant, no finite discrete summary classifies a multiparameter module up to isomorphism. This is why a multiparameter filtration cannot be reduced to a family of one-parameter runs, and it is genuinely second-order: it ∀-quantifies over the FAMILY of ALL candidate discrete invariants and asserts NONE is complete, a non-existence over an unbounded family that is not first-order axiomatizable. The structural guards (math:CollapsedMultiparameterFiltration, math:DiagonalDegenerateFiltration) catch the syntactic collapses; this boundary records the deeper mathematical reason the collapse is forbidden, carried honestly (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula — exactly as math:compactnessBoundary and math:smoothnessBoundary are."@x-gmeow-english .
+
 # =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world cardinality/
 # class/datatype/value obligations that the hand-authored shapes.ttl NodeShapes
@@ -9179,6 +9364,40 @@ math:GluingObstruction logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:obstructionOf ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CellularSheaf ] ,
     [ a owl:Restriction ; owl:onProperty math:obstructionOf ; owl:allValuesFrom math:CellularSheaf ] ;
     gmeow:enforcesFailureClass math:UnanchoredGluingObstruction .
+
+# Multiparameter-filtration frame (issue #1527): a math:MultiparameterFiltration names its
+# math:filtrationIndexPoset (the parameter poset) and at least one math:hasFiltrationStage —
+# two min-1 qualified restrictions deriving sh:qualifiedMinCount property shapes. A filtration
+# naming no poset or no stage isolates math:IncompleteMultiparameterFiltration. The stronger
+# "stages carry a math:multiIndex, not a bare real threshold" obligation is the cross-node
+# math:CollapsedMultiparameterFiltrationConstraint, not this presence frame.
+math:MultiparameterFiltration logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:filtrationIndexPoset ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:filtrationIndexPoset ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasFiltrationStage ; owl:minQualifiedCardinality 1 ; owl:onClass math:FiltrationStage ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasFiltrationStage ; owl:allValuesFrom math:FiltrationStage ] ;
+    gmeow:enforcesFailureClass math:IncompleteMultiparameterFiltration .
+
+# Persistence-module frame (issue #1527): a math:PersistenceModule names its math:moduleIndex
+# poset and at least one math:structureMap transition map — two min-1 qualified restrictions.
+# A module naming no index or no structure map isolates math:IncompletePersistenceModule.
+math:PersistenceModule logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:moduleIndex ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:moduleIndex ; owl:allValuesFrom math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:structureMap ; owl:minQualifiedCardinality 1 ; owl:onClass math:MathematicalObject ] ,
+    [ a owl:Restriction ; owl:onProperty math:structureMap ; owl:allValuesFrom math:MathematicalObject ] ;
+    gmeow:enforcesFailureClass math:IncompletePersistenceModule .
+
+# Persistence-morphism frame (issue #1527): a math:PersistenceMorphism names BOTH its
+# math:morphismSource and math:morphismTarget math:PersistenceModule endpoints — two min-1
+# qualified restrictions. A morphism missing either endpoint isolates
+# math:IncompletePersistenceMorphism.
+math:PersistenceMorphism logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:morphismSource ; owl:minQualifiedCardinality 1 ; owl:onClass math:PersistenceModule ] ,
+    [ a owl:Restriction ; owl:onProperty math:morphismSource ; owl:allValuesFrom math:PersistenceModule ] ,
+    [ a owl:Restriction ; owl:onProperty math:morphismTarget ; owl:minQualifiedCardinality 1 ; owl:onClass math:PersistenceModule ] ,
+    [ a owl:Restriction ; owl:onProperty math:morphismTarget ; owl:allValuesFrom math:PersistenceModule ] ;
+    gmeow:enforcesFailureClass math:IncompletePersistenceMorphism .
 
 math:CliffordAlgebra logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:scalarField ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -10527,6 +10746,14 @@ math:FrequentistResult owl:disjointWith math:BayesianResult .
 # the OWL-axiom gate backing math:CalibrationSenseConflation, read by the native
 # DL coherence check, paired with math:CalibrationSenseConflationShape.
 math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord .
+# A persistence module (the whole functor to Vect) and a persistence lifetime (one
+# feature's birth–death bar) share the word "persistence" and nothing else. Both
+# math:PersistenceModule and math:PersistenceLifetime descend from
+# math:MathematicalObject, so their disjointness is NOT entailed by their parents and
+# MUST be asserted directly — the OWL-axiom gate backing
+# math:PersistenceModuleLifetimeConflation, read by the native DL coherence check and
+# paired with the derived math:PersistenceModuleLifetimeConflationShape (sh:not).
+math:PersistenceModule owl:disjointWith math:PersistenceLifetime .
 
 # --- Structural restriction axioms (presence gates) ------------------------- #
 # A math:ProbabilitySpace requires a sample-space, a σ-algebra, and a measure
@@ -12119,6 +12346,129 @@ math:sgcVt a logic:Formula ; logic:relation math:stalkValue ;
 math:sgcEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vs" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] .
 
+# Non-collapse (issue #1527, Commit D): a math:MultiparameterFiltration must NOT
+# silently degrade to one parameter. A guarded existence formula (in the style of
+# math:BoundarySquareZeroConstraint's positive existential consequent): for a
+# multiparameter filtration, THERE MUST EXIST a stage carrying a math:multiIndex;
+# a filtration whose every stage is a bare one-parameter math:filtrationThreshold
+# has no multi-index at all and has collapsed to one parameter
+# (math:CollapsedMultiparameterFiltration). Projected to a sh:SPARQLConstraint
+# (shacl.SPARQLConstraintComponent). The missing-poset/missing-stage case is the
+# separate declarative frame math:IncompleteMultiparameterFiltration.
+math:CollapsedMultiparameterFiltrationConstraint
+    a logic:Constraint ;
+    rdfs:label "Collapsed-multiparameter-filtration constraint (a stage must carry a multi-index)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint enforcing non-collapse of a math:MultiparameterFiltration: for every multiparameter filtration there MUST exist a math:hasFiltrationStage whose math:multiIndex names a tuple in the parameter poset. A filtration whose stages carry only a single real math:filtrationThreshold and no math:multiIndex has collapsed to the one-parameter case (math:CollapsedMultiparameterFiltration). A positive existential consequent modelled on math:BoundarySquareZeroConstraint; the missing-frame case (no poset, no stage) is math:IncompleteMultiparameterFiltration."@x-gmeow-english ;
+    logic:formalizes math:MultiparameterFiltration ;
+    gmeow:enforcesFailureClass math:CollapsedMultiparameterFiltration ;
+    logic:severity "Violation" ;
+    logic:message "A math:MultiparameterFiltration must have at least one math:hasFiltrationStage carrying a math:multiIndex tuple; a filtration whose every stage is a bare one-parameter math:filtrationThreshold has collapsed to one parameter (math:CollapsedMultiparameterFiltration)." ;
+    logic:integrity math:cmfForall .
+math:cmfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:cmfImpl .
+math:cmfImpl a logic:Formula ; logic:antecedent math:cmfGuard ; logic:consequent math:cmfExists .
+math:cmfGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MultiparameterFiltration ] .
+math:cmfExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] ;
+    logic:exists math:cmfBody .
+math:cmfBody a logic:Formula ; logic:and math:cmfA1 , math:cmfA2 .
+math:cmfA1 a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "stage" ] .
+math:cmfA2 a logic:Formula ; logic:relation math:multiIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] .
+
+# Diagonal degeneracy (issue #1527): a 2-index whose two coordinates are functionally
+# dependent — the diagonal (t, t) — is genuinely one-parametric despite the 2-tuple. A
+# cross-node "NOT EXISTS a bad witness" formula (in the style of math:ChartDimensionConstraint):
+# a stage's math:multiIndex must NOT carry two components at DISTINCT indices sharing the same
+# math:componentValue. A shared coordinate value across distinct positions witnesses the
+# diagonal collapse (math:DiagonalDegenerateFiltration). Projected to a sh:SPARQLConstraint
+# (shacl.SPARQLConstraintComponent).
+math:DiagonalDegenerateFiltrationConstraint
+    a logic:Constraint ;
+    rdfs:label "Diagonal-degenerate-filtration constraint (multi-index coordinates must not be functionally dependent)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint forbidding a diagonal-degenerate math:MultiparameterFiltration: a stage's math:multiIndex math:Vector must NOT carry two math:hasComponent cells at DISTINCT math:atIndex positions whose math:componentValue is the SAME node — a (t, t) diagonal index that reindexes a single parameter and is genuinely one-parametric despite the 2-tuple (math:DiagonalDegenerateFiltration). A NOT-EXISTS cross-node equality modelled on math:ChartDimensionConstraint; subtler than math:CollapsedMultiparameterFiltration (there the multi-index is absent, here present but degenerate)."@x-gmeow-english ;
+    logic:formalizes math:MultiparameterFiltration ;
+    gmeow:enforcesFailureClass math:DiagonalDegenerateFiltration ;
+    logic:severity "Violation" ;
+    logic:message "A math:MultiparameterFiltration stage's math:multiIndex must not carry two components at distinct indices sharing the same math:componentValue; a diagonal (t, t) index is functionally dependent and genuinely one-parametric (math:DiagonalDegenerateFiltration)." ;
+    logic:integrity math:ddfForall .
+math:ddfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:ddfImpl .
+math:ddfImpl a logic:Formula ; logic:antecedent math:ddfGuard ; logic:consequent math:ddfNot .
+math:ddfGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MultiparameterFiltration ] .
+math:ddfNot a logic:Formula ; logic:not math:ddfExists .
+math:ddfExists a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "stage" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "mi" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "c1" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "c2" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "i1" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "i2" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "val" ] ;
+    logic:exists math:ddfBody .
+math:ddfBody a logic:Formula ;
+    logic:and math:ddfStage , math:ddfMi , math:ddfC1 , math:ddfC2 , math:ddfI1 , math:ddfI2 , math:ddfDistinct , math:ddfV1 , math:ddfV2 .
+math:ddfStage a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "stage" ] .
+math:ddfMi a logic:Formula ; logic:relation math:multiIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] .
+math:ddfC1 a logic:Formula ; logic:relation math:hasComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mi" ] , [ logic:termIndex 1 ; logic:termVariable "c1" ] .
+math:ddfC2 a logic:Formula ; logic:relation math:hasComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mi" ] , [ logic:termIndex 1 ; logic:termVariable "c2" ] .
+math:ddfI1 a logic:Formula ; logic:relation math:atIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "i1" ] .
+math:ddfI2 a logic:Formula ; logic:relation math:atIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "i2" ] .
+math:ddfDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "i1" ] , [ logic:termIndex 1 ; logic:termVariable "i2" ] .
+math:ddfV1 a logic:Formula ; logic:relation math:componentValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "val" ] .
+math:ddfV2 a logic:Formula ; logic:relation math:componentValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "val" ] .
+
+# Zigzag non-degeneracy (issue #1527): a math:ZigzagDiagram must declare at least one
+# math:backwardArrow, or it has collapsed to forward-only single-parameter persistence. A
+# guarded existence formula (positive consequent, like math:BoundarySquareZeroConstraint):
+# for a zigzag diagram THERE MUST EXIST a math:zigzagArrow whose math:arrowDirection is
+# math:backwardArrow. A forward-only diagram is degenerate (math:DegenerateZigzagDiagram).
+# Projected to a sh:SPARQLConstraint (shacl.SPARQLConstraintComponent).
+math:DegenerateZigzagDiagramConstraint
+    a logic:Constraint ;
+    rdfs:label "Degenerate-zigzag-diagram constraint (a backward arrow must exist)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint enforcing that a math:ZigzagDiagram is genuinely bidirectional: there MUST exist a math:zigzagArrow whose math:arrowDirection is math:backwardArrow. A diagram whose every arrow is a math:forwardArrow has collapsed to ordinary forward-only single-parameter persistence and is degenerate (math:DegenerateZigzagDiagram) — the backward arrow is exactly what distinguishes a zigzag from a filtration. A positive existential consequent modelled on math:BoundarySquareZeroConstraint."@x-gmeow-english ;
+    logic:formalizes math:ZigzagDiagram ;
+    gmeow:enforcesFailureClass math:DegenerateZigzagDiagram ;
+    logic:severity "Violation" ;
+    logic:message "A math:ZigzagDiagram must declare at least one math:zigzagArrow whose math:arrowDirection is math:backwardArrow; a forward-only diagram has collapsed to single-parameter persistence and is degenerate (math:DegenerateZigzagDiagram)." ;
+    logic:integrity math:dzdForall .
+math:dzdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:dzdImpl .
+math:dzdImpl a logic:Formula ; logic:antecedent math:dzdGuard ; logic:consequent math:dzdExists .
+math:dzdGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ZigzagDiagram ] .
+math:dzdExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "arr" ] ;
+    logic:exists math:dzdBody .
+math:dzdBody a logic:Formula ; logic:and math:dzdArrow , math:dzdBackward .
+math:dzdArrow a logic:Formula ; logic:relation math:zigzagArrow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "arr" ] .
+math:dzdBackward a logic:Formula ; logic:relation math:arrowDirection ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "arr" ] , [ logic:termIndex 1 ; logic:termIri math:backwardArrow ] .
+
 # A math:DimensionExponent's math:exponentDenominator must be non-zero: a zero
 # denominator is not a rational power (a forbidden pinned-value pattern — the
 # focus must not carry math:exponentDenominator 0). The pinned value also lowers
@@ -12706,6 +13056,7 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 <https://blackcatinformatics.ca/math/BindingExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/argumentSlot> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/BindingExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/boundVariable> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/CalibrationDiagnostic> owl:disjointWith <https://blackcatinformatics.ca/math/StabilityCalibrationRecord> .
+<https://blackcatinformatics.ca/math/PersistenceModule> owl:disjointWith <https://blackcatinformatics.ca/math/PersistenceLifetime> .
 <https://blackcatinformatics.ca/math/Chart> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/chartDomain> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Chart> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/coordinateMap> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Chart> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/targetCoordinateSpace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -13743,6 +14094,13 @@ math:LogarithmBase a logic:AbstractIndividualType .
 math:MetricSpace a logic:AbstractIndividualType .
 math:NerveComplex a logic:AbstractIndividualType .
 
+# Multiparameter / zigzag persistence objects (issue #1527, Commit D)
+math:MultiparameterFiltration a logic:AbstractIndividualType .
+math:PersistenceModule a logic:AbstractIndividualType .
+math:PersistenceMorphism a logic:AbstractIndividualType .
+math:ZigzagDiagram a logic:AbstractIndividualType .
+math:ArrowDirection a logic:AbstractIndividualType .
+
 # Event
 
 math:InferenceRun a logic:Event .
@@ -13890,3 +14248,12 @@ math:SectionGluingInconsistency a logic:Situation .
 math:IncompleteSheafSection a logic:Situation .
 math:UnanchoredGluingObstruction a logic:Situation .
 math:ZeroDenominator a logic:Situation .
+
+# Multiparameter / zigzag persistence failures (issue #1527, Commit D)
+math:IncompleteMultiparameterFiltration a logic:Situation .
+math:CollapsedMultiparameterFiltration a logic:Situation .
+math:DiagonalDegenerateFiltration a logic:Situation .
+math:IncompletePersistenceModule a logic:Situation .
+math:IncompletePersistenceMorphism a logic:Situation .
+math:DegenerateZigzagDiagram a logic:Situation .
+math:PersistenceModuleLifetimeConflation a logic:Situation .
