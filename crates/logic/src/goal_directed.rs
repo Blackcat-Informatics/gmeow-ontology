@@ -24,7 +24,9 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
+use gmeow_logic_compile::ir::{
+    EvaluationMode, Formula, ReasoningProgramIr, Term, VariableSortScope,
+};
 use purrdf::TermValue;
 
 use crate::physical::id::{MetaId, NodeId, TermId};
@@ -81,7 +83,14 @@ pub struct GoalDirectedVerdict {
 /// goal template, budget status, every proof-checked answer, and any probed WFS verdicts.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoalDirectedEvaluation {
-    /// The stable demonstrator name (a URI path segment; also the query IRI local part).
+    /// The FULL authored `logic:ReasoningProgram` IRI — the demonstrator's collision-free
+    /// identity. Every minted resource IRI (query / answer / verdict / program node) folds
+    /// this, NOT [`Self::name`]: two programs authored under distinct IRIs that happen to share
+    /// a local name (`https://a.example/prog` and `https://b.example/prog`) must never collapse
+    /// to the same projected nodes.
+    pub iri: String,
+    /// The demonstrator's local (last path-segment) name — HUMAN DISPLAY TEXT only (the
+    /// `goalDirectedName` literal), never a resource-IRI identity (see [`Self::iri`]).
     pub name: String,
     /// The prose description of what the demonstrator demonstrates.
     pub description: String,
@@ -136,7 +145,7 @@ struct BuiltDemonstrator {
 /// plain string slices (rather than folded into [`BuiltDemonstrator`] itself) because a
 /// compiled program's identity is a runtime `String` (its authored IRI).
 fn evaluate_demonstrator(
-    name: &str,
+    iri: &str,
     description: &str,
     built: BuiltDemonstrator,
 ) -> gmeow_errors::Result<GoalDirectedEvaluation> {
@@ -167,7 +176,7 @@ fn evaluate_demonstrator(
         FolControl::Unsupported(kind) => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed program {name:?} is unsupported by the backward engine: {kind:?}"
+                    "goal-directed program {iri:?} is unsupported by the backward engine: {kind:?}"
                 ),
             }));
         }
@@ -181,14 +190,14 @@ fn evaluate_demonstrator(
         let checked = check(&mut dag, ans.proof, &outcome.rule_ctx).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed program {name:?} answer proof failed to check: {e:?}"
+                    "goal-directed program {iri:?} answer proof failed to check: {e:?}"
                 ),
             })
         })?;
         if checked != ans.atom {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed program {name:?} proof re-derives a different atom than its answer"
+                    "goal-directed program {iri:?} proof re-derives a different atom than its answer"
                 ),
             }));
         }
@@ -235,7 +244,8 @@ fn evaluate_demonstrator(
     // invariant this function should silently depend on) still sorts deterministically.
     verdicts.sort_by(|a, b| a.atom.cmp(&b.atom).then_with(|| a.verdict.cmp(&b.verdict)));
     Ok(GoalDirectedEvaluation {
-        name: name.to_owned(),
+        iri: iri.to_owned(),
+        name: local_name(iri).to_owned(),
         description: description.to_owned(),
         goal,
         status,
@@ -256,6 +266,9 @@ fn render_clause(dag: &TermDag, clause: &FolClause) -> String {
     if clause.body.is_empty() {
         return format!("{head}.");
     }
+    // `clause.body` is already in canonical (`content_key`) order — `lower_body` flattens and
+    // sorts the authored conjunction before lowering — so publishing it in `Vec` order here is
+    // byte-stable regardless of the authored RDF object order.
     let body: Vec<String> = clause
         .body
         .iter()
@@ -354,9 +367,20 @@ fn lower_body(
     out: &mut Vec<FolLit>,
 ) -> gmeow_errors::Result<()> {
     match formula {
-        Formula::And(parts) => {
-            for p in parts {
-                lower_body(dag, p, scope, out)?;
+        Formula::And(_) => {
+            // `Formula::And` has ORDER-NORMALIZED identity (its `content_key` sorts operands),
+            // but the antecedent is authored as RDF whose `logic:and` operands carry no explicit
+            // index, so their stored order is only as stable as per-document blank-node
+            // interning. Flatten nested conjunctions to their leaf conjuncts and lower them in
+            // the SAME canonical order `content_key` imposes, so equivalent programs yield
+            // byte-identical clause text, metavariable numbering, and content-addressed IRIs
+            // regardless of RDF object order. This changes NO shipped answer (a conjunctive body
+            // is commutative for resolution) — only the deterministic surface.
+            let mut conjuncts: Vec<&Formula> = Vec::new();
+            flatten_and_conjuncts(formula, &mut conjuncts);
+            conjuncts.sort_by_key(|f| f.content_key());
+            for c in conjuncts {
+                lower_body(dag, c, scope, out)?;
             }
             Ok(())
         }
@@ -373,6 +397,21 @@ fn lower_body(
              negation-as-failure (logic:not[atom]); found an unsupported body shape outside \
              the backward engine's Horn+NAF fragment: {other:?}"
         ))),
+    }
+}
+
+/// Flatten a conjunction to its leaf conjuncts, mirroring `Formula`'s own
+/// `flatten_commutative`: a nested `Formula::And` is spliced into its parent, everything else
+/// is a leaf. The result is the operand list `Formula::And`'s order-normalized `content_key`
+/// keys over, so sorting it by `content_key` reproduces that canonical order at lowering time.
+fn flatten_and_conjuncts<'a>(formula: &'a Formula, out: &mut Vec<&'a Formula>) {
+    match formula {
+        Formula::And(parts) => {
+            for p in parts {
+                flatten_and_conjuncts(p, out);
+            }
+        }
+        other => out.push(other),
     }
 }
 
@@ -461,18 +500,28 @@ fn lower_reasoning_program(
 
     let mut dag = TermDag::new();
     let mut meta_sorts: HashMap<MetaId, NodeId> = HashMap::new();
-    let var_sort_map: HashMap<&str, &str> = program
-        .variable_sorts
-        .iter()
-        .map(|(v, s)| (v.as_str(), s.as_str()))
-        .collect();
+    // Per-SCOPE variable-sort lookup: `program.variable_sorts` carries the owning scope with
+    // every `(name → sort)` declaration, because each clause / the query is a FRESH variable
+    // scope (fresh metavariables). Applying one program-global name→sort map to every scope
+    // would (a) let a sort on `X` in clause 1 wrongly constrain an unrelated `X` in clause 2 and
+    // (b) force two clauses' legitimately-different `X` sorts into one entry. So each scope
+    // draws only its OWN declarations, keyed by the owning clause's `content_key`.
+    let sorts_in_scope = |scope: &VariableSortScope| -> HashMap<&str, &str> {
+        program
+            .variable_sorts
+            .iter()
+            .filter(|(s, _, _)| s == scope)
+            .map(|(_, v, srt)| (v.as_str(), srt.as_str()))
+            .collect()
+    };
 
     let mut clauses = Vec::with_capacity(program.clauses.len());
     for clause_formula in &program.clauses {
         let mut scope: VarScope = HashMap::new();
         let clause = lower_clause(&mut dag, &program.iri, clause_formula, &mut scope)?;
+        let clause_sorts = sorts_in_scope(&VariableSortScope::Clause(clause_formula.content_key()));
         for (name, (meta, _)) in &scope {
-            if let Some(sort_iri) = var_sort_map.get(name.as_str()) {
+            if let Some(sort_iri) = clause_sorts.get(name.as_str()) {
                 let sort_node = leaf(&mut dag, sort_iri);
                 meta_sorts.insert(*meta, sort_node);
             }
@@ -482,8 +531,9 @@ fn lower_reasoning_program(
 
     let mut query_scope: VarScope = HashMap::new();
     let goal = lower_atom(&mut dag, &program.query, &mut query_scope)?;
+    let query_sorts = sorts_in_scope(&VariableSortScope::Query);
     for (name, (meta, _)) in &query_scope {
-        if let Some(sort_iri) = var_sort_map.get(name.as_str()) {
+        if let Some(sort_iri) = query_sorts.get(name.as_str()) {
             let sort_node = leaf(&mut dag, sort_iri);
             meta_sorts.insert(*meta, sort_node);
         }
@@ -498,14 +548,14 @@ fn lower_reasoning_program(
 
     let mut verdict_probes = Vec::with_capacity(program.verdict_probes.len());
     for probe_formula in &program.verdict_probes {
+        // A verdict probe is a GROUND atom (enforced by `ReasoningProgramIr::new`), so its
+        // lowering mints no metavariables and carries no per-scope sort obligations.
         let mut scope: VarScope = HashMap::new();
         let probe = lower_atom(&mut dag, probe_formula, &mut scope)?;
-        for (name, (meta, _)) in &scope {
-            if let Some(sort_iri) = var_sort_map.get(name.as_str()) {
-                let sort_node = leaf(&mut dag, sort_iri);
-                meta_sorts.insert(*meta, sort_node);
-            }
-        }
+        debug_assert!(
+            scope.is_empty(),
+            "a verdict probe must be ground (no metavariables): {probe_formula:?}"
+        );
         verdict_probes.push(probe);
     }
 
@@ -518,7 +568,6 @@ fn lower_reasoning_program(
     for (sub, sup) in subsort_edges {
         edges.push((leaf(&mut dag, sub), leaf(&mut dag, sup)));
     }
-    let order = SortOrder::from_subclass_edges(&edges);
 
     // CONSTANT order-sort tagging (`SortContext::term_sorts`): `program.constant_sorts` is
     // Task 4's `(constant IRI, rdf:type IRI)` capture — the plain domain `rdf:type` triple a
@@ -530,12 +579,48 @@ fn lower_reasoning_program(
     // unifiable with a variable whose declared sort is ⊒ its own) from an untyped one
     // (order-sort top, unifies with any variable sort) instead of every constant being
     // silently untyped and unification degenerating to unsorted unification.
-    let mut term_sorts: HashMap<NodeId, NodeId> = HashMap::new();
+    //
+    // A constant may carry SEVERAL asserted `rdf:type` sorts at once (`ex:c a math:Set,
+    // math:Integer`), and the IR deliberately RETAINS EVERY `(constant, type)` pair. Collapsing
+    // them with a last-write-wins map would keep only the lexically-last type and WRONGLY reject
+    // a binding a dropped type would license (if `Set` won and the query variable is
+    // `RealNumber`-sorted, the valid `Integer ⊑ Real` binding is lost). So a multiply-typed
+    // constant is tagged with a SYNTHETIC meet sort that is a subsort of EVERY asserted type:
+    // `synth ⊑ S` then holds (via `synth ⊑ Tᵢ ⊑ S`) exactly when SOME asserted type `Tᵢ ⊑ S`,
+    // matching the engine's order-sort semantics — a constant binds a variable of sort `S` when
+    // ANY of its types satisfies `S`. A single-typed constant is tagged directly (unchanged).
+    let mut const_types: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for (const_iri, sort_iri) in &program.constant_sorts {
-        let const_node = leaf(&mut dag, const_iri);
-        let sort_node = leaf(&mut dag, sort_iri);
-        term_sorts.insert(const_node, sort_node);
+        const_types
+            .entry(const_iri.as_str())
+            .or_default()
+            .push(sort_iri.as_str());
     }
+    let mut term_sorts: HashMap<NodeId, NodeId> = HashMap::new();
+    for (const_iri, sort_iris) in &const_types {
+        let const_node = leaf(&mut dag, const_iri);
+        let tagged = if let [single] = sort_iris.as_slice() {
+            leaf(&mut dag, single)
+        } else {
+            // A synthetic bottom sort, content-addressed on the constant IRI (deterministic and
+            // never colliding with an authored sort), made a subsort of every asserted type.
+            let synth_iri = format!(
+                "{GMEOW}goal-directed/const-meet-sort/{}",
+                blake3::hash(const_iri.as_bytes()).to_hex()
+            );
+            let synth_node = leaf(&mut dag, &synth_iri);
+            for sort_iri in sort_iris {
+                let sort_node = leaf(&mut dag, sort_iri);
+                edges.push((synth_node, sort_node));
+            }
+            synth_node
+        };
+        term_sorts.insert(const_node, tagged);
+    }
+
+    // Built AFTER the synthetic constant-meet edges are appended, so their reflexive-transitive
+    // closure is part of the order `unify_sorted` consults.
+    let order = SortOrder::from_subclass_edges(&edges);
     let ctx = SortContext::new(order, term_sorts, HashMap::new());
 
     Ok(BuiltDemonstrator {
@@ -571,7 +656,7 @@ pub fn evaluate_reasoning_programs(
             program.clauses.len(),
             program.mode.as_str(),
         );
-        let eval = evaluate_demonstrator(local_name(&program.iri), &description, built)?;
+        let eval = evaluate_demonstrator(&program.iri, &description, built)?;
         // T3: the cross-engine (backward-vs-forward) fixpoint-agreement oracle. Only a
         // program inside the forward-evaluable definite/function-free/binary fragment is
         // checked (see `is_definite_function_free_binary`'s doc for exactly which shipped
@@ -581,7 +666,9 @@ pub fn evaluate_reasoning_programs(
         }
         evals.push(eval);
     }
-    evals.sort_by(|a, b| a.name.cmp(&b.name));
+    // Sort by the FULL authored IRI (the collision-free identity), falling back to name only
+    // for byte-stability of the human-facing order; two distinct programs are never merged.
+    evals.sort_by(|a, b| a.iri.cmp(&b.iri).then_with(|| a.name.cmp(&b.name)));
     Ok(evals)
 }
 
@@ -615,6 +702,14 @@ pub fn evaluate_reasoning_programs(
 /// - `reachability`'s `edge`/`reach` clauses and query are all definite, function-free,
 ///   binary atoms — the one shipped program the oracle actually cross-checks.
 fn is_definite_function_free_binary(program: &ReasoningProgramIr) -> bool {
+    // The forward chase runs UNSORTED (no `SortContext`): it admits any constant regardless of
+    // the order-sort lattice, so an order-sorted program's forward least model can legitimately
+    // include bindings the sorted backward answer set correctly rejects. Cross-checking the two
+    // would then HARD-FAIL spuriously. An order-sorted program (any `variable_sorts`) is
+    // therefore outside this unsorted oracle's fragment — never cross-checked.
+    if !program.variable_sorts.is_empty() {
+        return false;
+    }
     if !program.verdict_probes.is_empty() {
         return false;
     }
@@ -839,24 +934,33 @@ fn cross_check_forward_agreement(
     Ok(())
 }
 
-/// The query individual IRI of a demonstrator.
-fn query_iri(name: &str) -> String {
-    format!("{GMEOW}goal-directed/{name}")
+/// The query individual IRI of a demonstrator — the primary projected node every answer /
+/// verdict / program triple hangs off.
+///
+/// Collision-safety: the node folds the FULL authored program IRI (a `blake3` of it), never
+/// the bare local name. Two programs authored under distinct IRIs that share a local name
+/// (`https://a.example/prog` vs `https://b.example/prog`) therefore mint DISTINCT query nodes
+/// and never merge their projected triples. The local name rides only as a readable path
+/// segment (human orientation), never as the identity.
+fn query_iri(eval: &GoalDirectedEvaluation) -> String {
+    let hash = blake3::hash(eval.iri.as_bytes()).to_hex();
+    format!("{GMEOW}goal-directed/{}/{hash}", eval.name)
 }
 
 /// The content-addressed answer individual IRI of one checked [`GoalDirectedAnswer`].
 ///
-/// G12: a `blake3` hash folding the demonstrator name, the ground answer atom, its sorted
-/// variable bindings, and its derivation-proof IRI — NEVER a positional `/answer/{idx}`. A
+/// G12: a `blake3` hash folding the demonstrator's FULL authored IRI, the ground answer atom,
+/// its sorted variable bindings, and its derivation-proof IRI — NEVER a positional
+/// `/answer/{idx}`, and NEVER the bare local name (collision-safety, see [`query_iri`]). A
 /// positional index is only stable if the caller's `Vec<GoalDirectedAnswer>` is visited in
 /// the exact same order on every run; [`evaluate_demonstrator`]'s sort is a total order over
 /// this SAME content, but minting the IRI from the content directly (rather than from
 /// wherever it lands after sorting) makes the projection byte-stable and
 /// order-independent by construction, exactly like [`content_addressed_rule_iri`] /
 /// [`program_iri_for`].
-fn answer_iri(name: &str, ans: &GoalDirectedAnswer) -> String {
+fn answer_iri(eval: &GoalDirectedEvaluation, ans: &GoalDirectedAnswer) -> String {
     let mut key = String::new();
-    key.push_str(name);
+    key.push_str(&eval.iri);
     key.push('\u{0}');
     key.push_str(&ans.atom);
     for (var, surface) in &ans.bindings {
@@ -868,23 +972,24 @@ fn answer_iri(name: &str, ans: &GoalDirectedAnswer) -> String {
     key.push('\u{0}');
     key.push_str(&ans.derivation_iri);
     let hash = blake3::hash(key.as_bytes()).to_hex();
-    format!("{GMEOW}goal-directed/{name}/answer/{hash}")
+    format!("{}/answer/{hash}", query_iri(eval))
 }
 
 /// The content-addressed WFS-verdict individual IRI of one probed [`GoalDirectedVerdict`].
 ///
-/// G12: a `blake3` hash folding the demonstrator name, the probed ground atom, and its
-/// three-valued verdict — never a positional `/verdict/{idx}`, for the same
-/// byte-stability/order-independence reason as [`answer_iri`].
-fn verdict_iri(name: &str, v: &GoalDirectedVerdict) -> String {
+/// G12: a `blake3` hash folding the demonstrator's FULL authored IRI, the probed ground atom,
+/// and its three-valued verdict — never a positional `/verdict/{idx}`, and never the bare
+/// local name, for the same byte-stability/order-independence/collision-safety reason as
+/// [`answer_iri`].
+fn verdict_iri(eval: &GoalDirectedEvaluation, v: &GoalDirectedVerdict) -> String {
     let mut key = String::new();
-    key.push_str(name);
+    key.push_str(&eval.iri);
     key.push('\u{0}');
     key.push_str(&v.atom);
     key.push('\u{0}');
     key.push_str(&v.verdict);
     let hash = blake3::hash(key.as_bytes()).to_hex();
-    format!("{GMEOW}goal-directed/{name}/verdict/{hash}")
+    format!("{}/verdict/{hash}", query_iri(eval))
 }
 
 /// U2: mint a content-addressed `gmeow:GoalDirectedProgram` IRI from the evaluation's OWN
@@ -894,7 +999,7 @@ fn verdict_iri(name: &str, v: &GoalDirectedVerdict) -> String {
 /// runs, exactly like [`content_addressed_rule_iri`]).
 fn program_iri_for(eval: &GoalDirectedEvaluation) -> String {
     let mut key = String::new();
-    key.push_str(&eval.name);
+    key.push_str(&eval.iri);
     for clause in &eval.clauses {
         key.push('\u{0}');
         key.push_str(clause);
@@ -919,7 +1024,7 @@ pub fn project_goal_directed(evals: &[GoalDirectedEvaluation]) -> String {
     let mut lines: Vec<String> = Vec::new();
     let p = |pred: &str| format!("{GMEOW}{pred}");
     for eval in evals {
-        let q = query_iri(&eval.name);
+        let q = query_iri(eval);
         lines.push(triple_iri(&q, RDF_TYPE, &p("GoalDirectedQuery")));
         lines.push(triple_lit(&q, &p("goalDirectedName"), &eval.name));
         lines.push(triple_lit(
@@ -930,7 +1035,7 @@ pub fn project_goal_directed(evals: &[GoalDirectedEvaluation]) -> String {
         lines.push(triple_lit(&q, &p("goalDirectedGoal"), &eval.goal));
         lines.push(triple_lit(&q, &p("goalDirectedStatus"), &eval.status));
         for ans in &eval.answers {
-            let a = answer_iri(&eval.name, ans);
+            let a = answer_iri(eval, ans);
             lines.push(triple_iri(&q, &p("hasGoalDirectedAnswer"), &a));
             lines.push(triple_iri(&a, RDF_TYPE, &p("GoalDirectedAnswer")));
             lines.push(triple_lit(&a, &p("goalDirectedAtom"), &ans.atom));
@@ -958,7 +1063,7 @@ pub fn project_goal_directed(evals: &[GoalDirectedEvaluation]) -> String {
         // negation a SHIPPED (non-dark) behaviour — it cannot be an `xsd:boolean`, so it rides
         // as a plain three-valued string literal.
         for v in &eval.verdicts {
-            let vi = verdict_iri(&eval.name, v);
+            let vi = verdict_iri(eval, v);
             lines.push(triple_iri(&q, &p("hasGoalDirectedVerdict"), &vi));
             lines.push(triple_iri(&vi, RDF_TYPE, &p("GoalDirectedVerdict")));
             lines.push(triple_lit(&vi, &p("goalDirectedVerdictAtom"), &v.atom));
@@ -1676,17 +1781,18 @@ mod tests {
     //
     // No authored-path test above exercises `logic:verdictProbe`s, so this test is what
     // proves the compiled path carries the three-valued SLG-WFS verdict surface end to end.
-    // Unlike the fixtures above, this parses the REAL committed corpus
-    // (`slices/grounding/logic/examples/reasoning-programs.ttl`) via [`authored_reasoning_programs`]
-    // rather than an inline TTL literal: a standalone inline copy of `ex:winWfs`'s
-    // `logic:and`-conjoined positive+negative body was found (empirically, while authoring
-    // this test) to compile to a DIFFERENT literal order than the SAME text does inside the
-    // full corpus file — `logic:and`/`logic:or` carry no `logic:conjunctIndex` analogous to
-    // `logic:argument`'s `logic:termIndex`, so `crate::physical::lower`'s conjunct order is
-    // only as stable as the frontend's per-document blank-node interning, not the authored
-    // text order. That is a pre-existing frontend/vocabulary gap (never introduced or fixed
-    // by Task 7's GREENFIELD removal), so this test sidesteps it by exercising the ACTUAL
-    // shipped fixture rather than reproducing an order-sensitive fragment out of context.
+    // This parses the REAL committed corpus
+    // (`slices/grounding/logic/examples/reasoning-programs.ttl`) via [`authored_reasoning_programs`].
+    // `ex:winWfs`'s rule body `win(X) :- move(X,Y), not win(Y)` is authored as a `logic:and` of a
+    // positive and a negation-as-failure literal, and `logic:and`/`logic:or` carry no
+    // `logic:conjunctIndex` analogous to `logic:argument`'s `logic:termIndex`. Formerly the
+    // lowered conjunct order was therefore only as stable as the frontend's per-document
+    // blank-node interning. [`lower_body`] now FLATTENS and SORTS a conjunction by
+    // `Formula::content_key` (the SAME key `Formula::And`'s order-normalized identity uses)
+    // before lowering, so the conjunct order — and hence the clause text, metavariable
+    // numbering, and content-addressed IRIs — is DETERMINISTIC regardless of RDF object order:
+    // the positive `move(...)` literal (`content_key` prefix `ATOM…`) always precedes the
+    // negation (`NOT…`). This test now asserts that stable order.
 
     /// Parse the REAL authored demonstrator corpus
     /// (`slices/grounding/logic/examples/reasoning-programs.ttl`) through the exact same
@@ -1765,6 +1871,29 @@ mod tests {
         // The founded positions are a definite true/false.
         assert_eq!(verdict_of(&atom_of("c")), "true", "move to lost d ⇒ won");
         assert_eq!(verdict_of(&atom_of("d")), "false", "no move ⇒ lost");
+
+        // #5: the rule clause `win(X) :- move(X,Y), not win(Y)` lowers to a DETERMINISTIC
+        // conjunct order — the positive `move` literal (content_key `ATOM…`) always precedes the
+        // negation-as-failure `not win` literal (content_key `NOT…`), regardless of the authored
+        // RDF `logic:and` object order (which carries no index). Assert the ORDER structurally
+        // (robust to the exact `?n` metavariable numbering).
+        let rule = win
+            .clauses
+            .iter()
+            .find(|c| c.contains(" :- "))
+            .expect("the win rule clause is projected");
+        let body = rule.split(" :- ").nth(1).expect("the rule has a body");
+        let move_pos = body
+            .find(&format!("{EX}move("))
+            .expect("the positive move literal is present in the body");
+        let not_pos = body
+            .find(&format!("not {EX}win("))
+            .expect("the negation-as-failure win literal is present in the body");
+        assert!(
+            move_pos < not_pos,
+            "the positive move literal must precede the not-win literal (canonical content_key \
+             conjunct order, interning-independent): {rule}"
+        );
 
         // The distinctive SLG-WFS surface projects: an undefined verdict AND both founded
         // verdicts.
@@ -1913,6 +2042,7 @@ mod tests {
         // minted for a DIFFERENT answer's triples depending on evaluation order.
         let make_eval = |answers: Vec<GoalDirectedAnswer>, verdicts: Vec<GoalDirectedVerdict>| {
             GoalDirectedEvaluation {
+                iri: "https://example.org/goal-directed-test/order-probe".to_owned(),
                 name: "order-probe".to_owned(),
                 description: "G12 order-independence probe".to_owned(),
                 goal: "p(?X)".to_owned(),
@@ -1966,14 +2096,14 @@ mod tests {
         );
 
         // The minted IRIs are content hashes, not small positional integers.
-        let a_iri = answer_iri(&eval_forward.name, &ans_a);
-        let b_iri = answer_iri(&eval_forward.name, &ans_b);
+        let a_iri = answer_iri(&eval_forward, &ans_a);
+        let b_iri = answer_iri(&eval_forward, &ans_b);
         assert_ne!(a_iri, b_iri, "distinct answers mint distinct IRIs");
         assert!(
             !a_iri.ends_with("/answer/0") && !a_iri.ends_with("/answer/1"),
             "the answer IRI must not be a small positional index: {a_iri}"
         );
-        let v_iri = verdict_iri(&eval_forward.name, &verdict_a);
+        let v_iri = verdict_iri(&eval_forward, &verdict_a);
         assert!(
             !v_iri.ends_with("/verdict/0") && !v_iri.ends_with("/verdict/1"),
             "the verdict IRI must not be a small positional index: {v_iri}"
@@ -1982,9 +2112,197 @@ mod tests {
         // The SAME answer content always mints the SAME IRI, regardless of which position
         // it happens to occupy.
         assert_eq!(
-            answer_iri(&eval_forward.name, &ans_a),
-            answer_iri(&eval_reversed.name, &ans_a),
+            answer_iri(&eval_forward, &ans_a),
+            answer_iri(&eval_reversed, &ans_a),
             "the same answer content mints the same IRI regardless of vector position"
+        );
+    }
+
+    // ── #6: distinct authored IRIs sharing a local name mint COLLISION-FREE resource nodes ──
+
+    #[test]
+    fn distinct_authored_iris_with_same_local_name_project_to_distinct_nodes() {
+        // Two programs authored under DIFFERENT full IRIs that happen to share the SAME local
+        // name (`prog`) must NEVER collapse to the same projected query/program nodes. The
+        // minted resource IRIs fold the FULL authored IRI, not the bare local name.
+        let mk = |iri: &str| GoalDirectedEvaluation {
+            iri: iri.to_owned(),
+            name: local_name(iri).to_owned(),
+            description: "collision probe".to_owned(),
+            goal: "p(?0)".to_owned(),
+            status: "ok".to_owned(),
+            answers: Vec::new(),
+            verdicts: Vec::new(),
+            clauses: vec!["p(a).".to_owned()],
+            verdict_probe_atoms: Vec::new(),
+        };
+        let a = mk("https://a.example/prog");
+        let b = mk("https://b.example/prog");
+        assert_eq!(a.name, b.name, "the two programs share a local name");
+        assert_ne!(
+            query_iri(&a),
+            query_iri(&b),
+            "distinct authored IRIs must mint distinct query nodes"
+        );
+        assert_ne!(
+            program_iri_for(&a),
+            program_iri_for(&b),
+            "distinct authored IRIs must mint distinct program nodes"
+        );
+        // Projected TOGETHER, the two do not merge: two distinct `GoalDirectedQuery` subjects.
+        let nt = project_goal_directed(&[a.clone(), b.clone()]);
+        assert!(
+            nt.contains(&format!("<{}>", query_iri(&a))),
+            "program a's query node is projected:\n{nt}"
+        );
+        assert!(
+            nt.contains(&format!("<{}>", query_iri(&b))),
+            "program b's query node is projected:\n{nt}"
+        );
+        let query_type_object = format!("<{GMEOW}GoalDirectedQuery> .");
+        let query_nodes = nt
+            .lines()
+            .filter(|l| l.ends_with(&query_type_object))
+            .count();
+        assert_eq!(
+            query_nodes, 2,
+            "two distinct query subjects survive projection (no collision):\n{nt}"
+        );
+    }
+
+    // ── #8: an order-sorted binary program is EXCLUDED from the unsorted forward oracle ──
+
+    const SORTED_BINARY_REASONING_PROGRAM_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        \n\
+        ex:b a ex:Blue .\n\
+        ex:sortedReach a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:reach ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,\n\
+                               [ logic:termIndex 1 ; logic:termVariable \"W\" ;\n\
+                                  logic:variableSort ex:Red ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:reach ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,\n\
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]\n\
+            ] .\n\
+    ";
+
+    #[test]
+    fn a_sorted_binary_program_is_excluded_from_the_unsorted_forward_oracle() {
+        // `reach(a,b)` with `b : ex:Blue`, query `reach(a, W)` with `W : ex:Red` (incomparable
+        // to Blue). The SORTED backward answer set is correctly EMPTY (Blue ⋢ Red). The
+        // UNSORTED forward chase, however, would admit `reach(a,b)` — so cross-checking the two
+        // would HARD-FAIL spuriously. The gate must therefore EXCLUDE any order-sorted program.
+        let (prog, diags) = gmeow_logic_compile::frontend::parse_logic_str(
+            SORTED_BINARY_REASONING_PROGRAM_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert_eq!(prog.reasoning_programs.len(), 1);
+        let program = &prog.reasoning_programs[0];
+        assert!(
+            !program.variable_sorts.is_empty(),
+            "the program is order-sorted (W : Red)"
+        );
+        assert!(
+            !is_definite_function_free_binary(program),
+            "an order-sorted program — even a definite, function-free, binary one — is outside \
+             the UNSORTED forward oracle's fragment"
+        );
+
+        // Evaluating must NOT trip the T3 oracle: with the program excluded, the correctly-empty
+        // sorted backward answer set is returned without a spurious cross-engine hard-fail.
+        let evals = evaluate_reasoning_programs(std::slice::from_ref(program), &[])
+            .expect("the order-sorted program evaluates without a spurious oracle hard-fail");
+        assert_eq!(evals.len(), 1);
+        assert_eq!(evals[0].status, "ok");
+        assert!(
+            evals[0].answers.is_empty(),
+            "the Red-sorted W does not bind the Blue-typed constant b (incomparable sorts): {:?}",
+            evals[0].answers
+        );
+    }
+
+    // ── #7: a constant carrying MULTIPLE asserted sorts binds when ANY of them satisfies ──
+
+    const MULTI_TYPE_CONSTANT_REASONING_PROGRAM_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+        \n\
+        ex:c a ex:Set , math:Integer .\n\
+        ex:multiType a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ;\n\
+                                  logic:variableSort math:RealNumber ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:c ]\n\
+            ] .\n\
+    ";
+
+    #[test]
+    fn a_constant_with_two_asserted_sorts_binds_when_one_is_comparable() {
+        // `ex:c a ex:Set, math:Integer` — TWO asserted types, one (Integer) comparable to the
+        // query variable's declared `math:RealNumber` sort (ℤ ⊑ ℝ under the reasoned edge), one
+        // (`ex:Set`) incomparable. The order-sort semantics: `c` binds `X : RealNumber` because
+        // ANY of its asserted types satisfies the sort. A last-write-wins fold that kept only
+        // the lexically-last type (`ex:Set`) would WRONGLY return zero answers.
+        let (prog, diags) = gmeow_logic_compile::frontend::parse_logic_str(
+            MULTI_TYPE_CONSTANT_REASONING_PROGRAM_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert_eq!(prog.reasoning_programs.len(), 1);
+
+        const EX: &str = "https://example.org/goal-directed-test/";
+        let subsort_edges = [(TEST_MATH_INTEGER.to_owned(), TEST_MATH_REAL.to_owned())];
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &subsort_edges)
+            .expect("evaluate the multi-typed-constant program");
+        assert_eq!(evals.len(), 1);
+        let eval = &evals[0];
+        assert_eq!(eval.status, "ok");
+        assert_eq!(
+            eval.answers.len(),
+            1,
+            "the constant binds via its Integer type (ℤ ⊑ ℝ) even though its Set type is \
+             incomparable — every asserted type is retained, not just the last: {:?}",
+            eval.answers
+        );
+        assert_eq!(
+            eval.answers[0].bindings.get("X").map(String::as_str),
+            Some(format!("{EX}c").as_str()),
+            "the multiply-typed constant binds X = ex:c"
+        );
+
+        // Control: WITHOUT the reasoned ℤ⊑ℝ edge, NEITHER asserted type reaches RealNumber, so
+        // the binding is correctly refused — the multi-sort handling never fabricates an edge.
+        let evals_no_edge = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate with no subsort edges");
+        assert!(
+            evals_no_edge[0].answers.is_empty(),
+            "without ℤ⊑ℝ, neither Set nor Integer reaches RealNumber, so no binding: {:?}",
+            evals_no_edge[0].answers
         );
     }
 }
