@@ -4326,21 +4326,42 @@ fn read_aggregate_constraint(
     Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
 }
 
+/// Read ONE `logic:JoinLeg` structural predicate (`legSource`/`legTarget`/`legValue`/
+/// `legRecordType`), enforcing it names an IRI — these are record→endpoint/value PREDICATES, not
+/// data literals, so a literal or blank-node value is malformed, not a value to stringify.
+/// `Ok(None)` ⇒ the predicate is absent (the caller decides whether that is a hard-skip); a
+/// PRESENT non-IRI value is rejected outright via `Err` rather than silently stringified.
+fn read_leg_iri(
+    store: &RdfDataset,
+    leg: &Subject,
+    local: &str,
+) -> gmeow_errors::Result<Option<String>> {
+    match value(store, leg, &nn(&logic_iri(local))) {
+        None => Ok(None),
+        Some(Node::Iri(iri)) => Ok(Some(iri)),
+        Some(other) => Err(sugar_err(format!(
+            "logic:JoinLeg.{local} must be an IRI (a record → endpoint/value predicate), not {}",
+            term_str(&other)
+        ))),
+    }
+}
+
 /// Read ONE `logic:JoinLeg` (a member of a `logic:joinPath` list): the required source / target /
 /// value predicates plus the optional record type. A leg missing any of the three predicates is a
-/// hard skip (the whole join-aggregate record degrades to one MALFORMED_CONSTRAINT warning).
+/// hard skip (the whole join-aggregate record degrades to one MALFORMED_CONSTRAINT warning); a
+/// leg carrying a non-IRI (literal or blank node) value for any of the four is likewise rejected —
+/// see [`read_leg_iri`].
 fn read_join_leg(store: &RdfDataset, leg: &Subject) -> gmeow_errors::Result<JoinLeg> {
-    let pred = |local: &str| value(store, leg, &nn(&logic_iri(local))).map(|t| term_str(&t));
-    let source = pred("legSource").ok_or_else(|| {
+    let source = read_leg_iri(store, leg, "legSource")?.ok_or_else(|| {
         sugar_err("logic:JoinLeg requires logic:legSource (record → source endpoint)")
     })?;
-    let target = pred("legTarget").ok_or_else(|| {
+    let target = read_leg_iri(store, leg, "legTarget")?.ok_or_else(|| {
         sugar_err("logic:JoinLeg requires logic:legTarget (record → target endpoint)")
     })?;
-    let val = pred("legValue").ok_or_else(|| {
+    let val = read_leg_iri(store, leg, "legValue")?.ok_or_else(|| {
         sugar_err("logic:JoinLeg requires logic:legValue (record → numeric leaf value)")
     })?;
-    let record_type = pred("legRecordType");
+    let record_type = read_leg_iri(store, leg, "legRecordType")?;
     JoinLeg::new(record_type, source, target, val)
 }
 
