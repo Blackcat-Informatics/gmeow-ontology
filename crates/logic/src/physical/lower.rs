@@ -132,7 +132,20 @@ fn resolve_debruijn(env: &[Vec<String>], name: &str) -> Option<(usize, usize)> {
 // logic: — the Rust `ir::Formula`/`Term` IR, lowered directly.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Lower a `logic:` [`Formula`] into `dag`, returning its node id.
+/// The free-variable policy every `logic:` lowering entry point threads down to
+/// [`lower_term_in`]: invoked ONLY when [`resolve_debruijn`] finds no enclosing binder frame
+/// for a `Term::Var` occurrence — i.e. exactly the position that used to hard-code
+/// `dag.intern_free(..)`. The default policy ([`lower_logic_formula`]/[`lower_logic_term`])
+/// reproduces that RIGID `Free`-leaf behavior byte-for-byte; a caller that instead needs an
+/// implicitly-universally-quantified variable (a `logic:ReasoningProgram` clause/query has no
+/// explicit `Forall` wrapper, so every one of its variables is free from THIS lowering's point
+/// of view) supplies a policy that mints/reuses a [`crate::physical::id::MetaId`] metavariable
+/// via [`lower_logic_formula_with`]/[`lower_logic_term_with`] instead.
+type FreeResolver<'a> = &'a mut dyn FnMut(&mut TermDag, &str) -> Result<NodeId>;
+
+/// Lower a `logic:` [`Formula`] into `dag`, returning its node id, under the DEFAULT
+/// free-variable policy: an unbound `Term::Var` interns as a RIGID [`crate::physical`]
+/// `Free` leaf (never a metavariable).
 ///
 /// Reproduces exactly the equivalences [`Formula::content_key`] decides:
 /// bound-variable alpha-renaming (locally-nameless de-Bruijn), commutative
@@ -140,18 +153,59 @@ fn resolve_debruijn(env: &[Vec<String>], name: &str) -> Option<(usize, usize)> {
 /// [`Term::SequenceMarker`] is a HARD FAIL (the arena has no variadic-binder node, so a
 /// sequence marker cannot be coerced to a single-term occurrence).
 pub(crate) fn lower_logic_formula(dag: &mut TermDag, f: &Formula) -> Result<NodeId> {
-    let mut env: Vec<Vec<String>> = Vec::new();
-    lower_formula_in(dag, f, &mut env)
+    let mut free = default_free_resolver;
+    lower_logic_formula_with(dag, f, &mut free)
 }
 
-/// Lower a `logic:` [`Term`] into `dag` under no enclosing binder (a free variable stays
-/// free, an IRI/literal is a leaf). A [`Term::SequenceMarker`] is a HARD FAIL.
+/// Lower a `logic:` [`Term`] into `dag` under no enclosing binder and the DEFAULT
+/// free-variable policy (a free variable interns as a RIGID `Free` leaf; an IRI/literal is a
+/// leaf). A [`Term::SequenceMarker`] is a HARD FAIL.
 pub(crate) fn lower_logic_term(dag: &mut TermDag, t: &Term) -> Result<NodeId> {
-    let env: Vec<Vec<String>> = Vec::new();
-    lower_term_in(dag, t, &env)
+    let mut free = default_free_resolver;
+    lower_logic_term_with(dag, t, &mut free)
 }
 
-fn lower_term_in(dag: &mut TermDag, term: &Term, env: &[Vec<String>]) -> Result<NodeId> {
+/// Lower a `logic:` [`Formula`] into `dag` exactly as [`lower_logic_formula`] does, except
+/// that a `Term::Var` occurrence with NO enclosing binder frame resolves through the caller's
+/// own `free` policy instead of the hard-coded rigid-`Free`-leaf default — the single
+/// production seam a `logic:ReasoningProgram` compiler (whose clauses/queries carry no
+/// explicit `Forall` and whose variables must therefore mint/reuse a metavariable, not a
+/// rigid leaf) uses. The `Bound`/de-Bruijn path is untouched: only the free-variable fallback
+/// is policy-driven.
+pub(crate) fn lower_logic_formula_with(
+    dag: &mut TermDag,
+    f: &Formula,
+    free: FreeResolver<'_>,
+) -> Result<NodeId> {
+    let mut env: Vec<Vec<String>> = Vec::new();
+    lower_formula_in(dag, f, &mut env, free)
+}
+
+/// Lower a `logic:` [`Term`] into `dag` under no enclosing binder, exactly as
+/// [`lower_logic_term`] does except that a free `Term::Var` resolves through `free` (see
+/// [`lower_logic_formula_with`]).
+pub(crate) fn lower_logic_term_with(
+    dag: &mut TermDag,
+    t: &Term,
+    free: FreeResolver<'_>,
+) -> Result<NodeId> {
+    let env: Vec<Vec<String>> = Vec::new();
+    lower_term_in(dag, t, &env, free)
+}
+
+/// The default free-variable policy: an unbound `Term::Var` interns as a RIGID `Free` leaf —
+/// byte-for-byte what `lower_term_in`'s `Term::Var` arm hard-coded before the policy seam
+/// existed.
+fn default_free_resolver(dag: &mut TermDag, name: &str) -> Result<NodeId> {
+    Ok(dag.intern_free(TermValue::simple_literal(name.to_owned())))
+}
+
+fn lower_term_in(
+    dag: &mut TermDag,
+    term: &Term,
+    env: &[Vec<String>],
+    free: FreeResolver<'_>,
+) -> Result<NodeId> {
     Ok(match term {
         Term::Iri(s) => dag.intern_leaf(TermValue::iri(s.clone())),
         Term::Literal { lexical, datatype } => {
@@ -163,7 +217,7 @@ fn lower_term_in(dag: &mut TermDag, term: &Term, env: &[Vec<String>]) -> Result<
         }
         Term::Var(name) => match resolve_debruijn(env, name) {
             Some((distance, slot)) => intern_bound_checked(dag, distance, slot)?,
-            None => dag.intern_free(TermValue::simple_literal(name.clone())),
+            None => free(dag, name)?,
         },
         Term::SequenceMarker(name) => {
             return Err(ir_err(format!(
@@ -181,41 +235,46 @@ fn lower_term_in(dag: &mut TermDag, term: &Term, env: &[Vec<String>]) -> Result<
             let op = dag.intern_leaf(TermValue::iri(symbol.clone()));
             let mut arg_nodes = Vec::with_capacity(args.len());
             for a in args {
-                arg_nodes.push(lower_term_in(dag, a, env)?);
+                arg_nodes.push(lower_term_in(dag, a, env, free)?);
             }
             dag.intern_app(op, arg_nodes)
         }
     })
 }
 
-fn lower_formula_in(dag: &mut TermDag, f: &Formula, env: &mut Vec<Vec<String>>) -> Result<NodeId> {
+fn lower_formula_in(
+    dag: &mut TermDag,
+    f: &Formula,
+    env: &mut Vec<Vec<String>>,
+    free: FreeResolver<'_>,
+) -> Result<NodeId> {
     Ok(match f {
         Formula::Atom { relation, args } => {
-            let op = lower_term_in(dag, relation, env)?;
+            let op = lower_term_in(dag, relation, env, free)?;
             let mut arg_nodes = Vec::with_capacity(args.len());
             for a in args {
-                arg_nodes.push(lower_term_in(dag, a, env)?);
+                arg_nodes.push(lower_term_in(dag, a, env, free)?);
             }
             dag.intern_app(op, arg_nodes)
         }
         Formula::Not(b) => {
             let op = dag.intern_leaf(TermValue::iri(canon::NOT));
-            let child = lower_formula_in(dag, b, env)?;
+            let child = lower_formula_in(dag, b, env, free)?;
             dag.intern_app(op, vec![child])
         }
-        Formula::And(fs) => lower_commutative(dag, canon::AND, true, fs, env)?,
-        Formula::Or(fs) => lower_commutative(dag, canon::OR, false, fs, env)?,
+        Formula::And(fs) => lower_commutative(dag, canon::AND, true, fs, env, free)?,
+        Formula::Or(fs) => lower_commutative(dag, canon::OR, false, fs, env, free)?,
         Formula::Implies(a, b) => {
             let op = dag.intern_leaf(TermValue::iri(canon::IMPLIES));
-            let la = lower_formula_in(dag, a, env)?;
-            let lb = lower_formula_in(dag, b, env)?;
+            let la = lower_formula_in(dag, a, env, free)?;
+            let lb = lower_formula_in(dag, b, env, free)?;
             dag.intern_app(op, vec![la, lb])
         }
         Formula::Iff(a, b) => {
             let op = dag.intern_leaf(TermValue::iri(canon::IFF));
             let mut pair = [
-                lower_formula_in(dag, a, env)?,
-                lower_formula_in(dag, b, env)?,
+                lower_formula_in(dag, a, env, free)?,
+                lower_formula_in(dag, b, env, free)?,
             ];
             // Sort by CONTENT KEY, never NodeId: a `NodeId` is an interning-order artifact
             // (arbitrary across two separate DAGs), while `dag.key(..)` is the same
@@ -225,8 +284,12 @@ fn lower_formula_in(dag: &mut TermDag, f: &Formula, env: &mut Vec<Vec<String>>) 
             pair.sort_by(|&x, &y| dag.key(x).cmp(dag.key(y)));
             dag.intern_app(op, pair.to_vec())
         }
-        Formula::Forall { vars, body } => lower_logic_binder(dag, canon::FORALL, vars, body, env)?,
-        Formula::Exists { vars, body } => lower_logic_binder(dag, canon::EXISTS, vars, body, env)?,
+        Formula::Forall { vars, body } => {
+            lower_logic_binder(dag, canon::FORALL, vars, body, env, free)?
+        }
+        Formula::Exists { vars, body } => {
+            lower_logic_binder(dag, canon::EXISTS, vars, body, env, free)?
+        }
     })
 }
 
@@ -252,13 +315,14 @@ fn lower_commutative(
     is_and: bool,
     fs: &[Formula],
     env: &mut Vec<Vec<String>>,
+    free: FreeResolver<'_>,
 ) -> Result<NodeId> {
     let op = dag.intern_leaf(TermValue::iri(op_iri));
     let mut operands: Vec<&Formula> = Vec::new();
     flatten_commutative(is_and, fs, &mut operands);
     let mut nodes = Vec::with_capacity(operands.len());
     for f in operands {
-        nodes.push(lower_formula_in(dag, f, env)?);
+        nodes.push(lower_formula_in(dag, f, env, free)?);
     }
     // Sort by CONTENT KEY, never NodeId (see the `Iff` arm's comment above): a `NodeId` is
     // interning-order-dependent and not comparable across two separate DAGs, while
@@ -277,12 +341,13 @@ fn lower_logic_binder(
     vars: &[String],
     body: &Formula,
     env: &mut Vec<Vec<String>>,
+    free: FreeResolver<'_>,
 ) -> Result<NodeId> {
     let op = dag.intern_leaf(TermValue::iri(op_iri));
     let sort = dag.intern_leaf(TermValue::iri(canon::SORT_INDIVIDUAL));
     let sorts = vec![sort; vars.len()];
     env.push(vars.to_vec());
-    let body_node = lower_formula_in(dag, body, env);
+    let body_node = lower_formula_in(dag, body, env, free);
     env.pop();
     let body_node = body_node?;
     Ok(dag.intern_binder(op, sorts, body_node))

@@ -23,9 +23,10 @@
 
 use std::collections::{BTreeMap, HashMap};
 
+use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr};
 use purrdf::TermValue;
 
-use crate::physical::id::NodeId;
+use crate::physical::id::{MetaId, NodeId, TermId};
 use crate::physical::proof::{check, structured_derivation_iri};
 use crate::physical::resolve_fol::{
     FolClause, FolControl, FolLit, FolProgram, Truth, render, resolve_fol,
@@ -100,8 +101,9 @@ pub struct GoalDirectedEvaluation {
 /// evaluations. This is the pipeline stage's single entry point.
 pub fn evaluate_shipped_demonstrators() -> gmeow_errors::Result<Vec<GoalDirectedEvaluation>> {
     let mut evals = Vec::new();
-    for builder in shipped_demonstrators() {
-        evals.push(evaluate_demonstrator(builder)?);
+    for demo in shipped_demonstrators() {
+        let built = (demo.build)();
+        evals.push(evaluate_demonstrator(demo.name, demo.description, built)?);
     }
     evals.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(evals)
@@ -194,15 +196,23 @@ fn shipped_demonstrators() -> Vec<Demonstrator> {
     ]
 }
 
-/// Evaluate one demonstrator: resolve its goal, validate + project each answer, and record
-/// each verdict probe's three-valued WFS verdict.
-fn evaluate_demonstrator(demo: Demonstrator) -> gmeow_errors::Result<GoalDirectedEvaluation> {
+/// Evaluate one built program (a hand-interned demonstrator, or one lowered from a compiled
+/// `logic:ReasoningProgram` by [`lower_reasoning_program`]): resolve its goal, validate +
+/// project each answer, and record each verdict probe's three-valued WFS verdict. `name` /
+/// `description` are taken as plain string slices (rather than folded into
+/// [`BuiltDemonstrator`] itself) because a compiled program's identity is a runtime `String`
+/// (its authored IRI), not the `&'static str` the hand-built corpus uses.
+fn evaluate_demonstrator(
+    name: &str,
+    description: &str,
+    built: BuiltDemonstrator,
+) -> gmeow_errors::Result<GoalDirectedEvaluation> {
     let BuiltDemonstrator {
         mut dag,
         program,
         ctx,
         verdict_probes,
-    } = (demo.build)();
+    } = built;
     // Render the goal template BEFORE resolution (free metavariables still present).
     let goal = render(&dag, program.goal);
     let outcome = match resolve_fol(&mut dag, &program, &ctx, &Budget::default())? {
@@ -210,8 +220,7 @@ fn evaluate_demonstrator(demo: Demonstrator) -> gmeow_errors::Result<GoalDirecte
         FolControl::Unsupported(kind) => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed demonstrator {:?} is unsupported by the backward engine: {kind:?}",
-                    demo.name
+                    "goal-directed program {name:?} is unsupported by the backward engine: {kind:?}"
                 ),
             }));
         }
@@ -225,16 +234,14 @@ fn evaluate_demonstrator(demo: Demonstrator) -> gmeow_errors::Result<GoalDirecte
         let checked = check(&mut dag, ans.proof, &outcome.rule_ctx).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed demonstrator {:?} answer proof failed to check: {e:?}",
-                    demo.name
+                    "goal-directed program {name:?} answer proof failed to check: {e:?}"
                 ),
             })
         })?;
         if checked != ans.atom {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed demonstrator {:?} proof re-derives a different atom than its answer",
-                    demo.name
+                    "goal-directed program {name:?} proof re-derives a different atom than its answer"
                 ),
             }));
         }
@@ -265,8 +272,8 @@ fn evaluate_demonstrator(demo: Demonstrator) -> gmeow_errors::Result<GoalDirecte
     }
     verdicts.sort_by(|a, b| a.atom.cmp(&b.atom));
     Ok(GoalDirectedEvaluation {
-        name: demo.name.to_owned(),
-        description: demo.description.to_owned(),
+        name: name.to_owned(),
+        description: description.to_owned(),
         goal,
         status,
         answers,
@@ -288,6 +295,318 @@ fn app(dag: &mut TermDag, pred: &str, args: Vec<NodeId>) -> NodeId {
 /// Intern a demonstrator clause's content-addressed rule-IRI handle.
 fn rule_handle(dag: &mut TermDag, name: &str, idx: usize) -> crate::physical::id::TermId {
     dag.intern_atom(&TermValue::iri(rule_iri(name, idx)))
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────
+// The reasoning-program compiler: `ReasoningProgramIr` → `BuiltDemonstrator` (Task 4).
+// ─────────────────────────────────────────────────────────────────────────────────────
+//
+// This is the SECOND, production source of goal-directed programs: it lowers an
+// authored+compiled `logic:ReasoningProgram` (`gmeow_logic_compile::ir::ReasoningProgramIr`,
+// Task 3) into the exact `FolProgram`/`SortContext`/verdict-probe shape the hand-interned
+// demonstrators above build, then reuses `evaluate_demonstrator` unchanged — there is no
+// second engine, only a second source feeding the same evaluation/proof-check/verdict/
+// projection pipeline. Task 7 removes the hand-interned source; both coexist here.
+//
+// ## One lowering, policy-parameterized on the free-variable seam
+//
+// `crate::physical::lower::lower_logic_term`/`lower_logic_formula` is THE single production
+// `Term::Iri`/`Term::Literal`/`Term::Var`/`Term::App`/`Formula::Atom` lowering into the
+// shared [`TermDag`] arena — this module never re-implements it. What differs here is only
+// the FREE-VARIABLE policy: `lower_logic_term`'s default `Term::Var` fallback (an unbound
+// name interns as a RIGID `NodeData::Free` leaf — `crate::physical::unify`'s unification rule
+// is that `Bound`/`Leaf`/`Free` unify only by equality, never bind) is right for `logic:` text
+// authored under an explicit binder, but wrong for a `logic:ReasoningProgram` clause/query,
+// which is an implicitly-universally-quantified Horn clause with NO explicit `Forall`
+// wrapper — every one of its variables is "free" from the lowering's point of view, yet the
+// backward engine needs each to be a `NodeData::Meta` metavariable (`resolve_fol` unifies
+// goal/clause atoms via `unify_sorted`, whose only bindable node kind is `NodeData::Meta`).
+//
+// `lower_logic_formula_with`/`lower_logic_term_with` (`crate::physical::lower`) expose exactly
+// this as a policy seam: a `free: &mut dyn FnMut(&mut TermDag, &str) -> Result<NodeId>`
+// closure invoked ONLY when a `Term::Var` has no enclosing `Forall`/`Exists` binder frame. This
+// module supplies that closure per clause/query/probe, backed by a [`VarScope`]: the FIRST
+// occurrence of a name in one scope mints a fresh [`TermDag::fresh_meta`], every LATER
+// occurrence of that SAME name in the SAME scope reuses it, and a fresh [`VarScope`] per
+// clause/query/probe means the SAME name in two DIFFERENT clauses mints two DIFFERENT
+// metavariables (exactly how the hand-built demonstrators above give each clause its own
+// `fresh_meta` calls). The `Bound`/de-Bruijn path in `lower.rs` is untouched — quantified
+// sub-formulas inside a clause (if any) still resolve through the shared de-Bruijn machinery.
+
+/// The per-scope variable→metavariable map a single clause/query/probe lowers under: the
+/// FIRST occurrence of a name mints a fresh metavariable ([`TermDag::fresh_meta`]); every
+/// later occurrence of the SAME name in the SAME scope reuses it. A fresh, empty map per
+/// clause/query/probe is what keeps two clauses' same-named variables from colliding.
+type VarScope = HashMap<String, (MetaId, NodeId)>;
+
+/// Lower an atomic `logic:` [`Formula::Atom`] under `scope` into an `App` node, HARD-FAILING
+/// on any other formula shape — the backward engine's clause head / body literal / query /
+/// verdict-probe position all require exactly one atomic predication. The actual
+/// `Term::Iri`/`Term::Literal`/`Term::Var`/`Term::App` lowering is
+/// `crate::physical::lower::lower_logic_formula_with`'s (the shared production seam); this
+/// wrapper supplies ONLY the free-variable policy — mint-or-reuse a metavariable in `scope` —
+/// and the atomic-shape assertion the shared lowering (which also accepts compound formulas,
+/// for its `math:`/`lang:` callers) does not itself enforce.
+fn lower_atom(
+    dag: &mut TermDag,
+    formula: &Formula,
+    scope: &mut VarScope,
+) -> gmeow_errors::Result<NodeId> {
+    if !matches!(formula, Formula::Atom { .. }) {
+        return Err(reasoning_program_err(format!(
+            "reasoning-program atom position requires an atomic logic:Formula (a single \
+             predication); found a compound formula {formula:?}"
+        )));
+    }
+    let mut free = |dag: &mut TermDag, name: &str| -> gmeow_errors::Result<NodeId> {
+        Ok(scope
+            .entry(name.to_owned())
+            .or_insert_with(|| dag.fresh_meta())
+            .1)
+    };
+    crate::physical::lower::lower_logic_formula_with(dag, formula, &mut free)
+}
+
+/// Lower a rule antecedent under `scope` into `out`'s [`FolLit`]s: a conjunction flattens
+/// (mirroring `crate::physical::lower::flatten_commutative`) into its conjuncts; a bare atom
+/// is a single positive literal; `logic:not[atom]` is a single negation-as-failure literal.
+/// Any other body shape (a nested `And`/`Or`/`Implies`/`Iff`/quantifier, or a `Not` wrapping a
+/// non-atomic formula) exceeds the backward engine's Horn+NAF fragment and is a HARD FAIL —
+/// never silently dropped or approximated.
+fn lower_body(
+    dag: &mut TermDag,
+    formula: &Formula,
+    scope: &mut VarScope,
+    out: &mut Vec<FolLit>,
+) -> gmeow_errors::Result<()> {
+    match formula {
+        Formula::And(parts) => {
+            for p in parts {
+                lower_body(dag, p, scope, out)?;
+            }
+            Ok(())
+        }
+        Formula::Atom { .. } => {
+            out.push(FolLit::Pos(lower_atom(dag, formula, scope)?));
+            Ok(())
+        }
+        Formula::Not(inner) if matches!(inner.as_ref(), Formula::Atom { .. }) => {
+            out.push(FolLit::Neg(lower_atom(dag, inner, scope)?));
+            Ok(())
+        }
+        other => Err(reasoning_program_err(format!(
+            "reasoning-program rule body literal must be an atomic logic:Formula or its \
+             negation-as-failure (logic:not[atom]); found an unsupported body shape outside \
+             the backward engine's Horn+NAF fragment: {other:?}"
+        ))),
+    }
+}
+
+/// Lower one clause [`Formula`] (a fact atom, or `Formula::Implies(antecedent, consequent)`
+/// rule) under a FRESH [`VarScope`] into a [`FolClause`], and mint its content-addressed
+/// `rule_iri` from the clause's own [`Formula::content_key`] — never from a [`NodeId`]/
+/// [`TermId`] index, so the same authored clause always mints the same rule identity run to
+/// run (pre-satisfies the authored path's content-addressing requirement independent of
+/// interning order).
+fn lower_clause(
+    dag: &mut TermDag,
+    program_iri: &str,
+    clause: &Formula,
+    scope: &mut VarScope,
+) -> gmeow_errors::Result<FolClause> {
+    let (head_formula, body) = match clause {
+        Formula::Atom { .. } => (clause, Vec::new()),
+        Formula::Implies(antecedent, consequent) => {
+            let mut body = Vec::new();
+            lower_body(dag, antecedent, scope, &mut body)?;
+            (consequent.as_ref(), body)
+        }
+        other => {
+            return Err(reasoning_program_err(format!(
+                "reasoning program {program_iri} clause must be an atomic fact or a \
+                 logic:antecedent/logic:consequent rule; found an unsupported clause shape: \
+                 {other:?}"
+            )));
+        }
+    };
+    let head = lower_atom(dag, head_formula, scope)?;
+    let rule_iri = content_addressed_rule_iri(dag, program_iri, clause);
+    Ok(FolClause {
+        head,
+        body,
+        rule_iri,
+    })
+}
+
+/// Mint a content-addressed rule-IRI handle for `clause`: `blake3` over the owning program's
+/// IRI plus the clause's own [`Formula::content_key`] (alpha- and order-normalized), so the
+/// SAME authored clause always mints the SAME rule identity regardless of interning/mint
+/// order — never a [`NodeId`]/[`TermId`] index, which is an interning-order artifact.
+fn content_addressed_rule_iri(dag: &mut TermDag, program_iri: &str, clause: &Formula) -> TermId {
+    let key = format!("{program_iri}\u{0}{}", clause.content_key());
+    let hash = blake3::hash(key.as_bytes()).to_hex();
+    dag.intern_atom(&TermValue::iri(format!("{GMEOW}goal-directed/rule/{hash}")))
+}
+
+/// A reasoning-program-compiler diagnostic, routed through the same `logic.ir` kind
+/// `crate::physical::lower` uses for its own lowering defects.
+fn reasoning_program_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Ir { detail })
+}
+
+/// The local (last path-segment) name of an IRI, falling back to the whole IRI when it
+/// carries no `/`/`#` separator (or ends with one) — the [`GoalDirectedEvaluation::name`]
+/// surface for a compiled reasoning program (mirrors the hand-built demonstrators' stable
+/// short names).
+fn local_name(iri: &str) -> &str {
+    iri.rsplit(['/', '#'])
+        .next()
+        .filter(|s| !s.is_empty())
+        .unwrap_or(iri)
+}
+
+/// Lower one compiled [`ReasoningProgramIr`] into the SAME [`BuiltDemonstrator`] shape the
+/// hand-interned demonstrators build: its own fresh [`TermDag`], the compiled [`FolProgram`],
+/// the [`SortContext`] seeded from `subsort_edges` (the caller's reasoned `rdfs:subClassOf`
+/// closure, narrowed to the sorts this program's `variable_sorts` actually reference — the
+/// narrowing is the caller's job, per M5/F-4), and the lowered verdict probes.
+///
+/// Every clause, the query, and every verdict probe lowers under its OWN fresh [`VarScope`]
+/// (see the module-level note above): a variable name is shared only within the ONE
+/// clause/query/probe that authored it.
+fn lower_reasoning_program(
+    program: &ReasoningProgramIr,
+    subsort_edges: &[(String, String)],
+) -> gmeow_errors::Result<BuiltDemonstrator> {
+    // `EvaluationMode` is a closed, single-variant enum today — `EvaluationMode::from_local`
+    // (the ONLY constructor reachable from parsed input) rejects every IRI except
+    // `logic:BackwardEvaluation` at Task 3's parse stage, so a `ReasoningProgramIr` carrying
+    // any other mode is already unrepresentable by construction. This irrefutable pattern
+    // documents that exhaustively: it is a COMPILE ERROR (not a runtime `unreachable!`) the
+    // day a second `EvaluationMode` variant lands without this dispatch being extended.
+    let EvaluationMode::Backward = program.mode;
+
+    let mut dag = TermDag::new();
+    let mut meta_sorts: HashMap<MetaId, NodeId> = HashMap::new();
+    let var_sort_map: HashMap<&str, &str> = program
+        .variable_sorts
+        .iter()
+        .map(|(v, s)| (v.as_str(), s.as_str()))
+        .collect();
+
+    let mut clauses = Vec::with_capacity(program.clauses.len());
+    for clause_formula in &program.clauses {
+        let mut scope: VarScope = HashMap::new();
+        let clause = lower_clause(&mut dag, &program.iri, clause_formula, &mut scope)?;
+        for (name, (meta, _)) in &scope {
+            if let Some(sort_iri) = var_sort_map.get(name.as_str()) {
+                let sort_node = leaf(&mut dag, sort_iri);
+                meta_sorts.insert(*meta, sort_node);
+            }
+        }
+        clauses.push(clause);
+    }
+
+    let mut query_scope: VarScope = HashMap::new();
+    let goal = lower_atom(&mut dag, &program.query, &mut query_scope)?;
+    for (name, (meta, _)) in &query_scope {
+        if let Some(sort_iri) = var_sort_map.get(name.as_str()) {
+            let sort_node = leaf(&mut dag, sort_iri);
+            meta_sorts.insert(*meta, sort_node);
+        }
+    }
+    let mut goal_vars: Vec<(NodeId, String)> = query_scope
+        .into_iter()
+        .map(|(name, (_, node))| (node, name))
+        .collect();
+    // Deterministic order: sorted by the surface variable name (never HashMap iteration
+    // order, which is not reproducible run to run).
+    goal_vars.sort_by(|a, b| a.1.cmp(&b.1));
+
+    let mut verdict_probes = Vec::with_capacity(program.verdict_probes.len());
+    for probe_formula in &program.verdict_probes {
+        let mut scope: VarScope = HashMap::new();
+        let probe = lower_atom(&mut dag, probe_formula, &mut scope)?;
+        for (name, (meta, _)) in &scope {
+            if let Some(sort_iri) = var_sort_map.get(name.as_str()) {
+                let sort_node = leaf(&mut dag, sort_iri);
+                meta_sorts.insert(*meta, sort_node);
+            }
+        }
+        verdict_probes.push(probe);
+    }
+
+    // The order-sorted lattice: `subsort_edges` is the caller's already-computed reasoned
+    // `rdfs:subClassOf` closure (narrowed to the sorts this program references), lowered to
+    // NodeIds here (hash-consing makes this idempotent with the sort leaves interned above,
+    // so a shared sort IRI always resolves to the SAME node). `SortOrder::from_subclass_edges`
+    // computes its own reflexive-transitive closure — nothing about the lattice is hardcoded.
+    let mut edges: Vec<(NodeId, NodeId)> = Vec::with_capacity(subsort_edges.len());
+    for (sub, sup) in subsort_edges {
+        edges.push((leaf(&mut dag, sub), leaf(&mut dag, sup)));
+    }
+    let order = SortOrder::from_subclass_edges(&edges);
+
+    // CONSTANT order-sort tagging (`SortContext::term_sorts`): `program.constant_sorts` is
+    // Task 4's `(constant IRI, rdf:type IRI)` capture — the plain domain `rdf:type` triple a
+    // constant like `ex:one` carries, which the stage's L3 fold otherwise drops (it is not
+    // `logic:` structural vocabulary). Interning each constant/sort IRI through the SAME
+    // `leaf` helper `lower_atom`'s `Term::Iri` arm uses means hash-consing resolves a
+    // constant referenced both here and inside a clause/query/probe to the IDENTICAL
+    // `NodeId` — this is what lets `unify_sorted` discriminate a typed constant (only
+    // unifiable with a variable whose declared sort is ⊒ its own) from an untyped one
+    // (order-sort top, unifies with any variable sort) instead of every constant being
+    // silently untyped and unification degenerating to unsorted unification.
+    let mut term_sorts: HashMap<NodeId, NodeId> = HashMap::new();
+    for (const_iri, sort_iri) in &program.constant_sorts {
+        let const_node = leaf(&mut dag, const_iri);
+        let sort_node = leaf(&mut dag, sort_iri);
+        term_sorts.insert(const_node, sort_node);
+    }
+    let ctx = SortContext::new(order, term_sorts, HashMap::new());
+
+    Ok(BuiltDemonstrator {
+        dag,
+        program: FolProgram {
+            clauses,
+            goal,
+            goal_vars,
+            meta_sorts,
+        },
+        ctx,
+        verdict_probes,
+    })
+}
+
+/// Evaluate a compiled set of `logic:ReasoningProgram`s — the authored clause-set-plus-goal
+/// surface (Tasks 1-3) — against the reasoned `rdfs:subClassOf` closure (`subsort_edges`,
+/// narrowed by the caller to the sorts these programs actually reference). This is the
+/// production SOURCE swap Task 4 makes: [`lower_reasoning_program`] compiles each program
+/// into the exact shape [`evaluate_demonstrator`] already knows how to resolve, proof-check,
+/// verdict-probe, and project — this module gains a second source of goal-directed programs,
+/// not a second engine. `Unsupported` stays a HARD FAIL (surfaced by [`evaluate_demonstrator`]
+/// exactly as it is for a hand-built demonstrator).
+pub fn evaluate_reasoning_programs(
+    programs: &[ReasoningProgramIr],
+    subsort_edges: &[(String, String)],
+) -> gmeow_errors::Result<Vec<GoalDirectedEvaluation>> {
+    let mut evals = Vec::with_capacity(programs.len());
+    for program in programs {
+        let built = lower_reasoning_program(program, subsort_edges)?;
+        let description = format!(
+            "Compiled logic:ReasoningProgram {} ({} clause(s), {} evaluation).",
+            program.iri,
+            program.clauses.len(),
+            program.mode.as_str(),
+        );
+        evals.push(evaluate_demonstrator(
+            local_name(&program.iri),
+            &description,
+            built,
+        )?);
+    }
+    evals.sort_by(|a, b| a.name.cmp(&b.name));
+    Ok(evals)
 }
 
 /// The Peano-addition demonstrator: `add(zero,Y,Y). add(s(X),Y,s(Z)) :- add(X,Y,Z).`
@@ -682,6 +1001,334 @@ fn escape_literal(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ── Task 4: compiled `logic:ReasoningProgram` → `FolProgram`, via `lower_reasoning_program` ──
+    //
+    // These parse a `logic:ReasoningProgram` from a Turtle fixture (the SAME authoring
+    // vocabulary `crates/logic-compile`'s own frontend tests exercise), compile it to
+    // `ReasoningProgramIr` (Task 3), then run it through `evaluate_reasoning_programs` —
+    // proving the COMPILED source produces the identical proof-checked answers the
+    // hand-interned `build_peano_add`/`build_member_cons` demonstrators above assert.
+
+    /// `add(zero,Y,Y). add(s(X),Y,s(Z)) :- add(X,Y,Z).` with goal
+    /// `?- add(s(s(zero)),s(zero),R)`, authored as a `logic:ReasoningProgram`. Mirrors
+    /// [`build_peano_add`] exactly, but as parsed RDF rather than hand-interned DAG nodes.
+    const PEANO_ADD_REASONING_PROGRAM_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        \n\
+        ex:peanoAdd a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:add ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termApplication ex:ssZero ] ,\n\
+                               [ logic:termIndex 1 ; logic:termApplication ex:sZero ] ,\n\
+                               [ logic:termIndex 2 ; logic:termVariable \"R\" ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:add ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:zero ] ,\n\
+                               [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,\n\
+                               [ logic:termIndex 2 ; logic:termVariable \"Y\" ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:antecedent [ a logic:Formula ;\n\
+                    logic:relation ex:add ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,\n\
+                                   [ logic:termIndex 2 ; logic:termVariable \"Z\" ]\n\
+                ] ;\n\
+                logic:consequent [ a logic:Formula ;\n\
+                    logic:relation ex:add ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termApplication ex:sX ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,\n\
+                                   [ logic:termIndex 2 ; logic:termApplication ex:sZ ]\n\
+                ]\n\
+            ] .\n\
+        ex:sZero a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:s ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:zero ] .\n\
+        ex:ssZero a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:s ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:sZero ] .\n\
+        ex:sX a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:s ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] .\n\
+        ex:sZ a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:s ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"Z\" ] .\n\
+    ";
+
+    #[test]
+    fn compiled_peano_add_reasoning_program_resolves_and_proof_checks() {
+        let (prog, diags) =
+            gmeow_logic_compile::frontend::parse_logic_str(PEANO_ADD_REASONING_PROGRAM_TTL, None)
+                .expect("parse succeeds");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert_eq!(
+            prog.reasoning_programs.len(),
+            1,
+            "exactly one logic:ReasoningProgram parsed"
+        );
+
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate the compiled reasoning program");
+        assert_eq!(evals.len(), 1);
+        let peano = &evals[0];
+        assert_eq!(peano.status, "ok");
+        assert_eq!(peano.answers.len(), 1, "2 + 1 has exactly one answer");
+        let ans = &peano.answers[0];
+        // Every constant/function-symbol in the compiled path is a REAL RDF IRI (rendered in
+        // full), unlike the hand-built demonstrators' program-local bare-string surfaces
+        // (`"zero"`, `"s"`, …) — so the expected surfaces are built from the same `ex:`
+        // namespace the fixture authors its symbols under.
+        const EX: &str = "https://example.org/goal-directed-test/";
+        let zero = format!("{EX}zero");
+        let s = |inner: &str| format!("{EX}s({inner})");
+        let s_zero = s(&zero); // s(zero)
+        let ss_zero = s(&s_zero); // s(s(zero))
+        let sss_zero = s(&ss_zero); // s(s(s(zero))) = R
+        assert_eq!(
+            ans.bindings.get("R").map(String::as_str),
+            Some(sss_zero.as_str()),
+            "2 + 1 = 3 in Peano successors"
+        );
+        assert_eq!(ans.atom, format!("{EX}add({ss_zero},{s_zero},{sss_zero})"));
+        assert!(ans.proof_checks, "the compiled answer is proof-checked");
+        assert!(
+            ans.derivation_iri.starts_with("https://"),
+            "the answer carries a content-addressed derivation IRI: {}",
+            ans.derivation_iri
+        );
+
+        // Two independent evaluations of the SAME parsed program mint the SAME derivation
+        // IRI — content-addressing (`content_addressed_rule_iri`), not mint-order.
+        let evals2 =
+            evaluate_reasoning_programs(&prog.reasoning_programs, &[]).expect("second evaluation");
+        assert_eq!(
+            evals2[0].answers[0].derivation_iri, ans.derivation_iri,
+            "the compiled program's rule identity is content-addressed, not interning-order \
+             dependent"
+        );
+    }
+
+    /// `member(X,cons(X,T)). member(X,cons(H,T)) :- member(X,T).` with goal
+    /// `?- member(M,cons(a,cons(b,cons(c,nil))))`. The base clause and the recursive
+    /// clause's antecedent/consequent deliberately REUSE the variable names `X`/`T` — this
+    /// is the exact scenario that proves per-clause [`VarScope`] freshness: if the compiler
+    /// accidentally shared one metavariable per NAME across clauses (instead of per NAME
+    /// WITHIN one clause), this program would resolve incorrectly.
+    const MEMBER_CONS_REASONING_PROGRAM_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        \n\
+        ex:memberCons a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:member ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"M\" ] ,\n\
+                               [ logic:termIndex 1 ; logic:termApplication ex:list1 ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:member ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                               [ logic:termIndex 1 ; logic:termApplication ex:consXT ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:antecedent [ a logic:Formula ;\n\
+                    logic:relation ex:member ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termVariable \"T\" ]\n\
+                ] ;\n\
+                logic:consequent [ a logic:Formula ;\n\
+                    logic:relation ex:member ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termApplication ex:consHT ]\n\
+                ]\n\
+            ] .\n\
+        ex:consXT a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:cons ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                           [ logic:termIndex 1 ; logic:termVariable \"T\" ] .\n\
+        ex:consHT a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:cons ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"H\" ] ,\n\
+                           [ logic:termIndex 1 ; logic:termVariable \"T\" ] .\n\
+        ex:list1 a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:cons ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,\n\
+                           [ logic:termIndex 1 ; logic:termApplication ex:list2 ] .\n\
+        ex:list2 a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:cons ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ,\n\
+                           [ logic:termIndex 1 ; logic:termApplication ex:list3 ] .\n\
+        ex:list3 a logic:FunctionTerm ;\n\
+            logic:functionSymbol ex:cons ;\n\
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:c ] ,\n\
+                           [ logic:termIndex 1 ; logic:termIri ex:nil ] .\n\
+    ";
+
+    #[test]
+    fn compiled_member_cons_reasoning_program_enumerates_with_reused_variable_names() {
+        let (prog, diags) =
+            gmeow_logic_compile::frontend::parse_logic_str(MEMBER_CONS_REASONING_PROGRAM_TTL, None)
+                .expect("parse succeeds");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert_eq!(prog.reasoning_programs.len(), 1);
+
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate the compiled reasoning program");
+        assert_eq!(evals.len(), 1);
+        let member = &evals[0];
+        assert_eq!(member.status, "ok");
+        let mut bound: Vec<String> = member
+            .answers
+            .iter()
+            .map(|a| a.bindings["M"].clone())
+            .collect();
+        bound.sort();
+        // Every constant is a REAL RDF IRI (rendered in full) — see the peano-add test above.
+        const EX: &str = "https://example.org/goal-directed-test/";
+        assert_eq!(
+            bound,
+            vec![format!("{EX}a"), format!("{EX}b"), format!("{EX}c"),],
+            "the SAME variable names (X, T) reused across the base and recursive clauses must \
+             NOT collide across clause scopes: {bound:?}"
+        );
+        for ans in &member.answers {
+            assert!(ans.proof_checks, "every member answer is proof-checked");
+        }
+    }
+
+    // ── Task 4 M5/F-4: compiled math-subsort + incomparable control, term_sorts seeded ──
+    //
+    // Mirrors `build_math_subsort_with` (the hand-built positive/control pair above), but
+    // AUTHORED: `ex:one` is an ordinary domain individual, typed `math:Integer` by a plain
+    // `rdf:type` triple (never `logic:` structural vocabulary, so the stage's L3 fold drops
+    // it — `ReasoningProgramIr::constant_sorts`, Task 4's fix, is what recovers it). Program
+    // A's query variable is declared `math:RealNumber`; program B's (the control) is
+    // declared the INCOMPARABLE `math:Set`. Both share the SAME fact `p(one)` and the SAME
+    // constant `ex:one`, so the ONLY difference between A's answer and B's empty answer set
+    // is the order-sorted lattice discriminating `Integer ⊑ RealNumber` from `Integer ⋢
+    // Set` — proving `SortContext::term_sorts` (not just `meta_sorts`) is actually seeded
+    // from the compiled IR's `constant_sorts`, not left empty (which would make every
+    // constant order-sort top and erase the F-4 differential).
+    const MATH_SUBSORT_REASONING_PROGRAMS_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+        \n\
+        ex:one a math:Integer .\n\
+        \n\
+        ex:subsortPositive a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ;\n\
+                                  logic:variableSort math:RealNumber ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:one ]\n\
+            ] .\n\
+        \n\
+        ex:subsortControl a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ;\n\
+                                  logic:variableSort math:Set ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:one ]\n\
+            ] .\n\
+    ";
+
+    #[test]
+    fn compiled_math_subsort_reasoning_program_seeds_term_sorts_from_constant_sorts() {
+        let (prog, diags) = gmeow_logic_compile::frontend::parse_logic_str(
+            MATH_SUBSORT_REASONING_PROGRAMS_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert_eq!(prog.reasoning_programs.len(), 2);
+
+        const EX: &str = "https://example.org/goal-directed-test/";
+        let subsort_edges = [(math_sort::INTEGER.to_owned(), math_sort::REAL.to_owned())];
+
+        // Under the ℤ⊑ℝ reasoned edge: program A (RealNumber-sorted X) resolves to exactly
+        // the Integer constant `one`; program B (the Set-sorted control) resolves to NOTHING
+        // — status ok, empty answer set, never an error.
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &subsort_edges)
+            .expect("evaluate the compiled reasoning programs");
+        assert_eq!(evals.len(), 2);
+        let positive = evals
+            .iter()
+            .find(|e| e.name == "subsortPositive")
+            .expect("the positive program is present");
+        assert_eq!(positive.status, "ok");
+        assert_eq!(
+            positive.answers.len(),
+            1,
+            "an Integer constant binds a RealNumber variable (ℤ ⊑ ℝ) under the reasoned \
+             edge: {:?}",
+            positive.answers
+        );
+        let ans = &positive.answers[0];
+        assert_eq!(
+            ans.bindings.get("X").map(String::as_str),
+            Some(format!("{EX}one").as_str()),
+            "the subsort-unified answer binds X = ex:one"
+        );
+        assert_eq!(ans.atom, format!("{EX}p({EX}one)"));
+        assert!(ans.proof_checks, "the subsort answer is proof-checked");
+
+        let control = evals
+            .iter()
+            .find(|e| e.name == "subsortControl")
+            .expect("the control program is present");
+        assert_eq!(control.status, "ok");
+        assert!(
+            control.answers.is_empty(),
+            "an Integer constant does NOT bind an incomparable-sort (Set) variable, status \
+             ok, empty answer set: {:?}",
+            control.answers
+        );
+
+        // M5/F-4: with EMPTY subsort_edges, program A ALSO returns ZERO answers — the
+        // Integer/RealNumber unification comes from the REASONED edge, never a hardcoded
+        // tower baked into the compiler.
+        let evals_no_edges = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate with no subsort edges");
+        let positive_no_edges = evals_no_edges
+            .iter()
+            .find(|e| e.name == "subsortPositive")
+            .expect("the positive program is present");
+        assert_eq!(positive_no_edges.status, "ok");
+        assert!(
+            positive_no_edges.answers.is_empty(),
+            "without the reasoned ℤ⊑ℝ edge, an Integer constant does NOT bind a RealNumber \
+             variable — order-sortedness comes from subsort_edges, not a hardcoded tower: {:?}",
+            positive_no_edges.answers
+        );
+    }
 
     #[test]
     fn peano_add_demonstrator_resolves_and_proof_checks() {
