@@ -16,12 +16,12 @@ ex:saTopologyClaimIsStandpointClaim a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:TopologyClaim a owl:Class ;
-        rdfs:subClassOf gmeow:StandpointClaim .
+        logic:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "The governing EL-safe axiom: gmeow:TopologyClaim MUST be an owl:Class subClassOf gmeow:StandpointClaim — a computed feature lands as a standpoint-relative, vantage-attributed claim, never as an asserted global truth." .
+    gmeow:saRationale "The governing EL-safe axiom: gmeow:TopologyClaim MUST be an owl:Class logic:subClassOf gmeow:StandpointClaim (the canonical, fully-grounded subsumption the OntoUML identity gate traces) — a computed feature lands as a standpoint-relative, vantage-attributed claim, never as an asserted global truth." .
 
 # --- 2. The compilation/computation activities and object/record kinds -------- #
 ex:saActivitiesAndKinds a gmeow:StructuralAssertion ;
@@ -32,11 +32,11 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:ComplexCompilation  a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
-    gmeow:TopologyComputation a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
-    gmeow:CellSourceCorrespondence      a owl:Class ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:CompilationPreservationRecord a owl:Class ; rdfs:subClassOf gmeow:InformationObject .
-    gmeow:TopologyResult                a owl:Class ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:ComplexCompilation  a owl:Class , logic:Event ; logic:subClassOf gmeow:Activity .
+    gmeow:TopologyComputation a owl:Class , logic:Event ; logic:subClassOf gmeow:Activity .
+    gmeow:CellSourceCorrespondence      a owl:Class ; logic:subClassOf gmeow:InformationObject .
+    gmeow:CompilationPreservationRecord a owl:Class ; logic:subClassOf gmeow:InformationObject .
+    gmeow:TopologyResult                a owl:Class ; logic:subClassOf gmeow:InformationObject .
 }""" ;
     gmeow:saRationale "The compiler and computation profiles MUST be logic:Event gmeow:Activities (gmeow:ComplexCompilation, gmeow:TopologyComputation), and the correspondence/preservation/result artifacts MUST be gmeow:InformationObjects — the occurrent that makes/runs the topology and the information objects it emits." .
 
@@ -48,9 +48,10 @@ ex:saCellSourceReusesProvenance a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:cellSource a owl:ObjectProperty ;
-        rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+        logic:subPropertyOf gmeow:wasDerivedFrom ;
         rdfs:domain math:Cell ;
         rdfs:range gmeow:EvidenceSpan .
 }""" ;
@@ -102,13 +103,13 @@ ASK {
     gmeow:correspondenceCell a owl:ObjectProperty ;
         rdfs:domain gmeow:CellSourceCorrespondence ;
         rdfs:range math:Cell .
-    gmeow:CompilationPreservationRecord rdfs:subClassOf [
+    gmeow:CompilationPreservationRecord logic:subClassOf [
         a owl:Restriction ;
         owl:onProperty logic:preservationKind ;
         owl:minQualifiedCardinality 1 ;
         owl:onClass logic:PreservationKind
     ] .
-    gmeow:CompilationPreservationRecord rdfs:subClassOf [
+    gmeow:CompilationPreservationRecord logic:subClassOf [
         a owl:Restriction ;
         owl:onProperty logic:preservationKind ;
         owl:maxQualifiedCardinality 1 ;

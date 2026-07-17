@@ -24,7 +24,8 @@ exmp:bifiltration a math:MultiparameterFiltration ;
     math:filtrationIndexPoset exmp:grid ;
     math:hasFiltrationStage exmp:stage .
 exmp:grid a math:MathematicalObject ; rdfs:label "distance × density poset (dimension 2)"@x-gmeow-english .
-exmp:stage a math:FiltrationStage ; math:multiIndex exmp:index .
+exmp:stage a math:FiltrationStage ; math:multiIndex exmp:index ; math:stageStructure exmp:subcomplex .
+exmp:subcomplex a math:TopologicalSpace ; rdfs:label "substructure at multi-index (2, 5)"@x-gmeow-english .
 exmp:index a math:Vector ; math:hasComponent exmp:coord0 , exmp:coord1 .
 exmp:coord0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue exmp:two .
 exmp:coord1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue exmp:five .

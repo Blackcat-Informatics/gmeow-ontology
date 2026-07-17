@@ -36,7 +36,7 @@ ex:rAB a math:SheafRestrictionMap ; math:sourceObject ex:stalkA ; math:targetObj
 ex:rBC a math:SheafRestrictionMap ; math:sourceObject ex:stalkB ; math:targetObject ex:stalkC .
 ex:rCA a math:SheafRestrictionMap ; math:sourceObject ex:stalkC ; math:targetObject ex:stalkA .
 
-ex:discreteConnection a math:FlatConnection ;
+ex:discreteConnection a math:FlatConnection , math:Connection ;
     math:connectionOfSheaf ex:loopSheaf ;
     math:connectionOn ex:loopSheaf ;
     math:transportCochain ex:transportCocycle .

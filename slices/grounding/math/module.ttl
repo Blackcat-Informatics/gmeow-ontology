@@ -4887,7 +4887,7 @@ math:FiltrationStage
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Filtration Stage"@x-gmeow-english ;
-    skos:definition "One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued threshold ε it sits at through math:filtrationThreshold (a math:Quantity) and the substructure present at that threshold through math:stageStructure (a math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage. Stages are ordered by their thresholds, and the monotonicity law math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a math:subsetOf the structure at a higher one. A stage missing its threshold or its structure is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
+    skos:definition "One stage of a math:Filtration: an (index, substructure) cell naming the index it sits at and the substructure present there through math:stageStructure (a math:TopologicalSpace — the sub-space Kε of the ambient object at that index). The index is the real-valued threshold ε through math:filtrationThreshold (a math:Quantity) for a one-parameter math:Filtration, OR a math:multiIndex tuple for a math:MultiparameterFiltration whose stages sit in a parameter poset INSTEAD of on a single real line — a stage carries one XOR the other. A subclass of math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage. Stages are ordered by their thresholds, and the monotonicity law math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a math:subsetOf the structure at a higher one. A stage missing its structure, or naming NEITHER a math:filtrationThreshold nor a math:multiIndex (it sits at no index at all), is ill-formed (math:UnderspecifiedFiltration; the threshold-or-multi-index obligation is math:StageIndexPresenceConstraint)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UnderspecifiedFiltration .
 
@@ -4946,7 +4946,7 @@ math:UnderspecifiedFiltration
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Filtration"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:Filtration or one of its stages is not structurally complete: a filtration declaring no math:hasFiltrationStage, or a math:FiltrationStage missing its math:filtrationThreshold or its math:stageStructure. A filtration is a family of substructures indexed by a threshold; one without stages, or a stage that names neither where it sits nor what is present there, is ill-formed. This gate enforces STRUCTURAL PRESENCE only — the monotonicity of the family (ε₁ ≤ ε₂ ⇒ containment) is carried by the first-order law math:filtrationMonotonicityLaw, not by this SHACL gate."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Filtration or one of its stages is not structurally complete: a filtration declaring no math:hasFiltrationStage, a math:FiltrationStage missing its math:stageStructure, or a stage naming NEITHER a math:filtrationThreshold nor a math:multiIndex (it sits at no index at all — the threshold-or-multi-index disjunction is math:StageIndexPresenceConstraint). A filtration is a family of substructures indexed by a threshold or a multi-index; one without stages, or a stage that names neither where it sits nor what is present there, is ill-formed. This gate enforces STRUCTURAL PRESENCE only — the monotonicity of the family (ε₁ ≤ ε₂ ⇒ containment) is carried by the first-order law math:filtrationMonotonicityLaw, not by this SHACL gate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnderspecifiedPersistenceLifetime
@@ -4985,7 +4985,7 @@ math:filtrationThreshold
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "filtration threshold"@x-gmeow-english ;
-    skos:definition "Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range math:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold."@x-gmeow-english ;
+    skos:definition "Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of a ONE-PARAMETER stage in the filtration. Domain math:FiltrationStage, range math:Quantity (stated in prose). A one-parameter stage names AT MOST one; a math:MultiparameterFiltration's stages carry a math:multiIndex tuple INSTEAD, so the threshold is not unconditionally required — a stage naming neither a threshold nor a math:multiIndex is ill-formed (math:UnderspecifiedFiltration via math:StageIndexPresenceConstraint). The monotonicity law math:filtrationMonotonicityLaw orders one-parameter stages by this threshold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:stageStructure
@@ -8104,7 +8104,7 @@ math:connectionOn
 
 math:connectionOfSheaf
     a owl:ObjectProperty ;
-    rdfs:subPropertyOf math:connectionOn ;
+    logic:subPropertyOf math:connectionOn ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "connection of sheaf"@x-gmeow-english ;
     skos:definition "Relates a math:Connection to the math:CellularSheaf whose math:SheafRestrictionMaps ARE that discrete connection — the PRIMARY reading of this surface. Domain math:Connection, range math:CellularSheaf (stated in prose). A subproperty of math:connectionOn (the discrete refinement of 'what the connection is on'). The sheaf's restriction maps compose into the math:ParallelTransport and, around a loop, the math:Holonomy; the closedness of the transport cochain is flatness (math:FlatConnection)."@x-gmeow-english ;
@@ -8863,7 +8863,7 @@ math:hasSection
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasGlobalSection
-    a owl:ObjectProperty ; rdfs:subPropertyOf math:hasSection ;
+    a owl:ObjectProperty ; logic:subPropertyOf math:hasSection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has global section"@x-gmeow-english ;
     skos:definition "Relates a math:CellularSheaf to a math:GlobalSection over its ENTIRE base complex — the H⁰ specialisation of math:hasSection. A subproperty of math:hasSection: every global section is a section, so this edge refines rather than replaces it. Domain math:CellularSheaf, range math:GlobalSection (stated in prose). It is NOT the general math:hasSection (which also carries local sections) and NOT re-minted over it — it is the narrower edge that says the named section glues over all of X."@x-gmeow-english ;
@@ -12691,6 +12691,44 @@ math:cmfA1 a logic:Formula ; logic:relation math:hasFiltrationStage ;
 math:cmfA2 a logic:Formula ; logic:relation math:multiIndex ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] .
 
+# Stage index presence: every math:FiltrationStage must sit at SOME index — either the
+# single real math:filtrationThreshold of a one-parameter math:Filtration OR the
+# math:multiIndex tuple of a math:MultiparameterFiltration. A stage carries one XOR the
+# other by design (a multiparameter stage carries a math:multiIndex INSTEAD of a real
+# threshold), so the FiltrationStage frame cannot unconditionally require the threshold;
+# a stage carrying NEITHER names no position in any index and is ill-formed. A guarded
+# disjunctive-existence formula (∀ stage → ∃ threshold ∨ ∃ multi-index), projected to a
+# sh:SPARQLConstraint (shacl.SPARQLConstraintComponent). The missing-substructure and
+# no-stage cases stay the separate declarative math:UnderspecifiedFiltration frame.
+math:StageIndexPresenceConstraint
+    a logic:Constraint ;
+    rdfs:label "Stage index-presence constraint (a stage carries a threshold or a multi-index)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every math:FiltrationStage must name its position in the filtration's index — either a single real math:filtrationThreshold (a one-parameter math:Filtration stage) OR a math:multiIndex tuple (a math:MultiparameterFiltration stage). A stage carries one XOR the other: a multiparameter stage carries a math:multiIndex INSTEAD of a threshold, so the math:FiltrationStage frame cannot unconditionally require the threshold; a stage carrying NEITHER sits at no index and is ill-formed (math:UnderspecifiedFiltration). A guarded disjunctive-existence formula (∀ stage → ∃ threshold ∨ ∃ multi-index) modelled on math:ascZeroOrPredecessor's disjunctive consequent, projected to a sh:SPARQLConstraint. The missing-substructure and no-stage cases are the separate declarative math:UnderspecifiedFiltration frame."@x-gmeow-english ;
+    logic:formalizes math:FiltrationStage ;
+    gmeow:enforcesFailureClass math:UnderspecifiedFiltration ;
+    logic:severity "Violation" ;
+    logic:message "A math:FiltrationStage must carry either a math:filtrationThreshold (a one-parameter index) or a math:multiIndex (a multiparameter index tuple); a stage carrying neither names no position in the filtration and is ill-formed (math:UnderspecifiedFiltration)." ;
+    logic:integrity math:sipForall .
+math:sipForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:sipImpl .
+math:sipImpl a logic:Formula ; logic:antecedent math:sipGuard ; logic:consequent math:sipOr .
+math:sipGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:FiltrationStage ] .
+math:sipOr a logic:Formula ; logic:or math:sipHasThreshold , math:sipHasMultiIndex .
+math:sipHasThreshold a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thr" ] ;
+    logic:exists math:sipThresholdAtom .
+math:sipThresholdAtom a logic:Formula ; logic:relation math:filtrationThreshold ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "thr" ] .
+math:sipHasMultiIndex a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "mi" ] ;
+    logic:exists math:sipMultiIndexAtom .
+math:sipMultiIndexAtom a logic:Formula ; logic:relation math:multiIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] .
+
 # Diagonal degeneracy: a 2-index whose two coordinates are functionally
 # dependent — the diagonal (t, t) — is genuinely one-parametric despite the 2-tuple. A
 # cross-node "NOT EXISTS a bad witness" formula (in the style of math:ChartDimensionConstraint):
@@ -13635,7 +13673,11 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Embedding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/targetSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Estimate> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/estimator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Filtration> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasFiltrationStage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FiltrationStage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/filtrationThreshold" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+# math:filtrationThreshold is NOT unconditionally required on a math:FiltrationStage: a
+# multiparameter stage carries a math:multiIndex INSTEAD of a real threshold, so the closed-world
+# required-path authority is withheld here (the threshold stays sh:maxCount 1, never sh:minCount 1).
+# The "a stage sits at SOME index — a threshold OR a multi-index" obligation is the cross-node
+# math:StageIndexPresenceConstraint; math:stageStructure below stays unconditionally required.
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FiltrationStage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/stageStructure" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FittedModel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/fittedToData" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FittedModel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/modelFormula" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .

@@ -45,8 +45,8 @@ ex:ecCompilationNoLossRecord a gmeow:ExampleConformance ;
 ex:ecCompilationPreservationNoKind a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compilation-preservation-no-kind.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation with a valid correspondence (with a row) and full standpoint/world/time context that DOES record a gmeow:CompilationPreservationRecord — but that record names NO logic:preservationKind at all. The EL-safe owl:minQualifiedCardinality 1 restriction on logic:preservationKind (owl:onClass logic:PreservationKind) MUST reject it with shacl.MinCountConstraintComponent and NO other finding: with no preservationKind bound, gmeow:CompilationPreservationBoundaryConstraint's existential guard never fires, so this is the sole violation — a hollow ledger entry is closed exactly like a missing one." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares a gmeow:ComplexCompilation with a valid correspondence (with a row) and full standpoint/world/time context that DOES record a gmeow:CompilationPreservationRecord — but that record names NO logic:preservationKind at all. The EL-safe minQualifiedCardinality 1 restriction on logic:preservationKind (onClass logic:PreservationKind), authored as logic:subClassOf and DERIVED as a qualified property shape, MUST reject it with shacl.QualifiedMinCountConstraintComponent and NO other finding: with no preservationKind bound, gmeow:CompilationPreservationBoundaryConstraint's existential guard never fires, so this is the sole violation — a hollow ledger entry is closed exactly like a missing one." .
 
 # === AC: a lossy/unsupported preservation kind must name its boundary ======= #
 ex:ecCompilationPreservationLossyNoBoundary a gmeow:ExampleConformance ;

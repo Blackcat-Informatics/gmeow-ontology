@@ -38,7 +38,7 @@ use std::collections::{BTreeSet, HashSet, VecDeque};
 use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
-use crate::model::{owl, rdf, rdfs};
+use crate::model::{logic, owl, rdf, rdfs};
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
 #[inline]
@@ -198,33 +198,43 @@ fn gmeow_classes(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
     classes.into_iter().collect()
 }
 
-/// Transitive `rdfs:subClassOf` super-classes of `cls`, excluding itself
-/// (mirrors `_proper_ancestors` / rdflib `transitive_objects` minus self).
+/// Transitive subsumption super-classes of `cls`, excluding itself (mirrors
+/// `_proper_ancestors` / rdflib `transitive_objects` minus self).
 ///
-/// A BFS over the `subClassOf` edges, named-node objects only, reflexive closure
-/// minus the start node — exactly what rdflib `transitive_objects` yields before
-/// the Python comprehension drops `a == cls`.
+/// A BFS over the subsumption edges — BOTH `rdfs:subClassOf` AND the canonical
+/// `logic:subClassOf` it is a Principle-17 projection of — named-node objects only,
+/// reflexive closure minus the start node. Traversing `logic:subClassOf` too is what
+/// lets a slice ground its SubKind→Kind edge as `logic:subClassOf` (zero ungrounded
+/// rdfs residue) while the OntoUML identity checks still trace it to its Kind.
 fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let mut seen: HashSet<String> = HashSet::new();
     let mut queue: VecDeque<String> = VecDeque::new();
     queue.push_back(cls.to_owned());
     let mut visited: HashSet<String> = HashSet::new();
     visited.insert(cls.to_owned());
-    let Some(subclass_id) = iri_id(ds, rdfs::SUB_CLASS_OF) else {
+    let subclass_ids: Vec<_> = [rdfs::SUB_CLASS_OF, logic::SUB_CLASS_OF]
+        .iter()
+        .filter_map(|p| iri_id(ds, p))
+        .collect();
+    if subclass_ids.is_empty() {
         return seen;
-    };
+    }
     while let Some(node) = queue.pop_front() {
         let Some(subject_id) = iri_id(ds, &node) else {
             continue;
         };
-        for q in ds.quads_for_pattern(Some(subject_id), Some(subclass_id), None, GraphMatch::Any) {
-            if let TermRef::Iri(parent) = ds.resolve(q.o) {
-                let p = parent.to_owned();
-                if visited.insert(p.clone()) {
-                    queue.push_back(p.clone());
-                }
-                if p != cls {
-                    seen.insert(p);
+        for subclass_id in &subclass_ids {
+            for q in
+                ds.quads_for_pattern(Some(subject_id), Some(*subclass_id), None, GraphMatch::Any)
+            {
+                if let TermRef::Iri(parent) = ds.resolve(q.o) {
+                    let p = parent.to_owned();
+                    if visited.insert(p.clone()) {
+                        queue.push_back(p.clone());
+                    }
+                    if p != cls {
+                        seen.insert(p);
+                    }
                 }
             }
         }
@@ -583,17 +593,22 @@ pub fn relator_mediation(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     problems
 }
 
-/// Subjects of `(?, rdfs:subClassOf, cls)` (named-node subjects only) — the
-/// classes that directly specialize `cls`.
+/// Subjects of `(?, rdfs:subClassOf | logic:subClassOf, cls)` (named-node subjects
+/// only) — the classes that directly specialize `cls` over either the projected
+/// `rdfs:subClassOf` or the canonical `logic:subClassOf` subsumption edge.
 fn gmeow_subclasses(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let mut out: HashSet<String> = HashSet::new();
-    let (Some(subclass_id), Some(object_id)) = (iri_id(ds, rdfs::SUB_CLASS_OF), iri_id(ds, cls))
-    else {
+    let Some(object_id) = iri_id(ds, cls) else {
         return out;
     };
-    for q in ds.quads_for_pattern(None, Some(subclass_id), Some(object_id), GraphMatch::Any) {
-        if let TermRef::Iri(n) = ds.resolve(q.s) {
-            out.insert(n.to_owned());
+    for pred in [rdfs::SUB_CLASS_OF, logic::SUB_CLASS_OF] {
+        let Some(subclass_id) = iri_id(ds, pred) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(subclass_id), Some(object_id), GraphMatch::Any) {
+            if let TermRef::Iri(n) = ds.resolve(q.s) {
+                out.insert(n.to_owned());
+            }
         }
     }
     out
