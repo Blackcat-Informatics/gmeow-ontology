@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gmeow_errors::{Diag, Result};
-use gmeow_validate::distinctiveness::{distinctiveness_violations, translation_skeleton};
+use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use regex::Regex;
 use sha1::{Digest, Sha1};
@@ -776,8 +776,8 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
                     ));
                 }
                 xlat_triples.push((
-                    translation_skeleton(&entry.msgid),
-                    translation_skeleton(&entry.msgstr),
+                    skeleton(&entry.msgid),
+                    skeleton(&entry.msgstr),
                     entry.msgctxt.clone(),
                 ));
             }

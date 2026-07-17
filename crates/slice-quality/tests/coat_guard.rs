@@ -50,15 +50,15 @@ fn cleanup(dir: &PathBuf) {
 
 #[test]
 fn shared_usewhen_skeleton_reds() {
-    // Two distinct TBox classes carrying the same useWhen (modulo a swapped CURIE and
-    // case/whitespace) collide.
+    // Two distinct TBox classes carrying a byte-identical (modulo case/whitespace) useWhen
+    // — term-agnostic boilerplate that distinguishes neither — collide.
     let dir = fixture(
         "usewhen-collide",
         &format!(
             "ct:Alpha a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
-                 gmeow:useWhen \"Use when validating a ct:Alpha node reached through a cast.\"@en .\n\
+                 gmeow:useWhen \"Assert in the natural direction and read as its inverse.\"@en .\n\
              ct:Beta a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
-                 gmeow:useWhen \"Use  when validating a ct:Beta node reached through a cast.\"@en .\n"
+                 gmeow:useWhen \"Assert  in the natural direction and read as its inverse.\"@en .\n"
         ),
     );
     let hits = slice_coat_collisions(&dir).unwrap();
@@ -69,6 +69,27 @@ fn shared_usewhen_skeleton_reds() {
             && hits[0].contains(&format!("{NS}Alpha"))
             && hits[0].contains(&format!("{NS}Beta")),
         "names the predicate and both terms: {hits:#?}"
+    );
+}
+
+#[test]
+fn usewhen_differing_only_by_a_load_bearing_curie_passes() {
+    // Two terms whose useWhen shares a frame but names its OWN distinct range/domain CURIE
+    // are genuinely distinct documentation — CURIEs are kept, so they do NOT collide.
+    let dir = fixture(
+        "usewhen-curie-distinct",
+        &format!(
+            "ct:Alpha a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
+                 gmeow:useWhen \"Set it on a ct:Sample with range ct:ObservationUnit.\"@en .\n\
+             ct:Beta a owl:Class ; rdfs:isDefinedBy <{SLICE_IRI}> ;\n\
+                 gmeow:useWhen \"Set it on a ct:Sample with range ct:StatisticalVariable.\"@en .\n"
+        ),
+    );
+    let hits = slice_coat_collisions(&dir).unwrap();
+    cleanup(&dir);
+    assert!(
+        hits.is_empty(),
+        "distinct load-bearing CURIEs must pass: {hits:#?}"
     );
 }
 
