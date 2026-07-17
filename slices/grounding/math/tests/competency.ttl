@@ -27,6 +27,8 @@
 @prefix covf:  <http://example.org/math/coverage/> .
 # The worked graded cell complex (examples/graded-cell-complex.ttl).
 @prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
+# The worked combinatorial Laplacian (examples/combinatorial-laplacian.ttl).
+@prefix exl:   <https://blackcatinformatics.ca/gmeow/examples/math/combinatorial-laplacian/> .
 @prefix exgs:  <https://blackcatinformatics.ca/gmeow/examples/math/global-section/> .
 # The multiparameter / zigzag persistence positive fixtures.
 @prefix exmf:  <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration/> .
@@ -2523,6 +2525,31 @@ ex:rowGradedCellBC a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceBC ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "1" ] .
+
+ex:cqCombinatorialLaplacianFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/combinatorial-laplacian-frame.rq" ;
+    gmeow:cqDataFile "examples/combinatorial-laplacian.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A degree-k combinatorial Laplacian exposes the cell complex it is built over, its degree, and the two boundary operators (up and down) whose adjoint compositions L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k assemble it as separate reusable data — the purely combinatorial frame distinct from the continuum math:HodgeLaplacian and the stalk-weighted math:SheafLaplacian." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCombinatorialLaplacianFrameShape ;
+    gmeow:cqExpectRow ex:rowCombinatorialLaplacianFrame .
+
+ex:cqCombinatorialLaplacianFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "laplacian" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "complex" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "degree" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "upper" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "lower" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCombinatorialLaplacianFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "laplacian" ; gmeow:cellValueIri exl:laplacian1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "complex" ; gmeow:cellValueIri exl:triangle ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "degree" ; gmeow:cellValueIri exl:dim1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upper" ; gmeow:cellValueIri exl:boundaryUp ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lower" ; gmeow:cellValueIri exl:boundaryDown ] .
 
 ex:cqCoverageCliffordExtension a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/clifford-extension-frame.rq" ;

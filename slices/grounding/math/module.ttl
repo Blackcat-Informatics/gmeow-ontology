@@ -8006,6 +8006,13 @@ math:HodgeLaplacian
     skos:definition "The degree-wise operator formed from a boundary or coboundary and its adjoint, whose kernel is the harmonic component."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:CombinatorialLaplacian
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Combinatorial Laplacian"@x-gmeow-english ;
+    skos:definition "The degree-k combinatorial (graph/cell) Laplacian of a math:CellComplex, built entirely from the complex's own signed boundary operators: L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k, the sum of an UP term (the degree-(k+1) boundary math:upperBoundaryOperator ∂_{k+1} composed with its own adjoint) and a DOWN term (the adjoint of the degree-k boundary math:lowerBoundaryOperator ∂_k composed with itself), both assembled from the reified ±1 math:CellIncidence coefficients (math:incidenceSign) of the named math:combinatorialLaplacianComplex at math:laplacianDegree k. Its kernel — the harmonic k-cochains annihilated by both terms — has dimension the k-th math:BettiNumber of the complex (the discrete Hodge theorem). Identity criteria: two combinatorial Laplacians coincide exactly when their complex, degree, and both named boundary operators coincide. It is NOT the general math:HodgeLaplacian — the manifold/continuum operator formed from a differential-form Hodge star and exterior derivative over a smooth or Riemannian structure, of which this class is the finite-dimensional, purely combinatorial specialisation over a bare cell complex, assuming no metric or smooth structure beyond the signed incidence data — and it is NOT the math:SheafLaplacian, which generalises this exact construction to a math:CellularSheaf's NON-CONSTANT stalks and math:SheafRestrictionMaps rather than the plain, unweighted boundary operators of an unadorned complex (this class is the math:SheafLaplacian's specialisation to the math:ConstantSheaf case, the companion of math:constantSheafRecoversHomologyLaw at the operator level rather than the cohomology level). A combinatorial Laplacian naming no complex, no degree, or missing either constitutive boundary operator is ill-formed (math:IncompleteCombinatorialLaplacian)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 math:HodgeDecomposition
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -8929,6 +8936,30 @@ math:hasLaplacian
     skos:definition "Relates a complex, sheaf, or graded space to the Laplacian operator defined on it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:combinatorialLaplacianComplex
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "combinatorial Laplacian complex"@x-gmeow-english ;
+    skos:definition "Relates a math:CombinatorialLaplacian to the math:CellComplex it is the Laplacian OF — the complex whose signed math:CellIncidence coefficients its two named boundary operators are drawn from. Domain math:CombinatorialLaplacian, range math:CellComplex (stated in prose). The reverse-direction narrowing companion of math:hasLaplacian (which points complex → Laplacian): this edge lets the Laplacian object itself name its carrier, so a combinatorial Laplacian is never left over an implicit or unstated complex. A combinatorial Laplacian missing it is ill-formed (math:IncompleteCombinatorialLaplacian)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:laplacianDegree
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Laplacian degree"@x-gmeow-english ;
+    skos:definition "Relates a math:CombinatorialLaplacian to the math:NaturalNumber k that is its degree — the grade of the cochains it acts on, the same grade whose kernel dimension is the k-th math:BettiNumber of the complex. Domain math:CombinatorialLaplacian, range math:NaturalNumber (stated in prose). Distinct from math:cellDimension (the grade of a single math:Cell): this is the degree OF THE OPERATOR itself, fixing which two boundary operators — degree k and degree k+1 — it is assembled from. A combinatorial Laplacian whose degree is left implicit is ill-formed (math:IncompleteCombinatorialLaplacian)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:upperBoundaryOperator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "upper boundary operator"@x-gmeow-english ;
+    skos:definition "Relates a degree-k math:CombinatorialLaplacian to the degree-(k+1) math:BoundaryOperator ∂_{k+1} whose composite with its own adjoint, ∂_{k+1}∘∂_{k+1}*, forms the UP term of L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k. Domain math:CombinatorialLaplacian, range math:BoundaryOperator (stated in prose). It is NOT math:lowerBoundaryOperator — the degree-k operator forming the DOWN term — the two relate distinct boundary maps between distinct chain groups, and both are constitutive; a combinatorial Laplacian missing either is ill-formed (math:IncompleteCombinatorialLaplacian)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:lowerBoundaryOperator
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lower boundary operator"@x-gmeow-english ;
+    skos:definition "Relates a degree-k math:CombinatorialLaplacian to the degree-k math:BoundaryOperator ∂_k whose adjoint composed with itself, ∂_k*∘∂_k, forms the DOWN term of L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k. Domain math:CombinatorialLaplacian, range math:BoundaryOperator (stated in prose). It is NOT math:upperBoundaryOperator — the degree-(k+1) operator forming the UP term — the two relate distinct boundary maps between distinct chain groups, and both are constitutive; a combinatorial Laplacian missing either is ill-formed (math:IncompleteCombinatorialLaplacian)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:decomposesFlow
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "decomposes flow"@x-gmeow-english ;
@@ -9155,6 +9186,13 @@ math:IncompleteHodgeDecomposition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Incomplete Hodge Decomposition"@x-gmeow-english ;
     skos:definition "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCombinatorialLaplacian
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Combinatorial Laplacian"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:CombinatorialLaplacian lacks a required frame component — the math:CellComplex it is built over (math:combinatorialLaplacianComplex), its degree k (math:laplacianDegree), or either of its two constitutive boundary operators (math:upperBoundaryOperator, the degree-(k+1) operator forming the UP term; math:lowerBoundaryOperator, the degree-k operator forming the DOWN term). A combinatorial Laplacian is defined only relative to a complete, declared frame; a bare Laplacian token whose complex, degree, or either boundary operator is implicit says nothing about which operator L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k actually names and is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:IncompleteMapperConstruction
@@ -9742,6 +9780,30 @@ math:HodgeDecomposition logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass math:RationalValue ] ,
     [ a owl:Restriction ; owl:onProperty math:coexactHarmonicInnerProduct ; owl:allValuesFrom math:RationalValue ] ;
     gmeow:enforcesFailureClass math:IncompleteHodgeDecomposition .
+
+# Combinatorial-Laplacian coverage family: a degree-k combinatorial (graph/cell)
+# Laplacian is defined only relative to a complete, declared frame — the cell
+# complex it is built over, its degree k, and BOTH the up (degree-(k+1)) and down
+# (degree-k) boundary operators whose adjoint compositions L_k = ∂_{k+1}∘∂_{k+1}*
+# + ∂_k*∘∂_k assemble it. Every obligation is a qualified-cardinality +
+# allValuesFrom OWL restriction (EL-safe) that derives the paired
+# sh:minCount/maxCount + sh:class property shape; a missing complex, degree, or
+# either boundary operator fails the derived QualifiedMinCount and isolates
+# math:IncompleteCombinatorialLaplacian.
+math:CombinatorialLaplacian logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:combinatorialLaplacianComplex ; owl:minQualifiedCardinality 1 ; owl:onClass math:CellComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:combinatorialLaplacianComplex ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CellComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:combinatorialLaplacianComplex ; owl:allValuesFrom math:CellComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:laplacianDegree ; owl:minQualifiedCardinality 1 ; owl:onClass math:NaturalNumber ] ,
+    [ a owl:Restriction ; owl:onProperty math:laplacianDegree ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NaturalNumber ] ,
+    [ a owl:Restriction ; owl:onProperty math:laplacianDegree ; owl:allValuesFrom math:NaturalNumber ] ,
+    [ a owl:Restriction ; owl:onProperty math:upperBoundaryOperator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:upperBoundaryOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:upperBoundaryOperator ; owl:allValuesFrom math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:lowerBoundaryOperator ; owl:minQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:lowerBoundaryOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:lowerBoundaryOperator ; owl:allValuesFrom math:BoundaryOperator ] ;
+    gmeow:enforcesFailureClass math:IncompleteCombinatorialLaplacian .
 
 # Mapper coverage family: a Mapper construction is defined only relative to a
 # complete, declared frame — the source metric space it samples, the filter
@@ -14216,6 +14278,7 @@ math:CliffordModuleDecomposition a logic:AbstractIndividualType .
 math:CliffordProduct a logic:AbstractIndividualType .
 math:CoboundaryOperator a logic:AbstractIndividualType .
 math:CoexactComponent a logic:AbstractIndividualType .
+math:CombinatorialLaplacian a logic:AbstractIndividualType .
 math:CrossEntropy a logic:AbstractIndividualType .
 math:DiracOperator a logic:AbstractIndividualType .
 math:DirectSumDecomposition a logic:AbstractIndividualType .
@@ -14425,6 +14488,7 @@ math:IncompleteCell a logic:Situation .
 math:IncompleteCellularSheaf a logic:Situation .
 math:IncompleteCliffordAlgebra a logic:Situation .
 math:IncompleteCliffordExtension a logic:Situation .
+math:IncompleteCombinatorialLaplacian a logic:Situation .
 math:IncompleteDimensionalityReductionAnalysis a logic:Situation .
 math:IncompleteHamiltonianSystem a logic:Situation .
 math:IncompleteHodgeDecomposition a logic:Situation .

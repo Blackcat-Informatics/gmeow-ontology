@@ -2672,3 +2672,22 @@ gmeow:eqMathParallelTransportWd a gmeow:TermEquivalence, logic:GroundingCorrespo
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
+
+# --- Combinatorial Laplacian → Wikidata (closeMatch) ------------------------ #
+# QID verified via the Wikidata API (Laplacian matrix sitelink + wbgetentities).
+# wd:Q772067 names the graph-specific degree-0 case (L = D − A); the gmeow object
+# generalises to every degree k of an arbitrary cell complex and commits to an
+# explicit frame the Wikidata item does not name, so closeMatch, not exactMatch.
+
+gmeow:eqMathCombinatorialLaplacianWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:CombinatorialLaplacian ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q772067 ;
+    logic:sourceEndpoint math:CombinatorialLaplacian ; logic:targetEndpoint wd:Q772067 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Laplacian matrix" ;
+    gmeow:comment "math:CombinatorialLaplacian is the degree-k combinatorial (graph/cell) Laplacian L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k built from a cell complex's signed boundary operators; wd:Q772067 (Laplacian matrix, 'matrix representation of a graph', L = D − A) names the graph-specific degree-0 case of the same construction. closeMatch, not exactMatch: the gmeow object generalises to every degree k of an arbitrary math:CellComplex, not just the vertex-degree graph case, and commits to the explicit math:combinatorialLaplacianComplex / math:laplacianDegree / math:upperBoundaryOperator / math:lowerBoundaryOperator frame that the Wikidata item's plain D−A matrix does not name, a close but not invertibly identical counterpart. QID verified via the Wikidata API (Laplacian matrix sitelink)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
