@@ -3375,159 +3375,14 @@ impl McpServer {
         let candidate_id = required_str(args, "candidate_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
-        let path = candidate_path()?;
-
-        // The read → precondition-check → (on a real commit) append sequence runs entirely
-        // inside ONE held exclusive lock, so two concurrent withdrawals cannot both observe
-        // "not yet withdrawn" and both commit (lost-update).
-        with_conjecture_lock(&path, || {
-            let library = read_conjecture_library(&path)?;
-            let effective = library.get(candidate_id).copied();
-            let exists = effective.is_some();
-            let in_library = matches!(
-                effective,
-                Some(state) if state != ConjectureLifecycleState::Withdrawn
-            );
-
-            let mut obtains: Vec<&str> = Vec::new();
-            if in_library {
-                obtains.push(MCP_CANDIDATE_IN_LIBRARY);
-            }
-            let receipt = execute_memory_txn(MCP_WITHDRAW_CANDIDATE_SCHEMA, &obtains, dry_run)?;
-            let nt_body = project_conjecture_withdrawal(candidate_id, reason);
-            match &receipt {
-                TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
-                    let detail = if exists {
-                        format!("candidate already withdrawn: {candidate_id}")
-                    } else {
-                        format!("unknown candidate id: {candidate_id}")
-                    };
-                    return Ok(json!({
-                        "ok": false,
-                        "error": format!("withdrawCandidate precondition unmet: {detail}"),
-                        "transaction": txn_json(&receipt),
-                    })
-                    .to_string());
-                }
-                TxReceipt::HypotheticalSuccess { .. } => {
-                    return Ok(json!({
-                        "ok": true,
-                        "dry_run": true,
-                        "candidate": candidate_id,
-                        "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
-                        "transaction": txn_json(&receipt),
-                        "judgment_nquads": nt_body,
-                    })
-                    .to_string());
-                }
-                TxReceipt::CommittedSuccess { .. } => {}
-            }
-
-            let withdrawal_segment = build_nt_segment(&nt_body)?;
-            let call_id = format!(
-                "urn:gmeow:candidate-call:{}",
-                sha256_hex(format!("withdraw\u{1}{candidate_id}\u{1}{reason}").as_bytes())
-            );
-            let audit_segment = build_audit_segment(
-                &call_id,
-                MCP_WITHDRAW_CANDIDATE_SCHEMA,
-                &[MCP_CANDIDATE_IN_LIBRARY],
-                "1970-01-01T00:00:00Z",
-            );
-            append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
-            Ok(json!({
-                "ok": true,
-                "candidate": candidate_id,
-                "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
-                "transaction": txn_json(&receipt),
-                "judgment_nquads": nt_body,
-            })
-            .to_string())
-        })
+        run_withdraw_candidate(candidate_id, reason, dry_run)
     }
 
-    /// `list_candidates` — read the append-only candidate library and return every admitted
-    /// candidate with its effective disposition (`in-library` | `withdrawn`) and target
-    /// provenance (`for_slice` / `for_packet`). The effective lifecycle is resolved by SEGMENT
-    /// ORDER (a later withdrawal supersedes the admission); the immutable type/provenance is
-    /// read from the unioned dataset. Optional `slice` filters by target provenance and
-    /// `disposition` filters by effective state. A missing library is an EMPTY list, not an error.
     fn tool_list_candidates(&self, args: &Value) -> gmeow_errors::Result<String> {
-        let filter_slice = optional_str(args, "slice");
-        let filter_disposition = optional_str(args, "disposition");
-        let path = candidate_path()?;
-
-        // Effective, segment-order-resolved lifecycle per stored node (last-writer-wins).
-        let lifecycles = read_conjecture_library(&path)?;
-
-        // Immutable type + provenance from the unioned dataset (set once at submit, never
-        // superseded, so the union is sound for these fields).
-        let mut for_slice: BTreeMap<String, String> = BTreeMap::new();
-        let mut for_packet: BTreeMap<String, String> = BTreeMap::new();
-        let mut is_candidate: BTreeSet<String> = BTreeSet::new();
-        match fs::read(&path) {
-            Ok(bytes) => {
-                let bundle = purrdf::import_gts_events(&bytes)
-                    .with_ctx(|| "read candidate library".to_string())?;
-                for quad in bundle.dataset.owned_quads() {
-                    let (RdfTerm::Iri(subj), RdfTerm::Iri(obj)) = (&quad.subject, &quad.object)
-                    else {
-                        continue;
-                    };
-                    match quad.predicate.as_str() {
-                        RDF_TYPE if obj == GMEOW_AUTHORING_CANDIDATE => {
-                            is_candidate.insert(subj.clone());
-                        }
-                        GMEOW_CANDIDATE_FOR_SLICE => {
-                            for_slice.insert(subj.clone(), obj.clone());
-                        }
-                        GMEOW_CANDIDATE_FOR_PACKET => {
-                            for_packet.insert(subj.clone(), obj.clone());
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
-            Err(e) => return Err(e.into()),
-        }
-
-        let mut candidates: Vec<Value> = Vec::new();
-        for (node, state) in &lifecycles {
-            // Only nodes typed gmeow:AuthoringCandidate (belt-and-suspenders: every candidate is
-            // one; a bare logic:Conjecture in this library would be foreign).
-            if !is_candidate.contains(node) {
-                continue;
-            }
-            let disposition = if *state == ConjectureLifecycleState::Withdrawn {
-                "withdrawn"
-            } else {
-                "in-library"
-            };
-            if filter_disposition.is_some_and(|d| d != disposition) {
-                continue;
-            }
-            let slice = for_slice.get(node);
-            if let Some(want) = filter_slice
-                && slice.map(String::as_str) != Some(want)
-            {
-                continue;
-            }
-            candidates.push(json!({
-                "candidate": node,
-                "disposition": disposition,
-                "lifecycle": state.wire(),
-                "for_slice": slice,
-                "for_packet": for_packet.get(node),
-            }));
-        }
-
-        Ok(json!({
-            "ok": true,
-            "candidate_count": candidates.len(),
-            "candidates": candidates,
-        })
-        .to_string())
+        run_list_candidates(
+            optional_str(args, "slice"),
+            optional_str(args, "disposition"),
+        )
     }
 
     fn tool_sync(&self) -> gmeow_errors::Result<String> {
@@ -4212,6 +4067,181 @@ pub fn run_submit_candidate(
     })?;
     out.committed = true;
     Ok(out)
+}
+
+/// Withdraw a persisted candidate — the compensating author-WITHDRAWAL counterpart of
+/// [`run_submit_candidate`] (P10, exactly as `refute_conjecture` compensates `store_conjecture`).
+/// Appends one compensating "withdrawn" segment to the candidate library, flipping the target
+/// node's EFFECTIVE lifecycle to `logic:ConjectureWithdrawn` — recorded, never deleted. The write
+/// is a REAL TR gate on the `withdrawCandidate` schema, whose precondition — the candidate is
+/// still in the library and not already withdrawn — is DERIVED from the live library state read
+/// back by SEGMENT ORDER. An unknown or already-withdrawn id fails the commit and returns
+/// `ok:false` before writing. Returns the JSON response body shared by the MCP tool and the CLI.
+///
+/// # Errors
+///
+/// Returns an error if the library read, the TR transaction, or the append fails.
+pub fn run_withdraw_candidate(
+    candidate_id: &str,
+    reason: &str,
+    dry_run: bool,
+) -> gmeow_errors::Result<String> {
+    let path = candidate_path()?;
+    // The read → precondition-check → (on a real commit) append sequence runs entirely inside ONE
+    // held exclusive lock, so two concurrent withdrawals cannot both observe "not yet withdrawn"
+    // and both commit (lost-update).
+    with_conjecture_lock(&path, || {
+        let library = read_conjecture_library(&path)?;
+        let effective = library.get(candidate_id).copied();
+        let exists = effective.is_some();
+        let in_library = matches!(
+            effective,
+            Some(state) if state != ConjectureLifecycleState::Withdrawn
+        );
+
+        let mut obtains: Vec<&str> = Vec::new();
+        if in_library {
+            obtains.push(MCP_CANDIDATE_IN_LIBRARY);
+        }
+        let receipt = execute_memory_txn(MCP_WITHDRAW_CANDIDATE_SCHEMA, &obtains, dry_run)?;
+        let nt_body = project_conjecture_withdrawal(candidate_id, reason);
+        match &receipt {
+            TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
+                let detail = if exists {
+                    format!("candidate already withdrawn: {candidate_id}")
+                } else {
+                    format!("unknown candidate id: {candidate_id}")
+                };
+                return Ok(json!({
+                    "ok": false,
+                    "error": format!("withdrawCandidate precondition unmet: {detail}"),
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            TxReceipt::HypotheticalSuccess { .. } => {
+                return Ok(json!({
+                    "ok": true,
+                    "dry_run": true,
+                    "candidate": candidate_id,
+                    "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                    "transaction": txn_json(&receipt),
+                    "judgment_nquads": nt_body,
+                })
+                .to_string());
+            }
+            TxReceipt::CommittedSuccess { .. } => {}
+        }
+
+        let withdrawal_segment = build_nt_segment(&nt_body)?;
+        let call_id = format!(
+            "urn:gmeow:candidate-call:{}",
+            sha256_hex(format!("withdraw\u{1}{candidate_id}\u{1}{reason}").as_bytes())
+        );
+        let audit_segment = build_audit_segment(
+            &call_id,
+            MCP_WITHDRAW_CANDIDATE_SCHEMA,
+            &[MCP_CANDIDATE_IN_LIBRARY],
+            "1970-01-01T00:00:00Z",
+        );
+        append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
+        Ok(json!({
+            "ok": true,
+            "candidate": candidate_id,
+            "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+            "transaction": txn_json(&receipt),
+            "judgment_nquads": nt_body,
+        })
+        .to_string())
+    })
+}
+
+/// List every admitted candidate in the library with its effective disposition
+/// (`in-library` | `withdrawn`) and target provenance (`for_slice` / `for_packet`). The effective
+/// lifecycle is resolved by SEGMENT ORDER (a later withdrawal supersedes the admission); the
+/// immutable type/provenance is read from the unioned dataset. Optional `filter_slice` filters by
+/// target provenance and `filter_disposition` by effective state. A missing library is an EMPTY
+/// list, not an error. Returns the JSON response body shared by the MCP tool and the CLI.
+///
+/// # Errors
+///
+/// Returns an error if the library read fails.
+pub fn run_list_candidates(
+    filter_slice: Option<&str>,
+    filter_disposition: Option<&str>,
+) -> gmeow_errors::Result<String> {
+    let path = candidate_path()?;
+
+    // Effective, segment-order-resolved lifecycle per stored node (last-writer-wins).
+    let lifecycles = read_conjecture_library(&path)?;
+
+    // Immutable type + provenance from the unioned dataset (set once at submit, never superseded,
+    // so the union is sound for these fields).
+    let mut for_slice: BTreeMap<String, String> = BTreeMap::new();
+    let mut for_packet: BTreeMap<String, String> = BTreeMap::new();
+    let mut is_candidate: BTreeSet<String> = BTreeSet::new();
+    match fs::read(&path) {
+        Ok(bytes) => {
+            let bundle = purrdf::import_gts_events(&bytes)
+                .with_ctx(|| "read candidate library".to_string())?;
+            for quad in bundle.dataset.owned_quads() {
+                let (RdfTerm::Iri(subj), RdfTerm::Iri(obj)) = (&quad.subject, &quad.object) else {
+                    continue;
+                };
+                match quad.predicate.as_str() {
+                    RDF_TYPE if obj == GMEOW_AUTHORING_CANDIDATE => {
+                        is_candidate.insert(subj.clone());
+                    }
+                    GMEOW_CANDIDATE_FOR_SLICE => {
+                        for_slice.insert(subj.clone(), obj.clone());
+                    }
+                    GMEOW_CANDIDATE_FOR_PACKET => {
+                        for_packet.insert(subj.clone(), obj.clone());
+                    }
+                    _ => {}
+                }
+            }
+        }
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+        Err(e) => return Err(e.into()),
+    }
+
+    let mut candidates: Vec<Value> = Vec::new();
+    for (node, state) in &lifecycles {
+        // Only nodes typed gmeow:AuthoringCandidate (belt-and-suspenders: every candidate is one;
+        // a bare logic:Conjecture in this library would be foreign).
+        if !is_candidate.contains(node) {
+            continue;
+        }
+        let disposition = if *state == ConjectureLifecycleState::Withdrawn {
+            "withdrawn"
+        } else {
+            "in-library"
+        };
+        if filter_disposition.is_some_and(|d| d != disposition) {
+            continue;
+        }
+        let slice = for_slice.get(node);
+        if let Some(want) = filter_slice
+            && slice.map(String::as_str) != Some(want)
+        {
+            continue;
+        }
+        candidates.push(json!({
+            "candidate": node,
+            "disposition": disposition,
+            "lifecycle": state.wire(),
+            "for_slice": slice,
+            "for_packet": for_packet.get(node),
+        }));
+    }
+
+    Ok(json!({
+        "ok": true,
+        "candidate_count": candidates.len(),
+        "candidates": candidates,
+    })
+    .to_string())
 }
 
 fn language_tag_map(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
