@@ -1,0 +1,12 @@
+# A persistence module names the index poset it is a functor over (math:moduleIndex)
+# and its comparable-pair transition maps (math:structureMap) — the functor frame that
+# keeps the algebraic object distinct from a single feature's lifetime.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?module ?index ?map
+WHERE {
+  ?module a math:PersistenceModule ;
+          math:moduleIndex ?index ;
+          math:structureMap ?map .
+}
+ORDER BY ?module ?map

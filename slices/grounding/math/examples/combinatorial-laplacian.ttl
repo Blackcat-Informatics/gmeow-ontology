@@ -1,0 +1,116 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A worked degree-1 combinatorial (graph/cell) Laplacian L₁ = ∂₂∘∂₂* + ∂₁*∘∂₁ over
+# an oriented simplicial triangle (the same filled 2-simplex used in
+# examples/graded-cell-complex.ttl and examples/chain-complex.ttl): the boundary
+# ∂(faceABC) = edgeAB + edgeBC − edgeAC and ∂(edge) = head − tail. L₁ acts on
+# 1-cochains (edge functions): its UP term ∂₂∘∂₂* comes from the face-to-edge
+# boundary exl:boundaryUp, its DOWN term ∂₁*∘∂₁ comes from the edge-to-vertex
+# boundary exl:boundaryDown. Every term is built from the plain signed
+# math:CellIncidence coefficients of the bare complex below — no metric, no smooth
+# structure, and no non-constant sheaf stalk is involved, which is exactly what
+# distinguishes this purely combinatorial construction from the continuum
+# math:HodgeLaplacian and from the stalk-weighted math:SheafLaplacian.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exl:  <https://blackcatinformatics.ca/gmeow/examples/math/combinatorial-laplacian/> .
+
+# The complex assembled from its seven graded cells.
+exl:triangle a math:SimplicialComplex ;
+    rdfs:label "oriented triangle (2-simplex), Laplacian carrier"@x-gmeow-english ;
+    math:hasCell exl:faceABC ,
+        exl:edgeAB , exl:edgeBC , exl:edgeAC ,
+        exl:vertexA , exl:vertexB , exl:vertexC ;
+    math:hasLaplacian exl:laplacian1 .
+
+# The three grades, as situated, exact natural numbers. exl:dim1 doubles as the
+# combinatorial Laplacian's own math:laplacianDegree k = 1.
+exl:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ;
+    rdfs:label "0"@x-gmeow-english .
+exl:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ;
+    rdfs:label "1"@x-gmeow-english .
+exl:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ;
+    rdfs:label "2"@x-gmeow-english .
+
+# The 2-cell (face), oriented, incident to its three 1-cell faces.
+exl:faceABC a math:Cell ;
+    rdfs:label "face ABC"@x-gmeow-english ;
+    math:cellDimension exl:dim2 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo exl:edgeAB , exl:edgeBC , exl:edgeAC .
+
+# The three 1-cells (edges), each incident to its two 0-cell endpoints.
+exl:edgeAB a math:Cell ;
+    rdfs:label "edge A→B"@x-gmeow-english ;
+    math:cellDimension exl:dim1 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo exl:vertexA , exl:vertexB .
+exl:edgeBC a math:Cell ;
+    rdfs:label "edge B→C"@x-gmeow-english ;
+    math:cellDimension exl:dim1 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo exl:vertexB , exl:vertexC .
+exl:edgeAC a math:Cell ;
+    rdfs:label "edge A→C"@x-gmeow-english ;
+    math:cellDimension exl:dim1 ;
+    math:orientation math:negativelyOriented ;
+    math:incidentTo exl:vertexA , exl:vertexC .
+
+# The three 0-cells (vertices).
+exl:vertexA a math:Cell ; rdfs:label "vertex A"@x-gmeow-english ; math:cellDimension exl:dim0 .
+exl:vertexB a math:Cell ; rdfs:label "vertex B"@x-gmeow-english ; math:cellDimension exl:dim0 .
+exl:vertexC a math:Cell ; rdfs:label "vertex C"@x-gmeow-english ; math:cellDimension exl:dim0 .
+
+# The reified signed boundary coefficients of ∂₂ (face → edges):
+# ∂(faceABC) = +edgeAB + edgeBC − edgeAC.
+exl:incFaceAB a math:CellIncidence ;
+    rdfs:label "⟨faceABC : edgeAB⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exl:faceABC ;
+    math:incidenceFace exl:edgeAB ;
+    math:incidenceSign 1 .
+exl:incFaceBC a math:CellIncidence ;
+    rdfs:label "⟨faceABC : edgeBC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exl:faceABC ;
+    math:incidenceFace exl:edgeBC ;
+    math:incidenceSign 1 .
+exl:incFaceAC a math:CellIncidence ;
+    rdfs:label "⟨faceABC : edgeAC⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface exl:faceABC ;
+    math:incidenceFace exl:edgeAC ;
+    math:incidenceSign -1 .
+
+# The reified signed boundary coefficients of ∂₁ (edges → vertices):
+# ∂(edge) = head − tail for each of the three edges.
+exl:incEabB a math:CellIncidence ;
+    rdfs:label "⟨edgeAB : vertexB⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exl:edgeAB ; math:incidenceFace exl:vertexB ; math:incidenceSign 1 .
+exl:incEabA a math:CellIncidence ;
+    rdfs:label "⟨edgeAB : vertexA⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface exl:edgeAB ; math:incidenceFace exl:vertexA ; math:incidenceSign -1 .
+exl:incEbcC a math:CellIncidence ;
+    rdfs:label "⟨edgeBC : vertexC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exl:edgeBC ; math:incidenceFace exl:vertexC ; math:incidenceSign 1 .
+exl:incEbcB a math:CellIncidence ;
+    rdfs:label "⟨edgeBC : vertexB⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface exl:edgeBC ; math:incidenceFace exl:vertexB ; math:incidenceSign -1 .
+exl:incEacC a math:CellIncidence ;
+    rdfs:label "⟨edgeAC : vertexC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface exl:edgeAC ; math:incidenceFace exl:vertexC ; math:incidenceSign 1 .
+exl:incEacA a math:CellIncidence ;
+    rdfs:label "⟨edgeAC : vertexA⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface exl:edgeAC ; math:incidenceFace exl:vertexA ; math:incidenceSign -1 .
+
+# The two boundary operators the degree-1 combinatorial Laplacian is built from.
+exl:boundaryUp a math:BoundaryOperator ; rdfs:label "∂₂ : face → edges"@x-gmeow-english .
+exl:boundaryDown a math:BoundaryOperator ; rdfs:label "∂₁ : edges → vertices"@x-gmeow-english .
+
+# The degree-1 combinatorial Laplacian, fully framed: complex, degree, and both
+# constitutive boundary operators.
+exl:laplacian1 a math:CombinatorialLaplacian ;
+    rdfs:label "degree-1 combinatorial Laplacian L₁ of the triangle"@x-gmeow-english ;
+    math:combinatorialLaplacianComplex exl:triangle ;
+    math:laplacianDegree exl:dim1 ;
+    math:upperBoundaryOperator exl:boundaryUp ;
+    math:lowerBoundaryOperator exl:boundaryDown .

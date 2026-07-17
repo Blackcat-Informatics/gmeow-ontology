@@ -200,6 +200,16 @@ fn native_reasoning_source_files() -> Vec<PathBuf> {
             .join("lang")
             .join("module.ttl"),
     );
+    // The chain/cochain square-zero laws (math:boundarySquareZeroLaw /
+    // math:coboundarySquareZeroLaw) are canonical `logic:Formula`s in the math module,
+    // referenced by `math:definingLaw`; their live-entailment witness EDB (the pre-authored
+    // triangle diamond relations) lives in `examples/chain-complex.ttl`. Both are added so
+    // the boundary/coboundary-square-zero competency questions fire the real law and read
+    // back the derived math:cancellingPairRel / math:coCancellingPairRel — exactly as the
+    // algebra laws fire from their example files.
+    let math = paths::slices_root().join("grounding").join("math");
+    files.push(math.join("module.ttl"));
+    files.push(math.join("examples").join("chain-complex.ttl"));
     files
 }
 
