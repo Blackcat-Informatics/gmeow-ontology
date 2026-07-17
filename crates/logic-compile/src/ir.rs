@@ -2600,6 +2600,186 @@ fn binder_key(
 }
 
 // --------------------------------------------------------------------------- //
+// Reasoning programs (`logic:ReasoningProgram`)
+// --------------------------------------------------------------------------- //
+
+/// The closed evaluation-strategy set a [`ReasoningProgramIr`] selects via
+/// `logic:evaluationMode` — mirrors the `logic:EvaluationMode` individuals in
+/// `module.ttl`. Deliberately has **no catch-all/unknown variant**: an unrecognized mode
+/// IRI is unrepresentable in this type, so the front-end MUST reject it as a hard-fail
+/// diagnostic at parse time rather than either defaulting silently or smuggling an opaque
+/// string through as a would-be "mode" the rest of the compiler cannot dispatch on
+/// (no-optionality: explicit feature selection is fine, silent degradation is not).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvaluationMode {
+    /// `logic:BackwardEvaluation` — goal-directed SLG-WFS backward resolution: tabled
+    /// (SLG) demand-driven answer keying, structured-term unification over
+    /// [`Term::App`] arguments, explicit proof objects per derived answer, and
+    /// three-valued well-founded negation for `logic:not`-negated body literals.
+    Backward,
+}
+
+impl EvaluationMode {
+    /// The `module.ttl` local name of the individual selecting this mode
+    /// (`logic:BackwardEvaluation` ⇒ `"BackwardEvaluation"`).
+    pub fn as_str(self) -> &'static str {
+        match self {
+            EvaluationMode::Backward => "BackwardEvaluation",
+        }
+    }
+
+    /// Parse a `module.ttl` local name into a mode; `None` for anything outside the
+    /// closed set. The caller turns `None` into a hard-fail diagnostic — never a silent
+    /// default to [`EvaluationMode::Backward`].
+    pub fn from_local(s: &str) -> Option<Self> {
+        match s {
+            "BackwardEvaluation" => Some(EvaluationMode::Backward),
+            _ => None,
+        }
+    }
+}
+
+/// A compiled `logic:ReasoningProgram`: a named clause set plus a goal, evaluated under a
+/// selected strategy. Reuses the SAME [`Formula`] type the forward relational-core lane
+/// already lowers from for [`Self::clauses`] / [`Self::query`] / [`Self::verdict_probes`] —
+/// there is no second, program-specific clause language. `logic:evaluationMode` is a
+/// strategy SELECTOR over one strategy-neutral clause set, not a program-kind split, so a
+/// future forward-chase [`EvaluationMode`] member evaluates the identical clauses without
+/// re-authoring (see `module.ttl`'s `logic:ReasoningProgram` definition).
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReasoningProgramIr {
+    /// IRI of the `logic:ReasoningProgram` individual (identity / sort key).
+    pub iri: String,
+    /// The selected evaluation strategy (`logic:evaluationMode`; functional, exactly one).
+    pub mode: EvaluationMode,
+    /// The clause set (`logic:clause`): atomic facts and Horn rules (each the SAME
+    /// [`Formula`] shape the forward relational-core lane consumes), in canonical
+    /// (sort-key) order. Never empty — [`Self::new`] hard-fails a clause-free program
+    /// (`logic:ReasoningProgramClauseConstraint`).
+    pub clauses: Vec<Formula>,
+    /// The single goal atom (`logic:programQuery`) the engine resolves against
+    /// [`Self::clauses`]. Functional at the vocabulary level
+    /// (`logic:ReasoningProgramQueryConstraint` + the `owl:FunctionalProperty`
+    /// declaration), so a program carries EXACTLY one.
+    pub query: Formula,
+    /// Zero or more three-valued verdict probes (`logic:verdictProbe`), in canonical
+    /// (sort-key) order. Each MUST be an atomic [`Formula::Atom`] — a probe reports a
+    /// single atom's well-founded verdict, never a compound formula's.
+    pub verdict_probes: Vec<Formula>,
+    /// Per-variable order-sort declarations (`logic:variableSort` on a `logic:TermCarrier`
+    /// reached from [`Self::clauses`] or [`Self::query`]): `(variable name, sort IRI)`
+    /// pairs, deduplicated and sorted for determinism — the seed for the order-sorted
+    /// unification context a backward-resolution engine builds. A variable with no
+    /// authored sort simply has no entry (sort-checking is opt-in per variable, not a
+    /// closed-world requirement).
+    pub variable_sorts: Vec<(String, String)>,
+}
+
+impl ReasoningProgramIr {
+    /// Construct a reasoning program, canonicalizing [`Self::clauses`],
+    /// [`Self::verdict_probes`], and [`Self::variable_sorts`] into sorted order.
+    ///
+    /// **Hard-fails** (mirrors [`LogicProgram::with_formulas`]'s trivially-Horn guard and
+    /// `module.ttl`'s `logic:ReasoningProgramClauseConstraint` /
+    /// `logic:ReasoningProgramQueryConstraint`) on:
+    /// * an empty IRI or `clauses` (a program with nothing to resolve its goal against);
+    /// * a `verdict_probes` entry that is not an atomic [`Formula::Atom`] (a probe reports
+    ///   one atom's three-valued verdict, never a compound formula's);
+    /// * the same variable name paired with two DIFFERENT sort IRIs in `variable_sorts`
+    ///   (an ambiguous order-sort context the unifier cannot seed deterministically).
+    pub fn new(
+        iri: impl Into<String>,
+        mode: EvaluationMode,
+        clauses: Vec<Formula>,
+        query: Formula,
+        verdict_probes: Vec<Formula>,
+        variable_sorts: Vec<(String, String)>,
+    ) -> gmeow_errors::Result<Self> {
+        let iri = iri.into();
+        if iri.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "ReasoningProgramIr.iri must be a non-empty IRI string".to_owned(),
+            }));
+        }
+        if clauses.is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "ReasoningProgramIr {iri} requires at least one logic:clause; a program \
+                     with no clauses has nothing to resolve its goal against"
+                ),
+            }));
+        }
+        for probe in &verdict_probes {
+            if !matches!(probe, Formula::Atom { .. }) {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "ReasoningProgramIr {iri} logic:verdictProbe must be an atomic \
+                         logic:Formula (a single predication); found a compound formula"
+                    ),
+                }));
+            }
+        }
+        let mut clauses = clauses;
+        clauses.sort_by_cached_key(Formula::sort_key);
+        let mut verdict_probes = verdict_probes;
+        verdict_probes.sort_by_cached_key(Formula::sort_key);
+        let mut variable_sorts = variable_sorts;
+        variable_sorts.sort();
+        variable_sorts.dedup();
+        for pair in variable_sorts.windows(2) {
+            if pair[0].0 == pair[1].0 {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "ReasoningProgramIr {iri} logic:variableSort assigns variable {:?} two \
+                         distinct sorts ({:?} and {:?}); an order-sort context must be \
+                         unambiguous",
+                        pair[0].0, pair[0].1, pair[1].1
+                    ),
+                }));
+            }
+        }
+        Ok(Self {
+            iri,
+            mode,
+            clauses,
+            query,
+            verdict_probes,
+            variable_sorts,
+        })
+    }
+
+    /// The content key: the IRI bound to the mode, the clause/query/probe content keys
+    /// (each clause/probe already canonically sorted), and the variable-sort pairs. Two
+    /// reasoning programs are the same iff they share this key.
+    pub fn content_key(&self) -> String {
+        let clauses = self
+            .clauses
+            .iter()
+            .map(Formula::content_key)
+            .collect::<Vec<_>>()
+            .join(",");
+        let probes = self
+            .verdict_probes
+            .iter()
+            .map(Formula::content_key)
+            .collect::<Vec<_>>()
+            .join(",");
+        let sorts = self
+            .variable_sorts
+            .iter()
+            .map(|(v, s)| format!("{v}{SEP}{s}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        format!(
+            "{}{SEP}{}{SEP}[{clauses}]{SEP}{}{SEP}[{probes}]{SEP}[{sorts}]",
+            self.iri,
+            self.mode.as_str(),
+            self.query.content_key(),
+        )
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // Top-level container
 // --------------------------------------------------------------------------- //
 
@@ -2646,6 +2826,12 @@ pub struct LogicProgram {
     /// [`LogicProgram::with_constraints`]; empty for the historical constraint-free corpus,
     /// so the canonical key is byte-unchanged there.
     pub constraints: Vec<ConstraintIr>,
+    /// Compiled `logic:ReasoningProgram` nodes in canonical (IRI) order — the authored
+    /// clause-set-plus-goal surface that drives the native reasoning engine directly from
+    /// slice content. Attached via [`LogicProgram::with_reasoning_programs`]; empty for the
+    /// historical reasoning-program-free corpus, so the canonical key is byte-unchanged
+    /// there.
+    pub reasoning_programs: Vec<ReasoningProgramIr>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -2675,6 +2861,7 @@ impl LogicProgram {
             formulas: Vec::new(),
             validation_shapes: Vec::new(),
             constraints: Vec::new(),
+            reasoning_programs: Vec::new(),
             source_iri,
         }
     }
@@ -2787,6 +2974,24 @@ impl LogicProgram {
         self
     }
 
+    /// Attach the program's `logic:ReasoningProgram` nodes, canonicalizing them into IRI
+    /// order. Kept separate from [`Self::new`] so existing call sites are untouched and the
+    /// byte-pinned canonical key of a reasoning-program-free program is unchanged (the
+    /// reasoning-programs segment is append-only at the fixed tail when present). Mirrors
+    /// [`Self::with_constraints`]: the IRI is the program's identity, so two reasoning
+    /// programs sharing one would make `canonical_key` depend on supply order — a hard
+    /// invariant violation, rejected rather than silently kept.
+    pub fn with_reasoning_programs(mut self, reasoning_programs: Vec<ReasoningProgramIr>) -> Self {
+        let mut reasoning_programs = reasoning_programs;
+        reasoning_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert!(
+            reasoning_programs.windows(2).all(|w| w[0].iri != w[1].iri),
+            "LogicProgram.reasoning_programs must not contain duplicate program IRIs"
+        );
+        self.reasoning_programs = reasoning_programs;
+        self
+    }
+
     /// A single deterministic, order-independent content key for the whole
     /// program (the Rust analogue of the Python `canonical()` dict — used for
     /// content-hash comparison and equality assertions).  Because the collections
@@ -2880,6 +3085,17 @@ impl LogicProgram {
                 .join("\n");
             key.push_str("\nCONSTRAINTS\n");
             key.push_str(&constraints);
+        }
+        // Append-only at the FIXED tail: a reasoning-program-free program keeps its exact key.
+        if !self.reasoning_programs.is_empty() {
+            let programs = self
+                .reasoning_programs
+                .iter()
+                .map(ReasoningProgramIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nREASONINGPROGRAMS\n");
+            key.push_str(&programs);
         }
         key
     }

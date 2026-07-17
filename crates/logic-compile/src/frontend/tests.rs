@@ -3277,3 +3277,296 @@ fn term_application_carrier_excludes_other_value_kinds() {
         "requires exactly one term-value property",
     );
 }
+
+// ── Reasoning programs (`logic:ReasoningProgram`) — R1 hard-fail (Task 3) ─────────────────
+
+/// A well-formed `logic:ReasoningProgram`: a ground fact `add(z, Y, Y)`, a Horn rule
+/// `add(s(X), Y, s(Z)) :- add(X, Y, Z), not blocked(X)` (a compound `Term::App` head over a
+/// negated body literal), a single goal `add(A, B, Q)`, one `blocked(a)` verdict probe, and
+/// a `logic:variableSort` on the rule's `X` carrier.
+const REASONING_PROGRAM_TTL: &str = "\
+    ex:prog1 a logic:ReasoningProgram ;
+        logic:evaluationMode logic:BackwardEvaluation ;
+        logic:programQuery [ a logic:Formula ;
+            logic:relation ex:add ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"A\" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable \"B\" ] ,
+                           [ logic:termIndex 2 ; logic:termVariable \"Q\" ]
+        ] ;
+        logic:verdictProbe [ a logic:Formula ;
+            logic:relation ex:blocked ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ]
+        ] ;
+        logic:clause [ a logic:Formula ;
+            logic:relation ex:add ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] ,
+                           [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,
+                           [ logic:termIndex 2 ; logic:termVariable \"Y\" ]
+        ] ;
+        logic:clause [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                      logic:relation ex:add ;
+                      logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ] ,
+                                     [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,
+                                     [ logic:termIndex 2 ; logic:termVariable \"Z\" ]
+                    ] ,
+                    [ a logic:Formula ;
+                      logic:not [ a logic:Formula ;
+                          logic:relation ex:blocked ;
+                          logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ]
+                      ]
+                    ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:relation ex:add ;
+                logic:argument [ logic:termIndex 0 ; logic:termApplication ex:sX ] ,
+                               [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,
+                               [ logic:termIndex 2 ; logic:termApplication ex:sZ ]
+            ]
+        ] .
+    ex:sX a logic:FunctionTerm ;
+        logic:functionSymbol ex:s ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] .
+    ex:sZ a logic:FunctionTerm ;
+        logic:functionSymbol ex:s ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable \"Z\" ] .
+";
+
+#[test]
+fn reasoning_program_with_compound_clause_and_negation_parses() {
+    let ex = "https://example.org/test/";
+    let (prog, diags) = parse(REASONING_PROGRAM_TTL);
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "unexpected error diagnostics: {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+    assert_eq!(rp.iri, format!("{ex}prog1"));
+    assert_eq!(rp.mode, EvaluationMode::Backward);
+    assert_eq!(
+        rp.clauses.len(),
+        2,
+        "both the fact and the rule clause parsed: {:?}",
+        rp.clauses
+    );
+    assert_eq!(rp.verdict_probes.len(), 1, "the probe parsed");
+    assert!(
+        matches!(&rp.query, Formula::Atom { relation, .. } if *relation == Term::Iri(format!("{ex}add"))),
+        "query is the add/3 goal atom: {:?}",
+        rp.query
+    );
+    assert!(
+        rp.variable_sorts
+            .contains(&("X".to_owned(), format!("{ex}Nat"))),
+        "the antecedent's X carrier's logic:variableSort must be captured: {:?}",
+        rp.variable_sorts
+    );
+
+    // The clause/query/probe formula trees are owned by the reasoning program; they must
+    // never also enter LogicProgram.formulas (the same one-fact-two-homes hazard
+    // extract_formulas already guards for constraint integrity / recovery-transform roots).
+    assert!(
+        prog.formulas.is_empty(),
+        "clause/query/probe formulas must not also enter LogicProgram.formulas: {:?}",
+        prog.formulas
+    );
+    // Nor must the program's structural predicates/type leak into generic axioms.
+    assert!(
+        prog.axioms.iter().all(|a| {
+            a.obj != logic_iri("ReasoningProgram")
+                && !a.predicate.ends_with("/clause")
+                && !a.predicate.ends_with("/programQuery")
+                && !a.predicate.ends_with("/verdictProbe")
+                && !a.predicate.ends_with("/evaluationMode")
+        }),
+        "reasoning-program structure leaked into generic axioms: {:#?}",
+        prog.axioms
+    );
+
+    // The rule clause carries the nested compound Term::App head (s(X), s(Z)) and the
+    // logic:not body literal.
+    let rule_clause = rp
+        .clauses
+        .iter()
+        .find(|f| matches!(f, Formula::Implies(..)))
+        .expect("the rule clause must be present");
+    let Formula::Implies(antecedent, consequent) = rule_clause else {
+        unreachable!("matched above")
+    };
+    let Formula::Atom { args, .. } = consequent.as_ref() else {
+        panic!("consequent must be an atom: {consequent:?}");
+    };
+    assert!(
+        matches!(&args[0], Term::App { symbol, .. } if symbol == &format!("{ex}s")),
+        "head arg0 must be s(X): {:?}",
+        args[0]
+    );
+    assert!(
+        matches!(&args[2], Term::App { symbol, .. } if symbol == &format!("{ex}s")),
+        "head arg2 must be s(Z): {:?}",
+        args[2]
+    );
+    assert!(
+        matches!(
+            antecedent.as_ref(),
+            Formula::And(parts) if parts.iter().any(|p| matches!(p, Formula::Not(_)))
+        ),
+        "antecedent must carry a logic:not body literal: {antecedent:?}"
+    );
+}
+
+#[test]
+fn reasoning_program_parse_is_deterministic() {
+    // The authored source triples ARE the canonical round-trip surface for reasoning-program
+    // content (see the `projections::rdf::project_canonical_rdf12` doc comment): re-parsing
+    // the identical source twice must yield byte-identical IR, since nothing downstream of
+    // the frontend re-serializes and re-reads this content.
+    let (first, _) = parse(REASONING_PROGRAM_TTL);
+    let (second, _) = parse(REASONING_PROGRAM_TTL);
+    assert_eq!(first.canonical_key(), second.canonical_key());
+}
+
+/// Assert that `ttl` fails to yield any [`ReasoningProgramIr`] and instead emits an
+/// error-grade `MALFORMED_REASONING_PROGRAM` diagnostic containing `expected_detail` —
+/// mirrors [`assert_malformed_formula_error`] for the reasoning-program surface.
+fn assert_malformed_reasoning_program(ttl: &str, expected_detail: &str) {
+    let (prog, diags) = parse(ttl);
+    assert!(
+        prog.reasoning_programs.is_empty(),
+        "a malformed reasoning program must never enter the IR: {:?}",
+        prog.reasoning_programs
+    );
+    assert!(
+        diags.iter().any(|d| {
+            d.code == "MALFORMED_REASONING_PROGRAM"
+                && d.severity == Severity::Error
+                && d.message.contains(expected_detail)
+        }),
+        "expected an error-grade MALFORMED_REASONING_PROGRAM containing {expected_detail:?}: {diags:?}"
+    );
+}
+
+#[test]
+fn reasoning_program_with_zero_clauses_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ]
+            ] .",
+        "at least one logic:clause",
+    );
+}
+
+#[test]
+fn reasoning_program_missing_query_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "exactly one logic:programQuery",
+    );
+}
+
+#[test]
+fn reasoning_program_with_two_queries_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ,
+            [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termVariable \"Y\" ]
+            ] .",
+        "exactly one logic:programQuery",
+    );
+}
+
+#[test]
+fn reasoning_program_with_non_atomic_verdict_probe_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:verdictProbe [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                      logic:relation ex:p ;
+                      logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                                     [ logic:termIndex 1 ; logic:termIri ex:b ] ] ,
+                    [ a logic:Formula ;
+                      logic:relation ex:q ;
+                      logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                                     [ logic:termIndex 1 ; logic:termIri ex:b ] ]
+            ] .",
+        "must be an atomic logic:Formula",
+    );
+}
+
+#[test]
+fn reasoning_program_with_unknown_evaluation_mode_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:FooBarEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "not a recognized logic:EvaluationMode value",
+    );
+}
+
+#[test]
+fn reasoning_program_with_conflicting_variable_sorts_is_hard_failed() {
+    // The same variable `X` is assigned two DIFFERENT sorts across its two carriers — an
+    // ambiguous order-sort context the unifier cannot seed deterministically
+    // (`ReasoningProgramIr::new`'s conflict guard, not a `module.ttl` cardinality rule).
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Str ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "two distinct sorts",
+    );
+}
