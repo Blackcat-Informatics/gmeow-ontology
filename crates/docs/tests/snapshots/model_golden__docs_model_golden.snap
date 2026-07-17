@@ -426,7 +426,7 @@ expression: summary
     ]
   },
   "shape_count": 145,
-  "competency_count": 221,
+  "competency_count": 222,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
