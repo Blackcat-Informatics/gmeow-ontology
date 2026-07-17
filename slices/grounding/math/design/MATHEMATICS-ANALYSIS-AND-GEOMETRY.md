@@ -210,11 +210,16 @@ Core classes: `math:CellComplex`, `math:SimplicialComplex`, `math:VietorisRipsCo
 `math:CechComplex`, `math:AlphaComplex`, `math:Filtration`, `math:FiltrationStage`,
 `math:PersistentHomology`, `math:PersistenceDiagram`, `math:PersistenceBarcode`,
 `math:PersistenceLandscape`, `math:BettiSummary`, `math:MapperConstruction`,
-`math:MultiparameterPersistence`, `math:ZigzagPersistence`, and `math:PersistenceLifetime`.
+`math:MultiparameterPersistence`, `math:ZigzagPersistence`, and `math:PersistenceLifetime`. The
+persistence **objects** (distinct from the activities above) are `math:MultiparameterFiltration`,
+`math:PersistenceModule`, `math:PersistenceMorphism`, `math:ZigzagDiagram`, and the open
+`math:ArrowDirection` vocabulary.
 
 Core properties: `math:hasFiltrationStage`, `math:filtrationThreshold`, `math:stageStructure`,
 `math:filtrationIndexKind`, `math:filtrationAmbient`, `math:overFiltration`, `math:persistenceFeature`,
-`math:bornAt`, and `math:diesAt`.
+`math:bornAt`, and `math:diesAt`; for the persistence objects, `math:filtrationIndexPoset`,
+`math:multiIndex`, `math:moduleIndex`, `math:structureMap`, `math:morphismSource`,
+`math:morphismTarget`, `math:zigzagArrow`, and `math:arrowDirection`.
 
 A `math:Filtration` is a monotone family of substructures of an ambient object indexed by a real-valued
 threshold ε: each `math:FiltrationStage` pairs a `math:filtrationThreshold` (a `math:Quantity`) with
@@ -255,6 +260,55 @@ TDA umbrella. It names its input, exactly one filtration, and one or more persis
 outputs. Barcodes, landscapes, Betti summaries, Mapper constructions, and multi-parameter or zigzag
 specializations remain distinct mathematical result or method classes, so a consumer can state
 exactly which summary it calculated.
+
+#### Multiparameter and zigzag persistence — the OBJECTS, distinct from the ACTIVITIES
+
+`math:MultiparameterPersistence` and `math:ZigzagPersistence` are analysis **activities**
+(`⊑ math:PersistentHomology ⊑ gmeow:Activity`) — they are *methods*, not the things they range over.
+The mathematical **objects** those methods operate on are minted separately, distinctly named, and
+cross-linked to their activities through `rdfs:seeAlso`:
+
+- **`math:MultiparameterFiltration`** (`⊑ math:MathematicalObject`) — a filtration indexed by a
+  **poset of dimension ≥ 2** (`math:filtrationIndexPoset`), not a single real line. It reuses the
+  existing `math:FiltrationStage` / `math:hasFiltrationStage`, but each stage carries a
+  `math:multiIndex` — a `math:Vector` of coordinates in the parameter poset — **rather than** the
+  single real `math:filtrationThreshold` a one-parameter stage carries.
+- **`math:PersistenceModule`** (`⊑ math:MathematicalObject , math:Functor`) — the **algebraic**
+  object: the functor *P*: (index poset as a category) → Vect, naming its index through
+  `math:moduleIndex` and its comparable-pair transition maps through `math:structureMap`. It reuses
+  the shipped `math:Functor` grounding (**L1 reuse** — a persistence module *is* a functor on its
+  index poset), so no parallel category-theory structure is minted. It is held
+  `owl:disjointWith math:PersistenceLifetime`: the whole functor versus one feature's decorated bar.
+- **`math:PersistenceMorphism`** (`⊑ math:Morphism`, U1-light) — a map of persistence modules,
+  naming both endpoints through `math:morphismSource` / `math:morphismTarget`.
+- **`math:ZigzagDiagram`** (`⊑ math:MathematicalObject`) — a sequence whose structure maps
+  (`math:zigzagArrow`) may point forward or backward, each declaring its `math:arrowDirection` over
+  the open `math:ArrowDirection` vocabulary (`math:forwardArrow` / `math:backwardArrow`), minted like
+  `math:CellOrientation`.
+
+**Non-collapse is the whole point, and it is executable.** A genuinely multi-parameter or
+bidirectional construction must never silently degrade to the one-parameter, forward-only case. Three
+structural guards make this a hard fail rather than a hope: `math:CollapsedMultiparameterFiltration`
+(stages carrying only a real `math:filtrationThreshold` and no `math:multiIndex` — a cross-node
+existence `logic:Constraint`), `math:DiagonalDegenerateFiltration` (a 2-index whose coordinates are
+functionally dependent, the diagonal (*t*, *t*) — a cross-node equality `logic:Constraint`), and
+`math:DegenerateZigzagDiagram` (a diagram declaring no `math:backwardArrow` — a guarded-existence
+`logic:Constraint`). Each lowers to a `sh:SPARQLConstraint`. The missing-frame cases
+(`math:IncompleteMultiparameterFiltration`, `math:IncompletePersistenceModule`,
+`math:IncompletePersistenceMorphism`) are declarative `owl:minQualifiedCardinality` frames, and the
+module/lifetime conflation (`math:PersistenceModuleLifetimeConflation`) is the direct
+`owl:disjointWith` axiom's derived `sh:not`, wired exactly like `math:ProbabilityScaleConflation`.
+
+**The principled reason, stronger than the guards.** Carlsson–Zomorodian (*The Theory of
+Multidimensional Persistence*, Discrete & Computational Geometry 42(1), 2009) proved that
+multiparameter persistence admits **no complete discrete invariant**: unlike the one-parameter case,
+whose barcode is a complete discrete invariant, no finite discrete summary classifies a multiparameter
+module up to isomorphism. This is *why* a multiparameter filtration cannot be reduced to a family of
+one-parameter runs, and it is genuinely second-order (it ∀-quantifies over the family of all candidate
+discrete invariants and asserts none is complete). It is recorded honestly as
+`math:multiparameterInvariantBoundary` (`logic:expressivenessBoundary logic:SecondOrder`,
+`logic:preservationKind logic:Unsupported`), mirroring `math:compactnessBoundary` and
+`math:smoothnessBoundary` — never faked as a first-order `logic:Formula`.
 
 ### Cellular sheaves and Hodge structure
 

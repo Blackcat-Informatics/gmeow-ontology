@@ -28,6 +28,10 @@
 # The worked graded cell complex (examples/graded-cell-complex.ttl).
 @prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
 @prefix exgs:  <https://blackcatinformatics.ca/gmeow/examples/math/global-section/> .
+# The multiparameter / zigzag persistence positive fixtures (issue #1527).
+@prefix exmf:  <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration/> .
+@prefix expm:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-module/> .
+@prefix expx:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-morphism/> .
 # The worked chain complex (examples/chain-complex.ttl).
 @prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
 # The conforming chain-complex fixture (tests/conformance-fixtures/chain-complex-square-zero-complete.ttl).
@@ -2730,3 +2734,70 @@ ex:cqConstantSheafShape a logic:ResultShape ;
 ex:rowConstantSheaf a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exccf:constantSheaf ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "homology" ; gmeow:cellValueIri exccf:homologyH1 ] .
+
+# === Multiparameter / zigzag persistence OBJECT frames (issue #1527, Commit D) === #
+
+ex:cqMultiparameterFiltrationFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/multiparameter-filtration-frame.rq" ;
+    gmeow:cqDataFile "examples/multiparameter-filtration-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:MultiparameterFiltration exposes its parameter poset (math:filtrationIndexPoset) and its stages, each carrying a math:multiIndex tuple rather than a single real threshold — the frame that keeps the multi-parameter index inspectable and the object distinct from the math:MultiparameterPersistence activity." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMultiparameterFiltrationFrameShape ;
+    gmeow:cqExpectRow ex:rowMultiparameterFiltrationFrame .
+
+ex:cqMultiparameterFiltrationFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "filtration" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "poset" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "stage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "index" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMultiparameterFiltrationFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filtration" ; gmeow:cellValueIri exmf:filtration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "poset" ; gmeow:cellValueIri exmf:grid ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri exmf:stage ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "index" ; gmeow:cellValueIri exmf:index ] .
+
+ex:cqPersistenceModuleFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/persistence-module-frame.rq" ;
+    gmeow:cqDataFile "examples/persistence-module-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PersistenceModule exposes the index poset it is a functor over (math:moduleIndex) and its comparable-pair transition maps (math:structureMap) — the functor frame that keeps the algebraic object distinct from a single feature's math:PersistenceLifetime." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqPersistenceModuleFrameShape ;
+    gmeow:cqExpectRow ex:rowPersistenceModuleFrame .
+
+ex:cqPersistenceModuleFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "module" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "index" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "map" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPersistenceModuleFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "module" ; gmeow:cellValueIri expm:module ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "index" ; gmeow:cellValueIri expm:indexPoset ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri expm:transition01 ] .
+
+ex:cqPersistenceMorphismFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/persistence-morphism-frame.rq" ;
+    gmeow:cqDataFile "examples/persistence-morphism-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PersistenceMorphism exposes both endpoints — its domain math:morphismSource and its codomain math:morphismTarget, each a math:PersistenceModule — the map-of-modules frame that keeps a map between modules from floating free of the modules it relates." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqPersistenceMorphismFrameShape ;
+    gmeow:cqExpectRow ex:rowPersistenceMorphismFrame .
+
+ex:cqPersistenceMorphismFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "morphism" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPersistenceMorphismFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "morphism" ; gmeow:cellValueIri expx:morphism ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri expx:sourceModule ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri expx:targetModule ] .

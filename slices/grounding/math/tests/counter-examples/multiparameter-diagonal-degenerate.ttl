@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DiagonalDegenerateFiltrationConstraint (issue #1527): a
+# math:MultiparameterFiltration whose stage carries a math:multiIndex whose two
+# components — at DISTINCT positions 0 and 1 — share the SAME math:componentValue node,
+# a diagonal (t, t) index that is functionally dependent and genuinely one-parametric
+# despite the 2-tuple. The cross-node equality constraint (two components at distinct
+# indices carrying the same math:componentValue) fires — shacl.SPARQLConstraintComponent
+# (math:DiagonalDegenerateFiltration).
+# ISOLATION: the filtration IS complete for its frame (math:filtrationIndexPoset and a
+# math:hasFiltrationStage present), so math:IncompleteMultiparameterFiltration stays silent;
+# a math:multiIndex IS present, so math:CollapsedMultiparameterFiltration cannot fire; the
+# shared value math:RationalValue is well-formed (numerator and denominator present). So
+# EXACTLY ONE finding.
+# Back-reference: math:DiagonalDegenerateFiltration (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecMultiparameterDiagonal).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:diagonal a math:MultiparameterFiltration ;
+    math:filtrationIndexPoset ex:grid ;          # completes the frame
+    math:hasFiltrationStage ex:stage .           # completes the frame
+
+ex:grid a math:MathematicalObject .
+
+ex:stage a math:FiltrationStage ; math:multiIndex ex:index .
+
+# Both coordinates, at indices 0 and 1, point at the SAME value node ex:tCoord — the
+# functionally dependent diagonal (t, t).
+ex:index a math:Vector ; math:hasComponent ex:coord0 , ex:coord1 .
+ex:coord0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue ex:tCoord .
+ex:coord1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue ex:tCoord .
+
+ex:tCoord a math:RationalValue ; math:numerator 4 ; math:denominator 1 ; math:isExact true .

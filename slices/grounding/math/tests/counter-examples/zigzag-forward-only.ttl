@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DegenerateZigzagDiagramConstraint (issue #1527): a
+# math:ZigzagDiagram whose every math:zigzagArrow points FORWARD (math:forwardArrow) —
+# no math:backwardArrow at all — so it has collapsed to ordinary forward-only
+# single-parameter persistence. The guarded-existence constraint (a zigzag diagram must
+# have at least one arrow whose math:arrowDirection is math:backwardArrow) fires —
+# shacl.SPARQLConstraintComponent (math:DegenerateZigzagDiagram).
+# ISOLATION: the diagram and its arrows are otherwise well-formed; the only defect is the
+# absence of a backward arrow, so EXACTLY ONE finding.
+# Back-reference: math:DegenerateZigzagDiagram (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecZigzagForwardOnly).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:forwardOnly a math:ZigzagDiagram ;
+    math:zigzagArrow ex:arrow01 , ex:arrow12 .
+
+# Every arrow points forward — no math:backwardArrow, so the zigzag is degenerate.
+ex:arrow01 a math:Morphism ; math:arrowDirection math:forwardArrow .
+ex:arrow12 a math:Morphism ; math:arrowDirection math:forwardArrow .

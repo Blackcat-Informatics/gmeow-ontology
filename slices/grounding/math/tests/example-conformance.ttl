@@ -1371,3 +1371,66 @@ ex:ecCoboundaryNotInImage a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:Coboundary declaring no math:coboundaryOf (sh:qualifiedMinCount 1 onClass math:CoboundaryOperator, derived from the min-1 qualified math:coboundaryOf restriction), so it is not grounded as the image of a coboundary operator; validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCoboundary)." .
+
+# === Multiparameter / zigzag persistence OBJECTS (issue #1527, Commit D) ===== #
+
+ex:ecMultiparameterFiltrationComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/multiparameter-filtration-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MultiparameterFiltration naming its math:filtrationIndexPoset and a math:hasFiltrationStage whose math:multiIndex is a two-component math:Vector with INDEPENDENT exact coordinates satisfies its frame, carries a genuine multi-index (so math:CollapsedMultiparameterFiltration stays silent), and has functionally independent coordinates (so math:DiagonalDegenerateFiltration stays silent); validation emits no findings." .
+
+ex:ecPersistenceModuleComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/persistence-module-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PersistenceModule (a subclass of the existing math:Functor grounding) naming its math:moduleIndex poset and a math:structureMap satisfies its frame; it is not also a math:PersistenceLifetime, so math:PersistenceModuleLifetimeConflation stays silent, and validation emits no findings." .
+
+ex:ecPersistenceMorphismComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/persistence-morphism-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PersistenceMorphism naming both its math:morphismSource and math:morphismTarget math:PersistenceModule endpoints satisfies its frame, and both endpoint modules name their own math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays silent; validation emits no findings." .
+
+ex:ecZigzagDiagramComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/zigzag-diagram-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ZigzagDiagram declaring a math:zigzagArrow whose math:arrowDirection is math:backwardArrow (alongside a forward arrow) is genuinely bidirectional, so math:DegenerateZigzagDiagram stays silent and validation emits no findings." .
+
+ex:ecMultiparameterPersistenceBundle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/multiparameter-persistence.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The bundle demonstrator exhibits a well-formed math:MultiparameterFiltration (independent multi-index coordinates), math:PersistenceModule, math:PersistenceMorphism, and a bidirectional math:ZigzagDiagram together; every object satisfies its frame and none trips a collapse guard, so validation emits no findings." .
+
+ex:ecMultiparameterCollapse a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-collapses-to-oneparam.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration whose stage carries only a single real math:filtrationThreshold and NO math:multiIndex, so the cross-node existence constraint math:CollapsedMultiparameterFiltrationConstraint (a multiparameter filtration must have at least one stage carrying a math:multiIndex) fires. It IS complete for its frame — math:filtrationIndexPoset and a math:hasFiltrationStage are present, so math:IncompleteMultiparameterFiltration stays silent — and there is no math:multiIndex at all, so math:DiagonalDegenerateFiltration cannot fire; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:CollapsedMultiparameterFiltration)." .
+
+ex:ecMultiparameterDiagonal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-diagonal-degenerate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration whose stage's math:multiIndex carries two components at distinct math:atIndex positions (0 and 1) sharing the SAME math:componentValue node — the diagonal (t, t) — so the cross-node equality constraint math:DiagonalDegenerateFiltrationConstraint fires. It IS complete for its frame (poset and stage present) and a math:multiIndex IS present (so math:CollapsedMultiparameterFiltration cannot fire); validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DiagonalDegenerateFiltration)." .
+
+ex:ecZigzagForwardOnly a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/zigzag-forward-only.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ZigzagDiagram whose every math:zigzagArrow is a math:forwardArrow — no math:backwardArrow — so the guarded-existence constraint math:DegenerateZigzagDiagramConstraint (a zigzag must have at least one backward arrow) fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DegenerateZigzagDiagram)." .
+
+ex:ecPersistenceModuleLifetimeConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-lifetime-as-module.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is ONE node typed BOTH math:PersistenceModule and math:PersistenceLifetime, tripping the sh:not [ sh:class math:PersistenceLifetime ] of math:PersistenceModuleLifetimeConflationShape (the derived twin of the direct math:PersistenceModule owl:disjointWith math:PersistenceLifetime axiom). It is COMPLETE for both kinds — its math:moduleIndex and math:structureMap satisfy the module frame, and its math:overFiltration, math:persistenceFeature, math:bornAt, and essential math:diesAt math:PositiveInfinity satisfy the lifetime frame — so ONLY the sh:not fires: validation MUST emit shacl.NotConstraintComponent and NO other finding (math:PersistenceModuleLifetimeConflation)." .
+
+ex:ecPersistenceModuleIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-module-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PersistenceModule naming its math:moduleIndex but omitting any math:structureMap (sh:qualifiedMinCount 1, derived from the min-1 qualified math:structureMap restriction); the math:moduleIndex arm stays satisfied and the node is not also a math:PersistenceLifetime, so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceModule)." .
+
+ex:ecPersistenceMorphismNoTarget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-morphism-no-target.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PersistenceMorphism naming its math:morphismSource but omitting its math:morphismTarget (sh:qualifiedMinCount 1, derived from the min-1 qualified math:morphismTarget restriction); the math:morphismSource arm stays satisfied by a well-formed math:PersistenceModule (naming its math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceMorphism)." .
