@@ -12,7 +12,7 @@
 # math:StabilityCalibrationRecord underwritten by math:bottleneckStabilityTheorem.
 # The claim carries its feature as a math:LocalSection, extends it to a
 # math:GlobalSection (H⁰), and discharges the H¹ math:GluingObstruction — so, and
-# only so, its asserted global truth is legal (Req 7). The math: complex/sheaf/
+# only so, its asserted global truth is legal. The math: complex/sheaf/
 # section/obstruction objects are fully framed here (mirroring the math: slice's
 # chain-complex and global-section fixtures) so the demonstrator validates clean.
 
@@ -165,7 +165,7 @@ ex:obstruction a math:GluingObstruction ;
     rdfs:label "the discharged (vanishing) H¹ obstruction"@en ;
     math:obstructionOf ex:sheaf .
 
-# --- The warranted confidence: a stability calibration record (L3) ----------- #
+# --- The warranted confidence: a stability calibration record ---------------- #
 # The credence rides math:StabilityCalibrationRecord underwritten by the
 # Cohen-Steiner–Edelsbrunner–Harer bottleneck stability theorem — a theorem-bounded
 # confidence, not an unwarranted scalar (no new confidence vocabulary is minted).
@@ -178,12 +178,12 @@ ex:calibration a math:StabilityCalibrationRecord ;
     math:credenceDerivationKind math:persistenceDerivedCredence ;
     math:stabilityGuarantee math:bottleneckStabilityTheorem .
 
-# --- The attributed status ensemble (Req 6): a Finding with severity ---------- #
+# --- The attributed status ensemble: a Finding with severity ----------------- #
 ex:finding a gmeow:Finding ;
     rdfs:label "proposal: the maintainer cluster is a stable global feature"@en ;
     gmeow:findingSeverity gmeow:severityInfo .
 
-# --- The truth-apt, vantage-attributed, defeasible claim (Req 7 + L3) -------- #
+# --- The truth-apt, vantage-attributed, defeasible claim --------------------- #
 # The feature is a math:LocalSection over the standpoint's sub-evidence; it is a
 # global truth ONLY because it extends to a math:GlobalSection (H⁰) AND discharges
 # the H¹ math:GluingObstruction. The claim is held FROM a vantage, carries an

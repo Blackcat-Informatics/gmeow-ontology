@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for the math:ParallelTransport frame (issue #1527, Commit E): a
+# Counter-example for the math:ParallelTransport frame: a
 # math:ParallelTransport naming its math:transportConnection rule but omitting its
 # math:transportAlong path — transport that goes nowhere. The min-1 qualified restriction on
 # math:transportAlong derives a sh:qualifiedMinCount property shape, so validation MUST emit

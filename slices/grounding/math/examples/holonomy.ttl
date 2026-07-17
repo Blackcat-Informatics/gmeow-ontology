@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # The bundle-visible demonstrator for connections, parallel transport, and holonomy
-# (issue #1527, Commit E). It exhibits BOTH readings side by side:
+# It exhibits BOTH readings side by side:
 #
 #   PRIMARY (discrete): the math:SheafRestrictionMaps of a math:CellularSheaf on a
 #   3-cell loop ARE a math:Connection (math:connectionOfSheaf). Parallel transport is

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:DiagonalDegenerateFiltrationConstraint (issue #1527): a
+# Counter-example for math:DiagonalDegenerateFiltrationConstraint: a
 # math:MultiparameterFiltration whose stage carries a math:multiIndex whose two
 # components — at DISTINCT positions 0 and 1 — share the SAME math:componentValue node,
 # a diagonal (t, t) index that is functionally dependent and genuinely one-parametric

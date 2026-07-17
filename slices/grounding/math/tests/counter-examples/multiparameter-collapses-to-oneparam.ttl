@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:CollapsedMultiparameterFiltrationConstraint (issue #1527): a
+# Counter-example for math:CollapsedMultiparameterFiltrationConstraint: a
 # math:MultiparameterFiltration whose stages carry ONLY a single real
 # math:filtrationThreshold and NO math:multiIndex — a nominally multi-parameter
 # filtration silently degraded to the one-parameter case. The cross-node existence

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:PersistenceModuleLifetimeConflationShape (issue #1527): ONE node
+# Counter-example for math:PersistenceModuleLifetimeConflationShape: ONE node
 # typed BOTH math:PersistenceModule AND math:PersistenceLifetime — the whole algebraic functor
 # P: (index poset) → Vect conflated with the birth–death interval of a SINGLE feature. They are
 # held owl:disjointWith by a DIRECT axiom (both descend from math:MathematicalObject, so the

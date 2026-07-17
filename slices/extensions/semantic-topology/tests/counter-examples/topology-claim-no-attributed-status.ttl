@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for gmeow:TopologyClaimStatusConstraint (gmeow:TopologyClaimMissingStatus,
-# Req 6): a gmeow:TopologyClaim that carries its inherited gmeow:observationMethod (so the
+# Counter-example for gmeow:TopologyClaimStatusConstraint (gmeow:TopologyClaimMissingStatus):
+# a gmeow:TopologyClaim that carries its inherited gmeow:observationMethod (so the
 # gmeow:StandpointClaim exactly-one observation-method obligation is satisfied and NOT the
 # violation under test) and its result, but carries NO gmeow:vantage attribution. A computed
 # feature must land as a vantage-attributed, defeasible claim, so the ∀→∃ SPARQL constraint

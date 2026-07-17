@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for the GOVERNING gmeow:AssertedTopologyResultConstraint (Req 7): a
+# Counter-example for the GOVERNING gmeow:AssertedTopologyResultConstraint: a
 # gmeow:TopologyComputation asserts a global truth (gmeow:assertsGlobalTruth true) but NO
 # gmeow:TopologyClaim discharges it — there is no claim that gmeow:claimForComputation this
 # computation, extends its data to a math:GlobalSection, AND discharges the H¹

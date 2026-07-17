@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The semantic-topology extension slice (issue #1527, Workstream B / Commit F).
+# The semantic-topology extension slice.
 # It is a CONSUMER extension: it mints ONLY bridge terms that COMPOSE the shipped
 # grounding referents (math: topology objects, the logic: loss ledger) with the
 # core claim/evidence/standpoint spine. It grounds NOTHING itself — no
@@ -23,7 +23,7 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 
 # =========================================================================== #
-# Req 1 — the compiler profile activity                                        #
+# The compiler profile activity                                                #
 # =========================================================================== #
 
 gmeow:ComplexCompilation
@@ -80,7 +80,7 @@ gmeow:recordsPreservation
     skos:definition "Relates a gmeow:ComplexCompilation to the gmeow:CompilationPreservationRecord carrying its preservation/loss judgment — reusing the logic: loss ledger VERBATIM (logic:preservationKind, and logic:expressivenessBoundary for a genuinely lossy compilation). Every compilation MUST record one (gmeow:CompilationMustRecordLoss): compiling evidence into a complex is a projection, and an honest projection names what it dropped (Principle 17). It is NOT gmeow:recordsCorrespondence (the cell↔span provenance mapping)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-# --- Req 5: the epistemic-context binding properties (reuse core/logic contexts) --
+# --- The epistemic-context binding properties (reuse core/logic contexts) ---------
 
 gmeow:compilationStandpoint
     a owl:ObjectProperty ;
@@ -119,7 +119,7 @@ gmeow:compilationScenario
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
-# Req 2 — cell ↔ source correspondence                                         #
+# Cell ↔ source correspondence                                                 #
 # =========================================================================== #
 
 gmeow:CellSourceCorrespondence
@@ -142,7 +142,7 @@ gmeow:cellSource
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
-# Req 3 — preservation / loss (REUSES the logic: loss ledger verbatim)         #
+# Preservation / loss (REUSES the logic: loss ledger verbatim)                 #
 # =========================================================================== #
 
 gmeow:CompilationPreservationRecord
@@ -155,7 +155,7 @@ gmeow:CompilationPreservationRecord
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
-# Req 4 — computation activity, result artifact, and their binding             #
+# Computation activity, result artifact, and their binding                     #
 # =========================================================================== #
 
 gmeow:TopologyComputation
@@ -223,7 +223,7 @@ gmeow:assertsGlobalTruth
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
-# Req 7 (GOVERNING) — the truth-apt claim wrapper                              #
+# The governing truth-apt claim wrapper                                        #
 # A computed feature over a standpoint's sub-evidence is a math:LocalSection;   #
 # it is a global truth IFF it extends to a math:GlobalSection (H⁰), and the H¹  #
 # math:GluingObstruction is the computable witness of why it may not.           #
@@ -307,7 +307,7 @@ gmeow:CompilationMissingContext
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation Missing Context"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TopologyConformanceFailure ;
-    skos:definition "The failure raised when a gmeow:ComplexCompilation omits its required epistemic context — its gmeow:compilationStandpoint, gmeow:compilationWorld, or gmeow:compilationTimeScope (Req 5). A compiled topology with no standpoint/world/time frame floats free of the perspective, possibility, and interval it is relative to, so its features could be mistaken for context-free truths. Enforced by gmeow:CompilationContextConstraint."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:ComplexCompilation omits its required epistemic context — its gmeow:compilationStandpoint, gmeow:compilationWorld, or gmeow:compilationTimeScope. A compiled topology with no standpoint/world/time frame floats free of the perspective, possibility, and interval it is relative to, so its features could be mistaken for context-free truths. Enforced by gmeow:CompilationContextConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TopologyClaimMissingStatus
@@ -315,7 +315,7 @@ gmeow:TopologyClaimMissingStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Claim Missing Status"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TopologyConformanceFailure ;
-    skos:definition "The failure raised when a gmeow:TopologyClaim carries no attributed status — no gmeow:vantage attribution naming the standpoint/agent the feature is claimed from (Req 6). An unattributed topology claim is an anonymous assertion, exactly what the local-vs-global discipline forbids: a computed feature lands as a vantage-attributed, defeasible claim (with its gmeow:Finding severity and defeasible/candidate status), never as an anonymous truth. Enforced by gmeow:TopologyClaimStatusConstraint."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:TopologyClaim carries no attributed status — no gmeow:vantage attribution naming the standpoint/agent the feature is claimed from. An unattributed topology claim is an anonymous assertion, exactly what the local-vs-global discipline forbids: a computed feature lands as a vantage-attributed, defeasible claim (with its gmeow:Finding severity and defeasible/candidate status), never as an anonymous truth. Enforced by gmeow:TopologyClaimStatusConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ResultObjectConflation
@@ -323,7 +323,7 @@ gmeow:ResultObjectConflation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Result Object Conflation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TopologyConformanceFailure ;
-    skos:definition "The failure raised (F8) when a gmeow:TopologyComputation's gmeow:producesResult value is CONFLATED with a raw math: object — the result node is itself typed in the math: namespace instead of being a gmeow:TopologyResult wrapper that REFERENCES the math: object through gmeow:resultArtifact. Conflating the consumer-side result with the pure mathematical referent collapses the audit wrapper into the mathematics and lets a computed object be mistaken for a mathematical fact. Enforced by gmeow:ResultObjectConflationConstraint."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:TopologyComputation's gmeow:producesResult value is CONFLATED with a raw math: object — the result node is itself typed in the math: namespace instead of being a gmeow:TopologyResult wrapper that REFERENCES the math: object through gmeow:resultArtifact. Conflating the consumer-side result with the pure mathematical referent collapses the audit wrapper into the mathematics and lets a computed object be mistaken for a mathematical fact. Enforced by gmeow:ResultObjectConflationConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
@@ -382,7 +382,7 @@ gmeow:cmrlAtom a logic:Formula ; logic:relation gmeow:recordsPreservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "rec" ] .
 
-# --- Req 5: a compilation carries its standpoint/world/time context ---------- #
+# --- A compilation carries its standpoint/world/time context ----------------- #
 gmeow:CompilationContextConstraint
     a logic:Constraint ;
     rdfs:label "Compilation context constraint"@x-gmeow-english ;
@@ -414,13 +414,13 @@ gmeow:cmcWorld a logic:Formula ; logic:relation gmeow:compilationWorld ;
 gmeow:cmcTime a logic:Formula ; logic:relation gmeow:compilationTimeScope ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
 
-# --- Req 6: a topology claim carries an attributed status -------------------- #
+# --- A topology claim carries an attributed status --------------------------- #
 gmeow:TopologyClaimStatusConstraint
     a logic:Constraint ;
     rdfs:label "Topology claim attributed-status constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:TopologyClaim MUST carry an attributed status — a gmeow:vantage attribution naming the standpoint/agent the computed feature is claimed FROM (Req 6; gmeow:vantage ⊑ gmeow:accordingTo). An unattributed topology claim is an anonymous assertion, exactly what the local-vs-global discipline forbids: a computed feature lands as a vantage-attributed, defeasible claim (gmeow:TopologyClaimMissingStatus). A cross-node ∀→∃ formula scoped to gmeow:TopologyClaim, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:TopologyClaim MUST carry an attributed status — a gmeow:vantage attribution naming the standpoint/agent the computed feature is claimed FROM (gmeow:vantage ⊑ gmeow:accordingTo). An unattributed topology claim is an anonymous assertion, exactly what the local-vs-global discipline forbids: a computed feature lands as a vantage-attributed, defeasible claim (gmeow:TopologyClaimMissingStatus). A cross-node ∀→∃ formula scoped to gmeow:TopologyClaim, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:TopologyClaim ;
     gmeow:enforcesFailureClass gmeow:TopologyClaimMissingStatus ;
     logic:severity "Violation" ;
@@ -440,7 +440,7 @@ gmeow:tcsAtom a logic:Formula ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
-# --- Req 7 (GOVERNING): no raw topology result asserted as global truth ------ #
+# --- The governing invariant: no raw topology result asserted as global truth  #
 # A gmeow:TopologyComputation carrying gmeow:assertsGlobalTruth true is well-formed
 # ONLY when a gmeow:TopologyClaim wraps it (gmeow:claimForComputation), extends its
 # local data to a math:GlobalSection (gmeow:extendsToGlobalSection), AND discharges
@@ -479,17 +479,17 @@ gmeow:artDischarge a logic:Formula ; logic:relation gmeow:dischargesObstruction 
 gmeow:artExtends a logic:Formula ; logic:relation gmeow:extendsToGlobalSection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
 
-# --- F8: a computation result must not be conflated with a raw math: object -- #
+# --- a computation result must not be conflated with a raw math: object ------ #
 # A gmeow:TopologyComputation must NOT point gmeow:producesResult at a node that is
 # itself typed in the math: namespace — the result must be a gmeow:TopologyResult
 # wrapper that REFERENCES the math: object through gmeow:resultArtifact. A ∀→¬∃
 # formula using the math: namespace prefix test (like the shipped flagship gate).
 gmeow:ResultObjectConflationConstraint
     a logic:Constraint ;
-    rdfs:label "Result-object conflation constraint (F8)"@x-gmeow-english ;
+    rdfs:label "Result-object conflation constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (F8): a gmeow:TopologyComputation's gmeow:producesResult value must NOT itself be typed in the math: namespace — a computation result that IS a raw math: object (a math:PersistenceDiagram, a math:BettiSummary, …) has conflated the consumer-side result with the pure mathematical referent (gmeow:ResultObjectConflation). The result must be a gmeow:TopologyResult wrapper referencing the math: object through gmeow:resultArtifact. A cross-node ∀→¬∃ formula testing the result's type for the math: namespace prefix, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:TopologyComputation's gmeow:producesResult value must NOT itself be typed in the math: namespace — a computation result that IS a raw math: object (a math:PersistenceDiagram, a math:BettiSummary, …) has conflated the consumer-side result with the pure mathematical referent (gmeow:ResultObjectConflation). The result must be a gmeow:TopologyResult wrapper referencing the math: object through gmeow:resultArtifact. A cross-node ∀→¬∃ formula testing the result's type for the math: namespace prefix, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:TopologyComputation ;
     gmeow:enforcesFailureClass gmeow:ResultObjectConflation ;
     logic:severity "Violation" ;
@@ -525,7 +525,7 @@ gmeow:rocMathNs a logic:Formula ; logic:relation logic:termStrStarts ;
     rdfs:comment "The extension mints ONLY bridge terms (Principle 19): it COMPOSES the shipped math: topology objects (math:CellComplex/math:SimplicialComplex, math:Filtration, math:Cell, math:PersistentHomology and the math:PersistenceDiagram/Barcode/Landscape/BettiSummary/HodgeDecomposition/Holonomy result artifacts, math:GlobalSection/math:LocalSection/math:GluingObstruction, math:StabilityCalibrationRecord/math:bottleneckStabilityTheorem), the logic: loss ledger (logic:preservationKind, logic:expressivenessBoundary), and the core claim/evidence/standpoint spine — grounding NOTHING itself and hand-authoring no shapes (the pipeline derives them). Compiled RDF 1.2 claim/evidence/proof INSTANCE data lives in the consumer lillith_decodes; this slice is the vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "GMEOW Semantic-Topology Module"@x-gmeow-english ;
-    skos:definition "The semantic-topology consumer extension (issue #1527, Workstream B): it compiles RDF 1.2 claim/evidence/proof structures into declared math: complexes and filtrations, records the cell↔source correspondence and the preservation/loss judgment, runs persistent-homology computations whose results are attributed wrappers around math: objects, and wraps a computed feature as a standpoint-relative, defeasible gmeow:TopologyClaim carrying a theorem-warranted logic:confidence. Its governing rule: a computed topological feature over a standpoint's sub-evidence is a math:LocalSection and is NEVER automatically a global truth — global truth holds IFF the local data extend to a math:GlobalSection (H⁰), and the H¹ math:GluingObstruction is the computable witness of why they may not."@x-gmeow-english ;
+    skos:definition "The semantic-topology consumer extension: it compiles RDF 1.2 claim/evidence/proof structures into declared math: complexes and filtrations, records the cell↔source correspondence and the preservation/loss judgment, runs persistent-homology computations whose results are attributed wrappers around math: objects, and wraps a computed feature as a standpoint-relative, defeasible gmeow:TopologyClaim carrying a theorem-warranted logic:confidence. Its governing rule: a computed topological feature over a standpoint's sub-evidence is a math:LocalSection and is NEVER automatically a global truth — global truth holds IFF the local data extend to a math:GlobalSection (H⁰), and the H¹ math:GluingObstruction is the computable witness of why they may not."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 

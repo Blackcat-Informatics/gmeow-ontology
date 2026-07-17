@@ -10,7 +10,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
 
-# --- 1. The GOVERNING axiom: a topology claim is a standpoint claim (Req 7) --- #
+# --- 1. The GOVERNING axiom: a topology claim is a standpoint claim ----------- #
 ex:saTopologyClaimIsStandpointClaim a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -21,7 +21,7 @@ ASK {
     gmeow:TopologyClaim a owl:Class ;
         rdfs:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "The governing EL-safe axiom: gmeow:TopologyClaim MUST be an owl:Class subClassOf gmeow:StandpointClaim — a computed feature lands as a standpoint-relative, vantage-attributed claim, never as an asserted global truth (Req 7)." .
+    gmeow:saRationale "The governing EL-safe axiom: gmeow:TopologyClaim MUST be an owl:Class subClassOf gmeow:StandpointClaim — a computed feature lands as a standpoint-relative, vantage-attributed claim, never as an asserted global truth." .
 
 # --- 2. The compilation/computation activities and object/record kinds -------- #
 ex:saActivitiesAndKinds a gmeow:StructuralAssertion ;
@@ -40,7 +40,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The compiler and computation profiles MUST be logic:Event gmeow:Activities (gmeow:ComplexCompilation, gmeow:TopologyComputation), and the correspondence/preservation/result artifacts MUST be gmeow:InformationObjects — the occurrent that makes/runs the topology and the information objects it emits." .
 
-# --- 3. Provenance-spine REUSE: cellSource ⊑ wasDerivedFrom (Req 2) ---------- #
+# --- 3. Provenance-spine REUSE: cellSource ⊑ wasDerivedFrom ------------------ #
 ex:saCellSourceReusesProvenance a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -54,7 +54,7 @@ ASK {
         rdfs:domain math:Cell ;
         rdfs:range gmeow:EvidenceSpan .
 }""" ;
-    gmeow:saRationale "The cell↔source correspondence edge gmeow:cellSource MUST REUSE the provenance spine (rdfs:subPropertyOf gmeow:wasDerivedFrom) and map a math:Cell to a gmeow:EvidenceSpan — a bridge edge over shipped terms, not a parallel provenance relation (Req 2)." .
+    gmeow:saRationale "The cell↔source correspondence edge gmeow:cellSource MUST REUSE the provenance spine (rdfs:subPropertyOf gmeow:wasDerivedFrom) and map a math:Cell to a gmeow:EvidenceSpan — a bridge edge over shipped terms, not a parallel provenance relation." .
 
 # --- 4. The Req-7 grounding edges range over the shipped math: Task-3 terms -- #
 ex:saLocalGlobalObstructionGrounding a gmeow:StructuralAssertion ;

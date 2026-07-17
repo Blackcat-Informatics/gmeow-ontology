@@ -28,11 +28,11 @@
 # The worked graded cell complex (examples/graded-cell-complex.ttl).
 @prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
 @prefix exgs:  <https://blackcatinformatics.ca/gmeow/examples/math/global-section/> .
-# The multiparameter / zigzag persistence positive fixtures (issue #1527).
+# The multiparameter / zigzag persistence positive fixtures.
 @prefix exmf:  <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration/> .
 @prefix expm:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-module/> .
 @prefix expx:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-morphism/> .
-# The connection / holonomy bundle demonstrator (examples/holonomy.ttl, issue #1527 Commit E).
+# The connection / holonomy bundle demonstrator (examples/holonomy.ttl).
 @prefix exh:   <https://blackcatinformatics.ca/gmeow/examples/math/holonomy/> .
 # The worked chain complex (examples/chain-complex.ttl).
 @prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
@@ -2165,7 +2165,7 @@ ex:rowAnalysisPlanVersion a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:analysisPlanVersion ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "2.1" ] .
 
-# === Task 7 — piecewise pieces and analytic-property backing ================ #
+# === Piecewise pieces and analytic-property backing ========================= #
 
 ex:cqPiecewisePieces a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/piecewise-pieces.rq" ;
@@ -2228,7 +2228,7 @@ ex:rowAnalyticSmoothness a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:smoothness ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:smoothnessBoundary ] .
 
-# === Task 8 — the two flagship signed-radial-field scenes =================== #
+# === The two flagship signed-radial-field scenes ============================ #
 # The qualitative scene: the whole target recovered with NO closed form. The seven
 # rows are the two divergent poles, the plateau bound, and the four ring masses.
 ex:cqRadialFieldQualitative a gmeow:CompetencyQuestion ;
@@ -2337,7 +2337,7 @@ ex:rowCFNegQ a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfNegQ ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Negation ] .
 
-# === Task 9 — external-corpus reusable grounding frames ==================== #
+# === External-corpus reusable grounding frames ============================= #
 
 ex:cqCoveragePersistentHomology a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/persistent-homology-frame.rq" ;
@@ -2737,7 +2737,7 @@ ex:rowConstantSheaf a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exccf:constantSheaf ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "homology" ; gmeow:cellValueIri exccf:homologyH1 ] .
 
-# === Multiparameter / zigzag persistence OBJECT frames (issue #1527, Commit D) === #
+# === Multiparameter / zigzag persistence OBJECT frames =========================== #
 
 ex:cqMultiparameterFiltrationFrame a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/multiparameter-filtration-frame.rq" ;
@@ -2804,7 +2804,7 @@ ex:rowPersistenceMorphismFrame a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri expx:sourceModule ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri expx:targetModule ] .
 
-# === Connections / holonomy / parallel transport (issue #1527, Commit E) ==== #
+# === Connections / holonomy / parallel transport ============================ #
 
 ex:cqHolonomyLoopFrame a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/holonomy-loop-frame.rq" ;

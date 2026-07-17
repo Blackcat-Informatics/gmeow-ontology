@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Conforming fixture for the connection / parallel-transport / holonomy surface
-# (issue #1527, Commit E). It carries BOTH readings, each fully framed:
+# It carries BOTH readings, each fully framed:
 #
 #   PRIMARY (discrete): a math:CellularSheaf on a closed 3-cell loop whose
 #   math:SheafRestrictionMaps ARE a math:FlatConnection (math:connectionOfSheaf /

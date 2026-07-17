@@ -5,7 +5,7 @@
 # transformation between two math:PersistenceModule functors. It names its domain
 # module through math:morphismSource and its codomain module through
 # math:morphismTarget, both well-formed math:PersistenceModule individuals. A subclass
-# of the existing math:Morphism (U1-light reuse of the object-layer morphism parent).
+# of the existing math:Morphism (reuse of the object-layer morphism parent).
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix expx: <https://blackcatinformatics.ca/gmeow/examples/math/persistence-morphism/> .

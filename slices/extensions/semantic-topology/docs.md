@@ -70,7 +70,7 @@ Source ─(core)─ EvidenceSpan ─compilesEvidence⁻¹─┐
   underwritten by `math:bottleneckStabilityTheorem`) — never an asserted `logic:Formula`
   or a global-truth bit.
 - **Results reference the mathematics.** A `gmeow:TopologyResult` *references* a raw
-  `math:` object through `gmeow:resultArtifact`; conflating the two is `gmeow:ResultObjectConflation` (F8).
+  `math:` object through `gmeow:resultArtifact`; conflating the two is `gmeow:ResultObjectConflation`.
 
 ## Terms
 
@@ -126,7 +126,7 @@ theorem-warranted via a `math:StabilityCalibrationRecord`.
 
 ### Conformance failures
 
-`gmeow:TopologyConformanceFailure` (root) with `gmeow:CompilationMissingContext`
-(Req 5), `gmeow:TopologyClaimMissingStatus` (Req 6), and `gmeow:ResultObjectConflation`
-(F8) — each a typed, queryable `logic:Situation` a derived `sh:SPARQLConstraint`
+`gmeow:TopologyConformanceFailure` (root) with `gmeow:CompilationMissingContext`,
+`gmeow:TopologyClaimMissingStatus`, and `gmeow:ResultObjectConflation`
+— each a typed, queryable `logic:Situation` a derived `sh:SPARQLConstraint`
 raises.
