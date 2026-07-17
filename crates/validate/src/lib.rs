@@ -40,6 +40,9 @@ pub mod gufo;
 // and `rule_catalog::help_uri_for` — no RDF store, pipeline carrier, or reasoner — so
 // the WASM-interactive-docs sibling reuses it verbatim.
 pub mod local_oracle;
+// The single authority for the localizable-predicate set (wasm-clean: a pure const).
+// gmeow-docs re-exports it; the pipeline/slice consumers import it from here.
+pub mod localizable;
 pub mod model;
 pub mod projection_profiles;
 pub mod report_bridge;
@@ -55,6 +58,12 @@ pub mod store;
 // gmeow-slice) and cannot cross-compile to wasm.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod advisory;
+// The ontology-surface authoring gates (shape-IRI ownership, profile/catalog
+// closure, term-declaration + language-tag discipline, graft isolation, slice
+// discipline) — native-only: they read the on-disk slice/shape corpus via
+// `purrdf::slice` + `purrdf::shapes`.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod authoring_integrity;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod box_roles;
 #[cfg(not(target_arch = "wasm32"))]

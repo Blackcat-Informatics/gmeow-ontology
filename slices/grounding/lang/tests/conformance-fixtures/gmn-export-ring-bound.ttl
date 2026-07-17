@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 # Conforming GMN fixture: an export crossing bound to its ring. The
 # generating activity carries gmeow:mentalProcessType gmeow:processExport (mentation) and
-# the gmeow:GmnEnvelope it produced carries a full eight-field contract INCLUDING
+# the gmeow:GmnEnvelope it produced carries a full nine-field contract INCLUDING
 # gmeow:gmnSecurityRing, so lang:GmnExportRingBindingShape validates with no findings
 # (and, incidentally, so does lang:GmnEnvelopeContractShape — both gates are satisfied
 # by the same complete envelope).
@@ -39,4 +39,5 @@ ex:envelopeExportBound a gmeow:GmnEnvelope ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:exportRun ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .

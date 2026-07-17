@@ -1586,3 +1586,49 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   per-term fields (coat/axioms/neighbours/closure) are dropped in to_turtle and are not in
   the bundle graph. This matches the shipped bundle's contents; the rich content is reached
   per covered-term IRI via the existing lookup_term / doc_card tools.
+
+## 2026-07-17 — #1459 native authoring gates, stage-2 gap remediation (branch paudley/1459-native-authoring-gates)
+
+- RESIDUAL WEAKER PROXY (faithful parity, no regression): the R3e docs-example term gate
+  (`authoring_integrity::docs_undeclared_findings`) checks a doc `gmeow:` reference against a
+  GLOBAL allowlist — every term declared ANYWHERE in the ontology/DSL/generated corpus. So it
+  catches a pure typo (a term that appears nowhere) but NOT a plausible-but-wrong term that
+  happens to collide with a real term declared in some unrelated slice. This is a strictly
+  weaker check than the other five authoring families (which are exact set/closure/ownership
+  invariants). It faithfully reproduces the retired `_docs_allowlist` Python gate — there is NO
+  regression versus the deleted gate, and the completion-adversary cleared it as an
+  enhancement-decline (the issue asked for parity with the retired cluster, not a stronger
+  check). Recorded here as an honest below-maximal item. FORWARD PATH: scope the allowlist
+  per-document — restrict each doc example to the terms that doc actually declares/imports
+  rather than the global union — so a wrong-but-real term is caught. Not done in this branch
+  (it is a net-new capability beyond the retired gate's contract, not a fix to a regression).
+
+- The other five gap-remediation items in this stage were FIXED, not deferred, so they are NOT
+  recorded here: the unreadable-directory silent-degradation hole (walkers now hard-fail;
+  non-vacuity floor added to the live aggregator), the DARK ownership + example-coverage folds
+  (now fire on the live `make validate` path via Phase 5c), the per-call regex-compile panics
+  (hoisted to LazyLock statics), the missing ValidationRun-level fold-wiring test (added), and
+  the stale Python/PyO3-consumer docstrings (removed). Nothing else was scoped down, proxied,
+  or moved off-gate.
+
+## 2026-07-17 — #1510 GMN-1 conformance pack, stage-3 merge (branch paudley/1510-gmn1-conformance-pack)
+
+- TEMPORARY VENDORED DEPENDENCY OVERRIDE (human-directed, forward path filed upstream): the branch
+  ships `vendor/structured-zstd-0.0.49/` (the 0.0.49 source, relabelled version 0.0.40) wired via
+  `[patch.crates-io]` in the root Cargo.toml, plus `vendor/` excludes in `.pre-commit-config.yaml`
+  and `scripts/lint-issue-refs.sh`. This is a weaker-proxy-for-the-real-thing: purrdf 0.7.0
+  hard-pins `structured-zstd = "0.0.40"`, whose huff0 encoder panics ("internal error",
+  huff0_encoder.rs:643) compressing the grown gmeow.gts bundle, so `make sync` could not
+  regenerate the terminal bundle. The clean fix is an upstream purrdf release bumping
+  structured-zstd; that is external to this repo, so — on explicit human direction ("patch purrdf
+  for now, get this branch CLOSED") — the branch vendors the fixed 0.0.49 encoder as a self-
+  contained, CI-reproducible bridge. It changes no GMN-1 semantics and touches no #1510 acceptance
+  criterion (all three ship fully); it only unblocks bundle compression. FORWARD PATH: filed
+  purrdf#142 requesting the upstream bump; once purrdf ships `structured-zstd > 0.0.40` and main
+  adopts it, DELETE the `vendor/` tree, the `[patch.crates-io]` block, and the three `vendor/`
+  hook excludes — the override is then dead weight.
+
+- The three #1510 acceptance criteria (pinned codebook identity, per-claim inversion, frozen
+  conformance vectors) and all eleven stage-2 review gaps were FIXED and DEMONSTRATED on the
+  shipped binary from outside a checkout (completion-adversary PASS, stages 2 and 3). Nothing in
+  the #1510 code itself was scoped down, proxied, or moved off-gate.

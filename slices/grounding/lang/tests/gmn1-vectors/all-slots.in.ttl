@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Degenerate vector: ONE primary triple folding EVERY optional qualifier slot —
+# q (confidence), st (accordingTo), ev (evidence), m (modal force), ek (observation
+# method), bd (occurrent boundary), it (occurrence series). bd/it select the @p sigil.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:gate1 gmeow:cycling gmeow:doorGate1 ;
+    gmeow:confidence "0.95"^^xsd:decimal ;
+    gmeow:accordingTo gmeow:sensorCrew ;
+    gmeow:hasAvailableEvidence gmeow:e12 ;
+    gmeow:claimModalForce gmeow:modalForcePossible ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    logic:occurrentBoundary logic:Open ;
+    gmeow:occurrenceOfSeries gmeow:cycleSeries1 .

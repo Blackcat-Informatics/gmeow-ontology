@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Write-tier negative: a NON-NFC literal NESTED inside an RDF-1.2 triple-term object. The base
+# "cafe" followed by U+0301 (combining acute accent) — authored with an explicit Turtle \uXXXX
+# escape so the non-canonical spelling survives editor/VCS normalization — rides in the object
+# slot of the nested triple <<( s p o )>>, so the top-level quad object is a triple term, NOT a
+# bare literal. gmn1_write must walk INTO the triple term and hard-fail
+# (lang:GmnNonCanonicalCodepoint) before any record is built — never letting the nested
+# non-canonical spelling reach the content-digest layer.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:someAgent gmeow:asserts <<( gmeow:noteX gmeow:statusLabel "cafe\u0301"^^xsd:string )>> .

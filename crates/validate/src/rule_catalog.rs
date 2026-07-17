@@ -248,6 +248,52 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Warning,
         Enforcement::Governance,
     ),
+    // ── Ontology-surface authoring gates ──
+    (
+        codes::AUTHORING_SHAPE_IRI_COLLISION,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_CATALOG_MISSING_MODULE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_MODULE_IRI_MISMATCH,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_PROFILE_CLOSURE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_GRAFT_LEAK,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_UNDECLARED_TERM,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_DUPLICATE_IRI,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_MISSING_TIER,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
     (
         codes::CRATE_LAYERING_VIOLATION,
         Severity::Error,
@@ -529,6 +575,51 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::SLICE_OWNERSHIP_FAMILY,
         "Fix the slice-ownership table entry the finding names (owner, dependency, or query).",
+    ),
+    // ── Ontology-surface authoring gates ──
+    (
+        codes::AUTHORING_SHAPE_IRI_COLLISION,
+        "Give the sh:NodeShape a single owning shape file; rename or remove the duplicate declaration so the merged shape graph has exactly one definition per IRI.",
+    ),
+    (
+        codes::AUTHORING_CATALOG_MISSING_MODULE,
+        "Regenerate the XML catalog (make sync) so every slice module owl:Ontology IRI is mapped.",
+    ),
+    (
+        codes::AUTHORING_MODULE_IRI_MISMATCH,
+        "Set the module's owl:Ontology IRI to the location-derived IRI (…/gmeow/slices/<slice-dir-name>).",
+    ),
+    (
+        codes::AUTHORING_PROFILE_CLOSURE,
+        "Reconcile the profile's owl:imports with the slice-tier partition: full imports the root plus every extension, claims is a strict subset of core, and every slice is exactly one of core/extension/profile.",
+    ),
+    (
+        codes::AUTHORING_GRAFT_LEAK,
+        "Move the norms-extension reference out of the core rights module; the graft is asserted on the extension side only.",
+    ),
+    (
+        codes::AUTHORING_UNDECLARED_TERM,
+        "Declare the GMEOW term in the ontology or a slice module, or fix the misspelled predicate/class the fixture or example references.",
+    ),
+    (
+        codes::AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
+        "Add a language tag to the localizable literal (@x-gmeow-english for authored source) so it is a distinct, translatable term.",
+    ),
+    (
+        codes::AUTHORING_FAMILY,
+        "Fix the ontology-surface authoring defect the finding names (shape ownership, profile/catalog closure, module IRI, graft isolation, term declaration, or language tag).",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_DUPLICATE_IRI,
+        "Give each slice manifest a unique slice IRI; identity is manifest-only, so two manifests may not declare the same IRI.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_MISSING_TIER,
+        "Declare exactly one gmeow:sliceTier (tierCore / tierExtension / tierProfile) on the slice manifest.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_FAMILY,
+        "Fix the slice manifest the finding names (unique slice IRI and a mandatory gmeow:sliceTier).",
     ),
     (
         codes::CRATE_LAYERING_VIOLATION,

@@ -5,7 +5,7 @@
 # working surfaces of the dialect: a citation record referencing the one
 # codepoint-explicit, candidate-audited ⊑ glyph/denotation chain owned by
 # module.ttl, a complete
-# gmeow:GmnEnvelope with its full eight-field contract, and an honest GMN-2
+# gmeow:GmnEnvelope with its full nine-field contract, and an honest GMN-2
 # compaction that names its sources, its standpoint, and its validation-only
 # correspondence — losslessness is always a judged logic:Correspondence,
 # never a boolean flag.
@@ -40,10 +40,11 @@ ex:citeSquareImageGlyph
     gmeow:citedEntity    gmeow:gmnDescriptionLogicNotationWork ;
     gmeow:citationIntent gmeow:intentConformsTo .
 
-# --- A complete GMN envelope: the full eight-field contract ------------------ #
+# --- A complete GMN envelope: the full nine-field contract ------------------ #
 # One envelope per serialized GMN payload: the three dialect coordinates, the
 # boundary ring, the asserting standpoint, the generating activity, the
-# byte-exact digest, and the losslessness judgment — a logic:Correspondence.
+# codebook-frame digest (gmeow:gmnCodebookDigest), the byte-exact content
+# digest, and the losslessness judgment — a logic:Correspondence.
 
 ex:archiveKeeper a gmeow:Agent .
 ex:nightlyGmnWrite a gmeow:Activity .
@@ -65,6 +66,7 @@ ex:nightlyEnvelope
     gmeow:accordingTo ex:archiveKeeper ;
     gmeow:wasGeneratedBy ex:nightlyGmnWrite ;
     gmeow:contentDigest "blake3:9c4b1d7e2f5a8c0b3e6d9f2a5c8b1e4d7a0c3f6b9e2d5a8c1b4e7d0a3c6f9b2e" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrNightlyEnvelope .
 
 # --- A compartmented-scope envelope: the NATO demonstrator ring -------------- #
@@ -94,6 +96,7 @@ ex:coalitionEnvelope
     gmeow:accordingTo ex:coalitionDesk ;
     gmeow:wasGeneratedBy ex:coalitionGmnWrite ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrCoalitionEnvelope .
 
 # --- A worked gmeow:gmnRingWithin flow example: querying the DERIVED order --- #

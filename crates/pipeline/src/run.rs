@@ -59,6 +59,17 @@ const CODE_DRIFT: &str = "pipeline.drift";
 /// gate alone cannot see.
 const CODE_GMN1_CONSTRUCT_COVERAGE_GAP: &str = "pipeline.gmn1.construct-coverage-gap";
 
+/// The native codebook-digest gate's finding code: an envelope declares a
+/// `gmeow:gmnCodebookDigest` that does not equal the codebook's recomputed Merkle root
+/// (`lang:GmnCodebookDigestMismatch`) — a graph-level cross-node check, distinct from a
+/// per-record codec failure.
+const CODE_GMN1_CODEBOOK_DIGEST_MISMATCH: &str = "pipeline.gmn1.codebook-digest-mismatch";
+
+/// The native pack-root check's finding code: a shipped conformance pack declares a
+/// `gmeow:gmnPackRoot` that does not equal the recomputation over its three parts (the
+/// codebook digest, the authored grammar bytes, and the sigil table).
+const CODE_GMN1_PACK_ROOT_MISMATCH: &str = "pipeline.gmn1.pack-root-mismatch";
+
 /// Intern a reconcile-phase drift/superset finding into the carrier ledger. The
 /// drifting path is the finding's focus, so each path is a distinct content-addressed
 /// witness (a shared code alone would hash-cons every drift into one node). All are
@@ -916,6 +927,14 @@ pub fn run_full_scoped_with_progress(
                             ),
                         );
                     }
+
+                    // GMN-1 native codebook-digest gate + pack-root check: recompute the
+                    // codebook Merkle root and refuse any shipped envelope declaring a stale
+                    // `gmeow:gmnCodebookDigest`, and (when the fanout has projected the pack)
+                    // byte-assert the conformance pack's `gmeow:gmnPackRoot` against the
+                    // recomputation. Both are graph-level cross-node checks no per-record codec
+                    // parse or SHACL shape can see.
+                    reconcile_gmn1_digest_gates(root, &mut ledger, &mut drifted)?;
                 }
                 reproduced += 1;
                 continue;
@@ -1195,6 +1214,52 @@ fn run_post_update_gates(
                 "GMN-1 construct-coverage audit found {} unexercised categories: {:?}",
                 coverage.unexercised.len(),
                 coverage.unexercised
+            ),
+        );
+    }
+
+    reconcile_gmn1_digest_gates(root, ledger, drifted)?;
+    Ok(())
+}
+
+/// The native GMN-1 codebook-digest gate + pack-root check, shared by both reconcile paths
+/// (read-only Check and post-update). Recompute the codebook Merkle root and refuse any shipped
+/// `gmeow:GmnEnvelope` declaring a stale `gmeow:gmnCodebookDigest`
+/// (`lang:GmnCodebookDigestMismatch`), and — once the fanout has projected the conformance pack —
+/// byte-assert its `gmeow:gmnPackRoot` against the recomputation. Both are graph-level cross-node
+/// checks no per-record codec parse or SHACL shape can see; a missing pack is a NO-OP the fanout
+/// activates, never a faked pass.
+fn reconcile_gmn1_digest_gates(
+    root: &Path,
+    ledger: &mut DiagLedger,
+    drifted: &mut Vec<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    let digest_report = crate::stages::gmn1_gate::check_gmn1_codebook_digest_on_gate(root)?;
+    for mismatch in digest_report.mismatches {
+        drifted.push(mismatch.source.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_GMN1_CODEBOOK_DIGEST_MISMATCH,
+            &mismatch.source,
+            format!(
+                "envelope {} declares codebook digest {} but the codebook recomputes to {} \
+                 (lang:GmnCodebookDigestMismatch)",
+                mismatch.envelope, mismatch.declared, mismatch.recomputed
+            ),
+        );
+    }
+
+    let pack_report = crate::stages::gmn1_gate::check_gmn1_pack_root(root)?;
+    if !pack_report.is_clean() {
+        let focus = "generated/projections/lang/gmn1/conformance-pack.ttl";
+        drifted.push(focus.to_string());
+        attach_pipeline_finding(
+            ledger,
+            CODE_GMN1_PACK_ROOT_MISMATCH,
+            focus,
+            format!(
+                "conformance pack declares gmeow:gmnPackRoot {:?} but its parts recompute to {}",
+                pack_report.declared_root, pack_report.recomputed_root
             ),
         );
     }
