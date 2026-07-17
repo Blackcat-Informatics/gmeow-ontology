@@ -1206,6 +1206,37 @@ ex:ecCellularSheafNoRestriction a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies a base complex and stalk but no restriction map, isolating math:IncompleteCellularSheaf." .
 
+# === Rule: a global section is over the WHOLE base and glues; an obstruction is anchored === #
+
+ex:ecGlobalSectionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/global-section-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GlobalSection over the WHOLE base (math:sectionRegion = the sheaf's math:sheafBaseComplex) whose stalk values agree across the restriction map (1 = 1), a math:LocalSection over a proper subcomplex, and a math:GluingObstruction anchored through math:obstructionOf. The section is correctly scoped (math:MisscopedSection inert), glues (math:SectionGluingInconsistency inert), and every frame is complete, so it validates with no findings." .
+
+ex:ecLocalSectionAsGlobal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/local-section-as-global.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example types a section math:GlobalSection but gives it a math:sectionRegion that is a proper subcomplex, not the whole math:sheafBaseComplex of its math:overSheaf (the cross-node equality constraint math:MisscopedSectionConstraint, region = base). It names both math:overSheaf and math:sectionRegion and its sheaf is complete, so the frames pass; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MisscopedSection)." .
+
+ex:ecGlobalSectionInconsistentGluing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-section-inconsistent-gluing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a correctly-scoped math:GlobalSection (math:sectionRegion = the whole base) whose source and target stalk math:stalkValue disagree (1 vs 2) across the restriction map, so the identity-transport gluing condition fails (the per-restriction-map equality constraint math:SectionGluingConsistencyConstraint). Scope and frame are complete, isolating the gluing failure; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:SectionGluingInconsistency)." .
+
+ex:ecSheafSectionNoStalkOrRestriction a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/sheaf-section-no-stalk-or-restriction.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:LocalSection that names its math:sectionRegion but declares no math:overSheaf, so it is anchored to no math:CellularSheaf and therefore to no actual stalk/restriction semantics (the math:LocalSection frame's qualified min-count on math:overSheaf, onClass math:CellularSheaf). The region is present, isolating the missing sheaf anchor; validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteSheafSection)." .
+
+ex:ecGluingObstructionUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gluing-obstruction-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:GluingObstruction that names no math:obstructionOf sheaf (the math:GluingObstruction frame's qualified min-count on math:obstructionOf, onClass math:CellularSheaf), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnanchoredGluingObstruction)." .
+
 # === Rule: a graded cell declares its dimension; a signed incidence its coface, face, and sign === #
 
 ex:ecGradedCellComplete a gmeow:ExampleConformance ;

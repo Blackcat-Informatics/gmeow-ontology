@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:SectionGluingInconsistency: a correctly-scoped
+# math:GlobalSection (math:sectionRegion = the whole ex:base) whose stalk values do
+# NOT restrict consistently along a math:SheafRestrictionMap — the source stalk
+# carries math:stalkValue 1 and the target stalk carries 2, so the identity-transport
+# gluing condition 1 = 2 fails and the per-restriction-map equality constraint
+# math:SectionGluingConsistencyConstraint fires. Validation MUST emit
+# shacl.SPARQLConstraintComponent (and no other finding): the scope is right
+# (math:MisscopedSection inert) and the frame is complete (math:IncompleteGlobalSection
+# inert), so the failure to GLUE is isolated — presence of a section is not global truth.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/gluing/> .
+
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:base ;
+    math:hasStalk ex:vertexStalk , ex:edgeStalk ;
+    math:restrictionMap ex:vertexToEdge .
+ex:base a math:CellComplex .
+
+ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertex ; math:stalkValue 1 .
+ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edge ; math:stalkValue 2 .
+ex:vertexToEdge a math:SheafRestrictionMap ;
+    math:sourceObject ex:vertexStalk ;
+    math:targetObject ex:edgeStalk .
+
+# Correctly scoped to the whole base, but the stalk values disagree across the
+# restriction map — the local data do not glue.
+ex:globalSection a math:GlobalSection ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:base .
+
+ex:vertex a math:MathematicalObject .
+ex:edge a math:MathematicalObject .
