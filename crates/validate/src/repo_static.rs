@@ -776,7 +776,7 @@ fn check_differential_oracle_seal(root: &Path, report: &mut RepoStaticReport) {
         if re.is_match(target) {
             report.error(format!(
                 "{rel}: target {target:?} re-introduces a live differential reasoning oracle \
-                 gate — #1572 retired the native-vs-purrdf reason-crosscheck lane; the native \
+                 gate — the native-vs-purrdf reason-crosscheck lane was retired; the native \
                  reasoner is the single authority and only committed engine-independent goldens \
                  are permitted, never a live second reasoner on-gate"
             ));
