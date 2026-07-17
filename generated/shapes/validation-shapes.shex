@@ -2938,6 +2938,46 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/geohash> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryConcept> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossaryConcept-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossaryConcept> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryLanguage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossaryLanguage-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossaryLanguage> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryPredicate> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossaryPredicate-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossaryPredicate> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossarySlice> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossarySlice-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossarySlice> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossarySource> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossarySource-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossarySource> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryTerm> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossaryTerm-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossaryTerm> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryTranslation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossaryTranslation-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossaryTranslation> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryUnit> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/glossaryUnit-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/glossaryUnit> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnArity> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/gmnArity-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/gmnArity> . {0,1} ;
@@ -5802,6 +5842,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/lang/WordForm> (associate via ShapeMap)
 <https://blackcatinformatics.ca/lang/WordForm-shape> {
   <https://blackcatinformatics.ca/lang/lexemeOf> IRI + ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/lang/homographSource> (associate via ShapeMap)
+<https://blackcatinformatics.ca/lang/homographSource-domain-shape> {
+  <https://blackcatinformatics.ca/lang/homographSource> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/logic/ActionSchema> (associate via ShapeMap)

@@ -3427,6 +3427,18 @@ enum GeometryTypeEnum {
   VALUE_5
 }
 
+type Glossary {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input GlossaryInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 type GmnCompaction {
   annotation: GmeowScalar
   gmeowGmnCompacts: GmeowScalar

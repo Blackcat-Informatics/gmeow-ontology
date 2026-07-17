@@ -1341,6 +1341,12 @@ lang:FregeDisjointSenseConstraintProceduralConstraintShape
     logic:formalizes lang:FregeDisjointShape ;
     logic:preservationKind logic:ValidationOnly .
 
+lang:GlossaryTermConsistencyConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    gmeow:enforcesFailureClass lang:GlossaryTermInconsistency ;
+    logic:formalizes gmeow:Glossary ;
+    logic:preservationKind logic:ValidationOnly .
+
 lang:GmnCodepointCanonicalConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;

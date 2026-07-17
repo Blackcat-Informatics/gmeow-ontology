@@ -6825,6 +6825,28 @@ classes:
     class_uri: gmeow:Geocode
     extra_slots:
       allowed: true
+  Glossary:
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:Glossary
+    extra_slots:
+      allowed: true
   GmnCompaction:
     attributes:
       '@annotation':

@@ -1020,6 +1020,39 @@ gmeow:GenResultRowShape_examples_lang_tests_cqDenotationsToFormulaShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'form' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
+gmeow:GenResultRowShape_examples_lang_tests_cqGlossaryRenderingShape
+    a sh:NodeShape ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqGlossaryRenderingShape> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqGlossaryRenderingShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?rendering must be present and bind a literal" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'rendering' ; gmeow:cellValueLiteral ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?rendering must bind a literal" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'rendering' ; gmeow:cellValueIri ?val }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?rendering must bind a literal of datatype <http://www.w3.org/2001/XMLSchema#string>" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'rendering' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <http://www.w3.org/2001/XMLSchema#string> ) }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?term must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'term' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?term must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'term' ; gmeow:cellValueLiteral ?val }""" ;
+    ] .
+
 gmeow:GenResultRowShape_examples_lang_tests_cqGmnLevelShape
     a sh:NodeShape ;
     rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqGmnLevelShape> (generated)"@en ;

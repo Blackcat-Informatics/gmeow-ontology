@@ -2604,6 +2604,38 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/geohash> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/geohash> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/glossaryConcept-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryConcept> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryConcept> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossaryLanguage-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryLanguage> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryLanguage> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossaryPredicate-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryPredicate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryPredicate> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossarySlice-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossarySlice> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossarySlice> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossarySource-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossarySource> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossarySource> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossaryTerm-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryTerm> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryTerm> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossaryTranslation-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryTranslation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryTranslation> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossaryUnit-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryUnit> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryUnit> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/gmnArity-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnArity> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnArity> ; sh:maxCount 1 ] .
@@ -4925,6 +4957,10 @@
 <https://blackcatinformatics.ca/lang/WordForm-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/lang/WordForm> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/lexemeOf> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/lang/Lexeme> ] .
+
+<https://blackcatinformatics.ca/lang/homographSource-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/homographSource> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/lang/homographSource> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/ActionSchema-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/ActionSchema> ;

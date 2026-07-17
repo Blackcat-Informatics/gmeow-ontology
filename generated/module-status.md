@@ -49,7 +49,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 29/44 | full |
-| lang | core | grounding | 7 | 15 | 40 | 111 | 4 | 55/55 | full |
+| lang | core | grounding | 7 | 17 | 49 | 111 | 4 | 66/66 | full |
 | language | core | core | 3 | 2 | 3 | 0 | 1 | 5/5 | full |
 | languages | extension | extensions | 6 | 11 | 22 | 0 | 1 | - | full |
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
@@ -90,4 +90,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**82 slices** · documentation: 82 full guides, 0 stubs remaining; advisory coverage: 1537/2471 core class/property terms.
+**82 slices** · documentation: 82 full guides, 0 stubs remaining; advisory coverage: 1548/2482 core class/property terms.

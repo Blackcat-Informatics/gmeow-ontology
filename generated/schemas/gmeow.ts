@@ -2818,6 +2818,13 @@ export type Geocode = {
 
 export type GeometryTypeEnum = (string & ("gmeow:geometryTypeLineString" | "gmeow:geometryTypeMultiLineString" | "gmeow:geometryTypeMultiPoint" | "gmeow:geometryTypeMultiPolygon" | "gmeow:geometryTypePoint" | "gmeow:geometryTypePolygon"));
 
+export type Glossary = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type GmnCompaction = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;

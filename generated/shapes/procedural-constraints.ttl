@@ -2657,6 +2657,18 @@
         sh:select """SELECT $this WHERE { { $this a <https://blackcatinformatics.ca/lang/Form> . } UNION { $this a <https://blackcatinformatics.ca/lang/Denotation> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GlossaryTermConsistencyConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Glossary> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/lang/GlossaryTermInconsistency> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Glossary> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Two glossary entries for one sense translate the same term two different ways; the terminology is not consistent across batches." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/glossaryEntry> ?entry1 . $this <https://blackcatinformatics.ca/gmeow/glossaryEntry> ?entry2 . ?entry1 <https://blackcatinformatics.ca/gmeow/glossaryConcept> ?concept . ?entry2 <https://blackcatinformatics.ca/gmeow/glossaryConcept> ?concept . ?entry1 <https://blackcatinformatics.ca/gmeow/glossaryTranslation> ?xlat1 . ?entry2 <https://blackcatinformatics.ca/gmeow/glossaryTranslation> ?xlat2 . FILTER ( ?xlat1 != ?xlat2 ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/GmnCodepointCanonicalConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnCodepointCanonicalShape> ;

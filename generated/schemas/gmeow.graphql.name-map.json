@@ -1018,6 +1018,10 @@
       "output_type": "GeometryTypeEnum",
       "input_type": "GeometryTypeEnum"
     },
+    "Glossary": {
+      "output_type": "Glossary",
+      "input_type": "GlossaryInput"
+    },
     "GmnCompaction": {
       "output_type": "GmnCompaction",
       "input_type": "GmnCompactionInput"
@@ -4565,6 +4569,11 @@
       "gmeow:processRuleText": "gmeowProcessRuleText"
     },
     "#/$defs/Geocode": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
+    "#/$defs/Glossary": {
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type"

@@ -13419,6 +13419,31 @@
       ],
       "type": "string"
     },
+    "Glossary": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "GmnCompaction": {
       "properties": {
         "@annotation": {
@@ -24843,6 +24868,31 @@
           },
           "then": {
             "$ref": "#/$defs/Geocode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Glossary"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Glossary"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Glossary"
           }
         },
         {
