@@ -1314,3 +1314,15 @@ criteria DEMONSTRATED-IN-PRODUCTION on the merged tree via live `gmeow hybrid-qu
 - Docs coverage-ratchet baseline re-blessed +57 across every docs/missing-* facet (the new
   external-relation vocabulary terms plus merged origin/main terms lacking full doc facets) —
   tracked in the baseline, not concealed; the established re-bless-after-merge pattern.
+
+## 2026-07-16 — issue #1534 / PR #1581 (fuzzy-gated translation coverage), stage 1
+- DEFERRED (maintainer-approved): the stage-1 `make sync` + `make check` full cycle was
+  NOT run in stage 1. Deferred to stage 3, which merges `origin/main` and runs the single
+  sync + check before merge. Justification: the change is provably generated-artifact-neutral
+  (no live slice PO carries `#, fuzzy`, so `Translations::lookup` returns identical results and
+  the docs/`gmeow.gts` folds are byte-identical), and the production floor gate already passed
+  (`gmeow-dev slice-quality-gate` exit 0, 591 floors held). This is a relocation of a
+  verification step within the multi-stage workflow, NOT a descope of issue AC1 — the full
+  `make check` still runs in stage 3 before the branch merges. Residual risk: no full
+  regenerated `gmeow.gts` byte-diff was performed in stage 1; if some untraced generated
+  surface serializes the `Translations` fuzzy field, stage 3's sync is where it surfaces.
