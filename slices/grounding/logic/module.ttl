@@ -8188,6 +8188,29 @@ logic:AggregateConstraint
     gmeow:howToUse "Specify the target, aggregate function, path, comparator, and literal or property-valued right-hand side; request DISTINCT only when duplicate values must collapse."@x-gmeow-english ;
     gmeow:useWhen "Use when validity depends on COUNT, SUM, MIN, or MAX over the values reached by one predicate."@x-gmeow-english .
 
+logic:JoinAggregateConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Join Aggregate Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a multi-hop-join product-aggregate constraint (P9): a logic:onClass focus, an ordered logic:joinPath of at least two logic:JoinLeg records (each a reified relation with a logic:legSource / logic:legTarget / logic:legValue predicate and an optional logic:legRecordType), a logic:aggFunction (SUM for ∂²), a logic:aggComparator invariant, and a fixed literal logic:aggThreshold. Each leg hops from an already-bound endpoint through a record to the next endpoint, chaining leg[k].target into leg[k+1].source (the shared join variable); the aggregate is applied to the PRODUCT of the joined leaf values, GROUPED BY the (focus, far-endpoint) tuple, and a violation fires when a group value fails the invariant. It GENERALIZES logic:AggregateConstraint from a single-predicate focus aggregate to a chained-join product aggregate, and is the sanctioned home of the general-CW ∂²=0 conformance check (a SUM of incidence-sign products over composable cells that must equal 0). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured join-aggregate satellite, lowered to a SELECT $this ?far … GROUP BY $this ?far HAVING(…) sh:SPARQLConstraint whose join order uses the incidence index and scales with the number of records, never cells². It is not a single-predicate aggregate (use logic:AggregateConstraint), not a derivation rule (a reduce head belongs on logic:aggregateFunction), and not a cartesian product over cells. Frontend-only authoring shortcut."@x-gmeow-english ;
+    skos:example "ex:boundarySquareZero a logic:JoinAggregateConstraint ; logic:onClass ex:TopCell ; logic:aggFunction \"SUM\" ; logic:aggComparator \"=\" ; logic:aggThreshold 0 ; logic:joinPath ( [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ] [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ] ) ; logic:formalizes ex:BoundaryOperator ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a join-aggregate constraint for a single-predicate focus aggregate (use logic:AggregateConstraint) or for a per-value condition that needs no join; and do not use it to derive triples (a reduce head belongs on a logic:Rule)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the focus class, an ordered joinPath of two or more JoinLeg records whose target/source predicates chain the endpoints, the aggregate function, the invariant comparator, and the fixed literal threshold; each leg's legValue predicate carries the numeric leaf multiplied into the group product."@x-gmeow-english ;
+    gmeow:useWhen "Use when validity depends on an aggregate (typically SUM) of a PRODUCT of leaf values gathered over a multi-hop JOIN and grouped by a pair of endpoints — most canonically the ∂²=0 boundary-composition law of a chain complex."@x-gmeow-english .
+
+logic:JoinLeg
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Join Leg"@x-gmeow-english ;
+    skos:definition "One hop (leg) of a logic:JoinAggregateConstraint's logic:joinPath: a reified relation record whose logic:legSource predicate reaches this leg's source endpoint, whose logic:legTarget predicate reaches its target endpoint, and whose logic:legValue predicate carries the numeric leaf value multiplied into the group product; an optional logic:legRecordType types the record for the index-anchored join. The legs are ORDERED (the list order is semantic) and chain leg[k].target into leg[k+1].source, so a leg is a hop specification, not a data record — it names the predicates the projected SPARQL joins on, never an incidence itself."@x-gmeow-english ;
+    skos:example "[ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]"@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a JoinLeg outside a logic:joinPath list, and do not confuse it with the incidence record it describes: a leg names role/value PREDICATES, not endpoints or signs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Give each leg exactly one logic:legSource, one logic:legTarget, and one logic:legValue predicate (and optionally one logic:legRecordType class); place the legs in composition order inside the joinPath rdf:List."@x-gmeow-english ;
+    gmeow:useWhen "Use as a member of a logic:joinPath to declare one hop of a multi-hop join whose leaf value participates in the group product."@x-gmeow-english .
+
 logic:onClass
     a owl:ObjectProperty ;
     rdfs:range owl:Class ;
@@ -8342,6 +8365,49 @@ logic:aggCompareTo
     skos:definition "The right-hand side a logic:AggregateConstraint's aggregate is compared to: an IRI object is a compared PROPERTY of the focus ($this <prop> ?rhs), and a literal is a fixed comparison value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:joinPath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "join path"@x-gmeow-english ;
+    skos:definition "The ordered join specification of a logic:JoinAggregateConstraint: an rdf:List of at least two logic:JoinLeg records whose target/source predicates chain the endpoints (leg[k].target is the shared join variable leg[k+1].source re-binds). The list order is SEMANTIC — it is the composition order of the hops — so a joinPath is a traversal specification, not an unordered set of predicates; a single-element list is not a JOIN and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legRecordType
+    a owl:ObjectProperty ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg record type"@x-gmeow-english ;
+    skos:definition "The optional class typing the reified relation record a logic:JoinLeg traverses (e.g. an incidence-record class), emitted as an index-anchoring `?record a <Type>` triple in the projected join and a well-formedness guard. Optional: a leg with no logic:legRecordType is bound solely by its role and value predicates. It types the RECORD node, not the endpoints the leg connects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg source predicate"@x-gmeow-english ;
+    skos:definition "The predicate from a logic:JoinLeg's record to this leg's SOURCE endpoint (record → from). The first leg's source binds to the focus $this; every later leg's source binds to the preceding leg's logic:legTarget (the shared join variable). It names a role PREDICATE the projected SPARQL anchors the join on, never an endpoint node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legTarget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg target predicate"@x-gmeow-english ;
+    skos:definition "The predicate from a logic:JoinLeg's record to this leg's TARGET endpoint (record → to). The intermediate legs' targets are aggregated away (summed over); the LAST leg's target is the far endpoint of the (focus, far-endpoint) group key. It names a role PREDICATE the join binds the next endpoint on, never an endpoint node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg value predicate"@x-gmeow-english ;
+    skos:definition "The predicate from a logic:JoinLeg's record to the numeric leaf value multiplied into the group product (record → value). For the ∂² check it is the incidence sign; the projected SPARQL computes the PRODUCT of every leg's leaf value inside the aggregate. It names the value PREDICATE, not the value literal itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggThreshold
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate threshold"@x-gmeow-english ;
+    skos:definition "The fixed literal value the group aggregate of a logic:JoinAggregateConstraint is tested against under logic:aggComparator (e.g. 0 for ∂²=0). Always a literal: the (focus, far-endpoint) group key already consumes the far endpoint, so unlike logic:aggCompareTo there is no per-focus property right-hand side. The projected sh:SPARQLConstraint HAVING negates the comparator, because a sh:select returns the VIOLATING groups."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:termEqual
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -8409,6 +8475,13 @@ logic:aggregateComparison
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "aggregate comparison"@x-gmeow-english ;
     skos:definition "The reified relation an expanded logic:AggregateConstraint carries as its honest FOL integrity: aggregateComparison(this, function, distinct, path, comparator, rhs). The realized FOL formula core has no aggregate node, so this predication makes the aggregate meaning complete in the FOL canon while the structured satellite drives the real GROUP BY/HAVING SPARQL projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:joinAggregateComparison
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "join aggregate comparison"@x-gmeow-english ;
+    skos:definition "The reified relation an expanded logic:JoinAggregateConstraint carries as its honest FOL integrity: joinAggregateComparison(this, function, comparator, threshold). The realized FOL formula core has neither an aggregate nor a join node, so this predication makes the multi-hop-join product-aggregate meaning complete in the FOL canon while the structured join-aggregate satellite (the ordered leg chain) drives the real multi-hop-join GROUP BY/HAVING SPARQL projection. It carries only the scalar core, not the leg chain, which lives in the satellite."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:forall

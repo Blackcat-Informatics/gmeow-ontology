@@ -46,9 +46,9 @@ use super::graphutil::{
 use super::ir::{
     AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec, ComplexityClass,
     ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope, Correspondence,
-    Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
-    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
-    ShaclSeverity, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    Formula, JoinAggregate, JoinLeg, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram,
+    LogicRule, PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId,
+    ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
 use super::restriction;
 
@@ -286,6 +286,8 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "minInclusiveBound" | "maxInclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
+            // Join-aggregate satellite (multi-hop join + product aggregate + threshold).
+            | "joinPath" | "aggThreshold" | "legRecordType" | "legSource" | "legTarget" | "legValue"
             // Comparison constraint (two focus-property values compared).
             | "leftPath" | "rightPath" | "compareOp"
             // Path node-kind constraint.
@@ -318,6 +320,8 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ForbiddenPatternConstraint"
             | "ValueRangeConstraint"
             | "AggregateConstraint"
+            | "JoinAggregateConstraint"
+            | "JoinLeg"
             | "ComparisonConstraint"
             | "PathNodeKindConstraint"
             | "SelfJoinUniquenessConstraint"
@@ -4284,6 +4288,101 @@ fn read_aggregate_constraint(
     Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
 }
 
+/// Read ONE `logic:JoinLeg` (a member of a `logic:joinPath` list): the required source / target /
+/// value predicates plus the optional record type. A leg missing any of the three predicates is a
+/// hard skip (the whole join-aggregate record degrades to one MALFORMED_CONSTRAINT warning).
+fn read_join_leg(store: &RdfDataset, leg: &Subject) -> gmeow_errors::Result<JoinLeg> {
+    let pred = |local: &str| value(store, leg, &nn(&logic_iri(local))).map(|t| term_str(&t));
+    let source = pred("legSource").ok_or_else(|| {
+        sugar_err("logic:JoinLeg requires logic:legSource (record → source endpoint)")
+    })?;
+    let target = pred("legTarget").ok_or_else(|| {
+        sugar_err("logic:JoinLeg requires logic:legTarget (record → target endpoint)")
+    })?;
+    let val = pred("legValue").ok_or_else(|| {
+        sugar_err("logic:JoinLeg requires logic:legValue (record → numeric leaf value)")
+    })?;
+    let record_type = pred("legRecordType");
+    JoinLeg::new(record_type, source, target, val)
+}
+
+/// P9 / join-aggregate — a multi-hop-join product-aggregate constraint: a `logic:onClass` focus, an
+/// ordered `logic:joinPath` of at least two `logic:JoinLeg`s (each a reified relation record with a
+/// source / target / value predicate), a `logic:aggFunction` (SUM for ∂²), a `logic:aggComparator`
+/// invariant, and a fixed literal `logic:aggThreshold`. Expands to a [`ConstraintIr`] carrying BOTH
+/// the honest reified FOL integrity (`joinAggregateComparison(this, fn, cmp, thr)`, guarded by the
+/// class so the target derives) AND the structured [`JoinAggregate`] satellite (which drives the
+/// real multi-hop-join `GROUP BY`/`HAVING` SPARQL projection). Generalizes
+/// [`read_aggregate_constraint`] from a single-predicate focus aggregate to a chained-join product
+/// aggregate; it is the sanctioned home of the general-CW ∂²=0 conformance check.
+fn read_join_aggregate_constraint(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
+    let class = sugar_target_class(store, node)?;
+    let function = value(store, node, &nn(&logic_iri("aggFunction")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| sugar_err("logic:JoinAggregateConstraint requires logic:aggFunction"))?;
+    let comparator = value(store, node, &nn(&logic_iri("aggComparator")))
+        .map(|t| term_str(&t))
+        .and_then(|s| AggregateComparator::from_symbol(&s))
+        .ok_or_else(|| {
+            sugar_err(
+                "logic:JoinAggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=",
+            )
+        })?;
+    let (threshold_lexical, threshold_datatype) = match value(
+        store,
+        node,
+        &nn(&logic_iri("aggThreshold")),
+    ) {
+        Some(Node::Lit {
+            lexical, datatype, ..
+        }) => (lexical, datatype),
+        _ => {
+            return Err(sugar_err(
+                "logic:JoinAggregateConstraint requires a literal logic:aggThreshold (the fixed \
+                 comparison value, e.g. 0)",
+            ));
+        }
+    };
+    // The ordered join path: an rdf:List whose members are the JoinLeg records, read in list order
+    // (order is semantic — the chain composes leg[k].target into leg[k+1].source).
+    let head = value(store, node, &nn(&logic_iri("joinPath"))).ok_or_else(|| {
+        sugar_err("logic:JoinAggregateConstraint requires logic:joinPath (an rdf:List of ≥2 logic:JoinLeg)")
+    })?;
+    let leg_subjects = read_list_member_subjects(store, &head);
+    let mut legs = Vec::with_capacity(leg_subjects.len());
+    for leg in &leg_subjects {
+        legs.push(read_join_leg(store, leg)?);
+    }
+    let ja = JoinAggregate::new(
+        function,
+        legs,
+        comparator,
+        threshold_lexical,
+        threshold_datatype,
+    )?;
+
+    // The honest reified FOL integrity: a single reified `joinAggregateComparison` predication over
+    // the focus, guarded by the target class so the target derives. It carries the aggregate
+    // function, the comparator, and the threshold; the structured leg chain lives in the satellite,
+    // which drives the real multi-hop-join GROUP BY/HAVING SPARQL projection.
+    let threshold_term =
+        Term::literal(ja.threshold_lexical.clone(), ja.threshold_datatype.clone())?;
+    let reified = Formula::atom(
+        Term::iri(logic_iri("joinAggregateComparison"))?,
+        vec![
+            t_var("this"),
+            Term::literal(ja.function.clone(), None)?,
+            Term::literal(ja.comparator.as_sparql(), None)?,
+            threshold_term,
+        ],
+    )?;
+    let integrity = f_forall_this(f_guard_class(&class)?, reified);
+    Ok(finalize_sugar(store, node, integrity)?.with_join_aggregate(ja))
+}
+
 /// Map an authored `logic:compareOp` symbol to the `logic:` comparison relation local name the
 /// projector recognizes (the FORBIDDEN relation whose satisfaction is the violation).
 fn compare_op_relation(op: &str) -> Option<&'static str> {
@@ -4577,7 +4676,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
-    let readers: [(&str, Reader); 16] = [
+    let readers: [(&str, Reader); 17] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -4589,6 +4688,7 @@ fn extract_sugar_constraints(
         ("ForbiddenPatternConstraint", read_forbidden_pattern),
         ("ValueRangeConstraint", read_value_range),
         ("AggregateConstraint", read_aggregate_constraint),
+        ("JoinAggregateConstraint", read_join_aggregate_constraint),
         ("ComparisonConstraint", read_comparison),
         ("PathNodeKindConstraint", read_path_node_kind),
         ("SelfJoinUniquenessConstraint", read_self_join_uniqueness),
