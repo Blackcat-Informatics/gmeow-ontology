@@ -409,6 +409,20 @@ pub fn is_candidate_translation(entry: &PoEntry) -> bool {
     !entry.fuzzy && !entry.msgstr.is_empty()
 }
 
+/// The target surface that counts as a LIVE translation when projecting a catalog entry
+/// into the shipped `gmeow.gts` bundle (docs-rendering + translation-crossing corpora).
+/// A machine-seeded `#, fuzzy` entry is not yet a reviewed translation, so it contributes
+/// no live target — treated as not-yet-live (English fallback), byte-identical to an
+/// untranslated entry. Single source of truth shared by both pipeline corpus builders so
+/// the fuzzy-gating cannot drift between them or from the coverage axis.
+pub fn live_translation_target(entry: &PoEntry) -> &str {
+    if entry.fuzzy {
+        ""
+    } else {
+        entry.msgstr.as_str()
+    }
+}
+
 /// Whether a `.po` entry counts toward reviewed translation coverage: a candidate
 /// translation that also passes the translation-integrity guard (not copied/hybrid
 /// English). Single source of truth shared by the slice-quality translation axis and
@@ -1968,6 +1982,29 @@ mod tests {
         assert_eq!(entries.len(), 1);
         assert!(entries[0].fuzzy);
         assert_eq!(entries[0].msgstr, "B");
+    }
+
+    #[test]
+    fn live_translation_target_gates_fuzzy_seeds() {
+        // The shared fuzzy-gating policy consumed by both pipeline corpus builders: a
+        // reviewed entry contributes its msgstr; a machine-seeded `#, fuzzy` entry
+        // contributes NO live target (English fallback), byte-identical to untranslated.
+        let reviewed = PoEntry {
+            msgctxt: "x|rdfs:label".to_owned(),
+            msgid: "A".to_owned(),
+            msgstr: "B".to_owned(),
+            fuzzy: false,
+        };
+        assert_eq!(live_translation_target(&reviewed), "B");
+        let seeded = PoEntry {
+            fuzzy: true,
+            ..reviewed
+        };
+        assert_eq!(
+            live_translation_target(&seeded),
+            "",
+            "a #, fuzzy seed contributes no live target to the shipped bundle"
+        );
     }
 
     #[test]

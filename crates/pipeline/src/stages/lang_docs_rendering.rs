@@ -37,7 +37,7 @@ use std::collections::BTreeMap;
 
 use sha2::{Digest, Sha256};
 
-use gmeow_docs::i18n_compile::{language_from_po, parse_po};
+use gmeow_docs::i18n_compile::{language_from_po, live_translation_target, parse_po};
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
@@ -142,13 +142,19 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
                 let Some((term_iri, _predicate)) = entry.msgctxt.split_once('|') else {
                     continue;
                 };
+                // A machine-seeded `#, fuzzy` entry is not a reviewed translation: it is
+                // treated as not-yet-live (English fallback), identical to an untranslated
+                // entry, so unreviewed content never surfaces as a live rendered form in the
+                // gmeow.gts projection — matching `Translations::lookup` and the coverage axis.
+                // The fuzzy-gating lives in the shared `live_translation_target` policy.
+                let msgstr = live_translation_target(entry).to_string();
                 pages
                     .entry((lang.clone(), term_iri.to_string()))
                     .or_default()
                     .push(EntryRef {
                         msgctxt: entry.msgctxt.clone(),
-                        msgstr: entry.msgstr.clone(),
-                        present: !entry.msgstr.is_empty(),
+                        present: !msgstr.is_empty(),
+                        msgstr,
                     });
             }
         }

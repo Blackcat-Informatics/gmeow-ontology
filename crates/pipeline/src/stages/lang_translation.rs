@@ -40,7 +40,7 @@ use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
-use gmeow_docs::i18n_compile::{language_from_po, parse_po};
+use gmeow_docs::i18n_compile::{language_from_po, live_translation_target, parse_po};
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
@@ -140,10 +140,15 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::
                 // Resolve the target surface's script now (fallible): an unknown catalog
                 // language HARD-FAILS rather than minting a materially-underspecified surface.
                 let tgt_script = script_for_lang(&lang)?;
+                // A machine-seeded `#, fuzzy` entry is not a reviewed translation: treat it as
+                // not-yet-live (untranslated / English fallback) so unreviewed content never
+                // surfaces as a live translation crossing in the gmeow.gts projection — the
+                // empty target makes it byte-identical to an untranslated entry. The
+                // fuzzy-gating lives in the shared `live_translation_target` policy.
                 units.push(build_unit(
                     &entry.msgctxt,
                     &entry.msgid,
-                    &entry.msgstr,
+                    live_translation_target(entry),
                     &lang,
                     tgt_script,
                 ));
@@ -666,6 +671,57 @@ mod tests {
             loss.projection_drops_for(&row.target)
                 .iter()
                 .any(|d| d.contains("Foo"))
+        );
+    }
+
+    #[test]
+    fn fuzzy_entry_is_not_a_live_crossing() {
+        use gmeow_docs::i18n_compile::PoEntry;
+        // A machine-seeded `#, fuzzy` entry carries a non-empty msgstr but is not yet a
+        // reviewed translation. Routed through the SAME shared policy the corpus loop uses
+        // (`live_translation_target`) into the SAME `build_unit`, it must render as a
+        // not-yet-live (Unsupported, empty-target) crossing — never a live translation —
+        // so unreviewed content cannot surface as reviewed in the gmeow.gts projection.
+        let ctx = "https://blackcatinformatics.ca/gmeow/Foo|rdfs:label";
+        let fuzzy = PoEntry {
+            msgctxt: ctx.to_string(),
+            msgid: "Foo".to_string(),
+            msgstr: "Machine seed".to_string(),
+            fuzzy: true,
+        };
+        let reviewed = PoEntry {
+            fuzzy: false,
+            ..fuzzy.clone()
+        };
+        let fuzzy_unit = build_unit(
+            &fuzzy.msgctxt,
+            &fuzzy.msgid,
+            live_translation_target(&fuzzy),
+            "fr",
+            "latinScript",
+        );
+        let reviewed_unit = build_unit(
+            &reviewed.msgctxt,
+            &reviewed.msgid,
+            live_translation_target(&reviewed),
+            "fr",
+            "latinScript",
+        );
+        assert!(
+            !fuzzy_unit.present,
+            "a #, fuzzy entry must not be a present (live) translation crossing"
+        );
+        assert!(
+            reviewed_unit.present,
+            "removing the #, fuzzy flag makes the same entry a present crossing"
+        );
+        // The fuzzy crossing is byte-identical to a genuinely untranslated (empty-msgstr)
+        // one: the machine seed contributes NO target surface to the shipped bundle.
+        let untranslated_unit = build_unit(ctx, "Foo", "", "fr", "latinScript");
+        assert_eq!(
+            emit_ntriples(&[fuzzy_unit]),
+            emit_ntriples(&[untranslated_unit]),
+            "a fuzzy seed must project identically to an untranslated entry (English fallback)"
         );
     }
 
