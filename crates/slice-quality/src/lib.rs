@@ -21,6 +21,7 @@ pub mod gate;
 pub mod graph;
 mod grounding;
 pub mod lattice;
+pub mod lint;
 pub mod model;
 pub mod prioritize;
 pub mod reasoner;
@@ -35,6 +36,9 @@ use gmeow_lang_bridge::GmnDictionary;
 use purrdf::RdfDataset;
 use rayon::prelude::*;
 
+pub use lint::{
+    LintOutcome, declared_quality_tier, lint_report, resolve_min_tier, tier_gate_passes,
+};
 pub use model::{
     Axis, AxisFloorCommitment, AxisGrade, ContextScope, CountKind, Exemption, GovernanceFloors,
     MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,

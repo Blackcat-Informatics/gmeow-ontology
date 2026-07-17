@@ -29,6 +29,7 @@ and the no-debug-symbol policy intact.
 * **Deal-breakers — never:** `git checkout --theirs/--ours .`, `git merge -X theirs/ours`, `--no-verify`, skipping/mocking the component under test, or batch-resolving conflicts "to save time" (resolve each one individually).
 * **GPG / signing is off-limits** — never run `gpg`/`gpgconf` or touch the agent or keys; if a step needs signing, ask the user to run it.
 * **No time/effort estimates** — reason in dependency order and relative risk.
+* **`.deficiencies` is a CODE-deficiency log ONLY.** It records deficiencies in the shipped code/artifacts (a scoped-down requirement, a weaker-proxy mechanism, a human-signed-off descope) with a forward path — never infrastructure/environment complaints (a full disk, a loaded machine, a killed process, an expensive gate), never workflow narration ("deferred to a later stage", "delegated to CI", "ran green later", "aborted to protect the worktree"), never self-justification. A gate that could not be run is unfinished work: run it or STOP and tell the user — it is never a `.deficiencies` entry. If your only note is about process rather than the code, write nothing.
 
 ## Regenerate & gates
 

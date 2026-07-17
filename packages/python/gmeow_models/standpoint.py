@@ -111,12 +111,12 @@ class StandpointTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/StandpointTenure", "curie": "gmeow:StandpointTenure", "definitionDigest": "blake3:3aaa7457772c4a6acd358126a44d82fcb982a91f19f7cb4eaf6d70f004bbbee1", "iri": "https://blackcatinformatics.ca/gmeow/StandpointTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/StandpointTenure", "curie": "gmeow:StandpointTenure", "definitionDigest": "blake3:b3b93ec6b45265b5c6655a8b97ace87fce920f8502ce3c4bbcb005b248cd9774", "iri": "https://blackcatinformatics.ca/gmeow/StandpointTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    standpointClaim: list[StandpointClaim] | None = Field(default=None, description="The StandpointClaim observation that a StandpointTenure generates — the reified observation of the tenure's time-scoped fact. The tenure is the time-scoped situation; the claim is the observation of that fact. Functional: a tenure generates exactly one claim.", alias="gmeow:standpointClaim")
+    standpointClaim: StandpointClaim = Field(description="The StandpointClaim observation that a StandpointTenure generates — the reified observation of the tenure's time-scoped fact. The tenure is the time-scoped situation; the claim is the observation of that fact. Functional: a tenure generates exactly one claim.", alias="gmeow:standpointClaim")
     tenurePosition: list[Any] | None = Field(default=None, description="The standpoint-indexed claim the tenure says the standpoint held over its interval — a reified statement (a gmeow:StatementMetadata cell in the statement DSL). The range is intentionally left open: the statement-DSL spec layer is not part of the reasoned import closure, so asserting it as rdfs:range would dangle in the merged graph. When a StandpointTenure generates a StandpointClaim observation, the tenurePosition becomes the observedFeature of the claim.", alias="gmeow:tenurePosition")
     tenureStandpoint: str = Field(description="Within gmeow:StandpointTenure, values are node references constrained to gmeow:Standpoint. The standpoint whose position a standpoint-tenure records. When a StandpointTenure generates a StandpointClaim observation, the tenureStandpoint becomes the vantage of the claim.", alias="gmeow:tenureStandpoint")

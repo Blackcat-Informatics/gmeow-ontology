@@ -44,12 +44,12 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec, ComplexityClass,
-    ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope, Correspondence,
-    EvaluationMode, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule,
-    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, ReasoningProgramIr,
-    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
-    ValidationShapeIr,
+    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
+    ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
+    Correspondence, EvaluationMode, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality,
+    LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract,
+    ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue,
+    Term, ValidationShapeIr,
 };
 use super::restriction;
 
@@ -287,6 +287,10 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "minInclusiveBound" | "maxInclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
+            // Aggregate-balance satellite (double-entry balance: partitioned two-sum equality).
+            | "balancePostingPredicate" | "balancePartitionPredicate" | "balanceDebitValue"
+            | "balanceCreditValue" | "balanceAmountNodePredicate" | "balanceValuePredicate"
+            | "balanceGroupPredicate"
             // Comparison constraint (two focus-property values compared).
             | "leftPath" | "rightPath" | "compareOp"
             // Path node-kind constraint.
@@ -319,6 +323,7 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ForbiddenPatternConstraint"
             | "ValueRangeConstraint"
             | "AggregateConstraint"
+            | "AggregateBalanceConstraint"
             | "ComparisonConstraint"
             | "PathNodeKindConstraint"
             | "SelfJoinUniquenessConstraint"
@@ -327,6 +332,7 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "AcyclicConstraint"
             | "ValueSetMembershipConstraint"
             | "StringPatternConstraint"
+            | "UniqueLangConstraint"
     )
 }
 
@@ -1797,6 +1803,34 @@ pub fn derive_validation_shapes(
         };
         acc.entry(iri)
             .or_insert_with(|| (target, Vec::new(), Vec::new()))
+    }
+
+    // ── Unique-language sugar (logic:UniqueLangConstraint) → declarative sh:uniqueLang ────────
+    // A per-property unique-language record grounds a `sh:uniqueLang true` facet DECLARATIVELY on
+    // its `logic:onClass` node shape (the localizable-prose convention): the value path localizes
+    // at most once per language tag. Unlike the procedural sugars, uniqueLang is a faithful SHACL
+    // Core facet, so it rides the class node shape as a covered property component.
+    let unique_lang_ty = Node::iri(logic_iri("UniqueLangConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &unique_lang_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path))) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+        ) else {
+            continue;
+        };
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::UniqueLang],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
     }
 
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
@@ -3967,7 +4001,7 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
         None => ShaclSeverity::Violation,
     };
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
-    let formalizes = value(store, node, &nn(&logic_iri("formalizes"))).map(|t| term_str(&t));
+    let formalizes_all = sugar_iri_list(store, node, "formalizes");
     let failure_classes =
         distinct_failure_classes(store, node).map_err(|err| err.with_focus(iri.clone()))?;
     if failure_classes.len() > 1 {
@@ -4000,9 +4034,12 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
 
     let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)
         .map_err(|err| err.with_focus(iri.clone()))?;
-    if let Some(formalizes) = formalizes {
+    if let Some((primary, rest)) = formalizes_all.split_first() {
         constraint = constraint
-            .with_formalizes(formalizes)
+            .with_formalizes(primary.clone())
+            .map_err(|err| err.with_focus(iri.clone()))?;
+        constraint = constraint
+            .with_also_formalizes(rest.to_vec())
             .map_err(|err| err.with_focus(iri.clone()))?;
     }
     if let Some(failure_class) = failure_classes.first() {
@@ -4108,15 +4145,15 @@ fn finalize_sugar(
 ) -> gmeow_errors::Result<ConstraintIr> {
     let severity = sugar_severity(store, node)?;
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
-    let formalizes = value(store, node, &nn(&logic_iri("formalizes")))
-        .map(|t| term_str(&t))
-        .ok_or_else(|| {
-            sugar_err(
-                "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
-            )
-        })?;
+    let formalizes_all = sugar_iri_list(store, node, "formalizes");
+    let (primary, rest) = formalizes_all.split_first().ok_or_else(|| {
+        sugar_err(
+            "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
+        )
+    })?;
     let mut constraint = ConstraintIr::new(subject_str(node), integrity, severity, message)?
-        .with_formalizes(formalizes)?;
+        .with_formalizes(primary.clone())?
+        .with_also_formalizes(rest.to_vec())?;
     let failure_classes = distinct_failure_classes(store, node)?;
     if failure_classes.len() > 1 {
         return Err(sugar_err(format!(
@@ -4634,6 +4671,61 @@ fn read_aggregate_constraint(
     Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
 }
 
+/// The double-entry balance sugar (`logic:AggregateBalanceConstraint`): a target class + the seven
+/// predicate/value bindings of an [`AggregateBalance`]. Expands to a canonical guarded universal
+/// carrying an honest reified `balancedByGroup` FOL predication (so the FOL canon is complete + the
+/// target derives) PLUS the structured [`AggregateBalance`] satellite (which drives the real
+/// `GROUP BY`/`HAVING` SPARQL projection).
+fn read_aggregate_balance_constraint(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
+    let class = sugar_target_class(store, node)?;
+    let read = |local: &str| -> gmeow_errors::Result<String> {
+        value(store, node, &nn(&logic_iri(local)))
+            .map(|t| term_str(&t))
+            .ok_or_else(|| {
+                sugar_err(format!(
+                    "logic:AggregateBalanceConstraint requires logic:{local}"
+                ))
+            })
+    };
+    let posting = read("balancePostingPredicate")?;
+    let partition = read("balancePartitionPredicate")?;
+    let debit = read("balanceDebitValue")?;
+    let credit = read("balanceCreditValue")?;
+    let amount_node = read("balanceAmountNodePredicate")?;
+    let value_pred = read("balanceValuePredicate")?;
+    let group = read("balanceGroupPredicate")?;
+    let balance = AggregateBalance::new(
+        posting.clone(),
+        partition.clone(),
+        debit.clone(),
+        credit.clone(),
+        amount_node.clone(),
+        value_pred.clone(),
+        group.clone(),
+    )?;
+    // Honest reified FOL integrity: a single `balancedByGroup` predication over the focus carrying
+    // every binding, guarded by the target class so the target derives. The realized FOL core has
+    // no aggregate node, so the SPARQL projection uses the satellite for a real GROUP BY/HAVING.
+    let reified = Formula::atom(
+        Term::iri(logic_iri("balancedByGroup"))?,
+        vec![
+            t_var("this"),
+            Term::iri(&posting)?,
+            Term::iri(&partition)?,
+            Term::iri(&debit)?,
+            Term::iri(&credit)?,
+            Term::iri(&amount_node)?,
+            Term::iri(&value_pred)?,
+            Term::iri(&group)?,
+        ],
+    )?;
+    let integrity = f_forall_this(f_guard_class(&class)?, reified);
+    Ok(finalize_sugar(store, node, integrity)?.with_aggregate_balance(balance))
+}
+
 /// Map an authored `logic:compareOp` symbol to the `logic:` comparison relation local name the
 /// projector recognizes (the FORBIDDEN relation whose satisfaction is the violation).
 fn compare_op_relation(op: &str) -> Option<&'static str> {
@@ -4927,7 +5019,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
-    let readers: [(&str, Reader); 16] = [
+    let readers: [(&str, Reader); 17] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -4939,6 +5031,10 @@ fn extract_sugar_constraints(
         ("ForbiddenPatternConstraint", read_forbidden_pattern),
         ("ValueRangeConstraint", read_value_range),
         ("AggregateConstraint", read_aggregate_constraint),
+        (
+            "AggregateBalanceConstraint",
+            read_aggregate_balance_constraint,
+        ),
         ("ComparisonConstraint", read_comparison),
         ("PathNodeKindConstraint", read_path_node_kind),
         ("SelfJoinUniquenessConstraint", read_self_join_uniqueness),

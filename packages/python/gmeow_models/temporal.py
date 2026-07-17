@@ -70,23 +70,6 @@ class FrameRealmEnum(StrEnum):
     frameRealmVirtual = "gmeow:frameRealmVirtual"
 
 
-class ObservationMethodEnum(StrEnum):
-    methodComputationalModel = "gmeow:methodComputationalModel"
-    methodDirectObservation = "gmeow:methodDirectObservation"
-    methodExpertJudgement = "gmeow:methodExpertJudgement"
-    methodGNSSRTK = "gmeow:methodGNSSRTK"
-    methodGPS = "gmeow:methodGPS"
-    methodInstrumentalReading = "gmeow:methodInstrumentalReading"
-    methodLiDAR = "gmeow:methodLiDAR"
-    methodLlmExtraction = "gmeow:methodLlmExtraction"
-    methodNliDerivation = "gmeow:methodNliDerivation"
-    methodPhotogrammetry = "gmeow:methodPhotogrammetry"
-    methodRemoteSensing = "gmeow:methodRemoteSensing"
-    methodStreaming = "gmeow:methodStreaming"
-    methodSurvey = "gmeow:methodSurvey"
-    methodTotalStation = "gmeow:methodTotalStation"
-
-
 class PeriodTypeEnum(StrEnum):
     periodTypeFiscalYear = "gmeow:periodTypeFiscalYear"
     periodTypeGeologicAge = "gmeow:periodTypeGeologicAge"
@@ -287,13 +270,15 @@ class TemporalMeasurement(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement", "curie": "gmeow:TemporalMeasurement", "definitionDigest": "blake3:359508efaffe38d833e3a982a32dda5322e290779dfb10b1ce03f17d5dbaced6", "iri": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement", "curie": "gmeow:TemporalMeasurement", "definitionDigest": "blake3:1ffb8412c1b5ed6f3e682d1fe846016c733e3e337933b532972138358209a0c6", "iri": "https://blackcatinformatics.ca/gmeow/TemporalMeasurement"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    observationMethod: ObservationMethodEnum = Field(description="The method or protocol used to produce the observation. Functional: one method per observation (compound protocols are modelled as a single fused method individual, e.g. 'GPS-RTK survey with ground control'). Distinct from gmeow:vantage: the method is *how* it was done, the vantage is *who* did it.", alias="gmeow:observationMethod")
+    observationMethod: str = Field(description="Within gmeow:TemporalMeasurement, values are node references constrained to gmeow:DatingMethod or gmeow:ObservationMethod. The method or protocol used to produce the observation. Functional: one method per observation (compound protocols are modelled as a single fused method individual, e.g. 'GPS-RTK survey with ground control'). Distinct from gmeow:vantage: the method is *how* it was done, the vantage is *who* did it.", alias="gmeow:observationMethod")
+    observedFeature: Entity = Field(description="The individual whose property or state is being observed — the feature of interest. The range is intentionally open (owl:Thing) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind.", alias="gmeow:observedFeature")
+    vantage: list[Agent] = Field(min_length=1, description="The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.", alias="gmeow:vantage")
 
 
 class TimeInterval(ConfiguredBaseModel):

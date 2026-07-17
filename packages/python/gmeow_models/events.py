@@ -264,3 +264,5 @@ class Participation(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    participationEvent: Event = Field(description="The event a participation is part of (functional — one event per participation).", alias="gmeow:participationEvent")
+    participationParticipant: list[Entity] = Field(min_length=1, description="The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants.", alias="gmeow:participationParticipant")
