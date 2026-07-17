@@ -1459,3 +1459,33 @@ One cross-cutting core-gate enhancement (SUBSUME/EXTEND/ENHANCE, MAXIMAL GROUNDI
   rdfs residue → 0, slice-quality-gate green) with the identity checks intact (all 20 gufo unit
   tests pass; no new MixIden across the full ontology at make check). Not a ceiling exception —
   the ungrounded residue was eliminated, not grandfathered.
+
+================================================================================
+2026-07-17 — Issue #1536 (stage 1): MCP surface for the slice authoring factory
+================================================================================
+Scope delivered in full: slice_quality promoted to Consumer (bundle-scored external
+dirs); slice_brief serves pre-assembled AuthoringPackets from the embedded
+graph/authoring-briefs; verdict-gated candidate seam (submit/withdraw/list) as MCP
+tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteria
+(AC1-AC6) execute on the production surface; `make check` green.
+
+- SCOPED-DOWN ENHANCEMENT (weaker mechanism, forward path): the plan's Enhancement-Audit
+  item "packet-closure-as-KB composition" (submit_candidate reuses an AuthoringPacket's
+  depth-1 CBD + definitional closure as the candidate KB) is NOT delivered as specified.
+  Implementation reality: the bundle's graph/authoring-briefs carries the SPARSE packet
+  index (covered-term IRIs + grounding cells + margins), NOT the per-term axiom/neighbour
+  closure — that closure lives only in the base graph / a repo checkout (assemble_packet).
+  So a bundle-served closure-as-KB is not reconstructable checkout-free. WEAKER MECHANISM
+  SHIPPED: submit_candidate records the target packet/slice as PROVENANCE
+  (gmeow:candidateForPacket / candidateForSlice) and requires the KB supplied explicitly;
+  the covered-term IRIs the packet lists resolve to full content via lookup_term/doc_card.
+  FORWARD PATH: a dev-mode (McpMode::Dev, repo-anchored) tool could assemble the closure
+  turtle from a checkout and feed it as the candidate KB, closing the loop for in-repo
+  authoring without changing the shipped consumer surface.
+
+- BY-DESIGN BOUNDARY (not a descope): slice_brief serves the packet as canonical turtle +
+  a JSON reading of the bundle's sparse packet body (the user-selected scope). It does NOT
+  reconstruct the full AuthoringPacket model's render_text, because the model's rich
+  per-term fields (coat/axioms/neighbours/closure) are dropped in to_turtle and are not in
+  the bundle graph. This matches the shipped bundle's contents; the rich content is reached
+  per covered-term IRI via the existing lookup_term / doc_card tools.

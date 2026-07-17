@@ -29452,6 +29452,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:ReasoningProgram"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:ReasoningProgram"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:ReasoningProgram"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:RecoveryCase"
                     },
                     {
@@ -49021,6 +49046,31 @@
           "logic:planGoal",
           "logic:planSuccessMode"
         ],
+        "type": "object"
+      },
+      "logic:ReasoningProgram": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "logic:RecoveryCase": {

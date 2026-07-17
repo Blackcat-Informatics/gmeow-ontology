@@ -3038,6 +3038,26 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/logic/termLiteralDatatype> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?c0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/logic/ReasoningProgramClauseConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/ReasoningProgram> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/ReasoningProgram> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/clause> ?c0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/logic/ReasoningProgramQueryConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/ReasoningProgram> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/ReasoningProgram> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/programQuery> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationShape> ;

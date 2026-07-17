@@ -182,6 +182,68 @@ ex:withdrawConjectureEffect
     logic:ins ex:conjectureWithdrawn ;
     logic:del ex:conjectureInLibrary .
 
+# Candidate-library situations (submit_candidate's precondition + effect, and the
+# withdraw-candidate compensation's effect). Untyped like the conjecture situations
+# above. The candidate seam is the neurosymbolic propose/verify entry point: an
+# untrusted proposer submits a candidate authoring contribution, the trusted symbolic
+# engine renders an isolated-world verdict, and ONLY an ADMISSIBLE (corroborated)
+# verdict lets the write's precondition obtain — a refuted or open candidate stages
+# nothing (the score moves only via gate-passing content).
+ex:candidateAdmissible
+    rdfs:label "the candidate is admissible"@x-gmeow-english ;
+    rdfs:comment "submit_candidate's precondition: the isolated-world verdict CORROBORATED the candidate (not refuted, not open). Unlike conjectureVerdictPresented, this obtains on verdict POLARITY, not on the mere presence of a verdict — a refuted candidate is never admitted."@x-gmeow-english .
+
+ex:candidateInLibrary
+    rdfs:label "the candidate is in the library"@x-gmeow-english ;
+    rdfs:comment "submit_candidate's effect: the content-addressed candidate node has been appended to the append-only candidate library."@x-gmeow-english .
+
+ex:candidateWithdrawn
+    rdfs:label "the candidate is withdrawn"@x-gmeow-english ;
+    rdfs:comment "withdraw-candidate's effect: the persisted candidate node is superseded (P10 — never erased)."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# submitCandidate — a GOVERNED WRITE action (logic:McpActionSchema). Appends one
+# content-addressed, admissibility-gated authoring candidate to the append-only
+# candidate library — the neurosymbolic propose/verify seam. Its compensation is
+# withdraw-candidate: a persisted candidate is reversible by SUPERSESSION (P10),
+# never by erasure — the library is append-only.
+# --------------------------------------------------------------------------- #
+
+ex:submitCandidate a logic:McpActionSchema ;
+    rdfs:label "submit_candidate — append an admissible authoring candidate to the library"@x-gmeow-english ;
+    logic:capability   ex:memoryWriteCapability ;
+    logic:precondition ex:candidateAdmissible ;
+    logic:effect       ex:submitCandidateEffect ;
+    logic:compensation ex:withdrawCandidate .
+
+# submitCandidate's transaction-layer effect: the candidate is now in the library.
+# Append-only — it inserts candidate-in-library and DELETES NOTHING (a submit only
+# adds; the library never mutates a prior segment).
+ex:submitCandidateEffect
+    rdfs:label "effect of submit_candidate"@x-gmeow-english ;
+    rdfs:comment "Inserts candidate-in-library; deletes nothing — an append-only submit only adds."@x-gmeow-english ;
+    logic:ins ex:candidateInLibrary .
+
+# --------------------------------------------------------------------------- #
+# withdrawCandidate — a GOVERNED WRITE action (logic:McpActionSchema). The P10
+# supersession compensation for submitCandidate: it retires the candidate-in-library
+# situation and asserts candidate-withdrawn (supersession, never erasure). Its
+# compensation is submitCandidate: a withdrawal is reversible by RE-SUBMITTING.
+# --------------------------------------------------------------------------- #
+
+ex:withdrawCandidate a logic:McpActionSchema ;
+    rdfs:label "withdraw a persisted authoring candidate (P10, never delete)"@x-gmeow-english ;
+    logic:capability   ex:memoryWriteCapability ;
+    logic:precondition ex:candidateInLibrary ;
+    logic:effect       ex:withdrawCandidateEffect ;
+    logic:compensation ex:submitCandidate .
+
+ex:withdrawCandidateEffect
+    rdfs:label "effect of withdraw-candidate"@x-gmeow-english ;
+    rdfs:comment "Inserts candidate-withdrawn; deletes candidate-in-library (supersession, never erasure — P10)."@x-gmeow-english ;
+    logic:ins ex:candidateWithdrawn ;
+    logic:del ex:candidateInLibrary .
+
 # --------------------------------------------------------------------------- #
 # recall — a PLAIN read action (logic:ActionSchema, NOT McpActionSchema). It has a
 # precondition + capability but NO compensation: a read changes no state, so there

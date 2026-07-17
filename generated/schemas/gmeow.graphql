@@ -1021,6 +1021,7 @@ enum BranchConditionTypeEnum {
 
 enum BuildDataFlowEnum {
   pipeline_dataflow_compile_logic_source_load
+  pipeline_dataflow_goal_directed_reason
   pipeline_dataflow_reason_compile_logic
   pipeline_dataflow_validate_compile_logic
 }
@@ -4984,6 +4985,13 @@ type AuthorIdentity {
   iri: String
   authorIdentityString: String
   canonicalizedIdentity: [Agent!]
+}
+
+type AuthoringCandidate {
+  id: String
+  iri: String
+  candidateForPacket: [AuthoringPacket!]
+  candidateForSlice: [String!]
 }
 
 type AuthoringPacket {

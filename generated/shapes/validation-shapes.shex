@@ -6015,6 +6015,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/effect> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/evaluationMode> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/evaluationMode-domain-shape> {
+  <https://blackcatinformatics.ca/logic/evaluationMode> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/exists> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/exists-domain-shape> {
   <https://blackcatinformatics.ca/logic/exists> . {0,1} ;
@@ -6098,6 +6103,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/planSuccessMode> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/planSuccessMode-domain-shape> {
   <https://blackcatinformatics.ca/logic/planSuccessMode> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/programQuery> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/programQuery-domain-shape> {
+  <https://blackcatinformatics.ca/logic/programQuery> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/recoveryTransform> (associate via ShapeMap)
