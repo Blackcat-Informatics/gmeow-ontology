@@ -134,9 +134,17 @@ standard `gmeow:wasGeneratedBy` / `gmeow:wasDerivedFrom` provenance.
 
 Each `gmeow:EmbeddingFamily` carries its full generation contract:
 `gmeow:embeddingModel` (reused graphrag), `gmeow:inferenceEngine`,
-`gmeow:tokenizerContract`, `gmeow:preprocessingContract`, `gmeow:chunkingContract`,
-`gmeow:poolingKind`, `gmeow:truncationContract`, `gmeow:vectorDtype`,
+`gmeow:executionContract` (precision mode / deterministic-inference settings),
+`gmeow:tokenizerContract`, `gmeow:subjectProjectionContract` (the always-applied
+text-serialization step), `gmeow:preprocessingContract`, `gmeow:chunkingContract`,
+`gmeow:poolingKind`, `gmeow:generationNormalizationContract` (the family's
+generation-time normalization, distinct from an effective space's per-prefix
+`gmeow:normalizationKind`), `gmeow:truncationContract`, `gmeow:vectorDtype`,
 `gmeow:vectorByteOrder`, `gmeow:quantizationContract`, and `gmeow:contentDigest`.
+Two families that differ in any of these — including the execution,
+subject-projection, and generation-time-normalization components — are materially
+different generation contracts and MUST carry different `gmeow:contentDigest`
+identities (competency test 2, enforced by `distinct-family-id.rq`).
 Each `gmeow:VectorSpaceContract` carries `gmeow:effectiveOfFamily`,
 `gmeow:embeddingDimensions` (reused), `gmeow:distanceMetric` (reused),
 `gmeow:normalizationKind`, `gmeow:matryoshkaPolicy`, and `gmeow:contentDigest`.
