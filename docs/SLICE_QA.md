@@ -197,6 +197,52 @@ The semantic curation strategy — including how to replace term-list tests with
 behaviour-connected, production-executed evidence — is in
 [`SLICE-UPGRADE.md`](SLICE-UPGRADE.md).
 
+## The distinctiveness hard gate (structural, not scored)
+
+The ratchet lane above *measures* and *scores*. The **distinctiveness guard** is the
+opposite temperament: a hard boolean reject, not a number. A slice's per-term coats and
+its translations exist to **distinguish** one term from another; the guard rejects a
+near-duplicate — a value cosmetically present on two terms but substantively identical,
+the shape a templated mass-authoring pass produces. It replaces blocklists of
+already-seen template strings (which a new template family with different wording
+evades) with a general structural rejector.
+
+**It is a structural invariant, never a knob.** The threshold is **N = 2**: any two
+distinct subjects sharing one normalized skeleton is a collision. That is definitional —
+a collision either is or is not present — so there is nothing to calibrate: no scored
+axis (a scored axis feeds the lattice, the calibrated path this deliberately avoids), no
+floor, no target. It reuses the `gmeow_validate::distinctiveness` detector and lives as a
+hard gate, alongside the rubric binding/completeness gates, not as a measuring axis.
+
+**One skeleton, CURIEs kept.** `skeleton(s)` lowercases and collapses whitespace and does
+**not** strip CURIE tokens. In this corpus CURIEs are load-bearing content: a constraint
+definition names the classes it constrains, and a usage coat names the specific
+domain/range it applies to (two `math:` properties documented as "Set it on a `math:Sample`
+… with range …" each name their *own* distinct range — genuinely distinct documentation,
+not a near-duplicate). Stripping CURIEs would collapse such distinct content into a false
+collision, so a collision means two subjects carry the *same* normalized text, CURIEs and
+all. Only a byte-identical (modulo case and whitespace) value is the near-duplicate the
+guard targets.
+
+Two surfaces enforce it, both on `make check`:
+
+- **Coat side** (`make slice-quality-gate`). Within a slice, no two distinct **TBox**
+  terms may share a skeleton for a distinguishing coat: `gmeow:useWhen` / `gmeow:avoidWhen`
+  / `gmeow:howToUse` and `skos:definition`. A collision reds the gate, naming the slice,
+  predicate, skeleton, and colliding terms. `skos:example` is out of scope (distinct terms
+  legitimately cite the same example individual, so a hard reject would mis-fire) and
+  `gmeow:graphBoxRole` is a controlled-vocabulary role, legitimately repeated; the check is
+  TBox-scoped, so A-Box value individuals sharing a fixture definition never trip it.
+- **Translation side** (`make i18n-lint`). Within one PO catalog, a `msgstr` skeleton
+  shared across **distinct `msgid` sources** is a collapsed distinction — the translation
+  erased a distinction its source made — and hard-fails the lint. Two *twin* sources (a
+  class and its property twin carrying one English label) sharing one translation are
+  legitimate (identical `msgid` skeleton) and pass; fuzzy and empty entries are excluded.
+
+Fixing a violation is authoring, not suppression: reword each colliding coat so it states
+what is specific to *its* term, or give the translation its own faithful target. There is
+no exemption or grandfathering — a genuine near-duplicate is made distinct.
+
 ## Recipe: move a QA bit into the slice
 
 For each assertion currently in Python (or being newly authored), pick the home:
