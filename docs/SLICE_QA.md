@@ -224,6 +224,21 @@ collision, so a collision means two subjects carry the *same* normalized text, C
 all. Only a byte-identical (modulo case and whitespace) value is the near-duplicate the
 guard targets.
 
+**The boundary is structural, and honest about it.** Keeping CURIEs is what lets two coats
+that share a frame but name different terms (`… range math:ObservationUnit` vs
+`… range math:StatisticalVariable`) stay distinct, as they must. The flip side is a genuine
+property of *any* hard structural near-duplicate rule: a coat cloned from a template and
+disguised only by swapping one CURIE for another real term is byte-for-byte indistinguishable
+from legitimately-distinct content, so this guard passes it. That is not a defect to patch
+with a cleverer skeleton — narrowing the skeleton to catch it (stripping CURIEs, or replacing
+them with positional placeholders) re-collapses the load-bearing distinctions above into
+false collisions, failing legitimate authoring. Separating a meaningful CURIE difference from
+a decorative one is a *semantic* judgment — does the named term actually relate to this coat's
+subject? — which belongs to a `logic:` constraint reasoning over the ontology, a different
+mechanism from this string-structural guard. This gate closes the near-duplicate vector
+(identical modulo case and whitespace); the semantic coherence of a coat's CURIE references
+is the reasoner's concern, not this gate's.
+
 Two surfaces enforce it, both on `make check`:
 
 - **Coat side** (`make slice-quality-gate`). Within a slice, no two distinct **TBox**
