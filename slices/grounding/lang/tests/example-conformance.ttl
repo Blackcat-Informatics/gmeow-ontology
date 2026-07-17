@@ -491,6 +491,26 @@ ex:ecGmnDictionaryAliasCollision a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "Two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary alias two DIFFERENT terms (gmeow:GmnEnvelope, gmeow:GmnCodebook) with the SAME alias string \"genv\" (the sh:sparql of lang:GmnDictionaryAliasInjectivityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnDictionaryAliasCollision) — the alias table is not a bijection, so gmeow:gmnCorrNormalToGmn's mnemomorphic claim would be silently corrupted on read-back." .
 
+# === Rule: a per-slice terminology glossary is single-valued per sense === #
+# (the derived lang:GlossaryTermConsistencyConstraintProceduralConstraintShape, the
+#  functional-dependency dual of the GMN alias-injectivity constraint).
+
+ex:ecGlossaryTermConsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/glossary-term-consistent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:Glossary whose two gmeow:GlossaryEntry members share one gmeow:glossaryConcept and carry the SAME gmeow:glossaryTranslation (\"forme composée\") satisfies lang:GlossaryTermConsistencyConstraint — one sense renders one way — and validates with no findings." .
+
+ex:ecGlossaryTermInconsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/glossary-term-inconsistent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two gmeow:GlossaryEntry members of one gmeow:Glossary share one gmeow:glossaryConcept but carry TWO DIFFERENT gmeow:glossaryTranslation values (\"lire\", \"lu\"), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GlossaryTermInconsistency) — one sense reads back as two divergent renderings across batches, the functional-dependency dual of a GMN alias collision." .
+
+ex:ecGlossaryDeclaredHomograph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/glossary-declared-homograph.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One English source (\"read\") declared a lang:DeclaredTerminologyHomograph over two distinct lang:LexicalConcepts projects its two gmeow:GlossaryEntry members onto DISTINCT gmeow:glossaryConcept values, so their divergent renderings (\"lire\", \"lu\") share no concept and do NOT violate lang:GlossaryTermConsistencyConstraint — the sense-aware escape, so a genuine homograph is never a false positive." .
+
 # === Rule: a gmeow:processExport crossing binds to its ring === #
 
 ex:ecGmnExportRingBound a gmeow:ExampleConformance ;

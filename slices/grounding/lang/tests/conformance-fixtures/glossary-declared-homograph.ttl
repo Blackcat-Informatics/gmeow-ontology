@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming fixture: one English source ("read") that is a DECLARED homograph
+# (lang:DeclaredTerminologyHomograph naming two distinct lang:LexicalConcepts). Its two
+# gmeow:GlossaryEntry members therefore carry DISTINCT gmeow:glossaryConcept values, so
+# their divergent renderings ("lire" vs "lu") are legitimate and do NOT violate
+# lang:GlossaryTermConsistencyConstraint (the invariant groups on the concept, and these
+# entries share no concept). This exercises the sense-aware homograph escape.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:homographRead a lang:DeclaredTerminologyHomograph ;
+    lang:homographSource "read" ;
+    lang:homographConcept ex:conceptReadPresent , ex:conceptReadPast .
+
+ex:glossaryFrHg a gmeow:Glossary ;
+    gmeow:glossarySlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:glossaryLanguage "fr" ;
+    gmeow:glossaryEntry ex:entryReadPresent , ex:entryReadPast .
+
+ex:entryReadPresent a gmeow:GlossaryEntry ;
+    gmeow:glossaryTerm lang:readPresentSense ;
+    gmeow:glossaryPredicate "rdfs:label" ;
+    gmeow:glossarySource "read" ;
+    gmeow:glossaryTranslation "lire" ;
+    gmeow:glossaryConcept ex:conceptReadPresent .
+
+# Same source "read", a DISTINCT concept (the past-participle sense) — legitimately "lu".
+ex:entryReadPast a gmeow:GlossaryEntry ;
+    gmeow:glossaryTerm lang:readPastSense ;
+    gmeow:glossaryPredicate "rdfs:label" ;
+    gmeow:glossarySource "read" ;
+    gmeow:glossaryTranslation "lu" ;
+    gmeow:glossaryConcept ex:conceptReadPast .
+
+ex:conceptReadPresent a lang:LexicalConcept .
+ex:conceptReadPast a lang:LexicalConcept .
