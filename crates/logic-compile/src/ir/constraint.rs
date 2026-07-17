@@ -645,6 +645,40 @@ impl ConstraintIr {
         self.iri.clone()
     }
 
+    /// **Hard-fail** when more than one of the three aggregate satellites ([`Self::aggregate`],
+    /// [`Self::join_aggregate`], [`Self::aggregate_balance`]) is `Some`. The SPARQL projection
+    /// (`projections::shapes::constraint_select`) dispatches by PRIORITY — join_aggregate, then
+    /// aggregate_balance, then aggregate — so a constraint carrying more than one would otherwise
+    /// have its lower-priority satellite(s) silently dropped from the projected shape: a
+    /// no-optionality violation (`.goals`), not a permitted profile choice. Callers MUST invoke
+    /// this at the projection chokepoint (every satellite is attached by a chainable `with_*`
+    /// builder AFTER [`Self::new`] returns, so `new` itself cannot observe the conflict) so the
+    /// malformed constraint hard-fails instead of silently picking one.
+    pub fn ensure_single_satellite(&self) -> gmeow_errors::Result<()> {
+        let mut present: Vec<&str> = Vec::new();
+        if self.aggregate.is_some() {
+            present.push("aggregate");
+        }
+        if self.join_aggregate.is_some() {
+            present.push("join_aggregate");
+        }
+        if self.aggregate_balance.is_some() {
+            present.push("aggregate_balance");
+        }
+        if present.len() > 1 {
+            return Err(ir_err(format!(
+                "ConstraintIr {} carries {} coexisting aggregate satellites ({}); at most one of \
+                 aggregate/join_aggregate/aggregate_balance may be set on a single constraint, \
+                 else the SPARQL projection's priority dispatch would silently drop the \
+                 lower-priority satellite(s)",
+                self.iri,
+                present.len(),
+                present.join(", "),
+            )));
+        }
+        Ok(())
+    }
+
     /// A deterministic full-content key for canonical equality. Public to the crate so
     /// [`super::LogicProgram::canonical_key`] can fold it into the program key at the fixed
     /// tail. Folded over `iri` + `target` + `integrity`'s alpha/order-normalized key +

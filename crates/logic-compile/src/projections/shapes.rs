@@ -1627,6 +1627,10 @@ fn aggregate_balance_select(bal: &AggregateBalance) -> String {
 /// aggregate `GROUP BY`/`HAVING` form when it carries an [`AggregateComparison`] satellite, else
 /// the range-restricted `guard ∧ ¬φ` violation query lowered from the integrity formula.
 fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
+    // Hard-fail rather than silently pick a winner: a constraint carrying more than one
+    // aggregate satellite would otherwise have the lower-priority satellite(s) below silently
+    // dropped from the projected shape (a no-optionality violation).
+    c.ensure_single_satellite()?;
     if let Some(ja) = &c.join_aggregate {
         return Ok(join_aggregate_select(ja));
     }
@@ -3052,6 +3056,64 @@ mod procedural_tests {
         assert!(
             !project_procedural_constraints(&prog).contains("a sh:NodeShape"),
             "the unsupported constraint must not reach the document"
+        );
+    }
+
+    #[test]
+    fn coexisting_aggregate_satellites_hard_fail_at_projection() {
+        // A constraint carrying BOTH a join_aggregate and an aggregate satellite would otherwise
+        // have the projection dispatch's priority order silently drop the lower-priority
+        // `aggregate` satellite (Gap 12a). It must instead hard-fail — carried as flagged residue,
+        // never silently projected with one satellite dropped.
+        use crate::ir::{AggregateComparator, JoinLeg};
+
+        let leg = JoinLeg::new(
+            None,
+            "https://ex/incidenceCoface",
+            "https://ex/incidenceFace",
+            "https://ex/incidenceSign",
+        )
+        .unwrap();
+        let ja = JoinAggregate::new(
+            "SUM",
+            vec![leg.clone(), leg],
+            AggregateComparator::Eq,
+            "0",
+            None,
+        )
+        .unwrap();
+        let agg = AggregateComparison::new(
+            "COUNT",
+            false,
+            "https://ex/part",
+            AggregateComparator::Le,
+            AggregateRhs::Literal {
+                lexical: "10".into(),
+                datatype: None,
+            },
+        )
+        .unwrap();
+        let c = guarded(
+            "https://ex/cDualSatellite",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        )
+        .with_join_aggregate(ja)
+        .with_aggregate(agg);
+
+        assert!(
+            c.ensure_single_satellite().is_err(),
+            "a constraint carrying two aggregate satellites must fail the guard directly"
+        );
+        assert!(
+            project_procedural_constraint(&c).is_empty(),
+            "a dual-satellite constraint must not emit a block"
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let residue = procedural_constraint_residue(&prog);
+        assert_eq!(residue.len(), 1, "{residue:?}");
+        assert!(
+            residue[0].contains("aggregate") && residue[0].contains("join_aggregate"),
+            "the residue must name the coexisting satellites: {residue:?}"
         );
     }
 
