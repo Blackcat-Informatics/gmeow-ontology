@@ -204,6 +204,17 @@ ASK {
 }""" ;
     gmeow:saRationale "Each of the fourteen GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the nine SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, dictionary alias injectivity, the ring lattice, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
 
+# --- 11b. The glossary failure class subclasses lang:LangConformanceFailure (MUST) - #
+ex:saGlossaryFailureTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:GlossaryTermInconsistency rdfs:subClassOf lang:LangConformanceFailure .
+}""" ;
+    gmeow:saRationale "The per-slice terminology-glossary consistency failure MUST be a subclass of lang:LangConformanceFailure, so a cross-batch terminology inconsistency (the failure class of lang:GlossaryTermConsistencyConstraint) is a typed, queryable object like every other lang: failure." .
+
 # --- 12. The unwired-flagship failure subclasses lang:LangConformanceFailure (MUST) - #
 ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
