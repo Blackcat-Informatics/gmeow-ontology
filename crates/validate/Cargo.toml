@@ -89,6 +89,10 @@ gmeow-math = { path = "../math" }
 # Structured, subscriber-controlled sink for the native cache's lenient
 # missing-input notice — telemetry with no reporter in scope, never a gate.
 tracing = "0.1"
+# Read-only XML DOM parser for the authoring-integrity catalog gate: the generated
+# OASIS `catalog-v001.xml` is parsed properly (comments/CDATA/entities handled),
+# never by a naive substring scan. Pure-Rust, parse-only (pin matches logic-compile).
+roxmltree = "0.20"
 
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
