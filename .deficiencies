@@ -1385,3 +1385,36 @@ human-signed-off receipt-reuse bootstrap recorded in the PR #1580 stage-2 block 
   `make check` still runs in stage 3 before the branch merges. Residual risk: no full
   regenerated `gmeow.gts` byte-diff was performed in stage 1; if some untraced generated
   surface serializes the `Translations` fuzzy field, stage 3's sync is where it surfaces.
+
+## 2026-07-16 — issue #1534 / PR #1581 (fuzzy-gated translation coverage), stage 2
+Completion-adversary STAGE=2 (two independent runs, converged): the CRITICAL pipeline
+fuzzy-leak (G0/F1), the header-chosen-coverage-language bug (G1/F5), the from_utf8_lossy
+repair (G2/F3), and the read-error-as-absence laundering (G3/F4) were all FIXED on the
+production surface with passing targeted tests (docs 23/23, slice-quality score_group_c 9/9,
+pipeline lang_translation+lang_docs_rendering 14/14). C1/C2/C3 (fuzzy-not-counted,
+unflag-raises-coverage, no-floor-dips) were DEMONSTRATED-IN-PRODUCTION on the real axis and
+the real floor gate (`gmeow-dev slice-quality-gate` exit 0, 591 floors held). ENH-F verified
+already satisfied by the pre-existing BUILD_FINGERPRINT cache architecture (no code change);
+the single `make sync` confirmed it — the pipeline re-ran (pipeline-runs=1) yet every coverage
+artifact recomputed byte-identical (measurement-invariant on live data), no stale RDF.
+
+- ENVIRONMENTAL BLOCKER (USER-SIGNED-OFF): the stage-2 full local `make check` could NOT be
+  completed. The shared 1.8T filesystem (used by 30+ developers) was exhausted — free space
+  fell from 26G to <3G over ~30 minutes of the run, driven by other developers' builds, not
+  this work. `make check` DID pass its early stages green on the merged tree: `check-lint`
+  (cargo fmt --check, secret scan, issue/PR-ref lint all PASS) and the full `sync` step
+  (validate + SHACL `shacl.clean` + native reasoning + chase certificates all clean inside the
+  pipeline post-update-gates). The disk-heavy `rust-build --all-targets` / rust-test / reason /
+  verify / reason-crosscheck portion was aborted to protect worktree integrity before ENOSPC.
+  USER DECISION (Stage-2 AskUserQuestion, option "Push → let CI run it"): push the branch and
+  let CI run the AUTHORITATIVE full `make check` on the PR-merged-into-main result — the repo's
+  established pattern (cf. PR #1580 stage-3, where the full merged-result `make check` likewise
+  ran in CI, not locally). Stage-2 exit is therefore contingent on CI green.
+- Note (behavior change, not a defect — disclosed): the translation axis now anchors the
+  coverage/integrity language to the configured target (`tag`), never the catalog's self-reported
+  `Language:` header. This is a STRENGTHENING (a mislabeled `fr.po` claiming `Language: en` can no
+  longer credit copied English); a present header disagreeing with the target now emits a
+  `slice-quality.translation.mislabeled-catalog` advisory instead of being silently trusted.
+- Note (latent-until-#1537): the G0 pipeline fuzzy-gating is byte-neutral on today's live data
+  (no live slice PO carries `#, fuzzy`); it activates the moment #1537 seeds fuzzy entries. It is
+  fixed NOW (not deferred) so unreviewed content can never project as live into `gmeow.gts`.
