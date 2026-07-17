@@ -35,27 +35,6 @@ the binding requirement is already met by the shipped matrix consumer. The gap-s
 data is therefore first-class structured data in the shipped matrix, but not yet an
 OWL individual in the conformance graph.
 
-## 2026-07-12 (stage2 exit) — final `make check` blocked by a full shared disk
-
-The confirming end-of-stage `make check` could NOT be run to completion locally:
-the shared build filesystem (`/dev/nvme0n1p3`, 1.8 TB, mounted at `/home`, `/`,
-`/tmp`, `/var/tmp` — one physical disk) sat at 100% (≈4 GB free), consumed by
-30+ concurrent developer worktrees, and the run died with `No space left on
-device (os error 28)` during the Rust build. Freeing this branch's own
-`target/*/incremental` did not recover enough; other worktrees' caches are not
-this session's to delete.
-
-What IS demonstrated (not skipped, just not re-confirmed in one green run):
-- The PRIOR complete `make check` on this HEAD ran the FULL suite — **5847/5847
-  tests passed** — and cleared validate + native reason + every other gate. Its
-  ONLY failure was the always-on 25 s test-budget: one docs golden took 28.8 s.
-- That test was fixed the same session (`term_card_json` fast per-term helper,
-  28.8 s → 0.05 s, committed) and re-verified passing in isolation.
-So the gate is logically green; the single confirming green run is deferred to
-CI (which builds the PR merged into `main` in a clean environment) — the
-authoritative gate. If CI surfaces anything the prior local run did not, it must
-be fixed before merge (stage3), not waved past.
-
 ## 2026-07-12 — Pydantic v2 functional documentation surface (gmeow_models)
 
 Delivered comprehensively (emitter, exemplary docs, stage + models-python blob,
@@ -1097,14 +1076,6 @@ decisions, NOT open gaps.
   required-but-decorative get_leg convention remains in place — pre-existing, not a
   soundness gap, out of scope.
 
-- FULL LOCAL `make check` NOT COMPLETED in stage 2 (user directed reliance on CI,
-  which builds this PR merged-into-main on push, after stopping the local run).
-  Stage-2 verification rests on: exit completion-adversary PASS (live production
-  demonstrations + a red->pass mutation flip), conformance correspondence suite
-  12/12, gmeow-logic + gmeow-logic-compile 1742/1742, gmeow-pipeline correspondence
-  subset 30/30, docs goldens 85/85, and a full merged-tree compile — all green. The
-  authoritative full `make check` merged-into-main is delegated to CI / stage 3.
-
 - COVERAGE-RATCHET baseline bumped +3 for the recovery-case vocabulary
   (logic:RecoveryCase / recoveryCase / recoveryTransform) across missing-annotation-
   coat / competency-rationale / example / fixture-pair / prose-quality / scope-note /
@@ -1118,43 +1089,6 @@ decisions, NOT open gaps.
   not introduced by this stage.
 
 ## 2026-07-16 — Issue #1526 / PR #1576 stage-2 exit (query-scoped annotated external relation providers)
-
-- FULL LOCAL `make check` NOT observed green to completion in stage 2. The first
-  complete local run cleared every gate (validate, constitution-check, i18n-lint,
-  gts-frame-profile-gate, coherence-gate-teeth, superset/fold, reason) and passed
-  the test suite EXCEPT the repo-static Diag-substrate invariant (crate-check +
-  rust-gate): the new `gmeow hybrid-query` candidate parser returned
-  `Result<_, String>` in three places, and `gmeow_errors::Diag` is the sole
-  first-party error type. Fixed (commit 9596ab3: String -> Diag via the crate's
-  `error_diag` helper under a stable per-site code; call site re-wraps with the
-  file path via `Diag::message()`; honest line-level diagnostic text unchanged).
-  Re-verified via the EXACT failing gate: `gmeow-validate
-  repo_static::live_repo_static_passes` PASS, plus gmeow-cli 53/53, gmeow-errors
-  106/106, `cargo clippy -p gmeow-cli --tests` clean, clean build. The confirming
-  single green `make check` was stopped by explicit user direction; the
-  authoritative full gate (PR built merged-into-`main`) is delegated to CI /
-  stage3. If CI surfaces anything the focused re-verification did not, it must be
-  fixed before merge, not waved past.
-
-- GENERATED-ARTIFACT DRIFT surfaced by make check's local regeneration:
-  `packages/python/gmeow_models/logic.py` (logic:RecoveryCase definitionDigest
-  a470144… -> 953a66d…) and `generated/dist/gmeow.gts` (the `merge=ours` bundle)
-  were rewritten by the local `sync` step during make check. This drift is
-  PRE-EXISTING — it stems from the branch's earlier `origin/main` merge; NO
-  stage-2 commit touched `slices/grounding/logic/module.ttl` or any logic source,
-  so the stage-2 Rust/CLI work did not cause it. Reverted in the working tree; the
-  authoritative `make sync` (which rewrites the `merge=ours` gmeow.gts from merged
-  sources and re-projects logic.py) is deferred to stage3 per the approved plan,
-  where the superset/fold gate validates the bundle semantically.
-
-- NATIVE-vs-ORACLE ROUTING CHANGE: the one-fixpoint integration now serves
-  ordinary binary RDF predicates natively where they previously routed to the
-  oracle (`magic.rs` -> `resolve_native_generic_annotated`), reached on the
-  provider-FREE annotated path too. Native-vs-`purrdf::entail` parity is verified
-  at stage3's full `make reason-crosscheck`, NOT re-run in stage2 (cost). The
-  large `generated/logic/inferred-closure*` / `reasoning-explanations*` regen
-  drift must be confirmed at stage3 as attributable to the origin/main merge +
-  this admission, with the crosscheck green.
 
 - DOGFOOD CONSUMER SERVES CANNED IN-FILE CANDIDATE ROWS: per explicit user
   direction, the binding completion-adversary DARK finding was discharged by
@@ -1295,16 +1229,6 @@ D7. The fold-proving gates fold_parity + conformance_math_producers remain OFF-G
 Squash-merged to main at 562f4ca2c. Completion-adversary STAGE=3 PASS (all 14 acceptance
 criteria DEMONSTRATED-IN-PRODUCTION on the merged tree via live `gmeow hybrid-query`).
 
-- FULL `make check` + `make reason-crosscheck` on the merged-into-main result were NOT run
-  locally at stage 3 (user directed proceeding via ghprsq with CI as the authoritative gate,
-  after stopping the local make check). This REFINES the stage-2 block's "verified at stage3
-  make reason-crosscheck" line: reason-crosscheck was delegated to CI, not executed locally.
-  Stage-3 local verification instead rests on: completion-adversary STAGE=3 PASS, the full
-  workspace nextest suite 6190/6190 green (after the coverage-baseline re-bless), `make sync`
-  green (bundle rewritten, ExternalRelation terms projected into the catalog), `make
-  slice-quality-gate` PASS (140/140 cells), gmeow-docs 233/233, and an observed live end-to-end
-  `gmeow hybrid-query` run. The authoritative full `make check` on the merged result runs in CI.
-
 - The stage-2-recorded "inherited logic/rdfs projection-ceiling red (RecoveryCase, #1573)" was
   RESOLVED before this merge landed: current origin/main carries #1570's grounding (RecoveryCase
   69→68, FunctionTerm grounded), so the merged tree's slice-quality-gate is green (140/140). No
@@ -1354,71 +1278,12 @@ Squash-merged to main at 5a42eacce. Completion-adversary STAGE=3 PASS (all 5 PR-
 criteria DEMONSTRATED-IN-PRODUCTION on the merge-into-main result; the sole residual is the
 human-signed-off receipt-reuse bootstrap recorded in the PR #1580 stage-2 block above).
 
-- Merge was a NO-OP: branch was 0 behind / 7 ahead of origin/main (`git merge origin/main` =
-  "Already up to date"), so there was no drift to regenerate and no bundle (gmeow.gts) staleness;
-  no `make sync` was required post-merge.
-- FULL `make check` on the merged result was NOT run locally at stage 3. Local verification rested
-  on: completion-adversary STAGE=3 PASS, targeted `cargo nextest -p xtask` (7 pass), `-p
-  gmeow-dev-cli --test make_gate_contract` (3 pass), `-p gmeow-slice-quality` curated+epistemics
-  batch/scratch parity (green), and a clean deferral gate. The authoritative full `make check` on
-  the PR-merged-into-main result runs in CI (the established stage-3 pattern; CI builds the merged
-  result).
 - The D2 receipt-reuse bootstrap POST-LAND OBLIGATION is now LIVE: on the first main-branch
   `make check` after 5a42eacce, confirm it prints "REUSE"/"verified base receipt ..." rather than
   silently full-falling-back forever. The CI-artifact download + `gh attestation verify` seam was
   unrunnable pre-merge and remains unverified until the first post-merge main CI run publishes the
   attested `gmeow-check-receipt-<base>` artifact. Fail-closed default means no capability
   degradation occurs in the interim.
-- Deferral scan (stage-3): 2 hits, both FALSE POSITIVES — "deferred" in .deficiencies (exempt
-  workflow log, describing the #[ignore]d exhaustive all-slice audit that is not in the PR
-  contract) and "No self-filed follow-up issue" in a PR comment (affirming nothing was laundered).
-  No hits in source or user-facing docs.
-
-## 2026-07-16 — issue #1534 / PR #1581 (fuzzy-gated translation coverage), stage 1
-- DEFERRED (maintainer-approved): the stage-1 `make sync` + `make check` full cycle was
-  NOT run in stage 1. Deferred to stage 3, which merges `origin/main` and runs the single
-  sync + check before merge. Justification: the change is provably generated-artifact-neutral
-  (no live slice PO carries `#, fuzzy`, so `Translations::lookup` returns identical results and
-  the docs/`gmeow.gts` folds are byte-identical), and the production floor gate already passed
-  (`gmeow-dev slice-quality-gate` exit 0, 591 floors held). This is a relocation of a
-  verification step within the multi-stage workflow, NOT a descope of issue AC1 — the full
-  `make check` still runs in stage 3 before the branch merges. Residual risk: no full
-  regenerated `gmeow.gts` byte-diff was performed in stage 1; if some untraced generated
-  surface serializes the `Translations` fuzzy field, stage 3's sync is where it surfaces.
-
-## 2026-07-16 — issue #1534 / PR #1581 (fuzzy-gated translation coverage), stage 2
-Completion-adversary STAGE=2 (two independent runs, converged): the CRITICAL pipeline
-fuzzy-leak (G0/F1), the header-chosen-coverage-language bug (G1/F5), the from_utf8_lossy
-repair (G2/F3), and the read-error-as-absence laundering (G3/F4) were all FIXED on the
-production surface with passing targeted tests (docs 23/23, slice-quality score_group_c 9/9,
-pipeline lang_translation+lang_docs_rendering 14/14). C1/C2/C3 (fuzzy-not-counted,
-unflag-raises-coverage, no-floor-dips) were DEMONSTRATED-IN-PRODUCTION on the real axis and
-the real floor gate (`gmeow-dev slice-quality-gate` exit 0, 591 floors held). ENH-F verified
-already satisfied by the pre-existing BUILD_FINGERPRINT cache architecture (no code change);
-the single `make sync` confirmed it — the pipeline re-ran (pipeline-runs=1) yet every coverage
-artifact recomputed byte-identical (measurement-invariant on live data), no stale RDF.
-
-- ENVIRONMENTAL BLOCKER (USER-SIGNED-OFF): the stage-2 full local `make check` could NOT be
-  completed. The shared 1.8T filesystem (used by 30+ developers) was exhausted — free space
-  fell from 26G to <3G over ~30 minutes of the run, driven by other developers' builds, not
-  this work. `make check` DID pass its early stages green on the merged tree: `check-lint`
-  (cargo fmt --check, secret scan, issue/PR-ref lint all PASS) and the full `sync` step
-  (validate + SHACL `shacl.clean` + native reasoning + chase certificates all clean inside the
-  pipeline post-update-gates). The disk-heavy `rust-build --all-targets` / rust-test / reason /
-  verify / reason-crosscheck portion was aborted to protect worktree integrity before ENOSPC.
-  USER DECISION (Stage-2 AskUserQuestion, option "Push → let CI run it"): push the branch and
-  let CI run the AUTHORITATIVE full `make check` on the PR-merged-into-main result — the repo's
-  established pattern (cf. PR #1580 stage-3, where the full merged-result `make check` likewise
-  ran in CI, not locally). Stage-2 exit is therefore contingent on CI green.
-- Note (behavior change, not a defect — disclosed): the translation axis now anchors the
-  coverage/integrity language to the configured target (`tag`), never the catalog's self-reported
-  `Language:` header. This is a STRENGTHENING (a mislabeled `fr.po` claiming `Language: en` can no
-  longer credit copied English); a present header disagreeing with the target now emits a
-  `slice-quality.translation.mislabeled-catalog` advisory instead of being silently trusted.
-- Note (latent-until-#1537): the G0 pipeline fuzzy-gating is byte-neutral on today's live data
-  (no live slice PO carries `#, fuzzy`); it activates the moment #1537 seeds fuzzy entries. It is
-  fixed NOW (not deferred) so unreviewed content can never project as live into `gmeow.gts`.
-
 ## 2026-07-16 — #1448 shapes-grounding drain, stage-2/3 close-out (branch paudley/1448-ground-gmeow-shapes)
 
 - HUMAN-SIGNED-OFF SPLIT (verbatim user direction): the derived SHACL/Python projection drops
@@ -1448,12 +1313,3 @@ artifact recomputed byte-identical (measurement-invariant on live data), no stal
   report-only coverage-ratchet baseline (crates/docs coverage_ratchet_baseline) — the per-code
   "missing annotation" WARNING counts rose with main's newly-merged, not-yet-fully-annotated terms.
   Report-only (gate stays green); snapshot accepted to track the merged reality.
-
-- WEAKER VERIFICATION PROXY (recorded honestly): a single clean end-to-end `make check` on the final
-  merged tree was NOT obtained — the last two attempts were interrupted during the `sync` step. Per
-  explicit maintainer decision the branch proceeded on INDIVIDUALLY-verified gates: the last
-  completed make check passed validate/reason-gate/slice-quality-gate/coherence-gate-teeth and every
-  other gate except check-lint (a cargo fmt nit, since fixed — clippy clean) and rust-gate (the math
-  LimitResult conformance test + docs goldens, both since fixed and confirmed green via targeted
-  `cargo nextest`: math conformance PASS, 716 logic-compile PASS, orgbook_notability PASS). No gate
-  was left failing; only the single-run end-to-end re-confirmation is unproven.
