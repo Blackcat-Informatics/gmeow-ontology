@@ -532,3 +532,123 @@ msgstr "GMN Hodge 拉普拉斯键的指称"
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|skos:definition"
 msgid "The meaning assignment from `hlap` to the class math:HodgeLaplacian; it deliberately carries no executable grapheme."
 msgstr "从 `hlap` 到类 math:HodgeLaplacian 的意义指派；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|rdfs:label"
+msgid "Glossary"
+msgstr "术语表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|skos:definition"
+msgid "One slice's terminology glossary for one target language: the term-grain view of that slice's translation catalog, gathering a gmeow:GlossaryEntry per localizable literal the slice authors. A glossary is scoped by exactly one gmeow:glossarySlice and exactly one gmeow:glossaryLanguage, and holds zero or more entries through gmeow:glossaryEntry. It is a DERIVED object — projected from the slice's i18n/*.po catalog, never hand-authored — so it can never drift from the catalog that is its one canonical source. Within one glossary the term↔translation relation is a single-valued function per sense: no gmeow:glossaryConcept reads back as two divergent gmeow:glossaryTranslation values (lang:GlossaryTermConsistencyConstraint, the functional-dependency dual of the GMN alias bijection)."
+msgstr "某个切片面向一种目标语言的术语表：该切片翻译目录的术语粒度视图，为该切片所撰写的每个可本地化字面量收集一个 gmeow:GlossaryEntry。一个术语表恰好由一个 gmeow:glossarySlice 和一个 gmeow:glossaryLanguage 限定，并通过 gmeow:glossaryEntry 容纳零个或多个条目。它是一个派生对象——从该切片的 i18n/*.po 目录投影而来，绝不手工撰写——因而永远不会偏离作为其唯一规范来源的目录。在一个术语表内，术语↔翻译关系是按义项的单值函数：任何 gmeow:glossaryConcept 都不会回读为两个相异的 gmeow:glossaryTranslation 值（lang:GlossaryTermConsistencyConstraint，即 GMN 别名双射的函数依赖对偶）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlossaryEntry|rdfs:label"
+msgid "Glossary Entry"
+msgstr "术语表词条"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlossaryEntry|skos:definition"
+msgid "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), sense-anchored on a lang:LexicalConcept through gmeow:glossaryConcept and carrying the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts and legitimately renders each differently."
+msgstr "术语表中一条术语粒度的绑定：它把一个术语的英文源字面量（gmeow:glossarySource）针对某一术语（gmeow:glossaryTerm）上的某一谓词（gmeow:glossaryPredicate），关联到其目标语言渲染（gmeow:glossaryTranslation），并通过 gmeow:glossaryConcept 锚定在一个 lang:LexicalConcept 义项上，通过 gmeow:glossaryUnit（一个其 logic:Correspondence 持有诚实 logic:preservationKind 的 lang:TranslationUnit）承载该转换的法则主干。一个 gmeow:Glossary 通过 gmeow:glossaryEntry 容纳零个或多个条目。一致性不变式陈述于 gmeow:glossaryConcept 之上，因此投影赋予同一概念的两个条目必须在其翻译上一致；而一个已声明的同形异义词（lang:DeclaredTerminologyHomograph）被投影到相异的概念上，可合理地对各自作出不同渲染。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|rdfs:label"
+msgid "glossary slice"
+msgstr "术语表切片"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|skos:definition"
+msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's owl:Ontology IRI."
+msgstr "一个 gmeow:Glossary 所汇集术语归属的切片。函数性：每个术语表恰好对应一个切片。定义域 gmeow:Glossary，值域为该切片的 owl:Ontology IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|rdfs:label"
+msgid "glossary language"
+msgstr "术语表语言"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|skos:definition"
+msgid "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string."
+msgstr "一个 gmeow:Glossary 渲染所用的 BCP-47 目标语言标签（例如 \"fr\"、\"zh\"）。函数性：一个术语表对应一种语言。定义域 gmeow:Glossary，值域 xsd:string。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|rdfs:label"
+msgid "glossary entry"
+msgstr "术语表词条"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|skos:definition"
+msgid "Relates a gmeow:Glossary to one of its term-grain renderings. Domain gmeow:Glossary, range gmeow:GlossaryEntry. Non-functional: a glossary holds zero or more entries."
+msgstr "将一个 gmeow:Glossary 关联到其某一术语粒度渲染。定义域 gmeow:Glossary，值域 gmeow:GlossaryEntry。非函数性：一个术语表容纳零个或多个条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTerm|rdfs:label"
+msgid "glossary term"
+msgstr "术语表术语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTerm|skos:definition"
+msgid "The GMEOW term (class, property, or individual IRI) whose localizable literal a glossary entry renders. Functional: exactly one term per entry. Domain gmeow:GlossaryEntry, range any GMEOW term (deliberately unconstrained — a glossary renders across the whole slice vocabulary, not one rdf:type)."
+msgstr "一个术语表条目所渲染的可本地化字面量所属的 GMEOW 术语（类、属性或个体 IRI）。函数性：每个条目恰好一个术语。定义域 gmeow:GlossaryEntry，值域为任意 GMEOW 术语（刻意不加约束——术语表在整个切片词汇上进行渲染，而非某一个 rdf:type）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|rdfs:label"
+msgid "glossary predicate"
+msgstr "术语表谓词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|skos:definition"
+msgid "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string."
+msgstr "一个术语表条目所渲染字面量对应的注解谓词（例如 \"rdfs:label\"、\"skos:definition\"），以 CURIE 形式给出。函数性：每个条目一个谓词。定义域 gmeow:GlossaryEntry，值域 xsd:string。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|rdfs:label"
+msgid "glossary source"
+msgstr "术语表源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|skos:definition"
+msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
+msgstr "一个术语表条目所渲染的英文源字面量——目录 msgid 所携带的 @x-gmeow-english 值。函数性：每个条目一个源。定义域 gmeow:GlossaryEntry，值域 xsd:string。一致性不变式在条目的 gmeow:glossaryConcept 上分组（投影从该源铸造的一个义项），因此一个源通常映射到一个概念，从而映射到一种翻译，而一个已声明的同形异义词则把同一个源拆分到相异的概念上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|rdfs:label"
+msgid "glossary translation"
+msgstr "术语表翻译"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|skos:definition"
+msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+msgstr "一个术语表条目把其英文源绑定到的目标语言渲染——目录所携带的非 fuzzy 的 msgstr。函数性：每个条目一种翻译。定义域 gmeow:GlossaryEntry，值域 xsd:string。共享同一个 gmeow:glossaryConcept 的两个条目必须携带相同的 gmeow:glossaryTranslation（lang:GlossaryTermConsistencyConstraint）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|rdfs:label"
+msgid "glossary concept"
+msgstr "术语表概念"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|skos:definition"
+msgid "The lexical concept (sense) a glossary entry's source evokes — the sense-aware key the consistency invariant groups on. Functional: one concept per entry. Domain gmeow:GlossaryEntry, range lang:LexicalConcept. The projection mints one concept per source skeleton by default (so synonymous renderings of one term are caught), and DISTINCT concepts for a source declared a lang:DeclaredTerminologyHomograph (so a genuine homograph is not a false positive). Grouping on the concept rather than the raw string is what makes the check sense-aware, the OntoLex-Lemon ontolex:LexicalConcept peer."
+msgstr "一个术语表条目的源所唤起的词汇概念（义项）——一致性不变式据以分组的、具备义项意识的键。函数性：每个条目一个概念。定义域 gmeow:GlossaryEntry，值域 lang:LexicalConcept。投影默认按源骨架为每个源铸造一个概念（以便捕获同一术语的同义渲染），并为声明为 lang:DeclaredTerminologyHomograph 的源铸造相异的概念（以便真正的同形异义词不成为假阳性）。据概念而非原始字符串进行分组，正是使该检查具备义项意识之处，也即 OntoLex-Lemon 中 ontolex:LexicalConcept 的对应物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryUnit|rdfs:label"
+msgid "glossary unit"
+msgstr "术语表单元"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryUnit|skos:definition"
+msgid "The lang:TranslationUnit carrying the law-spine of a glossary entry's crossing — the attachment point of the entry's logic:Correspondence, its logic:preservationKind, and any lang:translationGap or logic:mnemomorphic residue. Functional: one unit per entry. Domain gmeow:GlossaryEntry, range lang:TranslationUnit. The glossary reuses the translation corpus's honest preservation judgment rather than minting a second grade."
+msgstr "承载一个术语表条目转换之法则主干的 lang:TranslationUnit——该条目 logic:Correspondence、其 logic:preservationKind 以及任何 lang:translationGap 或 logic:mnemomorphic 残余的挂载点。函数性：每个条目一个单元。定义域 gmeow:GlossaryEntry，值域 lang:TranslationUnit。术语表复用翻译语料库诚实的保留判断，而不铸造第二套等级。"
+
+msgctxt "https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph|rdfs:label"
+msgid "Declared Terminology Homograph"
+msgstr "已声明术语同形异义词"
+
+msgctxt "https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph|skos:definition"
+msgid "An explicit declaration that one English surface form (lang:homographSource) is a homograph in the terminology — it legitimately evokes two or more DISTINCT lang:LexicalConcepts (lang:homographConcept), each of which may take its own target-language rendering. It is the ontology-resident escape the glossary-consistency gate consults: a source so declared is exempted from the raw-source consistency check (its entries are projected onto distinct concepts), so a genuine homograph is never a false positive. A discrete modelled fact, never a calibrated knob: it costs naming two real concepts, and the exemption is granted only when two or more distinct lang:homographConcept senses are present — a declaration naming fewer than two grants no exemption (it is not a homograph) and the source stays under the consistency check."
+msgstr "一项明确声明：某个英文表层形式（lang:homographSource）在术语中是同形异义词——它合理地唤起两个或更多相异的 lang:LexicalConcepts（lang:homographConcept），其中每一个都可采用自己的目标语言渲染。这是术语表一致性闸门所查阅的、驻留于本体内的豁免通道：如此声明的源被豁免于原始源一致性检查（其条目被投影到相异的概念上），因而真正的同形异义词永不成为假阳性。这是一个离散的建模事实，绝非可调旋钮：它的代价是命名两个真实的概念，而且仅当存在两个或更多相异的 lang:homographConcept 义项时才授予豁免——命名少于两个的声明不授予任何豁免（它不是同形异义词），该源仍受一致性检查约束。"
+
+msgctxt "https://blackcatinformatics.ca/lang/homographSource|rdfs:label"
+msgid "homograph source"
+msgstr "同形异义词源"
+
+msgctxt "https://blackcatinformatics.ca/lang/homographSource|skos:definition"
+msgid "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. Functional: one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."
+msgstr "一个 lang:DeclaredTerminologyHomograph 标记为同形异义词的英文表层形式——术语表一致性闸门所豁免的字符串。函数性：每项声明一个表层形式。定义域 lang:DeclaredTerminologyHomograph，值域 xsd:string。与 gmeow:glossarySource（后者限定于条目且为派生）不同：该谓词仅在同形异义词声明上撰写，因而闸门对豁免集的读取绝不会拾取派生的条目字面量。"
+
+msgctxt "https://blackcatinformatics.ca/lang/homographConcept|rdfs:label"
+msgid "homograph concept"
+msgstr "同形异义词概念"
+
+msgctxt "https://blackcatinformatics.ca/lang/homographConcept|skos:definition"
+msgid "One distinct sense a homograph surface evokes. Domain lang:DeclaredTerminologyHomograph, range lang:LexicalConcept. Non-functional and meaningful only in the plural: the exemption is granted only when two or more distinct lang:LexicalConcepts are named (fewer than two is not a homograph and grants no exemption). The glossary projection routes each occurrence of the declared source onto the matching concept, so divergent renderings across distinct senses are legitimate."
+msgstr "一个同形异义词表层形式所唤起的一个相异义项。定义域 lang:DeclaredTerminologyHomograph，值域 lang:LexicalConcept。非函数性，且仅在复数意义上才有意义：仅当命名两个或更多相异的 lang:LexicalConcepts 时才授予豁免（少于两个便不是同形异义词，也不授予豁免）。术语表投影把已声明源的每次出现路由到相匹配的概念上，因而跨相异义项的分歧渲染是合理的。"
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermInconsistency|rdfs:label"
+msgid "Glossary Term Inconsistency"
+msgstr "术语表术语不一致"
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermInconsistency|skos:definition"
+msgid "The failure raised when a gmeow:Glossary translates one term two different ways across batches: two gmeow:GlossaryEntry members sharing one gmeow:glossaryConcept carry two DIFFERENT gmeow:glossaryTranslation values. The terminology is then not consistent — one sense reads back as two divergent renderings — which the functional-dependency invariant (lang:GlossaryTermConsistencyConstraint) forbids. The structural dual of lang:GmnDictionaryAliasCollision: an alias reading back as two terms there, a sense reading back as two translations here. A genuine homograph is NOT this failure — it is projected onto distinct concepts through a lang:DeclaredTerminologyHomograph and so never shares a concept."
+msgstr "当一个 gmeow:Glossary 跨批次把同一个术语翻译成两种不同方式时所引发的失败：共享同一个 gmeow:glossaryConcept 的两个 gmeow:GlossaryEntry 成员携带两个不同的 gmeow:glossaryTranslation 值。此时术语便不一致——同一个义项回读为两个相异的渲染——这正是函数依赖不变式（lang:GlossaryTermConsistencyConstraint）所禁止的。它是 lang:GmnDictionaryAliasCollision 的结构对偶：在那里一个别名回读为两个术语，在这里一个义项回读为两种翻译。真正的同形异义词并非此失败——它通过一个 lang:DeclaredTerminologyHomograph 被投影到相异的概念上，因而绝不共享概念。"

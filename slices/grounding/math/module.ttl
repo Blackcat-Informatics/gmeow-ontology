@@ -8999,7 +8999,7 @@ math:hasQuadraticForm
 
 math:scalarField
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "scalar field"@x-gmeow-english ;
+    rdfs:label "field of scalars"@x-gmeow-english ;
     skos:definition "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
