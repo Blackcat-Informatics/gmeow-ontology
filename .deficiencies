@@ -1348,3 +1348,28 @@ fixed and pushed; E verified-no-change. One HUMAN-SIGNED-OFF exception recorded 
   audit, not a correctness gate; exactness is by-construction via the fast-path guards, and the
   synthetic guard-family parity test stays on-gate). New curated test adds ~18s to the workspace
   nextest suite (rust job), NOT to the slice-quality-gate or pipeline critical path the PR optimized.
+
+## 2026-07-17 — PR #1580 (perf/check-10x) stage-3 finalization
+Squash-merged to main at 5a42eacce. Completion-adversary STAGE=3 PASS (all 5 PR-body acceptance
+criteria DEMONSTRATED-IN-PRODUCTION on the merge-into-main result; the sole residual is the
+human-signed-off receipt-reuse bootstrap recorded in the PR #1580 stage-2 block above).
+
+- Merge was a NO-OP: branch was 0 behind / 7 ahead of origin/main (`git merge origin/main` =
+  "Already up to date"), so there was no drift to regenerate and no bundle (gmeow.gts) staleness;
+  no `make sync` was required post-merge.
+- FULL `make check` on the merged result was NOT run locally at stage 3. Local verification rested
+  on: completion-adversary STAGE=3 PASS, targeted `cargo nextest -p xtask` (7 pass), `-p
+  gmeow-dev-cli --test make_gate_contract` (3 pass), `-p gmeow-slice-quality` curated+epistemics
+  batch/scratch parity (green), and a clean deferral gate. The authoritative full `make check` on
+  the PR-merged-into-main result runs in CI (the established stage-3 pattern; CI builds the merged
+  result).
+- The D2 receipt-reuse bootstrap POST-LAND OBLIGATION is now LIVE: on the first main-branch
+  `make check` after 5a42eacce, confirm it prints "REUSE"/"verified base receipt ..." rather than
+  silently full-falling-back forever. The CI-artifact download + `gh attestation verify` seam was
+  unrunnable pre-merge and remains unverified until the first post-merge main CI run publishes the
+  attested `gmeow-check-receipt-<base>` artifact. Fail-closed default means no capability
+  degradation occurs in the interim.
+- Deferral scan (stage-3): 2 hits, both FALSE POSITIVES — "deferred" in .deficiencies (exempt
+  workflow log, describing the #[ignore]d exhaustive all-slice audit that is not in the PR
+  contract) and "No self-filed follow-up issue" in a PR comment (affirming nothing was laundered).
+  No hits in source or user-facing docs.
