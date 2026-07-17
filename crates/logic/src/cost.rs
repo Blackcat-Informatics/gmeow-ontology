@@ -1113,6 +1113,43 @@ impl IncrementalForwardSession {
         forward_rows_from_facts(&self.inner.closure(), &self.world)
     }
 
+    /// One canonical proof witness for every DERIVED fact in the CURRENT maintained
+    /// closure — the full-closure provenance the façade's `provenance()` surfaces
+    /// (including the initial settle, before any delta).
+    ///
+    /// Rendered with the same `term_display` surface as a run's per-delta derivations,
+    /// so a witness is comparable field-for-field against the full-recompute oracle.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a rule-evaluation failure from the closure re-descent.
+    pub fn closure_provenance(&self) -> gmeow_errors::Result<Vec<DerivedProvenance>> {
+        Ok(self
+            .inner
+            .closure_derivations()?
+            .into_iter()
+            .map(|(fact, witness)| DerivedProvenance {
+                subject: crate::provenance::term_display(&fact.subject),
+                predicate: fact.predicate.clone(),
+                object: crate::provenance::term_display(&fact.object),
+                rule_iri: witness.rule_iri.clone(),
+                premises: witness
+                    .premises
+                    .iter()
+                    .map(|premise| {
+                        (
+                            crate::provenance::term_display(&premise.subject),
+                            premise.predicate.clone(),
+                            crate::provenance::term_display(&premise.object),
+                        )
+                    })
+                    .collect(),
+                // A present derived fact has set-membership Z-weight +1.
+                weight: 1,
+            })
+            .collect())
+    }
+
     /// Apply an unbounded retract-only dataset.
     ///
     /// Bounded deletion deliberately remains outside this seam until a sound partial

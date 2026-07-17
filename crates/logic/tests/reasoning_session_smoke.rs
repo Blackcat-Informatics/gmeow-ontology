@@ -135,6 +135,28 @@ fn certified_program_is_incremental_and_surfaces_provenance() {
     assert!(base_rows > 0, "base closure is non-empty");
     let genesis_head = session.head().to_owned();
 
+    // (B) Provenance covers the FULL maintained closure at OPEN — before any delta —
+    // one witness per derived `reach` fact (a→b, b→c, a→c).
+    let base_prov = session.provenance();
+    assert!(
+        !base_prov.is_empty(),
+        "full-closure provenance is available at open, before any delta"
+    );
+    assert!(
+        base_prov
+            .iter()
+            .all(|p| p.predicate == format!("{EX}reach") && !p.rule_iri.is_empty()),
+        "every base-closure witness is a derived reach fact with a firing rule"
+    );
+    // Subjects/objects render through `term_display`, which angle-brackets IRIs.
+    assert!(
+        base_prov
+            .iter()
+            .any(|p| p.subject == format!("<{EX}a>") && p.object == format!("<{EX}c>")),
+        "the transitive a→c fact carries a witness at open"
+    );
+    let base_prov_len = base_prov.len();
+
     // Insert edge c→d; new reach a→d, b→d, c→d appear.
     let delta = SessionDelta::new(
         session.identity().data_generation.clone(),
@@ -154,17 +176,38 @@ fn certified_program_is_incremental_and_surfaces_provenance() {
     assert!(session.facts().rows.len() > base_rows, "closure grew");
     assert_ne!(session.head(), genesis_head, "session head advanced");
 
-    // (B) Provenance is surfaced: newly-derived reach facts carry a firing rule +
-    // premises + a genuine +1 Z-weight.
+    // (B) Provenance now covers the FULL closure (base + delta-derived): more witnesses
+    // than at open, one per derived reach fact, each with rule + premises + +1 weight.
     let provenance = session.provenance();
-    assert!(!provenance.is_empty(), "derived provenance is surfaced");
+    assert!(
+        provenance.len() > base_prov_len,
+        "full-closure provenance grew with the new derived facts"
+    );
     assert!(provenance.iter().all(|p| !p.rule_iri.is_empty()));
     assert!(provenance.iter().all(|p| p.weight == 1));
     assert!(
         provenance
             .iter()
+            .all(|p| p.predicate == format!("{EX}reach")),
+        "every witness is for a derived reach fact"
+    );
+    assert!(
+        provenance
+            .iter()
             .any(|p| p.predicate == format!("{EX}reach") && !p.premises.is_empty()),
         "a derived reach fact cites non-empty premises"
+    );
+    // Provenance covers exactly the derived facts in facts() (reach rows).
+    let derived_reach_rows = session
+        .facts()
+        .rows
+        .iter()
+        .filter(|row| row.predicate == format!("{EX}reach"))
+        .count();
+    assert_eq!(
+        provenance.len(),
+        derived_reach_rows,
+        "one witness per derived fact currently in the closure"
     );
 
     // Double-apply of the already-committed delta is structurally refused.

@@ -83,6 +83,10 @@ pub struct ReasoningSession {
     /// The full evidence of the most recent committed transaction (cost vector, signed
     /// changes, per-fact derivations, consumed steps), for the provenance reader.
     latest_run: Option<NativeIncrementalRun>,
+    /// One canonical witness for EVERY derived fact currently in [`Self::closure`] —
+    /// the full-closure provenance `provenance()` surfaces, maintained from the initial
+    /// settle across every committed transaction.
+    closure_provenance: Vec<DerivedProvenance>,
     /// The paged-source composition metrics, when this session was opened via
     /// [`Self::open_paged`]; `None` for a resident `open`.
     paged_metrics: Option<PagedCompositionMetrics>,
@@ -115,6 +119,10 @@ impl ReasoningSession {
             ForwardRows::default,
             IncrementalForwardSession::closure_rows,
         );
+        let closure_provenance = match inner.as_ref() {
+            Some(session) => session.closure_provenance()?,
+            None => Vec::new(),
+        };
 
         let identity = SessionIdentity::bind(
             data_generation,
@@ -133,6 +141,7 @@ impl ReasoningSession {
             head,
             closure,
             latest_run: None,
+            closure_provenance,
             paged_metrics: None,
         })
     }
@@ -218,6 +227,13 @@ impl ReasoningSession {
             ForwardRows::default,
             IncrementalForwardSession::closure_rows,
         );
+        let closure_provenance = match inner.as_ref() {
+            Some(session) => match session.closure_provenance() {
+                Ok(provenance) => provenance,
+                Err(diagnostic) => return Err(OperationOutcome::EngineFailure { diagnostic }),
+            },
+            None => Vec::new(),
+        };
 
         // Thread the PAGED source identity into the data-generation axis.
         let session_identity =
@@ -232,6 +248,7 @@ impl ReasoningSession {
             head,
             closure,
             latest_run: None,
+            closure_provenance,
             paged_metrics: Some(metrics),
         })
     }
@@ -272,15 +289,19 @@ impl ReasoningSession {
         self.latest_run.as_ref()
     }
 
-    /// The per-newly-derived-fact proof provenance of the most recent committed
-    /// transaction (firing rule + premises + signed Z-weight), rendered so it is
-    /// comparable field-for-field against the full-recompute oracle. Empty before the
-    /// first committed `apply`.
+    /// One canonical proof witness for EVERY derived fact in the CURRENT maintained
+    /// closure (firing rule + premises + signed Z-weight), rendered so it is comparable
+    /// field-for-field against the full-recompute oracle
+    /// ([`crate::reason::reason_program`] → [`crate::reason::InferredAxiom`]).
+    ///
+    /// This covers the full closure `facts()` reports — including the base facts
+    /// materialized at the initial settle, before any delta — not merely the last
+    /// transaction's newly-derived facts. For the last transaction's *delta* witnesses
+    /// alone, read [`Self::latest_run`]'s `derivations`. Empty for a non-incremental
+    /// session (no maintained closure).
     #[must_use]
     pub fn provenance(&self) -> &[DerivedProvenance] {
-        self.latest_run
-            .as_ref()
-            .map_or(&[], |run| run.derivations.as_slice())
+        &self.closure_provenance
     }
 
     /// The three-way classification of this session's FIXED program, decided at `open`.
@@ -402,9 +423,18 @@ impl ReasoningSession {
             };
         };
 
+        // Re-derive the full-closure provenance from the post-transaction maintainer
+        // BEFORE committing, so a re-descent failure (unreachable for the certified
+        // fragment — it has no builtins) leaves the session state unchanged.
+        let closure_provenance = match working.closure_provenance() {
+            Ok(provenance) => provenance,
+            Err(diagnostic) => return OperationOutcome::EngineFailure { diagnostic },
+        };
+
         // Commit the atomic transaction and advance the hash-linked journal.
         self.inner = Some(working);
         self.closure = run.rows.clone();
+        self.closure_provenance = closure_provenance;
         let entry = TransitionEntry::advance(
             self.head.clone(),
             delta.delta_identity.clone(),

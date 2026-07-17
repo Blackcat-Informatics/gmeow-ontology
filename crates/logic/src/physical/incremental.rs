@@ -622,6 +622,36 @@ impl IncrementalSession {
         Ok(derivations)
     }
 
+    /// One canonical proof witness for every DERIVED (non-EDB) fact currently in the
+    /// closure — the "why is this fact here?" provenance over the FULL maintained
+    /// closure, not just the last transaction's newly-derived facts.
+    ///
+    /// This is a clean reuse of [`Self::reconstruct_derivations`] (the same re-descent
+    /// the incremental `apply` path uses to complete cancelled witnesses): it re-descends
+    /// the settled fixed point once over the set of derived facts and returns one
+    /// canonical `(fact, witness)` per fact, in lexical [`FactKey`] order. The settle
+    /// circuit itself is untouched.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a rule-evaluation failure from the re-descent.
+    pub(crate) fn closure_derivations(
+        &self,
+    ) -> gmeow_errors::Result<Vec<(Fact, IncrementalDerivation)>> {
+        let fixed = self.fixed_snapshot();
+        let derived: BTreeSet<usize> = fixed.difference(self.edb.as_ref()).copied().collect();
+        if derived.is_empty() {
+            return Ok(Vec::new());
+        }
+        let by_id = self.reconstruct_derivations(fixed, &derived)?;
+        let mut out: Vec<(Fact, IncrementalDerivation)> = by_id
+            .into_iter()
+            .map(|(id, witness)| (self.arena.facts()[id].clone(), witness))
+            .collect();
+        out.sort_by_key(|(fact, _)| fact.key());
+        Ok(out)
+    }
+
     fn settle_from_scratch(&mut self) -> gmeow_errors::Result<()> {
         loop {
             let snapshot = self
