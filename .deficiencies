@@ -1610,3 +1610,26 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   (hoisted to LazyLock statics), the missing ValidationRun-level fold-wiring test (added), and
   the stale Python/PyO3-consumer docstrings (removed). Nothing else was scoped down, proxied,
   or moved off-gate.
+
+## 2026-07-17 — #1460 native citation & self-description conformance, stage-2 (branch paudley/1460-self-description-conformance)
+
+- HUMAN-SIGNED-OFF RELAXATION (issue wording → faithful recreation): the issue body specifies
+  the canonical abstract is "byte-identical" across metadata/gmeow-self.ttl (skos:definition),
+  ontology/gmeow.ttl (dcterms:description), and CITATION.cff (abstract). The shipped gate
+  (`canonical_abstract_is_standardized`) compares them WHITESPACE-NORMALIZED (`norm_ws`:
+  collapse whitespace runs to single spaces + trim), not byte-for-byte. The user explicitly
+  signed off on this relaxation at planning: the retired Python test used `_norm_ws`, and the
+  CITATION.cff `abstract` is a YAML folded block (`>-`) whose line wrapping folds to spaces, so
+  byte-identity is only meaningful post-parse and normalized equality is the faithful
+  recreation. This is strictly weaker than literal byte-identity (it cannot catch a pure
+  whitespace/wrapping divergence that a downstream byte consumer might care about). FORWARD
+  PATH: if a single canonical source is ever established (Principle 4 — one authored abstract,
+  the other two generated projections), the parity gate becomes moot and byte-identity is
+  guaranteed by construction; until then the normalized check is the correct guard for three
+  independently-authored surfaces.
+
+- Everything else in this stage was FIXED, not deferred, so it is NOT recorded here: the two
+  CodeRabbit "Major" review findings (gmeow:depicts strengthened from object-scoped to
+  predicate-absence; the "{n} external vocabularies" count check given a numeric left boundary)
+  were resolved in-code and re-verified green. Nothing else was scoped down, proxied, or moved
+  off-gate.
