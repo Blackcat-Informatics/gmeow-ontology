@@ -1433,7 +1433,7 @@ pub struct UncoveredTerm(pub String);
 ///    token must be a canonical integer or exactly-two-digit decimal. Number well-formedness is
 ///    a LEXICAL property, decidable without the dialect header, so it precedes header-presence.
 /// 3. **key-order** ([`NonCanonicalOrder`](Self::NonCanonicalOrder)) — a record's keys must be
-///    in the canonical `s p o v q st ev m ek bd it` order.
+///    in the canonical `s p o v id q st ev m ek bd it class` order.
 /// 4. **header-presence** ([`UndeclaredDialectVersion`](Self::UndeclaredDialectVersion)) — the
 ///    `@gmn{…}` header must pin the dialect/dictionary version before any record.
 /// 5. **dictionary-coverage** ([`Uncovered`](Self::Uncovered)) — every term must resolve
@@ -1459,7 +1459,7 @@ pub enum Gmn1Error {
     /// slot by charter. `graph` is the offending graph name's canonical rendering.
     NamedGraphOutOfDomain { graph: String },
     /// `lang:GmnNonCanonicalOrder` — a record's field keys are not in the canonical key order
-    /// (`s p o v q st ev m ek bd it`), forfeiting the byte-comparability the digest discipline
+    /// (`s p o v id q st ev m ek bd it class`), forfeiting the byte-comparability the digest discipline
     /// depends on.
     NonCanonicalOrder { detail: String },
     /// `lang:GmnMalformedNumber` — a number-shaped value token outside the grammar's number
@@ -2283,9 +2283,21 @@ fn split_triple_components(inner: &str) -> Result<[String; 3], Gmn1Error> {
 
 // ── Records: the s/p/o/v/q/st/ev/m/ek/bd/it field model ────────────────────────────
 
-/// The canonical GMN-1 field key order (`s p o v q st ev m ek`, plus the `@p`-only
-/// `bd it` pair), per `LANG-GMN.md` § "Record form, tabular form, and canonical order".
-const KEY_ORDER: [&str; 11] = ["s", "p", "o", "v", "q", "st", "ev", "m", "ek", "bd", "it"];
+/// The canonical GMN-1 field key order, per `LANG-GMN.md` § "Record form, tabular form,
+/// and canonical order". The primary-triple slots (`s p o v`) lead, then the in-band
+/// repair TARGET id (`id`), then the folded qualifier slots (`q st ev m ek`, plus the
+/// `@p`-only `bd it` pair), and finally the `@err` failure-class name (`class`).
+///
+/// The two repair keys sit in a fixed canonical position consistent with the charter's
+/// worked examples (`@err{id: …, class: …}`, `@patch{id: …, q: …}`, `@retract{id: …}`):
+/// `id` is FIRST among the repair fields (immediately after the primary-triple slots, so
+/// it precedes a restated `q` — `@patch{id, q}` — as the charter shows), and `class` is
+/// LAST (after every qualifier, so `@err{id, class}` renders id-before-class). The patched
+/// payload fields (`q`, …) reuse the existing qualifier slots — a repair record introduces
+/// no rival key for a value it already has a canonical slot for.
+const KEY_ORDER: [&str; 13] = [
+    "s", "p", "o", "v", "id", "q", "st", "ev", "m", "ek", "bd", "it", "class",
+];
 
 const SIGIL_CLAIM: &str = "@c";
 const SIGIL_EVIDENCE: &str = "@e";
@@ -2297,8 +2309,15 @@ const SIGIL_MODAL: &str = "@m";
 const SIGIL_MATH: &str = "@μ";
 const SIGIL_LANG_AST: &str = "@λ";
 const SIGIL_LOGIC: &str = "@ℒ";
+/// The three in-band repair sigils (`LANG-GMN.md` § "In-band repair"). Each is a
+/// claim-about-claims — a reified NEW record naming a stable TARGET record id, never an
+/// in-place mutation. `@err` reports a rejected record's failure class, `@patch` restates
+/// fields of an identified record, `@retract` withdraws one.
+const SIGIL_ERR: &str = "@err";
+const SIGIL_PATCH: &str = "@patch";
+const SIGIL_RETRACT: &str = "@retract";
 
-const KNOWN_SIGILS: [&str; 10] = [
+const KNOWN_SIGILS: [&str; 13] = [
     SIGIL_CLAIM,
     SIGIL_EVIDENCE,
     SIGIL_STANDPOINT,
@@ -2309,7 +2328,43 @@ const KNOWN_SIGILS: [&str; 10] = [
     SIGIL_MATH,
     SIGIL_LANG_AST,
     SIGIL_LOGIC,
+    SIGIL_ERR,
+    SIGIL_PATCH,
+    SIGIL_RETRACT,
 ];
+
+/// The `gmeow:` class IRIs the three repair sigils map to (Task 1's vocabulary): a
+/// repair record is a GMN-0 subject typed with exactly one of these three
+/// `gmeow:StandpointClaim` subclasses.
+const CLASS_GMN_ERR: &str = "https://blackcatinformatics.ca/gmeow/GmnErr";
+const CLASS_GMN_PATCH: &str = "https://blackcatinformatics.ca/gmeow/GmnPatch";
+const CLASS_GMN_RETRACT: &str = "https://blackcatinformatics.ca/gmeow/GmnRetract";
+/// The stable TARGET record id a repair record names (a datatype property → literal).
+const PRED_GMN_REPAIR_ID: &str = "https://blackcatinformatics.ca/gmeow/gmnRepairId";
+/// The `lang:LangConformanceFailure` subclass an `@err` names (an object property → IRI).
+const PRED_GMN_REPAIR_CLASS: &str = "https://blackcatinformatics.ca/gmeow/gmnRepairClass";
+
+/// The repair sigil a repair-class IRI maps to, or `None` for a non-repair class. The
+/// single write-side classifier shared by [`try_repair_record`].
+fn repair_sigil_for_class(class: &str) -> Option<&'static str> {
+    match class {
+        CLASS_GMN_ERR => Some(SIGIL_ERR),
+        CLASS_GMN_PATCH => Some(SIGIL_PATCH),
+        CLASS_GMN_RETRACT => Some(SIGIL_RETRACT),
+        _ => None,
+    }
+}
+
+/// The repair-class IRI a repair sigil reconstructs, or `None` for a non-repair sigil.
+/// The two-sided inverse of [`repair_sigil_for_class`] — the single read-side classifier.
+fn repair_class_for_sigil(sigil: &str) -> Option<&'static str> {
+    match sigil {
+        SIGIL_ERR => Some(CLASS_GMN_ERR),
+        SIGIL_PATCH => Some(CLASS_GMN_PATCH),
+        SIGIL_RETRACT => Some(CLASS_GMN_RETRACT),
+        _ => None,
+    }
+}
 
 /// Choose a semantic record role from the quad itself. Exact `rdf:type` roles win,
 /// followed by the process annotation pair, then the three grounding namespaces.
@@ -2431,7 +2486,7 @@ fn quads_to_records(
     refs: &mut BTreeMap<String, RefPayload>,
 ) -> Result<Vec<Record>, Gmn1Error> {
     let mut records = Vec::new();
-    for (graph, _subject, bucket) in group_quads(quads) {
+    for (graph, subject, bucket) in group_quads(quads) {
         // A named-graph quad is OUT OF DOMAIN, not "uncovered": the GMN-0 normal form is
         // default-graph by charter (the grounding slices are authored as `text/turtle`),
         // and the GMN-1 record shape has no graph slot. An honest typed domain boundary,
@@ -2440,6 +2495,17 @@ fn quads_to_records(
             return Err(Gmn1Error::NamedGraphOutOfDomain {
                 graph: term_sort_string(&graph),
             });
+        }
+        // In-band repair records (`@err`/`@patch`/`@retract`) are claims-about-claims —
+        // a subject typed with one of the three `gmeow:` repair classes, carrying a
+        // stable TARGET record id (`gmnRepairId`) plus the `@err` failure class or the
+        // `@patch` restated payload. They fold to their own sigil ONLY when the whole
+        // group matches the repair shape exactly; a repair-typed group that carries any
+        // foreign predicate falls through to the flat/folded logic below (always
+        // lossless), never a lossy repair fold.
+        if let Some(record) = try_repair_record(&subject, &bucket, dict, ns_to_prefix, refs)? {
+            records.push(record);
+            continue;
         }
         if let Some((host, sigil)) = folded_record_context(&bucket) {
             let mut fields = BTreeMap::new();
@@ -2508,6 +2574,108 @@ fn quads_to_records(
     Ok(records)
 }
 
+/// Fold a `(subject, bucket)` group into an in-band repair record (`@err`/`@patch`/
+/// `@retract`) when — and only when — the whole group matches the repair shape EXACTLY:
+///
+/// * exactly one `rdf:type` quad, whose object is one of the three `gmeow:` repair
+///   classes (this selects the sigil);
+/// * exactly one `gmnRepairId` quad carrying a literal (the stable TARGET record id,
+///   carried verbatim into the `id` slot — never resolved to another record);
+/// * for `@err`, at most one `gmnRepairClass` quad → the `class` slot (the failure
+///   class's compact name, via the ordinary IRI/alias rendering);
+/// * for `@patch`, any folded qualifier predicate (`confidence` → `q`, …) → its slot,
+///   the restated payload;
+/// * NO other predicate.
+///
+/// Returns `Ok(None)` (not an error) when the group is not a clean repair record, so the
+/// caller falls through to the always-lossless flat/folded `@c`-family logic. The
+/// subject rides the `s` slot ONLY when it is an IRI whose identity must be preserved; a
+/// blank-node repair subject (the reified claim's own fresh identity, as the charter's
+/// worked examples show) is omitted and minted fresh on read, canonically equal under
+/// RDFC-1.0's blank-label canonicalization.
+fn try_repair_record(
+    subject: &RdfTerm,
+    bucket: &[&RdfQuad],
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+) -> Result<Option<Record>, Gmn1Error> {
+    // Exactly one rdf:type quad, naming exactly one repair class, selects the sigil.
+    let type_quads: Vec<&&RdfQuad> = bucket.iter().filter(|q| q.predicate == RDF_TYPE).collect();
+    let [type_quad] = type_quads.as_slice() else {
+        return Ok(None);
+    };
+    let RdfTerm::Iri(class) = &type_quad.object else {
+        return Ok(None);
+    };
+    let Some(sigil) = repair_sigil_for_class(class) else {
+        return Ok(None);
+    };
+
+    let mut fields = BTreeMap::new();
+    let mut repair_id_seen = false;
+    for q in bucket {
+        match q.predicate.as_str() {
+            RDF_TYPE => {} // the single repair-class type, already consumed for the sigil.
+            PRED_GMN_REPAIR_ID => {
+                if repair_id_seen || !matches!(q.object, RdfTerm::Literal(_)) {
+                    return Ok(None);
+                }
+                fields.insert(
+                    "id",
+                    encode_value(&q.object, refs).map_err(Gmn1Error::Uncovered)?,
+                );
+                repair_id_seen = true;
+            }
+            PRED_GMN_REPAIR_CLASS if sigil == SIGIL_ERR => {
+                if fields.contains_key("class") || !matches!(q.object, RdfTerm::Iri(_)) {
+                    return Ok(None);
+                }
+                fields.insert(
+                    "class",
+                    encode_reference(&q.object, dict, ns_to_prefix, refs, sigil)
+                        .map_err(Gmn1Error::Uncovered)?,
+                );
+            }
+            other => {
+                // A `@patch` restates folded qualifier fields (confidence → q, …); any
+                // other predicate (or a qualifier on a non-`@patch` repair) means this is
+                // not a clean repair record — fall through to the flat/folded logic.
+                match annotation_slot(other) {
+                    Some(slot) if sigil == SIGIL_PATCH => {
+                        if fields.contains_key(slot) {
+                            return Ok(None);
+                        }
+                        let tok = if slot == "q" {
+                            encode_value(&q.object, refs).map_err(Gmn1Error::Uncovered)?
+                        } else {
+                            encode_reference(&q.object, dict, ns_to_prefix, refs, sigil)
+                                .map_err(Gmn1Error::Uncovered)?
+                        };
+                        fields.insert(slot, tok);
+                    }
+                    _ => return Ok(None),
+                }
+            }
+        }
+    }
+
+    // A repair record MUST name its target — a repair-typed group without a `gmnRepairId`
+    // is not a well-formed repair record; fall through so it round-trips as flat records.
+    if !repair_id_seen {
+        return Ok(None);
+    }
+
+    if let RdfTerm::Iri(_) = subject {
+        fields.insert(
+            "s",
+            encode_reference(subject, dict, ns_to_prefix, refs, sigil)
+                .map_err(Gmn1Error::Uncovered)?,
+        );
+    }
+    Ok(Some(Record { sigil, fields }))
+}
+
 /// Encode an object term into its `(key, token)` pair: `v` (value) for a literal, `o`
 /// (reference) otherwise — the o-vs-v slot split. An RDF 1.2 triple term is a non-literal
 /// object, so it rides the `o` slot as the `( s p o )` surface (see [`encode_triple_term`]).
@@ -2563,7 +2731,23 @@ fn record_to_quads(
     dict: &GmnDictionary,
     prefix_to_ns: &BTreeMap<String, String>,
     refs: &BTreeMap<String, RefPayload>,
+    fresh_index: usize,
 ) -> Result<Vec<RdfQuad>, Gmn1Error> {
+    // In-band repair records reconstruct their own GMN-0 quad shape (type + repair id +
+    // failure class / restated payload), never the primary `s p o/v` triple.
+    if repair_class_for_sigil(record.sigil).is_some() {
+        return repair_record_to_quads(record, dict, prefix_to_ns, refs, fresh_index);
+    }
+    // The repair-only keys are legal ONLY inside a repair record; a non-repair record
+    // carrying one would silently drop it below (a lost quad, no signal) — a HARD FAIL.
+    for repair_key in ["id", "class"] {
+        if record.fields.contains_key(repair_key) {
+            return Err(non_decodable(format!(
+                "non-repair record ({}) carries the repair-only key '{repair_key}'",
+                record.sigil
+            )));
+        }
+    }
     let s_tok = record
         .fields
         .get("s")
@@ -2619,6 +2803,108 @@ fn record_to_quads(
             });
         }
     }
+    Ok(quads)
+}
+
+/// Reconstruct a repair record's GMN-0 quads — the reader's inverse of
+/// [`try_repair_record`]: the `rdf:type` → repair-class quad, the `gmnRepairId` → target
+/// id quad, and the `@err` `gmnRepairClass` / `@patch` restated payload. HARD-FAILS
+/// (typed [`Gmn1Error::NonDecodableGrammar`]) on a repair record missing its mandatory
+/// `id`, or carrying a key outside the sigil's allowed set (a primary-triple `p`/`o`/`v`
+/// on any repair record, a `class` on a non-`@err`, or a restated qualifier on a
+/// non-`@patch`).
+///
+/// The subject rides the `s` slot when present (an IRI whose identity was preserved);
+/// otherwise a fresh blank node is minted — `fresh_index` makes distinct repair records
+/// take distinct labels, and RDFC-1.0's blank-label canonicalization makes the mint
+/// canonically equal to whatever blank node the original carried.
+fn repair_record_to_quads(
+    record: &Record,
+    dict: &GmnDictionary,
+    prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
+    fresh_index: usize,
+) -> Result<Vec<RdfQuad>, Gmn1Error> {
+    let class_iri =
+        repair_class_for_sigil(record.sigil).expect("dispatched here only for a repair sigil");
+
+    // Reject any key outside this sigil's allowed set — a silent drop would lose a quad.
+    let class_allowed = record.sigil == SIGIL_ERR;
+    let payload_allowed = record.sigil == SIGIL_PATCH;
+    for key in record.fields.keys() {
+        let allowed = match *key {
+            "s" | "id" => true,
+            "class" => class_allowed,
+            "q" | "st" | "ev" | "m" | "ek" | "bd" | "it" => payload_allowed,
+            _ => false,
+        };
+        if !allowed {
+            return Err(non_decodable(format!(
+                "repair record ({}) carries the key '{key}', which is outside its allowed field set",
+                record.sigil
+            )));
+        }
+    }
+
+    let id_tok = record.fields.get("id").ok_or_else(|| {
+        non_decodable(format!(
+            "repair record ({}) is missing its required target-id key 'id'",
+            record.sigil
+        ))
+    })?;
+    let id_object = decode_value(id_tok, refs)?;
+
+    let subject = match record.fields.get("s") {
+        Some(s_tok) => decode_reference(s_tok, dict, prefix_to_ns, refs, record.sigil)?,
+        None => RdfTerm::BlankNode(format!("gmnRepair{fresh_index}")),
+    };
+
+    let mut quads = vec![
+        RdfQuad {
+            subject: subject.clone(),
+            predicate: RDF_TYPE.to_owned(),
+            object: RdfTerm::Iri(class_iri.to_owned()),
+            graph_name: None,
+            location: None,
+        },
+        RdfQuad {
+            subject: subject.clone(),
+            predicate: PRED_GMN_REPAIR_ID.to_owned(),
+            object: id_object,
+            graph_name: None,
+            location: None,
+        },
+    ];
+
+    if let Some(class_tok) = record.fields.get("class") {
+        quads.push(RdfQuad {
+            subject: subject.clone(),
+            predicate: PRED_GMN_REPAIR_CLASS.to_owned(),
+            object: decode_reference(class_tok, dict, prefix_to_ns, refs, record.sigil)?,
+            graph_name: None,
+            location: None,
+        });
+    }
+
+    for slot in ["q", "st", "ev", "m", "ek", "bd", "it"] {
+        if let Some(tok) = record.fields.get(slot) {
+            let pred =
+                annotation_predicate_for_slot(slot).expect("every qualifier slot has a predicate");
+            let object = if slot == "q" {
+                decode_value(tok, refs)?
+            } else {
+                decode_reference(tok, dict, prefix_to_ns, refs, record.sigil)?
+            };
+            quads.push(RdfQuad {
+                subject: subject.clone(),
+                predicate: pred.to_owned(),
+                object,
+                graph_name: None,
+                location: None,
+            });
+        }
+    }
+
     Ok(quads)
 }
 
@@ -2887,7 +3173,7 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
                 return Err(Gmn1Error::NonCanonicalOrder {
                     detail: format!(
                         "record key '{key}' precedes an earlier key — records must follow the \
-                         canonical key order (s p o v q st ev m ek bd it)"
+                         canonical key order (s p o v id q st ev m ek bd it class)"
                     ),
                 });
             }
@@ -2909,12 +3195,21 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
 
     // ── Pass 5 — dictionary-coverage (`GmnUncoveredTerm`) + quad reconstruction ─────────
     let mut quads = Vec::new();
-    for record in &lexed {
+    for (fresh_index, record) in lexed.iter().enumerate() {
         let assembled = Record {
             sigil: record.sigil,
             fields: record.pairs.iter().cloned().collect(),
         };
-        quads.extend(record_to_quads(&assembled, dict, &prefix_to_ns, &doc.refs)?);
+        // `fresh_index` disambiguates the blank node minted for a repair record whose
+        // subject rode no `s` slot — distinct records take distinct labels, and RDFC-1.0
+        // canonicalization erases the label at comparison time.
+        quads.extend(record_to_quads(
+            &assembled,
+            dict,
+            &prefix_to_ns,
+            &doc.refs,
+            fresh_index,
+        )?);
     }
     quads.sort_by_key(quad_sort_key);
     quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
@@ -3777,7 +4072,7 @@ ex:fixtureDenotation a lang:Denotation ;
     }
 
     #[test]
-    fn writer_and_reader_cover_all_ten_declared_sigils() {
+    fn writer_and_reader_cover_all_thirteen_declared_sigils() {
         let mut builder = RdfDatasetBuilder::new();
         let rdf_type = builder.intern_iri(RDF_TYPE);
         for (local, class) in [
@@ -3792,6 +4087,25 @@ ex:fixtureDenotation a lang:Denotation ;
             let object = builder.intern_iri(&class);
             builder.push_quad(subject, rdf_type, object, None);
         }
+        // The three in-band repair sigils: each probe is a repair-class-typed subject
+        // that also names its target id (and, for @err, its failure class), so the
+        // writer folds it to its repair sigil rather than to flat `@c` records.
+        for (local, class) in [
+            ("err", CLASS_GMN_ERR),
+            ("patch", CLASS_GMN_PATCH),
+            ("retract", CLASS_GMN_RETRACT),
+        ] {
+            let subject = builder.intern_iri(&format!("{GMEOW_NS}{local}SigilProbe"));
+            let object = builder.intern_iri(class);
+            builder.push_quad(subject, rdf_type, object, None);
+            let repair_id = builder.intern_iri(PRED_GMN_REPAIR_ID);
+            let target = builder.intern_literal(RdfLiteral::typed("t1", XSD_STRING));
+            builder.push_quad(subject, repair_id, target, None);
+        }
+        let err_probe = builder.intern_iri(&format!("{GMEOW_NS}errSigilProbe"));
+        let repair_class = builder.intern_iri(PRED_GMN_REPAIR_CLASS);
+        let failure_class = builder.intern_iri(&format!("{LANG_NS}GmnMalformedNumber"));
+        builder.push_quad(err_probe, repair_class, failure_class, None);
         for (local, predicate, object) in [
             (
                 "claim",
@@ -3832,7 +4146,7 @@ ex:fixtureDenotation a lang:Denotation ;
                 document.text
             );
         }
-        round_trip_check(&model, &dictionary).expect("all ten sigils read back exactly");
+        round_trip_check(&model, &dictionary).expect("all thirteen sigils read back exactly");
     }
 
     #[test]

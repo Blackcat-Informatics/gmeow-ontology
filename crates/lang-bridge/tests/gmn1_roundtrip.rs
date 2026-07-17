@@ -14,8 +14,8 @@
 use std::sync::Arc;
 
 use gmeow_lang_bridge::{
-    Gmn0Model, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
-    gmn1_write_tabular, round_trip_check,
+    Gmn0Model, Gmn1Document, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, gmn1_write_tabular, round_trip_check,
 };
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, parse_dataset};
 
@@ -667,4 +667,207 @@ fn named_graph_quad_raises_out_of_domain_not_uncovered() {
         Gmn1Error::CLASS_GRAPH_OUT_OF_DOMAIN,
         "the failure must classify as lang:GmnGraphOutOfDomain"
     );
+}
+
+// ── In-band repair records: @err / @patch / @retract (claims-about-claims) ─────────────
+//
+// Each repair record is a reified NEW claim over a stable TARGET record id, never an
+// in-place mutation. The charter surface (`LANG-GMN.md` § "In-band repair") shows a
+// blank-node repair subject rendered WITHOUT an `s` slot: the reified claim's own fresh
+// identity, minted fresh on read, canonically equal under RDFC-1.0's blank-label
+// canonicalization. These fixtures are real `round_trip_check`s over that GMN-0 shape.
+
+/// Parse an inline Turtle fragment (blank-node repair subjects) to a [`Gmn0Model`].
+fn model_from_turtle(body: &str) -> Gmn0Model {
+    let ttl = format!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n{body}\n"
+    );
+    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("repair Turtle parses");
+    Gmn0Model::from_dataset(&ds)
+}
+
+/// The record line (skipping the `@gmn{…}` header) of a single-record document.
+fn sole_record_line(doc: &Gmn1Document) -> String {
+    doc.text
+        .lines()
+        .find(|l| l.starts_with('@') && !l.starts_with("@gmn{"))
+        .expect("one repair record line")
+        .to_owned()
+}
+
+#[test]
+fn err_repair_record_round_trips_and_renders_id_and_class() {
+    let model = model_from_turtle(
+        "[] a gmeow:GmnErr ;\n\
+         gmeow:gmnRepairId \"c42\" ;\n\
+         gmeow:gmnRepairClass lang:GmnMalformedNumber .",
+    );
+    let d = dict();
+    round_trip_check(&model, &d).expect("@err record round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write @err");
+    let line = sole_record_line(&doc);
+    assert!(line.starts_with("@err{"), "must emit an @err sigil: {line}");
+    assert!(
+        line.contains("id: c42"),
+        "must render the target id: {line}"
+    );
+    assert!(
+        line.contains("class: ") && line.contains("GmnMalformedNumber"),
+        "must render the failure-class name in the class slot: {line}"
+    );
+    assert!(
+        !line.contains("{s:"),
+        "a blank-node repair subject rides no `s` slot: {line}"
+    );
+
+    // Reconstruction is canonically the same GMN-0 model.
+    let back = gmn1_read(&doc, &d).expect("read @err");
+    assert!(gmn0_canonically_equal(&back, &model));
+    // The three reconstructed quads: the type, the target id, the failure class.
+    assert_eq!(
+        back.quads.len(),
+        3,
+        "exactly type + id + class: {:?}",
+        back.quads
+    );
+
+    // Read → write idempotence: the surface is a fixed point.
+    let doc2 = gmn1_write(&back, &d).expect("re-write @err");
+    assert_eq!(
+        doc.text, doc2.text,
+        "the @err surface is a read→write fixed point"
+    );
+}
+
+#[test]
+fn patch_repair_record_round_trips_and_restates_the_q_slot() {
+    let model = model_from_turtle(
+        "[] a gmeow:GmnPatch ;\n\
+         gmeow:gmnRepairId \"c42\" ;\n\
+         gmeow:confidence \"0.95\"^^xsd:decimal .",
+    );
+    let d = dict();
+    round_trip_check(&model, &d).expect("@patch record round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write @patch");
+    let line = sole_record_line(&doc);
+    assert!(
+        line.starts_with("@patch{"),
+        "must emit a @patch sigil: {line}"
+    );
+    assert!(
+        line.contains("id: c42"),
+        "must render the target id: {line}"
+    );
+    assert!(
+        line.contains("q: 0.95"),
+        "must restate the confidence in the q slot: {line}"
+    );
+    // `id` precedes the restated `q`, per the canonical repair key order.
+    assert!(
+        line.find("id:").unwrap() < line.find("q:").unwrap(),
+        "id must precede a restated q: {line}"
+    );
+
+    let back = gmn1_read(&doc, &d).expect("read @patch");
+    assert!(gmn0_canonically_equal(&back, &model));
+    assert_eq!(
+        back.quads.len(),
+        3,
+        "exactly type + id + restated q: {:?}",
+        back.quads
+    );
+
+    let doc2 = gmn1_write(&back, &d).expect("re-write @patch");
+    assert_eq!(
+        doc.text, doc2.text,
+        "the @patch surface is a read→write fixed point"
+    );
+}
+
+#[test]
+fn retract_repair_record_round_trips_carrying_just_the_id() {
+    let model = model_from_turtle("[] a gmeow:GmnRetract ; gmeow:gmnRepairId \"c17\" .");
+    let d = dict();
+    round_trip_check(&model, &d).expect("@retract record round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write @retract");
+    let line = sole_record_line(&doc);
+    assert_eq!(
+        line, "@retract{id: c17}",
+        "a @retract renders exactly its target id: {line}"
+    );
+
+    let back = gmn1_read(&doc, &d).expect("read @retract");
+    assert!(gmn0_canonically_equal(&back, &model));
+    assert_eq!(back.quads.len(), 2, "exactly type + id: {:?}", back.quads);
+
+    let doc2 = gmn1_write(&back, &d).expect("re-write @retract");
+    assert_eq!(
+        doc.text, doc2.text,
+        "the @retract surface is a read→write fixed point"
+    );
+}
+
+#[test]
+fn iri_subject_repair_record_preserves_its_identity_via_the_s_slot() {
+    // A repair record whose subject is an IRI (as the module.ttl `ex:err` example is)
+    // must preserve that identity — it rides the `s` slot, and round-trips exactly.
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW}errRecord1"));
+    let ty = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    let err = b.intern_iri(&format!("{GMEOW}GmnErr"));
+    b.push_quad(s, ty, err, None);
+    let repair_id = b.intern_iri(&format!("{GMEOW}gmnRepairId"));
+    let target = b.intern_literal(RdfLiteral::typed("c42", XSD_STRING));
+    b.push_quad(s, repair_id, target, None);
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let d = dict();
+    round_trip_check(&model, &d).expect("IRI-subject @err round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write IRI-subject @err");
+    let line = sole_record_line(&doc);
+    assert!(line.starts_with("@err{"), "must emit an @err sigil: {line}");
+    assert!(
+        line.contains("s: gmeow__errRecord1"),
+        "an IRI repair subject rides the s slot: {line}"
+    );
+    assert!(
+        line.contains("id: c42"),
+        "must render the target id: {line}"
+    );
+}
+
+#[test]
+fn repair_record_missing_its_id_hard_fails_typed() {
+    // A hand-authored @err with no `id` — the repair record does not name its target,
+    // a HARD FAIL, never a silently subject-less reconstruction.
+    let doc = Gmn1Document::from_text(
+        "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@err{class: GmnMalformedNumber}\n",
+    );
+    let err = gmn1_read(&doc, &dict()).expect_err("an @err without id must hard-fail");
+    assert!(
+        matches!(err, Gmn1Error::NonDecodableGrammar { .. }),
+        "a missing repair id is non-decodable grammar: {err:?}"
+    );
+    assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
+}
+
+#[test]
+fn repair_record_with_a_disallowed_key_hard_fails_typed() {
+    // A `class` slot is legal ONLY on an @err; a @patch carrying one would silently drop
+    // a quad on reconstruction — a HARD FAIL instead.
+    let doc = Gmn1Document::from_text(
+        "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@patch{id: c42, class: GmnMalformedNumber}\n",
+    );
+    let err = gmn1_read(&doc, &dict()).expect_err("a @patch with a class key must hard-fail");
+    assert!(
+        matches!(err, Gmn1Error::NonDecodableGrammar { .. }),
+        "a disallowed repair key is non-decodable grammar: {err:?}"
+    );
+    assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
 }
