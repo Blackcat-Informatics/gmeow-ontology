@@ -1371,23 +1371,43 @@ fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>>
             )])
         }
         // `¬(a ∧ b ∧ …)`. A pure-filter conjunction negates to one `FILTER ( … || … )`.
-        Formula::And(_) => {
+        Formula::And(fs) => {
             if let Some(expr) = filter_expr(f, focus, true) {
                 return Ok(vec![format!("FILTER ( {} )", expr?)]);
             }
-            // The conjunction binds patterns: negate it as ONE scoped `FILTER NOT EXISTS` over the
-            // whole positive conjunction — NEVER a `{¬a} UNION {¬b}` of per-conjunct
-            // `FILTER NOT EXISTS` branches. A union arm `{ FILTER NOT EXISTS { $this p o } }` binds
-            // no variable, so SPARQL's algebra evaluates `Union(¬a, ¬b, …)` INDEPENDENTLY of the
-            // guard it is joined with: `$this` is unbound inside each arm, silently turning the
-            // per-conjunct negation into an UNSCOPED global existence check that any sibling node
-            // satisfying that one conjunct clears (the orgbook_notability_mutation regression). The
-            // single scoped `FILTER NOT EXISTS { pos(a) pos(b) … }` keeps `$this` bound (the FILTER
-            // rides the guard's group), so `¬(a ∧ b ∧ …)` is checked per focus node, not globally.
-            Ok(vec![format!(
-                "FILTER NOT EXISTS {{ {} }}",
-                lower_positive(f, focus)?.join(" ")
-            )])
+            // `¬(c1 ∧ … ∧ cn) ≡ ¬c1 ∨ … ∨ ¬cn`. When EVERY negated conjunct is a
+            // self-scoped pattern group — one that re-binds `$this` through its own positive
+            // triple (a negated implication `{ a . ¬b }`, the ∀-of-implications shape such as
+            // the math:LimitResult value/outcome-agreement law) — lower the disjunction as a
+            // UNION of those groups: each arm binds `$this`, so the violation is checked per
+            // focus node. When ANY negated conjunct is a bare FILTER (`¬atom = FILTER NOT
+            // EXISTS { $this p o }`, which binds no variable), a UNION arm would be UNSCOPED —
+            // SPARQL evaluates `Union(¬a, ¬b, …)` independently of the guard it joins, so any
+            // sibling node satisfying that one conjunct clears it (the
+            // orgbook_notability_mutation regression). In that case negate the WHOLE
+            // conjunction as ONE scoped `FILTER NOT EXISTS { pos(a) pos(b) … }`, which keeps
+            // `$this` bound (the FILTER rides the guard's group).
+            let negated: Vec<Vec<String>> = fs
+                .iter()
+                .map(|c| lower_negative(c, focus))
+                .collect::<gmeow_errors::Result<_>>()?;
+            let all_scoped = negated.iter().all(|group| {
+                group
+                    .iter()
+                    .any(|line| !line.trim_start().starts_with("FILTER"))
+            });
+            if all_scoped {
+                let arms: Vec<String> = negated
+                    .iter()
+                    .map(|group| format!("{{ {} }}", group.join(" ")))
+                    .collect();
+                Ok(vec![arms.join(" UNION ")])
+            } else {
+                Ok(vec![format!(
+                    "FILTER NOT EXISTS {{ {} }}",
+                    lower_positive(f, focus)?.join(" ")
+                )])
+            }
         }
         Formula::Iff(..) => Err(proj_err(
             "a biconditional has no SPARQL constraint-body form",
