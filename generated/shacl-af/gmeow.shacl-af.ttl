@@ -234,7 +234,91 @@ gmeow:GenComputeRule_clusterRoot_r18
         sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/clusterRoot> $this } WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> $this . }""" ;
     ] .
 
-gmeow:GenSubsumptionRule_ArgumentStructure_a13
+gmeow:GenSubsumptionRule_4757da6ad288_a1
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/gmeow/FlagshipScenario> subClassOf <https://blackcatinformatics.ca/logic/restriction/4757da6ad288>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/4757da6ad288> } WHERE { $this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_6cb43b382f18_a2
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/gmeow/FlagshipScenario> subClassOf <https://blackcatinformatics.ca/logic/restriction/6cb43b382f18>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/6cb43b382f18> } WHERE { $this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_a20a55738aae_a3
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/gmeow/FlagshipScenario> subClassOf <https://blackcatinformatics.ca/logic/restriction/a20a55738aae>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/a20a55738aae> } WHERE { $this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_c47ecbcbe923_a4
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/gmeow/FlagshipScenario> subClassOf <https://blackcatinformatics.ca/logic/restriction/c47ecbcbe923>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/c47ecbcbe923> } WHERE { $this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_cca61df4d72c_a5
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/gmeow/FlagshipScenario> subClassOf <https://blackcatinformatics.ca/logic/restriction/cca61df4d72c>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/cca61df4d72c> } WHERE { $this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_db19b3cde71c_a6
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/gmeow/FlagshipScenario> subClassOf <https://blackcatinformatics.ca/logic/restriction/db19b3cde71c>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/db19b3cde71c> } WHERE { $this a <https://blackcatinformatics.ca/gmeow/FlagshipScenario> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_ConstraintSugar_a18
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/logic/AggregateBalanceConstraint> subClassOf <https://blackcatinformatics.ca/logic/ConstraintSugar>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/logic/AggregateBalanceConstraint> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/ConstraintSugar> } WHERE { $this a <https://blackcatinformatics.ca/logic/AggregateBalanceConstraint> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_ArgumentStructure_a29
     a sh:NodeShape ;
     rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/logic/FunctionTerm> subClassOf <https://blackcatinformatics.ca/logic/ArgumentStructure>) (generated)"@en ;
     sh:target [
@@ -246,7 +330,7 @@ gmeow:GenSubsumptionRule_ArgumentStructure_a13
         sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/ArgumentStructure> } WHERE { $this a <https://blackcatinformatics.ca/logic/FunctionTerm> . }""" ;
     ] .
 
-gmeow:GenSubsumptionRule_9ad64a6f9e82_a34
+gmeow:GenSubsumptionRule_9ad64a6f9e82_a50
     a sh:NodeShape ;
     rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/logic/RecoveryCase> subClassOf <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82>) (generated)"@en ;
     sh:target [
@@ -256,4 +340,16 @@ gmeow:GenSubsumptionRule_9ad64a6f9e82_a34
     sh:rule [
         a sh:SPARQLRule ;
         sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82> } WHERE { $this a <https://blackcatinformatics.ca/logic/RecoveryCase> . }""" ;
+    ] .
+
+gmeow:GenSubsumptionRule_ConstraintSugar_a72
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: subClassOf axiom (<https://blackcatinformatics.ca/logic/UniqueLangConstraint> subClassOf <https://blackcatinformatics.ca/logic/ConstraintSugar>) (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/logic/UniqueLangConstraint> . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/logic/ConstraintSugar> } WHERE { $this a <https://blackcatinformatics.ca/logic/UniqueLangConstraint> . }""" ;
     ] .

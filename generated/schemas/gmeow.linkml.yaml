@@ -1855,6 +1855,9 @@ classes:
     title: Finding Cluster
     slots:
     - clusterRoot
+  FlagshipScenario:
+    class_uri: https://blackcatinformatics.ca/gmeow/FlagshipScenario
+    title: flagship scenario
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -3835,6 +3838,7 @@ classes:
   ReadingOrder:
     class_uri: https://blackcatinformatics.ca/gmeow/ReadingOrder
     title: Reading Order
+    description: 'Closed-world checks: the usage contract only. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no owl:Restriction requirements, so a ReadingOrder instance carries no structural closed-world checks; its single obligation is the wiring contract of its own definition — an ordering standpoint exists to be ordered by, so it must be the gmeow:accordingTo of at least one claim (gmeow:ReadingOrderAccordingToConstraint).'
     is_a: Standpoint
   RealizationMode:
     class_uri: https://blackcatinformatics.ca/gmeow/RealizationMode
@@ -4368,6 +4372,7 @@ classes:
   Standpoint:
     class_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     title: Standpoint
+    description: 'Coexistence is explicitly permitted: contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are co-equal and must NOT be flagged — there is deliberately no constraint on their coexistence (Principle 9, no single slot to win). This is the intent the retired documentation-only gmeow:StandpointCoexistenceShape recorded: coexistence is proven by the positive fixtures, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only ever rejects closed-world malformations, never co-equal contradiction.'
     is_a: Entity
     slots:
     - sharpens
@@ -4756,6 +4761,9 @@ classes:
   TuningSystemKind:
     class_uri: https://blackcatinformatics.ca/gmeow/TuningSystemKind
     title: Tuning System Kind
+  UnwiredFlagshipScenario:
+    class_uri: https://blackcatinformatics.ca/gmeow/UnwiredFlagshipScenario
+    title: unwired flagship scenario
   UsageAttestation:
     class_uri: https://blackcatinformatics.ca/gmeow/UsageAttestation
     title: Usage Attestation
@@ -6324,7 +6332,7 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarsenTo
     title: coarsen to
     range: GranularityLevel
-    multivalued: true
+    multivalued: false
   coarserThan:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarserThan
     title: coarser than
@@ -7219,6 +7227,21 @@ slots:
     range: OnlineAccount
     domain: EmailAddress
     multivalued: true
+  demonstratedByCompetency:
+    slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByCompetency
+    title: demonstrated by competency
+    range: uriorcurie
+    multivalued: false
+  demonstratedByExample:
+    slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByExample
+    title: demonstrated by example
+    range: string
+    multivalued: false
+  demonstratedByProducer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/demonstratedByProducer
+    title: demonstrated by producer
+    range: string
+    multivalued: false
   deonticModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/deonticModality
     title: deontic modality
@@ -7925,6 +7948,10 @@ slots:
   enforcedByShape:
     slot_uri: https://blackcatinformatics.ca/gmeow/enforcedByShape
     title: enforced by shape
+    range: string
+  enforcesFailureClass:
+    slot_uri: https://blackcatinformatics.ca/gmeow/enforcesFailureClass
+    title: enforces failure class
     range: string
   entailmentConclusion:
     slot_uri: https://blackcatinformatics.ca/gmeow/entailmentConclusion
@@ -9247,6 +9274,11 @@ slots:
     range: integer
     minimum_value: 0
     multivalued: true
+  guardedByCounterExample:
+    slot_uri: https://blackcatinformatics.ca/gmeow/guardedByCounterExample
+    title: guarded by counter-example
+    range: string
+    multivalued: false
   guideBlob:
     slot_uri: https://blackcatinformatics.ca/gmeow/guideBlob
     title: guide blob
@@ -20565,6 +20597,9 @@ enums:
       fanout-logic-relational-core:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-relational-core
         title: fanout logic relational core
+      fanout-logic-shape-grounding-ledger:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-shape-grounding-ledger
+        title: fanout logic shape grounding ledger
       fanout-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-profiles
         title: fanout profiles

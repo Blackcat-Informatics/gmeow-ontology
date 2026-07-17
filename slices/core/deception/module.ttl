@@ -389,3 +389,80 @@ DOCTRINE.
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Wave B1 shape-drain: deception event / cue well-formedness grounding ---
+# gmeow:DeceptionEventShape — a deception event (an gmeow:Event whose gmeow:eventType is
+# gmeow:eventTypeDeception) carries at least one held standpoint and one projected standpoint, each
+# a gmeow:DoxasticStandpointClaim (value-keyed target reproduced as a guarded closed-world formula).
+gmeow:DeceptionEventConstraint
+    a logic:Constraint ;
+    rdfs:label "Deception event well-formedness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a deception event (an gmeow:Event with gmeow:eventType gmeow:eventTypeDeception) carries at least one gmeow:heldStandpoint and one gmeow:projectedStandpoint, each a gmeow:DoxasticStandpointClaim."@x-gmeow-english ;
+    logic:formalizes gmeow:DeceptionEventShape ;
+    logic:message "A deception event must carry at least one held standpoint (gmeow:heldStandpoint) and one projected standpoint (gmeow:projectedStandpoint), each a gmeow:DoxasticStandpointClaim." ;
+    logic:integrity logic:deForall .
+logic:deForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:deImpl .
+logic:deImpl a logic:Formula ; logic:antecedent logic:deGuard ; logic:consequent logic:deBoth .
+logic:deGuard a logic:Formula ; logic:and logic:deType , logic:deKind .
+logic:deType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] .
+logic:deKind a logic:Formula ; logic:relation gmeow:eventType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeDeception ] .
+logic:deBoth a logic:Formula ; logic:and logic:deHeld , logic:deProjected .
+logic:deHeld a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "h" ] ;
+    logic:exists logic:deHeldBody .
+logic:deHeldBody a logic:Formula ; logic:and logic:deHeldAtom , logic:deHeldType .
+logic:deHeldAtom a logic:Formula ; logic:relation gmeow:heldStandpoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "h" ] .
+logic:deHeldType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "h" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticStandpointClaim ] .
+logic:deProjected a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:deProjBody .
+logic:deProjBody a logic:Formula ; logic:and logic:deProjAtom , logic:deProjType .
+logic:deProjAtom a logic:Formula ; logic:relation gmeow:projectedStandpoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:deProjType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticStandpointClaim ] .
+
+# gmeow:DeceptionCueShape — a deception cue observation (the gmeow:deceptionCue object of an
+# gmeow:Event) is a gmeow:Observation carrying a gmeow:vantage and a gmeow:observationResult.
+gmeow:DeceptionCueConstraint
+    a logic:Constraint ;
+    rdfs:label "Deception cue well-formedness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a deception cue observation (the gmeow:deceptionCue object of an gmeow:Event) is a gmeow:Observation carrying a gmeow:vantage and a gmeow:observationResult."@x-gmeow-english ;
+    logic:formalizes gmeow:DeceptionCueShape ;
+    logic:message "A deception cue observation must be a gmeow:Observation with a gmeow:vantage and a gmeow:observationResult." ;
+    logic:integrity logic:dcForall .
+logic:dcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dcImpl .
+logic:dcImpl a logic:Formula ; logic:antecedent logic:dcGuard ; logic:consequent logic:dcBody .
+logic:dcGuard a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "event" ] ;
+    logic:exists logic:dcGuardBody .
+logic:dcGuardBody a logic:Formula ; logic:and logic:dcEventType , logic:dcCue .
+logic:dcEventType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] .
+logic:dcCue a logic:Formula ; logic:relation gmeow:deceptionCue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:dcBody a logic:Formula ; logic:and logic:dcObsType , logic:dcVantage , logic:dcResult .
+logic:dcObsType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] .
+logic:dcVantage a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:dcVantageBody .
+logic:dcVantageBody a logic:Formula ; logic:relation gmeow:vantage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:dcResult a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ;
+    logic:exists logic:dcResultBody .
+logic:dcResultBody a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
