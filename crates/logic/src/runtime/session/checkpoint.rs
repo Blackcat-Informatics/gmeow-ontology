@@ -17,7 +17,7 @@ use super::outcome::IntegrityFault;
 /// A durable, content-addressed session checkpoint.
 ///
 /// Construct via [`Checkpoint::new`]; `#[non_exhaustive]` so adding a field is additive.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub struct Checkpoint {
     /// The seven-axis identity the checkpoint was minted under.

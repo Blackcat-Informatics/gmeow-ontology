@@ -1612,6 +1612,7 @@ dependencies = [
  "proptest",
  "purrdf",
  "rayon",
+ "serde",
  "serde_json",
  "sha1",
  "sha2",

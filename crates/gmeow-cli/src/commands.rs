@@ -33,6 +33,10 @@ use gmeow_logic::external_relation::{
 use gmeow_logic::provenance::ZWeightSemiring;
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
+use gmeow_logic::runtime::{
+    Checkpoint, FragmentDisposition, IncompleteCause, IntegrityFault, OperationOutcome,
+    ReasoningSession, RebuildReason, SessionDelta, Suppression, UnsupportedFragment,
+};
 use gmeow_logic::seam::WorldFactSnapshot;
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::result_shape::ColumnKind;
@@ -1477,6 +1481,640 @@ pub fn logic_backward(
         }
     }
     0
+}
+
+// ── logic session (the operational ReasoningSession consumer) ──────────────────
+
+/// The single named-graph world IRI the session EDB/additions are re-homed into.
+/// The incremental maintenance fragment is single-world, so every fact the façade
+/// folds lives here (an ordinary Turtle EDB, whose triples land in the default
+/// graph, is deterministically re-homed into this world).
+const SESSION_WORLD_DEFAULT: &str = "https://blackcatinformatics.ca/gmeow/logic/session/world";
+
+/// The graph IRI the printed `SessionIdentity` N-Quads are scoped to.
+const SESSION_IDENTITY_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/logic/session/identity";
+
+/// Load an authored `logic:`-vocabulary program Turtle into a canonical
+/// [`gmeow_logic_compile::ir::LogicProgram`] via the SAME production frontend
+/// `gmeow logic backward` uses. Hard-fails (never a silent empty program) on a
+/// missing file, an unparsable file, or one carrying error-grade parse diagnostics.
+fn session_load_program(
+    reporter: &dyn Reporter,
+    program_file: &Path,
+) -> Result<gmeow_logic_compile::ir::LogicProgram, i32> {
+    if !program_file.exists() {
+        return Err(fail(
+            reporter,
+            "gmeow-cli.logic-session.missing-program",
+            format!("--program {} does not exist", program_file.display()),
+        ));
+    }
+    let (program, diagnostics) =
+        gmeow_logic_compile::frontend::parse_logic_path(program_file, None).map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.program-parse",
+                format!("cannot parse {}: {e}", program_file.display()),
+            )
+        })?;
+    let errors: Vec<String> = diagnostics
+        .iter()
+        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        .map(|d| format!("{} {}: {}", d.severity.as_str(), d.code, d.message))
+        .collect();
+    if !errors.is_empty() {
+        return Err(fail(
+            reporter,
+            "gmeow-cli.logic-session.program-malformed",
+            format!(
+                "{} carries {} error-grade parse diagnostic(s): {}",
+                program_file.display(),
+                errors.len(),
+                errors.join("; ")
+            ),
+        ));
+    }
+    if program.rules.is_empty() {
+        return Err(fail(
+            reporter,
+            "gmeow-cli.logic-session.no-rules",
+            format!(
+                "{} carries zero logic:Rule individuals",
+                program_file.display()
+            ),
+        ));
+    }
+    Ok(program)
+}
+
+/// Load an RDF file (Turtle/N-Triples/N-Quads/TriG, syntax inferred from the
+/// extension) and re-home every quad into the single named-graph `world`, so the
+/// façade sees exactly one world regardless of the source serialization's graph
+/// structure. A hard fail (never a degraded empty world) on read/parse/freeze error.
+fn session_load_world_dataset(
+    reporter: &dyn Reporter,
+    path: &Path,
+    world: &str,
+) -> Result<RdfDataset, i32> {
+    let parsed = parse_rdf_file(reporter, path)?;
+    let graph = RdfTerm::iri(world.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        builder.push_owned_quad(
+            &RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(graph.clone()),
+        );
+    }
+    let dataset = builder.freeze().map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.edb-rehome",
+            format!(
+                "cannot re-home {} into the session world: {e}",
+                path.display()
+            ),
+        )
+    })?;
+    // The façade takes an owned `RdfDataset` for deltas/suppressions; the builder
+    // hands back a fresh single-reference `Arc`, so unwrap it into the owned world.
+    Arc::try_unwrap(dataset).map_err(|_| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.edb-own",
+            "internal: a freshly-frozen session dataset was unexpectedly shared",
+        )
+    })
+}
+
+/// Open a session over `edb`/`program` under the default contract and the exact
+/// annotation semiring, mapping a façade open error to a hard CLI fail.
+fn session_open(
+    reporter: &dyn Reporter,
+    edb: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> Result<ReasoningSession, i32> {
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    ReasoningSession::open(edb, program, &contract, &annotation).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.open",
+            format!("cannot open reasoning session: {e}"),
+        )
+    })
+}
+
+/// A stable, greppable label for a program's fragment disposition.
+fn render_fragment_disposition(disposition: &FragmentDisposition) -> String {
+    match disposition {
+        FragmentDisposition::Incremental => "incremental".to_owned(),
+        FragmentDisposition::RequiresFullRebuild(reason) => {
+            format!("requires-full-rebuild {}", render_rebuild_reason(reason))
+        }
+        FragmentDisposition::Unsupported(kind) => {
+            format!("unsupported {}", render_unsupported_fragment(kind))
+        }
+        // `FragmentDisposition` is `#[non_exhaustive]`: a future tier still prints.
+        _ => "unknown".to_owned(),
+    }
+}
+
+/// A stable label for a rebuild reason.
+fn render_rebuild_reason(reason: &RebuildReason) -> &'static str {
+    match reason {
+        RebuildReason::BoundedRetractionUnsupported => "bounded-retraction-unsupported",
+        RebuildReason::AdditionsOutsideIncrementalFragment => {
+            "additions-outside-incremental-fragment"
+        }
+        RebuildReason::ContractOrEngineDriftSinceCheckpoint => {
+            "contract-or-engine-drift-since-checkpoint"
+        }
+        // `RebuildReason` is `#[non_exhaustive]`: a future reason still prints.
+        _ => "unknown",
+    }
+}
+
+/// A stable label for an unsupported-fragment kind.
+fn render_unsupported_fragment(kind: &UnsupportedFragment) -> &'static str {
+    match kind {
+        UnsupportedFragment::NonStratifiable => "non-stratifiable",
+        UnsupportedFragment::Cut => "cut",
+        UnsupportedFragment::Arithmetic => "arithmetic",
+        UnsupportedFragment::NonBinaryAtom => "non-binary-atom",
+        UnsupportedFragment::Floundering => "floundering",
+        UnsupportedFragment::NonTerminatingExistential => "non-terminating-existential",
+        UnsupportedFragment::NonTerminatingArithmetic => "non-terminating-arithmetic",
+        UnsupportedFragment::ClauseBodyTooWide => "clause-body-too-wide",
+        // `UnsupportedFragment` is `#[non_exhaustive]`: a future kind still prints.
+        _ => "unknown",
+    }
+}
+
+/// A stable label for an incomplete-operation cause.
+fn render_incomplete_cause(cause: &IncompleteCause) -> &'static str {
+    match cause {
+        IncompleteCause::StepBudget => "step-budget",
+        IncompleteCause::Cancelled => "cancelled",
+        IncompleteCause::Deadline => "deadline",
+        IncompleteCause::SourceBudgetExhausted => "source-budget-exhausted",
+        _ => "unknown",
+    }
+}
+
+/// A stable label for an integrity fault.
+fn render_integrity_fault(fault: &IntegrityFault) -> String {
+    match fault {
+        IntegrityFault::PreconditionMismatch {
+            expected_state_hash,
+            delta_base,
+        } => format!(
+            "PreconditionMismatch expected-state-hash={expected_state_hash} delta-anchor={delta_base}"
+        ),
+        IntegrityFault::IdentityMismatch { expected, found } => {
+            format!("IdentityMismatch expected={expected} found={found}")
+        }
+        IntegrityFault::CorruptCheckpoint {
+            expected_address,
+            computed_address,
+        } => format!(
+            "CorruptCheckpoint stored-address={expected_address} computed-address={computed_address}"
+        ),
+        IntegrityFault::IllegalSignedTransaction { detail } => {
+            format!("IllegalSignedTransaction {detail}")
+        }
+        _ => "unknown".to_owned(),
+    }
+}
+
+/// Print a typed [`OperationOutcome`] to stdout (the product stream) in a stable,
+/// greppable, diffable shape, and return the CLI exit code. A typed refusal/route
+/// (`RequiresFullRebuild`, `UnsupportedFragment`, `Incomplete`, `Invalid`) is a
+/// DECIDED answer — the observable proof the façade classifies rather than silently
+/// approximates — so it exits `0`, like an honest `entails` gap. Only a genuine
+/// `EngineFailure` is a hard fail (exit `1`).
+fn render_outcome(reporter: &dyn Reporter, outcome: &OperationOutcome) -> i32 {
+    match outcome {
+        OperationOutcome::Applied {
+            run,
+            new_state_hash,
+        } => {
+            println!("outcome Applied");
+            println!("  new-head {new_state_hash}");
+            println!("  consumed-steps {}", run.consumed_steps);
+            println!("  derived-count {}", run.derived_count);
+            println!("  signed-changes {}", run.changes.len());
+            println!("  derivations {}", run.derivations.len());
+            0
+        }
+        OperationOutcome::RequiresFullRebuild { reason } => {
+            println!("outcome RequiresFullRebuild");
+            println!("  reason {}", render_rebuild_reason(reason));
+            0
+        }
+        OperationOutcome::UnsupportedFragment { kind } => {
+            println!("outcome UnsupportedFragment");
+            println!("  kind {}", render_unsupported_fragment(kind));
+            0
+        }
+        OperationOutcome::Incomplete { status, cause } => {
+            println!("outcome Incomplete");
+            println!("  status {status}");
+            println!("  cause {}", render_incomplete_cause(cause));
+            0
+        }
+        OperationOutcome::Invalid { fault } => {
+            println!("outcome Invalid");
+            println!("  fault {}", render_integrity_fault(fault));
+            0
+        }
+        OperationOutcome::EngineFailure { diagnostic } => fail(
+            reporter,
+            "gmeow-cli.logic-session.engine-failure",
+            format!("reasoning-session engine failure: {}", diagnostic.message()),
+        ),
+        // `OperationOutcome` is `#[non_exhaustive]`: an unknown future variant is a
+        // hard fail (never a silent success).
+        _ => fail(
+            reporter,
+            "gmeow-cli.logic-session.unknown-outcome",
+            "reasoning-session returned an unrecognized outcome variant",
+        ),
+    }
+}
+
+/// Print the maintained derived closure with per-fact proof provenance, in a
+/// deterministic, diffable order. This is the production reader that makes the
+/// incrementally-maintained answer set (and its annotations) observable.
+fn render_facts_and_provenance(session: &ReasoningSession) {
+    let facts = session.facts();
+    println!("facts {}", facts.len());
+    for row in &facts.rows {
+        let args: Vec<String> = row
+            .args
+            .iter()
+            .map(gmeow_logic::provenance::term_display)
+            .collect();
+        println!("fact {} {}", row.predicate, args.join(" "));
+    }
+
+    // The maintained closure's per-fact derivation witnesses are the reasoning
+    // OUTPUT (firing rule + premises + signed Z-weight). Sort a copy on the full
+    // tuple so the reader is byte-diffable across runs.
+    let mut derivations = session.provenance().to_vec();
+    derivations.sort_by(|a, b| {
+        (&a.subject, &a.predicate, &a.object, &a.rule_iri, a.weight).cmp(&(
+            &b.subject,
+            &b.predicate,
+            &b.object,
+            &b.rule_iri,
+            b.weight,
+        ))
+    });
+    println!("provenance {}", derivations.len());
+    for prov in &derivations {
+        println!(
+            "derivation subject={} predicate={} object={} rule={} weight={}",
+            prov.subject, prov.predicate, prov.object, prov.rule_iri, prov.weight
+        );
+        let mut premises = prov.premises.clone();
+        premises.sort();
+        for (subject, predicate, object) in &premises {
+            println!("  premise {subject} {predicate} {object}");
+        }
+    }
+}
+
+/// `gmeow logic session open` — open a session and print its seven-axis identity,
+/// genesis head, and fragment disposition.
+pub fn logic_session_open(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    world: Option<&str>,
+) -> i32 {
+    let world = world.unwrap_or(SESSION_WORLD_DEFAULT);
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let session = match session_open(reporter, &edb, &program) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+    print!("{}", session.identity().to_nquads(SESSION_IDENTITY_GRAPH));
+    println!("genesis-head {}", session.head());
+    println!(
+        "fragment-disposition {}",
+        render_fragment_disposition(session.fragment_disposition())
+    );
+    0
+}
+
+/// `gmeow logic session apply` — build a content-addressed delta anchored on the
+/// session's own data-generation and current head, apply it, and print the typed
+/// outcome plus the advanced head.
+pub fn logic_session_apply(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    additions: &Path,
+    retract: Option<&Path>,
+    max_steps: Option<u64>,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let additions = match session_load_world_dataset(reporter, additions, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut retirements = Vec::new();
+    if let Some(retract) = retract {
+        let row = match session_load_world_dataset(reporter, retract, world) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        retirements.push(Suppression::new(row));
+    }
+
+    let mut session = match session_open(reporter, &edb, &program) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+    let base_commit = session.identity().data_generation.clone();
+    let expected_head = session.head().to_owned();
+    let delta = match SessionDelta::new(
+        base_commit,
+        expected_head,
+        additions,
+        retirements,
+        max_steps,
+    ) {
+        Ok(delta) => delta,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-session.delta",
+                format!("cannot build session delta: {e}"),
+            );
+        }
+    };
+    let outcome = session.apply(&delta);
+    println!("delta-identity {}", delta.delta_identity);
+    let code = render_outcome(reporter, &outcome);
+    println!("head {}", session.head());
+    code
+}
+
+/// `gmeow logic session facts` — open (optionally applying a delta first) and READ
+/// BACK the maintained derived closure with proof provenance. The anti-DARK reader.
+pub fn logic_session_facts(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    apply: Option<&Path>,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut session = match session_open(reporter, &edb, &program) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+
+    if let Some(apply) = apply {
+        let additions = match session_load_world_dataset(reporter, apply, world) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        let base_commit = session.identity().data_generation.clone();
+        let expected_head = session.head().to_owned();
+        let delta = match SessionDelta::new(base_commit, expected_head, additions, Vec::new(), None)
+        {
+            Ok(delta) => delta,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-session.delta",
+                    format!("cannot build session delta: {e}"),
+                );
+            }
+        };
+        let outcome = session.apply(&delta);
+        // Surface the apply classification, then STOP before reading a
+        // non-advanced closure back if the engine genuinely failed.
+        let code = render_outcome(reporter, &outcome);
+        if code != 0 {
+            return code;
+        }
+    }
+
+    println!("head {}", session.head());
+    render_facts_and_provenance(&session);
+    0
+}
+
+/// `gmeow logic session checkpoint` — open (optionally applying a delta first), mint
+/// a content-addressed checkpoint, and write it to disk as JSON.
+pub fn logic_session_checkpoint(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    apply: Option<&Path>,
+    out: &Path,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut session = match session_open(reporter, &edb, &program) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+
+    if let Some(apply) = apply {
+        let additions = match session_load_world_dataset(reporter, apply, world) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        let base_commit = session.identity().data_generation.clone();
+        let expected_head = session.head().to_owned();
+        let delta = match SessionDelta::new(base_commit, expected_head, additions, Vec::new(), None)
+        {
+            Ok(delta) => delta,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-session.delta",
+                    format!("cannot build session delta: {e}"),
+                );
+            }
+        };
+        let code = render_outcome(reporter, &session.apply(&delta));
+        if code != 0 {
+            return code;
+        }
+    }
+
+    let checkpoint = session.checkpoint();
+    let json = match serde_json::to_string_pretty(&checkpoint) {
+        Ok(json) => json,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-session.checkpoint-serialize",
+                format!("cannot serialize checkpoint: {e}"),
+            );
+        }
+    };
+    if let Err(e) = std::fs::write(out, format!("{json}\n")) {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-session.checkpoint-write",
+            format!("cannot write checkpoint to {}: {e}", out.display()),
+        );
+    }
+    println!("checkpoint-written {}", out.display());
+    println!("content-address {}", checkpoint.content_address);
+    println!("journal-head {}", checkpoint.journal_head);
+    println!("edb-generation {}", checkpoint.edb_generation);
+    0
+}
+
+/// Load a checkpoint from disk EXACTLY as stored — via serde, NOT `Checkpoint::new`
+/// (which would recompute `content_address` and hide tampering). The stored
+/// `content_address` survives the round-trip, so `Checkpoint::verify` detects a
+/// tampered field.
+fn session_load_checkpoint(reporter: &dyn Reporter, path: &Path) -> Result<Checkpoint, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    serde_json::from_slice::<Checkpoint>(&bytes).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.checkpoint-parse",
+            format!("cannot parse checkpoint {}: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow logic session restore` — load a checkpoint and restore by
+/// re-materialization, printing the typed outcome (including the identity-gated /
+/// tamper-detecting rejections).
+pub fn logic_session_restore(
+    reporter: &dyn Reporter,
+    input: &Path,
+    edb: &Path,
+    program: &Path,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let checkpoint = match session_load_checkpoint(reporter, input) {
+        Ok(cp) => cp,
+        Err(code) => return code,
+    };
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    match ReasoningSession::restore(&checkpoint, &edb, &program, &contract, &annotation) {
+        Ok(session) => {
+            println!("outcome Restored");
+            println!("  head {}", session.head());
+            println!(
+                "  fragment-disposition {}",
+                render_fragment_disposition(session.fragment_disposition())
+            );
+            0
+        }
+        Err(outcome) => render_outcome(reporter, &outcome),
+    }
+}
+
+/// `gmeow logic session restart` — restart from a checkpoint and resume at its
+/// durable journal head. With `--reapply`, re-submit an already-committed delta
+/// (anchored on the STALE genesis head) to demonstrate the structural double-apply
+/// refusal surviving a persist→restore boundary.
+pub fn logic_session_restart(
+    reporter: &dyn Reporter,
+    input: &Path,
+    edb: &Path,
+    program: &Path,
+    reapply: Option<&Path>,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let checkpoint = match session_load_checkpoint(reporter, input) {
+        Ok(cp) => cp,
+        Err(code) => return code,
+    };
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    let mut session =
+        match ReasoningSession::restart(&checkpoint, &edb, &program, &contract, &annotation) {
+            Ok(session) => session,
+            Err(outcome) => return render_outcome(reporter, &outcome),
+        };
+    println!("outcome Restarted");
+    println!("  head {}", session.head());
+
+    let Some(reapply) = reapply else {
+        return 0;
+    };
+    let additions = match session_load_world_dataset(reporter, reapply, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    // Anchor the re-submitted delta on the GENESIS head (the session identity's
+    // descriptor hash) — the precondition the delta carried when it was first
+    // committed BEFORE the checkpoint. The restarted head is the durable
+    // post-commit `journal_head`, so this stale-anchored re-submission fails the
+    // transition precondition → `Invalid{PreconditionMismatch}` (the no-double-apply
+    // guard surviving a real persist→restore boundary).
+    let base_commit = session.identity().data_generation.clone();
+    let genesis_head = session.identity().descriptor_hash.clone();
+    let delta = match SessionDelta::new(base_commit, genesis_head, additions, Vec::new(), None) {
+        Ok(delta) => delta,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-session.delta",
+                format!("cannot build session delta: {e}"),
+            );
+        }
+    };
+    println!("reapply-delta-identity {}", delta.delta_identity);
+    render_outcome(reporter, &session.apply(&delta))
 }
 
 // ── validate ─────────────────────────────────────────────────────────────────
