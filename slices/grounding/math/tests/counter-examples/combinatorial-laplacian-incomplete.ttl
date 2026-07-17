@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Missing-lower-boundary-operator counterexample: the combinatorial Laplacian
+# supplies its carrier complex (math:combinatorialLaplacianComplex), its degree
+# (math:laplacianDegree), and its upper (degree-(k+1)) boundary operator
+# (math:upperBoundaryOperator), but OMITS its required lower (degree-k) boundary
+# operator (math:lowerBoundaryOperator). Without it the DOWN term ∂_k*∘∂_k of
+# L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k is undefined, so the Laplacian is ill-formed:
+# it isolates math:IncompleteCombinatorialLaplacian via the single derived
+# QualifiedMinCount constraint on math:lowerBoundaryOperator.
+ex:laplacian a math:CombinatorialLaplacian ;
+    math:combinatorialLaplacianComplex ex:complex ;
+    math:laplacianDegree ex:degreeOne ;
+    math:upperBoundaryOperator ex:boundaryUp .
+
+ex:complex a math:CellComplex .
+ex:boundaryUp a math:BoundaryOperator .
+ex:degreeOne a math:NaturalNumber ;
+    math:inNumberSystem math:naturalNumbers ;
+    math:isExact true .

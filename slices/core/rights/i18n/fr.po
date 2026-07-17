@@ -223,7 +223,7 @@ msgstr "obtenir le consentement"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actionPlay|rdfs:label"
 msgid "play"
-msgstr "lire"
+msgstr "lecture (audio/vidéo)"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actionPresent|rdfs:label"
 msgid "present / display"

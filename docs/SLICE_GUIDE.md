@@ -182,6 +182,13 @@ The annotation-completeness gate requires `rdfs:label`, `skos:definition`, and
 *Exhibit: any term in `slices/core/tags/module.ttl` — each carries all of the above; the
 definition of `gmeow:Tag` states three NOTs.*
 
+A coat must **distinguish** its term: two distinct terms may not carry a byte-identical
+(normalized) `skos:definition` / `useWhen` / `avoidWhen` / `howToUse`, and a translation
+may not collapse a distinction its English source makes. This is a hard structural gate
+(N = 2, no calibration) — see the distinctiveness guard in
+[`SLICE_QA.md`](./SLICE_QA.md). Reword a near-duplicate to be term-specific; do not
+suppress it.
+
 ### 6.3 `design/` — for slices with a thesis
 
 A slice whose domain carries real doctrine writes the charter first (the affect,

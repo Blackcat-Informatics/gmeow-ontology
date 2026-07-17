@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Bundle demonstrator: the multiparameter / zigzag persistence
+# OBJECTS shown together, distinct from the analysis ACTIVITIES that range over them.
+# It exhibits, all well-formed:
+#   * a math:MultiparameterFiltration indexed by a 2-parameter poset, its stage carrying
+#     a math:multiIndex tuple with INDEPENDENT coordinates (never a bare real threshold);
+#   * a math:PersistenceModule — the functor P: (index poset) → Vect (a subclass of the
+#     existing math:Functor grounding), naming its math:moduleIndex and math:structureMap;
+#   * a math:PersistenceMorphism, a map of persistence modules naming both endpoints;
+#   * a math:ZigzagDiagram declaring a REAL math:backwardArrow, hence genuinely
+#     bidirectional and not collapsed to forward-only persistence.
+# The shipped math:MultiparameterPersistence and math:ZigzagPersistence are ACTIVITIES
+# (gmeow:Activity); the nodes below are the mathematical OBJECTS they compute over.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exmp: <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-persistence/> .
+
+# --- The multi-indexed filtration object (not the single-parameter math:Filtration) --- #
+exmp:bifiltration a math:MultiparameterFiltration ;
+    rdfs:label "distance × density bifiltration"@x-gmeow-english ;
+    rdfs:seeAlso math:MultiparameterPersistence ;
+    math:filtrationIndexPoset exmp:grid ;
+    math:hasFiltrationStage exmp:stage .
+exmp:grid a math:MathematicalObject ; rdfs:label "distance × density poset (dimension 2)"@x-gmeow-english .
+exmp:stage a math:FiltrationStage ; math:multiIndex exmp:index ; math:stageStructure exmp:subcomplex .
+exmp:subcomplex a math:TopologicalSpace ; rdfs:label "substructure at multi-index (2, 5)"@x-gmeow-english .
+exmp:index a math:Vector ; math:hasComponent exmp:coord0 , exmp:coord1 .
+exmp:coord0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue exmp:two .
+exmp:coord1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue exmp:five .
+exmp:two  a math:RationalValue ; math:numerator 2 ; math:denominator 1 ; math:isExact true .
+exmp:five a math:RationalValue ; math:numerator 5 ; math:denominator 1 ; math:isExact true .
+
+# --- The algebraic persistence module (a functor on its index poset) --- #
+exmp:module a math:PersistenceModule ;
+    rdfs:label "H1 persistence module"@x-gmeow-english ;
+    rdfs:seeAlso math:MultiparameterPersistence ;
+    math:moduleIndex exmp:indexPoset ;
+    math:structureMap exmp:transition .
+exmp:indexPoset a math:MathematicalObject ; rdfs:label "index poset (source category)"@x-gmeow-english .
+exmp:transition a math:MathematicalObject ; rdfs:label "structure map P(s ≤ t)"@x-gmeow-english .
+
+# --- A map of persistence modules --- #
+exmp:morphism a math:PersistenceMorphism ;
+    rdfs:label "map of persistence modules"@x-gmeow-english ;
+    math:morphismSource exmp:module ;
+    math:morphismTarget exmp:targetModule .
+exmp:targetModule a math:PersistenceModule ;
+    rdfs:label "target persistence module"@x-gmeow-english ;
+    math:moduleIndex exmp:indexPoset ;
+    math:structureMap exmp:targetTransition .
+exmp:targetTransition a math:MathematicalObject ; rdfs:label "target structure map"@x-gmeow-english .
+
+# --- A genuinely bidirectional zigzag diagram --- #
+exmp:zigzag a math:ZigzagDiagram ;
+    rdfs:label "zigzag V0 → V1 ← V2"@x-gmeow-english ;
+    rdfs:seeAlso math:ZigzagPersistence ;
+    math:zigzagArrow exmp:fwd , exmp:bwd .
+exmp:fwd a math:Morphism ; math:arrowDirection math:forwardArrow .
+exmp:bwd a math:Morphism ; math:arrowDirection math:backwardArrow .

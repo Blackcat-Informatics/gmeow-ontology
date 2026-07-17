@@ -1,0 +1,15 @@
+# External-corpus coverage: a degree-k combinatorial Laplacian exposes the cell
+# complex it is built over, its degree, and the up (degree-(k+1)) and down
+# (degree-k) boundary operators whose adjoint compositions assemble it, as
+# separate reusable data.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?laplacian ?complex ?degree ?upper ?lower
+WHERE {
+  ?laplacian a math:CombinatorialLaplacian ;
+             math:combinatorialLaplacianComplex ?complex ;
+             math:laplacianDegree ?degree ;
+             math:upperBoundaryOperator ?upper ;
+             math:lowerBoundaryOperator ?lower .
+}
+ORDER BY ?laplacian

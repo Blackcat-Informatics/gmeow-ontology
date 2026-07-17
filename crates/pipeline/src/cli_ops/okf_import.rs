@@ -6,11 +6,12 @@
 //! The Rust port of `gmeow_tools.okf_import`, the mirror of the OKF *export* leaf
 //! ([`crate::stages::okf`], which projects GMEOW → OKF). Here an OKF Markdown bundle
 //! (the form an LLM or human authors) is lifted back into GMEOW. The fold from
-//! Markdown to RDF is the external `gts from-okf` primitive — we **never
-//! re-implement that codec** here (the seam doctrine: `gts` owns the OKF↔graph
-//! conversion; gmeow owns the ontology lift). This module shells the binary
-//! (HARD FAIL if absent — no degraded fallback), then lifts the recognized `okf:`
-//! predicates into the standard `rdfs:` / `skos:` / `rdf:` surface.
+//! Markdown to RDF is purrdf 0.7.0's native, in-process OKF codec
+//! ([`purrdf::lift_okf_bundle`]) — there is no external binary in this path any
+//! more (the former `gts from-okf` subprocess seam is retired: purrdf now ships
+//! the codec directly). This module builds the [`purrdf::OkfBundle`] from the
+//! on-disk directory, lifts it through purrdf's reader, then lifts the recognized
+//! `okf:` predicates into the standard `rdfs:` / `skos:` / `rdf:` surface.
 //!
 //! OKF is a LOSSY surface, so the lift is honest about its bounds: the recognized
 //! subset (`okf:title` → `rdfs:label`, `okf:description` → `skos:definition`,
@@ -23,16 +24,70 @@
 //! YAML-LD transpile paths — so an OKF source is re-expressed across every
 //! vocabulary GMEOW can reach.
 
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::path::Path;
 
-use purrdf::{RdfLiteral, RdfQuad, RdfTerm, SerializeGraph};
+use purrdf::{DatasetSink, OkfBundle, OkfConfig, RdfLiteral, RdfQuad, RdfTerm, SerializeGraph};
 
-use crate::projections::{MaximalInputs, TagMap, gts_base_graph};
+use crate::projections::{MaximalInputs, TagMap};
 use crate::transform::{TransformReportNative, transform_nt};
 
-/// The `okf:` profile namespace the external `gts` primitive folds to.
+/// The `okf:` profile namespace purrdf's native codec folds to (and the export
+/// leaf, [`crate::stages::okf`], mints its `resource:` frontmatter under).
 pub const OKF_NS: &str = "https://blackcatinformatics.ca/projects/gts/okf#";
+
+/// The base IRI a bundle document without an explicit `resource:` frontmatter
+/// field is minted under (percent-encoded bundle-relative path appended). Every
+/// document gmeow's own OKF export produces always carries `resource:` (the
+/// term's real IRI), so this base only fires for a freshly hand-authored concept
+/// that has no pre-existing GMEOW IRI yet.
+const OKF_DOCUMENT_BASE: &str = "https://blackcatinformatics.ca/gmeow/okf-bundle/";
+
+/// The RDF-1.2 reifier predicate — filtered out of the flattened lift output the
+/// same way [`crate::projections::gts_base_graph`] filters it from a `.gts`
+/// read: OKF import only wants the asserted `okf:` base triples (Markdown-link
+/// edges included), never the RDF-star reifier / quoted-triple sidecar rows the
+/// reader emits for link text/occurrence provenance.
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+/// The closed frontmatter-key profile purrdf's [`OkfConfig`] validates against —
+/// exactly the field set [`crate::stages::okf::render_okf`] ever emits, so
+/// gmeow's own bundles always round-trip and a hand-authored bundle is validated
+/// against the same closed vocabulary (an unrecognized key is now a HARD FAIL,
+/// never a silently-accepted ad-hoc predicate).
+const OKF_RECOGNIZED_KEYS: &[&str] = &[
+    "type",
+    "title",
+    "description",
+    "resource",
+    "tags",
+    "version",
+    "curie",
+    "parents",
+    "prop_kind",
+    "domain",
+    "range",
+    "functional",
+    "sub_property_of",
+    "types",
+    "alignments",
+    "scope_notes",
+    "examples",
+    "use_when",
+    "avoid_when",
+    "how_to_use",
+    "use_for_consumer",
+    "avoid_for_consumer",
+];
+
+/// Build the mandatory purrdf OKF profile shared by every import.
+fn okf_import_config() -> Result<OkfConfig, gmeow_errors::Diag> {
+    OkfConfig::new(
+        OKF_NS,
+        OKF_DOCUMENT_BASE,
+        OKF_RECOGNIZED_KEYS.iter().copied(),
+    )
+    .map_err(|e| stage_err(format!("invalid OKF import profile: {e}")))
+}
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_PROPERTY: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property";
@@ -104,105 +159,113 @@ pub struct OkfTranspileReport {
     pub transform: TransformReportNative,
 }
 
-/// Locate the `gts` CLI (built with OKF support). HARD FAIL if absent.
+/// Read every `.md` file under `okf_dir` into a purrdf [`OkfBundle`], keyed by
+/// its POSIX-normalized path relative to `okf_dir`. Deterministic (bundle paths
+/// are collected then handed to the bundle in whatever order `read_dir` returns
+/// — `OkfBundle` is a `BTreeMap` internally, so bundle iteration is lexical
+/// regardless of insertion order).
 ///
-/// The Rust port of `okf_import.find_gts_binary`. Resolution order:
-/// `$GMEOW_GTS_BIN` → `gts` on `PATH` → the sibling `gmeow-gts` Rust target dirs
-/// (relative to `sibling_base`, when the caller supplies a repo root). No degraded
-/// fallback — OKF import requires the external Rust codec, so a missing binary is a
-/// hard error with a clear remedy (mirrors the Python `OkfBinaryNotFoundError`).
-pub fn find_gts_binary(sibling_base: Option<&Path>) -> Result<PathBuf, gmeow_errors::Diag> {
-    if let Some(env) = std::env::var_os("GMEOW_GTS_BIN") {
-        let candidate = PathBuf::from(&env);
-        if candidate.is_file() {
-            return Ok(candidate);
-        }
-        return Err(stage_err(format!(
-            "GMEOW_GTS_BIN={} is not a file",
-            candidate.display()
-        )));
-    }
-    if let Some(on_path) = which_on_path("gts") {
-        return Ok(on_path);
-    }
-    if let Some(base) = sibling_base {
-        for rel in ["target/release/gts", "target/debug/gts"] {
-            let candidate = base.join("gmeow-gts").join("rust").join(rel);
-            if candidate.is_file() {
-                return Ok(candidate);
-            }
-        }
-    }
-    Err(stage_err(
-        "gts binary with OKF support not found. Build it with \
-         `cargo build --release --features okf --bin gts` in the gmeow-gts repo \
-         and point GMEOW_GTS_BIN at the resulting binary (or put it on PATH).",
-    ))
-}
-
-/// The `$PATH` search for an executable file named `name` (the native `shutil.which`).
-fn which_on_path(name: &str) -> Option<PathBuf> {
-    let path = std::env::var_os("PATH")?;
-    // Append the platform executable suffix (empty on Unix, `.exe` on Windows)
-    // so the lookup resolves `gts.exe` where the OS requires it.
-    let filename = format!("{name}{}", std::env::consts::EXE_SUFFIX);
-    for dir in std::env::split_paths(&path) {
-        let candidate = dir.join(&filename);
-        if candidate.is_file() {
-            return Some(candidate);
-        }
-    }
-    None
-}
-
-/// Fold an OKF bundle directory to a flat GMEOW quad stream via `gts from-okf`.
+/// # Errors
 ///
-/// The Rust port of `okf_import.okf_dir_to_graph`. Shells the external primitive
-/// (the only OKF→graph codec), writing a temporary GTS snapshot into the system
-/// temp dir (the consumer runtime path must work from a read-only install), then
-/// reads its asserted base triples back through the native GTS loader (reusing
-/// [`gts_base_graph`], which drops the RDF-1.2 reifier / quoted-triple rows exactly
-/// as the Python compatibility reader did — the asserted `okf:` metadata comes
-/// through intact).
-pub fn okf_dir_to_graph(
-    okf_dir: &Path,
-    gts_bin: Option<&Path>,
-    sibling_base: Option<&Path>,
-) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
-    let binary = match gts_bin {
-        Some(path) => path.to_path_buf(),
-        None => find_gts_binary(sibling_base)?,
-    };
-    let tmp = tempfile::Builder::new()
-        .prefix(".gmeow-tmp-okfin-")
-        .tempdir()
-        .map_err(|e| {
+/// Returns a diagnostic on any filesystem error, non-UTF-8 document, or an
+/// invalid/unsafe bundle path (delegated to [`OkfBundle::insert`]).
+fn read_okf_bundle_dir(okf_dir: &Path) -> Result<OkfBundle, gmeow_errors::Diag> {
+    let mut bundle = OkfBundle::new();
+    let mut stack = vec![okf_dir.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let entries = std::fs::read_dir(&dir).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Io {
-                message: e.to_string(),
+                message: format!("read OKF bundle dir {}: {e}", dir.display()),
             })
         })?;
-    let out = tmp.path().join("from-okf.gts");
-    let output = Command::new(&binary)
-        .arg("from-okf")
-        .arg(okf_dir)
-        .arg("-o")
-        .arg(&out)
-        .output()
-        .map_err(|e| stage_err(format!("failed to spawn {}: {e}", binary.display())))?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(stage_err(format!(
-            "gts from-okf failed ({}): {}",
-            output.status,
-            stderr.trim()
-        )));
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    message: format!("read OKF bundle dir {}: {e}", dir.display()),
+                })
+            })?;
+            let path = entry.path();
+            let file_type = entry.file_type().map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    message: format!("stat {}: {e}", path.display()),
+                })
+            })?;
+            if file_type.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+                continue;
+            }
+            let relative = path.strip_prefix(okf_dir).map_err(|e| {
+                stage_err(format!(
+                    "OKF bundle document {} is not under {}: {e}",
+                    path.display(),
+                    okf_dir.display()
+                ))
+            })?;
+            let relative_posix = relative
+                .components()
+                .map(|c| c.as_os_str().to_string_lossy().into_owned())
+                .collect::<Vec<_>>()
+                .join("/");
+            let text = std::fs::read_to_string(&path).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    message: format!("read {}: {e}", path.display()),
+                })
+            })?;
+            bundle
+                .insert(relative_posix, text)
+                .map_err(|e| stage_err(format!("{}: {e}", path.display())))?;
+        }
     }
-    let bytes = std::fs::read(&out).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            message: e.to_string(),
-        })
-    })?;
-    gts_base_graph(&bytes).map_err(|e| stage_err(e.to_string()))
+    Ok(bundle)
+}
+
+/// Fold an OKF bundle directory to a flat GMEOW quad stream via purrdf's native,
+/// in-process OKF codec.
+///
+/// The Rust port of `okf_import.okf_dir_to_graph`, now calling
+/// [`purrdf::lift_okf_bundle`] directly instead of shelling an external `gts`
+/// binary: reads the bundle directory into an [`OkfBundle`], lifts it through
+/// purrdf's reader into a [`DatasetSink`], then flattens the resulting
+/// [`purrdf::RdfDataset`] and drops the RDF-1.2 reifier / quoted-triple rows
+/// (the same filter [`crate::projections::gts_base_graph`] applies to a `.gts`
+/// read) — the asserted `okf:` metadata (including the `okf:links` Markdown-link
+/// edges) comes through intact; only the reifier-carried link text/occurrence
+/// provenance is dropped, matching the prior subprocess contract exactly.
+///
+/// # Errors
+///
+/// Returns a diagnostic on any filesystem error, an unsafe/duplicate bundle
+/// path, malformed frontmatter, an unrecognized frontmatter key, or a dangling
+/// Markdown-link target (all HARD FAILs — no degraded fallback).
+pub fn okf_dir_to_graph(okf_dir: &Path) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
+    let bundle = read_okf_bundle_dir(okf_dir)?;
+    let config = okf_import_config()?;
+    let mut sink = DatasetSink::new();
+    let outcome = purrdf::lift_okf_bundle(&bundle, &config, &mut sink)
+        .map_err(|e| stage_err(format!("OKF bundle lift failed: {e}")))?;
+    if outcome.cancelled {
+        return Err(stage_err(
+            "OKF bundle lift was cancelled before the sink finished",
+        ));
+    }
+    let dataset = sink
+        .into_dataset()
+        .ok_or_else(|| stage_err("OKF bundle lift did not finish the sink"))?;
+    let flat = purrdf::flat_rdf_quads_from_dataset(dataset.as_ref());
+    let mut base = Vec::with_capacity(flat.len());
+    for quad in flat {
+        if quad.predicate == RDF_REIFIES
+            || matches!(quad.subject, RdfTerm::Triple(_))
+            || matches!(quad.object, RdfTerm::Triple(_))
+        {
+            continue;
+        }
+        base.push(RdfQuad::new(quad.subject, quad.predicate, quad.object));
+    }
+    Ok(base)
 }
 
 /// Lift recognized `okf:` predicates to GMEOW; retain the rest as annotations.
@@ -260,9 +323,9 @@ pub fn lift_okf_graph(source: &[RdfQuad]) -> (Vec<RdfQuad>, OkfLiftReport) {
                 continue;
             }
         } else if predicate == okf_resource {
-            // The subject already IS the resource IRI (gts from-okf mints it from
-            // resource:); the explicit okf:resource triple is redundant identity —
-            // drop it rather than retain a self-reference.
+            // The subject already IS the resource IRI (purrdf's OKF reader mints
+            // it from `resource:`); the explicit okf:resource triple is redundant
+            // identity — drop it rather than retain a self-reference.
             continue;
         }
         // Unmapped okf:* — retained verbatim as a provenance-bearing annotation.
@@ -283,28 +346,28 @@ pub fn lift_okf_graph(source: &[RdfQuad]) -> (Vec<RdfQuad>, OkfLiftReport) {
 /// Transpile an OKF bundle directory to MAXIMAL GMEOW.
 ///
 /// The Rust port of `okf_import.transpile_okf`, chaining the lift and the MAXIMAL
-/// back-half end to end: `gts from-okf` folds the Markdown bundle, the recognized
-/// `okf:` predicates are lifted to GMEOW (unmapped ones retained), the pure-GMEOW
-/// draft is produced, then `MAXIMAL(G) = G + E(G) + P(G)` is run over it via
-/// [`transform_nt`]. `maximal` carries the repo/bundle-derived inputs the back-half
-/// needs (ontology, cells, denied set, projection queries), passed in so this driver
-/// stays consumer-safe. `tag_map` is the internal→public BCP-47 language-tag remap
-/// applied at the MAXIMAL(G) output boundary (empty = no-op) — see
-/// [`transform_nt`]'s doc comment for why this is load-bearing, not cosmetic.
+/// back-half end to end: purrdf's native OKF codec folds the Markdown bundle, the
+/// recognized `okf:` predicates are lifted to GMEOW (unmapped ones retained), the
+/// pure-GMEOW draft is produced, then `MAXIMAL(G) = G + E(G) + P(G)` is run over
+/// it via [`transform_nt`]. `maximal` carries the repo/bundle-derived inputs the
+/// back-half needs (ontology, cells, denied set, projection queries), passed in
+/// so this driver stays consumer-safe. `tag_map` is the internal→public BCP-47
+/// language-tag remap applied at the MAXIMAL(G) output boundary (empty = no-op)
+/// — see [`transform_nt`]'s doc comment for why this is load-bearing, not
+/// cosmetic.
 ///
 /// # Errors
 ///
-/// - The external `gts` binary is missing (HARD FAIL).
+/// - The bundle directory is malformed (unsafe path, invalid YAML frontmatter,
+///   unrecognized frontmatter key, dangling Markdown-link target — all HARD FAIL).
 /// - Nothing lifts to GMEOW (an empty draft has nothing to project — surfaced, not a
 ///   silent empty publication).
 pub fn transpile_okf(
     okf_dir: &Path,
     maximal: &MaximalInputs,
     tag_map: &TagMap,
-    gts_bin: Option<&Path>,
-    sibling_base: Option<&Path>,
 ) -> Result<OkfTranspileReport, gmeow_errors::Diag> {
-    let graph = okf_dir_to_graph(okf_dir, gts_bin, sibling_base)?;
+    let graph = okf_dir_to_graph(okf_dir)?;
     let (lifted, report) = lift_okf_graph(&graph);
     if report.lifted == 0 {
         return Err(stage_err(format!(
@@ -368,54 +431,72 @@ fn quads_to_nt(quads: &[RdfQuad]) -> Result<String, gmeow_errors::Diag> {
 mod tests {
     use super::*;
 
-    /// The resolver's two HARD-FAIL paths, exercised sequentially in ONE test so the
-    /// process-global env vars they mutate never race a sibling test:
-    ///
-    /// 1. a `GMEOW_GTS_BIN` pointing at a non-file is refused (not a silent PATH
-    ///    fallthrough) — the explicit override must be honored or refused;
-    /// 2. with no `GMEOW_GTS_BIN`, no `gts` on a stripped `PATH`, and no sibling base,
-    ///    the resolver errors with the build-it remedy (no degraded fallback).
+    /// `okf_dir_to_graph` reads a bundle directory (nested subdirectories
+    /// included), lifts it through purrdf's native in-process codec (no
+    /// subprocess, no temp `.gts` file), and returns the flattened asserted
+    /// `okf:` base triples — the `okf:links` Markdown-link edge survives, but the
+    /// RDF-star reifier / linkText / linkOccurrence sidecar rows the reader
+    /// emits are filtered out (matching the prior `gts_base_graph` contract).
     #[test]
-    fn find_gts_binary_hard_fails_when_absent() {
-        let saved_path = std::env::var_os("PATH");
-        let saved_bin = std::env::var_os("GMEOW_GTS_BIN");
+    fn okf_dir_to_graph_lifts_a_bundle_directory_in_process() {
+        let tmp = tempfile::Builder::new()
+            .prefix(".gmeow-test-okfin-")
+            .tempdir()
+            .expect("tempdir");
+        std::fs::create_dir_all(tmp.path().join("classes")).expect("mkdir");
+        std::fs::write(
+            tmp.path().join("classes/schema.md"),
+            "---\ntype: Class\ntitle: Schema\n---\nColumns: id.\n",
+        )
+        .expect("write schema.md");
+        std::fs::write(
+            tmp.path().join("classes/table.md"),
+            "---\ntype: Class\ntitle: Table\nresource: https://example.org/data/Table\n---\nSee [schema](schema.md).\n",
+        )
+        .expect("write table.md");
 
-        // Case 1: a non-file override.
-        // SAFETY: single-threaded test body; the env is restored at the end.
-        unsafe { std::env::set_var("GMEOW_GTS_BIN", "/nonexistent/gts-binary-xyz") };
-        let err = find_gts_binary(None).expect_err("non-file override must fail");
-        assert!(
-            err.to_string().contains("is not a file"),
-            "non-file override refused, got: {err}"
-        );
+        let quads = okf_dir_to_graph(tmp.path()).expect("lift bundle directory");
+        assert!(!quads.is_empty(), "expected lifted quads");
 
-        // Case 2: nothing resolvable at all.
-        unsafe {
-            std::env::remove_var("GMEOW_GTS_BIN");
-            std::env::set_var("PATH", "");
-        }
-        let err = find_gts_binary(None).expect_err("must hard-fail when absent");
-        let msg = err.to_string();
+        let type_predicate = format!("{OKF_NS}type");
+        let links_predicate = format!("{OKF_NS}links");
         assert!(
-            msg.contains("gts binary with OKF support not found"),
-            "clear not-found message, got: {msg}"
+            quads.iter().any(|q| q.predicate == type_predicate),
+            "expected an okf:type triple"
         );
         assert!(
-            msg.contains("--features okf"),
-            "message carries the build remedy, got: {msg}"
+            quads.iter().any(|q| q.predicate == links_predicate),
+            "expected the schema->table okf:links edge"
         );
+        // No RDF-1.2 reifier / quoted-triple row survives the filter.
+        assert!(
+            quads.iter().all(|q| q.predicate != RDF_REIFIES
+                && !matches!(q.subject, RdfTerm::Triple(_))
+                && !matches!(q.object, RdfTerm::Triple(_))),
+            "reifier/quoted-triple rows must be filtered out"
+        );
+    }
 
-        // Restore the process environment.
-        unsafe {
-            match saved_path {
-                Some(v) => std::env::set_var("PATH", v),
-                None => std::env::remove_var("PATH"),
-            }
-            match saved_bin {
-                Some(v) => std::env::set_var("GMEOW_GTS_BIN", v),
-                None => std::env::remove_var("GMEOW_GTS_BIN"),
-            }
-        }
+    /// An unrecognized frontmatter key is a HARD FAIL under the closed
+    /// [`OKF_RECOGNIZED_KEYS`] profile — never a silently-accepted ad-hoc
+    /// predicate.
+    #[test]
+    fn okf_dir_to_graph_hard_fails_on_unrecognized_frontmatter_key() {
+        let tmp = tempfile::Builder::new()
+            .prefix(".gmeow-test-okfin-bad-")
+            .tempdir()
+            .expect("tempdir");
+        std::fs::write(
+            tmp.path().join("concept.md"),
+            "---\ntype: Class\nunrecognized_key: value\n---\nBody.\n",
+        )
+        .expect("write concept.md");
+
+        let err = okf_dir_to_graph(tmp.path()).expect_err("unrecognized key must hard-fail");
+        assert!(
+            err.to_string().contains("unrecognized"),
+            "expected an unrecognized-key error, got: {err}"
+        );
     }
 
     #[test]

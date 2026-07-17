@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: a general math:CellComplex (NOT simplicial) whose codimension-2
+# (coface cX, far-face aZ) group has a single boundary composition of sign product +1,
+# so the finite signed sum Σ_b [cX:b]·[b:aZ] = +1 ≠ 0 — ∂∘∂ ≠ 0. It fires
+# math:GeneralBoundarySquareZeroConstraint (the logic:JoinAggregateConstraint,
+# shacl.SPARQLConstraintComponent → math:BrokenBoundarySquareZero) and NO other finding:
+# it is a plain math:CellComplex (so the simplicial diamond constraint does not target
+# it) and every math:CellIncidence carries its coface, face, and ±1 sign.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/general-cw-broken/> .
+
+ex:broken a math:CellComplex ;
+    math:hasCell ex:cX , ex:bY , ex:aZ .
+
+ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+
+ex:cX a math:Cell ; math:cellDimension ex:dim2 .
+ex:bY a math:Cell ; math:cellDimension ex:dim1 .
+ex:aZ a math:Cell ; math:cellDimension ex:dim0 .
+
+# The single boundary composition cX ▷ bY ▷ aZ with product (+1)·(+1) = +1, unpaired:
+# the group (cX, aZ) sums to +1 ≠ 0.
+ex:incCXbY a math:CellIncidence ; math:incidenceCoface ex:cX ; math:incidenceFace ex:bY ; math:incidenceSign 1 .
+ex:incbYaZ a math:CellIncidence ; math:incidenceCoface ex:bY ; math:incidenceFace ex:aZ ; math:incidenceSign 1 .
