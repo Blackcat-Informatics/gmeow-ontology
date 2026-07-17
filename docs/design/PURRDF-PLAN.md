@@ -382,8 +382,9 @@ a criterion baseline before/after.
 
 - **P0 — Self-host: kill the internal rdflib dep [∥].** Port `src/gmeow_tools/**` (~15 modules) off
   rdflib onto the native surface + the native drop-ins. Drop `rdflib>=7.6` (the former
-  `owlrl`-backed reasoning-oracle lane that once retained it is gone — the reasoning oracle is now
-  the native in-process `purrdf::entail` cross-check). Gate: `rg "import rdflib" src/` empty; `make check`+
+  `owlrl`-backed reasoning-oracle lane that once retained it is gone; the live in-process
+  `purrdf::entail` cross-check that briefly replaced it has since been retired too — the
+  native `logic:` reasoner is the sole reasoning authority). Gate: `rg "import rdflib" src/` empty; `make check`+
   `make test` green without rdflib. The honest proving gate.
 - **P1 — SRP-decompose `py_store.rs` [no deps].** Split the 1,239-line god-module into
   `term`/`store`/`query`/`io`/`canon`. Behavior-identical; corpus green.

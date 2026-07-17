@@ -6,7 +6,7 @@
 //! remediation, and per-term usage guidance to every finding.
 //!
 //! Both the CLI validate/verify path
-//! ([`crate::data_validate::run`](crate::data_validate::run)) and the pipeline
+//! ([`crate::data_validate::run`]) and the pipeline
 //! validate stage (`crates/pipeline/src/stages/validate.rs`) call
 //! [`enrich_findings`] over their respective reports so the two surfaces cannot
 //! drift: neither one is allowed to run only part of the enrichment pass.

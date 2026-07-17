@@ -254,7 +254,7 @@ fn external_corpus_verdicts_match_their_third_party_source() {
             // OntoUML foundation-discipline cases (source/model.ttl) carry no
             // consistency verdict to compare; their soundness check is that the fired
             // discipline set contains the documented anti-pattern (and clean controls
-            // fire nothing). Route them to the dedicated cross-check.
+            // fire nothing). Route them to the dedicated OntoUML soundness check.
             if case_dir.join("source").join("model.ttl").is_file() {
                 checked += 1;
                 if let Some(f) = ontouml_soundness_failure(&case_dir) {

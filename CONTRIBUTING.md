@@ -107,8 +107,7 @@ management.
 - Git
 - A recent stable Rust toolchain (`cargo`)
 - Docker (for the ROBOT `extract` / WIDOCO documentation tooling; native
-  reasoning, the on-gate `purrdf::entail` cross-check, and the native pipeline
-  steps all run without it)
+  reasoning and the native pipeline steps all run without it)
 
 ### Local setup
 
