@@ -13,6 +13,10 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+# The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
+# SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
+# an independent implementation reproduces the byte-exact digest.
+blake3 = "1"
 gmeow-errors = { path = "../errors" }
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
