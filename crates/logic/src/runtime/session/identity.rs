@@ -99,7 +99,7 @@ pub(crate) fn dataset_content_digest(
 /// The content-addressed binding of the seven identities a maintained session depends
 /// on. Construct only via [`SessionIdentity::bind`]; `#[non_exhaustive]` so adding an
 /// axis is an additive change.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[non_exhaustive]
 pub struct SessionIdentity {
     /// (1) The authorized published data-generation of the EDB.
