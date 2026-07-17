@@ -142,6 +142,68 @@ exactly as `math:MonotonicityKind` attaches to a function — an open `owl:Named
 The worked triangle in `examples/graded-cell-complex.ttl` demonstrates the whole surface as the oriented
 2-simplex whose boundary is ∂(faceABC) = +edgeAB + edgeBC − edgeAC.
 
+### Chain and cochain complexes — the square-zero laws and their adjunction
+
+The signed incidence surface carries the boundary *data*; on top of it sit the boundary *elements* and
+the ∂∘∂ = 0 / δ∘δ = 0 *coherence* laws. A `math:Chain` is a graded signed combination of same-dimension
+cells (naming its `math:ChainComplex` through `math:chainOf`); a `math:Cycle` (⊑ `math:Chain`) is a chain
+in the kernel of ∂, a `math:Boundary` (⊑ `math:Chain`) a chain in its image. Because ∂∘∂ = 0 every
+boundary is a cycle, and the `math:HomologyGroup` is the quotient **H = Z/B** — the cycles modulo the
+boundaries. The dual, degree-raising side mints `math:Cochain` / `math:Cocycle` / `math:Coboundary` and a
+`math:CochainComplex` (naming its `math:cochainCoboundary`, else `math:IncompleteCochainComplex`).
+
+**The square-zero law is enforced in two genuinely distinct layers, and the split is an honest
+mathematical distinction, not a scope dodge.**
+
+- **The regular/simplicial reasoning-form law.** `math:boundarySquareZeroLaw` is a first-order
+  `logic:Formula` (a sibling of `math:filtrationMonotonicityLaw`) stating the **combinatorial diamond with
+  a fixed-point-free involution**: for every codimension-2 pair (coface *c*, far-face *a*) reached through
+  two intermediate faces *b*, *b′* whose incidence-sign products are opposite (`math:oppositeIncidenceProductRel`),
+  those faces are a **cancelling pair** (`math:cancellingPairRel`). This is a *theorem only on
+  regular/simplicial complexes*, where a codimension-2 pair has **exactly two** intermediate faces (the
+  diamond lemma); the law is scoped there deliberately, and `math:coboundarySquareZeroLaw` is its
+  degree-raising transpose (over `math:cofaceRel`, deriving `math:coCancellingPairRel`). Both are
+  Horn-derivable, so the native `gmeow:reasoningLogic` competency lane *fires* them over the worked triangle
+  in `examples/chain-complex.ttl` and reads back the derived cancelling pair — the law is a live entailment
+  consumer, not prose. The regular/simplicial enforcement is the cross-node ∀→∃ constraint
+  `math:BoundarySquareZeroConstraint` (scoped to `math:SimplicialComplex`) /
+  `math:CoboundarySquareZeroConstraint` (scoped to `math:CochainComplex`): every codim-2 composition path
+  must have a distinct partner face, else `math:BrokenBoundarySquareZero` / `math:BrokenCoboundarySquareZero`.
+
+- **The general-CW per-instance conformance constraint.** On a *general* CW complex the two-intermediate
+  diamond is **not** a theorem — the exact statement is the finite signed sum Σ_b [c:b]·[b:a] = 0 over all
+  intermediate cells, and a per-element "has an opposite partner" test is genuinely unsound (the multiset
+  {+1, +1, −1} passes it yet sums to +1). So the correct general conformance check is
+  `math:GeneralBoundarySquareZeroConstraint`, authored as the sanctioned `logic:JoinAggregateConstraint`
+  (P9): a two-leg `math:CellIncidence` join (c → b → a) whose two integer `math:incidenceSign` leaves are
+  multiplied, summed with SUM **grouped by (coface, far-face)**, and required = 0. It aggregates
+  `xsd:integer` signs exactly (never a decimal) and lowers to a `SELECT $this ?far … GROUP BY $this ?far
+  HAVING(SUM ≠ 0)` `sh:SPARQLConstraint`. This is the executable form that covers general CW complexes.
+
+- **What stays a boundary.** `math:cellBoundarySumBoundary` records — as an honest
+  `logic:expressivenessBoundary` (`logic:SecondOrder`, `logic:preservationKind logic:Unsupported`) — that
+  the **universal class law** "Σ_b [c:b]·[b:a] = 0 for *every* codim-2 pair of *every* complex" is
+  genuinely higher-order (it quantifies over the unbounded family of complexes and aggregates a group SUM
+  the first-order fragment cannot express). This boundary covers **only** the universal class law; the
+  regular/simplicial diamond law *is* first-order, and the general per-instance sum *is* executable — so the
+  boundary is the honest residue, not a scope dodge. The homology quotient is treated the same way: the
+  homologous-cycle equivalence (z₁ ~ z₂ ⟺ z₁ − z₂ ∈ B) is the first-order `math:homologyQuotientLaw`,
+  while the quotient-**group** construction (forming Z/B with well-defined coset operations) is the honest
+  `math:homologyQuotientBoundary`.
+
+**The adjunction.** `math:boundaryCoboundaryAdjunctionLaw` states δ = ∂\* — the coboundary matrix is the
+transpose of the boundary matrix, so a boundary `math:CellIncidence` and its `math:adjointIncidence`
+transpose carry **equal** signs; `math:BoundaryCoboundaryAdjunctionConstraint` fires
+`math:BrokenBoundaryCoboundaryAdjunction` when they disagree. This adjunction is exactly what the
+already-grounded `math:HodgeLaplacian` (L = δδ\* + δ\*δ) and `math:HodgeDecomposition` depend on — nothing in
+the Hodge/Laplacian surface is re-minted here. Finally, `math:constantSheafRecoversHomologyLaw` ties the
+sheaf machinery back to ordinary homology: a `math:ConstantSheaf` (constant-field stalks, identity
+restriction maps) has sheaf cohomology equal to the base complex's cellular homology
+(`math:recoversHomology`), so the `math:CellularSheaf` / `math:SheafLaplacian` surface is a conservative
+extension of plain homology, not a replacement. The worked triangle in
+`tests/conformance-fixtures/chain-complex-square-zero-complete.ttl` demonstrates H₁ = Z/B (the 1-cycle
+that bounds the filled face, so its class is zero) and the constant sheaf recovering it.
+
 ### Persistent homology — filtrations, lifetimes, and stability
 
 Core classes: `math:CellComplex`, `math:SimplicialComplex`, `math:VietorisRipsComplex`,

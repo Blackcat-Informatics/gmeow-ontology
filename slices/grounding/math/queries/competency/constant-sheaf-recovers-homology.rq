@@ -1,0 +1,14 @@
+# Competency question: "Which cellular homology does a constant sheaf's cohomology
+# recover?"  Over the worked filled triangle the answer is exactly {constantSheaf →
+# homologyH1}: the math:ConstantSheaf (constant-field stalks, identity restriction maps)
+# over the triangle has sheaf cohomology equal to the ordinary cellular homology of the
+# base complex (math:constantSheafRecoversHomologyLaw), so the sheaf-Laplacian machinery
+# GENERALISES plain homology rather than replacing it — recorded through
+# math:recoversHomology.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/chain-complex/>
+
+SELECT ?sheaf ?homology WHERE {
+    ?sheaf a math:ConstantSheaf ;
+        math:recoversHomology ?homology .
+}

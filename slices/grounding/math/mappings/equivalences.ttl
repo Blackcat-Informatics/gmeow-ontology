@@ -2490,3 +2490,62 @@ gmeow:eqMathSmoothness a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
+
+# --- Task-2 chain/cochain vocabulary → Wikidata / mathlib (verified) -------- #
+# math:CochainComplex and math:Cocycle have dedicated Wikidata concepts (API-verified
+# QIDs); math:Cycle and math:Boundary (homological, im ∂ / ker ∂ elements) have no
+# clean dedicated Wikidata concept, so they anchor to their mathlib singular-homology
+# formalizations by reference (skos:relatedMatch, curl-validated HTTP 200), matching the
+# math:HomologyGroup mathlib row's form.
+
+gmeow:eqMathCochainComplexWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:CochainComplex ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q78271410 ;
+    logic:sourceEndpoint math:CochainComplex ; logic:targetEndpoint wd:Q78271410 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "cochain complex" ;
+    gmeow:comment "math:CochainComplex is the dual graded sequence with degree-raising coboundary maps whose square is zero; wd:Q78271410 (cochain complex, 'chain complex with the grading reversed') is defined identically. Class-to-class identity, so skos:exactMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqMathCocycleWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Cocycle ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q5139921 ;
+    logic:sourceEndpoint math:Cocycle ; logic:targetEndpoint wd:Q5139921 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "cocycle" ;
+    gmeow:comment "math:Cocycle is a cochain in the kernel of the coboundary (a closed cochain, δc = 0); wd:Q5139921 (cocycle, 'cochain that is closed') is defined identically. A single closed cochain vs the general concept, so skos:closeMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathCycleMathlib a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Cycle ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Homology/ShortComplex/Homology.html> ;
+    logic:sourceEndpoint math:Cycle ; logic:targetEndpoint <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Homology/ShortComplex/Homology.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Mathlib.Algebra.Homology.ShortComplex.Homology (cycles)" ;
+    gmeow:comment "math:Cycle (a chain in ker ∂) is formalized by mathlib's ShortComplex cycles construction; homological cycles have no clean dedicated Wikidata concept, so a structural formalization by reference, skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathBoundaryMathlib a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Boundary ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Homology/HomologicalComplex.html> ;
+    logic:sourceEndpoint math:Boundary ; logic:targetEndpoint <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Homology/HomologicalComplex.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Mathlib.Algebra.Homology.HomologicalComplex (boundaries)" ;
+    gmeow:comment "math:Boundary (a chain in im ∂) is formalized by mathlib's HomologicalComplex differential-image construction; homological boundaries have no clean dedicated Wikidata concept (Q875399 is the topological boundary, closure minus interior — a different notion), so a structural formalization by reference, skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

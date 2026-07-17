@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: a math:Coboundary that names no math:coboundaryOf — it does not say
+# which math:CoboundaryOperator it is the image under (c = δd), so it is not grounded as
+# a coboundary. It fires the derived qualified-min-count frame
+# (shacl.QualifiedMinCountConstraintComponent → math:IncompleteCoboundary) and NO other
+# finding.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coboundary-not-in-image/> .
+
+ex:orphanCoboundary a math:Coboundary .

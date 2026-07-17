@@ -7141,21 +7141,27 @@ math:ChainComplex
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Chain Complex"@x-gmeow-english ;
-    skos:definition "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."@x-gmeow-english ;
+    rdfs:seeAlso math:boundarySquareZeroLaw ;
+    math:definingLaw math:boundarySquareZeroLaw ;
+    skos:definition "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive. That square-zero condition ∂∘∂ = 0 is authored in machine form as the first-order logic:Formula math:boundarySquareZeroLaw (math:definingLaw), scoped to regular/simplicial complexes as the combinatorial diamond involution; the general-CW per-instance finite sum is enforced by math:GeneralBoundarySquareZeroConstraint, and the universal class law is the honest boundary math:cellBoundarySumBoundary. It names its boundary operator through math:chainBoundary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:BoundaryOperator
     a owl:Class ; logic:subClassOf math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Boundary Operator"@x-gmeow-english ;
-    skos:definition "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."@x-gmeow-english ;
+    rdfs:seeAlso math:boundarySquareZeroLaw ;
+    math:definingLaw math:boundarySquareZeroLaw ;
+    skos:definition "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation. Its square-is-zero condition ∂∘∂ = 0 is authored in machine form as the first-order logic:Formula math:boundarySquareZeroLaw (math:definingLaw); the coboundary is its adjoint (math:boundaryCoboundaryAdjunctionLaw, δ = ∂*)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:CoboundaryOperator
     a owl:Class ; logic:subClassOf math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Coboundary Operator"@x-gmeow-english ;
-    skos:definition "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."@x-gmeow-english ;
+    rdfs:seeAlso math:coboundarySquareZeroLaw ;
+    math:definingLaw math:coboundarySquareZeroLaw ;
+    skos:definition "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required. Its square-is-zero condition δ∘δ = 0 is authored in machine form as the first-order logic:Formula math:coboundarySquareZeroLaw (math:definingLaw), the transposed dual of the boundary law; it is the adjoint of the boundary operator (math:coboundaryAdjoint, math:boundaryCoboundaryAdjunctionLaw)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Graded cells, incidence, and orientation ------------------------------ #
@@ -7246,6 +7252,436 @@ math:orientation
     rdfs:label "orientation"@x-gmeow-english ;
     skos:definition "Relates a math:Cell to the math:CellOrientation it carries — math:positivelyOriented or math:negativelyOriented. Domain math:Cell, range math:CellOrientation (stated in prose). It records the cell's own chosen orientation, distinct from the ±1 math:incidenceSign that a math:CellIncidence attaches to a boundary face."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Chain and cochain complexes — the square-zero laws and their adjunction.
+#
+# The graded math:Cell / signed math:CellIncidence surface (above) carries the
+# boundary DATA; this block carries the boundary ELEMENTS (math:Chain, math:Cycle,
+# math:Boundary and their cochain duals) and the ∂∘∂ = 0 / δ∘δ = 0 coherence laws
+# over them. Two executable layers enforce square-zero: the regular/simplicial
+# reasoning-form constraint (the combinatorial diamond over math:incidentTo) and
+# the general-CW finite-sum constraint (a logic:JoinAggregateConstraint summing the
+# incidence-sign products). The universal class law Σ_b [c:b][b:a] = 0 over ALL
+# complexes is genuinely higher-order and carried as an honest boundary
+# (math:cellBoundarySumBoundary); the per-instance finite sum is executable.
+# =========================================================================== #
+
+# --- Chain / cochain ELEMENT carriers -------------------------------------- #
+
+math:Chain
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Chain"@x-gmeow-english ;
+    skos:definition "An n-chain of a math:ChainComplex: a graded formal signed combination of same-dimension math:Cells — the element the boundary operator ∂ acts on. A subclass of math:MathematicalObject that names the math:ChainComplex it lives in through math:chainOf. It is NOT a single math:Cell (a chain is a signed combination of cells of one grade), NOT the whole math:ChainComplex it belongs to, and NOT a math:CellIncidence coefficient — it is a graded element of the chain group. A chain naming no complex is ungrounded (math:UngroundedChain)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Cochain
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cochain"@x-gmeow-english ;
+    skos:definition "An n-cochain of a math:CochainComplex: a graded functional on n-chains — the element the coboundary operator δ acts on, dual to a math:Chain. A subclass of math:MathematicalObject. It is NOT a math:Chain (a cochain is a functional on chains, living in the dual graded complex), NOT a single math:Cell, and NOT a math:CellIncidence — it is a graded element of the cochain group."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CochainComplex
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cochain Complex"@x-gmeow-english ;
+    skos:definition "A cochain complex: the dual graded sequence of modules connected by coboundary maps δ whose consecutive composite δ∘δ is zero — the degree-raising dual of a math:ChainComplex. A subclass of math:MathematicalObject naming its coboundary operator through math:cochainCoboundary. It is NOT the math:ChainComplex it is dual to (the arrows raise degree rather than lower it), and it is not a graded collection alone: the square-zero coboundary law is constitutive. A cochain complex naming no coboundary operator is ill-formed (math:IncompleteCochainComplex)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Cycle
+    a owl:Class ; logic:subClassOf math:Chain ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cycle"@x-gmeow-english ;
+    skos:definition "An n-cycle: a math:Chain in the kernel of the boundary operator (∂z = 0) — a chain with empty boundary. A subclass of math:Chain naming the math:ChainComplex it cycles in through math:cycleOf. The cycles of a grade form the cycle group Z = ker ∂, whose quotient by the boundary group B = im ∂ is the math:HomologyGroup (H = Z/B). It is NOT an arbitrary math:Chain (a cycle is closed, ∂z = 0) and NOT a math:Boundary (a boundary is a cycle, but not every cycle bounds — that gap IS homology). A cycle naming no complex is ungrounded (math:UngroundedCycle)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Cocycle
+    a owl:Class ; logic:subClassOf math:Cochain ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cocycle"@x-gmeow-english ;
+    skos:definition "An n-cocycle: a math:Cochain in the kernel of the coboundary operator (δc = 0) — a closed cochain, dual to a math:Cycle. A subclass of math:Cochain. The cocycles of a grade form the cocycle group ker δ, whose quotient by the coboundary group im δ is the cohomology group. It is NOT an arbitrary math:Cochain (a cocycle is closed, δc = 0) and NOT a math:Coboundary (every coboundary is a cocycle, but not conversely — that gap is cohomology)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Boundary
+    a owl:Class ; logic:subClassOf math:Chain ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Boundary"@x-gmeow-english ;
+    skos:definition "An n-boundary: a math:Chain in the image of the boundary operator (b = ∂c for some (n+1)-chain c) — a chain that bounds. A subclass of math:Chain naming the math:ChainComplex it bounds in through math:boundaryOf. Because ∂∘∂ = 0, every boundary is a math:Cycle; the boundaries of a grade form the boundary group B = im ∂, quotiented out of the cycle group to form the math:HomologyGroup (H = Z/B). It is NOT a topological boundary (closure minus interior) and NOT a math:CellIncidence sign — it is a homological boundary chain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Coboundary
+    a owl:Class ; logic:subClassOf math:Cochain ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Coboundary"@x-gmeow-english ;
+    skos:definition "An n-coboundary: a math:Cochain in the image of the coboundary operator (c = δd for some (n−1)-cochain d) — a cochain that is a coboundary, dual to a math:Boundary. A subclass of math:Cochain naming the coboundary operator it is an image under through math:coboundaryOf. Because δ∘δ = 0, every coboundary is a math:Cocycle. It is NOT an arbitrary math:Cochain and NOT a math:Boundary (it lives in the dual, cochain complex). A coboundary naming no operator it is the image under is ill-formed (math:IncompleteCoboundary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Chain / cochain / homology structural properties ---------------------- #
+
+math:chainBoundary
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "chain boundary"@x-gmeow-english ;
+    skos:definition "Relates a math:ChainComplex to the math:BoundaryOperator whose degree-minus-one maps assemble it — the ∂ of the complex. Domain math:ChainComplex, range math:BoundaryOperator (stated in prose). The reflected form math:chainBoundaryRel grounds the square-zero law in the complex's own boundary operator, so ∂∘∂ = 0 predicates over the operator the complex actually carries rather than a free-floating ∂."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:cochainCoboundary
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cochain coboundary"@x-gmeow-english ;
+    skos:definition "Relates a math:CochainComplex to the math:CoboundaryOperator whose degree-plus-one maps assemble it — the δ of the cochain complex. Domain math:CochainComplex, range math:CoboundaryOperator (stated in prose). Every cochain complex names exactly one; a cochain complex without it is ill-formed (math:IncompleteCochainComplex)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:chainOf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "chain of"@x-gmeow-english ;
+    skos:definition "Relates a math:Chain to the math:ChainComplex it is an element of. Domain math:Chain, range math:ChainComplex (stated in prose). A chain is graded by the complex it lives in; a chain naming no complex is ungrounded (math:UngroundedChain)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:cycleOf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cycle of"@x-gmeow-english ;
+    skos:definition "Relates a math:Cycle to the math:ChainComplex whose kernel of ∂ it lies in. Domain math:Cycle, range math:ChainComplex (stated in prose). A cycle naming no complex is ungrounded (math:UngroundedCycle)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundaryOf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "boundary of"@x-gmeow-english ;
+    skos:definition "Relates a math:Boundary to the math:ChainComplex whose image of ∂ it lies in. Domain math:Boundary, range math:ChainComplex (stated in prose). A boundary is a chain that bounds inside a named complex."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coboundaryOf
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coboundary of"@x-gmeow-english ;
+    skos:definition "Relates a math:Coboundary to the math:CoboundaryOperator it is an image under (c = δd). Domain math:Coboundary, range math:CoboundaryOperator (stated in prose). A coboundary that names neither the cochain it is the coboundary of nor the operator applied is ill-formed (math:IncompleteCoboundary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:homologyCycles
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homology cycles"@x-gmeow-english ;
+    skos:definition "Relates a math:HomologyGroup Hₙ = Zₙ/Bₙ to a math:Cycle representing a class in it — a generator of the cycle group Z whose coset modulo the boundary group B is a homology class. Domain math:HomologyGroup, range math:Cycle (stated in prose). Paired with math:homologyBoundaries, it wires the quotient H = Z/B: the cycles are the numerator, the boundaries the denominator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:homologyBoundaries
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homology boundaries"@x-gmeow-english ;
+    skos:definition "Relates a math:HomologyGroup Hₙ = Zₙ/Bₙ to a math:Boundary quotiented out of it — a generator of the boundary group B = im ∂ that is identified with zero in homology. Domain math:HomologyGroup, range math:Boundary (stated in prose). Paired with math:homologyCycles, it wires the quotient H = Z/B: two cycles are homologous exactly when their difference is one of these boundaries (math:homologyQuotientLaw)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coboundaryAdjoint
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coboundary adjoint"@x-gmeow-english ;
+    skos:definition "Relates a math:CoboundaryOperator δ to the math:BoundaryOperator ∂ it is the adjoint of (δ = ∂*). Domain math:CoboundaryOperator, range math:BoundaryOperator (stated in prose). The adjunction is the property the math:HodgeLaplacian L = δδ* + δ*δ depends on; the sign-level content — that the coboundary matrix is the transpose of the boundary matrix — is enforced through math:adjointIncidence and math:boundaryCoboundaryAdjunctionLaw."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:adjointIncidence
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "adjoint incidence"@x-gmeow-english ;
+    skos:definition "Relates a boundary math:CellIncidence (a signed entry [∂c : a] = s of the boundary matrix) to the coboundary math:CellIncidence that is its transpose entry ([δa : c] = s), the two endpoints swapped and the sign preserved. Domain and range math:CellIncidence (stated in prose). The adjunction δ = ∂* requires the two signs to be EQUAL; a linked pair whose signs disagree witnesses a broken adjunction (math:BrokenBoundaryCoboundaryAdjunction), enforced by math:boundaryCoboundaryAdjunctionLaw."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:recoversHomology
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "recovers homology"@x-gmeow-english ;
+    skos:definition "Relates a math:CellularSheaf whose stalks are the constant field to the math:HomologyGroup of its base complex that its sheaf cohomology recovers. Domain math:CellularSheaf, range math:HomologyGroup (stated in prose). The constant-sheaf specialisation of sheaf cohomology: over the constant sheaf the sheaf Laplacian's harmonic space is the ordinary cellular (co)homology, so the sheaf machinery recovers plain homology (math:constantSheafRecoversHomologyLaw)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ConstantSheaf
+    a owl:Class ; logic:subClassOf math:CellularSheaf ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Constant Sheaf"@x-gmeow-english ;
+    skos:definition "The constant cellular sheaf on a math:CellComplex: the math:CellularSheaf whose stalks are all one fixed field and whose restriction maps are all the identity. A subclass of math:CellularSheaf; its sheaf cohomology is the ordinary cellular (co)homology of the base complex (math:constantSheafRecoversHomologyLaw, math:recoversHomology), the specialisation that shows the sheaf-Laplacian machinery generalises plain homology rather than replacing it. It is NOT an arbitrary math:CellularSheaf (identity restriction maps and a single constant stalk field are constitutive)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Reified relation atoms (HiLog reflection) for the square-zero laws ----- #
+
+math:chainBoundaryRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "chainBoundary(K,∂) ⟺ ∂ is the boundary operator of chain complex K"@x-gmeow-english ;
+    rdfs:seeAlso math:chainBoundary ;
+    skos:definition "The HiLog reflection of math:chainBoundary as a binary relation individual, so the boundary-square-zero law can ground itself in the complex's own boundary operator inside a logic:Formula atom: chainBoundary(K,∂) holds exactly when ∂ is the math:BoundaryOperator of the math:ChainComplex K. Reflects the existing math:chainBoundary declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:incidentToRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "incidentTo(c,f) ⟺ f is a codimension-1 face of c"@x-gmeow-english ;
+    rdfs:seeAlso math:incidentTo ;
+    skos:definition "The HiLog reflection of math:incidentTo as a binary relation individual, so the square-zero law can predicate 'f is a codimension-1 face of c' inside a logic:Formula atom. The relation the boundary composition ∂∘∂ runs over. Reflects the existing math:incidentTo declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:cofaceRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coface(f,c) ⟺ c is a cell whose codimension-1 face is f"@x-gmeow-english ;
+    rdfs:seeAlso math:incidentTo ;
+    skos:definition "The HiLog reflection of the coface (degree-raising) reading of math:incidentTo as a binary relation individual: coface(f,c) holds exactly when incidentTo(c,f) — c is a cell one grade up whose boundary passes through f. The relation the coboundary composition δ∘δ traverses upward, the transpose of math:incidentToRel. Reflects math:incidentTo read in the coface direction (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:cancellingPairRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cancellingPair(b,b′) ⟺ the two intermediate faces of a codim-2 diamond cancel"@x-gmeow-english ;
+    skos:definition "The involutive pairing the boundary-square-zero law derives: cancellingPair(b,b′) holds when b and b′ are the two distinct codimension-1 intermediate cells of one codimension-2 diamond (a shared coface c and shared far-face a) whose incidence-sign products are opposite, so their contributions to ∂∘∂ cancel. A binary HiLog relation individual over which the law states the fixed-point-free involution; no first-class asserted property is minted, because the pairing is a derived consequence of the incidence structure, not authored data."@x-gmeow-english .
+
+math:coCancellingPairRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coCancellingPair(b,b′) ⟺ the two intermediate cofaces of a codim-2 co-diamond cancel"@x-gmeow-english ;
+    skos:definition "The coboundary dual of math:cancellingPairRel: coCancellingPair(b,b′) holds when b and b′ are the two distinct intermediate cofaces of one δ∘δ diamond (a shared lower cell a and shared upper cell c) whose sign products are opposite, so their contributions to δ∘δ cancel. A binary HiLog relation individual the coboundary-square-zero law derives; derived, no minted property."@x-gmeow-english .
+
+math:oppositeIncidenceProductRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "oppositeProduct(b,b′) ⟺ the sign products [c:b][b:a] and [c:b′][b′:a] are opposite"@x-gmeow-english ;
+    skos:definition "The derived arithmetic over math:incidenceSign the square-zero law joins on: oppositeProduct(b,b′) holds exactly when the incidence-sign product [c:b]·[b:a] along the composition through b is the negation of the product [c:b′]·[b′:a] through b′ (one +1, one −1), so the two diamond paths cancel. A binary HiLog relation individual reflecting a derived computation over the ±1 math:incidenceSign integers; no property is minted, because the product is arithmetic over existing signs, not authored data."@x-gmeow-english .
+
+math:adjointIncidenceRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "adjointIncidence(i,j) ⟺ j is the transpose entry of boundary incidence i"@x-gmeow-english ;
+    rdfs:seeAlso math:adjointIncidence ;
+    skos:definition "The HiLog reflection of math:adjointIncidence as a binary relation individual, so the adjunction law can predicate 'j is the coboundary transpose of the boundary incidence i' inside a logic:Formula atom. Reflects the existing math:adjointIncidence declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:incidenceSignRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "incidenceSign(i,s) ⟺ the incidence i carries the ±1 sign s"@x-gmeow-english ;
+    rdfs:seeAlso math:incidenceSign ;
+    skos:definition "The HiLog reflection of math:incidenceSign as a binary relation individual, so the adjunction law can bind an incidence's ±1 sign inside a logic:Formula atom. Reflects the existing math:incidenceSign declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:homologousRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homologous(z1,z2) ⟺ z1 − z2 is a boundary"@x-gmeow-english ;
+    skos:definition "The equivalence the homology-quotient law states: homologous(z1,z2) holds exactly when the difference of the two cycles z1 and z2 is a math:Boundary — the coset relation whose classes ARE the elements of H = Z/B. A binary HiLog relation individual; the coset construction is derived, so no property is minted."@x-gmeow-english .
+
+math:chainDifferenceRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "difference(z1,z2,d) ⟺ d = z1 − z2 in the chain group"@x-gmeow-english ;
+    skos:definition "The chain-group subtraction the homology-quotient law reifies: difference(z1,z2,d) holds when d is the signed chain z1 − z2. A ternary HiLog relation individual over the abelian chain group; the subtraction is derived arithmetic over the graded group, so no property is minted."@x-gmeow-english .
+
+math:isBoundaryRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "isBoundary(d) ⟺ d is a boundary (d ∈ im ∂)"@x-gmeow-english ;
+    skos:definition "The membership the homology-quotient law tests: isBoundary(d) holds exactly when the chain d lies in the boundary group B = im ∂ (it is a math:Boundary). A unary HiLog relation individual; membership in the image of ∂ is derived, so no property is minted."@x-gmeow-english .
+
+# --- Law B.1: ∂∘∂ = 0 — the combinatorial diamond + fixed-point-free involution #
+# ∀ K ∂ c b b′ a: chainBoundary(K,∂) ∧ incidentTo(c,b) ∧ incidentTo(b,a)
+#   ∧ incidentTo(c,b′) ∧ incidentTo(b′,a) ∧ oppositeProduct(b,b′) → cancellingPair(b,b′)
+# The defining law of a math:ChainComplex / math:BoundaryOperator, authored as a
+# first-order logic:Formula exactly as math:filtrationMonotonicityLaw authors its
+# hard law. Scoped to regular/simplicial complexes (a codimension-2 pair has exactly
+# two intermediate faces there — the diamond lemma is a theorem only in that setting):
+# every codim-2 diamond's two intermediate faces are paired by a sign-reversing
+# involution, so ∂∘∂ vanishes. It is Horn-derivable, so the native reasoningLogic lane
+# fires it over a concrete triangle to DERIVE the cancelling pair. The UNIVERSAL
+# arithmetic form Σ_b [c:b][b:a] = 0 over ALL complexes is the higher-order residue
+# recorded honestly as math:cellBoundarySumBoundary; the per-instance finite sum is
+# executable through math:GeneralBoundarySquareZeroConstraint.
+
+math:boundarySquareZeroLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "boundary square zero: the two intermediate faces of a codim-2 diamond cancel (∂∘∂ = 0)"@x-gmeow-english ;
+    skos:definition "The defining law of a math:ChainComplex and its math:BoundaryOperator as a universally-quantified first-order logic:Formula over the reified incidence signature: for a chain complex K with boundary operator ∂, if c has codimension-1 faces b and b′ each having a as a codimension-1 face, and the two composition sign products are opposite, then b and b′ are a cancelling pair — the fixed-point-free involution pairing the two intermediate faces of the codimension-2 diamond, which makes ∂∘∂ vanish. math: expresses the law; logic: owns reasoning over it. SCOPED to regular/simplicial complexes: a codimension-2 pair has exactly two intermediate faces there (the diamond lemma), so the local involution is a theorem; on a general CW complex the exact vanishing is the finite signed SUM Σ_b [c:b][b:a] = 0 enforced per-instance by math:GeneralBoundarySquareZeroConstraint, and the universal class law is the honest higher-order boundary math:cellBoundarySumBoundary. A sibling of math:filtrationMonotonicityLaw in the same first-order style; Horn-derivable, so the native reasoningLogic lane derives its math:cancellingPairRel consequent over a concrete triangle."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "K" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "d" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "c" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "bp" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "a" ] ;
+    logic:forall math:bszImpl .
+
+math:bszImpl a logic:Formula ;
+    logic:antecedent math:bszAnte ;
+    logic:consequent math:bszCons .
+
+math:bszAnte a logic:Formula ;
+    logic:and math:bszA1 , math:bszA2 , math:bszA3 , math:bszA4 , math:bszA5 , math:bszA6 .
+
+math:bszA1 a logic:Formula ; logic:relation math:chainBoundaryRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "K" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+math:bszA2 a logic:Formula ; logic:relation math:incidentToRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+math:bszA3 a logic:Formula ; logic:relation math:incidentToRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:bszA4 a logic:Formula ; logic:relation math:incidentToRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:bszA5 a logic:Formula ; logic:relation math:incidentToRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bp" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:bszA6 a logic:Formula ; logic:relation math:oppositeIncidenceProductRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+
+math:bszCons a logic:Formula ; logic:relation math:cancellingPairRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+
+# --- Boundary: the UNIVERSAL Σ_b [c:b][b:a] = 0 class law is higher-order ---- #
+# The per-instance finite sum is executable (math:GeneralBoundarySquareZeroConstraint);
+# what is genuinely higher-order is the UNIVERSAL law that Σ_b [c:b][b:a] = 0 holds
+# for EVERY codim-2 pair of EVERY complex — a second-order claim quantifying over the
+# unbounded family of complexes and, within each, over the finite-but-unbounded set of
+# intermediate cells with a SUM the first-order fragment has no aggregate node for.
+# Recorded here as an honest loss-ledger boundary, never faked as a first-order formula;
+# it covers ONLY the universal class law, NOT per-instance conformance.
+
+math:cellBoundarySumBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "universal ∂∘∂ = 0 (Σ_b [c:b][b:a] = 0 over ALL complexes): an honest recorded higher-order boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing the UNIVERSAL boundary-square-zero class law: that Σ_b [c:b]·[b:a] = 0 holds for EVERY codimension-2 pair (c,a) of EVERY math:ChainComplex is genuinely higher-order — it ∀-quantifies over the unbounded family of complexes and, inside each, aggregates a signed SUM over a finite-but-unbounded set of intermediate cells, a group aggregation the first-order fragment cannot express. HiLog reflection reifies one incidence, but the universal sum-vanishes claim is not first-order axiomatizable, so a first-order witness would be an unsound uninterpreted predicate. It is therefore carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported). This boundary covers ONLY the universal class law; the regular/simplicial diamond law math:boundarySquareZeroLaw IS first-order, and the per-instance finite sum IS executable through the logic:JoinAggregateConstraint math:GeneralBoundarySquareZeroConstraint — so this record is the honest mathematical distinction, not a scope dodge. Contrast its sibling math:compactnessBoundary."@x-gmeow-english .
+
+# --- Law B.2a: δ∘δ = 0 — the coboundary square-zero law (transposed) -------- #
+# The degree-raising dual of math:boundarySquareZeroLaw: the same diamond/involution
+# schema traversed through math:cofaceRel (face → coface) rather than math:incidentToRel.
+
+math:coboundarySquareZeroLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coboundary square zero: the two intermediate cofaces of a co-diamond cancel (δ∘δ = 0)"@x-gmeow-english ;
+    skos:definition "The defining law of a math:CochainComplex and its math:CoboundaryOperator as a universally-quantified first-order logic:Formula, the degree-raising dual of math:boundarySquareZeroLaw: for a cochain complex with coboundary operator δ, if a has cofaces b and b′ each a face of c, and the two composition sign products are opposite, then b and b′ are a co-cancelling pair — the involution that makes δ∘δ vanish. Traverses the coface (upward) reading math:cofaceRel where the boundary law traverses math:incidentToRel. math: expresses the law; logic: owns reasoning over it. Distinct from math:boundarySquareZeroLaw (a separate logic:Formula over the transposed traversal), scoped identically to regular/simplicial complexes, and Horn-derivable so the reasoningLogic lane derives its math:coCancellingPairRel consequent over a concrete triangle."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "L" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "dd" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "a" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "bp" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "c" ] ;
+    logic:forall math:cbszImpl .
+
+math:cbszImpl a logic:Formula ;
+    logic:antecedent math:cbszAnte ;
+    logic:consequent math:cbszCons .
+
+math:cbszAnte a logic:Formula ;
+    logic:and math:cbszA1 , math:cbszA2 , math:cbszA3 , math:cbszA4 , math:cbszA5 , math:cbszA6 .
+
+math:cbszA1 a logic:Formula ; logic:relation math:chainBoundaryRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "L" ] , [ logic:termIndex 1 ; logic:termVariable "dd" ] .
+math:cbszA2 a logic:Formula ; logic:relation math:cofaceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+math:cbszA3 a logic:Formula ; logic:relation math:cofaceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+math:cbszA4 a logic:Formula ; logic:relation math:cofaceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:cbszA5 a logic:Formula ; logic:relation math:cofaceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bp" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+math:cbszA6 a logic:Formula ; logic:relation math:oppositeIncidenceProductRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+
+math:cbszCons a logic:Formula ; logic:relation math:coCancellingPairRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+
+# --- Law B.2b: δ = ∂* — the boundary/coboundary adjunction ------------------ #
+# ∀ i j s t: adjointIncidence(i,j) ∧ incidenceSign(i,s) ∧ incidenceSign(j,t) → eq(s,t)
+# The coboundary is the adjoint (transpose) of the boundary: the transpose entry
+# carries the SAME sign. The property math:HodgeLaplacian L = δδ* + δ*δ depends on it.
+
+math:boundaryCoboundaryAdjunctionLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "adjunction: the coboundary is the transpose of the boundary (δ = ∂*)"@x-gmeow-english ;
+    skos:definition "The defining law of the boundary/coboundary adjunction as a universally-quantified first-order logic:Formula over the reified incidence-sign signature: if a coboundary incidence j is the transpose (math:adjointIncidence) of a boundary incidence i, then the two carry the SAME ±1 sign — the entry [δa:c] equals the entry [∂c:a]. This is δ = ∂*, the adjunction the math:HodgeLaplacian L = δδ* + δ*δ is built on; a linked transpose pair whose signs disagree witnesses a broken adjunction (math:BrokenBoundaryCoboundaryAdjunction). math: expresses the law; logic: owns reasoning over it; a sibling of math:continuityLaw in the same first-order style."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "i" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "j" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "s" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "t" ] ;
+    logic:forall math:adjImpl .
+
+math:adjImpl a logic:Formula ;
+    logic:antecedent math:adjAnte ;
+    logic:consequent math:adjCons .
+
+math:adjAnte a logic:Formula ;
+    logic:and math:adjA1 , math:adjA2 , math:adjA3 .
+
+math:adjA1 a logic:Formula ; logic:relation math:adjointIncidenceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "i" ] , [ logic:termIndex 1 ; logic:termVariable "j" ] .
+math:adjA2 a logic:Formula ; logic:relation math:incidenceSignRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "i" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+math:adjA3 a logic:Formula ; logic:relation math:incidenceSignRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "j" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+
+math:adjCons a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+
+# --- Law B.4: homology quotient H = Z/B — the homologous-cycle equivalence -- #
+# ∀ z1 z2 d: difference(z1,z2,d) ∧ isBoundary(d) → homologous(z1,z2)
+# The first-order coset relation whose classes ARE the elements of H = Z/B; the
+# quotient-GROUP construction (well-defined coset operations) is the higher-order
+# residue recorded as math:homologyQuotientBoundary.
+
+math:homologyQuotientLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homology quotient: two cycles are homologous when their difference is a boundary (H = Z/B)"@x-gmeow-english ;
+    skos:definition "The defining law of the homology quotient H = Z/B as a first-order logic:Formula over the reified chain-group signature: two cycles z1 and z2 are homologous — represent the same class in the math:HomologyGroup — exactly when their difference z1 − z2 is a math:Boundary. This is the coset relation whose equivalence classes ARE the elements of H = Zₙ/Bₙ. math: expresses the equivalence; logic: owns reasoning over it. The RELATION is first-order (a difference and a membership test, like math:connectednessLaw's atoms); the full quotient-GROUP CONSTRUCTION — forming Z/B as a group with well-defined coset operations — is the higher-order residue carried honestly as math:homologyQuotientBoundary."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "z1" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "z2" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "d" ] ;
+    logic:forall math:hqImpl .
+
+math:hqImpl a logic:Formula ;
+    logic:antecedent math:hqAnte ;
+    logic:consequent math:hqCons .
+
+math:hqAnte a logic:Formula ;
+    logic:and math:hqA1 , math:hqA2 .
+
+math:hqA1 a logic:Formula ; logic:relation math:chainDifferenceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "z1" ] , [ logic:termIndex 1 ; logic:termVariable "z2" ] , [ logic:termIndex 2 ; logic:termVariable "d" ] .
+math:hqA2 a logic:Formula ; logic:relation math:isBoundaryRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ] .
+
+math:hqCons a logic:Formula ; logic:relation math:homologousRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "z1" ] , [ logic:termIndex 1 ; logic:termVariable "z2" ] .
+
+math:homologyQuotientBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "quotient-group construction of H = Z/B: an honest recorded higher-order boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing the quotient-GROUP construction of the math:HomologyGroup H = Z/B: while the homologous-cycle EQUIVALENCE is first-order (math:homologyQuotientLaw), CONSTRUCTING the quotient group — forming the set of cosets z + B, quantifying over the subgroup B, and proving the coset operation well-defined — is genuinely higher-order (it quantifies over subgroups and their cosets, not first-order axiomatizable). So the quotient construction is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), the residue disclosed in the ledger and never faked as a first-order formula. The structural frame (H names its cycles and boundaries through math:homologyCycles / math:homologyBoundaries) and the homologous relation ARE authored; only the group-quotient construction is the boundary. A sibling of math:cellBoundarySumBoundary."@x-gmeow-english .
+
+# --- Law U3: constant sheaf recovers cellular homology --------------------- #
+
+math:constantSheafRecoversHomologyLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "constant-sheaf cohomology = cellular homology"@x-gmeow-english ;
+    skos:definition "The law linking the sheaf-Laplacian machinery back to ordinary homology as a first-order logic:Formula: a math:ConstantSheaf S (constant-field stalks, identity restriction maps) over a base math:CellComplex X has sheaf cohomology equal to the ordinary cellular (co)homology of X — the harmonic space of its sheaf Laplacian is Hₙ(X). If S is a constant sheaf over X and H is the cellular homology of X, then S math:recoversHomology H. math: expresses the law; logic: owns reasoning over it. It shows the math:CellularSheaf / math:SheafLaplacian surface GENERALISES plain homology (the constant sheaf is the specialisation) rather than replacing it, so the sheaf machinery is a conservative extension."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "S" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "X" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "H" ] ;
+    logic:forall math:csrhImpl .
+
+math:csrhImpl a logic:Formula ;
+    logic:antecedent math:csrhAnte ;
+    logic:consequent math:csrhCons .
+
+math:csrhAnte a logic:Formula ;
+    logic:and math:csrhA1 , math:csrhA2 , math:csrhA3 .
+
+math:csrhA1 a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "S" ] , [ logic:termIndex 1 ; logic:termIri math:ConstantSheaf ] .
+math:csrhA2 a logic:Formula ; logic:relation math:sheafBaseComplex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "S" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:csrhA3 a logic:Formula ; logic:relation math:cellularHomologyOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "H" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+
+math:csrhCons a logic:Formula ; logic:relation math:recoversHomology ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "S" ] , [ logic:termIndex 1 ; logic:termVariable "H" ] .
+
+math:cellularHomologyOfRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cellularHomologyOf(H,X) ⟺ H is the cellular homology of complex X"@x-gmeow-english ;
+    skos:definition "The relation the constant-sheaf law binds the base complex's ordinary homology through: cellularHomologyOf(H,X) holds when H is the math:HomologyGroup of the math:CellComplex X computed from its cellular chain complex. A binary HiLog relation individual; the cellular-homology assignment is a derived construction, so no property is minted."@x-gmeow-english .
 
 math:VietorisRipsComplex
     a owl:Class ; logic:subClassOf math:SimplicialComplex ;
@@ -8459,6 +8895,57 @@ math:UnbackedAnalyticProperty
     gmeow:howToUse "Point the guarded-existence constraint math:AnalyticPropertyBackedConstraint at it through gmeow:enforcesFailureClass; a bare analytic-property token is unauthorable by construction."@x-gmeow-english ;
     skos:example "exf:mystery a math:AnalyticProperty . # no math:definingLaw -> math:UnbackedAnalyticProperty"@x-gmeow-english .
 
+# --- Chain/cochain square-zero conformance failures ------------------------- #
+
+math:BrokenBoundarySquareZero
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Broken Boundary Square Zero"@x-gmeow-english ;
+    skos:definition "The failure raised when the twice-applied boundary does not vanish (∂∘∂ ≠ 0): on a math:SimplicialComplex a codimension-2 composition path lacks its cancelling partner face (the broken diamond, math:BoundarySquareZeroConstraint), or on a general CW complex some codimension-2 pair's finite signed sum Σ_b [c:b]·[b:a] is non-zero (math:GeneralBoundarySquareZeroConstraint). Both reasoning-layer and general-layer enforcement raise this one failure; the sign COHERENCE it checks is distinct from the sign PRESENCE frame math:UnorientedIncidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BrokenCoboundarySquareZero
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Broken Coboundary Square Zero"@x-gmeow-english ;
+    skos:definition "The failure raised when the twice-applied coboundary does not vanish (δ∘δ ≠ 0): on a math:CochainComplex a codimension-2 co-composition path lacks its cancelling partner coface (the broken co-diamond, math:CoboundarySquareZeroConstraint). The degree-raising dual of math:BrokenBoundarySquareZero."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BrokenBoundaryCoboundaryAdjunction
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Broken Boundary Coboundary Adjunction"@x-gmeow-english ;
+    skos:definition "The failure raised when the boundary/coboundary adjunction δ = ∂* is violated: a boundary math:CellIncidence and its transpose coboundary math:CellIncidence, linked by math:adjointIncidence, carry DISAGREEING ±1 signs, so the coboundary matrix is not the transpose of the boundary matrix. Enforced by math:BoundaryCoboundaryAdjunctionConstraint; the adjunction the math:HodgeLaplacian L = δδ* + δ*δ depends on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCochainComplex
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Cochain Complex"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:CochainComplex lacks its math:cochainCoboundary — the math:CoboundaryOperator whose degree-plus-one maps assemble it. A cochain complex is defined BY its coboundary operator; one naming none says nothing about its differential and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCoboundary
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Coboundary"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Coboundary lacks its math:coboundaryOf — the math:CoboundaryOperator it is an image under (c = δd). A coboundary that names no operator it is the image of is not grounded as a coboundary and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedChain
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Chain"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Chain lacks its math:chainOf — the math:ChainComplex it is a graded element of. A chain is graded by the complex it lives in; one naming no complex is free-floating and ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedCycle
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Cycle"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Cycle lacks its math:cycleOf — the math:ChainComplex whose kernel of ∂ it lies in. A cycle names the complex it cycles in; one naming none is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world cardinality/
 # class/datatype/value obligations that the hand-authored shapes.ttl NodeShapes
@@ -8528,6 +9015,38 @@ math:CellIncidence logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:incidenceFace ; owl:minQualifiedCardinality 1 ; owl:onClass math:Cell ] ,
     [ a owl:Restriction ; owl:onProperty math:incidenceSign ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
     gmeow:enforcesFailureClass math:UnorientedIncidence .
+
+# Cochain-complex frame: a math:CochainComplex is well-formed only when it names its
+# math:cochainCoboundary (the math:CoboundaryOperator assembling it) — a min-1 qualified
+# restriction deriving a sh:qualifiedMinCount property shape; a cochain complex naming
+# none fails the derived QualifiedMinCount and isolates math:IncompleteCochainComplex.
+math:CochainComplex logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:cochainCoboundary ; owl:minQualifiedCardinality 1 ; owl:onClass math:CoboundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:cochainCoboundary ; owl:allValuesFrom math:CoboundaryOperator ] ;
+    gmeow:enforcesFailureClass math:IncompleteCochainComplex .
+
+# Coboundary frame: a math:Coboundary is well-formed only when it names the
+# math:coboundaryOf operator it is the image under — a min-1 qualified restriction;
+# a coboundary naming none isolates math:IncompleteCoboundary.
+math:Coboundary logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:coboundaryOf ; owl:minQualifiedCardinality 1 ; owl:onClass math:CoboundaryOperator ] ,
+    [ a owl:Restriction ; owl:onProperty math:coboundaryOf ; owl:allValuesFrom math:CoboundaryOperator ] ;
+    gmeow:enforcesFailureClass math:IncompleteCoboundary .
+
+# Chain frame (light): a math:Chain must name its math:chainOf complex — a min-1
+# qualified restriction; a chain naming none isolates math:UngroundedChain.
+math:Chain logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:chainOf ; owl:minQualifiedCardinality 1 ; owl:onClass math:ChainComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:chainOf ; owl:allValuesFrom math:ChainComplex ] ;
+    gmeow:enforcesFailureClass math:UngroundedChain .
+
+# Cycle frame (light): a math:Cycle must name its math:cycleOf complex — a min-1
+# qualified restriction; a cycle naming none isolates math:UngroundedCycle. (A cycle,
+# being a math:Chain, also inherits the math:chainOf obligation above.)
+math:Cycle logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:cycleOf ; owl:minQualifiedCardinality 1 ; owl:onClass math:ChainComplex ] ,
+    [ a owl:Restriction ; owl:onProperty math:cycleOf ; owl:allValuesFrom math:ChainComplex ] ;
+    gmeow:enforcesFailureClass math:UngroundedCycle .
 
 math:CellularSheaf logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:sheafBaseComplex ; owl:minQualifiedCardinality 1 ; owl:onClass math:CellComplex ] ,
@@ -11229,6 +11748,167 @@ math:SetExtentDisjointConstraint
     gmeow:enforcesFailureClass math:AmbiguousSetExtent ;
     logic:message "A math:Set must be extensional or intensional, not both: a node carrying both math:hasElement and math:memberCondition without a declared equality has an ambiguous extent (math:AmbiguousSetExtent)." .
 
+# --- ∂∘∂ = 0 executable enforcement, TWO layers ---------------------------- #
+# Reasoning layer (regular/simplicial): the combinatorial diamond over math:incidentTo.
+# On a math:SimplicialComplex every codimension-2 face pair has EXACTLY TWO intermediate
+# faces (the diamond lemma), so every codim-2 composition path must have a distinct
+# cancelling partner face; a lone intermediate (a broken diamond) is ill-formed
+# (math:BrokenBoundarySquareZero). A cross-node ∀→∃ formula, scoped to
+# math:SimplicialComplex, projected to a sh:SPARQLConstraint.
+math:BoundarySquareZeroConstraint
+    a logic:Constraint ;
+    rdfs:label "Boundary square-zero constraint (regular/simplicial diamond)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint enforcing ∂∘∂ = 0 in its regular/simplicial reasoning form: on a math:SimplicialComplex, every codimension-2 composition path (a coface c with a codimension-1 face b that has a as a codimension-1 face) must have a distinct partner face b′ ≠ b that also composes c to a — the two intermediate faces of the diamond whose sign products cancel. A lone intermediate (a broken diamond) makes ∂∘∂ non-zero and is ill-formed (math:BrokenBoundarySquareZero). Scoped to math:SimplicialComplex, where the two-intermediate diamond is a theorem; the general-CW arithmetic form is math:GeneralBoundarySquareZeroConstraint, and the machine law is math:boundarySquareZeroLaw."@x-gmeow-english ;
+    logic:formalizes math:BoundarySquareZeroShape ;
+    gmeow:enforcesFailureClass math:BrokenBoundarySquareZero ;
+    logic:message "On a math:SimplicialComplex, a codimension-2 composition path (c ▷ b ▷ a) must have a distinct partner face b′ so the two diamond faces' sign products cancel; a lone intermediate breaks ∂∘∂ = 0 (math:BrokenBoundarySquareZero)." ;
+    logic:integrity math:bszcForall .
+math:bszcForall a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "c" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "a" ] ;
+    logic:forall math:bszcImpl .
+math:bszcImpl a logic:Formula ; logic:antecedent math:bszcGuard ; logic:consequent math:bszcExists .
+math:bszcGuard a logic:Formula ;
+    logic:and math:bszcType , math:bszcHasC , math:bszcHasB , math:bszcHasA , math:bszcIncCB , math:bszcIncBA .
+math:bszcType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:SimplicialComplex ] .
+math:bszcHasC a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+math:bszcHasB a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+math:bszcHasA a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:bszcIncCB a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+math:bszcIncBA a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:bszcExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bp" ] ;
+    logic:exists math:bszcPartner .
+math:bszcPartner a logic:Formula ;
+    logic:and math:bszcHasBp , math:bszcDistinct , math:bszcIncCBp , math:bszcIncBpA .
+math:bszcHasBp a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:bszcDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:bszcIncCBp a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:bszcIncBpA a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bp" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+
+# Reasoning layer (coboundary dual): the same diamond traversed UPWARD, scoped to
+# math:CochainComplex, so it is isolated from the boundary constraint by focus type.
+math:CoboundarySquareZeroConstraint
+    a logic:Constraint ;
+    rdfs:label "Coboundary square-zero constraint (regular/simplicial co-diamond)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint enforcing δ∘δ = 0 in its regular/simplicial reasoning form, the degree-raising dual of math:BoundarySquareZeroConstraint: on a math:CochainComplex, every codimension-2 co-composition path (a low cell a with a coface b that is a face of c) must have a distinct partner coface b′ ≠ b that also co-composes a to c, so the two intermediate cofaces' sign products cancel. A lone intermediate coface (a broken co-diamond) makes δ∘δ non-zero and is ill-formed (math:BrokenCoboundarySquareZero). Scoped to math:CochainComplex so it is isolated by focus type from the boundary constraint; the machine law is math:coboundarySquareZeroLaw."@x-gmeow-english ;
+    logic:formalizes math:CoboundarySquareZeroShape ;
+    gmeow:enforcesFailureClass math:BrokenCoboundarySquareZero ;
+    logic:message "On a math:CochainComplex, a codimension-2 co-composition path (a ◁ b ◁ c) must have a distinct partner coface b′ so the two co-diamond cofaces' sign products cancel; a lone intermediate breaks δ∘δ = 0 (math:BrokenCoboundarySquareZero)." ;
+    logic:integrity math:cbszcForall .
+math:cbszcForall a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "a" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "c" ] ;
+    logic:forall math:cbszcImpl .
+math:cbszcImpl a logic:Formula ; logic:antecedent math:cbszcGuard ; logic:consequent math:cbszcExists .
+math:cbszcGuard a logic:Formula ;
+    logic:and math:cbszcType , math:cbszcHasA , math:cbszcHasB , math:cbszcHasC , math:cbszcIncBA , math:cbszcIncCB .
+math:cbszcType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:CochainComplex ] .
+math:cbszcHasA a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:cbszcHasB a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+math:cbszcHasC a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+math:cbszcIncBA a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:cbszcIncCB a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+math:cbszcExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bp" ] ;
+    logic:exists math:cbszcPartner .
+math:cbszcPartner a logic:Formula ;
+    logic:and math:cbszcHasBp , math:cbszcDistinct , math:cbszcIncBpA , math:cbszcIncCBp .
+math:cbszcHasBp a logic:Formula ; logic:relation math:hasCell ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:cbszcDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+math:cbszcIncBpA a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bp" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+math:cbszcIncCBp a logic:Formula ; logic:relation math:incidentTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
+
+# General finite-complex layer (F1): the correct general-CW ∂∘∂ = 0 conformance —
+# for every codimension-2 pair (coface, far-face), the finite signed SUM
+# Σ_b [coface:b]·[b:far] over all intermediate cells b must equal 0. Authored as the
+# sanctioned logic:JoinAggregateConstraint (P9): a two-leg join over math:CellIncidence
+# records (coface → intermediate via incidenceCoface/incidenceFace, then intermediate →
+# far), the PRODUCT of the two integer math:incidenceSign leaves SUMMED and GROUPED BY
+# (coface, far), the invariant SUM = 0. Aggregates xsd:integer signs exactly via SPARQL
+# SUM, never a decimal. Lowers to a SELECT $this ?far … GROUP BY $this ?far HAVING(SUM ≠ 0)
+# sh:SPARQLConstraint. Covers general CW complexes (no diamond assumption).
+math:GeneralBoundarySquareZeroConstraint
+    a logic:JoinAggregateConstraint ;
+    rdfs:label "General boundary square-zero constraint (finite signed sum over CW cells)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The general-CW executable form of ∂∘∂ = 0: for every codimension-2 pair (coface c, far-face a), the finite signed sum Σ_b [c:b]·[b:a] of incidence-sign products over the intermediate cells b must be 0. Authored as a logic:JoinAggregateConstraint over a two-leg math:CellIncidence join (c → b → a), aggregating the exact xsd:integer math:incidenceSign product with SUM grouped by (c, a) and the invariant = 0; a group whose signed sum is non-zero breaks ∂∘∂ = 0 (math:BrokenBoundarySquareZero). Unlike math:BoundarySquareZeroConstraint (the regular/simplicial diamond), this makes NO two-intermediate assumption and so is the correct conformance check on a general CW complex; the universal class law is the honest boundary math:cellBoundarySumBoundary." ;
+    logic:onClass math:Cell ;
+    logic:aggFunction "SUM" ;
+    logic:aggComparator "=" ;
+    logic:aggThreshold 0 ;
+    logic:joinPath (
+        [ logic:legRecordType math:CellIncidence ; logic:legSource math:incidenceCoface ; logic:legTarget math:incidenceFace ; logic:legValue math:incidenceSign ]
+        [ logic:legRecordType math:CellIncidence ; logic:legSource math:incidenceCoface ; logic:legTarget math:incidenceFace ; logic:legValue math:incidenceSign ]
+    ) ;
+    logic:formalizes math:BoundaryOperator ;
+    gmeow:enforcesFailureClass math:BrokenBoundarySquareZero ;
+    logic:message "For every codimension-2 pair (coface, far-face) the finite signed sum Σ_b [c:b]·[b:a] over intermediate cells must be 0; a non-zero group sum breaks ∂∘∂ = 0 on a general CW complex (math:BrokenBoundarySquareZero)." .
+
+# Adjunction enforcement (B.3): δ = ∂* at the sign level — a boundary incidence and its
+# transpose coboundary incidence (math:adjointIncidence) must carry EQUAL signs. A
+# cross-node equality formula; a linked transpose pair with disagreeing signs is a broken
+# adjunction (math:BrokenBoundaryCoboundaryAdjunction). Projected to a sh:SPARQLConstraint.
+math:BoundaryCoboundaryAdjunctionConstraint
+    a logic:Constraint ;
+    rdfs:label "Boundary/coboundary adjunction constraint (δ = ∂*)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint enforcing the boundary/coboundary adjunction δ = ∂* at the sign level: a boundary math:CellIncidence and its transpose coboundary math:CellIncidence (linked by math:adjointIncidence) must carry the SAME ±1 math:incidenceSign — the transpose entry equals the original. A linked transpose pair whose signs disagree witnesses a broken adjunction (math:BrokenBoundaryCoboundaryAdjunction), the failure the math:HodgeLaplacian L = δδ* + δ*δ cannot tolerate. The machine law is math:boundaryCoboundaryAdjunctionLaw."@x-gmeow-english ;
+    logic:formalizes math:AdjunctionSignShape ;
+    gmeow:enforcesFailureClass math:BrokenBoundaryCoboundaryAdjunction ;
+    logic:message "A boundary math:CellIncidence and its math:adjointIncidence coboundary transpose must carry equal math:incidenceSign values (δ = ∂*); disagreeing signs break the adjunction (math:BrokenBoundaryCoboundaryAdjunction)." ;
+    logic:integrity math:bcaForall .
+math:bcaForall a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "i" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "j" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "s" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "t" ] ;
+    logic:forall math:bcaImpl .
+math:bcaImpl a logic:Formula ; logic:antecedent math:bcaGuard ; logic:consequent math:bcaEq .
+math:bcaGuard a logic:Formula ;
+    logic:and math:bcaAdj , math:bcaSignI , math:bcaSignJ .
+math:bcaAdj a logic:Formula ; logic:relation math:adjointIncidence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "i" ] , [ logic:termIndex 1 ; logic:termVariable "j" ] .
+math:bcaSignI a logic:Formula ; logic:relation math:incidenceSign ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "i" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+math:bcaSignJ a logic:Formula ; logic:relation math:incidenceSign ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "j" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+math:bcaEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+
 # A math:DimensionExponent's math:exponentDenominator must be non-zero: a zero
 # denominator is not a rational power (a forbidden pinned-value pattern — the
 # focus must not carry math:exponentDenominator 0). The pinned value also lowers
@@ -12764,6 +13444,14 @@ math:Cell a logic:AbstractIndividualType .
 math:CellComplex a logic:AbstractIndividualType .
 math:CellIncidence a logic:AbstractIndividualType .
 math:CellOrientation a logic:AbstractIndividualType .
+math:Chain a logic:AbstractIndividualType .
+math:Cochain a logic:AbstractIndividualType .
+math:CochainComplex a logic:AbstractIndividualType .
+math:Cycle a logic:AbstractIndividualType .
+math:Cocycle a logic:AbstractIndividualType .
+math:Boundary a logic:AbstractIndividualType .
+math:Coboundary a logic:AbstractIndividualType .
+math:ConstantSheaf a logic:AbstractIndividualType .
 math:CellularSheaf a logic:AbstractIndividualType .
 math:ChainComplex a logic:AbstractIndividualType .
 math:CliffordAlgebra a logic:AbstractIndividualType .
@@ -12976,4 +13664,11 @@ math:IncompleteMapperConstruction a logic:Situation .
 math:IncompletePersistentHomologyAnalysis a logic:Situation .
 math:IncompleteVectorSymbolicOperation a logic:Situation .
 math:UnorientedIncidence a logic:Situation .
+math:BrokenBoundarySquareZero a logic:Situation .
+math:BrokenCoboundarySquareZero a logic:Situation .
+math:BrokenBoundaryCoboundaryAdjunction a logic:Situation .
+math:IncompleteCochainComplex a logic:Situation .
+math:IncompleteCoboundary a logic:Situation .
+math:UngroundedChain a logic:Situation .
+math:UngroundedCycle a logic:Situation .
 math:ZeroDenominator a logic:Situation .

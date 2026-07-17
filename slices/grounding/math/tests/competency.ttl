@@ -27,6 +27,10 @@
 @prefix covf:  <http://example.org/math/coverage/> .
 # The worked graded cell complex (examples/graded-cell-complex.ttl).
 @prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
+# The worked chain complex (examples/chain-complex.ttl).
+@prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
+# The conforming chain-complex fixture (tests/conformance-fixtures/chain-complex-square-zero-complete.ttl).
+@prefix exccf: <http://example.org/math/chain-complex/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -2601,3 +2605,87 @@ ex:rowCoverageVectorSymbolic a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "basis" ; gmeow:cellValueIri cov:vsaBasis ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "capacity" ; gmeow:cellValueIri cov:vsaCapacity ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "contract" ; gmeow:cellValueIri cov:vsaContract ] .
+
+# === Q — ∂∘∂ = 0: the boundary square-zero law derives the cancelling pair === #
+
+ex:cqBoundarySquareZero a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/boundary-square-zero.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The boundary square-zero law ∂∘∂ = 0 made a LIVE entailment consumer: authored as a real first-order logic:Formula over the reified incidence signature and evaluated by the native logic: reasoner over the concrete simplicial triangle, it DERIVES the binary consequent math:cancellingPairRel(edgeAB, edgeAC) — the two intermediate edges composing faceABC to vertexA with opposite sign products, the fixed-point-free involution of the codimension-2 diamond. Nothing asserts that tuple; only the law derives it. Over the reasoned closure, pinned by VALUES to edgeAB, the answer is exactly {edgeAB, edgeAC}. Removing the law formula makes the answer empty." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqBoundarySquareZeroShape ;
+    gmeow:cqExpectRow ex:rowBoundarySquareZero .
+
+ex:cqBoundarySquareZeroShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "bp" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowBoundarySquareZero a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri excc:edgeAB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bp" ; gmeow:cellValueIri excc:edgeAC ] .
+
+# === Q — δ∘δ = 0: the coboundary square-zero law derives the co-cancelling pair #
+
+ex:cqCoboundarySquareZero a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/coboundary-square-zero.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The coboundary square-zero law δ∘δ = 0 made a LIVE entailment consumer: authored as a distinct first-order logic:Formula over the transposed coface traversal and evaluated by the native logic: reasoner over the concrete triangle, it DERIVES the binary consequent math:coCancellingPairRel(edgeAB, edgeAC) — the two intermediate cofaces of the upward co-diamond over (vertexA, faceABC). Nothing asserts that tuple; only the law derives it. Over the reasoned closure, pinned by VALUES to edgeAB, the answer is exactly {edgeAB, edgeAC}. Removing the law formula makes the answer empty." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoboundarySquareZeroShape ;
+    gmeow:cqExpectRow ex:rowCoboundarySquareZero .
+
+ex:cqCoboundarySquareZeroShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "bp" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoboundarySquareZero a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri excc:edgeAB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bp" ; gmeow:cellValueIri excc:edgeAC ] .
+
+# === Q — the homology quotient frame H = Z/B =============================== #
+
+ex:cqHomologyQuotientFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/homology-quotient-frame.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/chain-complex-square-zero-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:HomologyGroup reports the math:Cycle (the numerator Z) and the bounding math:Boundary (the denominator B) that generate it as the quotient H = Z/B; over the filled triangle the answer is exactly {homologyH1 → cycleZ / boundaryB}, the 1-cycle that bounds faceABC so its homology class is zero." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHomologyQuotientShape ;
+    gmeow:cqExpectRow ex:rowHomologyQuotient .
+
+ex:cqHomologyQuotientShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "homology" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cycle" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "boundary" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHomologyQuotient a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "homology" ; gmeow:cellValueIri exccf:homologyH1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cycle" ; gmeow:cellValueIri exccf:cycleZ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "boundary" ; gmeow:cellValueIri exccf:boundaryB ] .
+
+# === Q — the constant sheaf recovers cellular homology ==================== #
+
+ex:cqConstantSheafRecoversHomology a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/constant-sheaf-recovers-homology.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/chain-complex-square-zero-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:ConstantSheaf reports, through math:recoversHomology, the cellular math:HomologyGroup its sheaf cohomology recovers; over the filled triangle the answer is exactly {constantSheaf → homologyH1}, confirming the sheaf-Laplacian machinery generalises plain homology rather than replacing it." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConstantSheafShape ;
+    gmeow:cqExpectRow ex:rowConstantSheaf .
+
+ex:cqConstantSheafShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "homology" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConstantSheaf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exccf:constantSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "homology" ; gmeow:cellValueIri exccf:homologyH1 ] .
