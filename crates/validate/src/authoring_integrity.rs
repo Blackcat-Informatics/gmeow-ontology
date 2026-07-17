@@ -94,24 +94,28 @@ fn rel(path: &Path, root: &Path) -> String {
 /// Every `manifest.ttl` under `slices_dir` — the discovery surface the retired
 /// `discover_slices` walked (all manifests, so a duplicate IRI or a tierless
 /// manifest anywhere is caught). Deterministically sorted.
-fn all_manifests(slices_dir: &Path) -> Vec<PathBuf> {
+fn all_manifests(slices_dir: &Path) -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     let mut stack = vec![slices_dir.to_path_buf()];
     while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() && !path.is_symlink() {
-                stack.push(path);
-            } else if path.file_name().is_some_and(|n| n == "manifest.ttl") {
-                out.push(path);
+        match std::fs::read_dir(&dir) {
+            Ok(entries) => {
+                for entry in entries {
+                    let entry = entry.map_err(|e| io_err(&dir, &e))?;
+                    let path = entry.path();
+                    if path.is_dir() && !path.is_symlink() {
+                        stack.push(path);
+                    } else if path.file_name().is_some_and(|n| n == "manifest.ttl") {
+                        out.push(path);
+                    }
+                }
             }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(io_err(&dir, &e)),
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 // ── the live aggregator ──────────────────────────────────────────────────────
@@ -125,10 +129,56 @@ fn all_manifests(slices_dir: &Path) -> Vec<PathBuf> {
 /// gates scan it); `slices_dir` is the slice tree (the slice-discipline gate scans
 /// it). Any read/parse failure is a HARD FAIL (propagated), never a silently
 /// skipped gate.
+///
+/// Before folding any detector, the corpus is checked against the SAME
+/// non-vacuity floors the whole-corpus integration tests assert independently
+/// (`crates/validate/tests/authoring_integrity.rs`): a genuinely populated merged
+/// shape-file set, declared-term set, and catalog `<uri>` set. Those tests only
+/// guard the test binary; without this floor here, an environmental fault that
+/// silently shrank the live corpus to empty (e.g. a subtree that failed to read
+/// down to zero files, or a symlink loop that skipped every file) would still
+/// report zero findings — a VACUOUS PASS on the real `make validate` path.
+fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
+    let shape_files = purrdf::shapes::shape_union::shape_files(project_root)
+        .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
+    if shape_files.is_empty() {
+        return Err(Diag::of_kind(crate::error::Io {
+            detail: "authoring-integrity: merged shape-file corpus floor 1 not met (got 0 \
+                      files) — corpus read is vacuous, refusing to pass"
+                .to_string(),
+        }));
+    }
+
+    let declared = declared_ontology_terms(project_root)?;
+    if declared.len() <= 50 {
+        return Err(Diag::of_kind(crate::error::Io {
+            detail: format!(
+                "authoring-integrity: declared ontology terms floor 50 not met (got {}) — \
+                 corpus read is vacuous, refusing to pass",
+                declared.len()
+            ),
+        }));
+    }
+
+    let catalog_names = catalog_uri_names(project_root)?;
+    if catalog_names.len() <= 1 {
+        return Err(Diag::of_kind(crate::error::Io {
+            detail: format!(
+                "authoring-integrity: catalog <uri> entries floor 1 not met (got {}) — corpus \
+                 read is vacuous, refusing to pass",
+                catalog_names.len()
+            ),
+        }));
+    }
+
+    Ok(())
+}
+
 pub fn authoring_integrity_findings(
     project_root: &Path,
     slices_dir: &Path,
 ) -> Result<Vec<Finding>> {
+    require_non_vacuous_corpus(project_root)?;
     let declared = declared_ontology_terms(project_root)?;
     let mut findings = shape_iri_collision_findings(project_root)?;
     findings.extend(graft_isolation_findings(project_root)?);
@@ -259,7 +309,7 @@ fn detect_graft_leaks(ds: &Dataset, source_label: &str) -> Vec<Finding> {
 /// purrdf loader hole — `SliceCatalog::discover` keeps duplicate IRIs and
 /// `ManifestView.tier` is silently `None`.
 pub fn slice_discipline_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
-    let manifests = all_manifests(slices_dir);
+    let manifests = all_manifests(slices_dir)?;
     let mut loaded: Vec<(PathBuf, Dataset)> = Vec::with_capacity(manifests.len());
     for m in manifests {
         let ds = parse_ttl(&m)?;
@@ -360,7 +410,7 @@ struct SliceRec {
 /// Every slice declared by a `manifest.ttl` under `slices_dir`, with its tier.
 fn read_slices(slices_dir: &Path) -> Result<Vec<SliceRec>> {
     let mut out = Vec::new();
-    for manifest in all_manifests(slices_dir) {
+    for manifest in all_manifests(slices_dir)? {
         let ds = parse_ttl(&manifest)?;
         for iri in ds
             .subjects_of_type(SLICE_CLASS)
@@ -387,24 +437,28 @@ fn read_slices(slices_dir: &Path) -> Result<Vec<SliceRec>> {
 
 /// Every `slices/*/*/module.ttl` — the minting slice modules the catalog and
 /// module-IRI gates key on. Deterministically sorted.
-fn slice_module_files(slices_dir: &Path) -> Vec<PathBuf> {
+fn slice_module_files(slices_dir: &Path) -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     let mut stack = vec![slices_dir.to_path_buf()];
     while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() && !path.is_symlink() {
-                stack.push(path);
-            } else if path.file_name().is_some_and(|n| n == "module.ttl") {
-                out.push(path);
+        match std::fs::read_dir(&dir) {
+            Ok(entries) => {
+                for entry in entries {
+                    let entry = entry.map_err(|e| io_err(&dir, &e))?;
+                    let path = entry.path();
+                    if path.is_dir() && !path.is_symlink() {
+                        stack.push(path);
+                    } else if path.file_name().is_some_and(|n| n == "module.ttl") {
+                        out.push(path);
+                    }
+                }
             }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(io_err(&dir, &e)),
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 /// The `owl:Ontology` subject IRI of a module (the first, matching the retired
@@ -532,7 +586,7 @@ fn detect_profile_closure(
 pub fn catalog_closure_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     let catalog_names = catalog_uri_names(repo_root)?;
     let mut module_iris: Vec<(String, PathBuf)> = Vec::new();
-    for module in slice_module_files(&repo_root.join("slices")) {
+    for module in slice_module_files(&repo_root.join("slices"))? {
         let ds = parse_ttl(&module)?;
         if let Some(iri) = module_ontology_iri(&ds, &module)? {
             module_iris.push((iri, module));
@@ -589,7 +643,7 @@ fn parse_catalog_names(text: &str, path: &Path) -> Result<std::collections::BTre
 /// name, never the group segment (the retired `test_module_iri_matches_filename`).
 pub fn module_iri_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     let mut findings = Vec::new();
-    for module in slice_module_files(&repo_root.join("slices")) {
+    for module in slice_module_files(&repo_root.join("slices"))? {
         let ds = parse_ttl(&module)?;
         let slice_dir = module
             .parent()
@@ -644,9 +698,9 @@ fn minimal_lint_cfg() -> crate::lint::LintConfig {
 /// mapping/statement DSL vocabularies, and the authored shapes. A term is
 /// "declared" iff it is a typed subject in one of these (the same universe the
 /// deleted gate's declared set + the DSL vocabularies covered).
-fn vocabulary_source_files(repo_root: &Path) -> Vec<PathBuf> {
+fn vocabulary_source_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
     let mut files = vec![repo_root.join("ontology/gmeow.ttl")];
-    files.extend(slice_module_files(&repo_root.join("slices")));
+    files.extend(slice_module_files(&repo_root.join("slices"))?);
     for optional in [
         "slices/vocabulary.ttl",
         "dsl/tests/vocabulary.ttl",
@@ -657,11 +711,11 @@ fn vocabulary_source_files(repo_root: &Path) -> Vec<PathBuf> {
             files.push(p);
         }
     }
-    files.extend(ttl_recursive(&repo_root.join("dsl/mappings")));
-    files.extend(ttl_recursive(&repo_root.join("dsl/statements")));
+    files.extend(ttl_recursive(&repo_root.join("dsl/mappings"))?);
+    files.extend(ttl_recursive(&repo_root.join("dsl/statements"))?);
     files.sort();
     files.dedup();
-    files
+    Ok(files)
 }
 
 /// The declared GMEOW vocabulary terms — the single authority
@@ -672,7 +726,7 @@ fn vocabulary_source_files(repo_root: &Path) -> Vec<PathBuf> {
 pub fn declared_ontology_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
     use purrdf::slice::rdf_query::DatasetAccumulator;
     let mut acc = DatasetAccumulator::new();
-    for source in vocabulary_source_files(repo_root) {
+    for source in vocabulary_source_files(repo_root)? {
         let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
         acc.add_turtle(&bytes, &source.display().to_string())
             .map_err(|e| parse_err(&source, &e.to_string()))?;
@@ -755,51 +809,60 @@ fn load_ttl_files(paths: &[PathBuf]) -> Result<Vec<(PathBuf, Dataset)>> {
 }
 
 /// `*.ttl` directly in a directory (non-recursive), sorted.
-fn ttl_in_dir(dir: &Path) -> Vec<PathBuf> {
+fn ttl_in_dir(dir: &Path) -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().is_some_and(|e| e == "ttl") && path.is_file() {
-                out.push(path);
+    match std::fs::read_dir(dir) {
+        Ok(entries) => {
+            for entry in entries {
+                let entry = entry.map_err(|e| io_err(dir, &e))?;
+                let path = entry.path();
+                if path.extension().is_some_and(|e| e == "ttl") && path.is_file() {
+                    out.push(path);
+                }
             }
         }
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => return Err(io_err(dir, &e)),
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 /// `*.ttl` recursively under a directory, sorted.
-fn ttl_recursive(dir: &Path) -> Vec<PathBuf> {
+fn ttl_recursive(dir: &Path) -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&d) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() && !path.is_symlink() {
-                stack.push(path);
-            } else if path.extension().is_some_and(|e| e == "ttl") {
-                out.push(path);
+        match std::fs::read_dir(&d) {
+            Ok(entries) => {
+                for entry in entries {
+                    let entry = entry.map_err(|e| io_err(&d, &e))?;
+                    let path = entry.path();
+                    if path.is_dir() && !path.is_symlink() {
+                        stack.push(path);
+                    } else if path.extension().is_some_and(|e| e == "ttl") {
+                        out.push(path);
+                    }
+                }
             }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(io_err(&d, &e)),
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 /// Every `slices/*/*/examples/*.ttl`, sorted.
-fn slice_example_files(slices_dir: &Path) -> Vec<PathBuf> {
+fn slice_example_files(slices_dir: &Path) -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
-    for module in slice_module_files(slices_dir) {
+    for module in slice_module_files(slices_dir)? {
         if let Some(slice_dir) = module.parent() {
-            out.extend(ttl_in_dir(&slice_dir.join("examples")));
+            out.extend(ttl_in_dir(&slice_dir.join("examples"))?);
         }
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 /// R3b: slice worked examples reference only declared terms.
@@ -807,7 +870,7 @@ pub fn example_undeclared_term_findings(
     repo_root: &Path,
     declared: &BTreeSet<String>,
 ) -> Result<Vec<Finding>> {
-    let files = load_ttl_files(&slice_example_files(&repo_root.join("slices")))?;
+    let files = load_ttl_files(&slice_example_files(&repo_root.join("slices"))?)?;
     Ok(detect_undeclared_terms(declared, &files, repo_root))
 }
 
@@ -816,7 +879,7 @@ pub fn coverage_fixture_undeclared_findings(
     repo_root: &Path,
     declared: &BTreeSet<String>,
 ) -> Result<Vec<Finding>> {
-    let files = load_ttl_files(&ttl_in_dir(&repo_root.join("tests/fixtures/coverage")))?;
+    let files = load_ttl_files(&ttl_in_dir(&repo_root.join("tests/fixtures/coverage"))?)?;
     Ok(detect_undeclared_terms(declared, &files, repo_root))
 }
 
@@ -865,15 +928,15 @@ fn detect_untagged_localizable(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
 pub fn slice_source_untagged_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     let slices = repo_root.join("slices");
     let mut paths = Vec::new();
-    for module in slice_module_files(&slices) {
+    for module in slice_module_files(&slices)? {
         paths.push(module.clone());
         if let Some(dir) = module.parent() {
             let shapes = dir.join("shapes.ttl");
             if shapes.is_file() {
                 paths.push(shapes);
             }
-            paths.extend(ttl_recursive(&dir.join("mappings")));
-            paths.extend(ttl_in_dir(&dir.join("examples")));
+            paths.extend(ttl_recursive(&dir.join("mappings"))?);
+            paths.extend(ttl_in_dir(&dir.join("examples"))?);
         }
     }
     paths.sort();
@@ -886,10 +949,10 @@ pub fn slice_source_untagged_findings(repo_root: &Path) -> Result<Vec<Finding>> 
 /// `governance/*.ttl`, `dsl/mappings/**/*.ttl`, `dsl/statements/**/*.ttl`) carries a
 /// language tag.
 pub fn nonslice_authored_untagged_findings(repo_root: &Path) -> Result<Vec<Finding>> {
-    let mut paths = ttl_in_dir(&repo_root.join("shapes"));
-    paths.extend(ttl_in_dir(&repo_root.join("governance")));
-    paths.extend(ttl_recursive(&repo_root.join("dsl/mappings")));
-    paths.extend(ttl_recursive(&repo_root.join("dsl/statements")));
+    let mut paths = ttl_in_dir(&repo_root.join("shapes"))?;
+    paths.extend(ttl_in_dir(&repo_root.join("governance"))?);
+    paths.extend(ttl_recursive(&repo_root.join("dsl/mappings"))?);
+    paths.extend(ttl_recursive(&repo_root.join("dsl/statements"))?);
     paths.sort();
     paths.dedup();
     let files = load_ttl_files(&paths)?;
@@ -956,18 +1019,24 @@ fn gmeow_terms_any_position(files: &[PathBuf]) -> Result<BTreeSet<String>> {
 }
 
 /// The `docs/*.md` files (top-level, non-recursive), sorted.
-fn docs_md_files(repo_root: &Path) -> Vec<PathBuf> {
+fn docs_md_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
+    let dir = repo_root.join("docs");
     let mut out = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(repo_root.join("docs")) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().is_some_and(|e| e == "md") && path.is_file() {
-                out.push(path);
+    match std::fs::read_dir(&dir) {
+        Ok(entries) => {
+            for entry in entries {
+                let entry = entry.map_err(|e| io_err(&dir, &e))?;
+                let path = entry.path();
+                if path.extension().is_some_and(|e| e == "md") && path.is_file() {
+                    out.push(path);
+                }
             }
         }
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => return Err(io_err(&dir, &e)),
     }
     out.sort();
-    out
+    Ok(out)
 }
 
 /// Every `gmeow:` term referenced across the docs corpus — exposed so the gate's
@@ -975,7 +1044,7 @@ fn docs_md_files(repo_root: &Path) -> Vec<PathBuf> {
 /// yielding an empty set (a broken regex would otherwise pass vacuously).
 pub fn docs_gmeow_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
     let mut out = BTreeSet::new();
-    for md in docs_md_files(repo_root) {
+    for md in docs_md_files(repo_root)? {
         let text = std::fs::read_to_string(&md).map_err(|e| io_err(&md, &e))?;
         out.extend(extract_gmeow_terms_from_markdown(&text));
     }
@@ -990,7 +1059,7 @@ pub fn docs_gmeow_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
 /// mirrors the retired `_docs_allowlist` exactly.
 fn docs_allowlist(repo_root: &Path) -> Result<BTreeSet<String>> {
     let mut files = vec![repo_root.join("ontology/gmeow.ttl")];
-    files.extend(slice_module_files(&repo_root.join("slices")));
+    files.extend(slice_module_files(&repo_root.join("slices"))?);
     for optional in [
         "shapes/gmeow-shapes.ttl",
         "slices/vocabulary.ttl",
@@ -1001,11 +1070,11 @@ fn docs_allowlist(repo_root: &Path) -> Result<BTreeSet<String>> {
             files.push(p);
         }
     }
-    files.extend(ttl_recursive(&repo_root.join("dsl/mappings")));
-    files.extend(ttl_recursive(&repo_root.join("dsl/statements")));
+    files.extend(ttl_recursive(&repo_root.join("dsl/mappings"))?);
+    files.extend(ttl_recursive(&repo_root.join("dsl/statements"))?);
     // Slice shape files declare shape IRIs a doc may name; the derived SHACL shapes
     // and the shape-grounding ledger carry the logic:formalizes shape names.
-    for module in slice_module_files(&repo_root.join("slices")) {
+    for module in slice_module_files(&repo_root.join("slices"))? {
         if let Some(dir) = module.parent() {
             let shapes = dir.join("shapes.ttl");
             if shapes.is_file() {
@@ -1013,8 +1082,8 @@ fn docs_allowlist(repo_root: &Path) -> Result<BTreeSet<String>> {
             }
         }
     }
-    files.extend(ttl_in_dir(&repo_root.join("generated/shapes")));
-    files.extend(ttl_in_dir(&repo_root.join("generated/logic")));
+    files.extend(ttl_in_dir(&repo_root.join("generated/shapes"))?);
+    files.extend(ttl_in_dir(&repo_root.join("generated/logic"))?);
     files.sort();
     files.dedup();
     let mut allow = gmeow_terms_any_position(&files)?;
@@ -1031,7 +1100,7 @@ fn docs_allowlist(repo_root: &Path) -> Result<BTreeSet<String>> {
 pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     let allow = docs_allowlist(repo_root)?;
     let mut findings = Vec::new();
-    for md in docs_md_files(repo_root) {
+    for md in docs_md_files(repo_root)? {
         let text = std::fs::read_to_string(&md).map_err(|e| io_err(&md, &e))?;
         for term in extract_gmeow_terms_from_markdown(&text) {
             if !allow.contains(&term) {
