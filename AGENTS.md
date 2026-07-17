@@ -208,11 +208,27 @@ second reasoner on-gate.
 ### Testing & Verification
 
 ```bash
-make check           # Run FULL gate: lint, validate, compilation check, reason, verify, Rust tests
+make check           # Synchronize outputs, then run the logical gate with verified receipt reuse
+make check-full      # Synchronize outputs, then physically rerun every gate task
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 make clippy          # Run cargo clippy on all Rust targets with warnings as errors
 make rust-build      # Compile Rust workspace test binaries without running them
 ```
+
+`make check` owns the normal local synchronization boundary: it runs the
+registered pipeline in update mode first, writes only byte-changed generated
+artifacts, and then validates that exact fixed point. A clean manifest makes the
+sync step effectively free. CI and direct `make check-sync` invocations retain
+read-only check mode, so CI still fails on uncommitted drift rather than repairing
+it.
+
+`make check` is evidence-complete even when it is impact-selected: it accepts
+reused task results only from a GitHub-attested successful `main`-push receipt
+whose commit, tree, task registry, and toolchain contract all match, then reruns
+every task affected by the complete local diff. Missing or invalid evidence,
+unknown paths, and Rust/tooling changes fail closed to `make check-full`. Use
+`make check CHECK_ARGS="--explain --timings-json dist/check-timings.json"` to
+inspect the selection. The receipt changes execution, never the required gate.
 
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
@@ -583,11 +599,12 @@ make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 
 ```bash
 make check
+make check-full      # optional audit: force physical execution of every task
 ```
 
-All Docker-free local gates must pass: lint, validate, generated-artifact drift
-check, native reasoning, native verify (one closure via `make reason-verify`),
-and the Rust tests.
+All Docker-free local gates must have passing evidence: lint, validate,
+generated-artifact drift check, native reasoning, native verify (one closure via
+`make reason-verify`), and the Rust tests.
 
 ### Push
 

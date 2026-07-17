@@ -74,11 +74,60 @@ The three-run median cross-check peak moved from 6,363,772 KiB to 6,541,688 KiB
 217.305 s sample split into 1.626 s snapshot import, 203.560 s native reasoning,
 7.413 s verification, and 4.171 s oracle work; peak RSS was 6,702,244 KiB.
 
+### 2026-07-16 follow-on: exact batch proofs and verified task reuse
+
+The earlier indexed-Rayon change still executed one complete reasoner closure per
+leave-one-out candidate. The follow-on replaces that repeated work with exact
+shared indexes for subclass/subproperty reachability, equivalence and finite-union
+support, fixed-head absence, disjointness impossibility, and property-characteristic
+load-bearingness. Ambiguous constructs retain the production incremental-session +
+finite-DL path; mixed-family tests compare every batch answer with a scratch
+`reason_closure_axioms` run. The redundant eager baseline closure in the
+slice-quality axis was removed because its value was discarded and each selected
+positive/negative proof already owns its error path.
+
+Focused warm observations on the same checkout moved the extension/music slice
+from 39.91 s to 1.24 s and the exhaustive logic-slice scoring test from 55.31 s to
+1.57 s. The strict pipeline's slice-quality phase moved from 54.639 s in the first
+batch implementation to 1.487 s in the final implementation (36.7×); total pipeline
+telemetry moved from 300.165 s to 208.276 s. After the canonical update established
+the fixed point, the read-only generated check hit the whole-run manifest in 0.80 s.
+These are report-only observations taken while the shared host had variable
+contention; the acceptance claim is exact scratch parity and unchanged scoring,
+not any wall-clock value. The retained ignored exhaustive audit compared every
+capped candidate in every real slice with parallel scratch reasoning in 65.3 s.
+After integrating the newer main-branch corpus, the same slice-quality phase was
+1.858 s inside a 283.735 s cold pipeline. A complete receipt-fallback gate then
+passed in 493.616 s, including 6,170 default-lane Rust tests; those corpus-expanded
+figures are evidence for the current checkout, not a like-for-like baseline.
+
+The aggregate check runner now has two execution profiles. `make check-full`
+physically executes the entire task DAG. `make check` may reuse an unaffected task
+only from a GitHub-attested successful main-push receipt whose commit, tree, task
+registry, toolchain contract, and full task inventory match. It classifies the
+complete committed/staged/unstaged/untracked diff; unknown paths, Rust/tooling
+changes, missing `gh`, missing receipts, and any attestation or contract failure
+fall back to the full profile. This is proof-carrying DAG pruning, not a reduced
+correctness profile (Principles 4, 7, and 18).
+
+The local `make check` entry point also owns update-mode synchronization. This
+removes the developer-visible `make sync` / `make check` boundary without adding
+another cold pipeline: a clean manifest returns immediately, while a miss pays the
+same regeneration that previously had to be run as a separate command. The
+internal `make check-sync` target defaults to read-only mode for CI drift proof.
+
+On a cold full profile, `rust-build` is an explicit aggregate DAG node. Rust
+consumers wait for that one owner instead of racing separate Make subprocesses
+to create the same readiness stamp behind Cargo's build lock. The dedicated
+`gts-frame-profile-gate` target remains independently runnable, while the
+aggregate relies on the identical `gts_profile` unit tests already present in
+the complete `rust-gate` nextest population.
+
 ## Ranked findings and dispositions
 
 | Rank | Hot symbol or composition seam | Measured share / smell | Mechanism | Disposition and proof |
 |---:|---|---|---|---|
-| 1 | `slice_quality::reasoner_axis` leave-one-out probes | 313.548 s, 91.5% of source-load and 65.9% of the cold pipeline | Up to 64 independent closures per slice were serial; every probe then allocated a complete `BTreeSet<String>` although it asked one membership question | Accepted: borrow closure strings, stop at the first match, evaluate independent probes with indexed Rayon collection, and fold in authored order. Fixed four-worker tests compare serial and parallel findings repeatedly. |
+| 1 | `slice_quality::reasoner_axis` leave-one-out probes | 313.548 s, 91.5% of source-load and 65.9% of the cold pipeline | Up to 64 candidates rebuilt equivalent closure state | Superseded by exact batch relation/support indexes with conservative incremental + finite-DL fallback. Mixed-family tests compare every result with scratch reasoning; authored order is retained. |
 | 2 | `gmeow-dev reason-verify --fresh` | Two full native chases for one command | The first result checked consistency; verification called a second reasoning entry point | Accepted: a `FnOnce` producer returns one `ReasoningResult`, and verification consumes that exact value. A unit test pins one producer invocation. |
 | 3 | Aggregate reasoning targets | Focused verify and oracle targets independently acquired equivalent native state | Make composed command surfaces instead of composing their shared product | Accepted: `reason-gate` imports once, chases once, then feeds the same result to verification and the entailment oracle. Focused targets remain runnable. |
 | 4 | `entail_crosscheck::oracle_subsumptions` | 104 isolated worlds evaluated serially | Each projected named graph is immutable and independent | Accepted: indexed per-world Rayon buffers, followed by explicit stable sort/dedup. Repeated fixed-pool serial/parallel parity tests pin order and values. |
@@ -153,7 +202,12 @@ change.
   shared by `Arc`; query results and their authored order remain unchanged.
 - Standalone Make targets retain their full behavior. Only the aggregate target
   uses the non-overlapping composition, and a Rust test parses the Makefile to pin
-  that contract.
+  that contract. Its explicit Rust-build node owns cold workspace preparation;
+  downstream Rust consumers never race the readiness stamp.
+- Impact-selected aggregate runs accept reuse only after GitHub provenance
+  attestation plus exact commit/tree/registry/toolchain/task-inventory checks.
+  Selection uncertainty executes the complete DAG; timing/explanation output is
+  observational and unsigned local data.
 - GTS payload compression remains exactly zstd-rsyncable level 12.
 - The O3/checks-on/no-debug-symbol Cargo profile is unchanged; the doctrine now
   describes the actual checked-in profile accurately.
@@ -171,6 +225,7 @@ make reason-crosscheck # REMOVED — the live native-vs-purrdf::entail oracle la
 make sync SYNC_MODE=check SYNC_OUTPUTS=generated
 make gts-frame-profile-gate
 make check
+make check-full
 ```
 
 The focused allocation counter was intentionally a bench-only diagnostic and has since been

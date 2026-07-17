@@ -1344,3 +1344,62 @@ bundle. That breadth was exactly the generic-PurRDF-compliance mirror the issue 
 specific subsumption/entailment contracts remain witnessed by the named goldens above, and the new
 `check_lane_purity` anti-reintroduction seal (this PR) prevents a live differential oracle from
 silently regrowing. No GMEOW integration contract is left unwitnessed.
+
+## 2026-07-16 — PR #1580 (perf/check-10x) stage-2 gap remediation
+Branch not tied to an open issue (parent epic #1518 closed); PR body was the spec.
+Completion-adversary STAGE=2: core capability DEMONSTRATED-IN-PRODUCTION (exact batch
+leave-one-out reasoner is the default scoring path, scratch path deleted, ambiguous-case
+fallback computes not refuses, batch↔scratch parity green on real epistemics). Gaps A/B/C/D1/G
+fixed and pushed; E verified-no-change. One HUMAN-SIGNED-OFF exception recorded below.
+
+- [SIGNED-OFF — receipt-reuse bootstrap, adversary F1] The receipt-backed impact-selection REUSE
+  fast path (the source of the local speedup) cannot execute end-to-end until this branch first
+  lands on main and a successful main-push CI run publishes the attested
+  `gmeow-check-receipt-<base>` artifact — an inherent attestation chicken-and-egg, not missing
+  work. `obtain_receipt` (CI-artifact download via `gh`) + `verify_attestation` (`gh attestation
+  verify`) are network/CI-only and unrunnable in-branch, so every local `make check` today runs
+  the FULL profile (fail-closed). USER ACCEPTED the post-merge bootstrap (Stage-2 AskUserQuestion,
+  option "Accept post-merge bootstrap").
+    - In-branch mitigation delivered (commit 3281f56d5, GAP D1): the reuse DECISION is now
+      executed by tests — a receipt round-trip through the real on-disk format validates and
+      authorizes a strict-subset selection, and SEVEN tamper cases (wrong registry/toolchain/
+      task-set/status/commit/tree) each fail closed. Only the CI-artifact-download + attestation
+      verify remain unexercised until post-land.
+    - POST-LAND OBLIGATION: on the first main-branch `make check` after this lands, confirm it
+      prints "REUSE"/"verified base receipt ..." rather than silently full-falling-back forever
+      (a latent bug in the download/verify seam would be invisible to CI and to this PR).
+
+- [BOUNDED PROXY — on-gate parity, GAP C, commit 832fb6514] On-gate exact batch↔scratch parity
+  was broadened from epistemics-only to a curated, fixed 4-slice set (core/epistemics,
+  grounding/logic, core/kernel, core/inhabitation), capped at REDUNDANCY_CAP. This is a bounded
+  proxy for full coverage: the EXHAUSTIVE all-slice audit
+  (`every_real_slice_batch_matches_parallel_scratch`) remains `#[ignore]`d for cost (repo-wide
+  decision to promote it fully on-gate deferred to a maintainer call — it is a thoroughness
+  audit, not a correctness gate; exactness is by-construction via the fast-path guards, and the
+  synthetic guard-family parity test stays on-gate). New curated test adds ~18s to the workspace
+  nextest suite (rust job), NOT to the slice-quality-gate or pipeline critical path the PR optimized.
+
+## 2026-07-17 — PR #1580 (perf/check-10x) stage-3 finalization
+Squash-merged to main at 5a42eacce. Completion-adversary STAGE=3 PASS (all 5 PR-body acceptance
+criteria DEMONSTRATED-IN-PRODUCTION on the merge-into-main result; the sole residual is the
+human-signed-off receipt-reuse bootstrap recorded in the PR #1580 stage-2 block above).
+
+- Merge was a NO-OP: branch was 0 behind / 7 ahead of origin/main (`git merge origin/main` =
+  "Already up to date"), so there was no drift to regenerate and no bundle (gmeow.gts) staleness;
+  no `make sync` was required post-merge.
+- FULL `make check` on the merged result was NOT run locally at stage 3. Local verification rested
+  on: completion-adversary STAGE=3 PASS, targeted `cargo nextest -p xtask` (7 pass), `-p
+  gmeow-dev-cli --test make_gate_contract` (3 pass), `-p gmeow-slice-quality` curated+epistemics
+  batch/scratch parity (green), and a clean deferral gate. The authoritative full `make check` on
+  the PR-merged-into-main result runs in CI (the established stage-3 pattern; CI builds the merged
+  result).
+- The D2 receipt-reuse bootstrap POST-LAND OBLIGATION is now LIVE: on the first main-branch
+  `make check` after 5a42eacce, confirm it prints "REUSE"/"verified base receipt ..." rather than
+  silently full-falling-back forever. The CI-artifact download + `gh attestation verify` seam was
+  unrunnable pre-merge and remains unverified until the first post-merge main CI run publishes the
+  attested `gmeow-check-receipt-<base>` artifact. Fail-closed default means no capability
+  degradation occurs in the interim.
+- Deferral scan (stage-3): 2 hits, both FALSE POSITIVES — "deferred" in .deficiencies (exempt
+  workflow log, describing the #[ignore]d exhaustive all-slice audit that is not in the PR
+  contract) and "No self-filed follow-up issue" in a PR comment (affirming nothing was laundered).
+  No hits in source or user-facing docs.
