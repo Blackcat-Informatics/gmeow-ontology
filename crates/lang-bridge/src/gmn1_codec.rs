@@ -3017,23 +3017,41 @@ fn prefix_to_ns_table() -> BTreeMap<String, String> {
 /// The literal-lexical-form NFC gate — the point where every literal ENTERS encoding.
 ///
 /// The GMN glyph discipline already refuses a non-NFC glyph surface ([`validate_glyph_surface`]'s
-/// `is_nfc` check); this extends the SAME discipline to literal content: a literal object
-/// (an object `v` slot, or an annotation `q` confidence) whose lexical form is not
-/// NFC-normalized HARD-FAILS as [`Gmn1Error::NonNfcLiteral`] before any record is built.
-/// No optionality: the codec never silently normalizes, because normalizing the lexical
-/// form would change the underlying RDF term (a different `xsd:string` value), and a
-/// non-NFC form is a non-canonical Unicode spelling that would make one text take two
-/// content digests. A literal only ever occupies the object position of a GMN-0 quad, so
-/// scanning object slots covers every literal the writer would encode.
+/// `is_nfc` check); this extends the SAME discipline to literal content: a literal (an object
+/// `v` slot, an annotation `q` confidence, or a literal nested inside an RDF-1.2 triple term)
+/// whose lexical form is not NFC-normalized HARD-FAILS as [`Gmn1Error::NonNfcLiteral`] before any
+/// record is built. No optionality: the codec never silently normalizes, because normalizing the
+/// lexical form would change the underlying RDF term (a different `xsd:string` value), and a
+/// non-NFC form is a non-canonical Unicode spelling that would make one text take two content
+/// digests. A literal can occupy the subject position (an RDF-1.2 triple-term subject) or the
+/// object position, and either can itself be a triple term nesting further literals, so the walk
+/// descends recursively through both slots ([`assert_term_nfc`]); a predicate is always an IRI.
 fn assert_model_literals_nfc(model: &Gmn0Model) -> Result<(), Gmn1Error> {
     for quad in &model.quads {
-        if let RdfTerm::Literal(lit) = &quad.object
-            && !is_nfc(&lit.lexical_form)
-        {
-            return Err(Gmn1Error::NonNfcLiteral {
-                lexical: lit.lexical_form.clone(),
-            });
+        assert_term_nfc(&quad.subject)?;
+        assert_term_nfc(&quad.object)?;
+    }
+    Ok(())
+}
+
+/// Recursively assert every literal reachable from `term` is NFC-normalized. RDF-1.2 triple
+/// terms nest terms (subject/object) that can themselves be literals or further triple terms,
+/// so the walk descends through [`RdfTerm::Triple`]; a triple-term predicate is always an IRI
+/// and carries no literal. The FIRST non-NFC literal hard-fails as [`Gmn1Error::NonNfcLiteral`].
+fn assert_term_nfc(term: &RdfTerm) -> Result<(), Gmn1Error> {
+    match term {
+        RdfTerm::Literal(lit) => {
+            if !is_nfc(&lit.lexical_form) {
+                return Err(Gmn1Error::NonNfcLiteral {
+                    lexical: lit.lexical_form.clone(),
+                });
+            }
         }
+        RdfTerm::Triple(triple) => {
+            assert_term_nfc(&triple.subject)?;
+            assert_term_nfc(&triple.object)?;
+        }
+        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {}
     }
     Ok(())
 }

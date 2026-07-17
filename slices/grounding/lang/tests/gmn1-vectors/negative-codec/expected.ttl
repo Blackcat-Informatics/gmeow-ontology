@@ -14,7 +14,10 @@
 [ rdfs:label "neg-noncanonical-order.gmn" ;
   gmeow:enforcesFailureClass lang:GmnNonCanonicalOrder ] .
 
-[ rdfs:label "neg-malformed-number.gmn" ;
+[ rdfs:label "neg-malformed-number-exp.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnMalformedNumber ] .
+
+[ rdfs:label "neg-malformed-number-frac.gmn" ;
   gmeow:enforcesFailureClass lang:GmnMalformedNumber ] .
 
 [ rdfs:label "neg-undeclared-dialect.gmn" ;
@@ -27,4 +30,7 @@
   gmeow:enforcesFailureClass lang:GmnNonDecodableGrammar ] .
 
 [ rdfs:label "neg-non-nfc-literal.in.ttl" ;
+  gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ] .
+
+[ rdfs:label "neg-non-nfc-triple-term.in.ttl" ;
   gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ] .
