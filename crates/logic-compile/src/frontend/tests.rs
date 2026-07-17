@@ -3360,7 +3360,7 @@ fn reasoning_program_with_compound_clause_and_negation_parses() {
     );
     assert!(
         rp.variable_sorts.iter().any(|(scope, v, s)| {
-            matches!(scope, crate::ir::VariableSortScope::Clause(_))
+            matches!(scope, crate::ir::VariableSortScope::Clause { .. })
                 && v == "X"
                 && *s == format!("{ex}Nat")
         }),
@@ -3707,7 +3707,7 @@ fn reasoning_program_same_name_different_sorts_across_scopes_is_accepted() {
     let rp = &prog.reasoning_programs[0];
     assert!(
         rp.variable_sorts.iter().any(|(scope, v, s)| {
-            matches!(scope, crate::ir::VariableSortScope::Clause(_))
+            matches!(scope, crate::ir::VariableSortScope::Clause { .. })
                 && v == "X"
                 && *s == format!("{ex}Nat")
         }),
@@ -3719,6 +3719,88 @@ fn reasoning_program_same_name_different_sorts_across_scopes_is_accepted() {
             *scope == crate::ir::VariableSortScope::Query && v == "X" && *s == format!("{ex}Str")
         }),
         "the query's X:Str is captured under the query scope: {:?}",
+        rp.variable_sorts
+    );
+}
+
+#[test]
+fn reasoning_program_identical_clauses_distinct_sorts_are_accepted_and_scoped() {
+    // Two STRUCTURALLY-IDENTICAL clauses `p(X)` are authored, one declaring `X:Nat` and the
+    // other `X:Real`. They share a `Formula::content_key` (a `logic:variableSort` is harvested
+    // separately and is NOT part of the clause AST), so the ONLY thing that keeps their scopes
+    // apart is the occurrence-index disambiguation. This must be ACCEPTED — the two `X`s are
+    // unrelated variables in two distinct clause scopes — not falsely rejected as an
+    // intra-scope sort conflict (the residual bug this fix closes: a content_key-only scope key
+    // collapsed both clauses into one scope and hard-failed them).
+    let ex = "https://example.org/test/";
+    let (prog, diags) = parse(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ]
+            ] ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Real ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"R\" ]
+            ] .",
+    );
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "two identical clauses with different variable sorts must be accepted (distinct scopes, \
+         no false conflict): {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+    assert_eq!(
+        rp.clauses.len(),
+        2,
+        "both structurally-identical clauses are retained: {:?}",
+        rp.clauses
+    );
+
+    // Both clause-scoped `X` declarations are present, keyed by the SAME content_key but
+    // DIFFERENT occurrence indices {0, 1}, carrying the two distinct sorts {Nat, Real}.
+    let clause_x: Vec<(&str, usize, &str)> = rp
+        .variable_sorts
+        .iter()
+        .filter_map(|(scope, v, s)| match scope {
+            crate::ir::VariableSortScope::Clause { key, occurrence } if v == "X" => {
+                Some((key.as_str(), *occurrence, s.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        clause_x.len(),
+        2,
+        "both clause-scoped X declarations are captured: {:?}",
+        rp.variable_sorts
+    );
+    assert_eq!(
+        clause_x[0].0, clause_x[1].0,
+        "the two clauses share one content_key (they are structurally identical)"
+    );
+    let occurrences: std::collections::BTreeSet<usize> =
+        clause_x.iter().map(|(_, occ, _)| *occ).collect();
+    assert_eq!(
+        occurrences,
+        [0, 1].into_iter().collect(),
+        "the two identical clauses are disambiguated by occurrence index 0 and 1: {:?}",
+        rp.variable_sorts
+    );
+    let sorts: std::collections::BTreeSet<&str> = clause_x.iter().map(|(_, _, s)| *s).collect();
+    assert_eq!(
+        sorts,
+        [format!("{ex}Nat"), format!("{ex}Real")]
+            .iter()
+            .map(String::as_str)
+            .collect(),
+        "each occurrence carries its OWN authored sort (Nat and Real): {:?}",
         rp.variable_sorts
     );
 }

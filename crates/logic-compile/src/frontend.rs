@@ -3794,16 +3794,38 @@ fn read_reasoning_program(
     // Every position a `logic:variableSort` can attach to, paired with the scope that owns it.
     // Probes must be ground (enforced by `ReasoningProgramIr::new`), so their walk collects
     // nothing for a well-formed program; including them keeps the scope taxonomy total.
+    // The scope key is the owning clause/probe's `Formula::content_key` PLUS an occurrence
+    // index — the number of PRIOR clauses/probes sharing that same content_key — so two
+    // structurally-identical clauses carrying DIFFERENT `logic:variableSort` declarations key
+    // DISTINCT scopes rather than colliding. Both facets are stable across the canonical sort
+    // `ReasoningProgramIr::new` applies: that sort is stable and same-content_key ⟹ same
+    // sort_key, so each clause's occurrence index is preserved between here and the lowerer.
     let scoped_roots = clause_nodes
         .iter()
         .zip(clauses.iter())
-        .map(|(node, clause)| (node, VariableSortScope::Clause(clause.content_key())))
+        .enumerate()
+        .map(|(idx, (node, clause))| {
+            let key = clause.content_key();
+            let occurrence = clauses[..idx]
+                .iter()
+                .filter(|prior| prior.content_key() == key)
+                .count();
+            (node, VariableSortScope::Clause { key, occurrence })
+        })
         .chain(std::iter::once((&query_node, VariableSortScope::Query)))
         .chain(
             probe_nodes
                 .iter()
                 .zip(verdict_probes.iter())
-                .map(|(node, probe)| (node, VariableSortScope::Probe(probe.content_key()))),
+                .enumerate()
+                .map(|(idx, (node, probe))| {
+                    let key = probe.content_key();
+                    let occurrence = verdict_probes[..idx]
+                        .iter()
+                        .filter(|prior| prior.content_key() == key)
+                        .count();
+                    (node, VariableSortScope::Probe { key, occurrence })
+                }),
         );
     for (root, scope) in scoped_roots {
         let mut pairs = Vec::new();
