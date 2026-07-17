@@ -40,6 +40,9 @@ pub mod gufo;
 // and `rule_catalog::help_uri_for` — no RDF store, pipeline carrier, or reasoner — so
 // the WASM-interactive-docs sibling reuses it verbatim.
 pub mod local_oracle;
+// The single authority for the localizable-predicate set (wasm-clean: a pure const).
+// gmeow-docs re-exports it; the pipeline/slice consumers import it from here.
+pub mod localizable;
 pub mod model;
 pub mod projection_profiles;
 pub mod report_bridge;
