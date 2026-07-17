@@ -11661,7 +11661,7 @@ logic:minCardinality
     skos:example "ex:teamRestriction logic:minCardinality 1 ."@x-gmeow-english ;
     skos:scopeNote "The count ranges over all distinct fillers of the selected property."@x-gmeow-english ;
     gmeow:useWhen "Use to require at least a non-negative number of property fillers regardless of their type."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use when only fillers of a qualifying class or datarange should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set a lower bound when only fillers of a qualifying class or datarange should be counted; use logic:minQualifiedCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:minQualifiedCardinality for a qualified count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11674,7 +11674,7 @@ logic:maxCardinality
     skos:example "ex:primaryContactRestriction logic:maxCardinality 1 ."@x-gmeow-english ;
     skos:scopeNote "The count ranges over all distinct fillers of the selected property."@x-gmeow-english ;
     gmeow:useWhen "Use to permit at most a non-negative number of property fillers regardless of their type."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use when only fillers of a qualifying class or datarange should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set an upper bound when only fillers of a qualifying class or datarange should be counted; use logic:maxQualifiedCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:maxQualifiedCardinality for a qualified count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11713,7 +11713,7 @@ logic:minQualifiedCardinality
     skos:example "ex:committeeRestriction logic:minQualifiedCardinality 2 ; logic:onClass ex:Member ."@x-gmeow-english ;
     skos:scopeNote "The lower bound applies only to fillers satisfying the one declared qualifier."@x-gmeow-english ;
     gmeow:useWhen "Use when at least a stated number of fillers must satisfy one class or datarange qualifier."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use without exactly one qualifier or when all fillers should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set a lower bound without exactly one qualifier, or when all fillers should be counted; use logic:minCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair the lower bound with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11726,7 +11726,7 @@ logic:maxQualifiedCardinality
     skos:example "ex:leadRestriction logic:maxQualifiedCardinality 1 ; logic:onClass ex:Lead ."@x-gmeow-english ;
     skos:scopeNote "The upper bound applies only to fillers satisfying the one declared qualifier."@x-gmeow-english ;
     gmeow:useWhen "Use when at most a stated number of fillers may satisfy one class or datarange qualifier."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use without exactly one qualifier or when all fillers should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set an upper bound without exactly one qualifier, or when all fillers should be counted; use logic:maxCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair the upper bound with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
