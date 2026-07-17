@@ -77,6 +77,12 @@ pub const FINDING_CODES: &[&str] = &[
     // deficient axis carries no template (a rubric authoring gap, never swallowed).
     "slice-quality.axis-advice",
     "slice-quality.axis-advice.missing-template",
+    // The lint-gate synthetic finding (`crate::lint::lint_report`) — minted only
+    // when the measured roll-up fails to dominate the effective tier bar. Not a
+    // scoring code (no axis, no rollup); registered here so it still carries a
+    // registered code + help URI through the same json/sarif/html projections
+    // every other slice-quality finding does.
+    "slice-quality.lint.below-min-tier",
 ];
 
 /// Seed every slice-quality finding code into the process-wide code registry
@@ -259,6 +265,28 @@ pub fn score_slice_with_standard(
         advisories,
         axis_weight,
     })
+}
+
+#[cfg(test)]
+impl SliceReport {
+    /// Test-only constructor: assemble a [`SliceReport`] from already-computed
+    /// parts, bypassing [`score_slice_with_standard`]'s scoring pass entirely.
+    /// Used by `crate::lint`'s unit tests to build synthetic reports (a
+    /// declared tier ratchet, a graded advisory, a degenerate empty-grade
+    /// slice, …) without a real slice directory or rubric dataset.
+    pub(crate) fn for_test(
+        standard: MeasurementStandard,
+        assessment: SliceAssessment,
+        advisories: Vec<Finding>,
+        axis_weight: std::collections::HashMap<String, f64>,
+    ) -> Self {
+        Self {
+            standard,
+            assessment,
+            advisories,
+            axis_weight,
+        }
+    }
 }
 
 impl SliceReport {
