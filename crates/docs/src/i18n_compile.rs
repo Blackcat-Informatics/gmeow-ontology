@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gmeow_errors::{Diag, Result};
+use gmeow_validate::distinctiveness::{distinctiveness_violations, translation_skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use regex::Regex;
 use sha1::{Digest, Sha1};
@@ -754,18 +755,30 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
         };
         let mut total = 0usize;
         let mut fuzzy = 0usize;
+        // (msgid_skeleton, msgstr_skeleton, msgctxt) for every candidate translation in
+        // THIS catalog — the distinctiveness invariant runs over it after the loop: a
+        // target skeleton shared across distinct source skeletons is a collapsed
+        // distinction (a near-duplicate translation), while twin sources sharing one
+        // translation are legitimate.
+        let mut xlat_triples: Vec<(String, String, String)> = Vec::new();
         for entry in entries {
             total += 1;
             if entry.fuzzy {
                 fuzzy += 1;
             }
-            if is_candidate_translation(&entry)
-                && let Some(reason) =
+            if is_candidate_translation(&entry) {
+                if let Some(reason) =
                     translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
-            {
-                report.errors.push(format!(
-                    "{rel}: invalid translation {:?}: {reason}",
-                    entry.msgctxt
+                {
+                    report.errors.push(format!(
+                        "{rel}: invalid translation {:?}: {reason}",
+                        entry.msgctxt
+                    ));
+                }
+                xlat_triples.push((
+                    translation_skeleton(&entry.msgid),
+                    translation_skeleton(&entry.msgstr),
+                    entry.msgctxt.clone(),
                 ));
             }
             if !entry.msgctxt.contains('|') {
@@ -788,6 +801,18 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
                 )),
                 Some(_) => {}
             }
+        }
+        // Translation DISTINCTIVENESS: a msgstr skeleton shared across distinct msgid
+        // sources means the translation collapsed a distinction the source made — a hard
+        // reject. Twin sources (same English label on a class and its property twin)
+        // sharing one translation legitimately do NOT collide (identical msgid skeleton).
+        for c in distinctiveness_violations(&xlat_triples) {
+            report.errors.push(format!(
+                "{rel}: msgstr {:?} collides across {} distinct sources — a translation must preserve every distinction its source makes: {}",
+                c.skeleton,
+                c.members.len(),
+                c.members.join(", ")
+            ));
         }
         if total > 0 {
             *report.total_counts.entry(internal.clone()).or_insert(0) += total;
@@ -2209,6 +2234,115 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         assert!(report.warnings.is_empty(), "{:?}", report.warnings);
         assert_eq!(report.total_counts.get("x-gmeow-french"), Some(&2));
         assert_eq!(report.fuzzy_counts.get("x-gmeow-french"), Some(&0));
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_flags_collapsed_translation_distinction() {
+        // Two DISTINCT English sources translated to the SAME target — the translation
+        // collapsed a distinction the source made. A hard reject.
+        let root = test_root("lint-collapsed");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "collapsed_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/eventTypeAdoption|rdfs:label",
+                    "adoption",
+                    "pareil",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/chainId|rdfs:label",
+                    "chain id",
+                    "pareil",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        let collisions: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| e.contains("collides across"))
+            .collect();
+        assert_eq!(
+            collisions.len(),
+            1,
+            "one distinctiveness error: {:?}",
+            report.errors
+        );
+        assert!(
+            collisions[0].contains("pareil") && collisions[0].contains("distinct sources"),
+            "names the shared target: {collisions:?}"
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_passes_twin_source_shared_translation() {
+        // A class and its property twin share ONE English label, so sharing ONE target
+        // translation is legitimate (identical msgid skeleton) and must NOT be flagged.
+        let root = test_root("lint-twin");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "twin_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/PValue|rdfs:label",
+                    "p-value",
+                    "valeur p",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/pValue|rdfs:label",
+                    "p-value",
+                    "valeur p",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            !report.errors.iter().any(|e| e.contains("collides across")),
+            "twin sources sharing one translation must not red: {:?}",
+            report.errors
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_excludes_fuzzy_from_distinctiveness() {
+        // Fuzzy entries are not candidate translations, so a fuzzy collapsed pair is not
+        // a distinctiveness violation (consistent with the rest of the lint's exclusions).
+        let root = test_root("lint-fuzzy-excluded");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "fuzzy_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/eventTypeAdoption|rdfs:label",
+                    "adoption",
+                    "pareil",
+                    true,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/chainId|rdfs:label",
+                    "chain id",
+                    "pareil",
+                    true,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            !report.errors.iter().any(|e| e.contains("collides across")),
+            "fuzzy entries are excluded from the distinctiveness check: {:?}",
+            report.errors
+        );
         let _ = fs::remove_dir_all(root);
     }
 
