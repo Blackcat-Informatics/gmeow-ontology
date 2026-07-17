@@ -135,9 +135,8 @@ ex:saAttestationTypeReleaseEvidence a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK {
     gmeow:attestationTypeConformanceVerdict   a gmeow:AttestationType .
-    gmeow:attestationTypeCrossCheckAgreement  a gmeow:AttestationType .
 }""" ;
-    gmeow:saRationale "The two release-as-evidence gmeow:AttestationType individuals -- conformance verdict and cross-check agreement matrix -- MUST be present as AttestationType individuals so the signed full-release bundle can type its folded evidence frames (CONSTITUTION.md §18 release-as-evidence)." .
+    gmeow:saRationale "The release-as-evidence gmeow:AttestationType individual -- conformance verdict -- MUST be present as an AttestationType individual so the signed full-release bundle can type its folded evidence frames (CONSTITUTION.md §18 release-as-evidence)." .
 
 # --- 8b. Release-evidence AttestationType individuals are NOT owl:Class (MUST-NOT)
 ex:saAttestationTypeReleaseEvidenceNotClasses a gmeow:StructuralAssertion ;
@@ -148,11 +147,10 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?seed {
         gmeow:attestationTypeConformanceVerdict
-        gmeow:attestationTypeCrossCheckAgreement
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "The two release-evidence AttestationType individuals MUST NOT be typed owl:Class -- like every type-vocabulary member they are open individuals, never subclasses (Principle 9)." .
+    gmeow:saRationale "The release-evidence AttestationType individual MUST NOT be typed owl:Class -- like every type-vocabulary member it is an open individual, never a subclass (Principle 9)." .
 
 # --- 9. SignatureScheme subclasses logic:QualityValue (MUST) -------------------
 ex:saSignatureSchemeIsQualityValue a gmeow:StructuralAssertion ;

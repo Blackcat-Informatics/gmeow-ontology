@@ -174,7 +174,6 @@ export enum AttestationTypeEnum {
     attestationTypeC2PA = "attestationTypeC2PA",
     attestationTypeCoherenceCertificate = "attestationTypeCoherenceCertificate",
     attestationTypeConformanceVerdict = "attestationTypeConformanceVerdict",
-    attestationTypeCrossCheckAgreement = "attestationTypeCrossCheckAgreement",
     attestationTypeDSSE = "attestationTypeDSSE",
     attestationTypeDocumentationArtifact = "attestationTypeDocumentationArtifact",
     attestationTypeEAT = "attestationTypeEAT",

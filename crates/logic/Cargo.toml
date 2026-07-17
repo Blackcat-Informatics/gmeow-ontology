@@ -145,7 +145,3 @@ harness = false
 [[bench]]
 name = "engines_iai"
 harness = false
-
-[[bench]]
-name = "entail_oracle_alloc"
-harness = false

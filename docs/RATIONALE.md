@@ -84,8 +84,8 @@ GMEOW answers each challenge with a deliberate architectural choice:
   of this layer ([Principle 3](../CONSTITUTION.md)). *(Addresses provenance/confidence,
   temporal validity, and lossless-vs-canonical.)*
 - **Reasoning-centric and FAIR-published.** OWL 2 DL, checked by the native `logic:`
-  reasoner (fast EL pre-check plus a sound-and-complete OWL 2 DL check, cross-checked
-  in-process against the `purrdf::entail` oracle) on every build; published with content negotiation,
+  reasoner (fast EL pre-check plus a sound-and-complete OWL 2 DL check, the single
+  reasoning authority) on every build; published with content negotiation,
   VoID/DCAT, a DOI, and submitted to the LOD Cloud.
 - **Contested facts as coexisting standpoints — no winner.** A disputed fact is recorded
   as several `gmeow:accordingTo`-indexed claims that coexist, none privileged — *whose

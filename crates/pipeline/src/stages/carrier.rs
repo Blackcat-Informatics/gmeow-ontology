@@ -1313,7 +1313,7 @@ fn without_recovery_case_envelopes(
 /// mapping, correspondence, report, documentation, and fanout graph is excluded.
 ///
 /// This is the single snapshot-reader boundary used by the maintainer reasoning CLI.
-/// Keeping it beside the producer-side assembly prevents `--fresh` and `reason-gate`
+/// Keeping it beside the producer-side assembly prevents `--fresh` and `reason-verify`
 /// from accidentally reasoning over more of the shipped ontology than the pipeline
 /// authority did.
 pub fn snapshot_reasoning_edb(

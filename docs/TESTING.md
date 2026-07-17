@@ -13,9 +13,11 @@ keeps tests inspectable and projectable like every other GMEOW term.
 Generic RDF 1.2 / RDF\* and SPARQL engine compliance is owned by PurRDF's own
 test suite. GMEOW tests the ontology and its products: every repository query
 test pins an expected result instead of merely proving that an upstream engine
-can execute it. The independent `make reason-crosscheck` lane is intentionally
-different: it compares GMEOW's native reasoning calculus with the
-`purrdf-entail` oracle.
+can execute it. The native `logic:` reasoner is the single reasoning
+authority; there is no live second reasoner on-gate. Engine-independent
+coverage of GMEOW's native reasoning calculus is retained without running a
+second engine, via the committed, frozen `dl_oracle_gold` corpus and the
+native gap-zero DL⊇EL crosscheck ledger.
 
 This document describes the test-DSL, the native harness, and — in detail — the
 **competency-question reasoning model**, which is the one place the harness makes

@@ -1,7 +1,7 @@
 //! Whole-ontology coherence-gate teeth tests.
 //!
 //! `make check` already runs a whole-ontology native DL consistency pass: the
-//! `reason-gate` target imports the committed `gmeow.gts` bundle and reasons over
+//! `reason-verify` target imports the committed `gmeow.gts` bundle and reasons over
 //! it via the same [`gmeow_logic::reason::reason_closure`] the verdict-only
 //! [`dl_consistency`] entry point wraps. A gate that RUNS but is never shown to CATCH
 //! anything is untrustworthy, so these tests prove it has teeth: an individual forced
@@ -17,7 +17,7 @@
 //!   clash is forced SOLELY by the foundational-partition disjointness the bundle itself
 //!   ships — binding the PRODUCTION edge to the gate's teeth (drop the kernel assertion
 //!   and this test goes green→red). The clean-bundle regression guard is the explicit
-//!   `reason-gate` prerequisite of the dedicated `make coherence-gate-teeth` target, so
+//!   `reason-verify` prerequisite of the dedicated `make coherence-gate-teeth` target, so
 //!   the poisoned test does not repeat that clean chase. This is the literal
 //!   whole-ontology teeth proof and it RUNS ON-GATE. It recovers the SAME object-level
 //!   reasoning EDB as production before injecting the clash: documentation, mappings,
@@ -155,7 +155,7 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
 
 #[test]
 fn whole_bundle_coherence_gate_catches_injected_clash() {
-    // Load the committed bundle exactly as production `reason-gate` does, then recover
+    // Load the committed bundle exactly as production `reason-verify` does, then recover
     // its object-level EDB. Running DL closure over every shipped meta/report graph is
     // both semantically wrong and asymptotically tied to documentation growth.
     let gts_path = repo_root().join("generated/dist/gmeow.gts");

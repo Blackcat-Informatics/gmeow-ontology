@@ -3,6 +3,18 @@
 
 # Rust and native-gate performance audit
 
+**Historical, dated record.** This audit captures a point-in-time measurement
+pass (baseline `2026-07-13`, see below) taken while `make reason-gate` and
+`make reason-crosscheck` — the live native-vs-`purrdf::entail` cross-check
+oracle lane — still existed. A subsequent removal deleted that oracle
+lane entirely (`make reason-gate`, `make reason-crosscheck`,
+`gmeow-dev reason-crosscheck`/`reason-gate`, and the
+`bench-entail-oracle-alloc` bench are gone); the native `logic:` reasoner is
+now the single reasoning authority and `make reason-verify` is the retained
+aggregate. The measurements and dispositions below are preserved as dated
+history and must not be read as current commands — see the annotated
+reproduction-lane list at the end of this document.
+
 This audit records the measured optimization pass over the Rust workspace and
 the composition of `make check`. It is evidence for the standing doctrine in
 [`RUST-OPTIMIZATION.md`](./RUST-OPTIMIZATION.md), not a second performance
@@ -200,28 +212,31 @@ change.
 - The O3/checks-on/no-debug-symbol Cargo profile is unchanged; the doctrine now
   describes the actual checked-in profile accurately.
 
-## Reproduction lanes
+## Reproduction lanes (historical — commands as they existed at measurement time)
 
-Use the repository targets for final evidence:
+At measurement time, the repository targets used for final evidence were:
 
 ```bash
 make help
 make fmt
-make reason-gate
+make reason-gate       # REMOVED; use make reason-verify
 make reason-verify
-make reason-crosscheck
+make reason-crosscheck # REMOVED — the live native-vs-purrdf::entail oracle lane
 make sync SYNC_MODE=check SYNC_OUTPUTS=generated
 make gts-frame-profile-gate
 make check
 make check-full
 ```
 
-The focused allocation counter is intentionally a bench-only diagnostic:
+The focused allocation counter was intentionally a bench-only diagnostic and has since been
+removed along with the oracle lane it measured:
 
 ```bash
-make bench-entail-oracle-alloc
+make bench-entail-oracle-alloc   # REMOVED
 ```
 
 For timing comparisons, build once, run the exact same command and population,
 record process-tree RSS and phase JSON, and keep the machine quiescent. Do not
-turn the report-only wall times above into CI thresholds.
+turn the report-only wall times above into CI thresholds. Current reproduction
+should use `make reason-verify` and `make check`; `reason-gate`,
+`reason-crosscheck`, and `bench-entail-oracle-alloc` no longer exist.
