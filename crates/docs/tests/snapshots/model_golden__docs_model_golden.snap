@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 82,
-  "term_count": 5298,
+  "term_count": 5301,
   "dependency_edge_count": 1169,
   "term_count_by_category": {
-    "Class": 1661,
+    "Class": 1662,
     "Datatype": 1,
     "Individual": 801,
-    "Property": 2835
+    "Property": 2837
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",

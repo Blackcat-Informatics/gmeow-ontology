@@ -4986,6 +4986,13 @@ type AuthorIdentity {
   canonicalizedIdentity: [Agent!]
 }
 
+type AuthoringCandidate {
+  id: String
+  iri: String
+  candidateForPacket: [AuthoringPacket!]
+  candidateForSlice: [String!]
+}
+
 type AuthoringPacket {
   id: String
   iri: String

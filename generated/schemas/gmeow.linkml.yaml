@@ -422,6 +422,12 @@ classes:
     slots:
     - authorIdentityString
     - canonicalizedIdentity
+  AuthoringCandidate:
+    class_uri: https://blackcatinformatics.ca/gmeow/AuthoringCandidate
+    title: Authoring Candidate
+    slots:
+    - candidateForPacket
+    - candidateForSlice
   AuthoringPacket:
     class_uri: https://blackcatinformatics.ca/gmeow/AuthoringPacket
     title: Authoring Packet
@@ -5989,6 +5995,18 @@ slots:
     range: ModelInvocation
     domain: ToolCall
     multivalued: false
+  candidateForPacket:
+    slot_uri: https://blackcatinformatics.ca/gmeow/candidateForPacket
+    title: candidate for packet
+    range: AuthoringPacket
+    domain: AuthoringCandidate
+    multivalued: true
+  candidateForSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/candidateForSlice
+    title: candidate for slice
+    range: uriorcurie
+    domain: AuthoringCandidate
+    multivalued: true
   candidateHypothesis:
     slot_uri: https://blackcatinformatics.ca/gmeow/candidateHypothesis
     title: candidate hypothesis
