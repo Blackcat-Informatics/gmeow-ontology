@@ -97,46 +97,304 @@ pub fn dataset_from_paths(paths: &[&Path]) -> gmeow_errors::Result<Arc<RdfDatase
 }
 
 /// The canonical rubric module, relative to `repo_root` — the single on-disk file
-/// the whole rubric (measurement standard + governance floors) is loaded from.
+/// the CENTRALIZED half of the rubric (the tier ladder, the quality axes, and the
+/// guarded [`ProjectionVocabulary`] registry) is loaded from. The DISTRIBUTED half
+/// (governance commitments: floors, tier floors, ceilings, exemptions) is loaded from
+/// every slice's `module.ttl` — see [`governance_source_modules`].
 const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
 
-/// Load the whole rubric from the canonical rubric slice under `repo_root`. This is
+/// DISTRIBUTED per-slice governance commitments (`gmeow:AxisFloorCommitment`,
+/// `gmeow:SliceTierFloor`, `gmeow:ProjectionCeilingCommitment`, `gmeow:AxisExemption`)
+/// may be authored in ANY slice's `module.ttl` — a floor belongs in its owning
+/// slice's own module, not bottlenecked through the rubric slice. This is THE single
+/// distributed-governance source authority: the ratchet gate, both pipeline export
+/// stages, and the floor-monotonicity base-diff all route through this, so the
+/// enforced set can never diverge from the authored set.
+///
+/// Returns the canonical rubric module PLUS every discovered slice's `module.ttl`,
+/// filtered to files that exist on disk, sorted, and deduplicated (the rubric slice
+/// is itself discovered by [`discover_slice_dirs`], so dedup collapses that
+/// duplicate — load-bearing, not an oversight).
+#[must_use]
+pub fn governance_source_modules(repo_root: &Path) -> Vec<PathBuf> {
+    let mut modules = vec![repo_root.join(RUBRIC_MODULE)];
+    for dir in discover_slice_dirs(&repo_root.join("slices")) {
+        modules.push(dir.join("module.ttl"));
+    }
+    modules.retain(|p| p.is_file());
+    modules.sort();
+    modules.dedup();
+    modules
+}
+
+/// Load the whole SEGREGATED rubric under `repo_root`: the CENTRALIZED
+/// [`MeasurementStandard`] + [`ProjectionVocabulary`] registry from ONLY the
+/// canonical rubric module, and the DISTRIBUTED [`GovernanceFloors`] commitments
+/// unioned across every governance module ([`governance_source_modules`]). This is
 /// an INTERNAL helper: its two roles are exposed separately — SCORING reads only the
 /// floor-free [`MeasurementStandard`] (`repo_rubric(root)?.standard`, used by the
 /// sweep), and the ratchet gate reads only the [`GovernanceFloors`]
 /// ([`load_repo_floors`]). No consumer holds the conflated whole.
 ///
+/// A centralized individual (`gmeow:QualityAxis`, `gmeow:QualityTier`,
+/// `gmeow:ProjectionVocabulary`) authored OUTSIDE the rubric slice is a HARD FAIL
+/// (the centralized-authority guard): the measurement standard and the guarded
+/// vocabulary registry have exactly one authoring boundary, and a foreign slice
+/// smuggling in a new axis or tier would silently widen what "the rubric" means.
+///
 /// # Errors
-/// Returns a message if the rubric module cannot be read or is structurally
-/// incomplete (a missing tier ladder, an axis without a producer, etc.).
+/// Returns a message if any governance module cannot be read, if the rubric is
+/// structurally incomplete (a missing tier ladder, an axis without a producer,
+/// etc.), if two different governance modules author the same
+/// (slice, axis) / slice / (slice, vocabulary) commitment key, or if a centralized
+/// individual is authored outside the rubric slice.
 fn repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
-    let module = repo_root.join(RUBRIC_MODULE);
-    let ds = dataset_from_paths(&[&module])?;
-    rubric::load_rubric(&ds)
+    let canonical = rubric::load_rubric(&*dataset_from_paths(&[&repo_root.join(RUBRIC_MODULE)])?)?;
+
+    let modules = governance_source_modules(repo_root);
+    detect_cross_file_governance_collisions(&modules)?;
+    let module_refs: Vec<&Path> = modules.iter().map(PathBuf::as_path).collect();
+    let widened = rubric::load_rubric(&*dataset_from_paths(&module_refs)?)?;
+
+    if widened.standard != canonical.standard
+        || widened.floors.vocabularies != canonical.floors.vocabularies
+    {
+        return Err(centralized_authority_violation(&canonical, &widened));
+    }
+
+    Ok(Rubric {
+        standard: canonical.standard,
+        floors: GovernanceFloors {
+            exemptions: widened.floors.exemptions,
+            commitments: widened.floors.commitments,
+            tier_floors: widened.floors.tier_floors,
+            vocabularies: canonical.floors.vocabularies,
+            ceilings: widened.floors.ceilings,
+        },
+    })
+}
+
+/// Load the whole segregated rubric (centralized standard/registry + distributed
+/// commitments) for `repo_root` — the gate's single loader, so a consumer crate (the
+/// `gmeow-dev` ratchet-gate driver) never re-derives the segregated-load sequence.
+///
+/// # Errors
+/// As [`repo_rubric`].
+pub fn load_repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
+    repo_rubric(repo_root)
+}
+
+/// Build the centralized-authority-violation diagnostic: names every axis, tier, or
+/// projection-vocabulary that is present in the DISTRIBUTED union (`widened`) but
+/// absent from — or structurally different than — the CANONICAL rubric-only load.
+/// Deterministic (sorted lines) so the message is stable across runs.
+fn centralized_authority_violation(canonical: &Rubric, widened: &Rubric) -> gmeow_errors::Diag {
+    let mut lines: Vec<String> = Vec::new();
+
+    for axis in &widened.standard.axes {
+        match canonical.standard.axes.iter().find(|a| a.iri == axis.iri) {
+            None => lines.push(format!(
+                "gmeow:QualityAxis {} authored outside the rubric slice ({RUBRIC_MODULE})",
+                axis.iri
+            )),
+            Some(c) if c != axis => lines.push(format!(
+                "gmeow:QualityAxis {} redefined outside the rubric slice ({RUBRIC_MODULE})",
+                axis.iri
+            )),
+            Some(_) => {}
+        }
+    }
+
+    for tier in &widened.standard.tiers {
+        match canonical.standard.tiers.iter().find(|t| t.iri == tier.iri) {
+            None => lines.push(format!(
+                "gmeow:QualityTier {} authored outside the rubric slice ({RUBRIC_MODULE})",
+                tier.iri
+            )),
+            Some(c) if c != tier => lines.push(format!(
+                "gmeow:QualityTier {} redefined outside the rubric slice ({RUBRIC_MODULE})",
+                tier.iri
+            )),
+            Some(_) => {}
+        }
+    }
+
+    for vocab in &widened.floors.vocabularies {
+        match canonical
+            .floors
+            .vocabularies
+            .iter()
+            .find(|v| v.prefix == vocab.prefix)
+        {
+            None => lines.push(format!(
+                "gmeow:ProjectionVocabulary prefix {:?} authored outside the rubric slice ({RUBRIC_MODULE})",
+                vocab.prefix
+            )),
+            Some(c) if c != vocab => lines.push(format!(
+                "gmeow:ProjectionVocabulary prefix {:?} redefined outside the rubric slice ({RUBRIC_MODULE})",
+                vocab.prefix
+            )),
+            Some(_) => {}
+        }
+    }
+
+    lines.sort();
+    gmeow_errors::Diag::of_kind(error::Rubric {
+        detail: format!(
+            "centralized rubric authority violated — a gmeow:QualityAxis / gmeow:QualityTier / \
+             gmeow:ProjectionVocabulary individual may only be authored in {RUBRIC_MODULE}: {}",
+            lines.join("; ")
+        ),
+    })
+}
+
+/// Detect a DISTRIBUTED governance commitment key
+/// (`(slice, axis)` / `slice` / `(slice, vocabulary)`) authored in more than one
+/// governance module. Runs BEFORE the widened union load: once every module's
+/// triples share one dataset, a collision can only be reported by its ambiguous
+/// individual IRI (`rubric::load_rubric`'s existing per-key guard) — this scans
+/// each module SEPARATELY first, so a cross-file collision can name BOTH source
+/// files. A same-file duplicate is intentionally NOT reported here; it still
+/// hard-fails downstream via `rubric::load_rubric`'s own guard.
+///
+/// # Errors
+/// Returns a message naming both source files when the same key is authored in two
+/// DIFFERENT governance modules. Propagates a read/parse failure for any module.
+fn detect_cross_file_governance_collisions(modules: &[PathBuf]) -> gmeow_errors::Result<()> {
+    let mut axis_floor_keys: std::collections::BTreeMap<(String, String), &Path> =
+        std::collections::BTreeMap::new();
+    let mut tier_floor_keys: std::collections::BTreeMap<String, &Path> =
+        std::collections::BTreeMap::new();
+    let mut ceiling_keys: std::collections::BTreeMap<(String, String), &Path> =
+        std::collections::BTreeMap::new();
+
+    for module in modules {
+        let ds = dataset_from_paths(&[module.as_path()])?;
+
+        let floor_slice_p = graph::id(&ds, &graph::g("floorSlice"));
+        let floor_axis_p = graph::id(&ds, &graph::g("floorAxis"));
+        let ceiling_slice_p = graph::id(&ds, &graph::g("ceilingSlice"));
+        let ceiling_vocab_p = graph::id(&ds, &graph::g("ceilingVocabulary"));
+
+        for iri in graph::instances_of(&ds, &graph::g("AxisFloorCommitment")) {
+            let Some(sid) = graph::id(&ds, &iri) else {
+                continue;
+            };
+            let (Some(slice), Some(axis)) = (
+                floor_slice_p.and_then(|p| graph::one_iri(&ds, sid, p)),
+                floor_axis_p.and_then(|p| graph::one_iri(&ds, sid, p)),
+            ) else {
+                continue;
+            };
+            let key = (slice, axis);
+            match axis_floor_keys.get(&key) {
+                Some(prior) if *prior != module.as_path() => {
+                    return Err(cross_file_collision_err(
+                        "AxisFloorCommitment",
+                        &format!("slice {} axis {}", key.0, key.1),
+                        prior,
+                        module,
+                    ));
+                }
+                Some(_) => {}
+                None => {
+                    axis_floor_keys.insert(key, module.as_path());
+                }
+            }
+        }
+
+        for iri in graph::instances_of(&ds, &graph::g("SliceTierFloor")) {
+            let Some(sid) = graph::id(&ds, &iri) else {
+                continue;
+            };
+            let Some(slice) = floor_slice_p.and_then(|p| graph::one_iri(&ds, sid, p)) else {
+                continue;
+            };
+            match tier_floor_keys.get(&slice) {
+                Some(prior) if *prior != module.as_path() => {
+                    return Err(cross_file_collision_err(
+                        "SliceTierFloor",
+                        &format!("slice {slice}"),
+                        prior,
+                        module,
+                    ));
+                }
+                Some(_) => {}
+                None => {
+                    tier_floor_keys.insert(slice, module.as_path());
+                }
+            }
+        }
+
+        for iri in graph::instances_of(&ds, &graph::g("ProjectionCeilingCommitment")) {
+            let Some(sid) = graph::id(&ds, &iri) else {
+                continue;
+            };
+            let (Some(slice), Some(vocab)) = (
+                ceiling_slice_p.and_then(|p| graph::one_iri(&ds, sid, p)),
+                ceiling_vocab_p.and_then(|p| graph::one_iri(&ds, sid, p)),
+            ) else {
+                continue;
+            };
+            let key = (slice, vocab);
+            match ceiling_keys.get(&key) {
+                Some(prior) if *prior != module.as_path() => {
+                    return Err(cross_file_collision_err(
+                        "ProjectionCeilingCommitment",
+                        &format!("slice {} vocabulary {}", key.0, key.1),
+                        prior,
+                        module,
+                    ));
+                }
+                Some(_) => {}
+                None => {
+                    ceiling_keys.insert(key, module.as_path());
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Build the cross-file-collision diagnostic naming both offending source files.
+fn cross_file_collision_err(
+    kind: &str,
+    key_desc: &str,
+    file_a: &Path,
+    file_b: &Path,
+) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(error::Rubric {
+        detail: format!(
+            "duplicate gmeow:{kind} for {key_desc} authored in two different governance \
+             modules: {} and {}",
+            file_a.display(),
+            file_b.display()
+        ),
+    })
 }
 
 /// Load ONLY the governance floors (dated exemptions + committed axis/tier floors)
-/// from the canonical rubric slice under `repo_root` — the ratchet gate's and the
-/// pipeline governance tooling's floor source. Scoring never reads these; this is
-/// the floor half of the segregated rubric ([`GovernanceFloors`]).
+/// unioned across every slice's `module.ttl` under `repo_root` — the ratchet gate's
+/// and the pipeline governance tooling's floor source. Scoring never reads these;
+/// this is the floor half of the segregated rubric ([`GovernanceFloors`]).
 ///
 /// # Errors
-/// Returns a message if the rubric module cannot be read or is structurally
-/// incomplete (the same hard-fail conditions as loading the whole rubric).
+/// As [`repo_rubric`].
 pub fn load_repo_floors(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloors> {
     Ok(repo_rubric(repo_root)?.floors)
 }
 
 /// Load the governance data the PROJECTION-VOCABULARY RATCHET reads — the guarded
-/// [`GovernanceFloors::vocabularies`] registry and the committed
-/// [`GovernanceFloors::ceilings`] — from the canonical rubric slice under `repo_root`.
-/// This is the ceiling ratchet's counterpart to [`load_repo_floors`]; both project the
-/// same segregated [`GovernanceFloors`] the gate reads, named for their consumer so a
-/// call site declares which half of the ratchet it drives. Scoring never reads these.
+/// [`GovernanceFloors::vocabularies`] registry (centralized, rubric-slice-only) and
+/// the committed [`GovernanceFloors::ceilings`] (distributed, unioned across every
+/// slice's `module.ttl`) — under `repo_root`. This is the ceiling ratchet's
+/// counterpart to [`load_repo_floors`]; both project the same segregated
+/// [`GovernanceFloors`] the gate reads, named for their consumer so a call site
+/// declares which half of the ratchet it drives. Scoring never reads these.
 ///
 /// # Errors
-/// Returns a message if the rubric module cannot be read or is structurally
-/// incomplete (the same hard-fail conditions as loading the whole rubric).
+/// As [`repo_rubric`].
 pub fn load_repo_ceilings(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloors> {
     Ok(repo_rubric(repo_root)?.floors)
 }
@@ -161,14 +419,13 @@ pub fn ceilings_from_gts(bundle_gts: &[u8]) -> gmeow_errors::Result<GovernanceFl
     Ok(rubric::load_rubric(&ds)?.floors)
 }
 
-/// Load ONLY the floor-free measurement standard (tier ladder + axes) from the
-/// canonical rubric slice under `repo_root` — the scoring half of the segregated
-/// rubric ([`MeasurementStandard`]). The ratchet gate never reads this; scoring
-/// (the sweep and the MCP advisory tool) never reads the floors.
+/// Load ONLY the floor-free measurement standard (tier ladder + axes) — CENTRALIZED,
+/// loaded from ONLY the canonical rubric slice under `repo_root` — the scoring half
+/// of the segregated rubric ([`MeasurementStandard`]). The ratchet gate never reads
+/// this; scoring (the sweep and the MCP advisory tool) never reads the floors.
 ///
 /// # Errors
-/// Returns a message if the rubric module cannot be read or is structurally
-/// incomplete (the same hard-fail conditions as loading the whole rubric).
+/// As [`repo_rubric`].
 pub fn repo_measurement_standard(repo_root: &Path) -> gmeow_errors::Result<MeasurementStandard> {
     Ok(repo_rubric(repo_root)?.standard)
 }
