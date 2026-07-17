@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT3 counter-example (Don't): a cross-PREFIX similarity observation with NO
+# justifying correspondence. ce:crossPrefixObs compares a 1024-d full-space
+# projection against a 256-d Matryoshka-prefix projection over the same family; the
+# two effective spaces have distinct gmeow:contentDigests and there is no
+# logic:Correspondence bridging them. Triggers cross-space-rejected.rq
+# (→ ce:crossPrefixObs).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:xFamily a gmeow:EmbeddingFamily ;
+    gmeow:contentDigest "blake3:fam0aa0011112222333344445555666677778888999900001111222233334444" .
+
+ce:xFull a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:xFamily ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric      gmeow:distanceMetricCosine ;
+    gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
+    gmeow:contentDigest       "blake3:f0110000111122223333444455556666777788889999000011112222aaaa4444" .
+
+ce:xPrefix a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:xFamily ;
+    gmeow:embeddingDimensions "256"^^xsd:positiveInteger ;
+    gmeow:distanceMetric      gmeow:distanceMetricCosine ;
+    gmeow:matryoshkaPolicy    gmeow:matryoshkaPrefix ;
+    gmeow:contentDigest       "blake3:f0220000111122223333444455556666777788889999000011112222bbbb4444" .
+
+ce:xProjFull a gmeow:EmbeddingProjection ;
+    gmeow:hasVectorSpaceContract ce:xFull .
+
+ce:xProjPrefix a gmeow:EmbeddingProjection ;
+    gmeow:hasVectorSpaceContract ce:xPrefix .
+
+ce:crossPrefixObs a gmeow:SimilarityObservation ;
+    gmeow:comparesLeft    ce:xProjFull ;
+    gmeow:comparesRight   ce:xProjPrefix ;
+    gmeow:overVectorSpace ce:xFull ;
+    gmeow:withMetric      gmeow:distanceMetricCosine ;
+    gmeow:queryContext    "cross-prefix proximity with no bridging correspondence" .

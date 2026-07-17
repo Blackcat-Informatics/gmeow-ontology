@@ -1,0 +1,427 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the embedding-projection slice
+# (crates/slicetest). Sixteen named CQs (CT1–CT11 + R1–R5), each an INDEPENDENT
+# SPARQL check of the same invariant a logic:Constraint enforces — never the derived
+# SHACL. Each violation-finder is authored as a FALSIFIABLE PAIR: the named cell runs
+# the finder over a minimal Don't counter-example (tests/counter-examples/*.ttl) and
+# expects the offending node, and a "*Clean" companion runs the SAME query over the
+# passing worked scene (examples/purremb-bookshelf.ttl) expecting ZERO rows. The two
+# "must be empty" CQs (CT2, CT11) invert the pairing (named cell empty over the scene,
+# a "*Violation" companion catching a collision/legacy construct), and the three
+# POSITIVE CQs (CT6, CT9, R3) pin the specific example rows. All cells run in the
+# gmeow:reasoningNone lane: the overlay (gmeow:cqDataFile) is honoured only there, and
+# every invariant here is decidable over the asserted graph (the gmeow:sensitivityRank
+# total order and the supersession quartet are asserted facts, compared by SPARQL).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+@prefix ep:    <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/> .
+
+# =========================================================================== #
+# Typed result shapes (logic:ResultShape). Cardinality matches each cell's tier #
+# 1:1 (RowsExact ↔ cqExactRows true; RowsCount 0 ↔ cqExpectRowCount 0;          #
+# RowsContains ↔ cqExactRows false).                                            #
+# =========================================================================== #
+
+ep:shapeProjExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "proj" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeProjEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "proj" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
+ep:shapeObsExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "obs" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeObsEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "obs" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
+ep:shapeVtExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "vt" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeVtEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "vt" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
+ep:shapeIdxExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "idx" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeIdxEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "idx" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
+ep:shapeSpacePairExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+                         [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeSpacePairEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+                         [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
+ep:shapeProjPackContains a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "proj" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+                         [ logic:columnVariable "pack" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ep:shapeProjPairContains a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "projA" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+                         [ logic:columnVariable "projB" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ep:shapeRebuildExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "retired" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+                         [ logic:columnVariable "successor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+                         [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ep:shapeLegacyExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "s" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeLegacyEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "s" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
+# =========================================================================== #
+# CT1 — source-digest match (C1). Violation over the drift fixture; empty over  #
+# the scene (every projection records its source's live digest).                #
+# =========================================================================== #
+ep:epCqSourceDigestMismatch a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/source-digest-mismatch.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-source-digest-mismatch.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A projection whose recorded gmeow:projectionSourceDigest disagrees with its resolved source's gmeow:contentDigest is caught: exactly ce:driftProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:driftProj ] ] .
+
+ep:epCqSourceDigestMismatchClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/source-digest-mismatch.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "Over the worked scene no projection's recorded source digest drifts from its source — zero rows." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT2 — distinct vector-space identity. EMPTY over the scene (the full space and #
+# its Matryoshka prefix over one family carry DIFFERENT digests); a companion    #
+# collision fixture makes it non-empty.                                          #
+# =========================================================================== #
+ep:epCqDistinctVectorSpaceId a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/distinct-vector-space-id.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeSpacePairEmpty ;
+    gmeow:cqRationale "No two vector-space contracts that differ in a component share a digest — the full ex:vscA and the 256-d prefix ex:vscAprefix over ex:familyA carry distinct digests. Zero rows." ;
+    gmeow:cqExpectRowCount 0 .
+
+ep:epCqDistinctVectorSpaceIdViolation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/distinct-vector-space-id.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-distinct-vector-space-id.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeSpacePairExact ;
+    gmeow:cqRationale "A full space and its Matryoshka prefix (differing dimensions/policy) that COLLIDE on one content digest are caught: the pair (ce:collideFull, ce:collidePrefix)." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "a" ; gmeow:cellValueIri ce:collideFull ] ,
+                                     [ gmeow:cellVar "b" ; gmeow:cellValueIri ce:collidePrefix ] ] .
+
+# =========================================================================== #
+# CT3 — cross-space comparison rejected (C2). Violation over a cross-prefix      #
+# observation with no bridging correspondence; empty over the scene.            #
+# =========================================================================== #
+ep:epCqCrossSpaceRejected a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/cross-space-rejected.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-cross-space-rejected.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeObsExact ;
+    gmeow:cqRationale "A cross-PREFIX similarity observation whose two effective spaces have distinct digests and no justifying logic:Correspondence is caught: ce:crossPrefixObs." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:crossPrefixObs ] ] .
+
+ep:epCqCrossSpaceRejectedClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/cross-space-rejected.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeObsEmpty ;
+    gmeow:cqRationale "The scene's cross-space ex:crossObs carries ex:crossCorr, and ex:inObs is within-space — zero unjustified cross-space observations." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT4 — target exact identity (C4). Violation over an ordinal-only target;       #
+# empty over the scene (every target has a resource or a digest).               #
+# =========================================================================== #
+ep:epCqTargetExactIdentity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/target-exact-identity.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-target-exact-identity.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeVtExact ;
+    gmeow:cqRationale "A vector target with only a gmeow:targetOrdinal and no exact identity is caught: ce:orphanTarget." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "vt" ; gmeow:cellValueIri ce:orphanTarget ] ] .
+
+ep:epCqTargetExactIdentityClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/target-exact-identity.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeVtEmpty ;
+    gmeow:cqRationale "Every scene target carries a gmeow:targetsResource or its own gmeow:contentDigest — zero identity-less targets." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT5 — similarity is not equivalence. Non-empty over the overclaim             #
+# counter-example (owl:sameAs / owl:equivalentClass); empty over the scene.     #
+# =========================================================================== #
+ep:epCqSimilarityNotEquivalence a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/similarity-not-equivalence.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/similarity-overclaim.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeObsExact ;
+    gmeow:cqRationale "Similarity observations promoted to owl:sameAs and owl:equivalentClass are both caught: ce:obsOverSame and ce:obsOverEquiv." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:obsOverSame ] ] ,
+                      [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:obsOverEquiv ] ] .
+
+ep:epCqSimilarityNotEquivalenceClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/similarity-not-equivalence.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeObsEmpty ;
+    gmeow:cqRationale "No scene similarity observation is promoted to a logical identity — zero rows." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT6 — generated, lossy projection over a stable source (POSITIVE). The scene's #
+# projections are derived + lossy while ex:bookshelfPack keeps its own digest    #
+# and head id.                                                                   #
+# =========================================================================== #
+ep:epCqGeneratedLossyStableSource a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/generated-lossy-stable-source.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjPackContains ;
+    gmeow:cqRationale "Projections A and B are generated + lossy (source, space contract, reproducibility level) over ex:bookshelfPack, which retains its own gmeow:contentDigest and gmeow:gtsHeadId." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ex:bookshelfProjA ] ,
+                                     [ gmeow:cellVar "pack" ; gmeow:cellValueIri ex:bookshelfPack ] ] ,
+                      [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ex:bookshelfProjB ] ,
+                                     [ gmeow:cellVar "pack" ; gmeow:cellValueIri ex:bookshelfPack ] ] .
+
+# =========================================================================== #
+# CT7 — security monotonicity (C3). Violation over a silently-declassified       #
+# projection; empty over the scene (the internal view carries ex:declassAct).    #
+# =========================================================================== #
+ep:epCqSecurityMonotonic a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/security-monotonic.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-security-monotonic.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A projection sitting below its source's sensitivity rank with no gmeow:DeclassificationAct is caught: ce:leakyProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:leakyProj ] ] .
+
+ep:epCqSecurityMonotonicClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/security-monotonic.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "The scene's lower-sensitivity ex:bookshelfProjPublic is authorized by ex:declassAct — zero unauthorized drops." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT8 — derived index fully bound. Violation over an index missing               #
+# gmeow:indexOverSpace; empty over the scene.                                    #
+# =========================================================================== #
+ep:epCqDerivedIndexBound a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/derived-index-bound.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-derived-index-bound.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeIdxExact ;
+    gmeow:cqRationale "A derived index missing its gmeow:indexOverSpace binding is caught: ce:unboundIndex." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "idx" ; gmeow:cellValueIri ce:unboundIndex ] ] .
+
+ep:epCqDerivedIndexBoundClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/derived-index-bound.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeIdxEmpty ;
+    gmeow:cqRationale "Both scene indexes (ex:annIndexA, ex:annIndexA2) bind projection, recall, and effective space — zero under-bound indexes." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT9 — multiple vector spaces over one source (POSITIVE).                       #
+# =========================================================================== #
+ep:epCqMultiSpaceSameSource a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/multi-space-same-source.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjPairContains ;
+    gmeow:cqRationale "Projections A and B share ex:bookshelfPack but commit distinct-digest space contracts (ex:vscA vs ex:vscB) — legitimately independent projections of one pack." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "projA" ; gmeow:cellValueIri ex:bookshelfProjA ] ,
+                                     [ gmeow:cellVar "projB" ; gmeow:cellValueIri ex:bookshelfProjB ] ] .
+
+# =========================================================================== #
+# CT10 — container/manifest source-digest agreement (C5a). Violation over a      #
+# split projection; empty over the scene.                                        #
+# =========================================================================== #
+ep:epCqManifestContainerDisagree a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/manifest-container-disagree.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-manifest-container-disagree.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A projection whose container and manifest surfaces record different source-pack digests is caught: ce:splitProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:splitProj ] ] .
+
+ep:epCqManifestContainerDisagreeClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/manifest-container-disagree.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "The scene's ex:containerSurfaceA and ex:manifestSurfaceA record identical source digests — zero disagreements." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT11 — RDF 1.2 only. EMPTY over the scene (rdf:Statement reification is         #
+# permitted); a companion legacy-container fixture makes it non-empty.           #
+# =========================================================================== #
+ep:epCqRdf12Only a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/rdf12-only.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeLegacyEmpty ;
+    gmeow:cqRationale "The scene uses only RDF 1.2 constructs (the statement target rides rdf:Statement reification, which is permitted) — zero banned legacy container constructs." ;
+    gmeow:cqExpectRowCount 0 .
+
+ep:epCqRdf12OnlyViolation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/rdf12-only.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-rdf12-legacy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeLegacyExact ;
+    gmeow:cqRationale "A banned rdf:Bag with rdf:_N membership is caught: ce:legacyBag." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "s" ; gmeow:cellValueIri ce:legacyBag ] ] .
+
+# =========================================================================== #
+# R1 — GTS head-id propagation (C6). Violation over a dropped head id; empty     #
+# over the scene.                                                                #
+# =========================================================================== #
+ep:epCqGtsHeadIdPropagation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/gts-head-id-propagation.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-gts-head-id-propagation.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A projection over a certified source that fails to propagate the matching gmeow:projectionSourceGtsHeadId is caught: ce:droppedHeadProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:droppedHeadProj ] ] .
+
+ep:epCqGtsHeadIdPropagationClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/gts-head-id-propagation.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "Every scene projection propagates ex:bookshelfPack's gmeow:gtsHeadId — zero dropped head ids." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# R2 — provenance retained on a copy. Violation over an orphaned copy; empty     #
+# over the scene.                                                                #
+# =========================================================================== #
+ep:epCqProvenanceOnCopy a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/provenance-on-copy.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-provenance-on-copy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A derived copy that dropped its gmeow:hasDisclosurePolicy is caught: ce:orphanCopy." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:orphanCopy ] ] .
+
+ep:epCqProvenanceOnCopyClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/provenance-on-copy.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "The scene's derived copy ex:bookshelfProjACopy retains both sensitivity and disclosure policy — zero orphaned copies." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# R3 — rebuild as append-only supersession (POSITIVE).                           #
+# =========================================================================== #
+ep:epCqRebuildSupersession a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/rebuild-supersession.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeRebuildExact ;
+    gmeow:cqRationale "The retired ex:annIndexA is superseded by ex:annIndexA2 through the transaction quartet while ex:retrievalEventOld stays bound to the retired index — suppression, not erasure." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "retired" ; gmeow:cellValueIri ex:annIndexA ] ,
+                                     [ gmeow:cellVar "successor" ; gmeow:cellValueIri ex:annIndexA2 ] ,
+                                     [ gmeow:cellVar "event" ; gmeow:cellValueIri ex:retrievalEventOld ] ] .
+
+# =========================================================================== #
+# R4 — within-tolerance reproducibility needs a tolerance. Violation over a       #
+# tolerance-less projection; empty over the scene.                              #
+# =========================================================================== #
+ep:epCqQuantizationTolerance a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/quantization-tolerance.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-quantization-tolerance.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A gmeow:reproducibleWithinTolerance projection with no gmeow:reproducibilityTolerance is caught: ce:noTolProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:noTolProj ] ] .
+
+ep:epCqQuantizationToleranceClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/quantization-tolerance.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "The scene's within-tolerance ex:bookshelfProjA carries ex:tol1 — zero uninterpretable tolerance claims." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# R5 — container/manifest agreement across ALL recorded digests. The named cell  #
+# catches a TARGET-TABLE disagreement (which the CT10 source-only finder would   #
+# miss); companions catch the source and model disagreements, and a clean cell   #
+# stays empty over the scene.                                                    #
+# =========================================================================== #
+ep:epCqDisagreementAllSurfaces a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/disagreement-all-surfaces.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-disagreement-target.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "The generalized finder catches a TARGET-TABLE digest disagreement the source-only CT10 finder misses: ce:targetSplitProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:targetSplitProj ] ] .
+
+ep:epCqDisagreementAllSurfacesSource a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/disagreement-all-surfaces.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-manifest-container-disagree.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "The generalized finder also catches the source-pack digest disagreement: ce:splitProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:splitProj ] ] .
+
+ep:epCqDisagreementAllSurfacesModel a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/disagreement-all-surfaces.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-disagreement-model.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "The generalized finder catches the model-contract digest disagreement: ce:modelSplitProj." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:modelSplitProj ] ] .
+
+ep:epCqDisagreementAllSurfacesClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/disagreement-all-surfaces.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "The scene's container and manifest surfaces agree on all three recorded digests — zero disagreements." ;
+    gmeow:cqExpectRowCount 0 .

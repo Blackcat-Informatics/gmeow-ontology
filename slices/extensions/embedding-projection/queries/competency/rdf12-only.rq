@@ -1,0 +1,15 @@
+# CT11 — RDF 1.2 only (violation finder; EMPTY over authored/example content). Any
+# banned legacy RDF-1.1 container construct — rdf:Bag / rdf:Seq / rdf:Alt, an
+# rdf:li edge, or an rdf:_N container-membership property. rdf:Statement reification
+# (rdf:subject/rdf:predicate/rdf:object) is the shipped, base-quad-foldable form and
+# is deliberately NOT flagged. The clean scene keeps this empty.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?s WHERE {
+  {
+    { ?s a rdf:Bag } UNION { ?s a rdf:Seq } UNION { ?s a rdf:Alt }
+    UNION { ?s rdf:li ?o } UNION { ?z rdf:li ?s }
+    UNION { ?s ?pm ?o . FILTER(STRSTARTS(STR(?pm), "http://www.w3.org/1999/02/22-rdf-syntax-ns#_")) }
+  }
+}
+ORDER BY ?s

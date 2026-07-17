@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Structural assertions for the embedding-projection slice (crates/slicetest): the
+# boundary / non-duplication invariants expressed as SPARQL ASK patterns over the
+# slice module (and, for the RDF-1.2-only sweep, the module + examples). These
+# complement the Rust structural harness (crates/validate/tests/
+# conformance_embedding_projection.rs), which additionally checks non-duplication of
+# reused terms against the merged ontology and predicate purity.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ep:    <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/> .
+
+# F1 boundary axiom: a similarity observation is NEVER a retrieval event.
+ep:saObservationRetrievalDisjoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saRationale "gmeow:SimilarityObservation must be owl:disjointWith gmeow:RetrievalEvent (AC2 non-duplication)." ;
+    gmeow:saPattern """
+        PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        ASK { gmeow:SimilarityObservation owl:disjointWith gmeow:RetrievalEvent }
+    """ .
+
+# F1 boundary axiom: an EmbeddingProjection AGGREGATES embeddings, it is not a
+# subclass of gmeow:Embedding.
+ep:saProjectionNotSubclassEmbedding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saRationale "gmeow:EmbeddingProjection must NOT be rdfs:subClassOf gmeow:Embedding — it aggregates via gmeow:aggregatesEmbedding (AC2)." ;
+    gmeow:saPattern """
+        PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        ASK { gmeow:EmbeddingProjection rdfs:subClassOf gmeow:Embedding }
+    """ .
+
+# CT11: no banned legacy RDF-1.1 container vocabulary in the module or its examples.
+ep:saNoLegacyRdfContainers a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saRationale "The slice module and its examples must be RDF-1.2-only: no rdf:Bag/rdf:Seq/rdf:Alt/rdf:li (CT11)." ;
+    gmeow:saPattern """
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        ASK {
+          { ?s a rdf:Bag } UNION { ?s a rdf:Seq } UNION { ?s a rdf:Alt } UNION { ?s rdf:li ?o }
+        }
+    """ .
