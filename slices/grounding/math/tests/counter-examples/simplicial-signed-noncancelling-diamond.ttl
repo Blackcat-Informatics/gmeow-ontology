@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: a math:SimplicialComplex whose codimension-2 diamond IS
+# combinatorially complete (coface cX has two distinct codimension-1 faces bY, bW,
+# each a codimension-1 face of far-face aZ), so the combinatorial simplicial check
+# math:BoundarySquareZeroConstraint is SATISFIED (a distinct partner face exists on
+# both traversals). But the reified ±1 math:CellIncidence records carry the WRONG
+# (non-induced) orientation: both composition sign products are +1, so the finite
+# signed sum Σ_b [cX:b]·[b:aZ] = (+1)·(+1) + (+1)·(+1) = +2 ≠ 0 — ∂∘∂ ≠ 0. It fires
+# math:GeneralBoundarySquareZeroConstraint (the logic:JoinAggregateConstraint,
+# shacl.SPARQLConstraintComponent → math:BrokenBoundarySquareZero) and NO other
+# finding. This isolates the composition point of the two enforcement layers: the
+# combinatorial diamond check does not read signs (and passes here), while the general
+# signed-sum check catches the orientation error — so a signed simplicial complex is
+# covered by math:GeneralBoundarySquareZeroConstraint (onClass math:Cell), never left
+# unchecked by the unsigned diamond constraint. Every cell declares its
+# math:cellDimension and it is not a math:CochainComplex.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/simplicial-signed-noncancelling/> .
+
+ex:broken a math:SimplicialComplex ;
+    math:hasCell ex:cX , ex:bY , ex:bW , ex:aZ .
+
+ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+
+# The complete diamond over the unsigned face relation: cX ▷ {bY, bW} ▷ aZ, so
+# math:BoundarySquareZeroConstraint's ∃-partner check is satisfied on both paths.
+ex:cX a math:Cell ; math:cellDimension ex:dim2 ; math:incidentTo ex:bY , ex:bW .
+ex:bY a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:aZ .
+ex:bW a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:aZ .
+ex:aZ a math:Cell ; math:cellDimension ex:dim0 .
+
+# The signed incidence records the general SUM constraint scores. The induced
+# orientation would pair opposite signs; here BOTH products are +1, so the group
+# (cX, aZ) sums to +2 ≠ 0.
+ex:incCXbY a math:CellIncidence ; math:incidenceCoface ex:cX ; math:incidenceFace ex:bY ; math:incidenceSign 1 .
+ex:incCXbW a math:CellIncidence ; math:incidenceCoface ex:cX ; math:incidenceFace ex:bW ; math:incidenceSign 1 .
+ex:incbYaZ a math:CellIncidence ; math:incidenceCoface ex:bY ; math:incidenceFace ex:aZ ; math:incidenceSign 1 .
+ex:incbWaZ a math:CellIncidence ; math:incidenceCoface ex:bW ; math:incidenceFace ex:aZ ; math:incidenceSign 1 .

@@ -3262,6 +3262,7 @@ mod constraint;
 mod validation;
 pub use constraint::{
     AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, ConstraintIr,
+    JoinAggregate, JoinLeg,
 };
 pub use validation::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,

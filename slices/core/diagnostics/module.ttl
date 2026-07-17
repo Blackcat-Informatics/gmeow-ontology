@@ -202,7 +202,7 @@ gmeow:gtsFrameIndex
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The GTS frame index locating the frame a finding concerns inside the bundle — a wire coordinate mirrored in the SARIF logicalLocation \"gts:frame\"."@x-gmeow-english ;
     skos:example "ex:stmt1 gmeow:gtsFrameIndex 1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a frame index where no GTS bundle frame backs the finding."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_frame_index."@x-gmeow-english ;
     gmeow:useWhen "Use on a finding's location node to pin the GTS frame index of the diagnosed content."@x-gmeow-english .
@@ -214,7 +214,7 @@ gmeow:gtsQuadIndex
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The GTS quad index locating the quad a finding concerns inside the bundle's quad table — a wire coordinate mirrored in the SARIF logicalLocation \"gts:quad\"."@x-gmeow-english ;
     skos:example "ex:stmt1 gmeow:gtsQuadIndex 42 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a quad index where no GTS bundle quad table backs the finding."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_quad_index."@x-gmeow-english ;
     gmeow:useWhen "Use on a finding's location node to pin the GTS quad index of the statement diagnosed."@x-gmeow-english .
@@ -226,7 +226,7 @@ gmeow:gtsReifierId
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The GTS reifier-id locating the reifier a finding concerns — a wire coordinate mirrored in the SARIF logicalLocation \"gts:reifier\"."@x-gmeow-english ;
     skos:example "ex:stmt1 gmeow:gtsReifierId 3 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a reifier id where no GTS bundle reifier backs the finding."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_reifier_id."@x-gmeow-english ;
     gmeow:useWhen "Use on a finding's location node to pin the GTS reifier-id of the reified statement diagnosed."@x-gmeow-english .

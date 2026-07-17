@@ -1,0 +1,12 @@
+# A holonomy names BOTH its closed loop (math:holonomyLoop) and the math:Connection whose
+# parallel transport it composes (math:holonomyOf) — the transport-around-a-loop frame that
+# keeps a holonomy from floating free of the loop it measures or the connection it composes.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?holonomy ?loop ?connection
+WHERE {
+  ?holonomy a math:Holonomy ;
+            math:holonomyLoop ?loop ;
+            math:holonomyOf ?connection .
+}
+ORDER BY ?holonomy

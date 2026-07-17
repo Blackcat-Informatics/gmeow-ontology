@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the math:Cell frame: a math:Cell with NO math:cellDimension,
+# so validation MUST emit shacl.QualifiedMinCountConstraintComponent (and no other
+# finding), isolating math:IncompleteCell. Bound by ex:ecCellNoDimension.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:undimensionedCell a math:Cell .
