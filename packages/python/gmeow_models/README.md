@@ -38,6 +38,6 @@ obj = <Class>.model_validate(payload)  # closed-world validation
 schema = <Class>.model_json_schema()   # agrees with the packed GMEOW JSON Schema
 ```
 
-The package ships 604 models across 80 modules (one module per slice,
+The package ships 628 models across 81 modules (one module per slice,
 plus the shared `_base`/`_envelope` scaffolding). Do not edit by hand — it is
 regenerated from the ontology.
