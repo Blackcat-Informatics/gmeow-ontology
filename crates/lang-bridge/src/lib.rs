@@ -63,7 +63,9 @@ pub use gmn1_codec::{
     gmn0_canonically_equal, gmn1_read, gmn1_write, gmn1_write_tabular, measure_coverage,
     resolve_current_codebook, round_trip_check,
 };
-pub use gmn1_digest::{codebook_digest, content_digest, pack_root};
+pub use gmn1_digest::{
+    codebook_digest, content_digest, grammar_leaf, pack_root, pack_root_from_grammar_leaf,
+};
 pub use gmn1_witness::{
     StandaloneReport, compare_claim_partitions, idempotence_check, partition_by_subject,
     per_claim_round_trip_check, per_claim_standalone_check,

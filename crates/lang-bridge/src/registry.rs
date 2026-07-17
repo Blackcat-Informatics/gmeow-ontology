@@ -33,7 +33,7 @@ use crate::emit::{digest16, ntriples_sorted};
 use crate::gmn1_codec::{
     CurrentCodebook, Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
 };
-use crate::gmn1_digest::{codebook_digest, pack_root};
+use crate::gmn1_digest::{codebook_digest, grammar_leaf, pack_root};
 use crate::grammar::{
     EbnfBridge, Formalism, Grammar, RuleExpr, grammar_correspondence, grammar_leg_pair,
     grammar_to_ntriples, parse_grammar, serialize_grammar,
@@ -545,7 +545,8 @@ fn gmn1_conformance_pack_emission(
 ) -> LangEmission {
     let digest = codebook_digest(codebook, dict);
     let root = pack_root(&digest, dict, grammar_bytes);
-    let nt = ntriples_sorted(pack_triples(&digest, &root));
+    let grammar_digest = grammar_leaf(grammar_bytes);
+    let nt = ntriples_sorted(pack_triples(&digest, &root, &grammar_digest));
 
     let mut loss = LossLedger::new();
     LangEmission {
@@ -576,10 +577,12 @@ fn gmn1_conformance_pack_emission(
     }
 }
 
-/// The conformance-pack N-Triples: the codebook self-digest on `gmnCodebookCurrent`, the
-/// typed pack individual, its Merkle root, and its three part references. `blake3:<hex>`
-/// digest literals are algorithm-tagged ASCII and need no escaping.
-fn pack_triples(codebook_digest: &str, pack_root: &str) -> Vec<String> {
+/// The conformance-pack N-Triples: the codebook self-digest on `gmnCodebookCurrent`, the grammar
+/// Merkle leaf on `gmnGrammar`, the typed pack individual, its Merkle root, and its three part
+/// references. All digest literals are lowercase-hex (grammar leaf) or algorithm-tagged
+/// (`blake3:<hex>`) ASCII and need no escaping. The grammar leaf enters the bundle so the shipped
+/// `gmeow gmn verify` recomputes `gmnPackRoot` from the bundle alone, with no source checkout.
+fn pack_triples(codebook_digest: &str, pack_root: &str, grammar_digest: &str) -> Vec<String> {
     let g = |local: &str| format!("{GMEOW_NS}{local}");
     let triple = |s: &str, p: &str, o: &str| format!("<{s}> <{p}> <{o}> .");
     let lit = |s: &str, p: &str, l: &str| format!("<{s}> <{p}> \"{l}\" .");
@@ -590,6 +593,8 @@ fn pack_triples(codebook_digest: &str, pack_root: &str) -> Vec<String> {
             &g("gmnCodebookDigest"),
             codebook_digest,
         ),
+        // The DERIVED grammar Merkle leaf (pack-root part 2) enters the bundle here.
+        lit(&g("gmnGrammar"), &g("gmnGrammarDigest"), grammar_digest),
         triple(GMN_PACK_IRI, RDF_TYPE, &g("GmnConformancePack")),
         lit(GMN_PACK_IRI, &g("gmnPackRoot"), pack_root),
         triple(GMN_PACK_IRI, &g("references"), &g("gmnCodebookCurrent")),

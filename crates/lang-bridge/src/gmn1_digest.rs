@@ -109,6 +109,27 @@ pub fn codebook_digest(codebook: &CurrentCodebook, dict: &GmnDictionary) -> Stri
 /// refuses a pack whose declared root disagrees.
 #[must_use]
 pub fn pack_root(codebook_digest: &str, dict: &GmnDictionary, grammar_bytes: &[u8]) -> String {
+    pack_root_from_grammar_leaf(codebook_digest, dict, &grammar_leaf(grammar_bytes))
+}
+
+/// The `gmn-grammar` Merkle leaf (pack-root part 2): `blake3(authored gmn.ebnf bytes)` as
+/// lowercase hex, UNPREFIXED. Pinned into the bundle as `gmeow:gmnGrammarDigest` so a
+/// checkout-free consumer (the shipped `gmeow gmn verify`) recomputes the pack root from the
+/// bundle alone, never needing the raw authored grammar file from a source checkout.
+#[must_use]
+pub fn grammar_leaf(grammar_bytes: &[u8]) -> String {
+    blake3::hash(grammar_bytes).to_hex().to_string()
+}
+
+/// [`pack_root`] over a PRECOMPUTED [`grammar_leaf`] rather than the raw grammar bytes — the leg a
+/// bundle-only consumer takes, reading the leaf from `gmeow:gmnGrammarDigest`. Folds the SAME three
+/// ordered parts as [`pack_root`], so both legs agree byte-for-byte.
+#[must_use]
+pub fn pack_root_from_grammar_leaf(
+    codebook_digest: &str,
+    dict: &GmnDictionary,
+    grammar_leaf: &str,
+) -> String {
     let glyphs = dict.glyph_registry();
     let five = |(a, b, c, d, e): (String, String, String, String, String)| {
         format!("{a}{FIELD_SEP}{b}{FIELD_SEP}{c}{FIELD_SEP}{d}{FIELD_SEP}{e}")
@@ -117,10 +138,7 @@ pub fn pack_root(codebook_digest: &str, dict: &GmnDictionary, grammar_bytes: &[u
     sigil_rows.extend(glyphs.fallback_binding_rows().into_iter().map(five));
     let parts: [(&'static str, String); 3] = [
         ("codebook-digest", codebook_digest.to_owned()),
-        (
-            "gmn-grammar",
-            blake3::hash(grammar_bytes).to_hex().to_string(),
-        ),
+        ("gmn-grammar", grammar_leaf.to_owned()),
         ("sigil-table", leaf_hex(sigil_rows)),
     ];
     let mut preimage = String::new();

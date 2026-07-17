@@ -2600,14 +2600,14 @@ gmeow:GmnConformancePack
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Conformance Pack"@x-gmeow-english ;
-    skos:definition "The self-certifying bundle of GMN-1: a gmeow:InformationObject whose content-addressed root IS the GMN-1 version identity. A pack gmeow:references the four parts a conforming reader needs to certify a document — a gmeow:GmnCodebook, the grammar it licenses forms under, the dictionary alias bijection, and a frozen conformance-vector corpus — and carries exactly one gmeow:gmnPackRoot, the Merkle root over those parts. The pack is self-certifying because its root recomputes from the parts it names: a consumer that trusts the root has, by construction, pinned every part, so the pack version and the parts it bundles can never drift apart silently."@x-gmeow-english ;
+    skos:definition "The self-certifying bundle of GMN-1: a gmeow:InformationObject whose content-addressed root IS the GMN-1 version identity. A pack gmeow:references the three bundle-resident parts a conforming reader needs to certify a document — a gmeow:GmnCodebook, the grammar it licenses forms under, and the dictionary alias bijection — and carries exactly one gmeow:gmnPackRoot, the Merkle root over their digests: the codebook digest, the grammar leaf, and the executable sigil table. The frozen conformance-vector corpus is pinned TRANSITIVELY rather than bundled: its vector manifest declares the same gmeow:gmnCodebookDigest that is the root's codebook leaf, so a consumer that trusts the root has pinned the exact codebook the corpus was derived against, and the shipped gmeow gmn verify checks the corpus against it. The pack is self-certifying because its root recomputes from the parts it names: a consumer that trusts the root has, by construction, pinned every part, so the pack version and the parts it bundles can never drift apart silently."@x-gmeow-english ;
     skos:example "ex:pack a gmeow:GmnConformancePack ; gmeow:references gmeow:gmnCodebookCurrent ; gmeow:gmnPackRoot \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid publishing a pack root that is not the recomputed Merkle root over the parts the pack gmeow:references — a root that does not recompute makes the pack self-certify a bundle it does not actually pin — and avoid a pack that omits any of its four parts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid publishing a pack root that is not the recomputed Merkle root over the digests of the parts the pack gmeow:references — a root that does not recompute makes the pack self-certify a bundle it does not actually pin — and avoid a pack that omits any of its three referenced parts or leaves the conformance corpus unpinned to the codebook it was derived against."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one gmeow:GmnConformancePack per shipped GMN-1 version; link its codebook, grammar, dictionary bijection, and frozen conformance-vector corpus through gmeow:references, and set one gmeow:gmnPackRoot to the Merkle root recomputed over those parts."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:GmnConformancePack per shipped GMN-1 version; link its codebook, grammar, and dictionary bijection through gmeow:references, set one gmeow:gmnPackRoot to the Merkle root recomputed over their digests, and pin the frozen conformance-vector corpus transitively through the codebook digest its vector manifest declares."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
-    gmeow:useWhen "Use for the self-certifying GMN-1 bundle whose content-addressed root is the version identity — the unit that pins a codebook, grammar, dictionary, and conformance corpus together."@x-gmeow-english .
+    gmeow:useWhen "Use for the self-certifying GMN-1 bundle whose content-addressed root is the version identity — the unit that pins a codebook, grammar, and dictionary together and pins the conformance corpus transitively through the codebook digest."@x-gmeow-english .
 
 gmeow:GmnErr
     a logic:SubKind ,
@@ -2670,12 +2670,26 @@ gmeow:gmnCodebookDigest
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to pin the exact codebook an encoding decodes against by its content-addressed Merkle-root identity, rather than trusting a version label alone."@x-gmeow-english .
 
+gmeow:gmnGrammarDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn grammar digest"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The content-addressed leaf of the GMN grammar a gmeow:GmnConformancePack roots over: the lowercase-hex blake3 digest of the authored grammar template's bytes, unprefixed because it is a Merkle LEAF folded into gmeow:gmnPackRoot rather than a standalone algorithm-tagged declaration. Pinning the grammar by its digest lets a consumer recompute the pack root from the bundle alone — the shipped conformance surface never needs the authored grammar file from a source checkout — while the grammar bytes themselves remain authored slice content, hashed rather than copied. Not functional: a grammar may carry leaves under several algorithms."@x-gmeow-english ;
+    skos:example "gmeow:gmnGrammar gmeow:gmnGrammarDigest \"af1349b9f5f9a1a6a0404dea36dcc949af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid prefixing the grammar leaf with an algorithm tag or hashing a rendered grammar rather than the authored template bytes — the leaf must fold byte-identically to gmeow:gmnPackRoot part two — and avoid making it functional; one grammar may carry leaves under several algorithms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:gmnGrammarDigest on gmeow:gmnGrammar with the lowercase-hex blake3 digest of the authored grammar bytes; the shipped conformance surface reads it to recompute gmeow:gmnPackRoot from the bundle without a source checkout."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin the GMN grammar by its content-addressed leaf so a checkout-free consumer recomputes the conformance pack root from the bundle alone."@x-gmeow-english .
+
 gmeow:gmnPackRoot
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn pack root"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The content-addressed root of a gmeow:GmnConformancePack: an algorithm-tagged digest literal (e.g. \"blake3:…\") that is a Merkle root over the pack's parts — its referenced codebook, grammar, dictionary bijection, and frozen conformance-vector corpus. This root IS the GMN-1 version identity: a pack is self-certifying exactly because its root recomputes from the parts it names, so a consumer that trusts the root has, by construction, pinned every part the pack bundles. Not functional: a pack may carry roots under several algorithms."@x-gmeow-english ;
+    skos:definition "The content-addressed root of a gmeow:GmnConformancePack: an algorithm-tagged digest literal (e.g. \"blake3:…\") that is a Merkle root over the pack's part digests — the referenced codebook's digest, the grammar leaf, and the executable sigil table. This root IS the GMN-1 version identity: a pack is self-certifying exactly because its root recomputes from the parts it names, so a consumer that trusts the root has, by construction, pinned every part the pack bundles. The frozen conformance-vector corpus is pinned transitively through the codebook leaf — its vector manifest declares the same codebook digest — rather than folded as a separate leaf. Not functional: a pack may carry roots under several algorithms."@x-gmeow-english ;
     skos:example "ex:pack gmeow:gmnPackRoot \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid treating the pack root as a free label — it is a recomputed Merkle root over the pack's named parts, not an asserted version string — and avoid making it functional; one pack may carry roots under several algorithms."@x-gmeow-english ;
