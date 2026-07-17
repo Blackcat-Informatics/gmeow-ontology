@@ -124,7 +124,7 @@ pub fn slice_quality(
     let dir = root.join(dir);
     // Load the floor-free measurement standard from the repo rubric, then score the one
     // slice against it in repo mode (byte-identical to the retired repo-coupled path).
-    let standard = match repo_rubric(&root) {
+    let standard = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r.standard,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
@@ -175,7 +175,7 @@ pub fn slice_quality(
 /// the shipped graph never diverge.
 fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &DiagnosticsConfig) -> i32 {
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    let rubric = match repo_rubric(root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
@@ -307,22 +307,6 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
 /// against its merge-base version. The governance TSVs are no longer read.
 const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
 
-/// Load the whole rubric (the floor-free measurement `standard` scoring reads plus the
-/// governance `floors` the ratchet gate reads) from the canonical [`RUBRIC_MODULE`]
-/// under `root`. The engine no longer exposes a conflated repo-rubric loader; this gate
-/// is a legitimate consumer of BOTH halves (it scores AND ratchets in one pass), so it
-/// reconstructs the whole from the same on-disk file — byte-identical to the retired
-/// `load_repo_rubric`.
-///
-/// # Errors
-/// Returns a diagnostic if the rubric module cannot be read/parsed or is structurally
-/// incomplete (the same hard-fail conditions the engine loader enforced).
-fn repo_rubric(root: &Path) -> gmeow_errors::Result<Rubric> {
-    let module = root.join(RUBRIC_MODULE);
-    let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
-    gmeow_slice_quality::rubric::load_rubric(&ds)
-}
-
 /// The generated per-axis floor projection path named in a per-axis floor failure
 /// message — the lossy TSV view of the ontology-resident commitments, kept only as
 /// a human pointer in the diagnostic (the canonical source is [`RUBRIC_MODULE`]).
@@ -355,7 +339,7 @@ fn is_grounding_slice(slice_dir: &Path) -> bool {
 /// floor. Undeclared slices are advisory and never fail. Exit 1 on any failure.
 pub fn slice_quality_gate() -> i32 {
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
     };
@@ -1354,7 +1338,7 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     };
 
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
     };
@@ -1450,7 +1434,7 @@ fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> Strin
 /// human commits it.
 pub fn slice_quality_seed_ceilings() -> i32 {
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
     };
@@ -1515,7 +1499,7 @@ pub fn slice_quality_seed_ceilings() -> i32 {
 /// migration, never by tuning it toward this report's numbers.
 pub fn slice_quality_projection_debt() -> i32 {
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
     };
