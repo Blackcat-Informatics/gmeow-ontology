@@ -596,4 +596,149 @@ mod tests {
         assert!(selected.is_empty());
         assert!(reasons.is_empty());
     }
+
+    #[test]
+    fn receipt_roundtrip_validates_and_authorizes_reuse() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let base = git(root, ["rev-parse", "HEAD"]).expect("resolve HEAD");
+        let registry = "reg-digest-abc";
+        let toolchain = "tc-digest-xyz";
+        let tasks: &[&str] = &["sync", "doc-lint", "compliance-report"];
+        let out = std::env::temp_dir().join(format!("gmeow-d1-{}.txt", std::process::id()));
+
+        create_receipt(root, &out, registry, toolchain, tasks).expect("create receipt");
+        let receipt = parse_receipt(&out).expect("parse receipt");
+        let validated = validate_receipt(root, &receipt, &base, registry, toolchain, tasks);
+        let _ = std::fs::remove_file(&out);
+        assert!(
+            validated.is_ok(),
+            "a freshly created receipt for the current HEAD must validate: {validated:?}"
+        );
+
+        // The reuse payoff: under a validated base receipt, a docs-only
+        // change selects a strict subset of the full task registry (no
+        // rust-build, no reason-gate), instead of the fail-closed full set.
+        let (selected, _) = select_tasks(&["docs/guide.md".to_owned()], TASKS);
+        assert!(
+            !selected.contains("rust-build"),
+            "docs-only change under a validated receipt must not select rust-build: {selected:?}"
+        );
+        assert!(
+            !selected.contains("reason-gate"),
+            "docs-only change under a validated receipt must not select reason-gate: {selected:?}"
+        );
+        assert!(
+            selected.len() < TASKS.len(),
+            "docs-only reuse must select a strict subset of the full registry: {selected:?}"
+        );
+    }
+
+    #[test]
+    fn tampered_receipt_fails_closed() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let base = git(root, ["rev-parse", "HEAD"]).expect("resolve HEAD");
+        let tree =
+            git(root, ["rev-parse", &format!("{base}^{{tree}}")]).expect("resolve HEAD tree");
+        let registry = "reg-digest-abc";
+        let toolchain = "tc-digest-xyz";
+        let task_names: &[&str] = &["sync", "doc-lint", "compliance-report"];
+        let tasks: BTreeSet<String> = task_names.iter().map(|name| (*name).to_owned()).collect();
+
+        let valid = || Receipt {
+            repository: REPOSITORY.to_owned(),
+            commit: base.clone(),
+            tree: tree.clone(),
+            registry: registry.to_owned(),
+            toolchain: toolchain.to_owned(),
+            status: "success".to_owned(),
+            tasks: tasks.clone(),
+        };
+
+        assert!(
+            validate_receipt(root, &valid(), &base, registry, toolchain, task_names).is_ok(),
+            "control receipt must validate before tampering checks are meaningful"
+        );
+
+        let mut wrong_registry = valid();
+        wrong_registry.registry = "reg-digest-other".to_owned();
+        assert!(
+            validate_receipt(
+                root,
+                &wrong_registry,
+                &base,
+                registry,
+                toolchain,
+                task_names
+            )
+            .is_err(),
+            "receipt with a wrong registry digest must fail closed"
+        );
+
+        let mut wrong_toolchain = valid();
+        wrong_toolchain.toolchain = "tc-digest-other".to_owned();
+        assert!(
+            validate_receipt(
+                root,
+                &wrong_toolchain,
+                &base,
+                registry,
+                toolchain,
+                task_names
+            )
+            .is_err(),
+            "receipt with a wrong toolchain digest must fail closed"
+        );
+
+        let mut added_task = valid();
+        added_task.tasks.insert("extra-task".to_owned());
+        assert!(
+            validate_receipt(root, &added_task, &base, registry, toolchain, task_names).is_err(),
+            "receipt with an added task must fail closed"
+        );
+
+        let mut removed_task = valid();
+        removed_task.tasks.remove("doc-lint");
+        assert!(
+            validate_receipt(root, &removed_task, &base, registry, toolchain, task_names).is_err(),
+            "receipt with a removed task must fail closed"
+        );
+
+        let mut wrong_status = valid();
+        wrong_status.status = "failure".to_owned();
+        assert!(
+            validate_receipt(root, &wrong_status, &base, registry, toolchain, task_names).is_err(),
+            "receipt with a non-success status must fail closed"
+        );
+
+        let mut wrong_commit = valid();
+        wrong_commit.commit = "0".repeat(40);
+        assert!(
+            validate_receipt(root, &wrong_commit, &base, registry, toolchain, task_names).is_err(),
+            "receipt with a wrong commit must fail closed"
+        );
+
+        let mut wrong_tree = valid();
+        wrong_tree.tree = "0".repeat(40);
+        assert!(
+            validate_receipt(root, &wrong_tree, &base, registry, toolchain, task_names).is_err(),
+            "receipt with a wrong tree must fail closed"
+        );
+    }
+
+    #[test]
+    fn receipt_wrong_schema_is_rejected() {
+        let out = std::env::temp_dir().join(format!("gmeow-d1-schema-{}.txt", std::process::id()));
+        let body = format!(
+            "schema=some-other-schema-v0\nrepository={REPOSITORY}\ncommit={commit}\ntree={tree}\nregistry=reg-digest-abc\ntoolchain=tc-digest-xyz\nstatus=success\ntask=sync\n",
+            commit = "0".repeat(40),
+            tree = "0".repeat(40),
+        );
+        std::fs::write(&out, body).expect("write receipt fixture");
+        let result = parse_receipt(&out);
+        let _ = std::fs::remove_file(&out);
+        assert!(
+            result.is_err(),
+            "a receipt with an unsupported schema must be rejected: {result:?}"
+        );
+    }
 }
