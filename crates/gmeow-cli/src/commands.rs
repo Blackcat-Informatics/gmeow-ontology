@@ -1291,6 +1291,194 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
     0
 }
 
+// ── logic backward ───────────────────────────────────────────────────────────
+
+/// `rdfs:subClassOf` — the covering-edge predicate `stage-goal-directed` filters
+/// its reasoned closure on (`crates/pipeline/src/stages/goal_directed.rs`), read
+/// here directly off a parsed source graph instead of a full pipeline reasoning
+/// pass.
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+/// The TOLD `rdfs:subClassOf` covering edges `(sub IRI, super IRI)` in `dataset`
+/// — an IRI-to-IRI triple on that predicate — deduplicated and sorted.
+/// `crate::physical::unify::SortOrder::from_subclass_edges` (inside
+/// `gmeow_logic`) computes its OWN reflexive-transitive closure over whatever
+/// covering edges it is handed, so passing the told edges of a simple subsort
+/// chain (e.g. `math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber`) is
+/// sufficient for the engine to accept `math:Integer ⊑ math:RealNumber` —
+/// there is no need (and this command makes no attempt) to pre-compute a
+/// reasoned closure.
+fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
+    let mut edges: Vec<(String, String)> = dataset
+        .owned_quads()
+        .filter(|q| q.predicate == RDFS_SUBCLASS_OF)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(s), RdfTerm::Iri(o)) => Some((s.clone(), o.clone())),
+            _ => None,
+        })
+        .collect();
+    edges.sort();
+    edges.dedup();
+    edges
+}
+
+/// Parse a Turtle file into a raw [`RdfDataset`] for `rdfs:subClassOf` edge
+/// extraction — deliberately independent of the `logic:` compiler frontend
+/// (which never surfaces a told `rdfs:subClassOf` triple as `LogicAxiom`/
+/// `Formula` data an engine caller can read back), so this reads the file's own
+/// triples directly.
+fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-backward.subsort-parse",
+            format!("cannot parse {} as Turtle: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow logic backward` — evaluate one or more authored `logic:ReasoningProgram`
+/// cells through the native proof-carrying SLG-WFS backward engine
+/// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
+/// production path `stage-goal-directed` folds into `gmeow.gts`'s
+/// `graph/goal-directed`. Never a reimplementation: this command lowers the
+/// authored cell via `gmeow_logic_compile::frontend::parse_logic_path`,
+/// collects `rdfs:subClassOf` covering edges straight off the parsed source
+/// (see [`collect_subclass_edges`]), and hands both to the SAME engine entry
+/// point the pipeline stage calls.
+///
+/// Hard-fails (exit 1, never a silent empty success) on: a missing
+/// `--program-file`, an unparsable file (or one carrying error-grade parse
+/// diagnostics), a file with zero `logic:ReasoningProgram` individuals, or a
+/// `--program-iri` naming no program in the file.
+pub fn logic_backward(
+    reporter: &dyn Reporter,
+    program_file: &Path,
+    program_iri: Option<&str>,
+    subsort_source: Option<&Path>,
+) -> i32 {
+    if !program_file.exists() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.missing-file",
+            format!("--program-file {} does not exist", program_file.display()),
+        );
+    }
+    let (program, diagnostics) =
+        match gmeow_logic_compile::frontend::parse_logic_path(program_file, None) {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.parse",
+                    format!("cannot parse {}: {e}", program_file.display()),
+                );
+            }
+        };
+    let errors: Vec<String> = diagnostics
+        .iter()
+        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        .map(|d| format!("{} {}: {}", d.severity.as_str(), d.code, d.message))
+        .collect();
+    if !errors.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.malformed",
+            format!(
+                "{} carries {} error-grade parse diagnostic(s): {}",
+                program_file.display(),
+                errors.len(),
+                errors.join("; ")
+            ),
+        );
+    }
+    if program.reasoning_programs.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.no-programs",
+            format!(
+                "{} carries zero logic:ReasoningProgram individuals",
+                program_file.display()
+            ),
+        );
+    }
+
+    let selected: Vec<gmeow_logic_compile::ir::ReasoningProgramIr> = match program_iri {
+        None => program.reasoning_programs,
+        Some(iri) => {
+            let mut programs = program.reasoning_programs;
+            let Some(pos) = programs.iter().position(|p| p.iri == iri) else {
+                let known: Vec<&str> = programs.iter().map(|p| p.iri.as_str()).collect();
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.unknown-program",
+                    format!(
+                        "--program-iri {iri:?} names no logic:ReasoningProgram in {}; known: {}",
+                        program_file.display(),
+                        known.join(", ")
+                    ),
+                );
+            };
+            vec![programs.swap_remove(pos)]
+        }
+    };
+
+    // Collect `rdfs:subClassOf` covering edges directly off the parsed source
+    // graph(s) — never a hardcoded subsort tower (see `collect_subclass_edges`).
+    let program_dataset = match parse_turtle_dataset(reporter, program_file) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut subsort_edges = collect_subclass_edges(&program_dataset);
+    if let Some(source) = subsort_source {
+        let extra_dataset = match parse_turtle_dataset(reporter, source) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        subsort_edges.extend(collect_subclass_edges(&extra_dataset));
+        subsort_edges.sort();
+        subsort_edges.dedup();
+    }
+
+    // The SAME production entry point `stage-goal-directed` calls — no second
+    // engine, no reimplementation.
+    let evals =
+        match gmeow_logic::goal_directed::evaluate_reasoning_programs(&selected, &subsort_edges) {
+            Ok(evals) => evals,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.evaluate",
+                    format!("backward evaluation failed: {e}"),
+                );
+            }
+        };
+
+    // Deterministic ordering throughout: `evaluate_reasoning_programs` already
+    // sorts programs by name, answers by `(atom, bindings, derivation_iri)`, and
+    // verdicts by `(atom, verdict)` (G12).
+    for eval in &evals {
+        println!("program {}", eval.name);
+        println!("  description: {}", eval.description);
+        println!("  goal: {}", eval.goal);
+        println!("  status: {}", eval.status);
+        for ans in &eval.answers {
+            println!(
+                "  answer atom={} proof-checked={} derivation={}",
+                ans.atom, ans.proof_checks, ans.derivation_iri
+            );
+            for (var, surface) in &ans.bindings {
+                println!("    binding {var} = {surface}");
+            }
+        }
+        for v in &eval.verdicts {
+            println!("  verdict atom={} verdict={}", v.atom, v.verdict);
+        }
+    }
+    0
+}
+
 // ── validate ─────────────────────────────────────────────────────────────────
 
 /// The native RDF format id for a file suffix, mirroring

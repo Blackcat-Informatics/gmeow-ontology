@@ -5097,6 +5097,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/effect> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/effect> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/logic/evaluationMode-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/evaluationMode> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/evaluationMode> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/logic/exists-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/exists> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/exists> ; sh:maxCount 1 ] .
@@ -5164,6 +5168,10 @@
 <https://blackcatinformatics.ca/logic/planSuccessMode-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/planSuccessMode> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/programQuery-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/programQuery> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/programQuery> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/recoveryTransform-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/recoveryTransform> ;

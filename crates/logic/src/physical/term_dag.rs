@@ -669,6 +669,42 @@ mod tests {
         }
     }
 
+    // ── G3: contains_node validates arena identity, not just an in-range index ─────────
+
+    #[test]
+    fn g3_contains_node_rejects_foreign_arena() {
+        // Two independent arenas that intern the SAME leaf content mint the SAME slot
+        // index (0) — an index-range-only `contains_node` would wrongly alias `dag_b`'s
+        // node as a member of `dag_a`. The arena brand must reject it.
+        let mut dag_a = TermDag::new();
+        let mut dag_b = TermDag::new();
+
+        let node_a = dag_a.intern_leaf(iri("https://example.org/a"));
+        let node_b = dag_b.intern_leaf(iri("https://example.org/a"));
+        assert_eq!(
+            node_a.index(),
+            node_b.index(),
+            "same slot index across independent arenas (test setup)"
+        );
+        assert_ne!(
+            dag_a.arena(),
+            dag_b.arena(),
+            "independent TermDags mint distinct arena brands"
+        );
+
+        assert!(
+            dag_a.contains_node(node_a, dag_a.arena()),
+            "a node validated against the arena that minted it is accepted"
+        );
+        assert!(
+            !dag_a.contains_node(node_b, dag_b.arena()),
+            "a foreign NodeId — even one that is in-bounds and carries ITS OWN (correct) \
+             arena brand — is rejected by a DIFFERENT dag: the brand check, not the bounds \
+             check, is what makes membership an identity test rather than an index-range \
+             coincidence"
+        );
+    }
+
     // ── (d) DAG ↔ ir.rs congruence ─────────────────────────────────────────────────────
     //
     // The `logic:` lowering the congruence corpus exercises is the promoted, non-test

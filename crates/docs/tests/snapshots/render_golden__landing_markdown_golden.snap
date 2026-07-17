@@ -6,7 +6,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 
 Version **16**.
 
-This site documents **5301** vocabulary terms across **82** slices.
+This site documents **5306** vocabulary terms across **82** slices.
 
 ## I want to…
 
@@ -27,9 +27,9 @@ This site documents **5301** vocabulary terms across **82** slices.
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 1662 |
-| [Properties](properties/index.md) | 2837 |
-| [Individuals](individuals/index.md) | 801 |
+| [Classes](classes/index.md) | 1663 |
+| [Properties](properties/index.md) | 2840 |
+| [Individuals](individuals/index.md) | 802 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse
@@ -37,7 +37,7 @@ This site documents **5301** vocabulary terms across **82** slices.
 - [All slices](slices/index.md) — the 82 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
 - [Linkages](linkages/index.md) — 2098 term equivalences to external vocabularies.
-- [Examples](examples/index.md) — 162 worked examples.
+- [Examples](examples/index.md) — 163 worked examples.
 - [External ontologies](external-ontologies/index.md) — 1784 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
 - [What GMEOW enforces](enforced-constraints/index.md) — 54 validation rules the toolchain enforces.
