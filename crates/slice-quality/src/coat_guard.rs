@@ -10,14 +10,12 @@
 //! through a committed (calibrated) floor, which the no-calibration discipline forbids,
 //! so this lives as a structural gate beside the rubric binding/completeness gates.
 //!
-//! Two predicate families, each with the normalizer that fits what carries its meaning
-//! (see [`gmeow_validate::distinctiveness`]):
-//! - **Usage coats** `gmeow:useWhen` / `avoidWhen` / `howToUse` — prose where CURIEs are
-//!   incidental term references: [`coat_skeleton`] strips CURIEs, so a template disguised
-//!   only by a swapped CURIE still collides.
-//! - **`skos:definition`** — CURIEs are load-bearing (the classes a constraint names), so
-//!   [`definition_skeleton`] keeps them: an exact-match over the lowercased,
-//!   whitespace-collapsed text.
+//! The distinguishing coat predicates guarded are `gmeow:useWhen` / `avoidWhen` /
+//! `howToUse` and `skos:definition`, all under one [`skeleton`] normalizer (lowercase +
+//! whitespace-collapse, CURIEs kept — see [`gmeow_validate::distinctiveness`]): two terms
+//! that differ only by a load-bearing CURIE (e.g. a usage coat naming its own distinct
+//! range) are genuinely distinct and must NOT collide; only a byte-identical (modulo
+//! case/space) coat across distinct terms is the near-duplicate.
 //!
 //! `skos:example` is deliberately out of scope: distinct terms legitimately cite the same
 //! example individual, so a hard reject there would mis-fire. `gmeow:graphBoxRole` is a
@@ -26,7 +24,7 @@
 
 use std::path::Path;
 
-use gmeow_validate::distinctiveness::{Collision, coat_skeleton, collisions, definition_skeleton};
+use gmeow_validate::distinctiveness::{Collision, collisions, skeleton};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
 
 use crate::graph::{self, all_lits, g, id};
@@ -77,6 +75,11 @@ fn message(slice_iri: &str, predicate: &str, c: &Collision) -> String {
 /// cannot be resolved — the gate never silently skips a slice it cannot read.
 pub fn slice_coat_collisions(slice_dir: &Path) -> gmeow_errors::Result<Vec<String>> {
     let module = slice_dir.join("module.ttl");
+    // A slice with no module.ttl (e.g. a profile/query slice) authors no TBox terms and
+    // therefore no distinguishing coats — nothing to check, not a degradation.
+    if !module.is_file() {
+        return Ok(Vec::new());
+    }
     let ds = crate::dataset_from_paths(&[&module])?;
     let slice_iri = crate::slice_iri_of_dir(slice_dir)?;
     let terms = slice_terms(&ds, &slice_iri);
@@ -90,8 +93,8 @@ pub fn slice_coat_collisions(slice_dir: &Path) -> gmeow_errors::Result<Vec<Strin
 
     let mut out = Vec::new();
 
-    // Usage coats: CURIE-stripping skeleton, one predicate at a time (a shared avoidWhen
-    // is a distinct kind of near-duplicate from a shared useWhen).
+    // Usage coats, one predicate at a time (a shared avoidWhen is a distinct kind of
+    // near-duplicate from a shared useWhen).
     for local in USAGE_COATS {
         let Some(pred) = id(&ds, &g(local)) else {
             continue; // predicate never used in this slice
@@ -101,7 +104,7 @@ pub fn slice_coat_collisions(slice_dir: &Path) -> gmeow_errors::Result<Vec<Strin
             .flat_map(|(iri, sid)| {
                 all_lits(&ds, *sid, pred)
                     .into_iter()
-                    .map(move |v| (iri.clone(), coat_skeleton(&v)))
+                    .map(move |v| (iri.clone(), skeleton(&v)))
             })
             .collect();
         for c in collisions(&pairs) {
@@ -109,14 +112,14 @@ pub fn slice_coat_collisions(slice_dir: &Path) -> gmeow_errors::Result<Vec<Strin
         }
     }
 
-    // Definitions: no-strip exact-match (load-bearing CURIEs are content).
+    // Definitions: same exact-match skeleton (load-bearing CURIEs kept as content).
     if let Some(def_p) = id(&ds, SKOS_DEFINITION) {
         let pairs: Vec<(String, String)> = tbox
             .iter()
             .flat_map(|(iri, sid)| {
                 all_lits(&ds, *sid, def_p)
                     .into_iter()
-                    .map(move |v| (iri.clone(), definition_skeleton(&v)))
+                    .map(move |v| (iri.clone(), skeleton(&v)))
             })
             .collect();
         for c in collisions(&pairs) {
