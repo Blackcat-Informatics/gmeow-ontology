@@ -294,9 +294,6 @@ jobs:
       - name: Vendored-entity coverage — hard class/predicate floors
         run: make coverage
 
-      - name: Native purrdf-entail cross-check — native ⊇ OWL-RL oracle (on-gate)
-        run: make reason-crosscheck
-
   ontology-misc:
     runs-on: ubuntu-latest
     steps:
@@ -327,17 +324,6 @@ jobs:
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # === REASONING CROSS-CHECK ORACLE (Principle 18; native, on-gate) ===
-  # The Java+Docker classic oracle lane (ELK/HermiT/ROBOT/Jena/owlrl) has been
-  # REMOVED. Its replacement is a native, in-process, Docker-free reasoning oracle
-  # over `purrdf::entail` (an OWL-RL + OWL-Direct-tableau engine, 70/70
-  # W3C-entailment conformance-tested) — `gmeow-dev reason-crosscheck`, run ON-GATE
-  # inside the required `quality` aggregator's reason lane. The on-gate cross-check
-  # exercises SUBSUMPTION only (native ⊇ oracle); consistency is NOT on this gate —
-  # it is decided by the native reasoner and checked separately via `reason-verify`.
-  # The authoritative gate stays native and Docker-free; Principle 18 is proven
-  # natively by the divergence-ledger enforcer, the on-gate subsumption entail
-  # cross-check, and the frozen oracle-gold conformance case (in `make conformance`).
   # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
   # target is absent in CI), and the actual wasm is exercised through the public
@@ -428,4 +414,4 @@ jobs:
               exit 1
             fi
           done
-          echo "all required quality jobs succeeded (the native on-gate purrdf-entail cross-check runs inside the reason lane)"
+          echo "all required quality jobs succeeded (native reasoning + reasoned-graph verify run in the reason lane)"
