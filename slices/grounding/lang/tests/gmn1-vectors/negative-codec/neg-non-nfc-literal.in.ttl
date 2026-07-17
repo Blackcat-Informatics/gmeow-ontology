@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Write-tier negative: an object literal whose lexical form is NOT NFC-normalized — the
+# base "cafe" followed by U+0301 (combining acute accent), authored with an explicit Turtle
+# \uXXXX escape so the non-canonical spelling survives editor/VCS normalization. gmn1_write
+# hard-fails (lang:GmnNonCanonicalCodepoint) before any encoding, never a silent NFC fold.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:noteX gmeow:statusLabel "cafe\u0301"^^xsd:string .

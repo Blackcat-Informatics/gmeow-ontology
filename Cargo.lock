@@ -1440,6 +1440,7 @@ dependencies = [
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",
+ "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-music",
@@ -1564,6 +1565,7 @@ dependencies = [
 name = "gmeow-lang-bridge"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "gmeow-errors",
  "gmeow-lang-form",
  "gmeow-license",
@@ -4103,8 +4105,6 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "structured-zstd"
 version = "0.0.40"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af7b9352cd002e0abc4d70cbf06656c8edd93f74a7f00fdafdb36c5a3bcd67ce"
 dependencies = [
  "fastrand",
  "twox-hash",
