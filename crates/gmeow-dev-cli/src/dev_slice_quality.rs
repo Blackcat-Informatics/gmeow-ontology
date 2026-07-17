@@ -18,7 +18,13 @@ use gmeow_slice_quality::ScoringEnv;
 use gmeow_slice_quality::model::{MeasurementStandard, Tier};
 use gmeow_slice_quality::model::{Rubric, SliceAssessment};
 use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
-use gmeow_slice_quality::{resolve_min_tier, tier_gate_passes};
+// `RUBRIC_MODULE` is the canonical, ontology-resident home of the CENTRALIZED
+// rubric authority — the measurement standard (tier ladder + axes) and the
+// guarded-vocabulary registry (single defining literal lives in
+// `gmeow_slice_quality`; this crate never redeclares it). It anchors the
+// merge-base reconstruction ([`base_rubric_at`]) and the seed-command paste
+// hints below.
+use gmeow_slice_quality::{RUBRIC_MODULE, resolve_min_tier, tier_gate_passes};
 
 use crate::dev_common::{emit_error, fail, note, project_root};
 use crate::dev_feedback::{diagnostics_env, write_artifacts};
@@ -299,15 +305,6 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     }
     0
 }
-
-/// The canonical, ontology-resident home of the CENTRALIZED rubric authority — the
-/// measurement standard (tier ladder + axes) and the guarded-vocabulary registry. The
-/// per-slice floor/tier-floor/ceiling COMMITMENTS are no longer confined here: they are
-/// authored across every slice's `module.ttl` (the distributed governance-source
-/// authority, `gmeow_slice_quality::governance_source_modules`) and the gate reads them
-/// through the shared segregated loader. This const remains the rubric-module anchor for
-/// the merge-base reconstruction ([`base_rubric_at`]) and the seed-command paste hints.
-const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
 
 /// The human-facing source label prefixing floor / ceiling / registry monotonicity
 /// violation messages. The messages themselves already name the offending slice / axis /
