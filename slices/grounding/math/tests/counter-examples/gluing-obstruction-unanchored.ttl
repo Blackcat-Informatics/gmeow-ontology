@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:UnanchoredGluingObstruction: a math:GluingObstruction that
+# names no math:obstructionOf sheaf — an H¹ obstruction class floating free of the
+# math:CellularSheaf whose local-to-global lifting it is supposed to obstruct. The
+# math:GluingObstruction frame's qualified min-count on math:obstructionOf fails, so
+# validation MUST emit shacl.QualifiedMinCountConstraintComponent (and no other
+# finding).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/gluing/> .
+
+# An obstruction class that names no sheaf it obstructs — unanchored.
+ex:orphanObstruction a math:GluingObstruction .

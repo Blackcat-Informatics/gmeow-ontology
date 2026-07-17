@@ -2549,3 +2549,36 @@ gmeow:eqMathBoundaryMathlib a gmeow:TermEquivalence, logic:GroundingCorresponden
     gmeow:sssomFile "gmeow-mathlib.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
+
+# --- Task-3 global-section / gluing-obstruction vocabulary → Wikidata (verified) --- #
+# math:GlobalSection has a dedicated Wikidata concept (Q91783823 "global section", aliased
+# "section of a sheaf"; API-verified). math:GluingObstruction (the H¹ obstruction to lifting
+# local sections to a global one) has no clean dedicated Wikidata class, so it anchors to the
+# gluing axiom it obstructs (Q5572389 "gluing axiom", API-verified) by reference — the related
+# concept, matching the math:Cocycle/gluing-family form.
+
+gmeow:eqMathGlobalSectionWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:GlobalSection ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q91783823 ;
+    logic:sourceEndpoint math:GlobalSection ; logic:targetEndpoint wd:Q91783823 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "global section" ;
+    gmeow:comment "math:GlobalSection is a section over the ENTIRE base of a sheaf, an element of H⁰; wd:Q91783823 (global section, aliased 'section of a sheaf') names the same object. Class-to-class identity, so skos:exactMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:WellBehavedLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+gmeow:eqMathGluingObstructionWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:GluingObstruction ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q5572389 ;
+    logic:sourceEndpoint math:GluingObstruction ; logic:targetEndpoint wd:Q5572389 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "gluing axiom" ;
+    gmeow:comment "math:GluingObstruction is the H¹ class recording why local sections may FAIL to satisfy the gluing axiom and lift to a global section; wd:Q5572389 (gluing axiom, 'property defining a sheaf') is the axiom it obstructs. The obstruction-to vs the axiom-itself, so skos:relatedMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .

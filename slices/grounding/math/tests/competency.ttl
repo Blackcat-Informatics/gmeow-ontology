@@ -27,6 +27,7 @@
 @prefix covf:  <http://example.org/math/coverage/> .
 # The worked graded cell complex (examples/graded-cell-complex.ttl).
 @prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
+@prefix exgs:  <https://blackcatinformatics.ca/gmeow/examples/math/global-section/> .
 # The worked chain complex (examples/chain-complex.ttl).
 @prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
 # The conforming chain-complex fixture (tests/conformance-fixtures/chain-complex-square-zero-complete.ttl).
@@ -2441,6 +2442,46 @@ ex:rowCoverageHodgeStalk a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:hodgeComplex ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:hodgeStalk ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:hodgeRestriction ] .
+
+ex:cqGlobalSectionFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/global-section-frame.rq" ;
+    gmeow:cqDataFile "examples/global-section.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A global section exposes its carrier sheaf (math:overSheaf) and the whole base complex it globalises over (math:sectionRegion) as separate reusable data — the H⁰ frame that makes global-versus-local scope inspectable." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGlobalSectionFrameShape ;
+    gmeow:cqExpectRow ex:rowGlobalSectionFrame .
+
+ex:cqGlobalSectionFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "section" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "region" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGlobalSectionFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "section" ; gmeow:cellValueIri exgs:global ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exgs:sheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "region" ; gmeow:cellValueIri exgs:base ] .
+
+ex:cqGluingObstructionFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/gluing-obstruction-frame.rq" ;
+    gmeow:cqDataFile "examples/global-section.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An H¹ gluing obstruction exposes the sheaf whose local-to-global lifting it obstructs (math:obstructionOf) as reusable data — the anchor that keeps the obstruction class from floating free of the sheaf it reasons about." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGluingObstructionFrameShape ;
+    gmeow:cqExpectRow ex:rowGluingObstructionFrame .
+
+ex:cqGluingObstructionFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "obstruction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGluingObstructionFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exgs:obstruction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exgs:sheaf ] .
 
 ex:cqCoverageGradedCell a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/graded-cell-frame.rq" ;

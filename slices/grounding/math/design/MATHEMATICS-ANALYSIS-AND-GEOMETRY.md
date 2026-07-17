@@ -264,6 +264,45 @@ Laplacians, and Hodge decomposition are separate reusable structures. `math:Hodg
 names harmonic, exact, and coexact components rather than treating those readings as intrinsic
 labels on a vector. A sheaf without a base, stalk, or restriction map is structurally incomplete.
 
+#### Global versus local sections — the H¹ gluing obstruction
+
+Sections carry a scope. A `math:GlobalSection` is a section over the **entire** base
+(`math:sectionRegion` = the sheaf's `math:sheafBaseComplex`) whose stalk values restrict
+**consistently** along every `math:SheafRestrictionMap` — it is an element of the degree-zero
+sheaf cohomology H⁰(X; F). A `math:LocalSection` is a section over a **proper subcomplex** only;
+it is the local datum whose compatibility with its neighbours gluing must reconcile. Both name
+their carrier through `math:overSheaf` and their region through `math:sectionRegion`, so
+global-versus-local scope is inspectable rather than implied.
+
+The core sheaf statement — **a computed feature is never automatically global truth** — is exactly
+the cohomological reading H¹ = obstruction-to-gluing. A family of local sections lifts to one global
+section precisely when their pairwise disagreements vanish; the residual disagreement is the
+first-cohomology class H¹(X; F), carried here as `math:GluingObstruction` (`rdfs:seeAlso`
+`math:SheafCohomology`, anchored to its sheaf through `math:obstructionOf`). A non-vanishing
+obstruction certifies that consistent-looking local data does **not** assemble into a global
+feature. This makes the obstruction **executable** rather than declarative:
+
+- `math:MisscopedSectionConstraint` (a cross-node equality, lowered to a SHACL `sh:sparql`
+  constraint) forbids conflating the two scopes — a section typed `math:GlobalSection` whose
+  `math:sectionRegion` is a proper subcomplex rather than the whole base is misscoped
+  (`math:MisscopedSection`).
+- `math:SectionGluingConsistencyConstraint` (a **per-restriction-map** equality in the style of
+  `math:BoundaryCoboundaryAdjunctionConstraint`, never an aggregation) makes the H¹ obstruction
+  bite: along each `math:SheafRestrictionMap` the exact integer `math:stalkValue` at the map's
+  `math:sourceObject` and `math:targetObject` stalks must agree (the identity/constant-transport
+  gluing condition). A single map whose declared endpoint values disagree witnesses that the local
+  data fail to glue (`math:SectionGluingInconsistency`) — presence of a section is not global truth.
+  A section declaring no stalk values glues vacuously.
+
+The frame gates keep the surface honest: a global section must name its `math:overSheaf` and
+`math:sectionRegion` (`math:IncompleteGlobalSection`), a local section must anchor to a sheaf that
+declares actual stalk/restriction semantics (`math:IncompleteSheafSection`) so bare "the sections
+disagree" claims are unauthorable, and an obstruction must name the sheaf it obstructs
+(`math:UnanchoredGluingObstruction`). This global/local surface is the enforcement mechanism for
+**WS-B Req 7** (a computed feature is never automatically global truth): a downstream extension slice
+that computes a feature over a cover states it as local data, and only a discharged
+`math:GluingObstruction` promotes it to a global claim.
+
 ### Hamiltonian systems
 
 A `math:HamiltonianSystem` is framed by exactly one smooth state space, symplectic form,
