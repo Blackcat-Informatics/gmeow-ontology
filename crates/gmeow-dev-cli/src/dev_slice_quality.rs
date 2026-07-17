@@ -14,8 +14,11 @@ use std::path::Path;
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
 use gmeow_slice_quality::ScoringEnv;
-use gmeow_slice_quality::model::{MeasurementStandard, Rubric, SliceAssessment, Tier};
+#[cfg(test)]
+use gmeow_slice_quality::model::{MeasurementStandard, Tier};
+use gmeow_slice_quality::model::{Rubric, SliceAssessment};
 use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
+use gmeow_slice_quality::{resolve_min_tier, tier_gate_passes};
 
 use crate::dev_common::{emit_error, fail, note, project_root};
 use crate::dev_feedback::{diagnostics_env, write_artifacts};
@@ -157,45 +160,6 @@ pub fn slice_quality(
         }
         Err(e) => fail(format!("slice-quality: {e}")),
     }
-}
-
-/// The G11 gate decision for one slice: does `measured` satisfy the `--min-tier`
-/// bar? `required == None` is the advisory case (always passes / exit 0); otherwise
-/// the ladder's total order (`Tier::sort_key`) decides, so measured must be at or
-/// above the required tier. This is the single source of truth for both the
-/// single-slice and `--all` sweep gates.
-#[must_use]
-fn tier_gate_passes(measured: &Tier, required: Option<&Tier>) -> bool {
-    match required {
-        None => true,
-        Some(req) => measured.sort_key() >= req.sort_key(),
-    }
-}
-
-/// Resolve a `--min-tier` argument against the rubric ladder, accepting either a
-/// tier's human label (`Grounded`) or its IRI local name (`tierGrounded`),
-/// case-insensitively. Returns a clear error naming the available rungs on an
-/// unknown tier — a HARD FAIL, never a silently-ignored gate request.
-fn resolve_min_tier<'a>(
-    standard: &'a MeasurementStandard,
-    name: &str,
-) -> gmeow_errors::Result<&'a Tier> {
-    let local_of =
-        |iri: &str| -> String { iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned() };
-    if let Some(t) = standard
-        .tiers
-        .iter()
-        .find(|t| t.label.eq_ignore_ascii_case(name) || local_of(&t.iri).eq_ignore_ascii_case(name))
-    {
-        return Ok(t);
-    }
-    let mut rungs: Vec<&Tier> = standard.tiers.iter().collect();
-    rungs.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
-    let known: Vec<String> = rungs.iter().map(|t| t.label.clone()).collect();
-    Err(sqe(format!(
-        "slice-quality: unknown --min-tier {name:?} (want one of: {})",
-        known.join(", ")
-    )))
 }
 
 /// Score every discovered slice against one loaded rubric and print a roll-up
