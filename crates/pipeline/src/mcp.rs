@@ -711,6 +711,11 @@ pub struct McpView {
     /// view; rebuilding it for each SPARQL query copies the same whole graph and turns
     /// a single card into several bundle-scale scans.
     documentation: OnceLock<Arc<purrdf::RdfDataset>>,
+    /// The authoring-briefs named graph projected to a default-graph dataset once per
+    /// server — the per-slice `gmeow:AuthoringPacket` corpus the `slice_brief` tool
+    /// serves straight out of the bundle. Cached like `documentation`: projecting the
+    /// whole (bundle-scale) briefs graph per call would rescan the entire corpus.
+    authoring_briefs: OnceLock<Arc<purrdf::RdfDataset>>,
     /// The JSON Schema `$defs` key set folded into this bundle's `schemas-archive`
     /// blob — the model-existence signal `export::term_to_card`'s `python_model`
     /// gate reads (built once from `gts`, like `doc_urls`; see [`Self::modeled_defs`]).
@@ -747,6 +752,7 @@ impl McpView {
             cache: Mutex::new(HashMap::new()),
             doc_urls: OnceLock::new(),
             documentation: OnceLock::new(),
+            authoring_briefs: OnceLock::new(),
             modeled_defs: OnceLock::new(),
             gts,
             tier1_shapes: OnceLock::new(),
@@ -1827,6 +1833,17 @@ impl McpView {
         })
     }
 
+    /// The authoring-briefs graph re-rooted to the default graph, projected once and
+    /// shared by every `slice_brief` call for this server.
+    fn authoring_briefs(&self) -> &Arc<purrdf::RdfDataset> {
+        self.authoring_briefs.get_or_init(|| {
+            Arc::new(
+                self.dataset
+                    .project_named_graph(crate::stages::carrier::GRAPH_AUTHORING_BRIEFS),
+            )
+        })
+    }
+
     /// The `term-IRI → site URL` map, built once from the documentation graph and
     /// cached (language-independent).
     fn doc_urls(&self) -> Arc<HashMap<String, String>> {
@@ -2241,6 +2258,21 @@ impl McpServer {
                  missing or malformed slice directory is a hard error.",
                 &[("path", "string")],
             ),
+            tool(
+                "slice_brief",
+                "Serve the pre-assembled authoring packet(s) for a slice straight from the bundle: \
+                 the covered-term IRIs, their present fr/zh/external grounding cells, exemplars, \
+                 and coverage margins, as structured JSON plus canonical turtle. `slice` is a \
+                 slice short-name (e.g. `ai`) or a full slice IRI; the OPTIONAL `axis` (default \
+                 `whole`) and `batch` narrow the result. A slice/axis/batch with no packet is a \
+                 hard error. Resolve each covered-term IRI to its full definition/axioms via \
+                 `lookup_term` / `doc_card`.",
+                &[
+                    ("slice", "string"),
+                    ("axis", "string"),
+                    ("batch", "integer"),
+                ],
+            ),
         ];
         if self.mode.includes_dev_tools() {
             tools.extend([
@@ -2325,6 +2357,7 @@ impl McpServer {
             "entailments" => self.tool_entailments(args),
             "competency_questions" => self.tool_competency_questions(args),
             "slice_quality" => self.tool_slice_quality(args),
+            "slice_brief" => self.tool_slice_brief(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "sync" if self.mode.includes_dev_tools() => self.tool_sync(),
@@ -3185,6 +3218,22 @@ impl McpServer {
         .to_string())
     }
 
+    /// Serve the pre-assembled `gmeow:AuthoringPacket`(s) for one slice straight from
+    /// the embedded bundle graph — a checkout-free consumer surface. `slice` is a slice
+    /// short-name (`ai`) or full slice IRI; the optional `axis` (default `whole`, the
+    /// only axis the pipeline currently partitions along) and `batch` narrow the result.
+    /// A slice/axis/batch with no packet in the bundle is a hard error (never a vacuous
+    /// empty pass). The covered-term IRIs the packet lists resolve to their full
+    /// definition/axiom content through the existing `lookup_term` / `doc_card` tools.
+    fn tool_slice_brief(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let slice = required_str(args, "slice")?;
+        let axis = optional_str(args, "axis");
+        let batch = optional_step_count(args, "batch")?;
+        let slice_iri = expand_slice_iri(slice);
+        let out = extract_authoring_packets(self.view.authoring_briefs(), &slice_iri, axis, batch)?;
+        Ok(out.to_string())
+    }
+
     fn tool_sync(&self) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
         let jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
@@ -3836,6 +3885,7 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                     | "claim_id"
                     | "conjecture_id"
                     | "path"
+                    | "slice"
                     | "target_iri"
                     | "data"
                     | "format"
@@ -5264,6 +5314,265 @@ fn claim_json(claim: &purrdf::gts::examples::agent_memory::Claim) -> Value {
     })
 }
 
+// ── slice_brief: serve pre-assembled AuthoringPackets from the bundle graph ───────
+//
+// The per-slice `gmeow:AuthoringPacket` corpus is folded into `gmeow.gts` as the named
+// graph `gmeow:graph/authoring-briefs` (see `stages::carrier`). Serving a packet is a
+// checkout-free projection of that graph — no repo, no SHACL shape union, no live
+// re-assembly. The bundle carries the SPARSE packet body (covered-term IRIs, present
+// fr/zh/external grounding cells, exemplars, and coverage margins); each covered term's
+// full definition/axiom content stays in the base graph, reachable per IRI via
+// `lookup_term` / `doc_card`.
+
+/// Expand a `slice_brief` slice argument to a full slice IRI: a value already carrying a
+/// scheme is used verbatim; a bare short-name (`ai`) becomes `{GMEOW_NS}slices/{name}` —
+/// the `gmeow:packetSourceSlice` shape the bundle carries.
+fn expand_slice_iri(slice: &str) -> String {
+    if slice.contains("://") {
+        slice.to_string()
+    } else {
+        format!("{GMEOW_NS}slices/{}", slice.trim_start_matches('/'))
+    }
+}
+
+/// The first object of `pred` among a subject's edges, as an IRI string.
+fn iri_object<'a>(edges: &'a [(String, RdfTerm)], pred: &str) -> Option<&'a str> {
+    edges.iter().find_map(|(p, o)| match o {
+        RdfTerm::Iri(iri) if p == pred => Some(iri.as_str()),
+        _ => None,
+    })
+}
+
+/// The first object of `pred` among a subject's edges, as a literal lexical form.
+fn lit_object<'a>(edges: &'a [(String, RdfTerm)], pred: &str) -> Option<&'a str> {
+    edges.iter().find_map(|(p, o)| match o {
+        RdfTerm::Literal(l) if p == pred => Some(l.lexical_form.as_str()),
+        _ => None,
+    })
+}
+
+/// Every IRI object of `pred` among a subject's edges, in edge order.
+fn iri_objects(edges: &[(String, RdfTerm)], pred: &str) -> Vec<String> {
+    edges
+        .iter()
+        .filter_map(|(p, o)| match o {
+            RdfTerm::Iri(iri) if p == pred => Some(iri.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The first integer object of `pred` (a non-negative count/index literal).
+fn int_object(edges: &[(String, RdfTerm)], pred: &str) -> Option<i64> {
+    lit_object(edges, pred).and_then(|s| s.parse::<i64>().ok())
+}
+
+/// Read one `gmeow:GroundingCoverage` cell subject into JSON — the present fr/zh/external
+/// incidences the packet materializes (fr/zh translations ride `gmeow:groundingValue`).
+fn grounding_cell_json(cell_iri: &str, edges: &[(String, RdfTerm)]) -> Value {
+    let g = |local: &str| format!("{GMEOW_NS}{local}");
+    let attribute = iri_object(edges, &g("groundingAttribute"))
+        .map(|iri| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string());
+    let mut obj = serde_json::Map::new();
+    obj.insert("cell".to_string(), json!(cell_iri));
+    obj.insert(
+        "term".to_string(),
+        json!(iri_object(edges, &g("groundingTerm"))),
+    );
+    obj.insert("attribute".to_string(), json!(attribute));
+    if let Some(v) = lit_object(edges, &g("groundingPredicate")) {
+        obj.insert("predicate".to_string(), json!(v));
+    }
+    if let Some(v) = lit_object(edges, &g("groundingValue")) {
+        obj.insert("value".to_string(), json!(v));
+    }
+    if let Some(v) = iri_object(edges, &g("groundingExternalEntity")) {
+        obj.insert("external_entity".to_string(), json!(v));
+    }
+    if let Some(v) = lit_object(edges, &g("groundingExternalLabel")) {
+        obj.insert("external_label".to_string(), json!(v));
+    }
+    if let Some(v) = lit_object(edges, &g("groundingAlignPredicate")) {
+        obj.insert("align_predicate".to_string(), json!(v));
+    }
+    if let Some(v) =
+        lit_object(edges, &g("groundingConfidence")).and_then(|s| s.parse::<f64>().ok())
+    {
+        obj.insert("confidence".to_string(), json!(v));
+    }
+    if lit_object(edges, &g("groundingConflict")) == Some("true") {
+        obj.insert("conflict".to_string(), json!(true));
+        if let Some(v) = iri_object(edges, &g("groundingConflictWith")) {
+            obj.insert("conflict_with".to_string(), json!(v));
+        }
+    }
+    Value::Object(obj)
+}
+
+/// Extract the authoring packet(s) for one slice from the bundle's projected
+/// `graph/authoring-briefs` dataset. Returns a JSON envelope carrying a structured
+/// reading of every matching packet PLUS the packet subgraph as canonical turtle (the
+/// byte-reconstructible surface the pipeline folded). A slice/axis/batch with no
+/// matching packet is a HARD FAIL — never a vacuous `ok:true` empty result.
+///
+/// This is the SINGLE packet-extraction core shared by the `slice_brief` MCP tool and
+/// the `gmeow slice brief --from-bundle` CLI path (one implementation, not two).
+pub fn extract_authoring_packets(
+    briefs: &purrdf::RdfDataset,
+    slice_iri: &str,
+    axis: Option<&str>,
+    batch: Option<u64>,
+) -> gmeow_errors::Result<Value> {
+    let err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
+    let packet_prefix = format!("{slice_iri}/authoring-packet/");
+    let source_slice_p = format!("{GMEOW_NS}packetSourceSlice");
+    let grounding_p = format!("{GMEOW_NS}packetGrounding");
+
+    // Collect the slice's subgraph: every packet node and its grounding-cell nodes share
+    // the packet-IRI prefix (turtle.rs mints stable IRIs, never blank nodes), so one
+    // prefix scan captures exactly this slice's briefs and nothing else.
+    let mut subjects: BTreeMap<String, Vec<(String, RdfTerm)>> = BTreeMap::new();
+    for quad in briefs.owned_quads() {
+        let RdfTerm::Iri(subj) = &quad.subject else {
+            continue;
+        };
+        if !subj.starts_with(&packet_prefix) {
+            continue;
+        }
+        subjects
+            .entry(subj.clone())
+            .or_default()
+            .push((quad.predicate.clone(), quad.object.clone()));
+    }
+
+    // A packet subject is `{slice}/authoring-packet/{axis}/batch-{n}` with `n` a bare
+    // integer; a cell appends `/cell/...` so its `batch-` suffix does not parse as an
+    // integer. That structure (plus a `packetSourceSlice` edge) identifies packets, and
+    // the optional axis/batch selectors narrow them.
+    let mut selected: Vec<(String, String, u64)> = Vec::new(); // (packet_iri, axis, batch)
+    for (subj, edges) in &subjects {
+        let Some(rest) = subj.strip_prefix(&packet_prefix) else {
+            continue;
+        };
+        let Some((axis_seg, batch_seg)) = rest.split_once("/batch-") else {
+            continue;
+        };
+        let Ok(batch_n) = batch_seg.parse::<u64>() else {
+            continue; // a cell, not a packet
+        };
+        if !edges.iter().any(|(p, _)| p == &source_slice_p) {
+            continue;
+        }
+        if axis.is_some_and(|a| axis_seg != a) {
+            continue;
+        }
+        if batch.is_some_and(|b| batch_n != b) {
+            continue;
+        }
+        selected.push((subj.clone(), axis_seg.to_string(), batch_n));
+    }
+    selected.sort();
+
+    if selected.is_empty() {
+        let sel = match (axis, batch) {
+            (Some(a), Some(b)) => format!(" (axis `{a}`, batch {b})"),
+            (Some(a), None) => format!(" (axis `{a}`)"),
+            (None, Some(b)) => format!(" (batch {b})"),
+            (None, None) => String::new(),
+        };
+        return Err(err(format!(
+            "slice_brief: no authoring packet for slice <{slice_iri}>{sel} in the bundle"
+        )));
+    }
+
+    // Build the JSON reading and gather the subgraph subjects (packets + their cells) to
+    // serialize as canonical turtle.
+    let mut emit_subjects: BTreeSet<String> = BTreeSet::new();
+    let mut packets_json: Vec<Value> = Vec::new();
+    for (packet_iri, axis_seg, batch_n) in &selected {
+        emit_subjects.insert(packet_iri.clone());
+        let edges = &subjects[packet_iri];
+        let cells = iri_objects(edges, &grounding_p);
+        let mut grounding: Vec<Value> = Vec::new();
+        for cell in &cells {
+            emit_subjects.insert(cell.clone());
+            if let Some(cell_edges) = subjects.get(cell) {
+                grounding.push(grounding_cell_json(cell, cell_edges));
+            }
+        }
+        packets_json.push(json!({
+            "packet_iri": packet_iri,
+            "source_slice": iri_object(edges, &source_slice_p),
+            "axis": axis_seg,
+            "batch": batch_n,
+            "digest": lit_object(edges, &format!("{GMEOW_NS}packetDigest")),
+            "term_count": int_object(edges, &format!("{GMEOW_NS}packetTermCount")),
+            "exemplar_shortfall": int_object(edges, &format!("{GMEOW_NS}exemplarShortfall")),
+            "margins": {
+                "fr_present": int_object(edges, &format!("{GMEOW_NS}packetFrPresent")),
+                "fr_absent": int_object(edges, &format!("{GMEOW_NS}packetFrAbsent")),
+                "zh_present": int_object(edges, &format!("{GMEOW_NS}packetZhPresent")),
+                "zh_absent": int_object(edges, &format!("{GMEOW_NS}packetZhAbsent")),
+                "external_mapped": int_object(edges, &format!("{GMEOW_NS}packetExternalMapped")),
+                "external_absent": int_object(edges, &format!("{GMEOW_NS}packetExternalAbsent")),
+            },
+            "covers_terms": iri_objects(edges, &format!("{GMEOW_NS}packetCoversTerm")),
+            "exemplars": iri_objects(edges, &format!("{GMEOW_NS}packetExemplar")),
+            "grounding": grounding,
+        }));
+    }
+
+    // Canonical turtle of exactly the selected packet subgraph — the same bytes the
+    // pipeline folded, reconstructed from the projected graph.
+    let mut builder = RdfDatasetBuilder::new();
+    for subj in &emit_subjects {
+        let s = RdfTerm::iri(subj.clone());
+        for (pred, obj) in &subjects[subj] {
+            builder.push_owned_quad(&RdfQuad::new(s.clone(), pred.clone(), obj.clone()));
+        }
+    }
+    let subgraph = builder.freeze().map_err(|e| {
+        err(format!(
+            "slice_brief: packet subgraph failed to freeze: {e}"
+        ))
+    })?;
+    let nt = purrdf::serialize_dataset(
+        &subgraph,
+        "application/n-triples",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| err(format!("slice_brief: serialize packet subgraph: {e}")))?;
+    let turtle =
+        purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+            .map_err(|m| err(format!("slice_brief: canonicalize packet turtle: {m}")))?;
+
+    Ok(json!({
+        "slice": slice_iri,
+        "packet_count": packets_json.len(),
+        "packets": packets_json,
+        "turtle": turtle,
+    }))
+}
+
+/// Serve authoring packets for one slice directly from `gmeow.gts` snapshot bytes — the
+/// `gmeow slice brief --from-bundle` path. Imports the bundle, projects the
+/// authoring-briefs graph, and runs the SAME [`extract_authoring_packets`] core the MCP
+/// `slice_brief` tool uses (one implementation, not two).
+pub fn slice_brief_from_bundle(
+    snapshot: &[u8],
+    slice: &str,
+    axis: Option<&str>,
+    batch: Option<u64>,
+) -> gmeow_errors::Result<Value> {
+    let bundle =
+        purrdf::import_gts_events(snapshot).with_ctx(|| "read snapshot gmeow.gts".to_string())?;
+    let briefs = bundle
+        .dataset
+        .project_named_graph(crate::stages::carrier::GRAPH_AUTHORING_BRIEFS);
+    let slice_iri = expand_slice_iri(slice);
+    extract_authoring_packets(&briefs, &slice_iri, axis, batch)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -5550,6 +5859,94 @@ mod tests {
         assert_eq!(
             not_a_slice["ok"], false,
             "a non-slice directory must hard-fail: {not_a_slice}"
+        );
+    }
+
+    #[test]
+    fn slice_brief_tool_serves_packet_with_fr_grounding_in_consumer_mode() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        // CONSUMER mode (root: None) serves the packet purely from the embedded
+        // `graph/authoring-briefs` corpus — no checkout. The `lang` slice batch 14
+        // carries a present French grounding cell, so this also proves fr/zh grounding
+        // survives the bundle round-trip (AC4).
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let out = text_payload(
+            server.call_tool_result("slice_brief", &json!({"slice": "lang", "batch": 14})),
+        );
+
+        assert!(
+            out.get("ok").is_none(),
+            "a served packet carries no error envelope: {out}"
+        );
+        assert_eq!(
+            out["slice"], "https://blackcatinformatics.ca/gmeow/slices/lang",
+            "short-name expanded to the full slice IRI: {out}"
+        );
+        assert_eq!(out["packet_count"], 1, "exactly the requested batch: {out}");
+        let packet = &out["packets"][0];
+        assert_eq!(packet["axis"], "whole");
+        assert_eq!(packet["batch"], 14);
+        assert!(
+            packet["digest"].is_string(),
+            "packet digest present: {packet}"
+        );
+        assert!(
+            packet["term_count"].as_i64().is_some_and(|n| n > 0),
+            "packet covers terms: {packet}"
+        );
+        assert!(
+            packet["covers_terms"]
+                .as_array()
+                .is_some_and(|a| !a.is_empty()),
+            "covered-term IRIs listed: {packet}"
+        );
+        // AC4: a French translation cell survives with its JOINed value.
+        let grounding = packet["grounding"].as_array().expect("grounding array");
+        let fr = grounding
+            .iter()
+            .find(|c| c["attribute"] == "groundingFr" && c["value"].is_string());
+        assert!(
+            fr.is_some(),
+            "a present French grounding value survives the round-trip: {packet}"
+        );
+        // The canonical turtle is the byte-reconstructible surface the bundle folded.
+        let turtle = out["turtle"].as_str().expect("turtle string");
+        assert!(
+            turtle.contains("AuthoringPacket") && turtle.contains("packetSourceSlice"),
+            "turtle carries the packet body"
+        );
+    }
+
+    #[test]
+    fn slice_brief_tool_hard_fails_on_unknown_slice() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // No packet for the slice → explicit hard error, never a vacuous empty pass.
+        let miss = text_payload(
+            server.call_tool_result("slice_brief", &json!({"slice": "no-such-slice-xyz"})),
+        );
+        assert_eq!(miss["ok"], false, "unknown slice must hard-fail: {miss}");
+
+        // A real slice but an out-of-range batch also hard-fails.
+        let bad_batch = text_payload(
+            server.call_tool_result("slice_brief", &json!({"slice": "lang", "batch": 99999})),
+        );
+        assert_eq!(
+            bad_batch["ok"], false,
+            "an out-of-range batch must hard-fail: {bad_batch}"
         );
     }
 

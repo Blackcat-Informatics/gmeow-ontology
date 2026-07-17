@@ -376,9 +376,17 @@ pub enum SliceCommands {
     /// committed `generated/briefs/authoring-packets.nt` is the canonical repo projection
     /// of this brief for in-repo slices; this command is its live, checkout-free twin.
     Brief {
-        /// Path to the slice directory to brief.
-        dir: PathBuf,
-        /// Restrict to the subdomain axis (defined-term local-name prefix).
+        /// Path to the slice directory to brief by LIVE re-assembly over the slice's own
+        /// sources (needs a checkout with `generated/shapes/`). Mutually exclusive with
+        /// `--from-bundle`; exactly one of the two must be given.
+        dir: Option<PathBuf>,
+        /// Serve the PRE-ASSEMBLED packet(s) for this slice (short-name `ai` or full slice
+        /// IRI) straight from the embedded gmeow.gts bundle — checkout-free. Mutually
+        /// exclusive with `dir`.
+        #[arg(long = "from-bundle")]
+        from_bundle: Option<String>,
+        /// Restrict to the subdomain axis (defined-term local-name prefix; bundle default
+        /// `whole`).
         #[arg(long)]
         axis: Option<String>,
         /// The zero-based batch index of the 25-term chunk to cover (out of range
@@ -641,10 +649,18 @@ pub fn run() -> i32 {
             } => commands::slice_lint(reporter, &dir, min_tier.as_deref(), &format),
             SliceCommands::Brief {
                 dir,
+                from_bundle,
                 axis,
                 batch,
                 format,
-            } => commands::slice_brief(reporter, &dir, axis.as_deref(), batch, &format),
+            } => commands::slice_brief(
+                reporter,
+                dir.as_deref(),
+                from_bundle.as_deref(),
+                axis.as_deref(),
+                batch,
+                &format,
+            ),
             SliceCommands::ProjectionCeilings { format } => {
                 commands::slice_projection_ceilings(reporter, &format)
             }
