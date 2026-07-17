@@ -1483,6 +1483,15 @@ pub enum Gmn1Error {
     /// time (no optionality), never a silent normalization. `lexical` is the offending
     /// form.
     NonNfcLiteral { lexical: String },
+    /// `lang:GmnNonDecodableGrammar` — a PER-CLAIM localization of the whole-model
+    /// round-trip failure [`round_trip_check`] already discharges: `decode(encode(GMN-0))`
+    /// did not reproduce the canonical GMN-0 for the claim (canonical-subject group)
+    /// `subject`. This is NOT a new failure class — it is the SAME mnemomorphic
+    /// round-trip guarantee, localized to the offending canonical subject so a conformance
+    /// witness can name WHICH claim diverged (the per-claim inversion witness).
+    /// `subject` is the canonical-subject rendering (`<iri>`, `_:c14nN`, or the standalone
+    /// leg's model-subject key) whose partition digest disagreed.
+    PerClaimMismatch { subject: String },
 }
 
 impl Gmn1Error {
@@ -1531,6 +1540,10 @@ impl Gmn1Error {
             Self::UndeclaredDialectVersion { .. } => Self::CLASS_UNDECLARED_DIALECT_VERSION,
             Self::NonDecodableGrammar { .. } => Self::CLASS_NON_DECODABLE_GRAMMAR,
             Self::NonNfcLiteral { .. } => Self::CLASS_NON_CANONICAL_CODEPOINT,
+            // A per-claim mismatch REUSES the whole-model round-trip class — it is the
+            // SAME mnemomorphic guarantee localized to one canonical subject, never a
+            // second vocabulary class (GREENFIELD, one classifier).
+            Self::PerClaimMismatch { .. } => Self::CLASS_NON_DECODABLE_GRAMMAR,
         }
     }
 }
@@ -1561,6 +1574,11 @@ impl std::fmt::Display for Gmn1Error {
                 f,
                 "lang:GmnNonCanonicalCodepoint: literal lexical form {lexical:?} is not \
                  NFC-normalized"
+            ),
+            Self::PerClaimMismatch { subject } => write!(
+                f,
+                "lang:GmnNonDecodableGrammar: per-claim round-trip mismatch at canonical \
+                 subject {subject} (decode(encode(GMN-0)) did not reproduce this claim)"
             ),
         }
     }
@@ -4441,6 +4459,14 @@ ex:fixtureDenotation a lang:Denotation ;
         assert_eq!(
             Gmn1Error::NonDecodableGrammar {
                 detail: "x".to_owned()
+            }
+            .failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"
+        );
+        // A per-claim mismatch REUSES the whole-model round-trip class, never a new one.
+        assert_eq!(
+            Gmn1Error::PerClaimMismatch {
+                subject: "<https://blackcatinformatics.ca/gmeow/gate2>".to_owned()
             }
             .failure_class(),
             "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"

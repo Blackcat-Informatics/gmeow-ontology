@@ -31,6 +31,7 @@ pub mod engine;
 pub mod error;
 pub mod gmn1_codec;
 pub mod gmn1_digest;
+pub mod gmn1_witness;
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -63,6 +64,10 @@ pub use gmn1_codec::{
     resolve_current_codebook, round_trip_check,
 };
 pub use gmn1_digest::{codebook_digest, content_digest};
+pub use gmn1_witness::{
+    StandaloneReport, compare_claim_partitions, idempotence_check, partition_by_subject,
+    per_claim_round_trip_check, per_claim_standalone_check,
+};
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
     grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
