@@ -388,3 +388,28 @@ ex:rowRingWithinTrustedRestricted a gmeow:ExpectedRow ;
 ex:rowRingWithinCoreRestricted a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "x" ; gmeow:cellValueIri gmeow:gmnRingCore ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "y" ; gmeow:cellValueIri gmeow:gmnRingRestricted ] .
+
+# === Q — a term's agreed per-language glossary rendering ==================== #
+
+ex:cqGlossaryRendering a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/glossary-term-rendering.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/glossary-term-consistent.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The derived gmeow:Glossary answers 'how is term X rendered in the target language?': over the consistent fixture the class lang:ComposedForm and its property twin lang:composedForm both render as \"forme composée\" — a slice's agreed terminology, queryable directly from gmeow.gts." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGlossaryRenderingShape ;
+    gmeow:cqExpectRow ex:rowGlossComposedFormClass , ex:rowGlossComposedFormProp .
+
+ex:cqGlossaryRenderingShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "rendering" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGlossComposedFormClass a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri lang:ComposedForm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rendering" ; gmeow:cellValueLiteral "forme composée" ] .
+
+ex:rowGlossComposedFormProp a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri lang:composedForm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rendering" ; gmeow:cellValueLiteral "forme composée" ] .
