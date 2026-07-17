@@ -55,7 +55,7 @@ exh:rCA a math:SheafRestrictionMap ;
 
 # The discrete connection is the sheaf's restriction maps; it is FLAT because its
 # transport cochain is a math:Cocycle (closed): flat ⇔ closed.
-exh:discreteConnection a math:FlatConnection ;
+exh:discreteConnection a math:FlatConnection , math:Connection ;
     rdfs:label "the discrete (sheaf) connection — flat"@x-gmeow-english ;
     math:connectionOfSheaf exh:loopSheaf ;
     math:connectionOn exh:loopSheaf ;

@@ -41,6 +41,18 @@ pub mod rdfs {
     pub const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 }
 
+/// GMEOW `logic:` namespace constants (`https://blackcatinformatics.ca/logic/`).
+///
+/// The `logic:` core is the CANONICAL subsumption vocabulary in this codebase
+/// (`rdfs:subClassOf` is a Principle-17 lossy projection of it), so any structural
+/// traversal that must see the full subsumption lattice — the OntoUML sortal
+/// identity checks especially — reads `logic:subClassOf` alongside `rdfs:subClassOf`.
+pub mod logic {
+
+    /// `logic:subClassOf` — the canonical subsumption edge (grounded twin of `rdfs:subClassOf`).
+    pub const SUB_CLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+}
+
 /// OWL namespace constants (`http://www.w3.org/2002/07/owl#`).
 pub mod owl {
 

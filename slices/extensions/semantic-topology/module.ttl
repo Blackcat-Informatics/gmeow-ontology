@@ -31,7 +31,7 @@ gmeow:ComplexCompilation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Complex Compilation"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf gmeow:Activity ;
     skos:definition "The attributed activity that compiles the core claim/evidence spine (gmeow:Source → gmeow:Chunk → gmeow:EvidenceSpan → gmeow:Claim, Principle 14) into a declared topological carrier: a math:CellComplex or math:SimplicialComplex (gmeow:compilesToComplex) together with a math:Filtration (gmeow:compilesToFiltration) over it. It reads the claim/evidence structure through gmeow:compilesEvidence, records the per-cell provenance back to the spans through a gmeow:CellSourceCorrespondence (gmeow:recordsCorrespondence), and records what the compilation preserved or dropped through a gmeow:CompilationPreservationRecord (gmeow:recordsPreservation). Its build provenance rides the EXISTING gmeow:wasGeneratedBy / gmeow:wasDerivedFrom, and its epistemic context rides gmeow:compilationStandpoint / gmeow:compilationWorld / gmeow:compilationTimeScope / gmeow:compilationScenario. It is NOT the downstream gmeow:TopologyComputation that runs persistent homology over the produced complex (that is a distinct activity binding compilation → computation → result), and it is NOT itself a math: object — it is the occurrent that MAKES one from evidence. A compilation lacking its correspondence or preservation record is ill-formed (gmeow:CompilationMustRecordCorrespondence / gmeow:CompilationMustRecordLoss); one lacking its standpoint/world/time context is gmeow:CompilationMissingContext."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -127,7 +127,7 @@ gmeow:CellSourceCorrespondence
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Cell-Source Correspondence"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "The per-compilation record mapping the cells of a compiled complex back to the evidence spans they were built from — the audit trail that makes a compiled topology traceable to its sources. Its member edges are gmeow:correspondenceCell (this record → math:Cell, the row-membership edge SCOPING which cells the record covers) composed with that cell's own gmeow:cellSource (math:Cell → gmeow:EvidenceSpan, ⊑ gmeow:wasDerivedFrom); a correspondence naming NO gmeow:correspondenceCell row is a black box wearing an audit-record label (gmeow:CompilationMustRecordCorrespondence rejects it — Principle 17 forbids a record that names nothing). It is the object a gmeow:ComplexCompilation gmeow:recordsCorrespondence. It is NOT a gmeow:CompilationPreservationRecord (which records what was LOST, not the provenance mapping), and NOT itself a math: object — it is an information object ABOUT the compilation's provenance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -146,7 +146,7 @@ gmeow:cellSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "cell source"@x-gmeow-english ;
     rdfs:range gmeow:EvidenceSpan ;
-    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    logic:subPropertyOf gmeow:wasDerivedFrom ;
     skos:definition "Relates a math:Cell of a compiled complex to the gmeow:EvidenceSpan it was derived from — the atomic cell↔source correspondence edge. A subproperty of the EXISTING gmeow:wasDerivedFrom (it REUSES the provenance spine rather than minting a parallel one), so a cell's evidence provenance participates in ordinary derivation queries. Non-functional: a cell may aggregate several spans. It is NOT gmeow:compilesEvidence (a compilation-level input edge), and it is NOT gmeow:correspondenceCell (the record-membership edge that scopes which cells a given gmeow:CellSourceCorrespondence covers); gmeow:cellSource is the fine-grained per-cell provenance the row's other half completes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -159,7 +159,7 @@ gmeow:CompilationPreservationRecord
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation Preservation Record"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "The per-compilation record carrying the preservation/loss judgment of a gmeow:ComplexCompilation, stated in the SHIPPED logic: loss-ledger vocabulary and NOTHING new: it names its rung through EXACTLY ONE logic:preservationKind (logic:ExactPreservation when the compilation is lossless; logic:SoundUnderApproximation, logic:CompleteOverApproximation, logic:ValidationOnly, or logic:Unsupported when it drops, adds, or cannot express distinctions — the closed logic:PreservationKind ledger, reused verbatim), and, for any kind OTHER than logic:ExactPreservation, MUST also point at a logic:ExpressivenessBoundary through logic:expressivenessBoundary (gmeow:CompilationPreservationBoundaryConstraint). A record naming no kind at all, or a lossy/unsupported kind naming no boundary, is a hollow ledger entry that only LOOKS honest. This slice mints NO preservation vocabulary — it reuses the ledger exactly as math: does. It is NOT a gmeow:CellSourceCorrespondence (provenance mapping, not loss), and NOT an assertion that the compiled topology is TRUE — only that the compilation is honest about what it preserved."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -167,7 +167,7 @@ gmeow:CompilationPreservationRecord
 # min/max-qualified restriction pair, mirroring the StandpointClaim/observationMethod
 # exact-one pattern in slices/core/epistemics/module.ttl) — a record naming zero kinds
 # is caught here as sh:minCount 1, never left to pass vacuously.
-gmeow:CompilationPreservationRecord rdfs:subClassOf
+gmeow:CompilationPreservationRecord logic:subClassOf
     [ a owl:Restriction ; owl:onProperty logic:preservationKind ; owl:minQualifiedCardinality 1 ; owl:onClass logic:PreservationKind ] ,
     [ a owl:Restriction ; owl:onProperty logic:preservationKind ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:PreservationKind ] .
 
@@ -180,7 +180,7 @@ gmeow:TopologyComputation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Computation"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf gmeow:Activity ;
     skos:definition "The definite bridge activity that binds a compilation to a computation to a result: it runs over the math:Filtration a gmeow:ComplexCompilation produced (gmeow:computationOverCompilation), employs a math:PersistentHomology analysis (gmeow:employsAnalysis, the SHIPPED persistence activity), and produces a gmeow:TopologyResult (gmeow:producesResult) that REFERENCES a raw math: artifact (a math:PersistenceDiagram / math:PersistenceBarcode / math:PersistenceLandscape / math:BettiSummary / math:HodgeDecomposition / math:Holonomy) through gmeow:resultArtifact. It is NOT the upstream gmeow:ComplexCompilation (which MAKES the complex; this RUNS over it), NOT the math:PersistentHomology it employs (that is the shipped analysis referent, this is the consumer-side occurrent that invokes it), and its gmeow:producesResult MUST point at a gmeow:TopologyResult wrapper, never directly at a raw math: object (gmeow:ResultObjectConflation)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -217,7 +217,7 @@ gmeow:TopologyResult
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Result"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf gmeow:InformationObject ;
     skos:definition "The consumer-side result artifact a gmeow:TopologyComputation produces: an information object that REFERENCES the raw math: output (through gmeow:resultArtifact → a math:PersistenceDiagram / math:PersistenceBarcode / math:PersistenceLandscape / math:BettiSummary / math:HodgeDecomposition / math:Holonomy) without BEING it. Keeping the result a distinct wrapper is what lets the computation's output be attributed, versioned, and wrapped by a claim, while the referenced math: object stays the pure mathematical referent. It is NOT itself a math: object (a gmeow:TopologyResult typed as a math: object is gmeow:ResultObjectConflation), and NOT a gmeow:TopologyClaim — a result is a computed feature, and turning it into a truth-apt claim over a standpoint is the separate gmeow:TopologyClaim step."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -247,12 +247,12 @@ gmeow:assertsGlobalTruth
 # =========================================================================== #
 
 gmeow:TopologyClaim
-    a logic:Kind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Claim"@x-gmeow-english ;
     rdfs:seeAlso gmeow:Finding ;
-    rdfs:subClassOf gmeow:StandpointClaim ;
+    logic:subClassOf gmeow:StandpointClaim ;
     skos:definition "The truth-apt wrapper around a computed topological feature: a gmeow:StandpointClaim (the EL-safe governing axiom, gmeow:TopologyClaim ⊑ gmeow:StandpointClaim) attributed to its standpoint/agent vantage (gmeow:vantage, ⊑ gmeow:accordingTo) with an observation method and a gmeow:Finding-carried defeasible status, carrying its computed feature as a math:LocalSection (gmeow:claimLocalSection) over that standpoint's SUB-evidence. A local section is NOT a global truth: the claim asserts global truth ONLY when the local data extend to a math:GlobalSection (gmeow:extendsToGlobalSection, degree-zero sheaf cohomology H⁰) AND the H¹ math:GluingObstruction is discharged (gmeow:dischargesObstruction) — the obstruction is the computable witness of why consistent local features may NOT glue into one global section. The claim carries a warranted logic:confidence (NEVER a raw logic:probability) via a math:StabilityCalibrationRecord underwritten by math:bottleneckStabilityTheorem (gmeow:wasDerivedFrom the record). It is NOT an asserted logic:Formula or a global truth bit: a computed feature lands as a vantage-attributed claim, never as an assertion in the base graph. It is NOT a gmeow:TopologyResult (the raw computed feature) — it is the standpoint-relative, defeasible claim ABOUT one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -302,7 +302,11 @@ gmeow:dischargesObstruction
     skos:definition "Relates a gmeow:TopologyClaim to the math:GluingObstruction (the H¹ obstruction-to-gluing class) it has discharged — the computable witness whose VANISHING certifies that the standpoint's local sections do glue into one math:GlobalSection. A claim asserting a global truth MUST discharge its obstruction: the non-vanishing of H¹ is exactly the computable reason consistent local features may fail to assemble into global truth. It is NOT gmeow:extendsToGlobalSection (the resulting H⁰ lift); the discharged obstruction is the WHY the lift exists."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-# The EL-safe governing axiom is the rdfs:subClassOf gmeow:StandpointClaim above.
+# The EL-safe governing axiom is the logic:subClassOf gmeow:StandpointClaim above
+# (the canonical, fully-grounded subsumption; the OntoUML identity gate traces the
+# gmeow:TopologyClaim SubKind → gmeow:StandpointClaim → gmeow:Observation Kind chain over
+# BOTH logic:subClassOf and rdfs:subClassOf, so a SubKind's Kind-tracing edge is grounded
+# as logic:subClassOf and carries zero ungrounded rdfs residue).
 # The math:LocalSection / math:GlobalSection / math:GluingObstruction grounding is
 # carried by the ranges of gmeow:claimLocalSection / gmeow:extendsToGlobalSection /
 # gmeow:dischargesObstruction (all shipped math: Task-3 terms), and the
@@ -323,7 +327,7 @@ gmeow:CompilationMissingContext
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation Missing Context"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TopologyConformanceFailure ;
+    logic:subClassOf gmeow:TopologyConformanceFailure ;
     skos:definition "The failure raised when a gmeow:ComplexCompilation omits its required epistemic context — its gmeow:compilationStandpoint, gmeow:compilationWorld, or gmeow:compilationTimeScope. A compiled topology with no standpoint/world/time frame floats free of the perspective, possibility, and interval it is relative to, so its features could be mistaken for context-free truths. Enforced by gmeow:CompilationContextConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -331,7 +335,7 @@ gmeow:TopologyClaimMissingStatus
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Claim Missing Status"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TopologyConformanceFailure ;
+    logic:subClassOf gmeow:TopologyConformanceFailure ;
     skos:definition "The failure raised when a gmeow:TopologyClaim carries no attributed status — no gmeow:vantage attribution naming the standpoint/agent the feature is claimed from. An unattributed topology claim is an anonymous assertion, exactly what the local-vs-global discipline forbids: a computed feature lands as a vantage-attributed, defeasible claim (with its gmeow:Finding severity and defeasible/candidate status), never as an anonymous truth. Enforced by gmeow:TopologyClaimStatusConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -339,7 +343,7 @@ gmeow:ResultObjectConflation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Result Object Conflation"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TopologyConformanceFailure ;
+    logic:subClassOf gmeow:TopologyConformanceFailure ;
     skos:definition "The failure raised when a gmeow:TopologyComputation's gmeow:producesResult value is NOT a genuine gmeow:TopologyResult wrapper — either it is CONFLATED with a raw math: object (the result node is itself typed in the math: namespace instead of REFERENCING the math: object through gmeow:resultArtifact), or it carries NO gmeow:TopologyResult typing at all (an untyped or unrelated resource standing in for the wrapper). Either way the consumer-side result fails to be the audit wrapper Principle 19 requires: conflating it with the pure mathematical referent collapses the wrapper into the mathematics, and omitting the wrapper's type lets an arbitrary resource stand in for one. Enforced by gmeow:ResultObjectConflationConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -364,25 +368,60 @@ gmeow:cmrcForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation-must-record-correspondence formula"@x-gmeow-english ;
     skos:definition "The top-level ∀→∃(∧∧) integrity formula of gmeow:CompilationMustRecordCorrespondence: every gmeow:ComplexCompilation must record a gmeow:CellSourceCorrespondence carrying at least one genuine cell→evidence row."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cmrcImpl .
-gmeow:cmrcImpl a logic:Formula ; logic:antecedent gmeow:cmrcGuard ; logic:consequent gmeow:cmrcExists .
-gmeow:cmrcGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:cmrcImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation-records-correspondence implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:CompilationMustRecordCorrespondence: if ?this is a gmeow:ComplexCompilation then it must satisfy the correspondence-row existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:cmrcGuard ; logic:consequent gmeow:cmrcExists .
+gmeow:cmrcGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:CompilationMustRecordCorrespondence: binds ?this to a gmeow:ComplexCompilation, scoping the implication to compilations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:ComplexCompilation ] .
 gmeow:cmrcExists a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "correspondence-row existential"@x-gmeow-english ;
+    skos:definition "The existential body of gmeow:CompilationMustRecordCorrespondence: asserts a record ?rec, a cell ?cell, and an evidence span ?span jointly forming one genuine cell→evidence row."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rec" ] ,
         [ logic:termIndex 1 ; logic:termVariable "cell" ] ,
         [ logic:termIndex 2 ; logic:termVariable "span" ] ;
     logic:exists gmeow:cmrcBody .
-gmeow:cmrcBody a logic:Formula ; logic:and gmeow:cmrcAtom , gmeow:cmrcRow , gmeow:cmrcSource .
-gmeow:cmrcAtom a logic:Formula ; logic:relation gmeow:recordsCorrespondence ;
+gmeow:cmrcBody a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "correspondence-row conjunction"@x-gmeow-english ;
+    skos:definition "The conjunction of gmeow:CompilationMustRecordCorrespondence's existential: the compilation records the record, the record covers the cell, and the cell names its evidence span — all three together."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:cmrcAtom , gmeow:cmrcRow , gmeow:cmrcSource .
+gmeow:cmrcAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "records-correspondence atom"@x-gmeow-english ;
+    skos:definition "The gmeow:recordsCorrespondence atom of gmeow:CompilationMustRecordCorrespondence: the compilation ?this records the gmeow:CellSourceCorrespondence ?rec."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:recordsCorrespondence ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "rec" ] .
-gmeow:cmrcRow a logic:Formula ; logic:relation gmeow:correspondenceCell ;
+gmeow:cmrcRow a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "correspondence-cell atom"@x-gmeow-english ;
+    skos:definition "The gmeow:correspondenceCell atom of gmeow:CompilationMustRecordCorrespondence: the record ?rec covers the math:Cell ?cell — the record-membership half of the row."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:correspondenceCell ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "rec" ] ,
         [ logic:termIndex 1 ; logic:termVariable "cell" ] .
-gmeow:cmrcSource a logic:Formula ; logic:relation gmeow:cellSource ;
+gmeow:cmrcSource a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "cell-source atom"@x-gmeow-english ;
+    skos:definition "The gmeow:cellSource atom of gmeow:CompilationMustRecordCorrespondence: the covered cell ?cell names the gmeow:EvidenceSpan ?span it was derived from — the provenance half of the row."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:cellSource ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "cell" ] ,
         [ logic:termIndex 1 ; logic:termVariable "span" ] .
 
@@ -401,16 +440,36 @@ gmeow:cmrlForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation-must-record-loss formula"@x-gmeow-english ;
     skos:definition "The top-level ∀→∃ integrity formula of gmeow:CompilationMustRecordLoss: every gmeow:ComplexCompilation must record a gmeow:CompilationPreservationRecord naming its preservation/loss judgment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cmrlImpl .
-gmeow:cmrlImpl a logic:Formula ; logic:antecedent gmeow:cmrlGuard ; logic:consequent gmeow:cmrlExists .
-gmeow:cmrlGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:cmrlImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation-records-loss implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:CompilationMustRecordLoss: if ?this is a gmeow:ComplexCompilation then it must satisfy the preservation-record existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:cmrlGuard ; logic:consequent gmeow:cmrlExists .
+gmeow:cmrlGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:CompilationMustRecordLoss: binds ?this to a gmeow:ComplexCompilation, scoping the implication to compilations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:ComplexCompilation ] .
 gmeow:cmrlExists a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "preservation-record existential"@x-gmeow-english ;
+    skos:definition "The existential body of gmeow:CompilationMustRecordLoss: asserts a gmeow:CompilationPreservationRecord ?rec that the compilation records."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rec" ] ;
     logic:exists gmeow:cmrlAtom .
-gmeow:cmrlAtom a logic:Formula ; logic:relation gmeow:recordsPreservation ;
+gmeow:cmrlAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "records-preservation atom"@x-gmeow-english ;
+    skos:definition "The gmeow:recordsPreservation atom of gmeow:CompilationMustRecordLoss: the compilation ?this records the gmeow:CompilationPreservationRecord ?rec."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:recordsPreservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "rec" ] .
 
@@ -429,27 +488,71 @@ gmeow:cpbcForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation-preservation-boundary formula"@x-gmeow-english ;
     skos:definition "The top-level ∀→∃ integrity formula of gmeow:CompilationPreservationBoundaryConstraint: a gmeow:CompilationPreservationRecord whose logic:preservationKind is not logic:ExactPreservation must name a logic:ExpressivenessBoundary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cpbcImpl .
-gmeow:cpbcImpl a logic:Formula ; logic:antecedent gmeow:cpbcGuard ; logic:consequent gmeow:cpbcExists .
-gmeow:cpbcGuard a logic:Formula ; logic:and gmeow:cpbcType , gmeow:cpbcLossy .
-gmeow:cpbcType a logic:Formula ; logic:relation rdf:type ;
+gmeow:cpbcImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "lossy-record-names-boundary implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:CompilationPreservationBoundaryConstraint: a preservation record that is lossy (kind ≠ logic:ExactPreservation) must satisfy the boundary existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:cpbcGuard ; logic:consequent gmeow:cpbcExists .
+gmeow:cpbcGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "preservation-record lossy guard"@x-gmeow-english ;
+    skos:definition "The antecedent conjunction of gmeow:CompilationPreservationBoundaryConstraint: ?this is a gmeow:CompilationPreservationRecord AND its preservation kind is non-exact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:cpbcType , gmeow:cpbcLossy .
+gmeow:cpbcType a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "preservation-record type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:CompilationPreservationBoundaryConstraint: binds ?this to a gmeow:CompilationPreservationRecord."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:CompilationPreservationRecord ] .
 gmeow:cpbcLossy a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "non-exact-kind existential"@x-gmeow-english ;
+    skos:definition "The lossy-kind existential of gmeow:CompilationPreservationBoundaryConstraint: asserts a preservation kind ?k the record carries that is not logic:ExactPreservation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:cpbcLossyBody .
-gmeow:cpbcLossyBody a logic:Formula ; logic:and gmeow:cpbcKind , gmeow:cpbcNotExact .
-gmeow:cpbcKind a logic:Formula ; logic:relation logic:preservationKind ;
+gmeow:cpbcLossyBody a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "non-exact-kind conjunction"@x-gmeow-english ;
+    skos:definition "The conjunction of the lossy-kind existential of gmeow:CompilationPreservationBoundaryConstraint: the record names kind ?k AND ?k is distinct from logic:ExactPreservation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:cpbcKind , gmeow:cpbcNotExact .
+gmeow:cpbcKind a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "preservation-kind atom"@x-gmeow-english ;
+    skos:definition "The logic:preservationKind atom of gmeow:CompilationPreservationBoundaryConstraint: the record ?this carries preservation kind ?k."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "k" ] .
-gmeow:cpbcNotExact a logic:Formula ; logic:relation logic:termDistinct ;
+gmeow:cpbcNotExact a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "kind-not-exact inequality"@x-gmeow-english ;
+    skos:definition "The logic:termDistinct atom of gmeow:CompilationPreservationBoundaryConstraint: the preservation kind ?k is distinct from logic:ExactPreservation, isolating the lossy/unsupported rungs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] ,
         [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 gmeow:cpbcExists a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "expressiveness-boundary existential"@x-gmeow-english ;
+    skos:definition "The consequent existential of gmeow:CompilationPreservationBoundaryConstraint: asserts a logic:ExpressivenessBoundary ?b the lossy record must name."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
     logic:exists gmeow:cpbcAtom .
-gmeow:cpbcAtom a logic:Formula ; logic:relation logic:expressivenessBoundary ;
+gmeow:cpbcAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "expressiveness-boundary atom"@x-gmeow-english ;
+    skos:definition "The logic:expressivenessBoundary atom of gmeow:CompilationPreservationBoundaryConstraint: the record ?this names the logic:ExpressivenessBoundary ?b that says what it dropped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation logic:expressivenessBoundary ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
@@ -469,23 +572,58 @@ gmeow:cmcForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation-context formula"@x-gmeow-english ;
     skos:definition "The top-level ∀→(∃∧∃∧∃) integrity formula of gmeow:CompilationContextConstraint: every gmeow:ComplexCompilation must carry a gmeow:compilationStandpoint, a gmeow:compilationWorld, and a gmeow:compilationTimeScope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cmcImpl .
-gmeow:cmcImpl a logic:Formula ; logic:antecedent gmeow:cmcGuard ; logic:consequent gmeow:cmcExists .
-gmeow:cmcGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:cmcImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation-carries-context implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:CompilationContextConstraint: if ?this is a gmeow:ComplexCompilation then it must satisfy the standpoint/world/time context existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:cmcGuard ; logic:consequent gmeow:cmcExists .
+gmeow:cmcGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:CompilationContextConstraint: binds ?this to a gmeow:ComplexCompilation, scoping the implication to compilations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:ComplexCompilation ] .
 gmeow:cmcExists a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "context-triad existential"@x-gmeow-english ;
+    skos:definition "The existential body of gmeow:CompilationContextConstraint: asserts a standpoint ?s, a possible world ?w, and a time scope ?t the compilation is relative to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ,
         [ logic:termIndex 1 ; logic:termVariable "w" ] ,
         [ logic:termIndex 2 ; logic:termVariable "t" ] ;
     logic:exists gmeow:cmcBody .
-gmeow:cmcBody a logic:Formula ; logic:and gmeow:cmcStand , gmeow:cmcWorld , gmeow:cmcTime .
-gmeow:cmcStand a logic:Formula ; logic:relation gmeow:compilationStandpoint ;
+gmeow:cmcBody a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "context-triad conjunction"@x-gmeow-english ;
+    skos:definition "The conjunction of gmeow:CompilationContextConstraint's existential: the compilation binds a standpoint AND a world AND a time scope — all three."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:cmcStand , gmeow:cmcWorld , gmeow:cmcTime .
+gmeow:cmcStand a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation-standpoint atom"@x-gmeow-english ;
+    skos:definition "The gmeow:compilationStandpoint atom of gmeow:CompilationContextConstraint: the compilation ?this binds the standpoint ?s it is relative to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:compilationStandpoint ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
-gmeow:cmcWorld a logic:Formula ; logic:relation gmeow:compilationWorld ;
+gmeow:cmcWorld a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation-world atom"@x-gmeow-english ;
+    skos:definition "The gmeow:compilationWorld atom of gmeow:CompilationContextConstraint: the compilation ?this binds the possible world ?w its evidence is taken to hold under."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:compilationWorld ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
-gmeow:cmcTime a logic:Formula ; logic:relation gmeow:compilationTimeScope ;
+gmeow:cmcTime a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "compilation-time-scope atom"@x-gmeow-english ;
+    skos:definition "The gmeow:compilationTimeScope atom of gmeow:CompilationContextConstraint: the compilation ?this binds the time scope ?t the compiled topology is valid over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:compilationTimeScope ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
 
 # --- A topology claim carries an attributed status --------------------------- #
@@ -504,16 +642,36 @@ gmeow:tcsForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology-claim attributed-status formula"@x-gmeow-english ;
     skos:definition "The top-level ∀→∃ integrity formula of gmeow:TopologyClaimStatusConstraint: every gmeow:TopologyClaim must carry an attributed status through gmeow:vantage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:tcsImpl .
-gmeow:tcsImpl a logic:Formula ; logic:antecedent gmeow:tcsGuard ; logic:consequent gmeow:tcsExists .
-gmeow:tcsGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:tcsImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "claim-carries-vantage implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:TopologyClaimStatusConstraint: if ?this is a gmeow:TopologyClaim then it must satisfy the vantage-attribution existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:tcsGuard ; logic:consequent gmeow:tcsExists .
+gmeow:tcsGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "topology-claim type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:TopologyClaimStatusConstraint: binds ?this to a gmeow:TopologyClaim, scoping the implication to topology claims."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:TopologyClaim ] .
 gmeow:tcsExists a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "vantage-attribution existential"@x-gmeow-english ;
+    skos:definition "The existential body of gmeow:TopologyClaimStatusConstraint: asserts a vantage ?v the claim is attributed from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:tcsAtom .
-gmeow:tcsAtom a logic:Formula ; logic:relation gmeow:vantage ;
+gmeow:tcsAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "vantage atom"@x-gmeow-english ;
+    skos:definition "The gmeow:vantage atom of gmeow:TopologyClaimStatusConstraint: the claim ?this names the standpoint/agent vantage ?v it is claimed from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
@@ -536,29 +694,79 @@ gmeow:artForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Asserted-topology-result formula"@x-gmeow-english ;
     skos:definition "The top-level, GOVERNING ∀→∃(∧∧) integrity formula of gmeow:AssertedTopologyResultConstraint: a gmeow:TopologyComputation asserting a global truth must be discharged by a genuinely typed gmeow:TopologyClaim that extends its local data to a math:GlobalSection and discharges the H¹ math:GluingObstruction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:artImpl .
-gmeow:artImpl a logic:Formula ; logic:antecedent gmeow:artGuard ; logic:consequent gmeow:artDischarged .
-gmeow:artGuard a logic:Formula ; logic:and gmeow:artType , gmeow:artAsserts .
-gmeow:artType a logic:Formula ; logic:relation rdf:type ;
+gmeow:artImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "asserted-global-truth-discharged implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:AssertedTopologyResultConstraint: a computation asserting global truth must satisfy the discharged-claim existential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:artGuard ; logic:consequent gmeow:artDischarged .
+gmeow:artGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "computation-asserts-global-truth guard"@x-gmeow-english ;
+    skos:definition "The antecedent conjunction of gmeow:AssertedTopologyResultConstraint: ?this is a gmeow:TopologyComputation AND it carries gmeow:assertsGlobalTruth true."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:artType , gmeow:artAsserts .
+gmeow:artType a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "computation type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:AssertedTopologyResultConstraint: binds ?this to a gmeow:TopologyComputation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:TopologyComputation ] .
-gmeow:artAsserts a logic:Formula ; logic:relation gmeow:assertsGlobalTruth ;
+gmeow:artAsserts a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "asserts-global-truth atom"@x-gmeow-english ;
+    skos:definition "The gmeow:assertsGlobalTruth atom of gmeow:AssertedTopologyResultConstraint: the computation ?this flags its result as an asserted global truth (boolean true)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:assertsGlobalTruth ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
 gmeow:artDischarged a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "discharged-claim existential"@x-gmeow-english ;
+    skos:definition "The consequent existential of gmeow:AssertedTopologyResultConstraint: asserts a claim ?c, an obstruction ?g, and a global section ?sec witnessing that the asserted global truth is legitimately discharged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ,
         [ logic:termIndex 1 ; logic:termVariable "g" ] ,
         [ logic:termIndex 2 ; logic:termVariable "sec" ] ;
     logic:exists gmeow:artBody .
-gmeow:artBody a logic:Formula ; logic:and gmeow:artClaimType , gmeow:artClaimFor , gmeow:artDischarge , gmeow:artExtends .
-gmeow:artClaimType a logic:Formula ; logic:relation rdf:type ;
+gmeow:artBody a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "discharged-claim conjunction"@x-gmeow-english ;
+    skos:definition "The conjunction of gmeow:AssertedTopologyResultConstraint's existential: ?c is a typed gmeow:TopologyClaim, is the claim for this computation, discharges the obstruction, AND extends to a global section — all four."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:artClaimType , gmeow:artClaimFor , gmeow:artDischarge , gmeow:artExtends .
+gmeow:artClaimType a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "discharging-claim type atom"@x-gmeow-english ;
+    skos:definition "The rdf:type atom of gmeow:AssertedTopologyResultConstraint: the discharging resource ?c must be TYPED gmeow:TopologyClaim, never a resource that merely carries the discharge edges."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TopologyClaim ] .
-gmeow:artClaimFor a logic:Formula ; logic:relation gmeow:claimForComputation ;
+gmeow:artClaimFor a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "claim-for-computation atom"@x-gmeow-english ;
+    skos:definition "The gmeow:claimForComputation atom of gmeow:AssertedTopologyResultConstraint: the claim ?c is the claim for this very computation ?this."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:claimForComputation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
-gmeow:artDischarge a logic:Formula ; logic:relation gmeow:dischargesObstruction ;
+gmeow:artDischarge a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "discharges-obstruction atom"@x-gmeow-english ;
+    skos:definition "The gmeow:dischargesObstruction atom of gmeow:AssertedTopologyResultConstraint: the claim ?c discharges the H¹ math:GluingObstruction ?g."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:dischargesObstruction ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "g" ] .
-gmeow:artExtends a logic:Formula ; logic:relation gmeow:extendsToGlobalSection ;
+gmeow:artExtends a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "extends-to-global-section atom"@x-gmeow-english ;
+    skos:definition "The gmeow:extendsToGlobalSection atom of gmeow:AssertedTopologyResultConstraint: the claim ?c extends its local data to the math:GlobalSection ?sec (the H⁰ lift)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:extendsToGlobalSection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
 
 # --- a computation result must not be conflated with a raw math: object ------ #
@@ -581,32 +789,96 @@ gmeow:rocForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Result-object-conflation formula"@x-gmeow-english ;
     skos:definition "The top-level ∀→(∃∧¬∃) integrity formula of gmeow:ResultObjectConflationConstraint: a gmeow:TopologyComputation's gmeow:producesResult value must be typed gmeow:TopologyResult and must not itself be typed in the math: namespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:rocImpl .
-gmeow:rocImpl a logic:Formula ; logic:antecedent gmeow:rocGuard ; logic:consequent gmeow:rocConsequent .
-gmeow:rocGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:rocImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "result-wrapper-not-conflated implication"@x-gmeow-english ;
+    skos:definition "The guard→consequent implication of gmeow:ResultObjectConflationConstraint: if ?this is a gmeow:TopologyComputation then its result must be a typed wrapper and not a raw math: object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:rocGuard ; logic:consequent gmeow:rocConsequent .
+gmeow:rocGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "computation type guard"@x-gmeow-english ;
+    skos:definition "The rdf:type guard of gmeow:ResultObjectConflationConstraint: binds ?this to a gmeow:TopologyComputation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termIri gmeow:TopologyComputation ] .
-gmeow:rocConsequent a logic:Formula ; logic:and gmeow:rocRequired , gmeow:rocNot .
+gmeow:rocConsequent a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "wrapper-required-and-not-raw conjunction"@x-gmeow-english ;
+    skos:definition "The consequent conjunction of gmeow:ResultObjectConflationConstraint: the positive existential requiring a typed gmeow:TopologyResult wrapper, conjoined with the negative existential forbidding a math:-namespace result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:rocRequired , gmeow:rocNot .
 gmeow:rocRequired a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "typed-wrapper existential"@x-gmeow-english ;
+    skos:definition "The positive existential of gmeow:ResultObjectConflationConstraint: asserts a result ?r the computation produces that is typed gmeow:TopologyResult."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ;
     logic:exists gmeow:rocRequiredBody .
-gmeow:rocRequiredBody a logic:Formula ; logic:and gmeow:rocRequiredProduces , gmeow:rocRequiredType .
-gmeow:rocRequiredProduces a logic:Formula ; logic:relation gmeow:producesResult ;
+gmeow:rocRequiredBody a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "typed-wrapper conjunction"@x-gmeow-english ;
+    skos:definition "The conjunction of the positive existential of gmeow:ResultObjectConflationConstraint: the computation produces ?r AND ?r is typed gmeow:TopologyResult."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:rocRequiredProduces , gmeow:rocRequiredType .
+gmeow:rocRequiredProduces a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "produces-result atom (positive)"@x-gmeow-english ;
+    skos:definition "The gmeow:producesResult atom of gmeow:ResultObjectConflationConstraint's positive arm: the computation ?this produces the result ?r."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:producesResult ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
-gmeow:rocRequiredType a logic:Formula ; logic:relation rdf:type ;
+gmeow:rocRequiredType a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "topology-result type atom"@x-gmeow-english ;
+    skos:definition "The rdf:type atom of gmeow:ResultObjectConflationConstraint's positive arm: the result ?r must be typed gmeow:TopologyResult (the wrapper is positively required)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "r" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TopologyResult ] .
-gmeow:rocNot a logic:Formula ; logic:not gmeow:rocEx .
+gmeow:rocNot a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "no-raw-math-result negation"@x-gmeow-english ;
+    skos:definition "The negative arm of gmeow:ResultObjectConflationConstraint: the negation ¬∃ forbidding a produced result that is itself typed in the math: namespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:not gmeow:rocEx .
 gmeow:rocEx a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "raw-math-result witness existential"@x-gmeow-english ;
+    skos:definition "The forbidden-witness existential of gmeow:ResultObjectConflationConstraint: a result ?r the computation produces whose type ?k is in the math: namespace — the conflation the negation rules out."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ,
         [ logic:termIndex 1 ; logic:termVariable "k" ] ;
     logic:exists gmeow:rocBody .
-gmeow:rocBody a logic:Formula ; logic:and gmeow:rocProduces , gmeow:rocType , gmeow:rocMathNs .
-gmeow:rocProduces a logic:Formula ; logic:relation gmeow:producesResult ;
+gmeow:rocBody a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "raw-math-result conjunction"@x-gmeow-english ;
+    skos:definition "The conjunction of the forbidden-witness existential of gmeow:ResultObjectConflationConstraint: the computation produces ?r, ?r has type ?k, AND ?k is a math:-namespace IRI."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:rocProduces , gmeow:rocType , gmeow:rocMathNs .
+gmeow:rocProduces a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "produces-result atom (negative)"@x-gmeow-english ;
+    skos:definition "The gmeow:producesResult atom of gmeow:ResultObjectConflationConstraint's negative arm: the computation ?this produces the candidate raw result ?r."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:producesResult ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
-gmeow:rocType a logic:Formula ; logic:relation rdf:type ;
+gmeow:rocType a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "result-type binding atom"@x-gmeow-english ;
+    skos:definition "The rdf:type atom of gmeow:ResultObjectConflationConstraint's negative arm: binds the result ?r's type to the variable ?k tested against the math: namespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "r" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
-gmeow:rocMathNs a logic:Formula ; logic:relation logic:termStrStarts ;
+gmeow:rocMathNs a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "math-namespace prefix test"@x-gmeow-english ;
+    skos:definition "The logic:termStrStarts atom of gmeow:ResultObjectConflationConstraint: tests whether the result's type IRI ?k begins with the math: namespace prefix, witnessing a raw-math result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation logic:termStrStarts ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] ,
         [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/math/" ] .
 
@@ -634,7 +906,7 @@ gmeow:TopologyComputation a logic:Event .
 gmeow:CellSourceCorrespondence a logic:Kind .
 gmeow:CompilationPreservationRecord a logic:Kind .
 gmeow:TopologyResult a logic:Kind .
-gmeow:TopologyClaim a logic:Kind .
+gmeow:TopologyClaim a logic:SubKind .
 gmeow:TopologyConformanceFailure a logic:Situation .
 gmeow:CompilationMissingContext a logic:Situation .
 gmeow:TopologyClaimMissingStatus a logic:Situation .

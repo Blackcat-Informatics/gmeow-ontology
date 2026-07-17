@@ -668,6 +668,12 @@ ex:ecFiltrationNoStages a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:Filtration naming its ambient object and index kind but declaring no math:hasFiltrationStage (sh:minCount 1 on math:FiltrationShape); a filtration with no stages is ill-formed, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedFiltration)." .
 
+ex:ecStageNoIndex a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/filtration-stage-no-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:FiltrationStage naming its math:stageStructure but NEITHER a one-parameter math:filtrationThreshold NOR a multiparameter math:multiIndex — a stage sitting at no index at all, so the cross-node disjunctive-existence constraint math:StageIndexPresenceConstraint (a stage must carry a threshold or a multi-index) fires. Its math:stageStructure is present so the declarative missing-structure arm stays silent, there is no second stage so the monotonicity law is vacuous, and it is not a math:MultiparameterFiltration so the collapse/diagonal guards cannot fire, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnderspecifiedFiltration)." .
+
 ex:ecPersistenceLifetimeNoDeath a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/persistence-lifetime-missing-death.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -1258,8 +1264,8 @@ ex:ecCellNoDimension a gmeow:ExampleConformance ;
 ex:ecIncidenceNoSign a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/incidence-no-sign.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example supplies math:incidenceCoface and math:incidenceFace but omits math:incidenceSign on a math:CellIncidence (sh:qualifiedMinCount 1 onDataRange xsd:integer, derived from the math:CellIncidence frame's qualified math:incidenceSign restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnorientedIncidence). Its two referenced cells are fully dimensioned, so the missing sign is the single isolated violation." .
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example supplies math:incidenceCoface and math:incidenceFace but omits math:incidenceSign on a math:CellIncidence (sh:minCount 1, derived from the math:CellIncidence frame's math:incidenceSign restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnorientedIncidence). Its two referenced cells are fully dimensioned, so the missing sign is the single isolated violation." .
 
 ex:ecCliffordComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/clifford-complete.ttl" ;
@@ -1478,17 +1484,17 @@ ex:ecHolonomyBundle a gmeow:ExampleConformance ;
 ex:ecHolonomyNoLoop a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/holonomy-no-loop.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a math:Holonomy naming its math:holonomyOf math:Connection but omitting its math:holonomyLoop (sh:qualifiedMinCount 1, derived from the min-1 qualified math:holonomyLoop restriction); the math:holonomyOf arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteHolonomy)." .
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Holonomy naming its math:holonomyOf math:Connection but omitting its math:holonomyLoop (sh:minCount 1, derived from the min-1 math:holonomyLoop restriction); the math:holonomyOf arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteHolonomy)." .
 
 ex:ecConnectionNoTransportRule a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/connection-no-transport-rule.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a math:Connection naming NEITHER a math:CellularSheaf (math:connectionOfSheaf) NOR a math:Atlas/bundle (math:connectionOn) — a connection with no base to transport over (sh:qualifiedMinCount 1, derived from the min-1 qualified math:connectionOn restriction). The node declares no other property, so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteConnection)." .
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Connection naming NEITHER a math:CellularSheaf (math:connectionOfSheaf) NOR a math:Atlas/bundle (math:connectionOn) — a connection with no base to transport over (sh:minCount 1, derived from the min-1 math:connectionOn restriction). The node declares no other property, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteConnection)." .
 
 ex:ecParallelTransportNoPath a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/parallel-transport-no-path.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a math:ParallelTransport naming its math:transportConnection rule but omitting its math:transportAlong path (sh:qualifiedMinCount 1, derived from the min-1 qualified math:transportAlong restriction); the math:transportConnection arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteParallelTransport)." .
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ParallelTransport naming its math:transportConnection rule but omitting its math:transportAlong path (sh:minCount 1, derived from the min-1 math:transportAlong restriction); the math:transportConnection arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteParallelTransport)." .
