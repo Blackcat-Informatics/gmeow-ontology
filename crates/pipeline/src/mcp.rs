@@ -2233,6 +2233,14 @@ impl McpServer {
                  hard error); without `term`, the whole index.",
                 &[("term", "string")],
             ),
+            tool(
+                "slice_quality",
+                "Score an external slice directory against the bundle-carried slice-quality rubric \
+                 and return its per-axis grades and ranked uplift advice. `path` is a slice \
+                 directory on disk; scoring is checkout-free (the rubric ships in gmeow.gts). A \
+                 missing or malformed slice directory is a hard error.",
+                &[("path", "string")],
+            ),
         ];
         if self.mode.includes_dev_tools() {
             tools.extend([
@@ -2251,11 +2259,6 @@ impl McpServer {
                     "constitution",
                     "Read the checked-out GMEOW Constitution.",
                     &[],
-                ),
-                tool(
-                    "slice_quality",
-                    "Score a slice against the slice-quality rubric and return its per-axis grades and ranked uplift advice.",
-                    &[("path", "string")],
                 ),
             ]);
         }
@@ -2321,11 +2324,11 @@ impl McpServer {
             "counter_examples" => self.tool_counter_examples(args),
             "entailments" => self.tool_entailments(args),
             "competency_questions" => self.tool_competency_questions(args),
+            "slice_quality" => self.tool_slice_quality(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "sync" if self.mode.includes_dev_tools() => self.tool_sync(),
             "constitution" if self.mode.includes_dev_tools() => self.tool_constitution(),
-            "slice_quality" if self.mode.includes_dev_tools() => self.tool_slice_quality(args),
             _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("unknown tool: {name}"),
             })),
@@ -3143,28 +3146,22 @@ impl McpServer {
     /// to the carrier by the regeneration pipeline (`stage-source-load` via
     /// [`gmeow_slice_quality::assessment_nquads`]) so it ships inside `gmeow.gts`; this
     /// tool never mutates the bundle.
+    ///
+    /// The rubric standard is sourced from the embedded bundle bytes
+    /// ([`McpView::gts_bytes`]) via [`gmeow_slice_quality::score_external_slice_bytes`]
+    /// — the wheel-shippable `ScoringEnv::Bundle` path the `gmeow slice quality` CLI
+    /// uses — so the tool is checkout-free and available on the Consumer surface. The
+    /// `path` is an arbitrary external slice directory scored directly (no repo-`slices/`
+    /// containment guard); a missing/invalid directory is a hard error.
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
-        let root = self.root_path()?;
         let rel = required_str(args, "path")?;
-        let slice_dir = resolve_slice_dir(&root, rel)?;
-        // Load the floor-free measurement standard from the repo rubric, then score
-        // the one slice against it in repo mode (byte-identical to the deleted
-        // repo-coupled `score_slice`).
-        let standard = gmeow_slice_quality::repo_measurement_standard(&root).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("slice_quality: {e}"),
-            })
-        })?;
-        let report = gmeow_slice_quality::report::score_slice_with_standard(
-            &slice_dir,
-            &standard,
-            gmeow_slice_quality::ScoringEnv::Repo,
-        )
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("slice_quality: {e}"),
-            })
-        })?;
+        let report =
+            gmeow_slice_quality::score_external_slice_bytes(self.view.gts_bytes(), Path::new(rel))
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                        message: format!("slice_quality: {e}"),
+                    })
+                })?;
         let grades: Vec<Value> = report
             .assessment
             .grades
@@ -3929,38 +3926,6 @@ fn rpc_error(id: Value, code: i64, message: &str) -> String {
         "error": {"code": code, "message": message},
     })
     .to_string()
-}
-
-/// Resolve the `path` argument of the `slice_quality` tool to a concrete slice
-/// directory, enforcing that it stays inside the repository's `slices/` tree.
-///
-/// The raw argument is joined onto the repo root (so callers keep passing a
-/// root-relative `slices/<group>/<name>`), then canonicalized and checked for
-/// containment under the canonical `slices/` directory. An absolute path or a `../`
-/// sequence that escapes `slices/` — the classic path-traversal vectors — is
-/// rejected rather than scored, so the tool can never be steered to read outside the
-/// slice tree.
-fn resolve_slice_dir(root: &Path, rel: &str) -> gmeow_errors::Result<PathBuf> {
-    let err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
-    let slices_root = root.join("slices");
-    let canon_root = slices_root.canonicalize().map_err(|e| {
-        err(format!(
-            "slice_quality: cannot resolve slices root {}: {e}",
-            slices_root.display()
-        ))
-    })?;
-    let candidate = root.join(rel);
-    let canon = candidate.canonicalize().map_err(|e| {
-        err(format!(
-            "slice_quality: cannot resolve slice path {rel:?} under the slices tree: {e}"
-        ))
-    })?;
-    if !canon.starts_with(&canon_root) {
-        return Err(err(format!(
-            "slice_quality: path {rel:?} escapes the slices/ tree (path traversal rejected)"
-        )));
-    }
-    Ok(canon)
 }
 
 /// The shared unknown-term hard fail for the resolution guard and `doc_card`: a
@@ -5433,7 +5398,9 @@ mod tests {
         assert!(consumer_tools.contains("\"entailments\""));
         assert!(consumer_tools.contains("\"competency_questions\""));
         assert!(!consumer_tools.contains("\"validate\""));
-        assert!(!consumer_tools.contains("\"slice_quality\""));
+        // `slice_quality` is CONSUMER-visible: it scores an external slice directory
+        // against the bundle-carried rubric, needing no checkout.
+        assert!(consumer_tools.contains("\"slice_quality\""));
         assert!(
             !consumer
                 .resources_result()
@@ -5514,7 +5481,7 @@ mod tests {
     }
 
     #[test]
-    fn slice_quality_tool_reports_grades_and_advice() {
+    fn slice_quality_tool_reports_grades_and_advice_in_consumer_mode() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -5522,14 +5489,16 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
+        // Positive CONSUMER-mode dispatch (AC3): a server built with `root: None`
+        // scores an external slice directory purely off the embedded bundle rubric.
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let slice_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/core/ai");
 
         // Functional dispatch: the tool returns the documented JSON shape — grades as
         // {axis, tier, score} and advice as {code, message}.
-        let out = text_payload(dev.call_tool_result(
+        let out = text_payload(server.call_tool_result(
             "slice_quality",
-            &json!({"path": "slices/core/slice-quality-rubric"}),
+            &json!({"path": slice_dir.to_str().expect("utf8 slice path")}),
         ));
         assert!(
             out.get("ok").is_none(),
@@ -5554,7 +5523,7 @@ mod tests {
     }
 
     #[test]
-    fn slice_quality_tool_rejects_path_traversal() {
+    fn slice_quality_tool_errors_on_invalid_dir() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -5562,19 +5531,26 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
-        // An absolute path escapes the slices/ tree and must be rejected, not scored.
-        let abs = text_payload(dev.call_tool_result("slice_quality", &json!({"path": "/etc"})));
-        assert_eq!(abs["ok"], false, "absolute path must be rejected: {abs}");
+        // The `slices/` containment guard is gone (external scoring is the feature);
+        // an absent directory is now a clean hard error (a `slice_quality:` diagnostic),
+        // never a panic and never a silent pass.
+        let missing = text_payload(
+            server.call_tool_result("slice_quality", &json!({"path": "/nonexistent/slice/dir"})),
+        );
+        assert_eq!(
+            missing["ok"], false,
+            "a missing slice directory must hard-fail: {missing}"
+        );
 
-        // A `../` sequence that climbs out of slices/ is rejected too.
-        let up = text_payload(dev.call_tool_result(
-            "slice_quality",
-            &json!({"path": "slices/../../../etc/passwd"}),
-        ));
-        assert_eq!(up["ok"], false, "../ traversal must be rejected: {up}");
+        // A real directory that is not a slice (no manifest.ttl) also errors cleanly.
+        let not_a_slice =
+            text_payload(server.call_tool_result("slice_quality", &json!({"path": "/etc"})));
+        assert_eq!(
+            not_a_slice["ok"], false,
+            "a non-slice directory must hard-fail: {not_a_slice}"
+        );
     }
 
     #[test]
