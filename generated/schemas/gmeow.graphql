@@ -174,7 +174,6 @@ enum AttestationTypeEnum {
   attestationTypeC2PA
   attestationTypeCoherenceCertificate
   attestationTypeConformanceVerdict
-  attestationTypeCrossCheckAgreement
   attestationTypeDSSE
   attestationTypeDocumentationArtifact
   attestationTypeEAT

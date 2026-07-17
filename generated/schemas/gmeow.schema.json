@@ -1920,7 +1920,6 @@
         "gmeow:attestationTypeC2PA",
         "gmeow:attestationTypeCoherenceCertificate",
         "gmeow:attestationTypeConformanceVerdict",
-        "gmeow:attestationTypeCrossCheckAgreement",
         "gmeow:attestationTypeDSSE",
         "gmeow:attestationTypeDocumentationArtifact",
         "gmeow:attestationTypeEAT",

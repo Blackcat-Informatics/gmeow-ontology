@@ -16209,9 +16209,6 @@ enums:
       attestationTypeConformanceVerdict:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict
         title: conformance verdict
-      attestationTypeCrossCheckAgreement:
-        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement
-        title: cross-check agreement matrix
       attestationTypeDSSE:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDSSE
         title: DSSE envelope
