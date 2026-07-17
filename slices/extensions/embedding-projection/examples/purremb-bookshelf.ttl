@@ -1,0 +1,449 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the .purremb bookshelf embedding projection for Project
+# Lillith, authored end to end so every embedding-projection constraint is
+# exercised in its PASSING direction. The scene demonstrates the FOUR-WAY
+# separation the slice exists to keep honest:
+#
+#   1. CANONICAL SOURCE PACK  (ex:bookshelfPack) — the exact, content-addressed,
+#      confidential RDF/GTS bytes the vectors are generated OVER. Its
+#      gmeow:contentDigest is byte identity; its gmeow:gtsHeadId is committed
+#      history; its gmeow:hasSensitivity / gmeow:hasDisclosurePolicy are the
+#      classification everything downstream inherits.
+#   2. GENERATED LOSSY PROJECTION  (ex:bookshelfProjA) — a whole embedding pack
+#      that AGGREGATES graphrag's per-object gmeow:Embedding rows (never a
+#      subclass of gmeow:Embedding) under one gmeow:VectorSpaceContract. It is
+#      lossy: float payloads live outside the graph by reference (P12), and the
+#      lossiness is made an honest, weighable verdict by ex:corrProjA, a
+#      logic:Correspondence at the logic:ValidationOnly / logic:BridgeView floor
+#      (a vector VALIDATES proximity, it does not ENTAIL meaning).
+#   3. RETRIEVAL-SIMILARITY OBSERVATION  (ex:crossObs / ex:inObs) — ranked
+#      retrieval as a logic:Vague gmeow:SimilarityObservation, disjoint from a
+#      graphrag gmeow:RetrievalEvent: a pairwise proximity CLAIM, never an
+#      equivalence or an entailment.
+#   4. DERIVED REBUILDABLE INDEX  (ex:annIndexA, superseded by ex:annIndexA2) —
+#      a non-authoritative accelerator whose approximation profile
+#      (gmeow:approximationRecall, gmeow:indexNondeterminism) stays explicit and
+#      whose rebuild is an append-only supersession, not an erasure.
+#
+# Every non-ex: predicate below is a shipped term of the slice or a reused
+# kernel / graphrag / logic / math term; ex: and gr: are used ONLY for instance
+# subjects/objects, never as predicates. Each gmeow:SimilarityObservation names
+# its metric with the slice's gmeow:withMetric (→ a graphrag gmeow:DistanceMetric),
+# which agrees with the metric its gmeow:overVectorSpace contract declares.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/> .
+@prefix gr:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
+
+# ===========================================================================
+# 1. The canonical source pack — the exact bytes projected over.
+#    A content-addressed InformationObject carrying byte identity
+#    (gmeow:contentDigest), committed history (gmeow:gtsHeadId), and its
+#    classification (gmeow:hasSensitivity / gmeow:hasDisclosurePolicy). Every
+#    projection below inherits this confidential classification (P15).
+# ===========================================================================
+ex:bookshelfPack a gmeow:InformationObject ;
+    rdfs:label "Project Lillith bookshelf source pack (packed RDF/GTS)"@en ;
+    gmeow:contentDigest       "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:gtsHeadId           "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:hasSensitivity      gmeow:sensitivityConfidential ;
+    gmeow:hasDisclosurePolicy gmeow:policyInternalOnly .
+
+# ===========================================================================
+# 2. Vector-space contract A — the FULL comparability contract. Its identity is
+#    the reused gmeow:contentDigest over the whole contract: same space ⇔ same
+#    digest. Model / dimensions / metric are reused from graphrag; tokenizer /
+#    preprocessing / chunking / pooling / normalization / dtype / quantization
+#    are the slice's own comparability components.
+# ===========================================================================
+ex:bgeM3 a gmeow:SoftwareAgent ;
+    rdfs:label "BGE-M3 embedding model"@en .
+
+ex:poolingMean a gmeow:PoolingKind ;
+    rdfs:label "mean"@x-gmeow-english .
+ex:normalizationL2 a gmeow:NormalizationKind ;
+    rdfs:label "L2"@x-gmeow-english .
+
+ex:vscA a gmeow:VectorSpaceContract ;
+    rdfs:label "bookshelf vector space A (BGE-M3, 1024-d, cosine, L2, mean)"@en ;
+    gmeow:embeddingModel       ex:bgeM3 ;
+    gmeow:embeddingDimensions  "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric       gmeow:distanceMetricCosine ;
+    gmeow:tokenizerContract      "blake3:3e90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e" ;
+    gmeow:preprocessingContract  "blake3:7d21c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e" ;
+    gmeow:chunkingContract       "blake3:c40a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8" ;
+    gmeow:poolingKind          ex:poolingMean ;
+    gmeow:normalizationKind    ex:normalizationL2 ;
+    gmeow:vectorDtype          "float32" ;
+    gmeow:quantizationContract   "blake3:be55a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e" ;
+    gmeow:contentDigest        "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" .
+
+# ===========================================================================
+# 3. Vector targets — one row→resource binding per vector, each with an EXACT
+#    identity (never an ordinal alone: gmeow:TargetExactIdentityConstraint, C7).
+#      * ex:tgtDoc     — identity via gmeow:targetsResource (a whole document);
+#      * ex:tgtChunk   — identity via its own gmeow:contentDigest (a chunk);
+#      * ex:tgtStmt    — a STATEMENT-term target: gmeow:targetsResource points at
+#                        a reifier node for the triple. Authored ontology content
+#                        uses the base-quad-foldable reification form (an
+#                        rdf:Statement with rdf:subject/rdf:predicate/rdf:object,
+#                        matching slices/core/standpoint), since a native
+#                        `rdf:reifies <<( s p o )>>` quoted-triple object cannot
+#                        ride the base-quad fold to gmeow.gts; the native form is
+#                        the runtime/query surface only.
+#    Each carries a gmeow:targetOrdinal as a NON-identifying seek hint only.
+# ===========================================================================
+ex:tgtDoc a gmeow:VectorTarget ;
+    rdfs:label "row 0 → the list-archive document"@en ;
+    gmeow:vectorTargetKind gmeow:vectorTargetDocument ;
+    gmeow:targetsResource  gr:mail-archive ;
+    gmeow:targetOrdinal    "0"^^xsd:nonNegativeInteger .
+
+ex:tgtChunk a gmeow:VectorTarget ;
+    rdfs:label "row 1 → a retrieval-sized chunk, pinned by its own digest"@en ;
+    gmeow:vectorTargetKind gmeow:vectorTargetChunk ;
+    gmeow:contentDigest    "blake3:4444444455556666777788889999000011112222aaaabbbbccccddddeeee0003" ;
+    gmeow:targetOrdinal    "1"^^xsd:nonNegativeInteger .
+
+# The statement-term reifier, authored in the base-quad-foldable reification form
+# (rdf:Statement + rdf:subject/rdf:predicate/rdf:object) so it rides the fold to
+# gmeow.gts — the shipped precedent in slices/core/standpoint and the grounding
+# logic examples. The equivalent RDF 1.2 native form is
+# `ex:stmtReifierMaintains rdf:reifies <<( gr:rel-maintains gmeow:relationshipTarget gr:desc-buildsys )>>`,
+# used at the runtime/query layer.
+ex:stmtReifierMaintains a rdf:Statement ;
+    rdf:subject   gr:rel-maintains ;
+    rdf:predicate gmeow:relationshipTarget ;
+    rdf:object    gr:desc-buildsys .
+
+ex:tgtStmt a gmeow:VectorTarget ;
+    rdfs:label "row 2 → the reified statement 'Mara maintains the build system'"@en ;
+    gmeow:vectorTargetKind gmeow:vectorTargetStatement ;
+    gmeow:targetsResource  ex:stmtReifierMaintains ;
+    gmeow:targetOrdinal    "2"^^xsd:nonNegativeInteger .
+
+# ===========================================================================
+# 4. The projection A — the whole .purremb pack. It AGGREGATES graphrag
+#    gmeow:Embedding rows (payloads OUTSIDE the graph via gmeow:vectorRef, P12),
+#    commits to ex:vscA, and records its source provenance so the header
+#    constraints pass:
+#      * gmeow:projectionSourceDigest    == ex:bookshelfPack's gmeow:contentDigest  (C1)
+#      * gmeow:projectionSourceGtsHeadId == ex:bookshelfPack's gmeow:gtsHeadId      (C6)
+#      * gmeow:hasSensitivity            == the source's (C3 guard not triggered)
+#      * gmeow:reproducibleWithinTolerance + a stated gmeow:reproducibilityTolerance (R4)
+# ===========================================================================
+ex:embRowDoc a gmeow:Embedding ;
+    rdfs:label "embedding of the list-archive document"@en ;
+    gmeow:embeddingOf    gr:mail-archive ;
+    gmeow:embeddingModel ex:bgeM3 ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef      "s3://lillith/purremb/bookshelf/A/row-0"^^xsd:anyURI ;
+    gmeow:contentDigest  "blake3:99990000111122223333444455556666777788889999aaaabbbbcccc0000a001" .
+
+ex:embRowChunk a gmeow:Embedding ;
+    rdfs:label "embedding of the retrieval chunk"@en ;
+    gmeow:embeddingOf    gr:chunk-7 ;
+    gmeow:embeddingModel ex:bgeM3 ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef      "s3://lillith/purremb/bookshelf/A/row-1"^^xsd:anyURI ;
+    gmeow:contentDigest  "blake3:aaaa0000111122223333444455556666777788889999bbbbccccdddd0000a002" .
+
+ex:tol1 a math:Quantity ;
+    rdfs:label "reproducibility tolerance: max per-component absolute difference"@en ;
+    math:hasDimension  math:dimensionless ;
+    math:quantityValue "0.000001"^^xsd:decimal .
+
+ex:projBuildActivity a gmeow:Activity ;
+    rdfs:label "purremb bookshelf projection build (space A)"@en .
+
+ex:bookshelfProjA a gmeow:EmbeddingProjection ;
+    rdfs:label "bookshelf embedding projection A (.purremb)"@en ;
+    gmeow:aggregatesEmbedding      ex:embRowDoc , ex:embRowChunk ;
+    gmeow:hasVectorSpaceContract   ex:vscA ;
+    gmeow:projectionSource         ex:bookshelfPack ;
+    gmeow:projectionSourceDigest   "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:projectionSourceGtsHeadId "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:contentDigest            "blake3:2222222233334444555566667777888899990000aaaabbbbccccddddeeee0001" ;
+    gmeow:hasSensitivity           gmeow:sensitivityConfidential ;
+    gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
+    gmeow:reproducibilityLevel     gmeow:reproducibleWithinTolerance ;
+    gmeow:reproducibilityTolerance ex:tol1 ;
+    gmeow:wasDerivedFrom           ex:bookshelfPack ;
+    gmeow:wasGeneratedBy           ex:projBuildActivity .
+
+# ===========================================================================
+# 5. The lossy-lens correspondence — the HONEST verdict for the pack ↔ vector
+#    crossing, authored WITH its full verdict so the native correspondence gates
+#    accept it (the notation/pydantic idiom). A vector space VALIDATES proximity
+#    but does NOT ENTAIL the source's meaning, so the crossing is:
+#      * logic:ValidationOnly        — detects proximity, computes no consequence;
+#      * logic:BridgeView            — the floor rung, no preservation claim,
+#        carrying logic:CommitmentShiftingBridge so no owl:equivalentClass;
+#      * logic:Overlaps              — source and view share instances, neither
+#        subsumes the other (sssom:closeMatch, never a forced equality);
+#      * logic:Vague                 — proximity is graded / approximation-sensitive;
+#      * logic:mnemomorphic false    — no witness recovers the source text from a
+#        vector, so no section / retraction is claimable.
+#    This pins competency-test-5 (similarity ≠ equivalence) to the overclaim gate.
+# ===========================================================================
+ex:corrProjA a logic:Correspondence ;
+    rdfs:label "bookshelf source pack ↔ vector projection A (lossy lens)"@x-gmeow-english ;
+    rdfs:seeAlso                 ex:bookshelfProjA ;
+    logic:sourceEndpoint         ex:bookshelfPack ;
+    logic:targetEndpoint         ex:vscA ;
+    logic:preservationKind       logic:ValidationOnly ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass          logic:BridgeView ;
+    logic:morphismKind           logic:CommitmentShiftingBridge ;
+    logic:hasDeterminacy         logic:Vague ;
+    logic:mnemomorphic           false .
+
+# ===========================================================================
+# 6. Profile surfaces — the container view and the sidecar-manifest view of ONE
+#    projection. They record the SAME three shared-referent digests, so the
+#    agreement constraints pass in the PASSING direction (C5a source-digest,
+#    C5b model-contract-digest, C5c target-table-digest).
+# ===========================================================================
+ex:containerSurfaceA a gmeow:ProfileSurface ;
+    rdfs:label "container view of projection A"@en ;
+    gmeow:profileSurfaceOf          ex:bookshelfProjA ;
+    gmeow:profileSurfaceKind        gmeow:surfaceContainer ;
+    gmeow:recordsSourceDigest        "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:recordsModelContractDigest "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" ;
+    gmeow:recordsTargetTableDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" .
+
+ex:manifestSurfaceA a gmeow:ProfileSurface ;
+    rdfs:label "sidecar-manifest view of projection A"@en ;
+    gmeow:profileSurfaceOf          ex:bookshelfProjA ;
+    gmeow:profileSurfaceKind        gmeow:surfaceManifest ;
+    gmeow:recordsSourceDigest        "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:recordsModelContractDigest "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" ;
+    gmeow:recordsTargetTableDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" .
+
+# ===========================================================================
+# 7. Derived rebuildable index + append-only supersession. ex:annIndexA is a
+#    non-authoritative HNSW accelerator over projection A, with its approximation
+#    profile explicit. It is later REBUILT: the successor ex:annIndexA2 supersedes
+#    the prior via the transaction quartet (logic:supersededBy /
+#    logic:validUntilState / logic:retiredByTransaction / logic:activeInState) —
+#    suppression, not erasure. The prior retrieval event stays bound to the
+#    RETIRED index, so the audit trail is intact (R3).
+# ===========================================================================
+ex:recall1 a math:Quantity ;
+    rdfs:label "measured recall of ex:annIndexA vs exact search"@en ;
+    math:hasDimension  math:dimensionless ;
+    math:quantityValue "0.985"^^xsd:decimal .
+
+ex:indexBuildActivity a gmeow:Activity ;
+    rdfs:label "HNSW index build over projection A"@en .
+
+ex:annIndexA a gmeow:DerivedVectorIndex ;
+    rdfs:label "HNSW accelerator over projection A (retired)"@en ;
+    gmeow:indexOfProjection  ex:bookshelfProjA ;
+    gmeow:approximationRecall ex:recall1 ;
+    gmeow:indexNondeterminism true ;
+    gmeow:indexAlgorithm     gmeow:indexAlgorithmHnsw ;
+    gmeow:distanceMetric     gmeow:distanceMetricCosine ;
+    gmeow:contentDigest      "blake3:cccc0000111122223333444455556666777788889999ddddeeeeffff0000a004" ;
+    gmeow:wasGeneratedBy     ex:indexBuildActivity ;
+    logic:supersededBy       ex:annIndexA2 ;
+    logic:validUntilState    ex:rebuildState ;
+    logic:retiredByTransaction ex:rebuildTxn ;
+    logic:activeInState      ex:priorState .
+
+ex:recall2 a math:Quantity ;
+    rdfs:label "measured recall of ex:annIndexA2 vs exact search"@en ;
+    math:hasDimension  math:dimensionless ;
+    math:quantityValue "0.991"^^xsd:decimal .
+
+ex:rebuildActivity a gmeow:Activity ;
+    rdfs:label "HNSW index rebuild over projection A"@en .
+
+ex:annIndexA2 a gmeow:DerivedVectorIndex ;
+    rdfs:label "HNSW accelerator over projection A (rebuilt successor)"@en ;
+    gmeow:indexOfProjection  ex:bookshelfProjA ;
+    gmeow:approximationRecall ex:recall2 ;
+    gmeow:indexNondeterminism true ;
+    gmeow:indexAlgorithm     gmeow:indexAlgorithmHnsw ;
+    gmeow:distanceMetric     gmeow:distanceMetricCosine ;
+    gmeow:contentDigest      "blake3:dddd0000111122223333444455556666777788889999eeeeffff00110000a005" ;
+    gmeow:wasGeneratedBy     ex:rebuildActivity .
+
+# The transaction-path nodes the supersession quartet points at (labelled
+# instance anchors; their range is stated in prose in the logic module).
+ex:priorState  rdfs:label "path state where ex:annIndexA was the active accelerator"@en .
+ex:rebuildState rdfs:label "successor path state where ex:annIndexA is retired"@en .
+ex:rebuildTxn  rdfs:label "the rebuild transaction step that retired ex:annIndexA"@en .
+
+# The old retrieval event stays bound to the RETIRED index (audit trail, R3).
+ex:retrievalEventOld a gmeow:RetrievalEvent ;
+    rdfs:label "retrieval against the retired index"@en ;
+    gmeow:forQuery    "who maintained the build system?" ;
+    gmeow:againstIndex ex:annIndexA ;
+    gmeow:atTime      "2026-06-02T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# ===========================================================================
+# 8. A SECOND vector space over the SAME source (CT9). Different model, dtype,
+#    dimensions, metric, pooling, normalization, and digest — a legitimately
+#    independent projection of the identical confidential pack, matching source
+#    digest and head id (C1 / C6 pass again).
+# ===========================================================================
+ex:miniLm a gmeow:SoftwareAgent ;
+    rdfs:label "all-MiniLM-L6 embedding model"@en .
+ex:poolingCls a gmeow:PoolingKind ;
+    rdfs:label "CLS-token"@x-gmeow-english .
+ex:normalizationNone a gmeow:NormalizationKind ;
+    rdfs:label "none"@x-gmeow-english .
+
+ex:vscB a gmeow:VectorSpaceContract ;
+    rdfs:label "bookshelf vector space B (MiniLM, 384-d, dot, int8, CLS)"@en ;
+    gmeow:embeddingModel       ex:miniLm ;
+    gmeow:embeddingDimensions  "384"^^xsd:positiveInteger ;
+    gmeow:distanceMetric       gmeow:distanceMetricDotProduct ;
+    gmeow:tokenizerContract      "blake3:5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809100" ;
+    gmeow:preprocessingContract  "blake3:6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80910011" ;
+    gmeow:chunkingContract       "blake3:7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001122" ;
+    gmeow:poolingKind          ex:poolingCls ;
+    gmeow:normalizationKind    ex:normalizationNone ;
+    gmeow:vectorDtype          "int8" ;
+    gmeow:quantizationContract   "blake3:8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809100112233" ;
+    gmeow:contentDigest        "blake3:5555555566667777888899990000111122223333aaaabbbbccccddddeeee0004" .
+
+ex:embRowB a gmeow:Embedding ;
+    rdfs:label "space-B embedding of the list-archive document"@en ;
+    gmeow:embeddingOf    gr:mail-archive ;
+    gmeow:embeddingModel ex:miniLm ;
+    gmeow:distanceMetric gmeow:distanceMetricDotProduct ;
+    gmeow:vectorRef      "s3://lillith/purremb/bookshelf/B/row-0"^^xsd:anyURI ;
+    gmeow:contentDigest  "blake3:bbbb0000111122223333444455556666777788889999ccccddddeeee0000a003" .
+
+ex:projBuildActivityB a gmeow:Activity ;
+    rdfs:label "purremb bookshelf projection build (space B)"@en .
+
+ex:bookshelfProjB a gmeow:EmbeddingProjection ;
+    rdfs:label "bookshelf embedding projection B (.purremb)"@en ;
+    gmeow:aggregatesEmbedding      ex:embRowB ;
+    gmeow:hasVectorSpaceContract   ex:vscB ;
+    gmeow:projectionSource         ex:bookshelfPack ;
+    gmeow:projectionSourceDigest   "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:projectionSourceGtsHeadId "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:contentDigest            "blake3:6666666677778888999900001111222233334444aaaabbbbccccddddeeee0005" ;
+    gmeow:hasSensitivity           gmeow:sensitivityConfidential ;
+    gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
+    gmeow:reproducibilityLevel     gmeow:regenerableOnly ;
+    gmeow:wasDerivedFrom           ex:bookshelfPack ;
+    gmeow:wasGeneratedBy           ex:projBuildActivityB .
+
+# ===========================================================================
+# 9. Cross-space similarity WITH its justifying correspondence (CT3 positive /
+#    C2). ex:crossObs compares projection A against projection B, whose vector
+#    spaces have DISTINCT contract digests — so gmeow:CrossSpaceComparisonConstraint
+#    demands a justifying logic:Correspondence whose logic:sourceEndpoint /
+#    logic:targetEndpoint are exactly ex:vscA / ex:vscB. ex:crossCorr supplies it.
+#    ex:inObs is a WITHIN-space observation (both operands share ex:vscA), so no
+#    correspondence is required — the guard's distinct-digest condition is false.
+# ===========================================================================
+ex:score1 a math:Quantity ;
+    rdfs:label "cross-space proximity score (weighable, logic:Vague)"@en ;
+    math:hasDimension  math:dimensionless ;
+    math:quantityValue "0.83"^^xsd:decimal .
+
+ex:crossObs a gmeow:SimilarityObservation ;
+    rdfs:label "cross-space proximity: projection A vs projection B"@en ;
+    gmeow:comparesLeft    ex:bookshelfProjA ;
+    gmeow:comparesRight   ex:bookshelfProjB ;
+    gmeow:overVectorSpace ex:vscA ;
+    gmeow:withMetric      gmeow:distanceMetricCosine ;
+    gmeow:similarityScore ex:score1 ;
+    gmeow:queryContext    "align the bookshelf under the two embedding spaces (internal filter)" .
+
+ex:crossCorr a logic:Correspondence ;
+    rdfs:label "vector space A ↔ vector space B (affine, shared-component alignment)"@x-gmeow-english ;
+    rdfs:seeAlso                 ex:crossObs ;
+    logic:sourceEndpoint         ex:vscA ;
+    logic:targetEndpoint         ex:vscB ;
+    logic:preservationKind       logic:SoundUnderApproximation ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass          logic:AffineCorrespondence ;
+    logic:hasDeterminacy         logic:Vague ;
+    logic:mnemomorphic           false .
+
+ex:score2 a math:Quantity ;
+    rdfs:label "within-space proximity score"@en ;
+    math:hasDimension  math:dimensionless ;
+    math:quantityValue "0.97"^^xsd:decimal .
+
+ex:inObs a gmeow:SimilarityObservation ;
+    rdfs:label "within-space proximity: projection A vs its re-serialized copy"@en ;
+    gmeow:comparesLeft    ex:bookshelfProjA ;
+    gmeow:comparesRight   ex:bookshelfProjACopy ;
+    gmeow:overVectorSpace ex:vscA ;
+    gmeow:withMetric      gmeow:distanceMetricCosine ;
+    gmeow:similarityScore ex:score2 ;
+    gmeow:queryContext    "nearest neighbours within space A (no bridge required)" .
+
+# ===========================================================================
+# 10. Declassification act (CT7 positive path / C3). ex:bookshelfProjPublic is a
+#     lower-sensitivity view of the SAME confidential pack: its
+#     gmeow:hasSensitivity is gmeow:sensitivityInternal (rank 1), BELOW the
+#     source's gmeow:sensitivityConfidential (rank 2). That drop is authorized by
+#     an explicit ex:declassAct — so gmeow:SecurityMonotonicityConstraint's guard
+#     fires but its declassification-act existential is satisfied. Sensitivity
+#     never drops silently (P15).
+# ===========================================================================
+ex:declassReview a gmeow:Activity ;
+    rdfs:label "disclosure review authorizing the internal view"@en .
+
+ex:declassBuildActivity a gmeow:Activity ;
+    rdfs:label "purremb bookshelf projection build (declassified internal view)"@en .
+
+ex:bookshelfProjPublic a gmeow:EmbeddingProjection ;
+    rdfs:label "bookshelf embedding projection — internal (declassified) view"@en ;
+    gmeow:aggregatesEmbedding      ex:embRowDoc ;
+    gmeow:hasVectorSpaceContract   ex:vscA ;
+    gmeow:projectionSource         ex:bookshelfPack ;
+    gmeow:projectionSourceDigest   "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:projectionSourceGtsHeadId "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:contentDigest            "blake3:8888888899990000111122223333444455556666aaaabbbbccccddddeeee0007" ;
+    gmeow:hasSensitivity           gmeow:sensitivityInternal ;
+    gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
+    gmeow:reproducibilityLevel     gmeow:reproducibleExact ;
+    gmeow:wasDerivedFrom           ex:bookshelfPack ;
+    gmeow:wasGeneratedBy           ex:declassBuildActivity .
+
+ex:declassAct a gmeow:DeclassificationAct ;
+    rdfs:label "declassification of the internal bookshelf view"@en ;
+    gmeow:declassifies   ex:bookshelfProjPublic ;
+    gmeow:wasGeneratedBy ex:declassReview ;
+    gmeow:wasDerivedFrom ex:bookshelfPack .
+
+# ===========================================================================
+# 11. Copy retains policy (R2). ex:bookshelfProjACopy is a re-serialized copy of
+#     projection A: it RETAINS the source derivation, the confidential
+#     classification, and the disclosure policy (no orphaning), and carries its
+#     own valid source-digest / head-id bindings so C1 / C6 pass for it too.
+# ===========================================================================
+ex:copyActivity a gmeow:Activity ;
+    rdfs:label "re-serialization of projection A"@en .
+
+ex:bookshelfProjACopy a gmeow:EmbeddingProjection ;
+    rdfs:label "bookshelf embedding projection A — re-serialized copy"@en ;
+    gmeow:aggregatesEmbedding      ex:embRowChunk ;
+    gmeow:hasVectorSpaceContract   ex:vscA ;
+    gmeow:projectionSource         ex:bookshelfPack ;
+    gmeow:projectionSourceDigest   "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
+    gmeow:projectionSourceGtsHeadId "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:contentDigest            "blake3:7777777788889999000011112222333344445555aaaabbbbccccddddeeee0006" ;
+    gmeow:hasSensitivity           gmeow:sensitivityConfidential ;
+    gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
+    gmeow:reproducibilityLevel     gmeow:reproducibleExact ;
+    gmeow:wasDerivedFrom           ex:bookshelfPack ;
+    gmeow:wasGeneratedBy           ex:copyActivity .

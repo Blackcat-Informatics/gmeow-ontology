@@ -289,6 +289,20 @@ gmeow:overVectorSpace
     gmeow:howToUse "Assert exactly one gmeow:overVectorSpace from a gmeow:SimilarityObservation to the gmeow:VectorSpaceContract its vectors share."@x-gmeow-english ;
     gmeow:useWhen "Use to fix the vector space within which a similarity observation's proximity is meaningful."@x-gmeow-english .
 
+gmeow:withMetric
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SimilarityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "with metric"@x-gmeow-english ;
+    rdfs:range gmeow:DistanceMetric ;
+    skos:definition "The distance/similarity metric under which a gmeow:SimilarityObservation's proximity was computed — a reuse of graphrag's gmeow:DistanceMetric value vocabulary (gmeow:distanceMetricCosine, gmeow:distanceMetricDotProduct, …). It is the metric the OBSERVATION was stated under, which must match the metric its gmeow:overVectorSpace contract declares via gmeow:distanceMetric; recording it on the observation makes a proximity number self-describing (a cosine 0.9 and a dot-product 0.9 are not the same claim). Functional: one observation, one metric."@x-gmeow-english ;
+    skos:example "ex:sim1 gmeow:withMetric gmeow:distanceMetricCosine ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it (a bare gmeow:similarityScore is uninterpretable without the metric) and avoid stating a metric that disagrees with the observation's gmeow:overVectorSpace contract's gmeow:distanceMetric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:withMetric from a gmeow:SimilarityObservation to a graphrag gmeow:DistanceMetric individual; it names the measure under which the proximity is a logic:Vague graded claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the metric a similarity proximity was computed under, so the score is self-describing."@x-gmeow-english .
+
 gmeow:poolingKind
     a owl:FunctionalProperty ,
         owl:ObjectProperty ;
@@ -417,9 +431,9 @@ gmeow:targetsResource
     rdfs:domain gmeow:VectorTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "targets resource"@x-gmeow-english ;
-    skos:definition "The exact resource a vector row embeds — the IRI of the term, document, chunk, or summary the vector stands for. Its range is intentionally left OPEN (no rdfs:range) so it admits any embeddable resource without leaking one form's typing onto the others. The RDF 1.2 statement-term case (a vector over a reified statement) is NOT expressed with a bespoke property here: at the instance layer, bind the gmeow:VectorTarget to the quoted triple with native reification, e.g. `ex:vt gmeow:targetsResource [ rdf:reifies <<( :s :p :o )>> ]` — the quoted triple IS the targeted resource. Functional: one vector row embeds exactly one resource."@x-gmeow-english ;
+    skos:definition "The exact resource a vector row embeds — the IRI of the term, document, chunk, or summary the vector stands for. Its range is intentionally left OPEN (no rdfs:range) so it admits any embeddable resource without leaking one form's typing onto the others. The RDF 1.2 statement-term case (a vector over a reified statement) is NOT expressed with a bespoke property here: bind the gmeow:VectorTarget to the statement's reifier node, e.g. `ex:vt gmeow:targetsResource ex:stmtReifier` where `ex:stmtReifier` reifies the target triple. Authored ontology content uses the base-quad-foldable reification form (an rdf:Statement with rdf:subject/rdf:predicate/rdf:object) rather than a quoted-triple object, because a `<<( s p o )>>` object cannot ride the base-quad fold to gmeow.gts (see slices/core/standpoint and docs/MIGRATING-SHAPES-TO-LOGIC / LOGIC-VALIDATION); the native `rdf:reifies <<( )>>` form remains the runtime/query surface. Functional: one vector row embeds exactly one resource."@x-gmeow-english ;
     skos:example "ex:vt1 gmeow:targetsResource ex:chunk42 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting an rdfs:range on it (the range is left open so it admits terms, documents, chunks, summaries, and RDF 1.2 statement reifiers alike) and avoid inventing a statement-target property; use native rdf:reifies for the statement case."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting an rdfs:range on it (the range is left open so it admits terms, documents, chunks, summaries, and statement reifiers alike) and avoid inventing a bespoke statement-target property; point at the statement's reifier node for the statement case."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert exactly one gmeow:targetsResource from a gmeow:VectorTarget to the embedded resource; for a statement term, point it at an rdf:reifies quoted triple rather than minting a bespoke property."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a vector row to the exact resource it embeds — leaving the range open so any embeddable IRI, including a reified statement, is admissible."@x-gmeow-english .
