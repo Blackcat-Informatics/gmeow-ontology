@@ -253,13 +253,31 @@ struct GmnGlyphSignature {
 /// The current codebook selection resolved from the graph. The loader follows
 /// `gmeow:gmnCodebookCurrent` through `gmeow:references`; it never treats unrelated
 /// historical dictionaries or codebooks in the same carrier as current inventory.
+///
+/// Public because it is one of the two clean carriers of codebook identity the
+/// codebook-digest layer ([`crate::gmn1_digest::codebook_digest`]) hashes over — the
+/// reference inventory, script graphemes, and pinned versions this struct holds are
+/// Merkle leaves of the codebook's content address.
 #[derive(Debug, Clone)]
-struct CurrentCodebook {
-    references: BTreeSet<String>,
-    dictionary_version: String,
-    glyph_version: String,
-    graphemes: BTreeSet<String>,
-    dictionary_entries: BTreeSet<String>,
+pub struct CurrentCodebook {
+    /// The codebook's `gmeow:references` inventory (dictionary, script, sigil roles).
+    pub references: BTreeSet<String>,
+    /// The pinned `gmeow:gmnDictionaryVersion`.
+    pub dictionary_version: String,
+    /// The pinned `gmeow:gmnGlyphTableVersion`.
+    pub glyph_version: String,
+    /// The current script's `lang:hasGrapheme` inventory.
+    pub graphemes: BTreeSet<String>,
+    /// The current dictionary's `gmeow:gmnDictionaryEntry` members.
+    pub dictionary_entries: BTreeSet<String>,
+}
+
+/// The codec's pinned GMN-1 dialect (schema) version — the `v:` coordinate the
+/// `@gmn{…}` header pins and the first Merkle leaf of the codebook digest. Exposed so
+/// the digest layer folds over the SAME constant the writer emits, never a second copy.
+#[must_use]
+pub(crate) fn dialect_version() -> &'static str {
+    DIALECT_VERSION
 }
 
 /// The executable GMN glyph table, derived from canonical, typed
@@ -699,6 +717,37 @@ impl GmnGlyphRegistry {
         &self.version
     }
 
+    /// The executable glyph bindings `(sigil, glyph, fixity, arity, term)` in stable
+    /// `BTreeMap` key order, each coordinate flattened to an owned string (fixity/arity
+    /// rendered `""` when absent). The codebook-digest layer folds these as one Merkle
+    /// leaf; the private [`GmnGlyphSignature`] never crosses the module boundary.
+    pub(crate) fn glyph_binding_rows(&self) -> Vec<(String, String, String, String, String)> {
+        Self::binding_rows(&self.glyph_to_term)
+    }
+
+    /// The ASCII-fallback read bindings, in the same flattened shape as
+    /// [`Self::glyph_binding_rows`] — a distinct Merkle leaf of the codebook digest.
+    pub(crate) fn fallback_binding_rows(&self) -> Vec<(String, String, String, String, String)> {
+        Self::binding_rows(&self.fallback_to_term)
+    }
+
+    fn binding_rows(
+        table: &BTreeMap<(String, String, GmnGlyphSignature), String>,
+    ) -> Vec<(String, String, String, String, String)> {
+        table
+            .iter()
+            .map(|((sigil, surface, signature), term)| {
+                (
+                    sigil.clone(),
+                    surface.clone(),
+                    signature.fixity.clone().unwrap_or_default(),
+                    signature.arity.map(|a| a.to_string()).unwrap_or_default(),
+                    term.clone(),
+                )
+            })
+            .collect()
+    }
+
     /// The distinct executable glyph tokens, ordered for deterministic longest-match
     /// lexing (more Unicode scalar values first, then bytewise lexical order).
     #[must_use]
@@ -874,7 +923,15 @@ fn reject_ambiguous_groups<'a>(
     Ok(())
 }
 
-fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, GlyphRegistryError> {
+/// Resolve the current codebook selection from a carrier — the one loader that follows
+/// `gmeow:gmnCodebookCurrent` through `gmeow:references`. Public so a caller (the CLI /
+/// pipeline codebook-digest surface) can obtain a [`CurrentCodebook`] to hash, using the
+/// SAME resolution the codec's dictionary/glyph loaders already trust.
+///
+/// # Errors
+/// A [`GlyphRegistryError`] if the current codebook is absent, mistyped, references not
+/// exactly one dictionary/script, or pins a version disagreeing with the codec's.
+pub fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, GlyphRegistryError> {
     let mut types = BTreeMap::<String, BTreeSet<String>>::new();
     let mut references = BTreeMap::<String, BTreeSet<String>>::new();
     let mut dictionary_versions = BTreeMap::<String, BTreeSet<String>>::new();
@@ -1333,6 +1390,13 @@ impl GmnDictionary {
         &self.version
     }
 
+    /// The alias bijection as `term → alias` pairs in stable `BTreeMap` (term) key order —
+    /// the codebook digest's dictionary-alias Merkle leaf. Read-only; the map itself is
+    /// the loaded, injectivity-checked bijection, never a rebuilt copy.
+    pub(crate) fn alias_entries(&self) -> &BTreeMap<String, String> {
+        &self.term_to_alias
+    }
+
     /// The graph-derived scoped glyph registry carried beside the alias table.
     #[must_use]
     pub fn glyph_registry(&self) -> &GmnGlyphRegistry {
@@ -1401,6 +1465,14 @@ pub enum Gmn1Error {
     /// field pair, a `@claims` schema its rows do not match, or the codec's own internal
     /// round-trip-mismatch invariant.
     NonDecodableGrammar { detail: String },
+    /// `lang:GmnNonCanonicalCodepoint` — a literal's lexical form is not NFC-normalized.
+    /// The GMN glyph discipline (`is_nfc` on every glyph surface) extended to literal
+    /// content: a non-NFC lexical form is a non-canonical Unicode spelling, so two byte-
+    /// distinct encodings of the "same" text would take different content digests and
+    /// forfeit the byte-comparability the digest layer rests on. A HARD FAIL at encode
+    /// time (no optionality), never a silent normalization. `lexical` is the offending
+    /// form.
+    NonNfcLiteral { lexical: String },
 }
 
 impl Gmn1Error {
@@ -1422,6 +1494,13 @@ impl Gmn1Error {
     /// See [`Self::CLASS_UNCOVERED_TERM`].
     pub const CLASS_NON_DECODABLE_GRAMMAR: &'static str =
         "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar";
+    /// The non-NFC literal failure REUSES the existing `lang:GmnNonCanonicalCodepoint`
+    /// class — the vocabulary's one Unicode-canonicity failure (a non-canonical codepoint
+    /// spelling). A non-NFC literal lexical form is exactly that: a non-canonical Unicode
+    /// spelling. No second, parallel normalization class is minted (GREENFIELD, one
+    /// classifier).
+    pub const CLASS_NON_CANONICAL_CODEPOINT: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnNonCanonicalCodepoint";
 
     /// The full `lang:` failure-class IRI this failure resolves to. This match is EXHAUSTIVE
     /// with no wildcard arm — the compile-time totality witness (mirroring
@@ -1436,6 +1515,7 @@ impl Gmn1Error {
             Self::MalformedNumber { .. } => Self::CLASS_MALFORMED_NUMBER,
             Self::UndeclaredDialectVersion { .. } => Self::CLASS_UNDECLARED_DIALECT_VERSION,
             Self::NonDecodableGrammar { .. } => Self::CLASS_NON_DECODABLE_GRAMMAR,
+            Self::NonNfcLiteral { .. } => Self::CLASS_NON_CANONICAL_CODEPOINT,
         }
     }
 }
@@ -1456,6 +1536,11 @@ impl std::fmt::Display for Gmn1Error {
             Self::NonDecodableGrammar { detail } => {
                 write!(f, "lang:GmnNonDecodableGrammar: {detail}")
             }
+            Self::NonNfcLiteral { lexical } => write!(
+                f,
+                "lang:GmnNonCanonicalCodepoint: literal lexical form {lexical:?} is not \
+                 NFC-normalized"
+            ),
         }
     }
 }
@@ -2343,12 +2428,37 @@ fn prefix_to_ns_table() -> BTreeMap<String, String> {
 
 // ── The writer ───────────────────────────────────────────────────────────────────────
 
+/// The literal-lexical-form NFC gate — the point where every literal ENTERS encoding.
+///
+/// The GMN glyph discipline already refuses a non-NFC glyph surface ([`validate_glyph_surface`]'s
+/// `is_nfc` check); this extends the SAME discipline to literal content: a literal object
+/// (an object `v` slot, or an annotation `q` confidence) whose lexical form is not
+/// NFC-normalized HARD-FAILS as [`Gmn1Error::NonNfcLiteral`] before any record is built.
+/// No optionality: the codec never silently normalizes, because normalizing the lexical
+/// form would change the underlying RDF term (a different `xsd:string` value), and a
+/// non-NFC form is a non-canonical Unicode spelling that would make one text take two
+/// content digests. A literal only ever occupies the object position of a GMN-0 quad, so
+/// scanning object slots covers every literal the writer would encode.
+fn assert_model_literals_nfc(model: &Gmn0Model) -> Result<(), Gmn1Error> {
+    for quad in &model.quads {
+        if let RdfTerm::Literal(lit) = &quad.object
+            && !is_nfc(&lit.lexical_form)
+        {
+            return Err(Gmn1Error::NonNfcLiteral {
+                lexical: lit.lexical_form.clone(),
+            });
+        }
+    }
+    Ok(())
+}
+
 /// GMN-0 → GMN-1: the forward/put leg. Total over any [`Gmn0Model`] whose quads are
 /// default-graph, plain IRI/blank/literal-object triples under a registered namespace
 /// (the grounding slices' fragment) — hard-fails as [`Gmn1Error::Uncovered`] on a
 /// named-graph quad, a quoted-triple term, or an IRI under no registered namespace,
 /// never a silent drop.
 pub fn gmn1_write(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Gmn1Document, Gmn1Error> {
+    assert_model_literals_nfc(model)?;
     let ns_to_prefix = ns_to_prefix_table();
     let mut refs = BTreeMap::new();
     let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)
@@ -2378,6 +2488,7 @@ pub fn gmn1_write_tabular(
     model: &Gmn0Model,
     dict: &GmnDictionary,
 ) -> Result<Gmn1Document, Gmn1Error> {
+    assert_model_literals_nfc(model)?;
     let ns_to_prefix = ns_to_prefix_table();
     let mut refs = BTreeMap::new();
     let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)
