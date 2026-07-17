@@ -367,6 +367,18 @@ fn canon_rec(
 /// Render a ground term to a deterministic functional surface: an IRI/literal leaf to its
 /// lexical/IRI text, and `op(arg, …)` for an application (a nullary application is bare
 /// `op`). Used for the answer-binding surfaces.
+///
+/// # Binders (G10)
+///
+/// A [`NodeData::Binder`] renders its FULL de-Bruijn-faithful structure — `op[sorts…].body`
+/// — rather than collapsing to an opaque literal. Bound occurrences inside `body` already
+/// render as `_b{debruijn}.{slot}` (locally-nameless, alpha-invariant), so two
+/// structurally-distinct binder terms render to two distinct surfaces and two alpha-equal
+/// ones render identically. Rendering the literal `"<binder>"` for every binder would
+/// collapse any two distinct binder-valued answers onto the SAME binding surface, and the
+/// caller ([`project`]) dedups answers by that surface — silently dropping a genuinely
+/// distinct answer. A render that is injective over content (mirroring the DAG's own content
+/// key) keeps dedup sound.
 pub(crate) fn render(dag: &TermDag, node: NodeId) -> String {
     match dag.data(node) {
         NodeData::Leaf(tid) | NodeData::Free(tid) => render_atom(dag.atom_value(*tid)),
@@ -380,7 +392,16 @@ pub(crate) fn render(dag: &TermDag, node: NodeId) -> String {
             let inner: Vec<String> = args.iter().map(|a| render(dag, *a)).collect();
             format!("{}({})", render(dag, op), inner.join(","))
         }
-        NodeData::Binder { .. } => "<binder>".to_owned(),
+        NodeData::Binder { op, sorts, body } => {
+            let (op, sorts, body) = (*op, sorts.clone(), *body);
+            let sort_strs: Vec<String> = sorts.iter().map(|s| render(dag, *s)).collect();
+            format!(
+                "{}[{}].{}",
+                render(dag, op),
+                sort_strs.join(","),
+                render(dag, body)
+            )
+        }
     }
 }
 
@@ -470,28 +491,76 @@ struct BodySolution {
     negs: Vec<NodeId>,
 }
 
-/// Solve a clause body left-to-right against the CURRENT answer tables, returning every
-/// completed solution. A positive literal joins the stored answers of its (demanded)
-/// subgoal; a negative literal is *delayed* (its subgoal is demanded but the derivation is
-/// not constrained), recording the ground negated atom. A negated literal that is not ground
-/// once reached flounders.
+/// Solve a clause body against the CURRENT answer tables, returning every completed
+/// solution.
+///
+/// # Safe literal selection (SLG safe-computation rule / SIPS)
+///
+/// Body literals are NOT processed in bare authored order: at each step the solver selects,
+/// among the not-yet-processed literals, the FIRST one (in original-index order, for
+/// determinism) that is *safe* to resolve now — a positive literal is always safe (it
+/// PRODUCES bindings by joining the demanded subgoal's stored answers), while a negative
+/// literal is safe only once every one of its variables is already bound by an
+/// already-selected positive literal (its instantiated atom is ground). This is the
+/// standard mode-constrained selection function real SLG/tabling engines use: `not A`
+/// consumes bindings, it never produces them, so selecting it before its variables are
+/// bound is unsound NAF-over-an-open-goal, not a sound answer. Selecting a SAFE literal
+/// first means the authored conjunct order of e.g. `win(X) :- move(X, Y), not win(Y).` and
+/// its reversal `win(X) :- not win(Y), move(X, Y).` both resolve identically: `not win(Y)`
+/// is deferred until `move(X, Y)` — wherever it sits in the body — has bound `Y`.
+///
+/// A positive literal joins the stored answers of its (demanded) subgoal; a negative
+/// literal is *delayed* (its subgoal is demanded but the derivation is not constrained),
+/// recording the ground negated atom. Floundering — [`Engine::floundered`] — is raised ONLY
+/// when NO remaining literal is safe under ANY selection order (every remaining literal is a
+/// negative atom with a variable no positive literal, present or absent, could ever bind),
+/// never merely because the authored order happened to place a negative literal first.
 fn solve_body(
     dag: &mut TermDag,
     engine: &mut Engine,
     ctx: &SortContext,
     body: &[FolLit],
-    idx: usize,
+    remaining: &[usize],
     state: BodySolution,
     out: &mut Vec<BodySolution>,
 ) {
     if engine.floundered {
         return;
     }
-    if idx == body.len() {
+    if remaining.is_empty() {
         out.push(state);
         return;
     }
-    match body[idx] {
+    // Scan `remaining` in its (original-index-preserving) order and select the FIRST safe
+    // literal. When the authored order is already safe this picks `remaining[0]` every time,
+    // so a program with no negation-before-binding hazard behaves byte-identically to plain
+    // left-to-right solving.
+    let mut chosen: Option<usize> = None;
+    for &i in remaining {
+        let safe = match body[i] {
+            FolLit::Pos(_) => true,
+            FolLit::Neg(atom) => {
+                let a = apply(dag, &state.subst, atom);
+                is_ground(dag, a)
+            }
+        };
+        if safe {
+            chosen = Some(i);
+            break;
+        }
+    }
+    let sel = match chosen {
+        Some(i) => i,
+        None => {
+            // Every remaining literal is negative and unbound under EVERY selection order —
+            // no positive literal remains that could ever ground it. Genuine floundering, a
+            // declared gap, never a fabricated answer.
+            engine.floundered = true;
+            return;
+        }
+    };
+    let rest: Vec<usize> = remaining.iter().copied().filter(|&i| i != sel).collect();
+    match body[sel] {
         FolLit::Pos(atom) => {
             let a = apply(dag, &state.subst, atom);
             engine.register_call(dag, a);
@@ -506,18 +575,16 @@ fn solve_body(
                         premises,
                         negs: state.negs.clone(),
                     };
-                    solve_body(dag, engine, ctx, body, idx + 1, next, out);
+                    solve_body(dag, engine, ctx, body, &rest, next, out);
                 }
             }
         }
         FolLit::Neg(atom) => {
             let a = apply(dag, &state.subst, atom);
-            if !is_ground(dag, a) {
-                // A negated variable still unbound when the NAF literal is reached: NAF over
-                // an unbound goal is unsound — a declared floundering gap, never a wrong answer.
-                engine.floundered = true;
-                return;
-            }
+            debug_assert!(
+                is_ground(dag, a),
+                "safe selection guarantees a negative literal is ground when chosen"
+            );
             // Demand A so its own rules are grounded; DELAY the truth check to the WFS phase.
             engine.register_call(dag, a);
             engine.record_atom(dag, a);
@@ -528,7 +595,7 @@ fn solve_body(
                 premises: state.premises.clone(),
                 negs,
             };
-            solve_body(dag, engine, ctx, body, idx + 1, next, out);
+            solve_body(dag, engine, ctx, body, &rest, next, out);
         }
     }
 }
@@ -594,7 +661,16 @@ fn expand_round(
                 premises: Vec::new(),
                 negs: Vec::new(),
             };
-            solve_body(dag, engine, ctx, &renamed.body, 0, seed, &mut solutions);
+            let remaining: Vec<usize> = (0..renamed.body.len()).collect();
+            solve_body(
+                dag,
+                engine,
+                ctx,
+                &renamed.body,
+                &remaining,
+                seed,
+                &mut solutions,
+            );
             if engine.floundered {
                 return Vec::new();
             }

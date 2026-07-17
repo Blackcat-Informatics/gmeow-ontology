@@ -644,3 +644,417 @@ fn structured_qprogram_routes_through_resolve_native_fol() {
         NativeOutcome::Unsupported(kind) => panic!("structured program must resolve, got {kind:?}"),
     }
 }
+
+// ── G1: WFS soundness under budget cut — prefer Undefined, never fabricate True ──────
+
+#[test]
+fn g1_budget_cut_demotes_dependent_atom_to_undefined_not_true() {
+    // `p :- not q.` + fact `q.` under Budget{max_steps: 1}: round 1 fires the ONLY
+    // demanded call (`p`), discovering the ground rule `p :- not q` (q is merely
+    // DEMANDED, not yet derived, since the unit fact `q.` was never itself a demanded
+    // call this round). The budget cuts after that single step, so `q`'s founding fact
+    // is never reached. A resolver that fabricates True for `p` here (reading the
+    // not-yet-grounded `q` as false) would be UNSOUND; the correct verdict is
+    // Undefined — incomplete, never wrong.
+    let mut dag = TermDag::new();
+    let p = atom(&mut dag, "p", vec![]);
+    let q = atom(&mut dag, "q", vec![]);
+
+    let program = FolProgram {
+        clauses: vec![
+            // fact: q.
+            FolClause {
+                head: q,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 0),
+            },
+            // rule: p :- not q.
+            FolClause {
+                head: p,
+                body: vec![FolLit::Neg(q)],
+                rule_iri: rule_iri(&mut dag, 1),
+            },
+        ],
+        goal: p,
+        goal_vars: vec![],
+        meta_sorts: HashMap::new(),
+    };
+
+    let budget = Budget {
+        max_answers: None,
+        max_steps: Some(1),
+    };
+    let outcome = decided(resolve_fol(&mut dag, &program, &empty_ctx(), &budget).unwrap());
+    assert_eq!(
+        outcome.status,
+        BudgetStatus::Exhausted,
+        "the single-step budget must cut the grounding"
+    );
+    assert_eq!(
+        outcome.truth_of(&dag, p),
+        Truth::Undefined,
+        "a budget cut must PREFER Undefined over a fabricated True for an atom whose \
+         negative dependency was never proven complete"
+    );
+    assert!(
+        outcome.answers.is_empty(),
+        "an Undefined goal yields no TRUE answer: {:?}",
+        outcome.answers
+    );
+}
+
+// ── G6: content-key rule identity — firing_rule_iri hashes the STRING, not TermId ────
+
+#[test]
+fn g6_firing_rule_iri_is_content_addressed_across_independent_dags() {
+    // Build the "same" ground rule instance `p(a) :- q(a)` in two INDEPENDENT DAGs whose
+    // interning HISTORY differs (a different amount of unrelated "noise" interned first
+    // shifts every TermId/NodeId ordinal), and assert `firing_rule_iri` still mints the
+    // BYTE-IDENTICAL IRI — it must fold the rule IRI's STRING, never a per-arena TermId
+    // ordinal that leaks arena history.
+    fn build(noise: usize, pred: &str) -> (TermDag, GroundRule) {
+        let mut dag = TermDag::new();
+        for i in 0..noise {
+            iri(&mut dag, &format!("https://example.org/noise-{i}"));
+        }
+        let a = iri(&mut dag, "https://example.org/a");
+        let head = atom(&mut dag, pred, vec![a]);
+        let q_a = atom(&mut dag, "https://example.org/q", vec![a]);
+        let rule_iri_tid = rule_iri(&mut dag, 0);
+        let rule = GroundRule {
+            head,
+            pos: vec![q_a],
+            neg: vec![],
+            rule_iri: rule_iri_tid,
+            unit: false,
+        };
+        (dag, rule)
+    }
+
+    let (mut dag1, rule1) = build(0, "p");
+    let (mut dag2, rule2) = build(11, "p");
+    // A negative control: genuinely different content (different head predicate) must
+    // mint a DIFFERENT firing IRI, so the test cannot pass vacuously.
+    let (mut dag3, rule3) = build(0, "p2");
+
+    let iri1 = firing_rule_iri(&mut dag1, &rule1);
+    let iri2 = firing_rule_iri(&mut dag2, &rule2);
+    let iri3 = firing_rule_iri(&mut dag3, &rule3);
+
+    let s1 = dag1.atom_display(iri1).to_owned();
+    let s2 = dag2.atom_display(iri2).to_owned();
+    let s3 = dag3.atom_display(iri3).to_owned();
+
+    assert_eq!(
+        s1, s2,
+        "identical ground firings must fold to the SAME firing IRI regardless of the \
+         arena's independent interning history (never a TermId ordinal)"
+    );
+    assert_ne!(
+        s1, s3,
+        "genuinely different content must still mint a DIFFERENT firing IRI"
+    );
+}
+
+// ── G9: table-call identity folds in metavariable sorts ──────────────────────────────
+
+#[test]
+fn g9_canon_call_key_distinguishes_metavariable_sort() {
+    // Two otherwise-variant-identical calls that differ ONLY in a metavariable's
+    // declared sort must key to DISTINCT canonical call patterns — else an order-sorted
+    // answer set collapses onto one shared (and semantically wrong) table entry.
+    let mut dag = TermDag::new();
+    let sort_a = iri(&mut dag, "https://example.org/SortA");
+    let sort_b = iri(&mut dag, "https://example.org/SortB");
+    let (m, x) = var(&mut dag);
+    let call = atom(&mut dag, "p", vec![x]);
+
+    let mut sorts_a: HashMap<MetaId, NodeId> = HashMap::new();
+    sorts_a.insert(m, sort_a);
+    let mut sorts_b: HashMap<MetaId, NodeId> = HashMap::new();
+    sorts_b.insert(m, sort_b);
+    let sorts_none: HashMap<MetaId, NodeId> = HashMap::new();
+
+    let key_a = canon(&dag, call, &sorts_a);
+    let key_b = canon(&dag, call, &sorts_b);
+    let key_none = canon(&dag, call, &sorts_none);
+
+    assert_ne!(
+        key_a, key_b,
+        "the SAME variant pattern with two DIFFERENT declared metavariable sorts must \
+         key to two DISTINCT table entries"
+    );
+    assert_ne!(
+        key_a, key_none,
+        "a sorted call must not collide with the unsorted key"
+    );
+    assert_ne!(
+        key_b, key_none,
+        "a sorted call must not collide with the unsorted key"
+    );
+
+    // Sanity: an identical sort still shares one key (the fix must not over-distinguish).
+    let mut sorts_a2: HashMap<MetaId, NodeId> = HashMap::new();
+    sorts_a2.insert(m, sort_a);
+    assert_eq!(
+        key_a,
+        canon(&dag, call, &sorts_a2),
+        "the SAME declared sort must still share one canonical key"
+    );
+}
+
+// ── G10: binder-valued answers survive dedup (no collapse to "<binder>") ─────────────
+
+#[test]
+fn g10_distinct_binder_valued_answers_both_survive() {
+    // Two facts `wraps(B1).` / `wraps(B2).` whose argument is a STRUCTURALLY DISTINCT
+    // binder term must both surface as distinct goal answers for `?- wraps(X)`. A
+    // renderer that collapses every binder to the literal `"<binder>"` would make both
+    // answers bind `X` to the SAME surface string, so the dedup-by-binding-surface step
+    // in `project` would silently drop one of two genuinely distinct answers.
+    let mut dag = TermDag::new();
+    let sort = iri(&mut dag, "https://example.org/Sort");
+    let forall = iri(&mut dag, "https://example.org/forall");
+    let p_op = iri(&mut dag, "https://example.org/p");
+    let q_op = iri(&mut dag, "https://example.org/q");
+
+    let bound0 = dag.intern_bound(0, 0);
+    let body_p = dag.intern_app(p_op, vec![bound0]);
+    let bound0b = dag.intern_bound(0, 0);
+    let body_q = dag.intern_app(q_op, vec![bound0b]);
+    let binder1 = dag.intern_binder(forall, vec![sort], body_p);
+    let binder2 = dag.intern_binder(forall, vec![sort], body_q);
+    assert_ne!(
+        binder1, binder2,
+        "structurally distinct binders (test setup)"
+    );
+
+    let wraps1 = atom(&mut dag, "wraps", vec![binder1]);
+    let wraps2 = atom(&mut dag, "wraps", vec![binder2]);
+
+    let (_xm, x) = var(&mut dag);
+    let goal = atom(&mut dag, "wraps", vec![x]);
+
+    let program = FolProgram {
+        clauses: vec![
+            FolClause {
+                head: wraps1,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 0),
+            },
+            FolClause {
+                head: wraps2,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 1),
+            },
+        ],
+        goal,
+        goal_vars: vec![(x, "X".to_owned())],
+        meta_sorts: HashMap::new(),
+    };
+
+    let outcome =
+        decided(resolve_fol(&mut dag, &program, &empty_ctx(), &Budget::default()).unwrap());
+    assert_eq!(outcome.status, BudgetStatus::Ok);
+    assert_eq!(
+        outcome.answers.len(),
+        2,
+        "both distinct binder-valued answers must survive, not collapse to one: {:?}",
+        outcome
+            .answers
+            .iter()
+            .map(|a| a.bindings["X"].clone())
+            .collect::<Vec<_>>()
+    );
+    let mut vals: Vec<String> = outcome
+        .answers
+        .iter()
+        .map(|a| a.bindings["X"].clone())
+        .collect();
+    vals.sort();
+    assert_ne!(
+        vals[0], vals[1],
+        "the two surfaces must actually be distinct"
+    );
+    assert_all_proofs_check(&mut dag, &outcome);
+}
+
+// ── G8: budget on the structured (resolve_native_fol) result path ───────────────────
+
+#[test]
+fn g8_structured_dispatch_enforces_max_answers_and_marks_partial() {
+    use crate::query_ir::{QAtom, QGoal, QProgram, QRule, QTerm, StructNode};
+
+    // Three facts `m(a, list).` / `m(b, list).` / `m(c, list).` over a structured
+    // (Struct-bearing) second argument, so the program routes through the full-FOL
+    // dispatch entry `resolve_native_fol`. Budget{max_answers: Some(2)} must truncate
+    // the 3-answer set to a deterministic 2-answer PARTIAL result — the structured
+    // result path must not silently ignore `max_answers`.
+    let mut dag = TermDag::new();
+    let nil = iri(&mut dag, "nil");
+    let elem = iri(&mut dag, "elem");
+    let list = atom(&mut dag, "cons", vec![elem, nil]);
+    let a = iri(&mut dag, "a");
+    let b = iri(&mut dag, "b");
+    let c = iri(&mut dag, "c");
+
+    let arena = dag.arena();
+    let struct_t = move |n: NodeId| QTerm::Struct(StructNode::new(n, arena));
+    let vt = |s: &str| QTerm::Var(s.to_owned());
+
+    let fact = |val: NodeId| QRule {
+        head: QAtom {
+            pred: "m".to_owned(),
+            args: vec![struct_t(val), struct_t(list)],
+        },
+        body: vec![],
+    };
+
+    let program = QProgram {
+        rules: vec![fact(a), fact(b), fact(c)],
+        goal: QGoal {
+            atoms: vec![QAtom {
+                pred: "m".to_owned(),
+                args: vec![vt("X"), struct_t(list)],
+            }],
+        },
+        counterfactual: None,
+        prob_facts: vec![],
+        prob_model: None,
+        confidences: vec![],
+    };
+
+    assert!(program_is_structured(&program));
+
+    let budget = Budget {
+        max_answers: Some(2),
+        max_steps: None,
+    };
+    let outcome = resolve_native_fol(&mut dag, &program, &budget).unwrap();
+    match outcome {
+        NativeOutcome::Decided(answer) => {
+            assert_eq!(
+                answer.status,
+                BudgetStatus::Partial,
+                "a reached answer cap must stamp Partial"
+            );
+            assert_eq!(
+                answer.bindings.len(),
+                2,
+                "the answer set must be truncated to max_answers: {:?}",
+                answer.bindings
+            );
+            let vals: Vec<&str> = answer.bindings.iter().map(|b| b["X"].as_str()).collect();
+            assert_eq!(
+                vals,
+                vec!["a", "b"],
+                "truncation must be deterministic (the canonicalized sorted prefix)"
+            );
+        }
+        NativeOutcome::Unsupported(kind) => panic!("structured program must resolve, got {kind:?}"),
+    }
+}
+
+// ── Safe literal selection (SIPS): body-literal order independence ──────────────────
+
+#[test]
+fn safe_literal_selection_win_move_is_order_independent() {
+    // The SAME win/move game as `win_move_game_has_correct_well_founded_model`, but with
+    // the negative literal authored BEFORE the positive literal that binds its
+    // variable — `win(X) :- not win(Y), move(X, Y).` — must resolve to the IDENTICAL
+    // three-valued model. Body-literal selection must be SAFE (the standard SLG safe
+    // computation / SIPS rule: a negative literal is selected only once its variables
+    // are bound by a preceding — in SELECTION order, not authored order — positive
+    // literal), so this must NOT flounder merely because the authored conjunct order
+    // placed the negative literal first.
+    let mut dag = TermDag::new();
+    let a = iri(&mut dag, "a");
+    let b = iri(&mut dag, "b");
+    let c = iri(&mut dag, "c");
+    let d = iri(&mut dag, "d");
+
+    let mk_move = |dag: &mut TermDag, x: NodeId, y: NodeId| atom(dag, "move", vec![x, y]);
+    let move_ab = mk_move(&mut dag, a, b);
+    let move_ba = mk_move(&mut dag, b, a);
+    let move_cd = mk_move(&mut dag, c, d);
+
+    // win(X) :- not win(Y), move(X, Y).   — REVERSED body order vs the sibling test.
+    let (_xm, x) = var(&mut dag);
+    let (_ym, y) = var(&mut dag);
+    let win_x = atom(&mut dag, "win", vec![x]);
+    let move_xy = atom(&mut dag, "move", vec![x, y]);
+    let win_y = atom(&mut dag, "win", vec![y]);
+    let win_rule = rule_iri(&mut dag, 3);
+
+    let (_wm, w) = var(&mut dag);
+    let goal = atom(&mut dag, "win", vec![w]);
+
+    let program = FolProgram {
+        clauses: vec![
+            FolClause {
+                head: move_ab,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 0),
+            },
+            FolClause {
+                head: move_ba,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 1),
+            },
+            FolClause {
+                head: move_cd,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 2),
+            },
+            FolClause {
+                head: win_x,
+                body: vec![FolLit::Neg(win_y), FolLit::Pos(move_xy)],
+                rule_iri: win_rule,
+            },
+        ],
+        goal,
+        goal_vars: vec![(w, "W".to_owned())],
+        meta_sorts: HashMap::new(),
+    };
+
+    let outcome =
+        decided(resolve_fol(&mut dag, &program, &empty_ctx(), &Budget::default()).unwrap());
+    assert_eq!(
+        outcome.status,
+        BudgetStatus::Ok,
+        "must NOT flounder merely because the authored body order was unlucky"
+    );
+
+    let win_a = atom(&mut dag, "win", vec![a]);
+    let win_b = atom(&mut dag, "win", vec![b]);
+    let win_c = atom(&mut dag, "win", vec![c]);
+    let win_d = atom(&mut dag, "win", vec![d]);
+    assert_eq!(
+        outcome.truth_of(&dag, win_c),
+        Truth::True,
+        "win(c): move to lost d"
+    );
+    assert_eq!(
+        outcome.truth_of(&dag, win_d),
+        Truth::False,
+        "win(d): no move"
+    );
+    assert_eq!(
+        outcome.truth_of(&dag, win_a),
+        Truth::Undefined,
+        "even cycle"
+    );
+    assert_eq!(
+        outcome.truth_of(&dag, win_b),
+        Truth::Undefined,
+        "even cycle"
+    );
+
+    let ws: Vec<String> = outcome
+        .answers
+        .iter()
+        .map(|a| a.bindings["W"].clone())
+        .collect();
+    assert_eq!(ws, vec!["c".to_owned()], "only c is a won position: {ws:?}");
+    assert_all_proofs_check(&mut dag, &outcome);
+}
