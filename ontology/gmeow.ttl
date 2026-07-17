@@ -39,7 +39,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ,
         <https://blackcatinformatics.ca/gmeow/slices/documentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
-        <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
