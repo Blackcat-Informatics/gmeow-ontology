@@ -90,11 +90,14 @@ pub struct GoalDirectedEvaluation {
     pub goal: String,
     /// The budget status of the resolution (`ok` / `partial` / `exhausted`).
     pub status: String,
-    /// The proof-checked answers, sorted by [`GoalDirectedAnswer::atom`] for determinism.
+    /// The proof-checked answers, in a TOTAL order over `(atom, bindings, derivation_iri)`
+    /// for determinism (G12) — atom alone is not a total order, since two answers may share
+    /// the identical ground conclusion via distinct derivations.
     pub answers: Vec<GoalDirectedAnswer>,
-    /// The probed three-valued WFS verdicts, sorted by [`GoalDirectedVerdict::atom`] for
-    /// determinism. Non-empty only for a negation demonstrator (e.g. `win`/`move`), where it
-    /// carries the `undefined` loop atoms alongside the founded `true`/`false` atoms.
+    /// The probed three-valued WFS verdicts, in a TOTAL order over `(atom, verdict)` for
+    /// determinism (G12). Non-empty only for a negation demonstrator (e.g. `win`/`move`),
+    /// where it carries the `undefined` loop atoms alongside the founded `true`/`false`
+    /// atoms.
     pub verdicts: Vec<GoalDirectedVerdict>,
     /// The AUTHORED program's own clauses, each rendered to its functional surface via the
     /// SAME [`render`] helper the answers use (`"head."` for a fact, `"head :- b1, b2."` for
@@ -197,7 +200,20 @@ fn evaluate_demonstrator(
             proof_checks: true,
         });
     }
-    answers.sort_by(|a, b| a.atom.cmp(&b.atom));
+    // G12: a TOTAL order, not merely atom-order — two answers can share the same ground
+    // atom (distinct derivations of the identical conclusion), and `sort_by` is stable, so
+    // sorting on the atom alone would let a tie's relative order depend on whatever order
+    // the engine happened to produce them in, which is NOT guaranteed byte-stable across
+    // independent evaluations. Folding in `bindings` (a `BTreeMap`, itself totally ordered)
+    // and `derivation_iri` makes the comparator a genuine total order over the answer's own
+    // content, so the sorted sequence — and hence [`project_goal_directed`]'s output — is
+    // deterministic regardless of internal evaluation order.
+    answers.sort_by(|a, b| {
+        a.atom
+            .cmp(&b.atom)
+            .then_with(|| a.bindings.cmp(&b.bindings))
+            .then_with(|| a.derivation_iri.cmp(&b.derivation_iri))
+    });
     // Record the three-valued well-founded verdict of each probed ground atom. `truth_of`
     // reads the well-founded model by content key, so a probe the grounding never founded is
     // (correctly) `false`, an atom in a negative loop is `undefined`, and a founded atom is
@@ -214,7 +230,10 @@ fn evaluate_demonstrator(
             verdict: verdict.to_owned(),
         });
     }
-    verdicts.sort_by(|a, b| a.atom.cmp(&b.atom));
+    // G12: same total-order rationale as `answers` above — fold in `verdict` so a tie on
+    // `atom` alone (which cannot occur for a single probe set today, but is not an
+    // invariant this function should silently depend on) still sorts deterministically.
+    verdicts.sort_by(|a, b| a.atom.cmp(&b.atom).then_with(|| a.verdict.cmp(&b.verdict)));
     Ok(GoalDirectedEvaluation {
         name: name.to_owned(),
         description: description.to_owned(),
@@ -825,14 +844,47 @@ fn query_iri(name: &str) -> String {
     format!("{GMEOW}goal-directed/{name}")
 }
 
-/// The `n`-th answer individual IRI of a demonstrator.
-fn answer_iri(name: &str, idx: usize) -> String {
-    format!("{GMEOW}goal-directed/{name}/answer/{idx}")
+/// The content-addressed answer individual IRI of one checked [`GoalDirectedAnswer`].
+///
+/// G12: a `blake3` hash folding the demonstrator name, the ground answer atom, its sorted
+/// variable bindings, and its derivation-proof IRI — NEVER a positional `/answer/{idx}`. A
+/// positional index is only stable if the caller's `Vec<GoalDirectedAnswer>` is visited in
+/// the exact same order on every run; [`evaluate_demonstrator`]'s sort is a total order over
+/// this SAME content, but minting the IRI from the content directly (rather than from
+/// wherever it lands after sorting) makes the projection byte-stable and
+/// order-independent by construction, exactly like [`content_addressed_rule_iri`] /
+/// [`program_iri_for`].
+fn answer_iri(name: &str, ans: &GoalDirectedAnswer) -> String {
+    let mut key = String::new();
+    key.push_str(name);
+    key.push('\u{0}');
+    key.push_str(&ans.atom);
+    for (var, surface) in &ans.bindings {
+        key.push('\u{0}');
+        key.push_str(var);
+        key.push('=');
+        key.push_str(surface);
+    }
+    key.push('\u{0}');
+    key.push_str(&ans.derivation_iri);
+    let hash = blake3::hash(key.as_bytes()).to_hex();
+    format!("{GMEOW}goal-directed/{name}/answer/{hash}")
 }
 
-/// The `n`-th WFS-verdict individual IRI of a demonstrator (`n` in sorted-atom order).
-fn verdict_iri(name: &str, idx: usize) -> String {
-    format!("{GMEOW}goal-directed/{name}/verdict/{idx}")
+/// The content-addressed WFS-verdict individual IRI of one probed [`GoalDirectedVerdict`].
+///
+/// G12: a `blake3` hash folding the demonstrator name, the probed ground atom, and its
+/// three-valued verdict — never a positional `/verdict/{idx}`, for the same
+/// byte-stability/order-independence reason as [`answer_iri`].
+fn verdict_iri(name: &str, v: &GoalDirectedVerdict) -> String {
+    let mut key = String::new();
+    key.push_str(name);
+    key.push('\u{0}');
+    key.push_str(&v.atom);
+    key.push('\u{0}');
+    key.push_str(&v.verdict);
+    let hash = blake3::hash(key.as_bytes()).to_hex();
+    format!("{GMEOW}goal-directed/{name}/verdict/{hash}")
 }
 
 /// U2: mint a content-addressed `gmeow:GoalDirectedProgram` IRI from the evaluation's OWN
@@ -877,8 +929,8 @@ pub fn project_goal_directed(evals: &[GoalDirectedEvaluation]) -> String {
         ));
         lines.push(triple_lit(&q, &p("goalDirectedGoal"), &eval.goal));
         lines.push(triple_lit(&q, &p("goalDirectedStatus"), &eval.status));
-        for (idx, ans) in eval.answers.iter().enumerate() {
-            let a = answer_iri(&eval.name, idx);
+        for ans in &eval.answers {
+            let a = answer_iri(&eval.name, ans);
             lines.push(triple_iri(&q, &p("hasGoalDirectedAnswer"), &a));
             lines.push(triple_iri(&a, RDF_TYPE, &p("GoalDirectedAnswer")));
             lines.push(triple_lit(&a, &p("goalDirectedAtom"), &ans.atom));
@@ -905,8 +957,8 @@ pub fn project_goal_directed(evals: &[GoalDirectedEvaluation]) -> String {
         // `true`/`false`/`undefined` value. The `undefined` verdict is what makes well-founded
         // negation a SHIPPED (non-dark) behaviour — it cannot be an `xsd:boolean`, so it rides
         // as a plain three-valued string literal.
-        for (idx, v) in eval.verdicts.iter().enumerate() {
-            let vi = verdict_iri(&eval.name, idx);
+        for v in &eval.verdicts {
+            let vi = verdict_iri(&eval.name, v);
             lines.push(triple_iri(&q, &p("hasGoalDirectedVerdict"), &vi));
             lines.push(triple_iri(&vi, RDF_TYPE, &p("GoalDirectedVerdict")));
             lines.push(triple_lit(&vi, &p("goalDirectedVerdictAtom"), &v.atom));
@@ -1717,11 +1769,25 @@ mod tests {
         // The distinctive SLG-WFS surface projects: an undefined verdict AND both founded
         // verdicts.
         let nt = project_goal_directed(&evals);
+        // G15: `atom` and `verdict` must be asserted of the SAME verdict subject — checking
+        // "some line has this atom" and (independently) "some OTHER line has this verdict"
+        // would false-pass a cross-subject mismatch (e.g. win(a)'s atom line paired with
+        // win(c)'s "true" verdict line, even though win(a) is actually undefined). Each
+        // N-Triples line is `<subject> <predicate> "object" .`; extract the bracketed
+        // subject token from the `goalDirectedVerdictAtom` line naming `atom`, then require
+        // a DIFFERENT line with that EXACT SAME subject to carry `goalDirectedVerdict`
+        // "verdict".
         let has_verdict = |atom: &str, verdict: &str| {
             nt.lines()
-                .any(|l| l.contains("goalDirectedVerdictAtom") && l.contains(atom))
-                && nt.lines().any(|l| {
-                    l.contains("goalDirectedVerdict>") && l.contains(&format!("\"{verdict}\""))
+                .filter(|l| l.contains("goalDirectedVerdictAtom") && l.contains(atom))
+                .any(|l| {
+                    let subject = l.split_whitespace().next().unwrap_or("");
+                    !subject.is_empty()
+                        && nt.lines().any(|v| {
+                            v.starts_with(subject)
+                                && v.contains("goalDirectedVerdict>")
+                                && v.contains(&format!("\"{verdict}\""))
+                        })
                 })
         };
         assert!(
@@ -1739,6 +1805,18 @@ mod tests {
         assert!(
             has_verdict(&atom_of("d"), "false"),
             "win(d) is serialized as a founded false:\n{nt}"
+        );
+        // G15 regression: win(a) is undefined and win(c) is a DIFFERENT subject's "true" —
+        // `has_verdict` must NOT cross-match win(a)'s atom line against win(c)'s verdict
+        // line just because both substrings appear somewhere in the projection.
+        assert!(
+            !has_verdict(&atom_of("a"), "true"),
+            "win(a) must not false-pass as \"true\" via a DIFFERENT subject's verdict line:\n{nt}"
+        );
+        assert!(
+            !has_verdict(&atom_of("c"), "undefined"),
+            "win(c) must not false-pass as \"undefined\" via a DIFFERENT subject's verdict \
+             line:\n{nt}"
         );
 
         // Byte-stability across two independent evaluations.
@@ -1818,6 +1896,95 @@ mod tests {
         assert_eq!(
             nt_first, nt_second,
             "two independent evaluations serialize byte-identically (deterministic)"
+        );
+    }
+
+    // ── G12: content-addressed answer/verdict IRIs, order-independent ──────────────────
+
+    #[test]
+    fn answer_and_verdict_iris_are_content_addressed_not_positional() {
+        // G12 regression: `answer_iri`/`verdict_iri` must be content-addressed (folding the
+        // demonstrator name, atom, bindings/verdict, and derivation) rather than a
+        // positional `/answer/{idx}`/`/verdict/{idx}`. Build the SAME two answers (and two
+        // verdicts) in two DIFFERENT vector orders — simulating what a different internal
+        // evaluation order would hand `project_goal_directed` — and confirm the projected
+        // N-Triples are BYTE-IDENTICAL either way. Under a positional scheme this would
+        // fail: answer 0 in one order is answer 1 in the other, so `/answer/0` would be
+        // minted for a DIFFERENT answer's triples depending on evaluation order.
+        let make_eval = |answers: Vec<GoalDirectedAnswer>, verdicts: Vec<GoalDirectedVerdict>| {
+            GoalDirectedEvaluation {
+                name: "order-probe".to_owned(),
+                description: "G12 order-independence probe".to_owned(),
+                goal: "p(?X)".to_owned(),
+                status: "ok".to_owned(),
+                answers,
+                verdicts,
+                clauses: vec!["p(a).".to_owned(), "p(b).".to_owned()],
+                verdict_probe_atoms: vec!["q(a)".to_owned(), "q(b)".to_owned()],
+            }
+        };
+
+        let ans_a = GoalDirectedAnswer {
+            atom: "p(a)".to_owned(),
+            bindings: BTreeMap::from([("X".to_owned(), "a".to_owned())]),
+            derivation_iri: "https://blackcatinformatics.ca/gmeow/goal-directed/rule/aaa"
+                .to_owned(),
+            proof_checks: true,
+        };
+        let ans_b = GoalDirectedAnswer {
+            atom: "p(b)".to_owned(),
+            bindings: BTreeMap::from([("X".to_owned(), "b".to_owned())]),
+            derivation_iri: "https://blackcatinformatics.ca/gmeow/goal-directed/rule/bbb"
+                .to_owned(),
+            proof_checks: true,
+        };
+        let verdict_a = GoalDirectedVerdict {
+            atom: "q(a)".to_owned(),
+            verdict: "true".to_owned(),
+        };
+        let verdict_b = GoalDirectedVerdict {
+            atom: "q(b)".to_owned(),
+            verdict: "false".to_owned(),
+        };
+
+        let eval_forward = make_eval(
+            vec![ans_a.clone(), ans_b.clone()],
+            vec![verdict_a.clone(), verdict_b.clone()],
+        );
+        let eval_reversed = make_eval(
+            vec![ans_b.clone(), ans_a.clone()],
+            vec![verdict_b.clone(), verdict_a.clone()],
+        );
+
+        let nt_forward = project_goal_directed(std::slice::from_ref(&eval_forward));
+        let nt_reversed = project_goal_directed(std::slice::from_ref(&eval_reversed));
+        assert_eq!(
+            nt_forward, nt_reversed,
+            "the SAME two answers/verdicts in a different vector order must project to \
+             byte-identical N-Triples (content-addressed IRIs, not positional):\n\
+             forward:\n{nt_forward}\nreversed:\n{nt_reversed}"
+        );
+
+        // The minted IRIs are content hashes, not small positional integers.
+        let a_iri = answer_iri(&eval_forward.name, &ans_a);
+        let b_iri = answer_iri(&eval_forward.name, &ans_b);
+        assert_ne!(a_iri, b_iri, "distinct answers mint distinct IRIs");
+        assert!(
+            !a_iri.ends_with("/answer/0") && !a_iri.ends_with("/answer/1"),
+            "the answer IRI must not be a small positional index: {a_iri}"
+        );
+        let v_iri = verdict_iri(&eval_forward.name, &verdict_a);
+        assert!(
+            !v_iri.ends_with("/verdict/0") && !v_iri.ends_with("/verdict/1"),
+            "the verdict IRI must not be a small positional index: {v_iri}"
+        );
+
+        // The SAME answer content always mints the SAME IRI, regardless of which position
+        // it happens to occupy.
+        assert_eq!(
+            answer_iri(&eval_forward.name, &ans_a),
+            answer_iri(&eval_reversed.name, &ans_a),
+            "the same answer content mints the same IRI regardless of vector position"
         );
     }
 }
