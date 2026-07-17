@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ResultObjectConflationConstraint (gmeow:ResultObjectConflation,
+# F8): a gmeow:TopologyComputation whose gmeow:producesResult value IS a raw math: object
+# (a math:PersistenceDiagram) instead of a gmeow:TopologyResult wrapper that REFERENCES the
+# math: object through gmeow:resultArtifact. The consumer-side result is conflated with the
+# pure mathematical referent, so the ∀→¬∃ SPARQL constraint (matching the result's type in
+# the math: namespace) MUST reject it with shacl.SPARQLConstraintComponent. The computation
+# asserts no global truth, so the ONLY violation is the conflation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:computationBad a gmeow:TopologyComputation ;
+    gmeow:producesResult ex:rawDiagram .          # <-- points directly at a raw math: object
+
+ex:rawDiagram a math:PersistenceDiagram .          # the conflated raw math: referent

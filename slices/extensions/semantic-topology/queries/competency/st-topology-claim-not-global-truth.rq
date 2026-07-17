@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (the GOVERNING question): a computed feature is a math:LocalSection and is a
+# global truth ONLY when it extends to a math:GlobalSection (H⁰) AND discharges the H¹
+# math:GluingObstruction. This query returns each gmeow:TopologyClaim with its local section,
+# the global section it extends to, and the discharged obstruction — so a claim asserting
+# global truth appears ONLY with both the extension and the discharge present. Over the
+# worked example this is exactly one row; a raw local feature with no extension/discharge
+# would not appear, which is the point.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?claim ?localSection ?globalSection ?obstruction WHERE {
+    ?claim a gmeow:TopologyClaim ;
+        gmeow:claimLocalSection ?localSection ;
+        gmeow:extendsToGlobalSection ?globalSection ;
+        gmeow:dischargesObstruction ?obstruction .
+}
+ORDER BY ?claim

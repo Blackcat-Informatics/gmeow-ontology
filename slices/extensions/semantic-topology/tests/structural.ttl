@@ -1,0 +1,110 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the semantic-topology slice: the load-bearing
+# asserted-TBox spine, pinned fresh as SPARQL ASKs over the module graph
+# (gmeow:scopeModule). These fix the governing local-vs-global axiom, the bridge-term
+# hierarchy, the REUSE of the provenance and loss-ledger spines (no re-grounding), and the
+# slice-purity boundary (no hand-authored external grounding, no minted preservation vocab).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+# --- 1. The GOVERNING axiom: a topology claim is a standpoint claim (Req 7) --- #
+ex:saTopologyClaimIsStandpointClaim a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:TopologyClaim a owl:Class ;
+        rdfs:subClassOf gmeow:StandpointClaim .
+}""" ;
+    gmeow:saRationale "The governing EL-safe axiom: gmeow:TopologyClaim MUST be an owl:Class subClassOf gmeow:StandpointClaim — a computed feature lands as a standpoint-relative, vantage-attributed claim, never as an asserted global truth (Req 7)." .
+
+# --- 2. The compilation/computation activities and object/record kinds -------- #
+ex:saActivitiesAndKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:ComplexCompilation  a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
+    gmeow:TopologyComputation a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
+    gmeow:CellSourceCorrespondence      a owl:Class ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:CompilationPreservationRecord a owl:Class ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:TopologyResult                a owl:Class ; rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "The compiler and computation profiles MUST be logic:Event gmeow:Activities (gmeow:ComplexCompilation, gmeow:TopologyComputation), and the correspondence/preservation/result artifacts MUST be gmeow:InformationObjects — the occurrent that makes/runs the topology and the information objects it emits." .
+
+# --- 3. Provenance-spine REUSE: cellSource ⊑ wasDerivedFrom (Req 2) ---------- #
+ex:saCellSourceReusesProvenance a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    gmeow:cellSource a owl:ObjectProperty ;
+        rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+        rdfs:domain math:Cell ;
+        rdfs:range gmeow:EvidenceSpan .
+}""" ;
+    gmeow:saRationale "The cell↔source correspondence edge gmeow:cellSource MUST REUSE the provenance spine (rdfs:subPropertyOf gmeow:wasDerivedFrom) and map a math:Cell to a gmeow:EvidenceSpan — a bridge edge over shipped terms, not a parallel provenance relation (Req 2)." .
+
+# --- 4. The Req-7 grounding edges range over the shipped math: Task-3 terms -- #
+ex:saLocalGlobalObstructionGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    gmeow:claimLocalSection      a owl:ObjectProperty ; rdfs:range math:LocalSection .
+    gmeow:extendsToGlobalSection a owl:ObjectProperty ; rdfs:range math:GlobalSection .
+    gmeow:dischargesObstruction  a owl:ObjectProperty ; rdfs:range math:GluingObstruction .
+    gmeow:resultArtifact         a owl:ObjectProperty ; rdfs:range math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "The local-vs-global grounding MUST compose the shipped math: Task-3 terms: gmeow:claimLocalSection ranges over math:LocalSection, gmeow:extendsToGlobalSection over math:GlobalSection (H⁰), gmeow:dischargesObstruction over math:GluingObstruction (H¹), and gmeow:resultArtifact over math:MathematicalObject — the extension composes them, it does not re-ground them." .
+
+# --- 5. The six slice gates are logic:Constraints (SPARQL-derived) ----------- #
+ex:saSliceGatesAreConstraints a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:CompilationMustRecordCorrespondence a logic:Constraint .
+    gmeow:CompilationMustRecordLoss           a logic:Constraint .
+    gmeow:CompilationContextConstraint        a logic:Constraint ; gmeow:enforcesFailureClass gmeow:CompilationMissingContext .
+    gmeow:TopologyClaimStatusConstraint       a logic:Constraint ; gmeow:enforcesFailureClass gmeow:TopologyClaimMissingStatus .
+    gmeow:AssertedTopologyResultConstraint    a logic:Constraint .
+    gmeow:ResultObjectConflationConstraint    a logic:Constraint ; gmeow:enforcesFailureClass gmeow:ResultObjectConflation .
+}""" ;
+    gmeow:saRationale "Every slice validation gate MUST be authored as a logic:Constraint (the pipeline DERIVES the SHACL sh:SPARQLConstraint); the failure-carrying gates MUST name their typed gmeow:TopologyConformanceFailure subclass through gmeow:enforcesFailureClass." .
+
+# --- 6. Slice purity: no hand-authored external grounding here (Principle 19) - #
+ex:saNoHandAuthoredGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?c a logic:GroundingCorrespondence . }""" ;
+    gmeow:saRationale "The extension mints ONLY bridge terms: it MUST NOT hand-author any logic:GroundingCorrespondence — grounding to external formalisms is owned by the grounding slices, and this consumer extension composes their shipped terms (Principle 19/17/5)." .
+
+# --- 7. Slice purity: no minted preservation-kind vocabulary (reuse logic:) --- #
+ex:saNoMintedPreservationVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?k a logic:PreservationKind .
+    FILTER STRSTARTS(STR(?k), "https://blackcatinformatics.ca/gmeow/")
+}""" ;
+    gmeow:saRationale "The preservation/loss judgment REUSES the logic: loss ledger verbatim: the slice MUST NOT mint any gmeow:-namespaced logic:PreservationKind individual — it reuses logic:ExactPreservation / logic:SoundUnderApproximation / logic:LossyLens / logic:Unsupported and the logic:ExpressivenessBoundary record exactly as math: does." .

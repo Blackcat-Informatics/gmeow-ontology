@@ -1,0 +1,203 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example (bundle demonstrator): a lillith_decodes compilation, end to end.
+# A small claim/evidence structure is compiled into a math:SimplicialComplex + a
+# math:Filtration; the compilation records its cell↔source correspondence and its
+# preservation/loss judgment (the logic: loss ledger, verbatim) and carries its
+# standpoint/world/time context; a persistent-homology computation produces a
+# gmeow:TopologyResult that REFERENCES a math:PersistenceDiagram (never conflated);
+# and the computed feature lands as a vantage-attributed, defeasible
+# gmeow:TopologyClaim whose theorem-warranted logic:confidence rides a
+# math:StabilityCalibrationRecord underwritten by math:bottleneckStabilityTheorem.
+# The claim carries its feature as a math:LocalSection, extends it to a
+# math:GlobalSection (H⁰), and discharges the H¹ math:GluingObstruction — so, and
+# only so, its asserted global truth is legal (Req 7). The math: complex/sheaf/
+# section/obstruction objects are fully framed here (mirroring the math: slice's
+# chain-complex and global-section fixtures) so the demonstrator validates clean.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The core claim/evidence spine the compilation reads (Principle 14) ------ #
+ex:source-brief a gmeow:Source ;
+    rdfs:label "field brief, 2026"@en .
+
+ex:span-a a gmeow:EvidenceSpan ;
+    rdfs:label "span A — the maintainer claim"@en ;
+    gmeow:wasDerivedFrom ex:source-brief .
+
+ex:span-b a gmeow:EvidenceSpan ;
+    rdfs:label "span B — the corroborating log line"@en ;
+    gmeow:wasDerivedFrom ex:source-brief .
+
+# --- The produced topological carrier: a simplicial complex + a filtration --- #
+# Each cell carries its dimension (a situated math:NaturalNumber) and its per-cell
+# provenance back to an evidence span through gmeow:cellSource (⊑ gmeow:wasDerivedFrom).
+ex:dim0 a math:NaturalNumber ;
+    math:inNumberSystem math:naturalNumbers ;
+    math:isExact true ;
+    rdfs:label "0"@en .
+
+ex:cell-a a math:Cell ;
+    rdfs:label "0-cell for span A"@en ;
+    math:cellDimension ex:dim0 ;
+    gmeow:cellSource ex:span-a .
+
+ex:cell-b a math:Cell ;
+    rdfs:label "0-cell for span B"@en ;
+    math:cellDimension ex:dim0 ;
+    gmeow:cellSource ex:span-b .
+
+ex:complex a math:SimplicialComplex ;
+    rdfs:label "evidence nerve complex"@en ;
+    math:hasCell ex:cell-a , ex:cell-b .
+
+ex:filtration a math:Filtration ;
+    rdfs:label "confidence filtration"@en .
+
+# --- The compilation activity, with correspondence, loss, and context -------- #
+ex:standpoint a gmeow:Standpoint ;
+    rdfs:label "analyst standpoint"@en .
+
+ex:world a logic:PossibleWorld ;
+    rdfs:label "the actual world index"@en .
+
+ex:timescope a gmeow:TimeScopedRelation ;
+    rdfs:label "2026-Q2 validity scope"@en .
+
+ex:scenario a gmeow:Scenario ;
+    rdfs:label "what-if: the log line is authentic"@en .
+
+ex:compile-run a gmeow:Activity ;
+    rdfs:label "compilation pass 2026-06-01"@en .
+
+ex:correspondence a gmeow:CellSourceCorrespondence ;
+    rdfs:label "cell↔span correspondence for the compilation"@en .
+
+# The preservation record REUSES the logic: loss ledger verbatim: this compilation
+# is sound-under-approximation and honestly names the boundary it dropped.
+ex:preservation a gmeow:CompilationPreservationRecord ;
+    rdfs:label "preservation/loss judgment for the compilation"@en ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:expressivenessBoundary ex:boundary-quant .
+
+ex:boundary-quant a logic:ExpressivenessBoundary ;
+    rdfs:label "dropped: the second-order 'for every refinement' quantifier"@en .
+
+ex:compilation a gmeow:ComplexCompilation ;
+    rdfs:label "compile the maintainer evidence into a nerve complex"@en ;
+    gmeow:compilesEvidence ex:span-a , ex:span-b ;
+    gmeow:compilesToComplex ex:complex ;
+    gmeow:compilesToFiltration ex:filtration ;
+    gmeow:recordsCorrespondence ex:correspondence ;
+    gmeow:recordsPreservation ex:preservation ;
+    gmeow:compilationStandpoint ex:standpoint ;
+    gmeow:compilationWorld ex:world ;
+    gmeow:compilationTimeScope ex:timescope ;
+    gmeow:compilationScenario ex:scenario ;
+    gmeow:wasGeneratedBy ex:compile-run ;
+    gmeow:wasDerivedFrom ex:source-brief .
+
+# --- The persistent-homology computation and its result wrapper -------------- #
+# gmeow:employsAnalysis references the shipped math:PersistentHomology activity
+# (fully framed: input, filtration, output); gmeow:producesResult points at the
+# gmeow:TopologyResult WRAPPER, never the raw diagram (gmeow:ResultObjectConflation).
+ex:diagram a math:PersistenceDiagram ;
+    rdfs:label "the raw persistence diagram (pure math referent)"@en .
+
+ex:ph a math:PersistentHomology ;
+    rdfs:label "persistent homology over the confidence filtration"@en ;
+    math:analysisInput ex:complex ;
+    math:overFiltration ex:filtration ;
+    math:analysisOutput ex:diagram .
+
+ex:result a gmeow:TopologyResult ;
+    rdfs:label "topology result wrapper (references the diagram)"@en ;
+    gmeow:resultArtifact ex:diagram .
+
+ex:computation a gmeow:TopologyComputation ;
+    rdfs:label "run persistence over the compiled complex"@en ;
+    gmeow:computationOverCompilation ex:compilation ;
+    gmeow:employsAnalysis ex:ph ;
+    gmeow:producesResult ex:result ;
+    gmeow:assertsGlobalTruth true ;
+    gmeow:wasDerivedFrom ex:compilation .
+
+# --- Local vs global: the evidence sheaf, its sections, and the H¹ obstruction  #
+#     (mirroring the math: global-section fixture — stalk values agree, so the     #
+#     local data GLUE and the global section is genuine).                          #
+ex:vertexStalk a math:SheafStalk ;
+    math:stalkOverCell ex:cell-a ;
+    math:stalkValue 1 .
+ex:edgeStalk a math:SheafStalk ;
+    math:stalkOverCell ex:cell-b ;
+    math:stalkValue 1 .
+ex:restriction a math:SheafRestrictionMap ;
+    rdfs:label "restriction cell-a → cell-b"@en ;
+    math:sourceObject ex:vertexStalk ;
+    math:targetObject ex:edgeStalk .
+
+ex:sheaf a math:CellularSheaf ;
+    rdfs:label "evidence sheaf over the nerve complex"@en ;
+    math:sheafBaseComplex ex:complex ;
+    math:hasStalk ex:vertexStalk , ex:edgeStalk ;
+    math:restrictionMap ex:restriction .
+
+ex:subregion a math:CellComplex ;
+    rdfs:label "span-A-only subcomplex"@en .
+
+ex:localsection a math:LocalSection ;
+    rdfs:label "the computed feature over the sub-evidence"@en ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:subregion .
+
+ex:globalsection a math:GlobalSection ;
+    rdfs:label "the H⁰ lift over the whole base"@en ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:complex .
+
+ex:obstruction a math:GluingObstruction ;
+    rdfs:label "the discharged (vanishing) H¹ obstruction"@en ;
+    math:obstructionOf ex:sheaf .
+
+# --- The warranted confidence: a stability calibration record (L3) ----------- #
+# The credence rides math:StabilityCalibrationRecord underwritten by the
+# Cohen-Steiner–Edelsbrunner–Harer bottleneck stability theorem — a theorem-bounded
+# confidence, not an unwarranted scalar (no new confidence vocabulary is minted).
+ex:lifetime a math:PersistenceLifetime ;
+    rdfs:label "the feature's birth–death lifetime"@en .
+
+ex:calibration a math:StabilityCalibrationRecord ;
+    rdfs:label "stability calibration for the feature's credence"@en ;
+    math:calibrationEvidence ex:lifetime ;
+    math:credenceDerivationKind math:persistenceDerivedCredence ;
+    math:stabilityGuarantee math:bottleneckStabilityTheorem .
+
+# --- The attributed status ensemble (Req 6): a Finding with severity ---------- #
+ex:finding a gmeow:Finding ;
+    rdfs:label "proposal: the maintainer cluster is a stable global feature"@en ;
+    gmeow:findingSeverity gmeow:severityInfo .
+
+# --- The truth-apt, vantage-attributed, defeasible claim (Req 7 + L3) -------- #
+# The feature is a math:LocalSection over the standpoint's sub-evidence; it is a
+# global truth ONLY because it extends to a math:GlobalSection (H⁰) AND discharges
+# the H¹ math:GluingObstruction. The claim is held FROM a vantage, carries an
+# observation method and a defeasible Finding-status, and a theorem-warranted
+# logic:confidence — never an asserted logic:Formula or a global-truth bit.
+ex:claim a gmeow:TopologyClaim ;
+    rdfs:label "topology claim: the maintainer cluster holds globally, per the analyst"@en ;
+    gmeow:vantage ex:standpoint ;
+    gmeow:accordingTo ex:standpoint ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:claimResult ex:result ;
+    gmeow:claimForComputation ex:computation ;
+    gmeow:claimLocalSection ex:localsection ;
+    gmeow:extendsToGlobalSection ex:globalsection ;
+    gmeow:dischargesObstruction ex:obstruction ;
+    gmeow:wasDerivedFrom ex:calibration , ex:finding ;
+    logic:confidence "0.82"^^xsd:decimal .

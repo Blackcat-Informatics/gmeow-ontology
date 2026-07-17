@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (Req 5): frame a compilation's epistemic context — the standpoint it is
+# relative to, the possible world it is evaluated at, and the time-scope it holds over.
+# Over the worked example this returns exactly one row, proving a compiled topology never
+# floats free of the perspective, possibility, and interval it is indexed by.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?compilation ?standpoint ?world ?timeScope WHERE {
+    ?compilation a gmeow:ComplexCompilation ;
+        gmeow:compilationStandpoint ?standpoint ;
+        gmeow:compilationWorld ?world ;
+        gmeow:compilationTimeScope ?timeScope .
+}
+ORDER BY ?compilation
