@@ -33,7 +33,7 @@ gmeow:DeclassificationAct
         [
             a logic:Restriction ;
             logic:onProperty gmeow:declassifies ;
-            logic:someValuesFrom gmeow:EmbeddingProjection ;
+            logic:allValuesFrom gmeow:EmbeddingProjection ;
         ] ;
     skos:definition "The explicit, reviewable act that ALONE permits an embedding projection's disclosure sensitivity (gmeow:hasSensitivity) to sit below its source pack's — a reified gmeow:Activity, attributed by the EXISTING gmeow:wasGeneratedBy/gmeow:wasDerivedFrom provenance, that records WHO declassified WHAT and on what authority. Sensitivity never drops silently: absent a DeclassificationAct pointing at a projection, a projection inherits (never undercuts) its source's classification (P15). This is a disclosure-control act, NOT a get-leg determinism claim (gmeow:reproducibilityLevel) nor a correspondence-preservation judgment."@x-gmeow-english ;
     skos:example "ex:declass1 a gmeow:DeclassificationAct ; gmeow:declassifies ex:proj1 ; gmeow:wasGeneratedBy ex:reviewInvocation ."@x-gmeow-english ;
@@ -51,7 +51,7 @@ gmeow:DerivedVectorIndex
         [
             a logic:Restriction ;
             logic:onProperty gmeow:indexOfProjection ;
-            logic:someValuesFrom gmeow:EmbeddingProjection ;
+            logic:allValuesFrom gmeow:EmbeddingProjection ;
         ] ;
     skos:definition "A non-authoritative accelerator built OVER an exact embedding projection (gmeow:indexOfProjection) and one exact effective/PREFIX space (gmeow:indexOverSpace) — a specialization of graphrag's gmeow:VectorIndex whose contents are opaque, derived, and rebuildable, never a source of truth: the authoritative vectors live in the gmeow:EmbeddingProjection, and the index only speeds retrieval over them. Its guards bind the exact matrix projection and Matryoshka prefix dimension (gmeow:indexOverSpace), its algorithm and parameters (REUSED graphrag gmeow:indexAlgorithm/gmeow:indexParameters), and its loss contract (gmeow:indexLossContract); its approximation/determinism profile (gmeow:approximationRecall, gmeow:indexNondeterminism) is recorded so a retrieval's imperfection is auditable, and its build provenance rides the EXISTING gmeow:wasGeneratedBy."@x-gmeow-english ;
     skos:example "ex:idx1 a gmeow:DerivedVectorIndex ; gmeow:indexOfProjection ex:proj1 ; gmeow:indexOverSpace ex:vsc1 ; gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ; gmeow:indexParameters \"{\\\"m\\\":16}\" ; gmeow:indexLossContract \"recall@10>=0.98\" ; gmeow:approximationRecall ex:recall98 ; gmeow:indexNondeterminism true ."@x-gmeow-english ;
@@ -69,7 +69,7 @@ gmeow:EmbeddingFamily
         [
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
-            logic:someValuesFrom rdfs:Literal ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED graphrag gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), tokenizer (gmeow:tokenizerContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:contentDigest over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."@x-gmeow-english ;
     skos:example "ex:fam1 a gmeow:EmbeddingFamily ; gmeow:embeddingModel ex:bgeM3 ; gmeow:inferenceEngine ex:onnxRuntime ; gmeow:poolingKind ex:poolingMean ; gmeow:vectorDtype \"float32\" ; gmeow:vectorByteOrder gmeow:byteOrderLittleEndian ; gmeow:quantizationContract \"none\" ; gmeow:contentDigest \"blake3:5c1e…\" ."@x-gmeow-english ;
@@ -87,17 +87,17 @@ gmeow:EmbeddingProjection
         [
             a logic:Restriction ;
             logic:onProperty gmeow:hasVectorSpaceContract ;
-            logic:someValuesFrom gmeow:VectorSpaceContract ;
+            logic:allValuesFrom gmeow:VectorSpaceContract ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:projectionSource ;
-            logic:someValuesFrom gmeow:InformationObject ;
+            logic:allValuesFrom gmeow:InformationObject ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:hasSensitivity ;
-            logic:someValuesFrom gmeow:SensitivityLevel ;
+            logic:allValuesFrom gmeow:SensitivityLevel ;
         ] ;
     skos:definition "A generated, content-addressed, LOSSY pack-level projection over an exact source pack — the .purremb payload treated as first-class ontology content. It AGGREGATES graphrag's per-object gmeow:Embedding rows (via gmeow:aggregatesEmbedding) into one shippable, comparable pack; it is deliberately NOT a subclass of gmeow:Embedding (an Embedding is one object's vector; a projection is the pack that gathers many), so the two are non-duplicative. It carries ONE stored highest-dimensional matrix per gmeow:EmbeddingFamily and may expose MULTIPLE effective (prefix) vector spaces over that single stored matrix without duplication (Matryoshka), each named by a gmeow:VectorSpaceContract; it commits its primary comparable space via gmeow:hasVectorSpaceContract, and every effective space reaches its family through gmeow:effectiveOfFamily. It is lossy because the float payloads live outside the graph by reference (P12) and quantization/pooling discard information; it is content-addressed via the EXISTING gmeow:contentDigest, so 'which exact projection?' is answerable. Its source is bound by gmeow:projectionSource (an artifact carrying gmeow:contentDigest and, when a certified GTS artifact, gmeow:gtsHeadId); its disclosure sensitivity (gmeow:hasSensitivity) may sit below the source's ONLY under an explicit gmeow:DeclassificationAct."@x-gmeow-english ;
     skos:example "ex:proj1 a gmeow:EmbeddingProjection ; gmeow:hasVectorSpaceContract ex:vsc1 ; gmeow:projectionSource ex:pack1 ; gmeow:hasSensitivity gmeow:sensitivityInternal ; gmeow:contentDigest \"blake3:1f0c…\" ; gmeow:aggregatesEmbedding ex:emb1 , ex:emb2 ."@x-gmeow-english ;
@@ -115,7 +115,7 @@ gmeow:ExternalBinding
         [
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
-            logic:someValuesFrom rdfs:Literal ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "A generic EXACT external-artifact binding: the record that an embedding projection references a content-addressed external artifact (external text or binary) kept OUTSIDE the graph by reference (P12), with a caller-supplied role/scope (gmeow:externalRole; purrdf mints no roles). Its IDENTITY is the REUSED gmeow:contentDigest over the bound artifact, and it MAY carry a certified gmeow:gtsHeadId as optional RDF-certified evidence of the artifact's committed history. purrdf owns the container's external-binding binary section; this term names its MEANING as auditable ontology content."@x-gmeow-english ;
     skos:example "ex:ext1 a gmeow:ExternalBinding ; gmeow:externalRole \"source-corpus\" ; gmeow:contentDigest \"blake3:e0f1…\" ; gmeow:gtsHeadId \"g9h8…\" ."@x-gmeow-english ;
@@ -185,7 +185,7 @@ gmeow:TargetSet
         [
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
-            logic:someValuesFrom rdfs:Literal ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "The ordered target NAMESPACE a projection's matrix rows map to — the exact set of gmeow:VectorTarget members (gmeow:targetSetMember) whose ordering is the row order of the stored matrix. Its IDENTITY is the REUSED gmeow:contentDigest over the ordered membership: same target set ⇔ same digest. MULTIPLE target sets may exist over one source (different subject projections or subject families — TEXT chunks vs RDF 1.2 statements), so a projection binds the exact one its rows realize via gmeow:hasTargetSet. It is the row→target namespace, distinct from a single gmeow:VectorTarget (one row) and from the gmeow:VectorSpaceContract (the comparable space the vectors live in)."@x-gmeow-english ;
     skos:example "ex:ts1 a gmeow:TargetSet ; gmeow:targetSetMember ex:vt1 , ex:vt2 ; gmeow:contentDigest \"blake3:7d21…\" ."@x-gmeow-english ;
@@ -203,12 +203,12 @@ gmeow:VectorSpaceContract
         [
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
-            logic:someValuesFrom rdfs:Literal ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:effectiveOfFamily ;
-            logic:someValuesFrom gmeow:EmbeddingFamily ;
+            logic:allValuesFrom gmeow:EmbeddingFamily ;
         ] ;
     skos:definition "An EFFECTIVE vector space — the comparable space two vectors legitimately live in — which is either the full space of a gmeow:EmbeddingFamily or a declared leading-PREFIX of it (Matryoshka). It fixes the family (gmeow:effectiveOfFamily), the EFFECTIVE/prefix dimension (REUSED gmeow:embeddingDimensions), the metric (REUSED gmeow:distanceMetric), the normalization a prefix may declare of its own (gmeow:normalizationKind), and the prefix policy (gmeow:matryoshkaPolicy). Its IDENTITY is the REUSED gmeow:contentDigest over (the family's digest + the effective dimension + the metric + the normalization): same effective space ⇔ same digest. A prefix space shares the family's stored matrix WITHOUT duplication, and every effective prefix has None or deterministic-L2 postprocessing. There is no separate vectorSpaceId — the digest IS the identity, so comparability is decidable by hash equality rather than by prose agreement."@x-gmeow-english ;
     skos:example "ex:vsc1 a gmeow:VectorSpaceContract ; gmeow:effectiveOfFamily ex:fam1 ; gmeow:embeddingDimensions 256 ; gmeow:distanceMetric gmeow:distanceMetricCosine ; gmeow:normalizationKind ex:normalizationL2 ; gmeow:matryoshkaPolicy gmeow:matryoshkaPrefix ; gmeow:contentDigest \"blake3:9ab3…\" ."@x-gmeow-english ;
@@ -226,7 +226,7 @@ gmeow:VectorTarget
         [
             a logic:Restriction ;
             logic:onProperty gmeow:vectorTargetKind ;
-            logic:someValuesFrom gmeow:VectorTargetKind ;
+            logic:allValuesFrom gmeow:VectorTargetKind ;
         ] ;
     skos:definition "A row→target binding inside an embedding projection: the record that one vector row embeds one exact target resource (gmeow:targetsResource), of a declared kind (gmeow:vectorTargetKind) drawn from purrdf's two subject families — TEXT (corpus → document → chunk) and RDF 1.2 (dataset → graph → statement/reifier/annotation → term). It is the auditable link between an opaque vector slot and the ontology resource it stands for, so 'what does row N embed?' is answerable. Its place in either family's hierarchy rides gmeow:targetParent (a chunk's document, a document's corpus; a statement's graph, a graph's dataset), and its optional source byte span rides gmeow:targetByteStart/gmeow:targetByteEnd. The RDF 1.2 statement-term case is expressed at the instance layer with native reification, not a bespoke property (see gmeow:targetsResource)."@x-gmeow-english ;
     skos:example "ex:vt1 a gmeow:VectorTarget ; gmeow:vectorTargetKind gmeow:vectorTargetChunk ; gmeow:targetsResource ex:chunk42 ; gmeow:targetParent ex:doc7 ; gmeow:targetByteStart 1024 ; gmeow:targetByteEnd 2048 ; gmeow:targetOrdinal 42 ."@x-gmeow-english ;
@@ -974,12 +974,12 @@ gmeow:ProfileSurface
         [
             a logic:Restriction ;
             logic:onProperty gmeow:profileSurfaceOf ;
-            logic:someValuesFrom gmeow:EmbeddingProjection ;
+            logic:allValuesFrom gmeow:EmbeddingProjection ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:profileSurfaceKind ;
-            logic:someValuesFrom gmeow:ProfileSurfaceKind ;
+            logic:allValuesFrom gmeow:ProfileSurfaceKind ;
         ] ;
     skos:definition "A view of an embedding projection that records the digests of the referents it shares with its siblings — either the container view (gmeow:surfaceContainer, the digests as the packaged .purremb container carries them) or the sidecar-manifest view (gmeow:surfaceManifest, the digests as the accompanying manifest declares them). The two views of one projection MUST agree on the source-pack, model-contract, and target-table digests (gmeow:ProfileSourceDigestAgreementConstraint and its siblings); disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
     skos:example "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"blake3:aa02…\" ; gmeow:recordsModelContractDigest \"blake3:9ab3…\" ; gmeow:recordsTargetTableDigest \"blake3:7d21…\" ."@x-gmeow-english ;
@@ -1087,22 +1087,24 @@ gmeow:recordsTargetTableDigest
 # Purely existence → EL-safe OWL, NOT a procedural logic:Constraint. A derived #
 # vector index requires its projection, the exact effective/prefix space it is #
 # built over (gmeow:indexOverSpace), and a measured approximation-recall        #
-# quantity (logic:someValuesFrom, projected to sh:minCount by Principle 17).      #
+# quantity — a logic:allValuesFrom carrier + the class-scoped ClosureEntry      #
+# below, lowered to sh:class + sh:minCount 1 by Principle 17.                   #
 # =========================================================================== #
 
 gmeow:DerivedVectorIndex logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:indexOfProjection ; logic:someValuesFrom gmeow:EmbeddingProjection ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:approximationRecall ; logic:someValuesFrom math:Quantity ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:indexOverSpace ; logic:someValuesFrom gmeow:VectorSpaceContract ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:indexOfProjection ; logic:allValuesFrom gmeow:EmbeddingProjection ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:approximationRecall ; logic:allValuesFrom math:Quantity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:indexOverSpace ; logic:allValuesFrom gmeow:VectorSpaceContract ] .
 
 # =========================================================================== #
-# Closed-world requiredness opt-in (Principle 17). The logic:someValuesFrom     #
-# existence restrictions above are OPEN-WORLD by themselves; each required      #
-# property is closed to sh:minCount 1 by an explicit class-scoped              #
-# logic:ClosureEntry ; logic:closureValue logic:ClosedWorldClosure — mirroring  #
-# gmeow:FlagshipScenario in slices/grounding/logic/module.ttl. This preserves   #
-# the requiredness the SHACL projection enforces after the rdfs:→logic:         #
-# subsumption migration.                                                        #
+# Closed-world requiredness opt-in (Principle 17). A logic:allValuesFrom        #
+# carrier is OPEN-WORLD by itself (vacuous when the path is absent); each       #
+# required property is closed to sh:minCount 1 by an explicit class-scoped      #
+# logic:ClosureEntry ; logic:closureValue logic:ClosedWorldClosure that RIDES   #
+# that allValuesFrom carrier on the same (class, path) — the pairing the SHACL  #
+# derive lowers to sh:class + sh:minCount 1 (cf. slices/core/observations). A   #
+# ClosureEntry WITHOUT the allValuesFrom carrier on that (class, path) is       #
+# inert — it never projects sh:minCount.                                        #
 # =========================================================================== #
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingProjection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContract" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1118,6 +1120,8 @@ gmeow:DerivedVectorIndex logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/profileSurfaceOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/profileSurfaceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ExternalBinding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/declassifies" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:VectorTarget ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vectorTargetKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # =========================================================================== #
 # Procedural constraints — logic:Constraint + logic:Formula ASTs              #
@@ -1424,11 +1428,12 @@ gmeow:SimilarityObservation logic:disjointWith gmeow:RetrievalEvent .
 # =========================================================================== #
 # Declarative validation axioms (EL-safe OWL/RDFS, projected to               #
 # generated/shapes/validation-shapes.ttl by derive_validation_shapes,         #
-# Principle 17). Requiredness uses the live sibling idiom (graphrag/ai):       #
-# logic:someValuesFrom existential restrictions authored in the class defs       #
-# above (gmeow:EmbeddingProjection requires gmeow:hasVectorSpaceContract,      #
-# gmeow:projectionSource, gmeow:hasSensitivity; gmeow:VectorSpaceContract      #
-# requires gmeow:contentDigest). The closed reproducibility value set and the  #
+# Principle 17). Requiredness uses the observations-slice idiom:               #
+# logic:allValuesFrom carriers in the class defs above, each closed to         #
+# sh:minCount 1 by its class-scoped logic:ClosureEntry (gmeow:EmbeddingProjection #
+# requires gmeow:hasVectorSpaceContract, gmeow:projectionSource,               #
+# gmeow:hasSensitivity; gmeow:VectorSpaceContract requires gmeow:contentDigest). #
+# The closed reproducibility value set and the                                 #
 # conditional tolerance requiredness are stated declaratively below.          #
 # =========================================================================== #
 
