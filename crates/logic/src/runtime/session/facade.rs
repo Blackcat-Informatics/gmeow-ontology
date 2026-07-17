@@ -589,10 +589,17 @@ fn classify_disposition(
 ) -> gmeow_errors::Result<(FragmentDisposition, Option<IncrementalForwardSession>)> {
     match crate::lower::lower_eval_rules(program) {
         Ok(rules) => match crate::physical::classify_incremental_fragment(&rules) {
-            Ok(()) => {
+            // Binary-Datalog rules AND the program's forward-derivable semantics is fully
+            // captured by `program.rules` (nothing the maintainer would drop): certify.
+            Ok(()) if derivable_semantics_fully_captured_by_rules(program) => {
                 let session = IncrementalForwardSession::prepare(edb, program)?;
                 Ok((FragmentDisposition::Incremental, Some(session)))
             }
+            // Binary-Datalog rules, but the program ALSO carries forward-derivation
+            // content (`program.formulas`) the incremental maintainer would silently
+            // drop. NEVER certify Incremental while dropping content: route/refuse via
+            // the full-native probe.
+            Ok(()) => Ok((classify_via_full_probe(program, edb, None), None)),
             Err(refusal) => Ok((
                 classify_nonincremental(program, edb, &rules, &refusal),
                 None,
@@ -602,6 +609,26 @@ fn classify_disposition(
         // the full-native probe split decidable (Tier 2) from a hard gap (Tier 3).
         Err(_lowering) => Ok((classify_via_full_probe(program, edb, None), None)),
     }
+}
+
+/// Whether the program's forward-DERIVABLE semantics is FULLY captured by
+/// `program.rules` — the precondition for certifying [`FragmentDisposition::Incremental`]
+/// without a silent drop.
+///
+/// The incremental maintainer lowers ONLY `program.rules` (`crate::lower::lower_eval_rules`).
+/// The full forward reasoner (`crate::reason::reason_program`) additionally lowers
+/// `program.formulas` — via `crate::relational_core::lower_formulas` into evaluable rules
+/// plus n-ary existential head rules — which is the SOLE program-authored field beyond
+/// `rules` that contributes to the forward closure (verified: `reason_program_budgeted`
+/// consumes program content through exactly `lower_eval_rules` + `lower_formulas`;
+/// `program.axioms` are expected in the EDB, and `correspondences` /
+/// `transaction_programs` / `path_shapes` / `constraints` / `validation_shapes` /
+/// `reasoning_programs` are consumed by other pipeline stages, not the forward closure).
+/// Certifying Incremental while `formulas` is non-empty would present a closure that
+/// silently omits the formula-derived tuples — a forbidden silent approximation — so it
+/// is gated here.
+fn derivable_semantics_fully_captured_by_rules(program: &LogicProgram) -> bool {
+    program.formulas.is_empty()
 }
 
 /// Refine a non-incremental program into Tier 2 vs Tier 3 using the static single-source

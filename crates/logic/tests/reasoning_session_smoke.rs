@@ -14,7 +14,9 @@ use gmeow_logic::runtime::{
     Suppression,
 };
 use gmeow_logic::seam::WorldSourceIdentity;
-use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, ReasoningContract};
+use gmeow_logic_compile::ir::{
+    ContextualScope, Formula, LogicAxiom, LogicProgram, ReasoningContract, Term,
+};
 use purrdf::ir::InMemoryPageProvider;
 use purrdf::{
     PageGeneration, PagedDataset, PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm,
@@ -94,6 +96,29 @@ fn stratified_naf_program() -> LogicProgram {
         vec![],
         None,
     )
+}
+
+/// The certified transitive program PLUS a non-empty `program.formulas`: a Horn TGD
+/// `∀x,y. edge(x,y) → derived(x,y)` the full reasoner would honor but the incremental
+/// maintainer (rules-only) would silently drop. Its `rules` are still finite positive
+/// binary Datalog, so ONLY the formula makes it non-incremental.
+fn transitive_program_with_formula() -> LogicProgram {
+    let var = |name: &str| Term::var(name).expect("var");
+    let edge = Formula::atom(
+        Term::iri(format!("{EX}edge")).expect("iri"),
+        vec![var("x"), var("y")],
+    )
+    .expect("edge atom");
+    let derived = Formula::atom(
+        Term::iri(format!("{EX}derived")).expect("iri"),
+        vec![var("x"), var("y")],
+    )
+    .expect("derived atom");
+    let tgd = Formula::Forall {
+        vars: vec!["x".into(), "y".into()],
+        body: Box::new(Formula::Implies(Box::new(edge), Box::new(derived))),
+    };
+    transitive_program().with_formulas(vec![tgd])
 }
 
 fn edge_page(edges: &[(&str, &str)]) -> Arc<RdfDataset> {
@@ -245,6 +270,64 @@ fn stratified_naf_routes_to_full_rebuild() {
     .expect("valid delta");
 
     match session.apply(&delta) {
+        OperationOutcome::RequiresFullRebuild {
+            reason: RebuildReason::AdditionsOutsideIncrementalFragment,
+        } => {}
+        other => panic!("expected RequiresFullRebuild, got {other:?}"),
+    }
+}
+
+#[test]
+fn program_carrying_formulas_is_never_certified_incremental() {
+    let contract = ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+
+    // Control: the pure-rules transitive program is STILL Incremental (no false positive).
+    let pure =
+        ReasoningSession::open(&edb, &transitive_program(), &contract, &annotation).expect("open");
+    assert_eq!(
+        pure.fragment_disposition(),
+        &FragmentDisposition::Incremental,
+        "pure finite-positive-binary-Datalog rules remain Incremental"
+    );
+
+    // The SAME rules + a non-empty `program.formulas` must NOT be certified Incremental
+    // (the maintainer would drop the formula semantics — a silent approximation).
+    let mut session = ReasoningSession::open(
+        &edb,
+        &transitive_program_with_formula(),
+        &contract,
+        &annotation,
+    )
+    .expect("open formula-carrying");
+    assert_ne!(
+        session.fragment_disposition(),
+        &FragmentDisposition::Incremental,
+        "a program carrying formulas is never certified Incremental"
+    );
+    // The Horn formula is decidable by the full reasoner → routed to full rebuild.
+    assert_eq!(
+        session.fragment_disposition(),
+        &FragmentDisposition::RequiresFullRebuild(
+            RebuildReason::AdditionsOutsideIncrementalFragment
+        ),
+    );
+    assert!(!session.fragment_supported());
+
+    // apply must NEVER return Applied for such a program.
+    let delta = SessionDelta::new(
+        session.identity().data_generation.clone(),
+        session.head(),
+        edge_dataset(&[("c", "d")]),
+        vec![],
+        None,
+    )
+    .expect("valid delta");
+    match session.apply(&delta) {
+        OperationOutcome::Applied { .. } => {
+            panic!("apply must never present a certified closure that drops formula semantics")
+        }
         OperationOutcome::RequiresFullRebuild {
             reason: RebuildReason::AdditionsOutsideIncrementalFragment,
         } => {}
