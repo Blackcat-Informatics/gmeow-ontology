@@ -96,6 +96,17 @@ define_diag_kind! {
     message = "lang:GmnNonDecodableGrammar: {}", detail;
 }
 
+define_diag_kind! {
+    /// `lang:GmnNonCanonicalCodepoint` — a GMN literal's lexical form is not NFC-normalized,
+    /// the Unicode-canonicity failure raised by the codec's write-time literal NFC gate. The
+    /// typed counterpart of [`crate::gmn1_codec::Gmn1Error::NonNfcLiteral`], reusing the one
+    /// existing normalization/codepoint-canonicity conformance class.
+    pub struct GmnNonNfcLiteral { lexical: String }
+    code = "lang-bridge.gmn1.non-nfc-literal";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnNonCanonicalCodepoint: literal lexical form '{}' is not NFC-normalized", lexical;
+}
+
 /// The complete `lang:` bridge diagnostic-code catalog, in registration order.
 pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     DigestCollision::CODE,
@@ -106,6 +117,7 @@ pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     GmnMalformedNumber::CODE,
     GmnUndeclaredDialectVersion::CODE,
     GmnNonDecodableGrammar::CODE,
+    GmnNonNfcLiteral::CODE,
 ];
 
 /// Eagerly intern every `lang:` bridge diagnostic code (idempotent).
@@ -119,6 +131,7 @@ pub fn register_all() -> Vec<Code> {
         GmnMalformedNumber::register(),
         GmnUndeclaredDialectVersion::register(),
         GmnNonDecodableGrammar::register(),
+        GmnNonNfcLiteral::register(),
     ]
 }
 
@@ -159,6 +172,9 @@ pub fn attach_gmn_failure(
                 detail: detail.clone(),
             })
         }
+        Gmn1Error::NonNfcLiteral { lexical } => gmeow_errors::Diag::of_kind(GmnNonNfcLiteral {
+            lexical: lexical.clone(),
+        }),
     };
     let diag = diag.with_focus(focus.to_owned());
     ledger.attach(diag, gmeow_errors::StageId::new(stage_id.to_owned()));

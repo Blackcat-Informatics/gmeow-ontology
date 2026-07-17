@@ -1720,6 +1720,7 @@ dependencies = [
 name = "gmeow-lang-bridge"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "gmeow-errors",
  "gmeow-lang-form",
  "gmeow-license",
