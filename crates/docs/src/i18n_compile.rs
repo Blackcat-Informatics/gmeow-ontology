@@ -28,22 +28,10 @@ const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
 const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
 
-pub const LOCALIZABLE_PREDICATES: &[&str] = &[
-    "http://www.w3.org/2000/01/rdf-schema#label",
-    "http://www.w3.org/2000/01/rdf-schema#comment",
-    "http://www.w3.org/2004/02/skos/core#definition",
-    "http://www.w3.org/2004/02/skos/core#scopeNote",
-    "http://www.w3.org/2004/02/skos/core#example",
-    "http://www.w3.org/2004/02/skos/core#prefLabel",
-    "http://www.w3.org/2004/02/skos/core#altLabel",
-    "http://www.w3.org/2004/02/skos/core#note",
-    "http://purl.org/dc/terms/title",
-    "http://purl.org/dc/terms/description",
-    "https://blackcatinformatics.ca/gmeow/name",
-    "https://blackcatinformatics.ca/gmeow/title",
-    "https://blackcatinformatics.ca/gmeow/description",
-    "https://blackcatinformatics.ca/gmeow/fullName",
-];
+// The localizable-predicate set has a single authority in `gmeow-validate`; this
+// re-export is an alias, not a second definition, so i18n consumers here and the
+// Check-2 language-tag policy cannot drift.
+pub use gmeow_validate::localizable::LOCALIZABLE_PREDICATES;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PoEntry {

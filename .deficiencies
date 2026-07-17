@@ -1586,3 +1586,27 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   per-term fields (coat/axioms/neighbours/closure) are dropped in to_turtle and are not in
   the bundle graph. This matches the shipped bundle's contents; the rich content is reached
   per covered-term IRI via the existing lookup_term / doc_card tools.
+
+## 2026-07-17 — #1459 native authoring gates, stage-2 gap remediation (branch paudley/1459-native-authoring-gates)
+
+- RESIDUAL WEAKER PROXY (faithful parity, no regression): the R3e docs-example term gate
+  (`authoring_integrity::docs_undeclared_findings`) checks a doc `gmeow:` reference against a
+  GLOBAL allowlist — every term declared ANYWHERE in the ontology/DSL/generated corpus. So it
+  catches a pure typo (a term that appears nowhere) but NOT a plausible-but-wrong term that
+  happens to collide with a real term declared in some unrelated slice. This is a strictly
+  weaker check than the other five authoring families (which are exact set/closure/ownership
+  invariants). It faithfully reproduces the retired `_docs_allowlist` Python gate — there is NO
+  regression versus the deleted gate, and the completion-adversary cleared it as an
+  enhancement-decline (the issue asked for parity with the retired cluster, not a stronger
+  check). Recorded here as an honest below-maximal item. FORWARD PATH: scope the allowlist
+  per-document — restrict each doc example to the terms that doc actually declares/imports
+  rather than the global union — so a wrong-but-real term is caught. Not done in this branch
+  (it is a net-new capability beyond the retired gate's contract, not a fix to a regression).
+
+- The other five gap-remediation items in this stage were FIXED, not deferred, so they are NOT
+  recorded here: the unreadable-directory silent-degradation hole (walkers now hard-fail;
+  non-vacuity floor added to the live aggregator), the DARK ownership + example-coverage folds
+  (now fire on the live `make validate` path via Phase 5c), the per-call regex-compile panics
+  (hoisted to LazyLock statics), the missing ValidationRun-level fold-wiring test (added), and
+  the stale Python/PyO3-consumer docstrings (removed). Nothing else was scoped down, proxied,
+  or moved off-gate.
