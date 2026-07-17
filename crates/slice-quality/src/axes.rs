@@ -1208,9 +1208,36 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                 // A PRESENT catalog is required input: a malformed one is surfaced as a
                 // finding with zero coverage for this language, never a silent skip that
                 // would fake a score.
-                let language = match language_from_po(&text) {
-                    Ok(Some(lang)) => lang,
-                    Ok(None) => (*tag).to_string(),
+                //
+                // The coverage/integrity language is the CONFIGURED TARGET (`tag`), never the
+                // catalog's self-reported `Language:` header: a mislabeled `fr.po` claiming
+                // `Language: en` must not be integrity-checked as English, which would credit
+                // copied English as French coverage. The header is still parsed to VALIDATE the
+                // catalog — a present header whose primary subtag matches neither the target
+                // `tag` (e.g. `cmn`) nor the file stem (e.g. `zh`) is a real authoring bug,
+                // surfaced as an advisory (never silently trusted or ignored) — and a malformed
+                // catalog remains a hard parse-error with zero coverage for this language.
+                let language = (*tag).to_string();
+                match language_from_po(&text) {
+                    Ok(Some(header)) => {
+                        let primary = header
+                            .split(['_', '-'])
+                            .next()
+                            .unwrap_or_default()
+                            .to_ascii_lowercase();
+                        if !primary.is_empty()
+                            && !primary.eq_ignore_ascii_case(tag)
+                            && !primary.eq_ignore_ascii_case(stem)
+                        {
+                            findings.push(advisory(
+                                "slice-quality.translation.mislabeled-catalog",
+                                format!(
+                                    "{tag} catalog i18n/{stem}.po declares `Language: {header}`, which matches neither the target `{tag}` nor the file stem `{stem}`; coverage is evaluated against `{tag}` regardless."
+                                ),
+                            ));
+                        }
+                    }
+                    Ok(None) => {}
                     Err(e) => {
                         findings.push(advisory(
                             "slice-quality.translation.parse-error",
@@ -1219,7 +1246,7 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                         lang_cov.push(0.0);
                         continue;
                     }
-                };
+                }
                 let entries = match parse_po(&text, false) {
                     Ok(entries) => entries,
                     Err(e) => {

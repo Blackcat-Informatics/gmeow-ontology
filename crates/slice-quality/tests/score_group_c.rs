@@ -232,6 +232,64 @@ fn translation_axis_does_not_credit_copied_english() {
     std::fs::remove_dir_all(dir).ok();
 }
 
+#[test]
+fn mislabeled_catalog_header_cannot_credit_copied_english() {
+    // A fr.po / zh.po that LIES in its `Language:` header (claims `en`) while carrying
+    // copied English must NOT be integrity-checked as English: coverage is evaluated against
+    // the configured target (fr/cmn), so the copy earns no credit, and the mislabeled header
+    // is surfaced as an advisory rather than silently trusted. Before this fix, trusting the
+    // header would let the copy pass the (English) integrity guard and falsely score 1.0.
+    let (dir, iri) = literal_fixture("mislabel", false);
+    let term = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
+    std::fs::write(
+        dir.join("module.ttl"),
+        format!(
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             <{term}> a owl:Class ;\n\
+                 rdfs:isDefinedBy <{iri}> ;\n\
+                 rdfs:label \"Lifecycle state\"@en .\n"
+        ),
+    )
+    .unwrap();
+    for lang in ["fr", "zh"] {
+        // The header LIES: `Language: en` in a {lang}.po carrying copied English.
+        std::fs::write(
+            dir.join(format!("i18n/{lang}.po")),
+            format!(
+                "msgid \"\"\nmsgstr \"Language: en\\n\"\n\n\
+                 msgctxt \"{term}|rdfs:label\"\n\
+                 msgid \"Lifecycle state\"\n\
+                 msgstr \"Lifecycle state\"\n"
+            ),
+        )
+        .unwrap();
+    }
+
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
+    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri,
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ));
+    assert_eq!(
+        tr.score,
+        1.0 / 3.0,
+        "a lying `Language: en` header must not let copied English earn fr/cmn credit, got {}",
+        tr.score
+    );
+    assert_eq!(
+        tr.findings
+            .iter()
+            .filter(|f| f.code == "slice-quality.translation.mislabeled-catalog")
+            .count(),
+        2,
+        "each mislabeled catalog (fr.po and zh.po both claiming `en`) is surfaced as an advisory"
+    );
+    std::fs::remove_dir_all(dir).ok();
+}
+
 const XLIT_TERM: &str = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
 
 #[test]
