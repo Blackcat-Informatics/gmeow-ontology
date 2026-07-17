@@ -23,9 +23,8 @@ use gmeow_math::Rational;
 
 use crate::model::{owl, rdf, rdfs, skos};
 
-/// Strongly-typed configuration for the three lints, supplied by the Python
-/// caller from its single-source-of-truth constants. No untyped dict bag — every
-/// field is explicit so the FFI boundary stays legible.
+/// Strongly-typed configuration for the three lints — no untyped dict bag,
+/// every field is explicit and typed.
 #[derive(Debug, Clone)]
 pub struct LintConfig {
     /// The GMEOW vocabulary namespace (`config.NAMESPACE`).
@@ -38,8 +37,7 @@ pub struct LintConfig {
     pub core_slice_iris: HashSet<String>,
     /// Standard annotation predicates whose literals are policed by Check 2.
     /// Defaults to [`default_annotation_predicates`] — this crate is the single
-    /// source of truth; Python reads the set from here, it is no longer
-    /// pushed in from `language_tags`.
+    /// source of truth for the set.
     pub annotation_predicates: HashSet<String>,
 }
 
@@ -49,8 +47,7 @@ pub struct LintConfig {
 /// Check-2 skips GMEOW-namespace predicates by its own namespace guard (they are
 /// Check-1's concern), so the GMEOW members of the authority are harmless no-ops
 /// here; the effective surface is the standard cross-vocabulary annotation
-/// predicates plus the SKOS lexical predicates. The Python `language_tags` helpers
-/// read this back through the PyO3 `annotation_predicates` surface.
+/// predicates plus the SKOS lexical predicates.
 #[must_use]
 pub fn default_annotation_predicates() -> Vec<String> {
     crate::localizable::LOCALIZABLE_PREDICATES
@@ -2564,8 +2561,8 @@ pub fn term_naming_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport
 }
 
 /// The declared-term IRI set over a native [`RdfDataset`]
-/// (`set(_collect_typed_terms(graph))`) — exposed for `guide_anchor_lint`'s anchor
-/// resolution (which keeps its markdown logic in Python).
+/// (`set(_collect_typed_terms(graph))`) — the term universe used for guide/markdown
+/// anchor-reference resolution.
 pub fn declared_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> Vec<String> {
     collect_typed_terms_dataset(ds, cfg).into_keys().collect()
 }
