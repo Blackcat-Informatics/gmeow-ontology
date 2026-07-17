@@ -108,7 +108,7 @@ meta:tests-alignment a meta:TestSuite ;
         "crates/validate/tests/conformance_coreference.rs" .
 
 meta:gate-reasoning a meta:Gate ;
-    rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free) cross-checked against the purrdf-entail oracle"@x-gmeow-english ;
+    rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free), the single native reasoning authority"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/dl.rs" ;
     meta:makeTarget "reason", "reason-verify", "verify" .
 
@@ -293,9 +293,11 @@ meta:gate-logic-gufo-superset a meta:Gate ;
     meta:symbol "GUFO_CLASS_TO_LOGIC", "every_gufo_class_has_logic_correspondence" .
 
 # Principle 18 enforcement — the native reasoning authority. The native
-# EL/DL lane is the Java/Docker-free authoritative gate; the divergence ledger
-# is built from native results ONLY and enforces native gap-zero coverage, while
-# the independent oracle comparison runs the in-process purrdf-entail cross-check.
+# EL/DL lane is the Java/Docker-free authoritative gate and the SINGLE reasoning
+# authority; the divergence ledger is built from native results ONLY and enforces
+# native gap-zero DL⊇EL coverage. There is no live second reasoner on-gate: the
+# native-vs-purrdf differential oracle was retired, and only committed
+# engine-independent goldens remain as external evidence.
 meta:gate-reason-native a meta:Gate ;
     rdfs:label "native Docker-free EL/DL reasoning authority (reason --mode native)"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/mod.rs" ;
@@ -304,43 +306,29 @@ meta:gate-reason-native a meta:Gate ;
     meta:cliCommand "reason" .
 
 meta:gate-dl-el-crosscheck a meta:Gate ;
-    rdfs:label "native gap-zero divergence ledger — native-built gap-zero artifact; oracle confirmation runs in the classic-cross-check lane"@x-gmeow-english ;
+    rdfs:label "native gap-zero divergence ledger — native-built DL⊇EL gap-zero artifact, computed from native results only (no external oracle)"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/reason.rs", "generated/logic/dl-el-crosscheck-report.ttl" ;
     meta:symbol "ReasonStage" ;
     meta:generator "reason" .
 
-# Native↔oracle agreement, enforced NATIVELY on-gate. The divergence ledger is
-# built and the agreement verdict decided in Rust (`enforce` over the ledger),
-# Docker-free, and fails strictly on any OracleOnly divergence or DlGap native
-# coverage defect (NativeOnly rows are gmeow's richer world-scoped closure —
-# `native ⊇ oracle` — not a failure). The independent oracle side is the
-# in-process, conformance-tested purrdf-entail OWL-RL closure run by
-# `gmeow-dev reason-crosscheck`; the retired external Java/Docker oracle
-# containers were deleted entirely.
-meta:gate-classic-cross-check a meta:Gate ;
-    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement over the in-process purrdf-entail oracle, Docker-free"@x-gmeow-english ;
-    meta:artifact "crates/logic/src/reason/ledger.rs" ;
-    meta:symbol "enforce" ;
-    meta:makeTarget "reason-crosscheck" .
-
 # The anti-regression SUPERSET meta-gate (criterion 3): the native-decided
-# construct set must be a SUPERSET of the oracle-decided set. Any OracleOnly row
-# (the oracle decided a construct the native path did not) or any DlGap (a native
-# coverage defect) is a coverage REGRESSION and FAILS. The decision is computed in
-# Rust (the `enforce` verdict over the divergence ledger), not in Python, and is
-# proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ the frozen
-# external OWL 2 DL oracle over the curated DL datasets, no Docker/Java/network).
+# construct set must be a SUPERSET of the frozen external OWL 2 DL oracle's. Any
+# inconsistency or unsatisfiable class the frozen gold caught that the native
+# reasoner MISSES is a coverage REGRESSION and FAILS. The witness is a COMMITTED
+# engine-independent golden, proven OFFLINE by the frozen oracle-gold conformance
+# lane (native ⊇ the frozen external OWL 2 DL oracle over the curated DL datasets,
+# no Docker/Java/network and NO live oracle) — the retired live native-vs-purrdf
+# differential cross-check is gone; only this committed golden remains.
 meta:gate-native-oracle-superset a meta:Gate ;
-    rdfs:label "native ⊇ oracle anti-regression superset gate — Rust-decided, offline frozen-oracle-gold proven"@x-gmeow-english ;
-    meta:artifact "crates/logic/src/reason/ledger.rs",
-        "crates/conformance/tests/dl_oracle_gold.rs",
+    rdfs:label "native ⊇ frozen-oracle-gold anti-regression superset gate — offline, committed engine-independent golden, no live oracle"@x-gmeow-english ;
+    meta:artifact "crates/conformance/tests/dl_oracle_gold.rs",
         "coverage/external/697-dl-oracle-gold/README.md" ;
-    meta:symbol "enforce", "native_reasoner_is_a_superset_of_the_frozen_oracle_gold" ;
+    meta:symbol "native_reasoner_is_a_superset_of_the_frozen_oracle_gold" ;
     meta:makeTarget "conformance" .
 
 # The release-as-evidence gate: the signed `make full-release` bundle folds
-# every check / classic-cross-check / conformance / SARIF / compliance / perf
-# result as content-addressed `gmeow:Attestation` frames into a SEPARATE signed
+# every check / conformance / SARIF / compliance / perf result as
+# content-addressed `gmeow:Attestation` frames into a SEPARATE signed
 # dist/gmeow.gts (never the committed Docker-free snapshot). The Rust round-trip
 # test proves the fold carries the signature, the graph/attestations frames, and a
 # gmeow:contentDigest per evidence blob; `make verify-release` is the consumer's
@@ -357,8 +345,8 @@ meta:gate-release-evidence a meta:Gate ;
 
 # The deterministic engine-cost measurement gate. The native reasoning engine's
 # operational cost — decomposable cost vectors (rule × predicate × stratum),
-# consumed steps, deterministic peak-live bytes, and the native↔golden / native↔
-# oracle verdict-agreement — is committed as a byte-stable baseline
+# consumed steps, deterministic peak-live bytes, and the native↔golden
+# verdict-agreement — is committed as a byte-stable baseline
 # (bench/cost-baseline.json) and drift-gated as a gmeow.gts projection
 # (generated/bench/cost-ledger.md, the stage-export-cost-ledger leaf). Integer
 # counts and boolean verdicts only (no wall-clock, no peak-RSS, no total-allocation
@@ -510,15 +498,22 @@ meta:gate-docs-loss-lattice a meta:Gate ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
-# The executable lane-purity seal: the two-lane split (primary lane
-# Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
-# actual gate, not convention. FAILS if a Docker/Java token reaches the primary
-# path, or if the classic-cross-check workflow ever becomes a required check.
+# The executable single-authority + lane-purity seal, enforced by an actual gate,
+# not convention. The native `logic:` reasoner is the SOLE reasoning authority on
+# the primary lane. The allowed/forbidden boundary is machine-checked: COMMITTED
+# engine-independent goldens (the frozen `dl_oracle_gold` corpus, the native
+# gap-zero `dl-el-crosscheck-report.ttl` ledger) are ALLOWED external evidence; a
+# LIVE external/second reasoner wired on-gate as a differential subsumption/
+# entailment oracle (the retired native-vs-purrdf `reason-crosscheck` lane) is
+# FORBIDDEN and cannot silently regrow. FAILS if a Docker/Java token reaches the
+# primary path, if a required CI job invokes the oracle lane, or if any Makefile
+# target re-introduces a live differential reasoning oracle gate
+# (`check_differential_oracle_seal`).
 meta:tests-lane-purity a meta:Gate ;
-    rdfs:label "lane-purity seal — required CI jobs + make check carry no Java/Docker"@x-gmeow-english ;
+    rdfs:label "single-authority + lane-purity seal — required CI jobs + make check carry no Java/Docker and no live differential reasoning oracle"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs" ;
     meta:symbol "check_lane_purity", "check_required_ci_jobs",
-        "check_makefile_lane_purity" ;
+        "check_makefile_lane_purity", "check_differential_oracle_seal" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
@@ -564,7 +559,7 @@ meta:Principle18 a meta:Principle ;
     meta:number 18 ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
-        meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
+        meta:gate-native-oracle-superset,
         meta:tests-lane-purity, meta:gate-release-evidence,
         meta:gate-cost-ledger, meta:gate-bench-instructions ;
     meta:extends meta:Principle17, meta:Principle13 .
