@@ -4553,6 +4553,14 @@ lang:GmnUncoveredTerm
     skos:definition "The failure raised when a GMN document uses an alias that the pinned dictionary version does not mint, or names a term the codebook's alias table does not cover. Alias resolution is version-pinned — an alias is meaningless without the gmeow:gmnDictionaryVersion that minted it — so an uncovered term is undecodable, never guessable. Its enforcing validator is the GMN parser/writer: coverage is a join between document tokens and the alias table, state that lives in the codebook rather than in the graph a SHACL shape can see."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+lang:GmnGraphOutOfDomain
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Graph Out Of Domain"@x-gmeow-english ;
+    skos:definition "The failure raised when a quad carries a named graph, which is outside the default-graph GMN-0 normal-form domain. GMN-0 is a default-graph quad set by charter, and the GMN-1 record shape has no graph slot, so a named-graph quad is genuinely out of domain — an honest domain boundary, not a lang:GmnUncoveredTerm residual: no larger dictionary or richer term grammar could bring it in-domain, because there is no graph coordinate to carry it. Distinct from lang:GmnUncoveredTerm (a document token the pinned dictionary cannot resolve, which a wider alias table could cover). Its enforcing validator is the GMN parser/writer, which refuses a named-graph quad at emit time rather than silently dropping the graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 lang:GmnNonCanonicalOrder
     a owl:Class ;
     rdfs:subClassOf lang:LangConformanceFailure ;
@@ -8242,6 +8250,7 @@ lang:GmnCompactionWithoutProvenance a logic:Situation .
 lang:GmnConfusableGlyph a logic:Situation .
 lang:GmnDictionaryAliasCollision a logic:Situation .
 lang:GmnGlyphCollision a logic:Situation .
+lang:GmnGraphOutOfDomain a logic:Situation .
 lang:GmnMalformedNumber a logic:Situation .
 lang:GmnMissingEnvelopeField a logic:Situation .
 lang:GmnNonCanonicalCodepoint a logic:Situation .

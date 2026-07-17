@@ -516,14 +516,14 @@ fn real_math_module_round_trips() {
     }
 }
 
-// ── The hard-fail path actually fires (not merely a design assertion) ──────────────
+// ── RDF 1.2 triple terms + reifiers round-trip losslessly (RDF-star native) ─────────
 
 #[test]
-fn genuinely_uncovered_construct_hard_fails_not_silently_drops() {
+fn quoted_triple_term_object_round_trips_losslessly() {
     let mut b = RdfDatasetBuilder::new();
-    // A quoted RDF 1.2 triple term as OBJECT: outside this codec's covered fragment
-    // (RDF 1.2 quoted-triple subjects are rejected by the dataset builder itself, so the
-    // object position is where this construct is actually reachable).
+    // A quoted RDF 1.2 triple term as OBJECT — first-class model content the codec encodes
+    // losslessly as the compact `( s p o )` surface (RDF 1.2 triple terms occur only as an
+    // object; subjects are rejected by the dataset builder itself).
     let s = b.intern_iri(&format!("{GMEOW}someAgent"));
     let p = b.intern_iri(&format!("{GMEOW}asserts"));
     let ta = b.intern_iri(&format!("{GMEOW}a"));
@@ -533,7 +533,138 @@ fn genuinely_uncovered_construct_hard_fails_not_silently_drops() {
     b.push_quad(s, p, o, None);
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
 
-    let err = round_trip_check(&model, &dict()).expect_err("quoted triple term must hard-fail");
-    assert!(matches!(err, Gmn1Error::Uncovered(_)));
+    // Primary assertion: the round-trip is canonically exact.
+    round_trip_check(&model, &dictionary).expect("a triple-term object must round-trip losslessly");
+
+    // The surface actually carries the `( s p o )` spelling over three nested terms.
+    let document = gmn1_write(&model, &dictionary).expect("triple-term object writes");
+    assert!(
+        document.text.contains("o: ( gmeow__a gmeow__b gmeow__c )"),
+        "the triple term must render as the compact `( s p o )` object surface:\n{}",
+        document.text
+    );
+
+    // Reconstruct and compare canonically, then assert idempotence (write → read → write
+    // reproduces the SAME bytes).
+    let reconstructed = gmn1_read(&document, &dictionary).expect("triple-term object reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "reconstructed model must be canonically equal to the original"
+    );
+    let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
+    assert_eq!(
+        document.text, rewritten.text,
+        "gmn1_read then gmn1_write must reproduce the same bytes (idempotence)"
+    );
+}
+
+#[test]
+fn reifier_with_folded_annotations_round_trips_losslessly() {
+    let mut b = RdfDatasetBuilder::new();
+    // The canonical RDF 1.2 reifier: `x rdf:reifies <<( s p o )>>`, with folded `st`/`ev`
+    // annotations on the same reifier subject.
+    let reifier = b.intern_iri(&format!("{GMEOW}reifier1"));
+    let reifies = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies");
+    let ts = b.intern_iri(&format!("{GMEOW}doorGate1"));
+    let tp = b.intern_iri(&format!("{GMEOW}hasState"));
+    let to = b.intern_iri(&format!("{LOGIC}Open"));
+    let triple = b.intern_triple(ts, tp, to);
+    b.push_quad(reifier, reifies, triple, None);
+
+    // Folded annotations: `accordingTo` → st slot, `hasAvailableEvidence` → ev slot.
+    let according_to = b.intern_iri(&format!("{GMEOW}accordingTo"));
+    let standpoint = b.intern_iri(&format!("{GMEOW}sensorStandpoint"));
+    b.push_quad(reifier, according_to, standpoint, None);
+    let evidence = b.intern_iri(&format!("{GMEOW}hasAvailableEvidence"));
+    let evidence_span = b.intern_iri(&format!("{GMEOW}span42"));
+    b.push_quad(reifier, evidence, evidence_span, None);
+
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    round_trip_check(&model, &dictionary)
+        .expect("a reifier + triple term + folded annotations must round-trip losslessly");
+
+    let document = gmn1_write(&model, &dictionary).expect("reifier writes");
+    // The reifier subject, its `rdf:reifies` triple-term object, and BOTH folded annotations
+    // fold into ONE record (the `st` and `ev` slots ride beside the primary `o` triple term).
+    assert!(
+        document.text.contains("rdf__reifies")
+            && document
+                .text
+                .contains("o: ( gmeow__doorGate1 gmeow__hasState ")
+            && document.text.contains("st: ")
+            && document.text.contains("ev: "),
+        "the reifier must fold its triple-term object and annotations into one record:\n{}",
+        document.text
+    );
+
+    let reconstructed = gmn1_read(&document, &dictionary).expect("reifier reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "the reconstructed reifier model must be canonically equal to the original"
+    );
+    let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
+    assert_eq!(
+        document.text, rewritten.text,
+        "reifier round-trip must be byte-idempotent"
+    );
+}
+
+#[test]
+fn nested_triple_term_object_round_trips_losslessly() {
+    let mut b = RdfDatasetBuilder::new();
+    // A nested triple term as object: `s p <<( a q <<( x y z )>> )>>`.
+    let inner_x = b.intern_iri(&format!("{GMEOW}x"));
+    let inner_y = b.intern_iri(&format!("{GMEOW}y"));
+    let inner_z = b.intern_iri(&format!("{GMEOW}z"));
+    let inner = b.intern_triple(inner_x, inner_y, inner_z);
+    let outer_a = b.intern_iri(&format!("{GMEOW}a"));
+    let outer_q = b.intern_iri(&format!("{GMEOW}q"));
+    let outer = b.intern_triple(outer_a, outer_q, inner);
+    let s = b.intern_iri(&format!("{GMEOW}someAgent"));
+    let p = b.intern_iri(&format!("{GMEOW}asserts"));
+    b.push_quad(s, p, outer, None);
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    round_trip_check(&model, &dictionary)
+        .expect("a nested triple-term object must round-trip losslessly");
+    let document = gmn1_write(&model, &dictionary).expect("nested triple-term writes");
+    assert!(
+        document
+            .text
+            .contains("( gmeow__a gmeow__q ( gmeow__x gmeow__y gmeow__z ) )"),
+        "nested triple terms must render recursively:\n{}",
+        document.text
+    );
+}
+
+// ── Named-graph domain boundary: a named-graph quad is out-of-domain, not "uncovered" ──
+
+#[test]
+fn named_graph_quad_raises_out_of_domain_not_uncovered() {
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW}doorGate1"));
+    let p = b.intern_iri(&format!("{GMEOW}hasState"));
+    let o = b.intern_iri(&format!("{LOGIC}Open"));
+    let g = b.intern_iri(&format!("{GMEOW}graphA"));
+    b.push_quad(s, p, o, Some(g));
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+
+    let err = gmn1_write(&model, &dict()).expect_err("a named-graph quad is out of domain");
+    assert!(
+        matches!(err, Gmn1Error::NamedGraphOutOfDomain { .. }),
+        "a named-graph quad must raise the honest domain-boundary class, not Uncovered: {err:?}"
+    );
+    assert_eq!(
+        err.failure_class(),
+        Gmn1Error::CLASS_GRAPH_OUT_OF_DOMAIN,
+        "the failure must classify as lang:GmnGraphOutOfDomain"
+    );
 }

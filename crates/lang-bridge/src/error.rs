@@ -44,11 +44,12 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// `lang:GmnUncoveredTerm` — a GMN-0 construct the GMN-1 codec cannot losslessly
-    /// encode or decode: an IRI under no registered namespace, a quoted RDF 1.2 triple
-    /// term, a named-graph-scoped quad, or GMN-1 text carrying a token/sigil outside the
-    /// codec's covered fragment. The no-optionality hard fail behind
-    /// `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` claim: an uncovered
-    /// construct is named and reported here, never silently dropped.
+    /// encode or decode: an IRI under no registered namespace, or GMN-1 text carrying a
+    /// token/sigil outside the codec's covered fragment. The no-optionality hard fail
+    /// behind `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` claim: an uncovered
+    /// construct is named and reported here, never silently dropped. (RDF 1.2 triple terms
+    /// are covered losslessly; a named-graph quad is the distinct
+    /// [`GmnGraphOutOfDomain`] boundary, not this residual.)
     pub struct GmnUncoveredTerm { construct: String }
     code = "lang-bridge.gmn1.uncovered-term";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
@@ -107,6 +108,18 @@ define_diag_kind! {
     message = "lang:GmnNonCanonicalCodepoint: literal lexical form '{}' is not NFC-normalized", lexical;
 }
 
+define_diag_kind! {
+    /// `lang:GmnGraphOutOfDomain` — a quad carries a named graph, which is OUTSIDE the
+    /// default-graph GMN-0 normal-form domain (the GMN-1 record shape has no graph slot).
+    /// An HONEST domain boundary, not a term-coverage residual: no larger dictionary could
+    /// bring a named-graph quad in-domain. The typed counterpart of
+    /// [`crate::gmn1_codec::Gmn1Error::NamedGraphOutOfDomain`].
+    pub struct GmnGraphOutOfDomain { graph: String }
+    code = "lang-bridge.gmn1.graph-out-of-domain";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnGraphOutOfDomain: quad in named graph '{}' is outside the default-graph GMN-0 normal-form domain", graph;
+}
+
 /// The complete `lang:` bridge diagnostic-code catalog, in registration order.
 pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     DigestCollision::CODE,
@@ -118,6 +131,7 @@ pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     GmnUndeclaredDialectVersion::CODE,
     GmnNonDecodableGrammar::CODE,
     GmnNonNfcLiteral::CODE,
+    GmnGraphOutOfDomain::CODE,
 ];
 
 /// Eagerly intern every `lang:` bridge diagnostic code (idempotent).
@@ -132,6 +146,7 @@ pub fn register_all() -> Vec<Code> {
         GmnUndeclaredDialectVersion::register(),
         GmnNonDecodableGrammar::register(),
         GmnNonNfcLiteral::register(),
+        GmnGraphOutOfDomain::register(),
     ]
 }
 
@@ -175,6 +190,11 @@ pub fn attach_gmn_failure(
         Gmn1Error::NonNfcLiteral { lexical } => gmeow_errors::Diag::of_kind(GmnNonNfcLiteral {
             lexical: lexical.clone(),
         }),
+        Gmn1Error::NamedGraphOutOfDomain { graph } => {
+            gmeow_errors::Diag::of_kind(GmnGraphOutOfDomain {
+                graph: graph.clone(),
+            })
+        }
     };
     let diag = diag.with_focus(focus.to_owned());
     ledger.attach(diag, gmeow_errors::StageId::new(stage_id.to_owned()));

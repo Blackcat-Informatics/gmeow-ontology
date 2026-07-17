@@ -130,6 +130,7 @@ alone.
 | Every compaction names its sources and its holding vantage | SHACL Core (`tests/counter-examples/gmn-compaction-without-provenance.ttl`) | `lang:GmnCompactionWithoutProvenance` |
 | No compaction correspondence stronger than `ValidationOnly` | SHACL-SPARQL (`tests/counter-examples/gmn-compaction-overclaim.ttl`) | `lang:GmnCompactionOverclaim` |
 | Every document token resolves through the pinned dictionary or a named-key ruling | Rust validator (`LANG-GMN.md`, the invalid-uncovered-term block) | `lang:GmnUncoveredTerm` |
+| Every quad is default-graph — a named-graph quad is refused as an out-of-domain boundary, never silently dropped or mislabeled uncovered | Rust validator (the GMN writer's default-graph domain check) | `lang:GmnGraphOutOfDomain` |
 | Records in content-sorted order; keys in generation order (`s p o v q st ev m ek`, plus the `@p`-only `bd it`) | Rust validator (`LANG-GMN.md`, the invalid-key-order block) | `lang:GmnNonCanonicalOrder` |
 | Confidences at two fractional digits; no scientific notation; one spelling per value | Rust validator (`LANG-GMN.md`, the invalid-number block) | `lang:GmnMalformedNumber` |
 | No record before the `@gmn` header pins the dialect coordinates | Rust validator (`LANG-GMN.md`, the invalid-missing-header block) | `lang:GmnUndeclaredDialectVersion` |

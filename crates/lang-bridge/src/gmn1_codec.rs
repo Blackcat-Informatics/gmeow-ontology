@@ -65,7 +65,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple};
 use unicode_normalization::is_nfc;
 use unicode_security::skeleton;
 
@@ -1445,9 +1445,19 @@ pub struct UncoveredTerm(pub String);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Gmn1Error {
     /// `lang:GmnUncoveredTerm` — a grammar-valid term the pinned dictionary / prefix registry
-    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v3` does
-    /// not mint, a quoted RDF 1.2 triple term, a named-graph quad). Named so it is diagnosable.
+    /// does not cover (an IRI under no registered namespace, or a dictionary alias `dict-v3`
+    /// does not mint). Named so it is diagnosable. RDF 1.2 triple terms are NOT uncovered —
+    /// the codec encodes them losslessly (see [`encode_triple_term`]); a named-graph quad is
+    /// its own honest domain-boundary class ([`Self::NamedGraphOutOfDomain`]), never this
+    /// "uncovered" residual (which would imply a bigger dictionary could cover it).
     Uncovered(UncoveredTerm),
+    /// `lang:GmnGraphOutOfDomain` — a quad carries a named graph, which is OUTSIDE the
+    /// default-graph GMN-0 normal-form domain (the grounding slices are authored as
+    /// `text/turtle`, i.e. default-graph triples only). This is an HONEST domain boundary,
+    /// NOT an [`Self::Uncovered`] residual: no larger dictionary or richer term grammar could
+    /// ever bring a named-graph quad in-domain, because the GMN-1 record shape has no graph
+    /// slot by charter. `graph` is the offending graph name's canonical rendering.
+    NamedGraphOutOfDomain { graph: String },
     /// `lang:GmnNonCanonicalOrder` — a record's field keys are not in the canonical key order
     /// (`s p o v q st ev m ek bd it`), forfeiting the byte-comparability the digest discipline
     /// depends on.
@@ -1482,6 +1492,10 @@ impl Gmn1Error {
     /// shipped-projection lint all consume (never a second, drift-prone classifier).
     pub const CLASS_UNCOVERED_TERM: &'static str =
         "https://blackcatinformatics.ca/lang/GmnUncoveredTerm";
+    /// See [`Self::CLASS_UNCOVERED_TERM`]. The named-graph domain-boundary class — a quad
+    /// with a named graph is outside the default-graph GMN-0 normal-form domain.
+    pub const CLASS_GRAPH_OUT_OF_DOMAIN: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnGraphOutOfDomain";
     /// See [`Self::CLASS_UNCOVERED_TERM`].
     pub const CLASS_NON_CANONICAL_ORDER: &'static str =
         "https://blackcatinformatics.ca/lang/GmnNonCanonicalOrder";
@@ -1511,6 +1525,7 @@ impl Gmn1Error {
     pub fn failure_class(&self) -> &'static str {
         match self {
             Self::Uncovered(_) => Self::CLASS_UNCOVERED_TERM,
+            Self::NamedGraphOutOfDomain { .. } => Self::CLASS_GRAPH_OUT_OF_DOMAIN,
             Self::NonCanonicalOrder { .. } => Self::CLASS_NON_CANONICAL_ORDER,
             Self::MalformedNumber { .. } => Self::CLASS_MALFORMED_NUMBER,
             Self::UndeclaredDialectVersion { .. } => Self::CLASS_UNDECLARED_DIALECT_VERSION,
@@ -1524,6 +1539,12 @@ impl std::fmt::Display for Gmn1Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Uncovered(u) => write!(f, "lang:GmnUncoveredTerm: {}", u.0),
+            Self::NamedGraphOutOfDomain { graph } => write!(
+                f,
+                "lang:GmnGraphOutOfDomain: quad in named graph {graph} is outside the \
+                 default-graph GMN-0 normal-form domain (the GMN-1 record shape has no \
+                 graph slot)"
+            ),
             Self::NonCanonicalOrder { detail } => write!(f, "lang:GmnNonCanonicalOrder: {detail}"),
             Self::MalformedNumber { token } => write!(
                 f,
@@ -1594,14 +1615,26 @@ pub enum Gmn1ConstructCategory {
     /// non-canonical-shaped number, arbitrary prose, or any other datatype), riding by
     /// reference through the document's reference table.
     LiteralByReference,
+    /// An RDF 1.2 triple term (`( s p o )` over three nested terms) in the object slot —
+    /// the codec's lossless RDF-star surface. Deliberately OUTSIDE [`Self::ALL`] (see its
+    /// doc): triple terms are supported for RDF-1.2 completeness but are not part of the
+    /// default-graph grounding-slice fragment the corpus-completeness audit is scoped to,
+    /// exactly as a named-graph quad is out-of-domain and has no category at all.
+    TripleTerm,
 }
 
 impl Gmn1ConstructCategory {
-    /// Every category this codec's write-side dispatch can produce — the audit's
-    /// enumeration of "what totality over a construct means." A category MISSING from
-    /// this list would make [`ConstructCoverageTally::unexercised_categories`] blind to
-    /// it, so [`Self::all_covered_by_match`] is a compile-time witness that `ALL` cannot
-    /// silently fall out of sync with the enum's own variant list.
+    /// The **default-graph grounding-slice** construct categories the corpus-completeness
+    /// audit ([`ConstructCoverageTally::unexercised_categories`]) requires the real slices
+    /// to exercise at least once. A category MISSING from this list is blind to that audit,
+    /// so [`Self::all_covered_by_match`] is a compile-time witness that every in-domain
+    /// variant has a match arm and this list stays complete over them.
+    ///
+    /// [`Self::TripleTerm`] is DELIBERATELY excluded: RDF 1.2 triple terms are encoded
+    /// losslessly by the codec but do not occur in the default-graph grounding fragment the
+    /// audit is scoped to (the slices author no reifiers), exactly as a named-graph quad is
+    /// out-of-domain and carries no category at all. Their round-trip is proven by the
+    /// codec's own fixtures, not by demanding the grounding corpus emit one.
     pub const ALL: &'static [Self] = &[
         Self::IriGlyph,
         Self::IriDictAlias,
@@ -1615,9 +1648,10 @@ impl Gmn1ConstructCategory {
         Self::LiteralByReference,
     ];
 
-    // Never called; exists so an exhaustive match over `Self` fails to compile the
-    // moment a new variant is added without a matching arm HERE (and, by the doc
-    // comment's discipline, without also being added to `ALL`).
+    // Never called; exists so an exhaustive match over `Self` fails to compile the moment a
+    // new variant is added without a matching arm HERE. Every in-domain arm is also a member
+    // of `ALL`; the out-of-domain `TripleTerm` arm is matched here (so this stays exhaustive)
+    // but intentionally omitted from `ALL` (see its doc).
     #[allow(dead_code)]
     fn all_covered_by_match(self) {
         match self {
@@ -1630,7 +1664,8 @@ impl Gmn1ConstructCategory {
             | Self::LiteralIdentifier
             | Self::LiteralInteger
             | Self::LiteralDecimal
-            | Self::LiteralByReference => {}
+            | Self::LiteralByReference
+            | Self::TripleTerm => {}
         }
     }
 }
@@ -1693,6 +1728,7 @@ fn classify_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
     sigil: &str,
 ) -> Result<(String, Gmn1ConstructCategory), UncoveredTerm> {
     match term {
@@ -1712,8 +1748,12 @@ fn classify_reference(
         RdfTerm::Literal(lit) => Err(UncoveredTerm(format!(
             "a reference-position slot (s/p/o/st/ev/m/ek/bd/it) cannot carry a literal: {lit:?}"
         ))),
-        RdfTerm::Triple(_) => Err(UncoveredTerm(
-            "RDF 1.2 quoted triple terms are outside this codec's covered fragment".to_owned(),
+        // RDF 1.2 triple term (`s rdf:reifies <<( a b c )>>`): a FIRST-CLASS object the
+        // codec encodes losslessly as the compact `( s p o )` surface over three nested
+        // terms, recursively through this same reference/value dispatch — never a hard fail.
+        RdfTerm::Triple(triple) => Ok((
+            encode_triple_term(triple, dict, ns_to_prefix, refs, sigil)?,
+            Gmn1ConstructCategory::TripleTerm,
         )),
     }
 }
@@ -1725,9 +1765,77 @@ fn encode_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
     sigil: &str,
 ) -> Result<String, UncoveredTerm> {
-    classify_reference(term, dict, ns_to_prefix, sigil).map(|(token, _)| token)
+    classify_reference(term, dict, ns_to_prefix, refs, sigil).map(|(token, _)| token)
+}
+
+/// Encode an RDF 1.2 triple term (`<<( s p o )>>`) as the compact GMN-1 object-slot
+/// surface `( s p o )` — a single whitespace/comma/colon-free-ish token whose three
+/// nested terms invert through the SAME term grammar the codec uses everywhere else. The
+/// parens delimit and space-separate the three components; every nested leaf token
+/// (identifier, `prefix__local`, `_b<label>`, glyph, `r_<hash>`, integer/decimal) is
+/// itself space-free, so [`decode_triple_term`]'s paren-depth-aware split recovers them
+/// exactly. Triple terms nest (`( a b ( c d e ) )`) via the recursion.
+fn encode_triple_term(
+    triple: &RdfTriple,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<String, UncoveredTerm> {
+    let subject = encode_embedded_term(&triple.subject, dict, ns_to_prefix, refs, sigil)?;
+    let predicate = encode_embedded_term(
+        &RdfTerm::Iri(triple.predicate.clone()),
+        dict,
+        ns_to_prefix,
+        refs,
+        sigil,
+    )?;
+    let object = encode_embedded_term(&triple.object, dict, ns_to_prefix, refs, sigil)?;
+    Ok(format!("( {subject} {predicate} {object} )"))
+}
+
+/// Encode one term embedded INSIDE a triple term. Unlike the top-level object slot (which
+/// disambiguates a literal via the `v` vs `o` key), a triple term's three positions are
+/// slot-free, so a literal MUST NOT inline as a bare identifier — a bare token there is
+/// indistinguishable from a dictionary alias / prefix reference. Integers and decimals are
+/// still inlined (disjoint from every reference token by shape), while every other literal
+/// rides by reference as `r_<hash>` (disjoint by the reserved `r_` prefix). IRIs, blanks,
+/// and nested triple terms encode through the reference dispatch.
+fn encode_embedded_term(
+    term: &RdfTerm,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<String, UncoveredTerm> {
+    match term {
+        RdfTerm::Literal(lit) => Ok(encode_embedded_literal(lit, refs)),
+        other => encode_reference(other, dict, ns_to_prefix, refs, sigil),
+    }
+}
+
+/// A literal in an embedded (slot-free) triple-term position: canonical integer/decimal
+/// inline (unambiguous by shape), otherwise by reference (never a bare identifier, which
+/// would collide with a reference token). Shares the by-reference minting with
+/// [`classify_literal`] via [`intern_literal_ref`].
+fn encode_embedded_literal(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> String {
+    let numeric = lit.language.is_none() && lit.direction.is_none();
+    if numeric
+        && lit.datatype.as_deref() == Some(XSD_INTEGER)
+        && is_integer_token(&lit.lexical_form)
+    {
+        return lit.lexical_form.clone();
+    }
+    if numeric
+        && lit.datatype.as_deref() == Some(XSD_DECIMAL)
+        && is_decimal_token(&lit.lexical_form)
+    {
+        return lit.lexical_form.clone();
+    }
+    intern_literal_ref(lit, refs)
 }
 
 /// Encode a VALUE-position term (`v q`: the object's own literal payload, or an asserted
@@ -1941,6 +2049,17 @@ fn classify_literal(
     }
     // By reference: content-addressed on the full payload, so two occurrences of the
     // same literal share one reference-table entry.
+    (
+        intern_literal_ref(lit, refs),
+        Gmn1ConstructCategory::LiteralByReference,
+    )
+}
+
+/// Mint (or reuse) the content-addressed `r_<hash>` by-reference key for a literal and
+/// register its full payload in `refs`. The one place a by-reference literal key is
+/// formed — shared by [`classify_literal`] (top-level value slot) and
+/// [`encode_embedded_literal`] (embedded triple-term position) so the two never drift.
+fn intern_literal_ref(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> String {
     let key = format!(
         "{REF_PREFIX}{}",
         digest16(
@@ -1958,7 +2077,7 @@ fn classify_literal(
         datatype: lit.datatype.clone(),
         language: lit.language.clone(),
     });
-    (key, Gmn1ConstructCategory::LiteralByReference)
+    key
 }
 
 /// Decode a REFERENCE-position token (`s p o st ev m ek bd it`) back to an [`RdfTerm`] —
@@ -1970,8 +2089,19 @@ fn decode_reference(
     token: &str,
     dict: &GmnDictionary,
     prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
     sigil: &str,
 ) -> Result<RdfTerm, Gmn1Error> {
+    // RDF 1.2 triple term (`( s p o )`): the two-sided inverse of [`encode_triple_term`].
+    if token.starts_with('(') {
+        return Ok(RdfTerm::Triple(Box::new(decode_triple_term(
+            token,
+            dict,
+            prefix_to_ns,
+            refs,
+            sigil,
+        )?)));
+    }
     if let Some(label) = token.strip_prefix(BLANK_PREFIX) {
         if !is_safe_token_body(label) {
             return Err(non_decodable(format!(
@@ -2050,6 +2180,104 @@ fn payload_to_term(payload: &RefPayload) -> RdfTerm {
         datatype: payload.datatype.clone(),
         language: payload.language.clone(),
         direction: None,
+    })
+}
+
+/// Decode a `( s p o )` triple-term token back to an [`RdfTriple`] — the two-sided inverse
+/// of [`encode_triple_term`]. Subject and predicate ride the reference dispatch (the
+/// predicate must resolve to an IRI, per the RDF data model); the object rides the
+/// embedded-term dispatch (it may be a literal, an IRI/blank, or a nested triple term).
+fn decode_triple_term(
+    token: &str,
+    dict: &GmnDictionary,
+    prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<RdfTriple, Gmn1Error> {
+    let inner = token
+        .strip_prefix('(')
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| {
+            non_decodable(format!("malformed triple-term token (no `( … )`): {token}"))
+        })?;
+    let [subject_tok, predicate_tok, object_tok] = split_triple_components(inner)?;
+    let subject = decode_reference(&subject_tok, dict, prefix_to_ns, refs, sigil)?;
+    let predicate = match decode_reference(&predicate_tok, dict, prefix_to_ns, refs, sigil)? {
+        RdfTerm::Iri(iri) => iri,
+        other => {
+            return Err(non_decodable(format!(
+                "triple-term predicate must decode to an IRI, got {other:?} from token \
+                 {predicate_tok}"
+            )));
+        }
+    };
+    let object = decode_embedded_term(&object_tok, dict, prefix_to_ns, refs, sigil)?;
+    Ok(RdfTriple::new(subject, predicate, object))
+}
+
+/// Decode one term embedded inside a triple term — the inverse of [`encode_embedded_term`].
+/// A leading `(` is a nested triple; a number-shaped or `r_<hash>` token is a value literal
+/// (disjoint by shape / reserved prefix from every reference token); everything else is a
+/// reference (IRI/blank/dictionary alias).
+fn decode_embedded_term(
+    token: &str,
+    dict: &GmnDictionary,
+    prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<RdfTerm, Gmn1Error> {
+    if token.starts_with('(') {
+        return decode_reference(token, dict, prefix_to_ns, refs, sigil);
+    }
+    if is_integer_token(token) || is_decimal_token(token) || token.starts_with(REF_PREFIX) {
+        return decode_value(token, refs);
+    }
+    decode_reference(token, dict, prefix_to_ns, refs, sigil)
+}
+
+/// Split the inner text of a `( … )` triple term into its three top-level components,
+/// respecting nested parens (`( a b ( c d e ) )` splits into `a`, `b`, `( c d e )`). A
+/// component count other than three, or an unbalanced paren, is `lang:GmnNonDecodableGrammar`.
+fn split_triple_components(inner: &str) -> Result<[String; 3], Gmn1Error> {
+    let mut components: Vec<String> = Vec::new();
+    let mut current = String::new();
+    let mut depth: i32 = 0;
+    for ch in inner.chars() {
+        match ch {
+            '(' => {
+                depth += 1;
+                current.push(ch);
+            }
+            ')' => {
+                depth -= 1;
+                if depth < 0 {
+                    return Err(non_decodable(format!(
+                        "unbalanced `)` inside triple term: {inner}"
+                    )));
+                }
+                current.push(ch);
+            }
+            c if c.is_whitespace() && depth == 0 => {
+                if !current.is_empty() {
+                    components.push(std::mem::take(&mut current));
+                }
+            }
+            c => current.push(c),
+        }
+    }
+    if depth != 0 {
+        return Err(non_decodable(format!(
+            "unbalanced `(` inside triple term: {inner}"
+        )));
+    }
+    if !current.is_empty() {
+        components.push(current);
+    }
+    components.try_into().map_err(|found: Vec<String>| {
+        non_decodable(format!(
+            "triple term must have exactly three components, found {}: {inner}",
+            found.len()
+        ))
     })
 }
 
@@ -2201,21 +2429,24 @@ fn quads_to_records(
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
     refs: &mut BTreeMap<String, RefPayload>,
-) -> Result<Vec<Record>, UncoveredTerm> {
+) -> Result<Vec<Record>, Gmn1Error> {
     let mut records = Vec::new();
     for (graph, _subject, bucket) in group_quads(quads) {
-        if graph.is_some() {
-            return Err(UncoveredTerm(
-                "named-graph-scoped quads are outside this codec's covered record model \
-                 (no graph slot in the GMN-1 record shape)"
-                    .to_owned(),
-            ));
+        // A named-graph quad is OUT OF DOMAIN, not "uncovered": the GMN-0 normal form is
+        // default-graph by charter (the grounding slices are authored as `text/turtle`),
+        // and the GMN-1 record shape has no graph slot. An honest typed domain boundary,
+        // never a term-coverage residual a bigger dictionary could resolve.
+        if let Some(graph) = graph {
+            return Err(Gmn1Error::NamedGraphOutOfDomain {
+                graph: term_sort_string(&graph),
+            });
         }
         if let Some((host, sigil)) = folded_record_context(&bucket) {
             let mut fields = BTreeMap::new();
             fields.insert(
                 "s",
-                encode_reference(&host.subject, dict, ns_to_prefix, sigil)?,
+                encode_reference(&host.subject, dict, ns_to_prefix, refs, sigil)
+                    .map_err(Gmn1Error::Uncovered)?,
             );
             fields.insert(
                 "p",
@@ -2223,10 +2454,13 @@ fn quads_to_records(
                     &RdfTerm::Iri(host.predicate.clone()),
                     dict,
                     ns_to_prefix,
+                    refs,
                     sigil,
-                )?,
+                )
+                .map_err(Gmn1Error::Uncovered)?,
             );
-            let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs, sigil)?;
+            let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs, sigil)
+                .map_err(Gmn1Error::Uncovered)?;
             fields.insert(obj_key, obj_tok);
 
             for q in bucket
@@ -2236,9 +2470,10 @@ fn quads_to_records(
             {
                 let slot = annotation_slot(&q.predicate).expect("partitioned as annotation");
                 let tok = if slot == "q" {
-                    encode_value(&q.object, refs)?
+                    encode_value(&q.object, refs).map_err(Gmn1Error::Uncovered)?
                 } else {
-                    encode_reference(&q.object, dict, ns_to_prefix, sigil)?
+                    encode_reference(&q.object, dict, ns_to_prefix, refs, sigil)
+                        .map_err(Gmn1Error::Uncovered)?
                 };
                 fields.insert(slot, tok);
             }
@@ -2249,7 +2484,8 @@ fn quads_to_records(
                 let mut fields = BTreeMap::new();
                 fields.insert(
                     "s",
-                    encode_reference(&q.subject, dict, ns_to_prefix, sigil)?,
+                    encode_reference(&q.subject, dict, ns_to_prefix, refs, sigil)
+                        .map_err(Gmn1Error::Uncovered)?,
                 );
                 fields.insert(
                     "p",
@@ -2257,10 +2493,13 @@ fn quads_to_records(
                         &RdfTerm::Iri(q.predicate.clone()),
                         dict,
                         ns_to_prefix,
+                        refs,
                         sigil,
-                    )?,
+                    )
+                    .map_err(Gmn1Error::Uncovered)?,
                 );
-                let (obj_key, obj_tok) = encode_object(&q.object, dict, ns_to_prefix, refs, sigil)?;
+                let (obj_key, obj_tok) = encode_object(&q.object, dict, ns_to_prefix, refs, sigil)
+                    .map_err(Gmn1Error::Uncovered)?;
                 fields.insert(obj_key, obj_tok);
                 records.push(Record { sigil, fields });
             }
@@ -2270,7 +2509,8 @@ fn quads_to_records(
 }
 
 /// Encode an object term into its `(key, token)` pair: `v` (value) for a literal, `o`
-/// (reference) otherwise — the o-vs-v slot split.
+/// (reference) otherwise — the o-vs-v slot split. An RDF 1.2 triple term is a non-literal
+/// object, so it rides the `o` slot as the `( s p o )` surface (see [`encode_triple_term`]).
 fn encode_object(
     object: &RdfTerm,
     dict: &GmnDictionary,
@@ -2281,7 +2521,10 @@ fn encode_object(
     if matches!(object, RdfTerm::Literal(_)) {
         Ok(("v", encode_value(object, refs)?))
     } else {
-        Ok(("o", encode_reference(object, dict, ns_to_prefix, sigil)?))
+        Ok((
+            "o",
+            encode_reference(object, dict, ns_to_prefix, refs, sigil)?,
+        ))
     }
 }
 
@@ -2329,14 +2572,15 @@ fn record_to_quads(
         .fields
         .get("p")
         .ok_or_else(|| non_decodable("record is missing required key 'p'".to_owned()))?;
-    let subject = decode_reference(s_tok, dict, prefix_to_ns, record.sigil)?;
-    let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns, record.sigil)? else {
+    let subject = decode_reference(s_tok, dict, prefix_to_ns, refs, record.sigil)?;
+    let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns, refs, record.sigil)?
+    else {
         return Err(non_decodable(format!(
             "'p' slot must decode to an IRI, got token {p_tok}"
         )));
     };
     let object = match (record.fields.get("o"), record.fields.get("v")) {
-        (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns, record.sigil)?,
+        (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns, refs, record.sigil)?,
         (None, Some(v_tok)) => decode_value(v_tok, refs)?,
         (None, None) => {
             return Err(non_decodable(
@@ -2364,7 +2608,7 @@ fn record_to_quads(
             let object = if slot == "q" {
                 decode_value(tok, refs)?
             } else {
-                decode_reference(tok, dict, prefix_to_ns, record.sigil)?
+                decode_reference(tok, dict, prefix_to_ns, refs, record.sigil)?
             };
             quads.push(RdfQuad {
                 subject: subject.clone(),
@@ -2453,16 +2697,15 @@ fn assert_model_literals_nfc(model: &Gmn0Model) -> Result<(), Gmn1Error> {
 }
 
 /// GMN-0 → GMN-1: the forward/put leg. Total over any [`Gmn0Model`] whose quads are
-/// default-graph, plain IRI/blank/literal-object triples under a registered namespace
-/// (the grounding slices' fragment) — hard-fails as [`Gmn1Error::Uncovered`] on a
-/// named-graph quad, a quoted-triple term, or an IRI under no registered namespace,
-/// never a silent drop.
+/// default-graph triples under a registered namespace (the grounding slices' fragment)
+/// PLUS RDF 1.2 triple-term objects, which round-trip losslessly. Hard-fails, never a
+/// silent drop, on: a named-graph quad ([`Gmn1Error::NamedGraphOutOfDomain`] — an honest
+/// domain boundary) or an IRI under no registered namespace ([`Gmn1Error::Uncovered`]).
 pub fn gmn1_write(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Gmn1Document, Gmn1Error> {
     assert_model_literals_nfc(model)?;
     let ns_to_prefix = ns_to_prefix_table();
     let mut refs = BTreeMap::new();
-    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)
-        .map_err(Gmn1Error::Uncovered)?;
+    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
         "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
@@ -2491,8 +2734,7 @@ pub fn gmn1_write_tabular(
     assert_model_literals_nfc(model)?;
     let ns_to_prefix = ns_to_prefix_table();
     let mut refs = BTreeMap::new();
-    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)
-        .map_err(Gmn1Error::Uncovered)?;
+    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
         "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
@@ -2502,6 +2744,15 @@ pub fn gmn1_write_tabular(
 
     let uniform_schema: Option<Vec<&'static str>> = records.first().and_then(|first| {
         if first.sigil != SIGIL_CLAIM {
+            return None;
+        }
+        // A triple-term token (`( s p o )`) carries interior spaces; a tabular row is
+        // whitespace-delimited, so such a value would corrupt the row lexer's column
+        // count. Fall back to record form (always correct) when any field is space-bearing.
+        if records
+            .iter()
+            .any(|r| r.fields.values().any(|v| v.contains(' ')))
+        {
             return None;
         }
         let schema: Vec<&'static str> =
@@ -2883,10 +3134,12 @@ pub enum QuadCoverage {
         predicate: Gmn1ConstructCategory,
         object: Gmn1ConstructCategory,
     },
-    /// This quad hits an uncovered construct — the SAME [`UncoveredTerm`] [`gmn1_write`]
-    /// would hard-fail on for this quad (a named-graph quad, an IRI under no registered
-    /// namespace, an unsafe blank-node label, a quoted-triple term, or a
-    /// non-literal/non-reference term in a slot that requires the other shape).
+    /// This quad hits a construct outside the covered category set: a named-graph quad
+    /// (out-of-domain; [`gmn1_write`] raises [`Gmn1Error::NamedGraphOutOfDomain`] for it),
+    /// an IRI under no registered namespace, an unsafe blank-node label, or a
+    /// non-literal/non-reference term in a slot that requires the other shape. An RDF 1.2
+    /// triple-term object is NOT here — it classifies as [`Gmn1ConstructCategory::TripleTerm`]
+    /// under [`QuadCoverage::Covered`], mirroring [`gmn1_write`]'s lossless encoding.
     Uncovered(UncoveredTerm),
 }
 
@@ -2905,7 +3158,7 @@ fn classify_quad_in_record(
                 .to_owned(),
         ));
     }
-    let subject = match classify_reference(&quad.subject, dict, ns_to_prefix, sigil) {
+    let subject = match classify_reference(&quad.subject, dict, ns_to_prefix, refs, sigil) {
         Ok((_, category)) => category,
         Err(e) => return QuadCoverage::Uncovered(e),
     };
@@ -2913,6 +3166,7 @@ fn classify_quad_in_record(
         &RdfTerm::Iri(quad.predicate.clone()),
         dict,
         ns_to_prefix,
+        refs,
         sigil,
     ) {
         Ok((_, category)) => category,
@@ -2921,7 +3175,7 @@ fn classify_quad_in_record(
     let object_result = if matches!(quad.object, RdfTerm::Literal(_)) {
         classify_value(&quad.object, refs)
     } else {
-        classify_reference(&quad.object, dict, ns_to_prefix, sigil)
+        classify_reference(&quad.object, dict, ns_to_prefix, refs, sigil)
     };
     let object = match object_result {
         Ok((_, category)) => category,
