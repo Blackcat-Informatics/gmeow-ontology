@@ -1314,3 +1314,37 @@ criteria DEMONSTRATED-IN-PRODUCTION on the merged tree via live `gmeow hybrid-qu
 - Docs coverage-ratchet baseline re-blessed +57 across every docs/missing-* facet (the new
   external-relation vocabulary terms plus merged origin/main terms lacking full doc facets) —
   tracked in the baseline, not concealed; the established re-bless-after-merge pattern.
+
+## 2026-07-16 — PR #1580 (perf/check-10x) stage-2 gap remediation
+Branch not tied to an open issue (parent epic #1518 closed); PR body was the spec.
+Completion-adversary STAGE=2: core capability DEMONSTRATED-IN-PRODUCTION (exact batch
+leave-one-out reasoner is the default scoring path, scratch path deleted, ambiguous-case
+fallback computes not refuses, batch↔scratch parity green on real epistemics). Gaps A/B/C/D1/G
+fixed and pushed; E verified-no-change. One HUMAN-SIGNED-OFF exception recorded below.
+
+- [SIGNED-OFF — receipt-reuse bootstrap, adversary F1] The receipt-backed impact-selection REUSE
+  fast path (the source of the local speedup) cannot execute end-to-end until this branch first
+  lands on main and a successful main-push CI run publishes the attested
+  `gmeow-check-receipt-<base>` artifact — an inherent attestation chicken-and-egg, not missing
+  work. `obtain_receipt` (CI-artifact download via `gh`) + `verify_attestation` (`gh attestation
+  verify`) are network/CI-only and unrunnable in-branch, so every local `make check` today runs
+  the FULL profile (fail-closed). USER ACCEPTED the post-merge bootstrap (Stage-2 AskUserQuestion,
+  option "Accept post-merge bootstrap").
+    - In-branch mitigation delivered (commit 3281f56d5, GAP D1): the reuse DECISION is now
+      executed by tests — a receipt round-trip through the real on-disk format validates and
+      authorizes a strict-subset selection, and SEVEN tamper cases (wrong registry/toolchain/
+      task-set/status/commit/tree) each fail closed. Only the CI-artifact-download + attestation
+      verify remain unexercised until post-land.
+    - POST-LAND OBLIGATION: on the first main-branch `make check` after this lands, confirm it
+      prints "REUSE"/"verified base receipt ..." rather than silently full-falling-back forever
+      (a latent bug in the download/verify seam would be invisible to CI and to this PR).
+
+- [BOUNDED PROXY — on-gate parity, GAP C, commit 832fb6514] On-gate exact batch↔scratch parity
+  was broadened from epistemics-only to a curated, fixed 4-slice set (core/epistemics,
+  grounding/logic, core/kernel, core/inhabitation), capped at REDUNDANCY_CAP. This is a bounded
+  proxy for full coverage: the EXHAUSTIVE all-slice audit
+  (`every_real_slice_batch_matches_parallel_scratch`) remains `#[ignore]`d for cost (repo-wide
+  decision to promote it fully on-gate deferred to a maintainer call — it is a thoroughness
+  audit, not a correctness gate; exactness is by-construction via the fast-path guards, and the
+  synthetic guard-family parity test stays on-gate). New curated test adds ~18s to the workspace
+  nextest suite (rust job), NOT to the slice-quality-gate or pipeline critical path the PR optimized.
