@@ -195,6 +195,15 @@ pub fn attach_gmn_failure(
                 graph: graph.clone(),
             })
         }
+        // A per-claim mismatch routes through the SAME `GmnNonDecodableGrammar` finding as
+        // the whole-model round-trip failure (its `failure_class` is
+        // `CLASS_NON_DECODABLE_GRAMMAR`), naming the offending canonical subject in the
+        // detail so a meta-fold joins it by class without a second classifier.
+        Gmn1Error::PerClaimMismatch { subject } => {
+            gmeow_errors::Diag::of_kind(GmnNonDecodableGrammar {
+                detail: format!("per-claim round-trip mismatch at canonical subject {subject}"),
+            })
+        }
     };
     let diag = diag.with_focus(focus.to_owned());
     ledger.attach(diag, gmeow_errors::StageId::new(stage_id.to_owned()));
