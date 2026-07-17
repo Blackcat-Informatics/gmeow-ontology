@@ -614,6 +614,46 @@ impl ValidationRun {
             }
         }
 
+        // Phase 5c: ownership + example-coverage on the live repo-source path.
+        // Phase 5 (validate.ownership) and Phase 9 (example-coverage) gate on
+        // `slices_dir`, which the live `gmeow-dev validate` / `make validate` entry
+        // never sets — so both were DARK there. When `project_root` names a real
+        // source tree (carries `slices/` + `shapes/`) but no explicit `slices_dir`
+        // drove `slice_analysis`, derive the slice tree from the repo root and fold
+        // both gates so an ownership defect or a missing example HARD-FAILS live,
+        // exactly like Phase 5b. Guarded on `slice_analysis.is_none()` so a harness
+        // that supplies `slices_dir` never runs these gates twice.
+        if slice_analysis.is_none()
+            && let Some(project_root) = &options.project_root
+            && project_root.join("slices").is_dir()
+            && project_root.join("shapes").is_dir()
+        {
+            let slices_path = options.slices_dir.as_deref().map_or_else(
+                || project_root.join("slices"),
+                |d| std::path::Path::new(d).to_path_buf(),
+            );
+            let slices_path_str = slices_path.to_string_lossy().into_owned();
+            let (_, ownership) =
+                timed(&mut timings, "slice-ownership-live", options, None, || {
+                    slice_catalog_and_ownership(&slices_path_str)
+                })?;
+            for finding in slice_ownership::ownership_findings(&ownership)
+                .into_iter()
+                .filter(|finding| finding.severity == Severity::Error)
+            {
+                intern_finding(
+                    &mut run_ledger,
+                    StageId::new("validate.ownership"),
+                    Standpoint::Binding,
+                    &finding,
+                );
+            }
+            let coverage = timed(&mut timings, "example-coverage-live", options, None, || {
+                check_example_coverage(&slices_path_str)
+            })?;
+            intern_phase(&mut run_ledger, coverage);
+        }
+
         // Phase 8: merged SHACL validation against the shared store.
         //
         // The whole-ontology merged-SHACL source key is the S6a semantic Merkle
