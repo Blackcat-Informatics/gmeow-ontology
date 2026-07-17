@@ -873,11 +873,14 @@ fn ttl_recursive(dir: &Path) -> Result<Vec<PathBuf>> {
     Ok(out)
 }
 
-/// Every `slices/*/*/examples/*.ttl`, sorted.
+/// Every `slices/*/*/examples/*.ttl`, discovered by MANIFEST (not module.ttl) so
+/// a module-less pure-selection profile slice (which mints no module but does
+/// ship worked examples) is covered too — a module-bearing slice always also
+/// carries a manifest, so that behavior is unchanged. Sorted.
 fn slice_example_files(slices_dir: &Path) -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
-    for module in slice_module_files(slices_dir)? {
-        if let Some(slice_dir) = module.parent() {
+    for manifest in all_manifests(slices_dir)? {
+        if let Some(slice_dir) = manifest.parent() {
             out.extend(ttl_in_dir(&slice_dir.join("examples"))?);
         }
     }
@@ -944,13 +947,19 @@ fn detect_untagged_localizable(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
 }
 
 /// R3c: every localizable literal in slice source (`module.ttl`, `shapes.ttl`,
-/// `mappings/*.ttl`, `examples/*.ttl`) carries a language tag.
+/// `mappings/*.ttl`, `examples/*.ttl`) carries a language tag. Discovered by
+/// MANIFEST (not module.ttl) so a module-less pure-selection profile slice's
+/// examples/shapes/mappings are covered too — `module.ttl` is pushed ONLY when
+/// present, so a module-bearing slice's behavior is unchanged.
 pub fn slice_source_untagged_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     let slices = repo_root.join("slices");
     let mut paths = Vec::new();
-    for module in slice_module_files(&slices)? {
-        paths.push(module.clone());
-        if let Some(dir) = module.parent() {
+    for manifest in all_manifests(&slices)? {
+        if let Some(dir) = manifest.parent() {
+            let module = dir.join("module.ttl");
+            if module.is_file() {
+                paths.push(module);
+            }
             let shapes = dir.join("shapes.ttl");
             if shapes.is_file() {
                 paths.push(shapes);
@@ -1413,6 +1422,61 @@ mod tests {
         assert!(terms.contains("https://blackcatinformatics.ca/gmeow/Person"));
         assert!(terms.contains("https://blackcatinformatics.ca/gmeow/Organization"));
         assert!(terms.contains("https://blackcatinformatics.ca/gmeow/memberOf"));
+    }
+
+    /// F3 regression: a MODULE-LESS slice (a `manifest.ttl` with NO `module.ttl` —
+    /// the pure-selection profile-slice shape) whose `examples/*.ttl` uses an
+    /// undeclared term must still be caught. Discovery keyed on `slice_module_files`
+    /// alone (the pre-fix behavior) would silently skip this slice entirely,
+    /// because it mints no module and so is invisible to a module-only walk —
+    /// exactly the blind spot `slices/profile/agent-runtime` demonstrated live.
+    /// Keying on `all_manifests` instead (every slice has a manifest) closes it.
+    #[test]
+    fn example_undeclared_term_fires_on_a_module_less_slice() {
+        let tmp = tempfile::tempdir().expect("temp slices dir");
+        let slice_dir = tmp.path().join("profile/no-module-slice");
+        std::fs::create_dir_all(slice_dir.join("examples")).unwrap();
+
+        // A manifest declaring gmeow:Slice + a tier — NO module.ttl anywhere in
+        // this slice directory (the module-less pure-selection shape).
+        std::fs::write(
+            slice_dir.join("manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <https://blackcatinformatics.ca/gmeow/slices/no-module-slice> a gmeow:Slice ;\n\
+               gmeow:sliceTier gmeow:tierProfile ;\n\
+               rdfs:label \"no-module-slice\"@x-gmeow-english .\n",
+        )
+        .unwrap();
+        assert!(
+            !slice_dir.join("module.ttl").exists(),
+            "the fixture must genuinely be module-less"
+        );
+
+        // The example references an undeclared GMEOW term.
+        std::fs::write(
+            slice_dir.join("examples/bad.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/no-module-slice/> .\n\
+             ex:thing gmeow:totallyBogusUndeclaredPredicateXYZ ex:other .\n",
+        )
+        .unwrap();
+
+        let declared: BTreeSet<String> = BTreeSet::new();
+        let files = load_ttl_files(&slice_example_files(tmp.path()).unwrap()).unwrap();
+        let findings = detect_undeclared_terms(&declared, &files, tmp.path());
+        assert_eq!(
+            findings.len(),
+            1,
+            "the module-less slice's example must be discovered and its undeclared \
+             term flagged: {findings:?}"
+        );
+        assert_eq!(findings[0].code, codes::AUTHORING_UNDECLARED_TERM);
+        assert!(
+            findings[0]
+                .message
+                .contains("totallyBogusUndeclaredPredicateXYZ")
+        );
     }
 
     #[test]
