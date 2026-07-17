@@ -1164,8 +1164,10 @@ const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     use std::collections::HashSet;
 
-    use gmeow_docs::i18n::{expand_predicate, parse_po, translation_has_integrity};
-    use gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES;
+    use gmeow_docs::i18n_compile::{
+        LOCALIZABLE_PREDICATES, counts_as_reviewed_coverage, expand_predicate, language_from_po,
+        parse_po,
+    };
 
     let ds = ctx.graph;
 
@@ -1190,36 +1192,101 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     let mut findings = Vec::new();
     for (tag, stem) in TRANSLATION_LANGS {
         let po = ctx.slice_dir.join(format!("i18n/{stem}.po"));
-        // Covered (term, full-predicate) pairs: catalog entries with a real
-        // (non-empty) msgstr, keyed by the same full predicate IRI as the graph.
+        // Covered (term, full-predicate) pairs: catalog entries that count as
+        // REVIEWED coverage under the single shared policy
+        // (`counts_as_reviewed_coverage`) — a real (non-empty) msgstr that is NOT
+        // flagged `#, fuzzy` and passes the integrity guard — keyed by the same full
+        // predicate IRI as the graph. Machine-seeded (`#, fuzzy`) entries are counted
+        // separately as `seeded` (awaiting review, not yet coverage); non-empty
+        // non-fuzzy entries that fail integrity are `rejected` (copied English).
         let mut rejected = 0usize;
-        let covered: HashSet<(String, String)> = std::fs::read_to_string(&po)
-            .map(|text| {
-                let catalog = parse_po(&text);
-                let language = if catalog.language.is_empty() {
-                    *tag
-                } else {
-                    &catalog.language
-                };
-                catalog
-                    .entries
-                    .iter()
-                    .filter(|entry| !entry.msgctxt.is_empty() && !entry.msgstr.is_empty())
-                    .filter(|entry| {
-                        let valid =
-                            translation_has_integrity(language, &entry.msgid, &entry.msgstr);
-                        if !valid {
-                            rejected += 1;
+        let mut seeded = 0usize;
+        let covered: HashSet<(String, String)> = match std::fs::read_to_string(&po) {
+            // A genuinely-absent catalog legitimately means no coverage for this language.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => HashSet::new(),
+            // Any OTHER read error (permission, transient I/O) is a broken input, not honest
+            // absence: surface it as a finding and force zero coverage for this language,
+            // never a silent empty set that would fake a clean score.
+            Err(e) => {
+                findings.push(advisory(
+                    "slice-quality.translation.read-error",
+                    format!("{tag} catalog i18n/{stem}.po failed to read: {e}"),
+                ));
+                lang_cov.push(0.0);
+                continue;
+            }
+            Ok(text) => {
+                // A PRESENT catalog is required input: a malformed one is surfaced as a
+                // finding with zero coverage for this language, never a silent skip that
+                // would fake a score.
+                //
+                // The coverage/integrity language is the CONFIGURED TARGET (`tag`), never the
+                // catalog's self-reported `Language:` header: a mislabeled `fr.po` claiming
+                // `Language: en` must not be integrity-checked as English, which would credit
+                // copied English as French coverage. The header is still parsed to VALIDATE the
+                // catalog — a present header whose primary subtag matches neither the target
+                // `tag` (e.g. `cmn`) nor the file stem (e.g. `zh`) is a real authoring bug,
+                // surfaced as an advisory (never silently trusted or ignored) — and a malformed
+                // catalog remains a hard parse-error with zero coverage for this language.
+                let language = (*tag).to_string();
+                match language_from_po(&text) {
+                    Ok(Some(header)) => {
+                        let primary = header
+                            .split(['_', '-'])
+                            .next()
+                            .unwrap_or_default()
+                            .to_ascii_lowercase();
+                        if !primary.is_empty()
+                            && !primary.eq_ignore_ascii_case(tag)
+                            && !primary.eq_ignore_ascii_case(stem)
+                        {
+                            findings.push(advisory(
+                                "slice-quality.translation.mislabeled-catalog",
+                                format!(
+                                    "{tag} catalog i18n/{stem}.po declares `Language: {header}`, which matches neither the target `{tag}` nor the file stem `{stem}`; coverage is evaluated against `{tag}` regardless."
+                                ),
+                            ));
                         }
-                        valid
-                    })
-                    .filter_map(|entry| {
-                        let (term, pred) = entry.msgctxt.split_once('|')?;
-                        Some((term.to_string(), expand_predicate(pred)))
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        findings.push(advisory(
+                            "slice-quality.translation.parse-error",
+                            format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
+                        ));
+                        lang_cov.push(0.0);
+                        continue;
+                    }
+                }
+                let entries = match parse_po(&text, false) {
+                    Ok(entries) => entries,
+                    Err(e) => {
+                        findings.push(advisory(
+                            "slice-quality.translation.parse-error",
+                            format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
+                        ));
+                        lang_cov.push(0.0);
+                        continue;
+                    }
+                };
+                let mut set = HashSet::new();
+                for entry in &entries {
+                    if entry.msgctxt.is_empty() {
+                        continue;
+                    }
+                    if counts_as_reviewed_coverage(entry, &language) {
+                        if let Some((term, pred)) = entry.msgctxt.split_once('|') {
+                            set.insert((term.to_string(), expand_predicate(pred)));
+                        }
+                    } else if entry.fuzzy && !entry.msgstr.is_empty() {
+                        seeded += 1;
+                    } else if !entry.msgstr.is_empty() {
+                        rejected += 1;
+                    }
+                }
+                set
+            }
+        };
         if rejected > 0 {
             findings.push(advisory(
                 "slice-quality.translation.integrity-rejected",
@@ -1235,10 +1302,17 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
         #[allow(clippy::cast_precision_loss)]
         let cov = hits as f64 / expected as f64;
         if cov < 1.0 {
+            let seeded_note = if seeded > 0 {
+                format!(
+                    " ({seeded} further catalog value(s) are machine-seeded (fuzzy) and awaiting human review — removing the `#, fuzzy` flag on a verified entry raises coverage)"
+                )
+            } else {
+                String::new()
+            };
             findings.push(advisory(
                 "slice-quality.translation.incomplete",
                 format!(
-                    "{tag} covers {hits}/{expected} localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal."
+                    "{tag} covers {hits}/{expected} localizable literals{seeded_note}; the top tier requires 100% en+fr+cmn on every localizable literal."
                 ),
             ));
         }

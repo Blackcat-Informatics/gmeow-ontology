@@ -1564,12 +1564,12 @@ gmeow:Participation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/participationEvent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world Participation        #
+# Migrated procedural constraints: the closed-world Participation        #
 # well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
 # =========================================================================== #
 
@@ -1596,7 +1596,7 @@ gmeow:ParticipationParticipantPresenceConstraint
     logic:message "A Participation must have at least one participant (gmeow:participationParticipant)." .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of CorrectedEventSuppressionShape.
+# Suppression constraint — projection of CorrectedEventSuppressionShape.
 # A superseded participation (one carrying gmeow:validUntil) that is not         #
 # suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
 # =========================================================================== #
@@ -1607,7 +1607,7 @@ gmeow:SupersededParticipationSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a superseded gmeow:Participation (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:Participation ;
+    logic:formalizes gmeow:CorrectedEventSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded participation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supPtForall .
@@ -1627,3 +1627,18 @@ logic:supPtValid a logic:Formula ; logic:relation gmeow:validUntil ;
 logic:supPtNotSuppressed a logic:Formula ; logic:not logic:supPtDisp .
 logic:supPtDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# --- Wave B1 shape-drain: event well-formedness + participation/occurrence suppression ---
+# gmeow:EventHasTypeOrTimeShape (Warning): an event should carry at least a type or some temporal
+# placement — otherwise it is an unanchored occurrence carrying neither a kind nor a time.
+gmeow:EventHasTypeOrTimeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Event has type or time constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint (Warning): an gmeow:Event carries at least a gmeow:eventType or some temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd / atTime / ingestedAt)."@x-gmeow-english ;
+    logic:formalizes gmeow:EventHasTypeOrTimeShape ;
+    logic:severity "Warning" ;
+    logic:onClass gmeow:Event ;
+    logic:anyOf gmeow:eventType , gmeow:eventTime , gmeow:eventInterval , gmeow:earliestStart , gmeow:latestEnd , gmeow:atTime , gmeow:ingestedAt ;
+    logic:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd / atTime / ingestedAt)." .

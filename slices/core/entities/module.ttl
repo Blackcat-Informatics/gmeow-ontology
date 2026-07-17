@@ -127,3 +127,29 @@ gmeow:nationality
 _:b0
     a owl:AllDisjointClasses ;
     owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey gmeow:Appellation gmeow:Language ) .
+
+# --- Wave B1 shape-drain: organization currency-frame grounding ---
+# gmeow:OrganizationCurrencyShape — each gmeow:acceptsCurrency value is a currency reference frame
+# (its gmeow:frameRealm is gmeow:frameRealmCurrency), reproducing the retired shape's sh:node
+# inner-shape check as a cross-node closed-world constraint. The value stays an open-vocabulary IRI
+# (no sh:class, which would force data graphs to restate the frame's TBox typing in the raw lane).
+gmeow:OrganizationCurrencyConstraint
+    a logic:Constraint ;
+    rdfs:label "Organization currency-frame constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:acceptsCurrency value of a gmeow:Organization is a currency reference frame — its gmeow:frameRealm is gmeow:frameRealmCurrency."@x-gmeow-english ;
+    logic:formalizes gmeow:OrganizationCurrencyShape ;
+    logic:message "Each gmeow:acceptsCurrency value must be a currency reference frame in gmeow:frameRealmCurrency (e.g. gmeow:referenceFrameUSD), not an arbitrary reference frame." ;
+    logic:integrity logic:orgcForall .
+logic:orgcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cur" ] ;
+    logic:forall logic:orgcImpl .
+logic:orgcImpl a logic:Formula ; logic:antecedent logic:orgcGuard ; logic:consequent logic:orgcRealm .
+logic:orgcGuard a logic:Formula ; logic:and logic:orgcType , logic:orgcAccepts .
+logic:orgcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Organization ] .
+logic:orgcAccepts a logic:Formula ; logic:relation gmeow:acceptsCurrency ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cur" ] .
+logic:orgcRealm a logic:Formula ; logic:relation gmeow:frameRealm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cur" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmCurrency ] .

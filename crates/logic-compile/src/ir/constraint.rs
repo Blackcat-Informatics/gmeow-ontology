@@ -368,6 +368,88 @@ impl JoinAggregate {
     }
 }
 
+/// An aggregate-BALANCE satellite on a [`ConstraintIr`]: the double-entry balance invariant
+/// "within each group, Σ over the focus's postings of the debit-partition amounts equals Σ of the
+/// credit-partition amounts". Like [`AggregateComparison`], the realized FOL [`Formula`] core has no
+/// aggregate node, so a balance integrity is carried HERE as a structured satellite and lowered to a
+/// `SELECT $this … GROUP BY $this ?group HAVING(sumDebits != sumCredits)` `sh:SPARQLConstraint`. It
+/// generalizes the single-aggregate [`AggregateComparison`] to a *partitioned two-sum equality over a
+/// value-key group*: the focus's postings (`posting_predicate`) are partitioned by
+/// `partition_predicate` into a debit side (`debit_value`) and a credit side (`credit_value`); each
+/// posting's numeric amount is read via `amount_node_predicate` then `value_predicate`; the group key
+/// is read via `amount_node_predicate` then `group_predicate`; and the two partition-sums must be
+/// EQUAL within every group.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AggregateBalance {
+    /// The predicate from the focus to each posting (`$this <posting_predicate> ?posting`).
+    pub posting_predicate: String,
+    /// The predicate on a posting whose value selects its partition (debit vs credit).
+    pub partition_predicate: String,
+    /// The `partition_predicate` value marking a DEBIT posting.
+    pub debit_value: String,
+    /// The `partition_predicate` value marking a CREDIT posting.
+    pub credit_value: String,
+    /// The predicate from a posting to its amount node (`?posting <amount_node_predicate> ?amount`).
+    pub amount_node_predicate: String,
+    /// The predicate from the amount node to its numeric value (`?amount <value_predicate> ?val`).
+    pub value_predicate: String,
+    /// The predicate from the amount node to the group key (`?amount <group_predicate> ?group`).
+    pub group_predicate: String,
+}
+
+impl AggregateBalance {
+    /// Construct, validating every predicate / partition value is a non-empty IRI.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        posting_predicate: impl Into<String>,
+        partition_predicate: impl Into<String>,
+        debit_value: impl Into<String>,
+        credit_value: impl Into<String>,
+        amount_node_predicate: impl Into<String>,
+        value_predicate: impl Into<String>,
+        group_predicate: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let out = Self {
+            posting_predicate: posting_predicate.into(),
+            partition_predicate: partition_predicate.into(),
+            debit_value: debit_value.into(),
+            credit_value: credit_value.into(),
+            amount_node_predicate: amount_node_predicate.into(),
+            value_predicate: value_predicate.into(),
+            group_predicate: group_predicate.into(),
+        };
+        for (field, v) in [
+            ("posting_predicate", &out.posting_predicate),
+            ("partition_predicate", &out.partition_predicate),
+            ("debit_value", &out.debit_value),
+            ("credit_value", &out.credit_value),
+            ("amount_node_predicate", &out.amount_node_predicate),
+            ("value_predicate", &out.value_predicate),
+            ("group_predicate", &out.group_predicate),
+        ] {
+            if v.trim().is_empty() {
+                return Err(ir_err(format!(
+                    "AggregateBalance.{field} must be a non-empty IRI"
+                )));
+            }
+        }
+        Ok(out)
+    }
+
+    /// The append-only content-key segment for this satellite.
+    fn content_key(&self) -> String {
+        format!(
+            "posting={}{SEP}part={}{SEP}debit={}{SEP}credit={}{SEP}amount={}{SEP}value={}{SEP}group={}",
+            key_field(&self.posting_predicate),
+            key_field(&self.partition_predicate),
+            key_field(&self.debit_value),
+            key_field(&self.credit_value),
+            key_field(&self.amount_node_predicate),
+            key_field(&self.value_predicate),
+            key_field(&self.group_predicate),
+        )
+    }
+}
 /// Length-prefix a free-form fragment so field boundaries can never collide when fragments
 /// are concatenated into a content key (mirrors the `validation` module's helper verbatim).
 fn key_field(s: &str) -> String {
@@ -402,6 +484,12 @@ pub struct ConstraintIr {
     /// annotation property, which carries no DL/EL profile weight), so excluded from the
     /// content key.
     pub formalizes: Option<String>,
+    /// Additional `logic:formalizes` back-references beyond the primary [`Self::formalizes`]: a
+    /// constraint may formalize several gmeow-domain terms at once (e.g. the canonical class it
+    /// governs AND the legacy hand-authored shape it reproduces). Each is projected as its own
+    /// `logic:formalizes` line. Annotation-level, so excluded from the content key. Sorted,
+    /// deduplicated, and never overlapping the primary.
+    pub also_formalizes: Vec<String>,
     /// Typed conformance failure raised by the projected constraint shape. Annotation-level and
     /// deliberately excluded from the formula's semantic identity.
     pub failure_class: Option<String>,
@@ -416,6 +504,10 @@ pub struct ConstraintIr {
     /// `GROUP BY $this ?far HAVING(…)` `sh:SPARQLConstraint`. Folded into [`Self::content_key`]
     /// only when present (append-only: absent ⇒ the byte-identical historical key).
     pub join_aggregate: Option<JoinAggregate>,
+    /// The aggregate-BALANCE satellite (`None` ⇒ not a balance constraint). Carries the
+    /// partitioned two-sum equality; lowered to a `GROUP BY`/`HAVING` `sh:SPARQLConstraint`.
+    /// Folded into [`Self::content_key`] only when present (append-only).
+    pub aggregate_balance: Option<AggregateBalance>,
 }
 
 impl ConstraintIr {
@@ -452,10 +544,19 @@ impl ConstraintIr {
             severity,
             message,
             formalizes: None,
+            also_formalizes: Vec::new(),
             failure_class: None,
             aggregate: None,
             join_aggregate: None,
+            aggregate_balance: None,
         })
+    }
+
+    /// Attach the aggregate-balance satellite (the partitioned two-sum equality the `GROUP BY`/
+    /// `HAVING` SPARQL projection lowers). Chainable; folded into the content key.
+    pub fn with_aggregate_balance(mut self, balance: AggregateBalance) -> Self {
+        self.aggregate_balance = Some(balance);
+        self
     }
 
     /// Attach the aggregate-comparison satellite (the structured `GROUP BY`/`HAVING` form the
@@ -488,6 +589,33 @@ impl ConstraintIr {
             ));
         }
         self.formalizes = Some(formalizes);
+        Ok(self)
+    }
+
+    /// Attach additional `logic:formalizes` back-references (beyond the primary). Each must be a
+    /// non-empty IRI; the primary is filtered out, and the remainder is sorted and deduplicated so
+    /// the projection is deterministic. Chainable; annotation-level (never perturbs the content key).
+    pub fn with_also_formalizes(
+        mut self,
+        also: impl IntoIterator<Item = String>,
+    ) -> gmeow_errors::Result<Self> {
+        let primary = self.formalizes.clone();
+        let mut extra: Vec<String> = Vec::new();
+        for term in also {
+            if term.trim().is_empty() {
+                return Err(ir_err(
+                    "ConstraintIr.with_also_formalizes: every formalized term must be a non-empty \
+                     IRI",
+                ));
+            }
+            if primary.as_deref() == Some(term.as_str()) {
+                continue;
+            }
+            extra.push(term);
+        }
+        extra.sort();
+        extra.dedup();
+        self.also_formalizes = extra;
         Ok(self)
     }
 
@@ -536,9 +664,14 @@ impl ConstraintIr {
             None => base,
         };
         // Append-only: a join-aggregate-free constraint keeps the byte-identical historical key.
-        match &self.join_aggregate {
+        let with_join = match &self.join_aggregate {
             Some(ja) => format!("{with_agg}{SEP}joinagg={}", key_field(&ja.content_key())),
             None => with_agg,
+        };
+        // Append-only again: a balance-free constraint keeps the prior key.
+        match &self.aggregate_balance {
+            Some(bal) => format!("{with_join}{SEP}balance={}", key_field(&bal.content_key())),
+            None => with_join,
         }
     }
 }
@@ -571,17 +704,30 @@ fn target_from_integrity(integrity: &Formula) -> gmeow_errors::Result<ShapeTarge
              (∀ this. guard(this) → condition); the ∀ body is not a material implication",
         ));
     };
-    // The guard is either a single atom or a conjunction of atoms; gather the atoms.
-    let guard_atoms: Vec<&Formula> = match antecedent.as_ref() {
-        atom @ Formula::Atom { .. } => vec![atom],
-        Formula::And(fs) => fs.iter().collect(),
-        _ => {
-            return Err(ir_err(
-                "ConstraintIr integrity guard must be an atom or a conjunction of atoms that \
-                 range-restricts the focus variable",
-            ));
+    // The guard is a single atom, a conjunction of atoms, or an existential wrapping such a
+    // conjunction (`∃x. C(x) ∧ P(x, this)` — the focus is the OBJECT of a predicate whose subject
+    // is separately typed). Gather every atom, descending through `∃` and `∧`, so an object-of
+    // membership guard yields a well-formed target.
+    fn collect_guard_atoms<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
+        match f {
+            Formula::Atom { .. } => out.push(f),
+            Formula::And(fs) => {
+                for x in fs {
+                    collect_guard_atoms(x, out);
+                }
+            }
+            Formula::Exists { body, .. } => collect_guard_atoms(body, out),
+            _ => {}
         }
-    };
+    }
+    let mut guard_atoms: Vec<&Formula> = Vec::new();
+    collect_guard_atoms(antecedent.as_ref(), &mut guard_atoms);
+    if guard_atoms.is_empty() {
+        return Err(ir_err(
+            "ConstraintIr integrity guard must be an atom, a conjunction of atoms, or an \
+             existential over such a conjunction that range-restricts the focus variable",
+        ));
+    }
 
     // Prefer a class-membership guard `rdf:type(this, C)`.
     for atom in &guard_atoms {

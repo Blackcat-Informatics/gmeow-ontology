@@ -71,8 +71,8 @@ There are two CLIs, and a single razor decides where a command belongs:
 
 > **`gmeow` does not need a repo; `gmeow-dev` does.**
 
-* **`gmeow`** ([crates/gmeow-cli](./crates/gmeow-cli)) is the public consumer surface — a native Rust binary. Every command must work from the installed binary alone — backed by the embedded `generated/dist/gmeow.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`.
-* **`gmeow-dev`** ([crates/gmeow-dev-cli](./crates/gmeow-dev-cli)) is repository maintenance. It may read anything in the tree — `dsl/`, `generated/`, `imports/`, `tests/fixtures/` — because it only ever runs inside a checkout. Regenerating artifacts, scoring coverage against the dev corpus, refreshing vendored snapshots: developer operations, so `gmeow-dev`.
+* **`gmeow`** ([crates/gmeow-cli](./crates/gmeow-cli)) is the public consumer surface — a native Rust binary. Every command must work from the installed binary alone — backed by the embedded `generated/dist/gmeow.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`. Because the slice-quality rubric is itself embedded in `gmeow.gts` (the wheel-shippable engine landed in the A1 factory workstream), scoring or linting an *external* slice directory is a consumer operation too — so `gmeow slice quality <dir>` and `gmeow slice lint <dir>` legitimately live here, scoring the foreign slice against the embedded rubric with no checkout.
+* **`gmeow-dev`** ([crates/gmeow-dev-cli](./crates/gmeow-dev-cli)) is repository maintenance. It may read anything in the tree — `dsl/`, `generated/`, `imports/`, `tests/fixtures/` — because it only ever runs inside a checkout. Regenerating artifacts, sweeping/ratcheting slice-quality scores across the whole dev corpus (`gmeow-dev slice-quality`, which reads the repo-wide model the consumer bundle cannot), refreshing vendored snapshots: developer operations, so `gmeow-dev`. Both surfaces share one scoring engine (`gmeow-slice-quality`); they differ only in whether wide-scope inputs come from the surrounding checkout or the embedded bundle.
 
 When adding a command, ask the razor first. If it needs a repo path that the binary does not bundle, it is `gmeow-dev` — or the data it needs must first be bundled so it can be `gmeow`.
 
@@ -211,11 +211,27 @@ Java/Docker oracle lane to run separately.
 ### Testing & Verification
 
 ```bash
-make check           # Run FULL gate: lint, validate, compilation check, reason, verify, Rust tests
+make check           # Synchronize outputs, then run the logical gate with verified receipt reuse
+make check-full      # Synchronize outputs, then physically rerun every gate task
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 make clippy          # Run cargo clippy on all Rust targets with warnings as errors
 make rust-build      # Compile Rust workspace test binaries without running them
 ```
+
+`make check` owns the normal local synchronization boundary: it runs the
+registered pipeline in update mode first, writes only byte-changed generated
+artifacts, and then validates that exact fixed point. A clean manifest makes the
+sync step effectively free. CI and direct `make check-sync` invocations retain
+read-only check mode, so CI still fails on uncommitted drift rather than repairing
+it.
+
+`make check` is evidence-complete even when it is impact-selected: it accepts
+reused task results only from a GitHub-attested successful `main`-push receipt
+whose commit, tree, task registry, and toolchain contract all match, then reruns
+every task affected by the complete local diff. Missing or invalid evidence,
+unknown paths, and Rust/tooling changes fail closed to `make check-full`. Use
+`make check CHECK_ARGS="--explain --timings-json dist/check-timings.json"` to
+inspect the selection. The receipt changes execution, never the required gate.
 
 The entire toolchain is native Rust; there is no Python test suite. To run a
 single crate's tests, use `cargo nextest run -p <crate>`.
@@ -585,11 +601,12 @@ make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 
 ```bash
 make check
+make check-full      # optional audit: force physical execution of every task
 ```
 
-All Docker-free local gates must pass: lint, validate, generated-artifact drift
-check, native reasoning, native verify (including the on-gate in-process
-`purrdf::entail` cross-check oracle), and the Rust tests.
+All Docker-free local gates must have passing evidence: lint, validate,
+generated-artifact drift check, native reasoning, native verify (including the
+on-gate in-process `purrdf::entail` cross-check oracle), and the Rust tests.
 
 ### Push
 

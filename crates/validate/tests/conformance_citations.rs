@@ -69,8 +69,13 @@ ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
     ))
+    // The citationIntent exactly-one obligation migrated from the retired
+    // gmeow:CitationActShape to an OWL restriction PROJECTED to the production shape union
+    // (generated/shapes/validation-shapes.ttl as sh:minCount 1). The projected shape carries
+    // no bespoke sh:message, so assert on the min-count component + path.
+    .shape_union()
     .fails()
-    .violations_ci(&["citation intent"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/citationIntent", "MinCountConstraintComponent")
 )]
 fn citations(#[case] case: Case) {
     case.run();
