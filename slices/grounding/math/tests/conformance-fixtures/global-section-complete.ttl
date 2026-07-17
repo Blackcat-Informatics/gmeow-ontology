@@ -5,10 +5,11 @@
 # local section over a proper subcomplex and an anchored H¹ gluing obstruction. It
 # demonstrates the global/local surface conforming: the global section names its
 # carrier (math:overSheaf) and the whole base (math:sectionRegion = ex:base), so it
-# is correctly scoped (math:MisscopedSection inert), and its stalk values AGREE
-# across the restriction map (1 at the vertex stalk, 1 at the edge stalk), so it
-# glues (math:SectionGluingInconsistency inert). The local section covers a proper
-# subcomplex; the obstruction names the sheaf it reasons about.
+# is correctly scoped (math:MisscopedSection inert), and its declared restriction
+# map's math:RestrictionImage sends the vertex stalk's value 1 to 1, which AGREES
+# with the edge stalk's declared value 1, so it glues (math:SectionGluingInconsistency
+# inert). The local section covers a proper subcomplex; the obstruction names the
+# sheaf it reasons about.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:   <http://example.org/math/gluing/> .
@@ -25,9 +26,13 @@ ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertex ; math:stalkValu
 ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edge ; math:stalkValue 1 .
 ex:vertexToEdge a math:SheafRestrictionMap ;
     math:sourceObject ex:vertexStalk ;
-    math:targetObject ex:edgeStalk .
+    math:targetObject ex:edgeStalk ;
+    math:restrictionImage ex:vertexToEdgeImage .
+ex:vertexToEdgeImage a math:RestrictionImage ;
+    math:imageSourceValue 1 ; math:imageTargetValue 1 .
 
-# The global section over the ENTIRE base — its stalk values glue (1 = 1).
+# The global section over the ENTIRE base — the map's declared image agrees with
+# the target stalk's declared value (1 ↦ 1 = 1).
 ex:globalSection a math:GlobalSection ;
     math:overSheaf ex:sheaf ;
     math:sectionRegion ex:base .

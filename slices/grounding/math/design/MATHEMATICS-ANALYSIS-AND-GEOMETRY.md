@@ -207,12 +207,21 @@ transpose carry **equal** signs; `math:BoundaryCoboundaryAdjunctionConstraint` f
 `math:BrokenBoundaryCoboundaryAdjunction` when they disagree. This adjunction is exactly what the
 already-grounded `math:HodgeLaplacian` (L = δδ\* + δ\*δ) and `math:HodgeDecomposition` depend on — nothing in
 the Hodge/Laplacian surface is re-minted here. Finally, `math:constantSheafRecoversHomologyLaw` ties the
-sheaf machinery back to ordinary homology: a `math:ConstantSheaf` (constant-field stalks, identity
-restriction maps) has sheaf cohomology equal to the base complex's cellular homology
-(`math:recoversHomology`), so the `math:CellularSheaf` / `math:SheafLaplacian` surface is a conservative
-extension of plain homology, not a replacement. The worked triangle in
-`tests/conformance-fixtures/chain-complex-square-zero-complete.ttl` demonstrates H₁ = Z/B (the 1-cycle
-that bounds the filled face, so its class is zero) and the constant sheaf recovering it.
+sheaf machinery back to ordinary homology, stated at the CORRECT (co)homology degree and variance: a
+`math:ConstantSheaf` (constant-field stalks, identity restriction maps) has, at each degree k, a
+sheaf-Laplacian harmonic space computing the degree-k sheaf COHOMOLOGY H^k(X;F) — a CONTRAVARIANT
+cochain-complex (δ) construction. Over a field F this is naturally identified, dimension-for-dimension
+via the universal coefficient theorem, with the SAME-degree cellular HOMOLOGY group H_k(X;F) = Zₖ/Bₖ (a
+COVARIANT chain-complex (∂) construction, `math:homologyQuotientLaw`) — the two are formally different
+constructions the law relates at one shared degree, never a literal identity, and never the first
+sheaf-cohomology H¹ that `math:GluingObstruction` measures (a structurally different obstruction-to-
+gluing role, unrelated to Betti-number recovery even when it happens to sit at degree 1). So
+`math:CellularSheaf` / `math:SheafLaplacian` is a conservative extension of plain homology, not a
+replacement, and `math:recoversHomology`'s relation is deliberately degree-generic rather than
+hard-coding "H₁" or "H¹". The worked triangle in
+`tests/conformance-fixtures/chain-complex-square-zero-complete.ttl` demonstrates the degree-1 case
+specifically: H₁ = Z/B (the 1-cycle that bounds the filled face, so its class is zero) and the constant
+sheaf's degree-1 cohomology corresponding to it.
 
 ### Persistent homology — filtrations, lifetimes, and stability
 
@@ -298,12 +307,35 @@ cross-linked to their activities through `rdfs:seeAlso`:
 
 **Non-collapse is the whole point, and it is executable.** A genuinely multi-parameter or
 bidirectional construction must never silently degrade to the one-parameter, forward-only case. Three
-structural guards make this a hard fail rather than a hope: `math:CollapsedMultiparameterFiltration`
+failure classes make this a hard fail rather than a hope: `math:CollapsedMultiparameterFiltration`
 (stages carrying only a real `math:filtrationThreshold` and no `math:multiIndex` — a cross-node
-existence `logic:Constraint`), `math:DiagonalDegenerateFiltration` (a 2-index whose coordinates are
-functionally dependent, the diagonal (*t*, *t*) — a cross-node equality `logic:Constraint`), and
+existence `logic:Constraint`), `math:DiagonalDegenerateFiltration` (coordinates that are FUNCTIONALLY
+DEPENDENT — one index a function of the other, not merely literally equal), and
 `math:DegenerateZigzagDiagram` (a diagram declaring no `math:backwardArrow` — a guarded-existence
-`logic:Constraint`). Each lowers to a `sh:SPARQLConstraint`. The missing-frame cases
+`logic:Constraint`). Each lowers to a `sh:SPARQLConstraint`.
+
+`math:DiagonalDegenerateFiltration` is enforced by TWO constraints, because literal equality is not the
+only way a nominally two-parameter filtration is secretly one-parametric: `(t, 2t)` and `(t, t+1)` are
+just as one-parametric as the literal diagonal `(t, t)`, yet never share a literal coordinate value. But
+general functional dependence `t₂ = f(t₁)` for an arbitrary `f` is **not decidable from finitely many
+stage samples** — any finite set of index points lies on some curve — so it is not faked as an unsound
+first-order predicate; the undecidable residue is the honest boundary `math:multiparameterDependenceBoundary`
+(`logic:SecondOrder`, `logic:preservationKind logic:Unsupported`), a sibling of
+`math:cellBoundarySumBoundary`. What the two constraints DO enforce are the decidable cases.
+`math:DiagonalDegenerateFiltrationConstraint` catches the LITERAL diagonal — two components of ONE
+stage's `math:multiIndex` at distinct positions sharing the same `math:componentValue` node, checkable
+from a single stage in isolation. `math:MultiparameterFunctionalDependenceConstraint` is a
+**declaration-completeness** check: whenever a filtration has at least two distinct stages, its declared
+stages must DEMONSTRATE independence through a fix-one-vary-another witness — two stages sharing the same
+`math:componentValue` node at one `math:atIndex` position (a coordinate held fixed) while carrying
+distinct value nodes at another (a coordinate varied), proving at least one coordinate moves free of the
+other. A degenerate family sampled only along `t₂ = f(t₁)` never holds one coordinate fixed while moving
+the other, so it cannot exhibit the witness and its absence among ≥ 2 stages fires the failure; a genuine
+grid such as `(1,2), (1,3), (2,3)` exhibits it (the conformant fixture
+`examples/multiparameter-filtration-grid-complete.ttl`). The witness compares `math:componentValue` by
+NODE identity, so equal coordinates across stages must reuse the same value node — the convention the
+multiparameter fixtures follow. A filtration with fewer than two stages cannot be tested this way and
+stays inert under this second guard (the single-stage literal-diagonal guard is unaffected). The missing-frame cases
 (`math:IncompleteMultiparameterFiltration`, `math:IncompletePersistenceModule`,
 `math:IncompletePersistenceMorphism`) are declarative `owl:minQualifiedCardinality` frames, and the
 module/lifetime conflation (`math:PersistenceModuleLifetimeConflation`) is the direct
@@ -371,11 +403,21 @@ feature. This makes the obstruction **executable** rather than declarative:
   (`math:MisscopedSection`).
 - `math:SectionGluingConsistencyConstraint` (a **per-restriction-map** equality in the style of
   `math:BoundaryCoboundaryAdjunctionConstraint`, never an aggregation) makes the H¹ obstruction
-  bite: along each `math:SheafRestrictionMap` the exact integer `math:stalkValue` at the map's
-  `math:sourceObject` and `math:targetObject` stalks must agree (the identity/constant-transport
-  gluing condition). A single map whose declared endpoint values disagree witnesses that the local
-  data fail to glue (`math:SectionGluingInconsistency`) — presence of a section is not global truth.
-  A section declaring no stalk values glues vacuously.
+  bite at the correct cellular-sheaf semantics — **restriction(sourceValue) = targetValue**, not raw
+  equality of the two endpoint stalk values. A `math:SheafRestrictionMap`'s transport ACTION is
+  reified per declared value through `math:RestrictionImage` (`math:imageSourceValue` /
+  `math:imageTargetValue`, named from the map through `math:restrictionImage`), exactly as
+  `math:CellIncidence` reifies one signed boundary coefficient. The constraint applies the map to the
+  exact integer `math:stalkValue` at its `math:sourceObject` stalk — by joining against the matching
+  `math:RestrictionImage` — and requires the resulting transported value to agree with the
+  `math:stalkValue` at its `math:targetObject` stalk. Raw source/target agreement is only the
+  IDENTITY-map special case (a `math:ConstantSheaf`'s restriction maps); a non-identity map (a scale,
+  a sign flip, a projection) legitimately sends its source to a different value, and the corrected
+  check verifies that transported value against the target rather than the untransported source. A
+  single map whose transported value disagrees with the declared target witnesses that the local data
+  fail to glue (`math:SectionGluingInconsistency`) — presence of a section is not global truth. A
+  section declaring no stalk values, or a map declaring no `math:RestrictionImage` matching the exact
+  source value assigned, glues vacuously.
 
 The frame gates keep the surface honest: a global section must name its `math:overSheaf` and
 `math:sectionRegion` (`math:IncompleteGlobalSection`), a local section must anchor to a sheaf that

@@ -1211,7 +1211,12 @@ ex:ecCellularSheafNoRestriction a gmeow:ExampleConformance ;
 ex:ecGlobalSectionComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/global-section-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:GlobalSection over the WHOLE base (math:sectionRegion = the sheaf's math:sheafBaseComplex) whose stalk values agree across the restriction map (1 = 1), a math:LocalSection over a proper subcomplex, and a math:GluingObstruction anchored through math:obstructionOf. The section is correctly scoped (math:MisscopedSection inert), glues (math:SectionGluingInconsistency inert), and every frame is complete, so it validates with no findings." .
+    gmeow:conformanceRationale "A math:GlobalSection over the WHOLE base (math:sectionRegion = the sheaf's math:sheafBaseComplex) whose restriction map's declared math:RestrictionImage sends its source stalk's value to a value agreeing with the target stalk (1 ↦ 1 = 1), a math:LocalSection over a proper subcomplex, and a math:GluingObstruction anchored through math:obstructionOf. The section is correctly scoped (math:MisscopedSection inert), glues (math:SectionGluingInconsistency inert), and every frame is complete, so it validates with no findings." .
+
+ex:ecGlobalSectionNonidentityRestrictionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/global-section-nonidentity-restriction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GlobalSection glues over a GENUINELY NON-IDENTITY math:SheafRestrictionMap: the map's declared math:RestrictionImage sends the source stalk's value 3 to 6 (a doubling, not the identity), and the target stalk's declared math:stalkValue is 6 — restriction(3) = 6 agrees with the target even though the raw source and target values (3 and 6) disagree, proving math:SectionGluingConsistencyConstraint checks the TRANSPORTED value against the target rather than comparing source and target raw. It validates with no findings." .
 
 ex:ecLocalSectionAsGlobal a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/local-section-as-global.ttl" ;
@@ -1223,7 +1228,7 @@ ex:ecGlobalSectionInconsistentGluing a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/global-section-inconsistent-gluing.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a correctly-scoped math:GlobalSection (math:sectionRegion = the whole base) whose source and target stalk math:stalkValue disagree (1 vs 2) across the restriction map, so the identity-transport gluing condition fails (the per-restriction-map equality constraint math:SectionGluingConsistencyConstraint). Scope and frame are complete, isolating the gluing failure; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:SectionGluingInconsistency)." .
+    gmeow:conformanceRationale "The counter-example is a correctly-scoped math:GlobalSection (math:sectionRegion = the whole base) whose restriction map's declared math:RestrictionImage sends the source stalk's value 1 to 1 (an identity action), but the target stalk's declared math:stalkValue is 2, so the general gluing condition restriction(1) = 2 fails (the per-restriction-map equality constraint math:SectionGluingConsistencyConstraint). Scope and frame are complete, isolating the gluing failure; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:SectionGluingInconsistency)." .
 
 ex:ecSheafSectionNoStalkOrRestriction a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/sheaf-section-no-stalk-or-restriction.ttl" ;
@@ -1391,6 +1396,11 @@ ex:ecMultiparameterFiltrationComplete a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:MultiparameterFiltration naming its math:filtrationIndexPoset and a math:hasFiltrationStage whose math:multiIndex is a two-component math:Vector with INDEPENDENT exact coordinates satisfies its frame, carries a genuine multi-index (so math:CollapsedMultiparameterFiltration stays silent), and has functionally independent coordinates (so math:DiagonalDegenerateFiltration stays silent); validation emits no findings." .
 
+ex:ecMultiparameterFiltrationGridComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/multiparameter-filtration-grid-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A genuinely two-parameter math:MultiparameterFiltration sampling three grid points (1,2), (1,3), (2,3): stages (1,2) and (1,3) share the same math:componentValue node at index 0 while differing at index 1, and (1,3) and (2,3) share the value node at index 1 while differing at index 0 — the fix-one-vary-another witnesses that satisfy math:MultiparameterFunctionalDependenceConstraint (its positive path). No single stage is a literal (t,t) diagonal, so math:DiagonalDegenerateFiltration stays silent; the multi-index is present, so math:CollapsedMultiparameterFiltration stays silent; validation emits no findings." .
+
 ex:ecPersistenceModuleComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/persistence-module-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
@@ -1422,6 +1432,12 @@ ex:ecMultiparameterDiagonal a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration whose stage's math:multiIndex carries two components at distinct math:atIndex positions (0 and 1) sharing the SAME math:componentValue node — the diagonal (t, t) — so the cross-node equality constraint math:DiagonalDegenerateFiltrationConstraint fires. It IS complete for its frame (poset and stage present) and a math:multiIndex IS present (so math:CollapsedMultiparameterFiltration cannot fire); validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DiagonalDegenerateFiltration)." .
+
+ex:ecMultiparameterAffineDegenerate a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-affine-degenerate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration with TWO stages at multi-index (1, 2) and (2, 4) — the second coordinate always exactly twice the first, an affine (t, 2t) functional dependence, NOT the literal diagonal (t, t). Neither stage's own math:multiIndex repeats a math:componentValue node across its two positions, so the single-stage math:DiagonalDegenerateFiltrationConstraint stays silent; but no pair of stages ever varies one coordinate while holding the other fixed (both coordinates always differ together), so the coordinate-independence witness math:MultiparameterFunctionalDependenceConstraint requires cannot exist, and it fires. It IS complete for its frame and a math:multiIndex IS present on both stages (so math:IncompleteMultiparameterFiltration and math:CollapsedMultiparameterFiltration stay silent); validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DiagonalDegenerateFiltration)." .
 
 ex:ecZigzagForwardOnly a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/zigzag-forward-only.ttl" ;

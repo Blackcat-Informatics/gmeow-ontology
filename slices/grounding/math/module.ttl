@@ -7385,14 +7385,14 @@ math:adjointIncidence
 math:recoversHomology
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "recovers homology"@x-gmeow-english ;
-    skos:definition "Relates a math:CellularSheaf whose stalks are the constant field to the math:HomologyGroup of its base complex that its sheaf cohomology recovers. Domain math:CellularSheaf, range math:HomologyGroup (stated in prose). The constant-sheaf specialisation of sheaf cohomology: over the constant sheaf the sheaf Laplacian's harmonic space is the ordinary cellular (co)homology, so the sheaf machinery recovers plain homology (math:constantSheafRecoversHomologyLaw)."@x-gmeow-english ;
+    skos:definition "Relates a math:CellularSheaf whose stalks are the constant field to the math:HomologyGroup of its base complex that its degree-k sheaf COHOMOLOGY H^k(X;F) — the harmonic (kernel) space of its degree-k sheaf Laplacian — naturally corresponds to at that SAME degree k. Domain math:CellularSheaf, range math:HomologyGroup (stated in prose). The constant-sheaf specialisation of sheaf cohomology: sheaf cohomology H^k is a CONTRAVARIANT cochain-complex construction (built from δ), while the named math:HomologyGroup H = Zₖ/Bₖ is the COVARIANT chain-complex quotient (built from ∂); over a field F they are DIFFERENT constructions that the universal coefficient theorem identifies dimension-for-dimension at the SAME degree k (both equal the k-th math:BettiNumber), never a different degree and never literally the same object. This is emphatically NOT the first sheaf-cohomology H¹ that math:GluingObstruction measures — that H¹ is the obstruction to lifting compatible local sections to one global section, a structurally different role even when it happens to sit at degree 1 — so the sheaf machinery recovers plain homology at whatever degree its cochain complex sits (math:constantSheafRecoversHomologyLaw), never conflated with the gluing-obstruction reading."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:ConstantSheaf
     a owl:Class ; logic:subClassOf math:CellularSheaf ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Constant Sheaf"@x-gmeow-english ;
-    skos:definition "The constant cellular sheaf on a math:CellComplex: the math:CellularSheaf whose stalks are all one fixed field and whose restriction maps are all the identity. A subclass of math:CellularSheaf; its sheaf cohomology is the ordinary cellular (co)homology of the base complex (math:constantSheafRecoversHomologyLaw, math:recoversHomology), the specialisation that shows the sheaf-Laplacian machinery generalises plain homology rather than replacing it. It is NOT an arbitrary math:CellularSheaf (identity restriction maps and a single constant stalk field are constitutive)."@x-gmeow-english ;
+    skos:definition "The constant cellular sheaf on a math:CellComplex: the math:CellularSheaf whose stalks are all one fixed field and whose restriction maps are all the identity. A subclass of math:CellularSheaf; at each degree k its sheaf cohomology H^k(X;F) naturally corresponds — dimension-for-dimension over a field, via the universal coefficient theorem, at that SAME degree k — to the ordinary degree-k cellular homology of the base complex (math:constantSheafRecoversHomologyLaw, math:recoversHomology), the specialisation that shows the sheaf-Laplacian machinery generalises plain homology rather than replacing it; this is a same-degree (co)homology correspondence, NOT a claim that sheaf COHOMOLOGY and chain HOMOLOGY are the identical construction, and NOT the first-cohomology H¹ math:GluingObstruction reading. It is NOT an arbitrary math:CellularSheaf (identity restriction maps and a single constant stalk field are constitutive)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Reified relation atoms (HiLog reflection) for the square-zero laws ----- #
@@ -7654,8 +7654,8 @@ math:homologyQuotientBoundary
 math:constantSheafRecoversHomologyLaw
     a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "constant-sheaf cohomology = cellular homology"@x-gmeow-english ;
-    skos:definition "The law linking the sheaf-Laplacian machinery back to ordinary homology as a first-order logic:Formula: a math:ConstantSheaf S (constant-field stalks, identity restriction maps) over a base math:CellComplex X has sheaf cohomology equal to the ordinary cellular (co)homology of X — the harmonic space of its sheaf Laplacian is Hₙ(X). If S is a constant sheaf over X and H is the cellular homology of X, then S math:recoversHomology H. math: expresses the law; logic: owns reasoning over it. It shows the math:CellularSheaf / math:SheafLaplacian surface GENERALISES plain homology (the constant sheaf is the specialisation) rather than replacing it, so the sheaf machinery is a conservative extension."@x-gmeow-english ;
+    rdfs:label "constant-sheaf cohomology corresponds to same-degree cellular homology"@x-gmeow-english ;
+    skos:definition "The law linking the sheaf-Laplacian machinery back to ordinary homology as a first-order logic:Formula: a math:ConstantSheaf S (constant-field stalks, identity restriction maps) over a base math:CellComplex X has, at each degree k, a sheaf-Laplacian harmonic space that computes the degree-k sheaf COHOMOLOGY H^k(X;F) of X. Over a field F, H^k(X;F) is naturally identified — dimension-for-dimension, via the universal coefficient theorem, at the SAME degree k, never a shifted one — with the degree-k cellular HOMOLOGY group H_k(X;F) = Zₖ/Bₖ (math:homologyQuotientLaw); the two are DIFFERENT constructions (cohomology is built contravariantly from the coboundary δ, homology covariantly from the boundary ∂) that this same-degree correspondence relates, never a literal identity, and never the first sheaf-cohomology H¹ that math:GluingObstruction measures (a structurally different obstruction-to-gluing role, not a Betti-number recovery). If S is a constant sheaf over X and H is the cellular homology of X at the degree S's cochain complex sits at, then S math:recoversHomology H. math: expresses the law; logic: owns reasoning over it. It shows the math:CellularSheaf / math:SheafLaplacian surface GENERALISES plain homology (the constant sheaf is the specialisation) rather than replacing it, so the sheaf machinery is a conservative extension."@x-gmeow-english ;
     logic:quantifiedVariable
         [ logic:termIndex 0 ; logic:termVariable "S" ] ,
         [ logic:termIndex 1 ; logic:termVariable "X" ] ,
@@ -7683,7 +7683,7 @@ math:cellularHomologyOfRel
     a logic:Type ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "cellularHomologyOf(H,X) ⟺ H is the cellular homology of complex X"@x-gmeow-english ;
-    skos:definition "The relation the constant-sheaf law binds the base complex's ordinary homology through: cellularHomologyOf(H,X) holds when H is the math:HomologyGroup of the math:CellComplex X computed from its cellular chain complex. A binary HiLog relation individual; the cellular-homology assignment is a derived construction, so no property is minted."@x-gmeow-english .
+    skos:definition "The relation the constant-sheaf law binds the base complex's ordinary homology through: cellularHomologyOf(H,X) holds when H is A math:HomologyGroup of the math:CellComplex X computed from its cellular chain complex AT SOME degree k — the relation is deliberately degree-generic (it does not fix k), so math:constantSheafRecoversHomologyLaw's claim is that H sits at the SAME degree as the constant sheaf's cochain complex, whichever degree that is, never a specific hard-coded 'H₁' or 'H¹'. A binary HiLog relation individual; the cellular-homology assignment is a derived construction, so no property is minted."@x-gmeow-english .
 
 math:VietorisRipsComplex
     a owl:Class ; logic:subClassOf math:SimplicialComplex ;
@@ -7882,7 +7882,7 @@ math:SheafRestrictionMap
     a owl:Class ; logic:subClassOf math:Morphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Restriction Map"@x-gmeow-english ;
-    skos:definition "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."@x-gmeow-english ;
+    skos:definition "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws. Its ACTION on a specific source stalk value — the concrete image the map sends that value to, identity for a math:ConstantSheaf but genuinely non-identity in general — is reified per declared value through math:restrictionImage, so gluing consistency (math:SectionGluingConsistencyConstraint) can be checked against the map's actual transport rather than assumed identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SheafSection
@@ -7912,6 +7912,13 @@ math:GluingObstruction
     rdfs:label "Gluing Obstruction"@x-gmeow-english ;
     rdfs:seeAlso math:SheafCohomology ;
     skos:definition "The first-cohomology (H¹) witness recording WHY a family of math:LocalSections of a math:CellularSheaf may fail to lift to a single math:GlobalSection: the obstruction-to-gluing class whose non-vanishing certifies that consistent local data does not assemble into global truth. It names the sheaf it obstructs through math:obstructionOf. It is NOT a math:SheafRestrictionMap (it does not transport data; it measures the failure of transported data to agree), NOT a mere local disagreement on one overlap (a single pairwise mismatch is a coboundary, not necessarily a cohomology class), and NOT itself a section — it is the cohomological reason a global section may not exist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RestrictionImage
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Restriction Image"@x-gmeow-english ;
+    skos:definition "A reified entry of a math:SheafRestrictionMap's transport action: the declared exact-integer value the map sends ONE named source stalk value to, named through math:imageSourceValue and math:imageTargetValue. Cellular-sheaf gluing compatibility is restriction(sourceValue) = targetValue, not raw equality of the two endpoint stalk values — raw equality is the special case where the map is the identity (as for a math:ConstantSheaf); a non-identity restriction map (a sign flip, a scale, a projection) sends its source to a genuinely different target value, and math:SectionGluingConsistencyConstraint checks the section's declared target stalk value against THIS recorded image rather than against the raw source. A subclass of math:MathematicalObject reifying one input↦output pair of the map's action, exactly as math:CellIncidence reifies one signed boundary coefficient rather than inlining it. It is NOT the math:SheafRestrictionMap itself (a map may act on many source values; each gets its own image record) and NOT a math:SheafStalk (it records a TRANSPORTED value, not a stalk's own assignment). A restriction image missing its source or target value says nothing about the map's action and is ill-formed (math:IncompleteRestrictionImage)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Multiparameter / zigzag persistence OBJECTS ----------------------------- #
@@ -8877,7 +8884,25 @@ math:obstructionOf
 math:stalkValue
     a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "stalk value"@x-gmeow-english ;
-    skos:definition "Relates a math:SheafStalk to the exact integer value a math:GlobalSection of the sheaf assigns to it, carried as an xsd:integer so the gluing condition is checkable rather than asserted. Domain math:SheafStalk, range xsd:integer (stated in prose). For a sheaf carrying a single global section (the demonstrator case), the value transported along an identity/constant math:SheafRestrictionMap must agree at the map's source and target stalks; a declared assignment that disagrees across a restriction map witnesses the H¹ obstruction executably (math:SectionGluingInconsistency). It is NOT a general vector-valued stalk assignment (the exact-integer form is the executable identity-transport case) and NOT a decimal approximation."@x-gmeow-english ;
+    skos:definition "Relates a math:SheafStalk to the exact integer value a math:GlobalSection of the sheaf assigns to it, carried as an xsd:integer so the gluing condition is checkable rather than asserted. Domain math:SheafStalk, range xsd:integer (stated in prose). For a sheaf carrying a single global section (the demonstrator case), applying the map's declared math:RestrictionImage to the value at a math:SheafRestrictionMap's source stalk must yield the value at its target stalk — restriction(sourceValue) = targetValue, of which raw source/target agreement is only the identity-map special case; a declared assignment whose transported value disagrees with the target witnesses the H¹ obstruction executably (math:SectionGluingInconsistency). It is NOT a general vector-valued stalk assignment (the exact-integer form is the executable case) and NOT a decimal approximation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:restrictionImage
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "restriction image"@x-gmeow-english ;
+    skos:definition "Relates a math:SheafRestrictionMap to one math:RestrictionImage record of its transport action — one declared (input, output) pair the map realizes. Domain math:SheafRestrictionMap, range math:RestrictionImage (stated in prose). A map may name several, one per source value actually exercised by a demonstrator; a map naming none glues vacuously (no source value it covers is ever checked against a target)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:imageSourceValue
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "image source value"@x-gmeow-english ;
+    skos:definition "Relates a math:RestrictionImage to the exact integer INPUT value of the recorded (input, output) pair — the source stalk value the math:SheafRestrictionMap's action is applied to. Domain math:RestrictionImage, range xsd:integer (stated in prose). Joined against a math:GlobalSection's math:stalkValue at the map's source stalk to select the matching recorded image; a restriction image naming none is ill-formed (math:IncompleteRestrictionImage)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:imageTargetValue
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "image target value"@x-gmeow-english ;
+    skos:definition "Relates a math:RestrictionImage to the exact integer OUTPUT value of the recorded (input, output) pair — the value the math:SheafRestrictionMap's action sends its math:imageSourceValue to. Domain math:RestrictionImage, range xsd:integer (stated in prose). Compared against the math:GlobalSection's math:stalkValue at the map's target stalk; a mismatch is math:SectionGluingInconsistency. A restriction image naming none is ill-formed (math:IncompleteRestrictionImage)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Multiparameter / zigzag persistence relations --------------------------- #
@@ -9306,7 +9331,14 @@ math:SectionGluingInconsistency
     a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Section Gluing Inconsistency"@x-gmeow-english ;
-    skos:definition "The failure raised when a declared math:GlobalSection does NOT restrict consistently along a math:SheafRestrictionMap of its sheaf: the exact integer math:stalkValue it assigns to the map's source stalk and the value it assigns to the target stalk DISAGREE, so the local data do not glue and the claimed global section is a fiction. Presence of a global section is insufficient — the gluing condition is the real hazard, and this failure makes the H¹ obstruction executable. Enforced per-restriction-map (not by aggregation) by the cross-node equality logic:Constraint math:SectionGluingConsistencyConstraint, lowered to a SHACL sh:sparql constraint. It is NOT math:MisscopedSection (a scope error) — here the scope is right but the values fail to agree."@x-gmeow-english ;
+    skos:definition "The failure raised when a declared math:GlobalSection does NOT restrict consistently along a math:SheafRestrictionMap of its sheaf: applying the map's declared math:RestrictionImage to the value its source stalk carries yields a value that DISAGREES with the exact integer math:stalkValue the section assigns to the target stalk, so the local data do not glue and the claimed global section is a fiction. Presence of a global section is insufficient — the gluing condition restriction(sourceValue) = targetValue is the real hazard (raw source/target equality is only the identity-map special case), and this failure makes the H¹ obstruction executable. Enforced per-restriction-map (not by aggregation) by the cross-node equality logic:Constraint math:SectionGluingConsistencyConstraint, lowered to a SHACL sh:sparql constraint. It is NOT math:MisscopedSection (a scope error) — here the scope is right but the transported values fail to agree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteRestrictionImage
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Restriction Image"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:RestrictionImage lacks its math:imageSourceValue or its math:imageTargetValue: a reified map-application record naming no input or no output value says nothing about the math:SheafRestrictionMap's transport action and cannot ground a gluing check. Both are constitutive — a restriction image is exactly the pair (input, output) the map realizes for one declared source value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:IncompleteSheafSection
@@ -9343,7 +9375,7 @@ math:DiagonalDegenerateFiltration
     a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Diagonal Degenerate Filtration"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:MultiparameterFiltration carries a stage whose math:multiIndex tuple has two coordinates at DISTINCT positions that are functionally dependent — the diagonal (t, t) case — so the 2-index is genuinely one-parametric despite wearing a 2-tuple. A stage that reindexes a single parameter along the diagonal buys none of the extra discrimination a real two-parameter poset gives; it is a one-parameter run in multiparameter clothing. Enforced by the cross-node equality logic:Constraint math:DiagonalDegenerateFiltrationConstraint (two components of a stage's math:multiIndex at distinct indices carrying the same math:componentValue), lowered to a SHACL sh:sparql constraint (shacl.SPARQLConstraintComponent). It is subtler than math:CollapsedMultiparameterFiltration: there a multi-index is absent, here it is present but degenerate."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MultiparameterFiltration's coordinates are FUNCTIONALLY DEPENDENT — one index a function of the other — so the 2-index is genuinely one-parametric despite wearing a 2-tuple: the literal diagonal (t, t) is the simplest case, but (t, 2t), (t, t+1), and any other coordinate pair that never varies independently are equally degenerate. A stage that reindexes a single parameter along such a curve buys none of the extra discrimination a real two-parameter poset gives; it is a one-parameter run in multiparameter clothing. TWO cross-node logic:Constraints jointly enforce this, each lowered to a SHACL sh:sparql constraint (shacl.SPARQLConstraintComponent): math:DiagonalDegenerateFiltrationConstraint catches the literal per-stage diagonal (two components of ONE stage's math:multiIndex at distinct indices sharing the same math:componentValue node, checkable from a single stage), and math:MultiparameterFunctionalDependenceConstraint catches the general case (whenever at least two stages exist, it requires a genuine coordinate-independence WITNESS — two stages whose multi-index VARIES at one position while holding the OTHER position fixed — proving both parameters are actually live; when no such witness exists among the declared stages, the filtration is flagged degenerate, since no functionally-dependent family can ever exhibit one coordinate varying alone). It is subtler than math:CollapsedMultiparameterFiltration: there a multi-index is absent, here it is present but degenerate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:IncompletePersistenceModule
@@ -9533,6 +9565,18 @@ math:GluingObstruction logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:obstructionOf ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CellularSheaf ] ,
     [ a owl:Restriction ; owl:onProperty math:obstructionOf ; owl:allValuesFrom math:CellularSheaf ] ;
     gmeow:enforcesFailureClass math:UnanchoredGluingObstruction .
+
+# Restriction-image frame: a math:RestrictionImage is well-formed only when it names
+# BOTH the exact-integer input it records (math:imageSourceValue) and the exact-integer
+# output the map sends it to (math:imageTargetValue) — two min-1 qualified restrictions
+# over xsd:integer. A restriction image missing either isolates math:IncompleteRestrictionImage.
+# math:restrictionImage itself carries NO min-cardinality on math:SheafRestrictionMap: a map
+# with no declared image glues vacuously (no source value it covers is ever checked), exactly
+# as a math:GlobalSection declaring no math:stalkValue glues vacuously.
+math:RestrictionImage logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:imageSourceValue ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty math:imageTargetValue ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
+    gmeow:enforcesFailureClass math:IncompleteRestrictionImage .
 
 # Multiparameter-filtration frame: a math:MultiparameterFiltration names its
 # math:filtrationIndexPoset (the parameter poset) and at least one math:hasFiltrationStage —
@@ -12553,22 +12597,26 @@ math:mscEq a logic:Formula ; logic:relation logic:termEqual ;
 # math:SheafRestrictionMap of its sheaf. A per-restriction-map cross-node equality formula
 # (NOT an aggregation, in the style of math:BoundaryCoboundaryAdjunctionConstraint): for a
 # global section with math:overSheaf S, a restriction map r of S with math:sourceObject stalk
-# ss and math:targetObject stalk ts carrying exact integer math:stalkValue vs and vt, the
-# identity/constant-transport gluing condition requires vs = vt. A declared assignment that
-# disagrees across a restriction map is the executable H¹ obstruction — the local data do not
-# glue (math:SectionGluingInconsistency). A section that declares no stalk values glues
-# vacuously (no map's endpoints are bound). Projected to a sh:SPARQLConstraint
-# (shacl.SPARQLConstraintComponent).
+# ss and math:targetObject stalk ts carrying exact integer math:stalkValue vs and vt, and r's
+# declared math:RestrictionImage recording that r sends INPUT vs to OUTPUT vimg, the general
+# cellular-sheaf gluing condition requires vimg = vt — restriction(sourceValue) = targetValue,
+# of which raw vs = vt is only the identity-map special case (the map's action is APPLIED to
+# the source value via the reified math:RestrictionImage before comparison, never compared
+# raw). A declared assignment whose transported value disagrees with the target is the
+# executable H¹ obstruction — the local data do not glue (math:SectionGluingInconsistency). A
+# section that declares no stalk values, or a map that declares no matching
+# math:RestrictionImage for the exact value actually assigned, glues vacuously (the antecedent
+# join has nothing to bind). Projected to a sh:SPARQLConstraint (shacl.SPARQLConstraintComponent).
 math:SectionGluingConsistencyConstraint
     a logic:Constraint ;
     rdfs:label "Global-section gluing-consistency constraint (H¹ obstruction, executable)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint making the H¹ gluing obstruction executable: a math:GlobalSection with math:overSheaf S must, along every math:SheafRestrictionMap r of S with source stalk ss (math:sourceObject) and target stalk ts (math:targetObject), assign agreeing exact integer math:stalkValue at the two endpoints — the identity/constant-transport gluing condition vs = vt. A per-restriction-map equality (never an aggregation): a single map whose declared endpoint values disagree witnesses that consistent-looking local data fail to glue into a global truth (math:SectionGluingInconsistency), the executable reading of the first sheaf cohomology math:GluingObstruction. A section declaring no stalk values glues vacuously. Modelled on math:BoundaryCoboundaryAdjunctionConstraint (a cross-node sign/value equality), not on an aggregation like math:GeneralBoundarySquareZeroConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint making the H¹ gluing obstruction executable: a math:GlobalSection with math:overSheaf S must, along every math:SheafRestrictionMap r of S with source stalk ss (math:sourceObject) and target stalk ts (math:targetObject), have r's declared math:RestrictionImage of the section's exact integer math:stalkValue vs at ss agree with the section's math:stalkValue vt at ts — the general gluing condition restriction(vs) = vt (vimg = vt), APPLYING the map's action rather than comparing vs and vt raw (raw equality is only the identity/constant-transport special case, e.g. a math:ConstantSheaf). A per-restriction-map equality (never an aggregation): a single map whose declared image of the source value disagrees with the declared target value witnesses that consistent-looking local data fail to glue into a global truth (math:SectionGluingInconsistency), the executable reading of the first sheaf cohomology math:GluingObstruction. A section declaring no stalk values, or a map declaring no math:RestrictionImage matching the exact source value assigned, glues vacuously. Modelled on math:BoundaryCoboundaryAdjunctionConstraint (a cross-node sign/value equality), not on an aggregation like math:GeneralBoundarySquareZeroConstraint."@x-gmeow-english ;
     logic:formalizes math:GlobalSection ;
     gmeow:enforcesFailureClass math:SectionGluingInconsistency ;
     logic:severity "Violation" ;
-    logic:message "A math:GlobalSection must restrict consistently along every math:SheafRestrictionMap of its sheaf — the exact integer math:stalkValue at the map's math:sourceObject and math:targetObject stalks must agree; a declared assignment that disagrees across a restriction map does not glue and is ill-formed (math:SectionGluingInconsistency)." ;
+    logic:message "A math:GlobalSection must restrict consistently along every math:SheafRestrictionMap of its sheaf — applying the map's declared math:RestrictionImage to the exact integer math:stalkValue at its math:sourceObject stalk must agree with the math:stalkValue at its math:targetObject stalk; a declared assignment whose transported value disagrees with the target does not glue and is ill-formed (math:SectionGluingInconsistency)." ;
     logic:integrity math:sgcForall .
 math:sgcForall a logic:Formula ;
     logic:quantifiedVariable
@@ -12578,11 +12626,13 @@ math:sgcForall a logic:Formula ;
         [ logic:termIndex 3 ; logic:termVariable "ss" ] ,
         [ logic:termIndex 4 ; logic:termVariable "ts" ] ,
         [ logic:termIndex 5 ; logic:termVariable "vs" ] ,
-        [ logic:termIndex 6 ; logic:termVariable "vt" ] ;
+        [ logic:termIndex 6 ; logic:termVariable "vt" ] ,
+        [ logic:termIndex 7 ; logic:termVariable "img" ] ,
+        [ logic:termIndex 8 ; logic:termVariable "vimg" ] ;
     logic:forall math:sgcImpl .
 math:sgcImpl a logic:Formula ; logic:antecedent math:sgcGuard ; logic:consequent math:sgcEq .
 math:sgcGuard a logic:Formula ;
-    logic:and math:sgcType , math:sgcOver , math:sgcRmap , math:sgcSrc , math:sgcTgt , math:sgcVs , math:sgcVt .
+    logic:and math:sgcType , math:sgcOver , math:sgcRmap , math:sgcSrc , math:sgcTgt , math:sgcVs , math:sgcVt , math:sgcImg , math:sgcImgSrc , math:sgcImgTgt .
 math:sgcType a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:GlobalSection ] .
 math:sgcOver a logic:Formula ; logic:relation math:overSheaf ;
@@ -12597,8 +12647,14 @@ math:sgcVs a logic:Formula ; logic:relation math:stalkValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ss" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] .
 math:sgcVt a logic:Formula ; logic:relation math:stalkValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ts" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] .
+math:sgcImg a logic:Formula ; logic:relation math:restrictionImage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "rmap" ] , [ logic:termIndex 1 ; logic:termVariable "img" ] .
+math:sgcImgSrc a logic:Formula ; logic:relation math:imageSourceValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "img" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] .
+math:sgcImgTgt a logic:Formula ; logic:relation math:imageTargetValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "img" ] , [ logic:termIndex 1 ; logic:termVariable "vimg" ] .
 math:sgcEq a logic:Formula ; logic:relation logic:termEqual ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "vs" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] .
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vimg" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] .
 
 # Non-collapse: a math:MultiparameterFiltration must NOT
 # silently degrade to one parameter. A guarded existence formula (in the style of
@@ -12690,6 +12746,128 @@ math:ddfV1 a logic:Formula ; logic:relation math:componentValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "val" ] .
 math:ddfV2 a logic:Formula ; logic:relation math:componentValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "val" ] .
+
+# General functional dependence: math:DiagonalDegenerateFiltrationConstraint above only
+# catches the LITERAL diagonal (t, t) — two components of ONE stage sharing the same
+# math:componentValue node. It is blind to (t, 2t), (t, t+1), or any other coordinate pair
+# that is a function of the other but never literally equal: two DISTINCT stages of such a
+# family always differ at BOTH positions together, never at one position alone. So the
+# general guard is a POSITIVE coordinate-independence WITNESS requirement (in the style of
+# math:CollapsedMultiparameterFiltrationConstraint's guarded existence): whenever a
+# math:MultiparameterFiltration has at least two DISTINCT math:hasFiltrationStage cells,
+# there MUST exist two stages whose math:multiIndex VARIES at one math:atIndex position
+# (distinct math:componentValue there) while holding the OTHER position FIXED (the SAME
+# math:componentValue node there) — an incomparability/antichain witness proving both
+# parameters are actually live. No functionally-dependent family can ever produce such a
+# witness (holding one coordinate fixed forces the other fixed too), so its absence among
+# ≥ 2 declared stages witnesses degeneracy (math:DiagonalDegenerateFiltration) exactly as
+# surely as the literal-diagonal case. A filtration with fewer than two stages cannot be
+# tested either way and stays inert (as does math:DiagonalDegenerateFiltrationConstraint's
+# own single-stage check, which remains the ONLY guard able to catch a one-stage diagonal).
+# Projected to a sh:SPARQLConstraint (shacl.SPARQLConstraintComponent).
+math:MultiparameterFunctionalDependenceConstraint
+    a logic:Constraint ;
+    rdfs:label "Multiparameter functional-dependence constraint (a coordinate-independence witness is required)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint requiring a math:MultiparameterFiltration to DEMONSTRATE its coordinate independence through its declared stages, rather than only ruling out the literal (t, t) diagonal. Functional dependence t₂ = f(t₁) is not decidable from a finite set of stage samples — any two index points are consistent with some function through them — so this is authored honestly as a declaration-completeness check: whenever a filtration has at least two distinct math:hasFiltrationStage cells, there MUST exist two stages whose math:multiIndex vectors share the SAME math:componentValue node at one math:atIndex position (a coordinate held fixed) while carrying distinct math:componentValue nodes at another (a coordinate varied) — the fix-one-vary-another witness proving at least one coordinate moves free of another. A degenerate family sampled only along a curve t₂ = f(t₁) — e.g. (t, 2t) or (t, t+1) — never fixes one coordinate while moving the other, so it cannot exhibit the witness and fires math:DiagonalDegenerateFiltration; a genuine grid such as (1,2), (1,3), (2,3) exhibits it. The witness compares math:componentValue by NODE identity, so equal coordinates across stages must reuse the same value node (the convention the multiparameter fixtures already follow). The literal single-stage diagonal (t, t) is the separate math:DiagonalDegenerateFiltrationConstraint (checkable from one stage alone); this is its cross-stage complement, and general functional-dependence detection beyond the fixed-coordinate witness is the honest boundary math:multiparameterDependenceBoundary."@x-gmeow-english ;
+    logic:formalizes math:MultiparameterFiltration ;
+    gmeow:enforcesFailureClass math:DiagonalDegenerateFiltration ;
+    logic:severity "Violation" ;
+    logic:message "A math:MultiparameterFiltration with two or more declared stages must exhibit a fix-one-vary-another witness — two stages sharing the same math:componentValue node at one math:atIndex position while differing at another; its absence means the declared stages are consistent with a functional dependence t₂ = f(t₁) and have not shown the filtration genuinely multi-parametric (math:DiagonalDegenerateFiltration)." ;
+    logic:integrity math:mfdForall .
+math:mfdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:mfdImpl .
+math:mfdImpl a logic:Formula ; logic:antecedent math:mfdGuard ; logic:consequent math:mfdWitness .
+
+# Guard: this is a math:MultiparameterFiltration AND has at least two distinct stages —
+# without the stage-count gate, a legitimately single-stage filtration (which cannot possibly
+# exhibit a two-stage witness) would be misflagged.
+math:mfdGuard a logic:Formula ; logic:and math:mfdType , math:mfdTwoStages .
+math:mfdType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MultiparameterFiltration ] .
+math:mfdTwoStages a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gs1" ] , [ logic:termIndex 1 ; logic:termVariable "gs2" ] ;
+    logic:exists math:mfdTwoStagesBody .
+math:mfdTwoStagesBody a logic:Formula ;
+    logic:and math:mfdG1 , math:mfdG2 , math:mfdGDistinct .
+math:mfdG1 a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gs1" ] .
+math:mfdG2 a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gs2" ] .
+math:mfdGDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gs1" ] , [ logic:termIndex 1 ; logic:termVariable "gs2" ] .
+
+# Consequent: the positive existential coordinate-independence witness itself.
+math:mfdWitness a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "stage1" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "stage2" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "mi1" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "mi2" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "cVary1" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "cVary2" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "cFixed1" ] ,
+        [ logic:termIndex 7 ; logic:termVariable "cFixed2" ] ,
+        [ logic:termIndex 8 ; logic:termVariable "iVary" ] ,
+        [ logic:termIndex 9 ; logic:termVariable "iFixed" ] ,
+        [ logic:termIndex 10 ; logic:termVariable "vVary1" ] ,
+        [ logic:termIndex 11 ; logic:termVariable "vVary2" ] ,
+        [ logic:termIndex 12 ; logic:termVariable "vFixed" ] ;
+    logic:exists math:mfdWitnessBody .
+math:mfdWitnessBody a logic:Formula ;
+    logic:and math:mfdW01 , math:mfdW02 , math:mfdW03 , math:mfdW04 , math:mfdW05 , math:mfdW06 ,
+        math:mfdW07 , math:mfdW08 , math:mfdW09 , math:mfdW10 , math:mfdW11 , math:mfdW12 ,
+        math:mfdW13 , math:mfdW14 , math:mfdW15 , math:mfdW16 , math:mfdW17 , math:mfdW18 , math:mfdW19 .
+math:mfdW01 a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "stage1" ] .
+math:mfdW02 a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "stage2" ] .
+math:mfdW03 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "stage1" ] , [ logic:termIndex 1 ; logic:termVariable "stage2" ] .
+math:mfdW04 a logic:Formula ; logic:relation math:multiIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "stage1" ] , [ logic:termIndex 1 ; logic:termVariable "mi1" ] .
+math:mfdW05 a logic:Formula ; logic:relation math:multiIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "stage2" ] , [ logic:termIndex 1 ; logic:termVariable "mi2" ] .
+math:mfdW06 a logic:Formula ; logic:relation math:hasComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mi1" ] , [ logic:termIndex 1 ; logic:termVariable "cVary1" ] .
+math:mfdW07 a logic:Formula ; logic:relation math:atIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cVary1" ] , [ logic:termIndex 1 ; logic:termVariable "iVary" ] .
+math:mfdW08 a logic:Formula ; logic:relation math:componentValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cVary1" ] , [ logic:termIndex 1 ; logic:termVariable "vVary1" ] .
+math:mfdW09 a logic:Formula ; logic:relation math:hasComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mi2" ] , [ logic:termIndex 1 ; logic:termVariable "cVary2" ] .
+math:mfdW10 a logic:Formula ; logic:relation math:atIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cVary2" ] , [ logic:termIndex 1 ; logic:termVariable "iVary" ] .
+math:mfdW11 a logic:Formula ; logic:relation math:componentValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cVary2" ] , [ logic:termIndex 1 ; logic:termVariable "vVary2" ] .
+math:mfdW12 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vVary1" ] , [ logic:termIndex 1 ; logic:termVariable "vVary2" ] .
+math:mfdW13 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "iVary" ] , [ logic:termIndex 1 ; logic:termVariable "iFixed" ] .
+math:mfdW14 a logic:Formula ; logic:relation math:hasComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mi1" ] , [ logic:termIndex 1 ; logic:termVariable "cFixed1" ] .
+math:mfdW15 a logic:Formula ; logic:relation math:atIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cFixed1" ] , [ logic:termIndex 1 ; logic:termVariable "iFixed" ] .
+math:mfdW16 a logic:Formula ; logic:relation math:componentValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cFixed1" ] , [ logic:termIndex 1 ; logic:termVariable "vFixed" ] .
+math:mfdW17 a logic:Formula ; logic:relation math:hasComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mi2" ] , [ logic:termIndex 1 ; logic:termVariable "cFixed2" ] .
+math:mfdW18 a logic:Formula ; logic:relation math:atIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cFixed2" ] , [ logic:termIndex 1 ; logic:termVariable "iFixed" ] .
+math:mfdW19 a logic:Formula ; logic:relation math:componentValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cFixed2" ] , [ logic:termIndex 1 ; logic:termVariable "vFixed" ] .
+
+# The honest residue of the non-collapse guard: general functional-dependence detection
+# t₂ = f(t₁) is not decidable from finitely many stage samples, so it is recorded as a
+# boundary rather than faked as an unsound first-order predicate.
+math:multiparameterDependenceBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "general multiparameter functional-dependence detection (t₂ = f(t₁) from finite samples): an honest recorded boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing the non-collapse guard for math:MultiparameterFiltration. Deciding whether a filtration's second coordinate is a function of the first — t₂ = f(t₁) for an ARBITRARY f — from its finitely many declared math:hasFiltrationStage samples is not first-order decidable: any finite set of index points is consistent with some function through them, so no first-order witness separates a genuinely two-parameter family from one secretly sampled along a curve. Two executable checks cover the decidable cases: math:DiagonalDegenerateFiltrationConstraint catches the literal single-stage diagonal (t, t), and math:MultiparameterFunctionalDependenceConstraint requires the declared stages to DEMONSTRATE independence through a fix-one-vary-another witness (its absence flags samples consistent with a dependence). What stays here is only the undecidable general case — detecting an arbitrary latent f no declaration exposes — so this record is the honest mathematical residue, not a scope dodge. A sibling of math:cellBoundarySumBoundary and math:smoothnessBoundary."@x-gmeow-english .
 
 # Zigzag non-degeneracy: a math:ZigzagDiagram must declare at least one
 # math:backwardArrow, or it has collapsed to forward-only single-parameter persistence. A
@@ -14325,6 +14503,7 @@ math:GlobalSection a logic:AbstractIndividualType .
 math:LocalSection a logic:AbstractIndividualType .
 math:GluingObstruction a logic:AbstractIndividualType .
 math:SheafStalk a logic:AbstractIndividualType .
+math:RestrictionImage a logic:AbstractIndividualType .
 math:SimplicialComplex a logic:AbstractIndividualType .
 math:SpectralInitialization a logic:AbstractIndividualType .
 math:Spinor a logic:AbstractIndividualType .
@@ -14509,6 +14688,7 @@ math:MisscopedSection a logic:Situation .
 math:SectionGluingInconsistency a logic:Situation .
 math:IncompleteSheafSection a logic:Situation .
 math:UnanchoredGluingObstruction a logic:Situation .
+math:IncompleteRestrictionImage a logic:Situation .
 math:ZeroDenominator a logic:Situation .
 
 # Multiparameter / zigzag persistence failures
