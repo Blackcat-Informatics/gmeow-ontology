@@ -591,6 +591,15 @@ impl ValidationRun {
             authoring.extend(crate::authoring_integrity::slice_discipline_findings(
                 slices_path,
             )?);
+            authoring.extend(crate::authoring_integrity::profile_closure_findings(
+                project_root,
+            )?);
+            authoring.extend(crate::authoring_integrity::catalog_closure_findings(
+                project_root,
+            )?);
+            authoring.extend(crate::authoring_integrity::module_iri_findings(
+                project_root,
+            )?);
             for finding in authoring
                 .into_iter()
                 .filter(|finding| finding.severity == Severity::Error)
