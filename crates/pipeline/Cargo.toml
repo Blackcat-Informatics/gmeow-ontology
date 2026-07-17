@@ -140,10 +140,9 @@ ciborium = "0.2"
 # minimal structural axiom subset. The on-gate path uses `allow_network=false` (snapshots /
 # fixtures only), so this is never on the gate. Same pin as the slice crate's fetcher.
 ureq = "3"
-# The OKF import lane (`cli_ops::okf_import`) shells the external `gts from-okf`
-# codec into a scratch snapshot before reading it back, so it needs a
-# self-cleaning system temp dir on the consumer runtime path (works from a
-# read-only install). Same pin as the test-side tempdir usage.
+# Self-cleaning system temp dirs for the consumer runtime path (works from a
+# read-only install) — used by the cache, source-load, and validation lanes.
+# Same pin as the test-side tempdir usage.
 tempfile = "3"
 # Structured, subscriber-controlled sink for library-internal telemetry that has
 # no reporter in scope (opt-in per-stage timing, claim-audit phase timing, the
