@@ -1239,6 +1239,50 @@ criteria DEMONSTRATED-IN-PRODUCTION on the merged tree via live `gmeow hybrid-qu
   external-relation vocabulary terms plus merged origin/main terms lacking full doc facets) —
   tracked in the baseline, not concealed; the established re-bless-after-merge pattern.
 
+## 2026-07-16 — #1532 / slice authoring factory A2 (gmeow slice quality/lint consumer subcommands)
+Adds `gmeow slice lint <dir>` (tier-domination gate + graded advisories) to the consumer
+binary; `gmeow slice quality <dir>` already shipped under #1531 (commit da596648b, mis-trailered
+`Closes: #1531`), so this PR delivers the genuine remainder: `slice lint`, the AGENTS.md razor
+note, and the shared-engine subsume. The following are honest boundaries, recorded per the plan.
+
+- ACCEPTANCE INTERPRETATION (user-confirmed 2026-07-16): the issue's acceptance clause "emit the
+  same assessment the dev path produces" is satisfied as **faithful Bundle reproduction**, NOT as
+  byte-identical dev(`ScoringEnv::Repo`)⇔consumer(`ScoringEnv::Bundle`) value-equality. Value-
+  equality is impossible BY DESIGN: the two repo-anchored axes (doc-maturity, gmn1-coverage) read
+  a repo-wide model under `ScoringEnv::Repo` vs a fresh single-slice model under
+  `ScoringEnv::Bundle` (crates/slice-quality/src/score.rs:28-35, doc_maturity.rs:51-61) — an
+  intentional A1/#1531 engine seam, not an A2 bug. The executable checks that DO hold: `slice lint`
+  and `slice quality` derive from one `score_external_slice_bytes` SliceReport (advisory-code parity,
+  tests/slice_lint_cli.rs test 8), and the existing `slice_quality_bundle.rs` ac5 test pins 12/15
+  axes byte-equal across envs with the 3 env-dependent axes pinned exactly. No dev⇔consumer value-
+  equality test was added because it would assert an impossibility; the divergence is the recorded
+  boundary, not a chased bug.
+
+- SARIF LOCATION (honest scope note): `gmeow slice lint --format sarif` emits warning/error-level
+  results (severity grading works), and every result carries a `physicalLocation`, so GitHub code-
+  scanning WILL ingest them — but the location is the engine's shared SYNTHETIC logical anchor
+  (`ontology/gmeow.ttl`, `gmeow.syntheticPhysicalLocation: true`), NOT a per-finding location into
+  the linted slice's own manifest.ttl/module.ttl. Slice-quality findings are slice-level logical
+  diagnostics with no ingestion span (consistent with the source-adapter ingestion-spans model),
+  so threading a real per-file location would be an engine change beyond A2's scope. The PR does not
+  overclaim per-line code-scanning; the actionable value is the exit-code protocol + severity levels.
+
+- TIER-LABEL LOCALIZATION (observed, pre-existing, out of scope): `--min-tier` resolves a tier by
+  human label OR IRI local name (case-insensitive). In the embedded bundle the bottom two rungs
+  resolve to FRENCH `rdfs:label`s (`Enregistré`, `Ancré`) while the top three are English — so
+  `--min-tier registered`/`grounded` are rejected while `--min-tier tierRegistered`/`tierGrounded`
+  (IRI local name) work. This is a pre-existing bundle label-localization quirk in the shared
+  `resolve_min_tier` (unchanged by this PR; the dev `--min-tier` gate has the same behavior). The
+  integration test uses the IRI local name (`tierRegistered`) to be robust. Not fixed here — it is
+  a bundle/label-resolution concern, not slice-lint's.
+
+- GENERATED ARTIFACTS: this PR touches zero pipeline inputs and its new finding code
+  `slice-quality.lint.below-min-tier` does not project into any generated artifact; a full local
+  `make sync` + `make check` were run and PASSED (all stages green). The branch's generated
+  artifacts are left byte-identical to origin/main (a fresh sync surfaces only the pre-existing,
+  #1570-tracked `logic:RecoveryCase` digest drift, which is unrelated to #1532 and deliberately not
+  committed here to keep the PR scoped).
+
 ## 2026-07-16 — PR #1580 (perf/check-10x) stage-2 gap remediation
 Branch not tied to an open issue (parent epic #1518 closed); PR body was the spec.
 Completion-adversary STAGE=2: core capability DEMONSTRATED-IN-PRODUCTION (exact batch
@@ -1313,3 +1357,32 @@ human-signed-off receipt-reuse bootstrap recorded in the PR #1580 stage-2 block 
   report-only coverage-ratchet baseline (crates/docs coverage_ratchet_baseline) — the per-code
   "missing annotation" WARNING counts rose with main's newly-merged, not-yet-fully-annotated terms.
   Report-only (gate stays green); snapshot accepted to track the merged reality.
+
+## 2026-07-17 — #1532 / slice authoring factory A2 stage-3 finalization
+Squash-merged to main at 7c2b99c97 (PR #1582). Completion-adversary STAGE=3 returned PASS
+with ZERO open findings against the merge-into-main result (HEAD 2a9178b3f): every acceptance
+criterion + scope req DEMONSTRATED on the shipped `gmeow` binary built from the merged tree
+(both subcommands zero-config from /tmp with no slices/ ancestor; exit 0/1/2; --min-tier by
+IRI local name; human|json|sarif; the real gmeow-dev subsume with duplicates deleted; AGENTS.md
+razor note; zero issue-numbers in repo docs). No human sign-off was required (no findings).
+
+- FULL `make check` on the final merged tree was run locally and PASSED green ("all checks
+  passed (full-fallback; Docker-free, Java-free)", exit 0: rust-gate, validate, reason-gate,
+  slice-quality-gate, coherence-gate-teeth, compliance-report). This is a genuine full-gate
+  pass on the merged result, NOT a weaker proxy — no off-gate carve, no reduced coverage.
+- `make sync` was run once post-merge; the sole regenerated artifact was
+  generated/dist/gmeow.gts (the merge=ours bundle re-materialized from the merged sources;
+  ~2KB delta = merged-in main content, #1532 touches zero pipeline inputs). Committed 2a9178b3f.
+- CONFLICT RESOLUTION: the only merge conflict was the append-only .deficiencies ledger (both
+  sides appended dated blocks to the tail). Resolved by keeping BOTH sides' blocks verbatim
+  (the #1532 stage-2 block and origin/main's #1580 / #1448 blocks); no entry edited or dropped.
+  AGENTS.md auto-merged cleanly.
+- NOTHING NEW DEFERRED at stage 3. The three by-design boundaries (faithful shared-engine
+  Bundle reproduction vs dev-Repo/consumer-Bundle value-equality; synthetic SARIF logical
+  location; pre-existing French tier-label quirk in the relocated resolve_min_tier) were already
+  recorded in the #1532 stage-2 block above and all pass the adversary's innocence test — they
+  are the only below-literal-maximal items and remain honestly recorded, not softened.
+- Reviewer feedback: the single gemini-code-assist HIGH comment (let_chains "breaks stable
+  Rust") was dismissed as a verified false positive — the repo pins nightly (rust-toolchain.toml)
+  and let_chains is stable since Rust 1.88; the code compiles clean. Reply posted in-thread; no
+  code change (rewriting correct code to satisfy an incorrect premise would be needless churn).
