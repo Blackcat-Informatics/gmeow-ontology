@@ -31,10 +31,6 @@ dependencies = ["pydantic>=2"]
 # ontology's owl:versionInfo verbatim (crates/pipeline/src/stages/pydantic.rs).
 path = "gmeow_models/__about__.py"
 
-[project.optional-dependencies]
-# The off-gate conformance harness (`make maint-pydantic-conformance`) deps.
-conformance = ["pytest>=8"]
-
 [tool.hatch.build.targets.wheel]
 # The generated package tree — a FLAT single-module package (`models.py`, `_base.py`,
 # `__init__.py`, `py.typed`, `__about__.py`), emitted by
