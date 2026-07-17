@@ -219,8 +219,8 @@ fn smoke_property_chain_entailment_and_negative() {
 // The native twins of the `_materialize(module, *abox)` positive-entailment tests. The
 // three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) have no
 // native twin — they exercised the Python Docker-orchestration oracle layer, which was
-// retired together with the Docker ELK/HermiT cross-check lane (superseded by the native
-// purrdf-entail crosscheck).
+// retired together with the Docker ELK/HermiT cross-check lane; the native `logic:`
+// reasoner is now the single reasoning authority and these native twins are its witnesses.
 
 #[test]
 fn ancestry_is_derived_not_asserted() {

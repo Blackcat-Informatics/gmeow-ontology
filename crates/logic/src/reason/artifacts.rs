@@ -10,8 +10,9 @@
 //!   RDF 1.2 reifier annotated with its derivation provenance.
 //! * **reasoning-explanations** — a per-axiom proof skeleton linking each
 //!   conclusion (a triple term) to its premises and firing rule.
-//! * **dl-el-crosscheck-report** — the native↔oracle divergence ledger; `DlGap`
-//!   rows are coverage defects, so the committed bundle must emit zero.
+//! * **dl-el-crosscheck-report** — the native DL⊇EL divergence ledger, built from
+//!   native results only (no external oracle); `DlGap` rows are coverage defects,
+//!   so the committed bundle must emit zero.
 //!
 //! These builders are the canonical emitters for the reasoning artifacts (the
 //! Python `build_*_ttl` emitters in `gmeow_tools.reason` they replaced were
@@ -87,13 +88,13 @@ const EXPLANATIONS_HEADER: &str = "\
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 ";
 
-/// Banner + prefix block prepended to the native↔oracle divergence ledger.
+/// Banner + prefix block prepended to the native DL⊇EL divergence ledger.
 const LEDGER_HEADER: &str = "\
-# GMEOW native vs entail-oracle DL/EL crosscheck ledger.
-# Built from the native EL/DL reasoning lane (Java/Docker-free). The oracle
-# comparison runs the in-process purrdf-entail oracle; DlGap rows are native
-# coverage defects and the committed bundle must keep gapCount at 0.
-# DO NOT EDIT.
+# GMEOW native DL/EL crosscheck ledger.
+# Built from the native EL/DL reasoning lane (Java/Docker-free), from native
+# results ONLY — a native DL⊇EL fragment comparison, with no external oracle.
+# DlGap rows are native coverage defects and the committed bundle must keep
+# gapCount at 0. DO NOT EDIT.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -322,7 +323,7 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 
 // ── dl-el-crosscheck-report ─────────────────────────────────────────────────────
 
-/// Render the native↔oracle DL/EL crosscheck ledger as Turtle.
+/// Render the native DL⊇EL crosscheck ledger as Turtle.
 ///
 /// Built from the native results ONLY (the gate stays Java/Docker-free). Emits
 /// the ledger header, one `gmeow:LedgerEntry` of kind `gmeow:NativeOnly` per
@@ -330,7 +331,7 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
 pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
-    const CROSSCHECK_NOTE: &str = "the independent purrdf entailment cross-check validates the native result; native gaps fail";
+    const CROSSCHECK_NOTE: &str = "a native-only DL⊇EL subsumption entailment; a native DL coverage gap (DlGap) fails the gate";
     let mut out = String::from(LEDGER_HEADER);
 
     // The DL coverage gaps are reconstructed from the shared model's
@@ -357,8 +358,8 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
                 },
             ),
             (
-                gmeow("oracleCrosscheck"),
-                "\"classic-cross-check confirms the native result; DlGap is a failure\"@en"
+                gmeow("coverageNote"),
+                "\"native DL⊇EL gap-zero coverage (native results only, no external oracle); a DlGap is a native coverage defect and fails\"@en"
                     .to_owned(),
             ),
         ],
