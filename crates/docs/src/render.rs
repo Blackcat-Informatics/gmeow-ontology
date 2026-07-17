@@ -6920,7 +6920,7 @@ pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
     term_card_md_inner(term, &alignment_facets, model)
 }
 
-/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`]
+/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`](crate::card::Card)
 /// serialized byte-for-byte as `render_site_lang` emits `terms/{slug}/card.json`
 /// (and as the live MCP `doc_card format=json detail=standard` renders). The
 /// single-term counterpart of [`term_card_md`]: lets a caller obtain one term's

@@ -590,7 +590,7 @@ pub struct Finding {
     pub derived_from_quads: Vec<String>,
     /// The IRI-typed RDF terms this finding's evidence genuinely binds — e.g. the
     /// subject/predicate/object of an offending SPARQL solution row on the reasoned
-    /// graph. The structured, faithful twin of [`DerivationRef::cited_iris`]
+    /// graph. The structured, faithful twin of `DerivationRef::cited_iris`
     /// (`crate::result` in `gmeow-logic`): a consumer that needs "which IRIs does
     /// this finding cite" reads THIS field, never the rendered `message`/`detail`
     /// prose. Populated only from `TermValue::Iri` bindings (never from a literal's

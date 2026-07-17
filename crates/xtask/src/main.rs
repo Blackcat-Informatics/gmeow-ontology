@@ -44,7 +44,7 @@ struct Task {
 const ROOT: &[&str] = &[];
 const AFTER_SYNC: &[&str] = &["sync"];
 const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
-const AFTER_REASON: &[&str] = &["reason-gate"];
+const AFTER_REASON: &[&str] = &["reason-verify"];
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "rust-gate",
@@ -55,7 +55,7 @@ const FINAL_DEPS: &[&str] = &[
     "wikidata",
     "coverage",
     "acceptance",
-    "reason-gate",
+    "reason-verify",
     "lint-alignment",
     "i18n-lint",
     "doc-lint",
@@ -121,8 +121,8 @@ const CHECK_DAG: &[Task] = &[
         dependencies: AFTER_SYNC,
     },
     Task {
-        name: "reason-gate",
-        target: "reason-gate",
+        name: "reason-verify",
+        target: "reason-verify",
         dependencies: AFTER_SYNC,
     },
     Task {

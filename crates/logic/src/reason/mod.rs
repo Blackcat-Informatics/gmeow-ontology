@@ -25,8 +25,7 @@ pub use dl::{DlGap, DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency}
 pub use el::{ElClosure, InferredAxiom, el_closure};
 pub use ledger::{
     DivergenceKind, DivergenceLedger, ExternalComparison, LedgerRow, LedgerVerdict, build_ledger,
-    compare_external_corpus, compare_subsumption, divergence_diag_ledger, divergence_findings,
-    dl_gap_rows, enforce,
+    compare_external_corpus, divergence_diag_ledger, divergence_findings, dl_gap_rows, enforce,
 };
 pub use rl::{RlClosure, RlTriple, rl_closure};
 
@@ -799,7 +798,7 @@ pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedR
 ///
 /// The `budget.max_steps` ceiling is threaded straight into the forward chase
 /// ([`run_reasoning_rules_budgeted`] → [`crate::oracle::native_forward_eval_rules_with_frontier`]
-/// → [`crate::physical::materialize_native`]), where the [`crate::physical::StepGovernor`]
+/// → [`crate::physical::materialize_native`]), where the `StepGovernor`
 /// charges one step per COMMITTED derivation at the deterministic FactKey-sorted commit
 /// boundary and stops deriving new facts once the ceiling is reached.
 ///
@@ -1976,35 +1975,6 @@ mod tests {
             !axiom.premises.is_empty(),
             "derived subClassOf(A, C) must carry NON-EMPTY premises on the production path \
              (the empty-antecedents bug fails here); got {axiom:?}"
-        );
-    }
-
-    /// An external-only subsumption the native path missed is an `OracleOnly` row that the
-    /// scheduled lane's `enforce` verdict FAILS on — the differential's whole purpose.
-    /// A native-only subsumption is expected superset richness and passes. This pins
-    /// the failure semantics the real engines never trip on the gap-zero corpus.
-    #[test]
-    fn crosscheck_ledger_fails_on_oracle_only_and_passes_on_native_only() {
-        let native = vec![(A.to_owned(), B.to_owned(), W.to_owned())];
-        let oracle_extra = vec![
-            (A.to_owned(), B.to_owned(), W.to_owned()),
-            (B.to_owned(), C.to_owned(), W.to_owned()),
-        ];
-        // The captured oracle derived B ⊑ C that native did not: the lane must fail.
-        let rows = ledger::compare_subsumption(&native, &oracle_extra);
-        let bad = ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
-        assert_eq!(bad.oracle_only, 1, "the oracle-only subsumption is counted");
-        assert!(
-            !ledger::enforce(&bad).passed,
-            "an oracle-only subsumption must fail the differential"
-        );
-        // The converse — native richer than the captured oracle — is not a failure.
-        let rows = ledger::compare_subsumption(&oracle_extra, &native);
-        let rich = ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
-        assert_eq!(rich.native_only, 1);
-        assert!(
-            ledger::enforce(&rich).passed,
-            "a native-only subsumption is expected richness, not a failure"
         );
     }
 

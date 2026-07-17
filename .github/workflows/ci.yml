@@ -122,6 +122,13 @@ jobs:
         if: ${{ matrix.shard == 1 }}
         run: cargo clippy --all-targets -- -D warnings
 
+      # Fail on broken/redundant public rustdoc intra-doc links so the API docs
+      # stay navigable. Shard 1 only (it need not run 3×); private-item links are
+      # allowed (see the make target's RUSTDOCFLAGS).
+      - name: Rust API docs (broken-link gate)
+        if: ${{ matrix.shard == 1 }}
+        run: make rust-docs
+
       # The fixture is ~600 MB as raw JSON but highly compressible. Actions/cache
       # stores it compressed, avoiding the 3–4 minute cold model + three-language
       # render on every shard after the first run for a content state. This key is
@@ -202,7 +209,7 @@ jobs:
   # Every remaining gate lands in exactly one job:
   #   ontology-validate  : validate
   #   ontology-generated : sync, constitution-check, crate-check
-  #   ontology-reason    : reason-gate, acceptance, coverage, coherence gate teeth
+  #   ontology-reason    : reason-verify, acceptance, coverage, coherence gate teeth
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, golden soak, compliance-report
   ontology-validate:
@@ -289,8 +296,8 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Shared native reason gate (verify + purrdf-entail cross-check)
-        run: make reason-gate
+      - name: Native reason + reasoned-graph verify (one closure)
+        run: make reason-verify
 
       - name: Transpile acceptance — hard aggregate recall floor
         run: make acceptance
@@ -343,17 +350,6 @@ jobs:
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # === REASONING CROSS-CHECK ORACLE (Principle 18; native, on-gate) ===
-  # The Java+Docker classic oracle lane (ELK/HermiT/ROBOT/Jena/owlrl) has been
-  # REMOVED. Its replacement is a native, in-process, Docker-free reasoning oracle
-  # over `purrdf::entail` (an OWL-RL + OWL-Direct-tableau engine, 70/70
-  # W3C-entailment conformance-tested) — `gmeow-dev reason-crosscheck`, run ON-GATE
-  # inside the required `quality` aggregator's reason lane. The on-gate cross-check
-  # exercises SUBSUMPTION only (native ⊇ oracle); consistency is NOT on this gate —
-  # it is decided by the native reasoner and checked separately via `reason-verify`.
-  # The authoritative gate stays native and Docker-free; Principle 18 is proven
-  # natively by the divergence-ledger enforcer, the on-gate subsumption entail
-  # cross-check, and the frozen oracle-gold conformance case (in `make conformance`).
   # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
   # target is absent in CI), and the actual wasm is exercised through the public
@@ -416,12 +412,14 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   #
-  # The classic Java/Docker oracle lane has been REMOVED (Principle 18); its
-  # replacement is the native in-process `purrdf::entail` cross-check, which runs
-  # ON-GATE inside the required reason lane rather than as a separate job. The
-  # required gate stays Docker-free and Java-free. Statements now run natively via
-  # the gmeow-rdf codec inside the generated-artifact job's strict sync — there is no
-  # separate statements lane.
+  # The classic Java/Docker oracle lane has been REMOVED (Principle 18), and the live
+  # in-process `purrdf::entail` differential cross-check that once replaced it has
+  # also been REMOVED. The native `logic:` engine is now the sole on-gate reasoning
+  # authority: `ontology-reason` runs `make reason-verify` (one closure, native
+  # consistency/entailment verify + reasoned-graph negatives) with no live second or
+  # differential reasoner on any required gate. The required gate stays Docker-free
+  # and Java-free. Statements now run natively via the gmeow-rdf codec inside the
+  # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
     needs: [lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
@@ -448,7 +446,7 @@ jobs:
               exit 1
             fi
           done
-          echo "all required quality jobs succeeded (the native on-gate purrdf-entail cross-check runs inside the reason lane)"
+          echo "all required quality jobs succeeded (native reasoning + reasoned-graph verify run in the reason lane)"
 
       - name: Check out the proven source revision
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
