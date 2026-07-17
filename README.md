@@ -208,15 +208,23 @@ developer command.
 
 ```bash
 make install         # build the Rust CLIs and configure repo-local Git merge drivers
-make check           # full local gate: lint, validate, one-closure native reason gate, generated drift, Rust tests
+make check           # synchronize generated outputs, then run the evidence-complete impact gate
+make check-full      # synchronize outputs, then force every gate task to execute physically
+make reason-verify   # one fresh native closure feeding reasoned-graph verify (native, Docker-free)
 make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
 ```
 
-`make check` is the normal local gate — fully Java/Docker-free (native EL/DL
-reasoning and native reasoned-graph verify). The native `logic:` engine is the
-single reasoning authority; the aggregate `make reason-verify` computes one
-complete native closure and shares it with reasoned-graph verification, so
-`make check` never repeats the chase.
+`make check` is the normal local gate and the normal synchronization entry point:
+it updates only byte-changed generated outputs, then runs fully Java/Docker-free
+validation (native EL/DL reasoning and native reasoned-graph verify). A clean
+manifest makes its sync stage effectively free. CI uses the read-only
+`make check-sync` form so drift cannot be silently repaired. The gate may reuse an unaffected task only
+from a GitHub-attested successful `main` receipt matching the exact commit tree,
+task registry, and toolchain contract; any verification or classification doubt
+falls back to `make check-full`. The native `logic:` engine is the single
+reasoning authority; the aggregate `make reason-verify` computes one complete
+native closure and shares it with reasoned-graph verification, so `make check`
+never repeats the chase.
 Routine development and required CI therefore need no JVM or container.
 
 ## The `gmeow.gts` bundle

@@ -40,7 +40,8 @@ use crate::result::{
 use crate::seam::BudgetStatus;
 use crate::store::WorldStore;
 use purrdf::{
-    RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermRef, TermValue,
+    DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm,
+    RdfTriple, TermRef, TermValue,
 };
 
 /// One production existential-program admission certificate, scoped to the RDF
@@ -208,6 +209,545 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
     Ok(inferred)
+}
+
+/// One IRI-object axiom to probe through exact leave-one-out reasoning.
+///
+/// The probe removes every occurrence of the triple from every RDF world, matching
+/// the ontology-quality scorer's authored-axiom semantics. The result reports
+/// whether the same triple is derivable in at least one world after that removal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LeaveOneOutAxiom {
+    pub subject: String,
+    pub predicate: String,
+    pub object: String,
+}
+
+impl LeaveOneOutAxiom {
+    #[must_use]
+    pub fn new(
+        subject: impl Into<String>,
+        predicate: impl Into<String>,
+        object: impl Into<String>,
+    ) -> Self {
+        Self {
+            subject: subject.into(),
+            predicate: predicate.into(),
+            object: object.into(),
+        }
+    }
+}
+
+/// Fixed-calculus state for one RDF world during a batch of leave-one-out probes.
+///
+/// The settled incremental session is cheap to clone: its rule plan, fact arena,
+/// EDB, and fixed-point histories are `Arc` backed. Each probe therefore pays only
+/// for the signed retraction and its affected recursive frontier.
+struct LeaveOneOutWorld {
+    world: String,
+    asserted: std::collections::BTreeSet<crate::rule_ir::FactKey>,
+    session: crate::physical::IncrementalSession,
+    base_axioms: Vec<InferredAxiom>,
+}
+
+fn incremental_axioms(
+    session: &crate::physical::IncrementalSession,
+    world: &str,
+) -> gmeow_errors::Result<Vec<InferredAxiom>> {
+    session
+        .closure()
+        .into_iter()
+        .map(|fact| {
+            Ok(InferredAxiom {
+                subject: subject_iri(&fact.subject)?,
+                predicate: fact.predicate,
+                object: crate::provenance::term_display(&fact.object),
+                world: world.to_owned(),
+                // The DL augmentation consumes only the fact surface. The reduced
+                // RDF dataset below remains the authority for asserted/derived
+                // provenance and supplies every surviving EDB fact again.
+                is_edb: false,
+                rule_name: None,
+                premises: Vec::new(),
+            })
+        })
+        .collect()
+}
+
+fn leave_one_out_worlds(edb: &RdfDataset) -> gmeow_errors::Result<Vec<LeaveOneOutWorld>> {
+    let mut by_world: std::collections::BTreeMap<String, Vec<crate::rule_ir::Fact>> =
+        std::collections::BTreeMap::new();
+    for (world, fact) in dl::fixed_rule_resource_facts(edb) {
+        by_world.entry(world).or_default().push(fact);
+    }
+
+    let rules = dl::structured_dl_rules();
+    by_world
+        .into_iter()
+        .map(|(world, facts)| {
+            let asserted = facts.iter().map(crate::rule_ir::Fact::key).collect();
+            let session =
+                crate::physical::IncrementalSession::new(native_contract_hash(), facts, &rules)?;
+            let base_axioms = incremental_axioms(&session, &world)?;
+            Ok(LeaveOneOutWorld {
+                world,
+                asserted,
+                session,
+                base_axioms,
+            })
+        })
+        .collect()
+}
+
+fn dataset_without_axiom(
+    edb: &RdfDataset,
+    axiom: &LeaveOneOutAxiom,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in edb.owned_quads() {
+        if quad.predicate == axiom.predicate
+            && matches!(&quad.subject, RdfTerm::Iri(subject) if subject == &axiom.subject)
+            && matches!(&quad.object, RdfTerm::Iri(object) if object == &axiom.object)
+        {
+            continue;
+        }
+        builder.push_owned_quad(&quad);
+    }
+    builder
+        .freeze()
+        .map_err(|error| reason_err(format!("freeze leave-one-out RDF dataset: {error}")))
+}
+
+const LOO_RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const LOO_RDFS_SUBPROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+const LOO_RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+const LOO_RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const LOO_RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const LOO_OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+const LOO_OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
+const LOO_OWL_DISJOINT_UNION_OF: &str = "http://www.w3.org/2002/07/owl#disjointUnionOf";
+const LOO_OWL_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#complementOf";
+const LOO_OWL_INTERSECTION_OF: &str = "http://www.w3.org/2002/07/owl#intersectionOf";
+const LOO_OWL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
+const LOO_OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
+const LOO_OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+const LOO_OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+const LOO_OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
+const LOO_OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+const LOO_OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
+const LOO_OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
+
+fn dataset_has_pattern(
+    edb: &RdfDataset,
+    subject: Option<&str>,
+    predicate: &str,
+    object: Option<&str>,
+) -> bool {
+    let Some(predicate) = edb.term_id_by_value(&TermValue::iri(predicate)) else {
+        return false;
+    };
+    let subject = match subject {
+        Some(value) => {
+            let Some(value) = edb.term_id_by_value(&TermValue::iri(value)) else {
+                return false;
+            };
+            Some(value)
+        }
+        None => None,
+    };
+    let object = match object {
+        Some(value) => {
+            let Some(value) = edb.term_id_by_value(&TermValue::iri(value)) else {
+                return false;
+            };
+            Some(value)
+        }
+        None => None,
+    };
+    edb.quads_for_pattern(subject, Some(predicate), object, GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
+/// Whether the finite DL post-pass can introduce assertions using `predicate`
+/// even when the positive fixed-rule closure currently contains none.
+///
+/// The only open-headed DL producer is the restricted existential chase. Its
+/// predicates come from `owl:onProperty`, then may travel through the ordinary
+/// property schema. A direct schema mention is therefore a conservative witness
+/// that the post-pass might still create the predicate.
+fn dataset_may_generate_dynamic_predicate(edb: &RdfDataset, predicate: &str) -> bool {
+    dataset_has_pattern(edb, None, LOO_OWL_ON_PROPERTY, Some(predicate))
+        || dataset_has_pattern(edb, Some(predicate), LOO_RDFS_SUBPROPERTY_OF, None)
+        || dataset_has_pattern(edb, None, LOO_RDFS_SUBPROPERTY_OF, Some(predicate))
+        || dataset_has_pattern(edb, Some(predicate), LOO_OWL_INVERSE_OF, None)
+        || dataset_has_pattern(edb, None, LOO_OWL_INVERSE_OF, Some(predicate))
+        || dataset_has_pattern(edb, Some(predicate), LOO_OWL_EQUIVALENT_PROPERTY, None)
+        || dataset_has_pattern(edb, None, LOO_OWL_EQUIVALENT_PROPERTY, Some(predicate))
+        || dataset_has_pattern(edb, Some(predicate), LOO_OWL_PROPERTY_CHAIN_AXIOM, None)
+}
+
+/// A sound negative filter for the expensive finite-DL leave-one-out fallback.
+///
+/// Outside `owl:Nothing`, the DL post-pass introduces `rdfs:subClassOf` only by
+/// expanding union lists (and then closing the new edges transitively). When the
+/// reduced positive closure has no union axiom and neither union nor
+/// `rdfs:subClassOf` can be introduced by an open-headed producer, a missing
+/// subclass target cannot appear later. Every other target conservatively keeps
+/// the full production pass.
+fn finite_dl_may_rederive_after_rule_miss(
+    edb: &RdfDataset,
+    inferred: &[InferredAxiom],
+    axiom: &LeaveOneOutAxiom,
+) -> bool {
+    if axiom.predicate != LOO_RDFS_SUBCLASS_OF || axiom.object == LOO_OWL_NOTHING {
+        return true;
+    }
+    let has_union = inferred.iter().any(|fact| {
+        fact.predicate == LOO_OWL_UNION_OF || fact.predicate == LOO_OWL_DISJOINT_UNION_OF
+    });
+    has_union
+        || dataset_has_pattern(edb, None, LOO_OWL_UNION_OF, None)
+        || dataset_has_pattern(edb, None, LOO_OWL_DISJOINT_UNION_OF, None)
+        || dataset_may_generate_dynamic_predicate(edb, LOO_OWL_UNION_OF)
+        || dataset_may_generate_dynamic_predicate(edb, LOO_OWL_DISJOINT_UNION_OF)
+        || dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBCLASS_OF)
+}
+
+fn batch_subclass_reachability_is_exact(edb: &RdfDataset) -> bool {
+    !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_UNION_OF)
+        && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_DISJOINT_UNION_OF)
+        && !dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBCLASS_OF)
+        && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_EQUIVALENT_CLASS)
+}
+
+fn batch_subproperty_reachability_is_exact(edb: &RdfDataset) -> bool {
+    !dataset_may_generate_dynamic_predicate(edb, LOO_RDFS_SUBPROPERTY_OF)
+        && !dataset_may_generate_dynamic_predicate(edb, LOO_OWL_EQUIVALENT_PROPERTY)
+}
+
+fn fixed_head_is_absent(edb: &RdfDataset, predicate: &str) -> bool {
+    matches!(
+        predicate,
+        LOO_RDFS_DOMAIN
+            | LOO_RDFS_RANGE
+            | LOO_OWL_EQUIVALENT_CLASS
+            | LOO_OWL_EQUIVALENT_PROPERTY
+            | LOO_OWL_INVERSE_OF
+    ) && !dataset_may_generate_dynamic_predicate(edb, predicate)
+}
+
+fn batch_disjoint_support_is_exact(edb: &RdfDataset) -> bool {
+    [
+        LOO_OWL_DISJOINT_WITH,
+        LOO_OWL_COMPLEMENT_OF,
+        LOO_OWL_DISJOINT_UNION_OF,
+        LOO_OWL_MEMBERS,
+    ]
+    .into_iter()
+    .all(|predicate| !dataset_may_generate_dynamic_predicate(edb, predicate))
+}
+
+fn is_property_characteristic(iri: &str) -> bool {
+    matches!(
+        iri,
+        "http://www.w3.org/2002/07/owl#TransitiveProperty"
+            | "http://www.w3.org/2002/07/owl#SymmetricProperty"
+            | "http://www.w3.org/2002/07/owl#AsymmetricProperty"
+            | "http://www.w3.org/2002/07/owl#ReflexiveProperty"
+            | "http://www.w3.org/2002/07/owl#IrreflexiveProperty"
+            | "http://www.w3.org/2002/07/owl#FunctionalProperty"
+            | "http://www.w3.org/2002/07/owl#InverseFunctionalProperty"
+    )
+}
+
+/// Direct relation graph for exact batched transitive-reduction probes.
+///
+/// The boolean edge payload records a non-removable equivalence support. A raw
+/// `A rdfs:subClassOf B` edge is removed by the `(A, B)` probe, but the same edge
+/// remains justified when `A owl:equivalentClass B` is also authored.
+#[derive(Default)]
+struct TransitiveReachability {
+    worlds: std::collections::BTreeMap<
+        String,
+        std::collections::BTreeMap<String, std::collections::BTreeMap<String, bool>>,
+    >,
+}
+
+impl TransitiveReachability {
+    fn new(
+        edb: &RdfDataset,
+        predicate: &str,
+        equivalence: &str,
+        equivalence_in_finite_dl: bool,
+    ) -> Self {
+        let mut reachability = Self::default();
+        let structured_worlds = dl::structured_rule_worlds(edb);
+        for (world, fact) in dl::fixed_rule_resource_facts(edb) {
+            let (TermValue::Iri(subject), TermValue::Iri(object)) = (fact.subject, fact.object)
+            else {
+                continue;
+            };
+            if fact.predicate == predicate {
+                reachability.insert(&world, &subject, &object, false);
+            } else if fact.predicate == equivalence
+                && (equivalence_in_finite_dl || structured_worlds.contains(&world))
+            {
+                reachability.insert(&world, &subject, &object, true);
+                reachability.insert(&world, &object, &subject, true);
+            }
+        }
+        reachability
+    }
+
+    fn with_finite_dl_subclasses(mut self, edb: &RdfDataset) -> Self {
+        for (world, subject, object) in dl::finite_dl_subclass_edges(edb) {
+            self.insert(&world, &subject, &object, true);
+        }
+        self
+    }
+
+    fn insert(&mut self, world: &str, subject: &str, object: &str, independent: bool) {
+        self.worlds
+            .entry(world.to_owned())
+            .or_default()
+            .entry(subject.to_owned())
+            .or_default()
+            .entry(object.to_owned())
+            .and_modify(|current| *current |= independent)
+            .or_insert(independent);
+    }
+
+    fn rederived_without(&self, axiom: &LeaveOneOutAxiom) -> bool {
+        self.worlds.values().any(|adjacency| {
+            let mut visited = std::collections::BTreeSet::new();
+            let mut frontier = vec![axiom.subject.as_str()];
+            visited.insert(axiom.subject.as_str());
+
+            while let Some(subject) = frontier.pop() {
+                let Some(edges) = adjacency.get(subject) else {
+                    continue;
+                };
+                for (object, independently_supported) in edges {
+                    if subject == axiom.subject
+                        && object == &axiom.object
+                        && !independently_supported
+                    {
+                        continue;
+                    }
+                    if object == &axiom.object {
+                        return true;
+                    }
+                    if visited.insert(object.as_str()) {
+                        frontier.push(object.as_str());
+                    }
+                }
+            }
+            false
+        })
+    }
+
+    fn has_nonself_incoming(&self, target: &str) -> bool {
+        self.worlds.values().any(|adjacency| {
+            adjacency
+                .iter()
+                .any(|(subject, edges)| subject != target && edges.contains_key(target))
+        })
+    }
+}
+
+struct DisjointPossibility(std::collections::BTreeSet<(String, String)>);
+
+impl DisjointPossibility {
+    fn new(edb: &RdfDataset) -> Self {
+        Self(
+            dl::finite_dl_disjoint_candidates(edb)
+                .into_iter()
+                .map(|(_, subject, object)| (subject, object))
+                .collect(),
+        )
+    }
+
+    fn cannot_be_rederived(&self, axiom: &LeaveOneOutAxiom) -> bool {
+        !self
+            .0
+            .contains(&(axiom.subject.clone(), axiom.object.clone()))
+    }
+}
+
+fn characteristic_type_has_no_alternative_producer(
+    edb: &RdfDataset,
+    class_reachability: &TransitiveReachability,
+    axiom: &LeaveOneOutAxiom,
+) -> bool {
+    if axiom.predicate != LOO_RDF_TYPE || !is_property_characteristic(&axiom.object) {
+        return false;
+    }
+    if class_reachability.has_nonself_incoming(&axiom.object)
+        || dataset_has_pattern(edb, None, LOO_RDFS_DOMAIN, Some(&axiom.object))
+        || dataset_has_pattern(edb, None, LOO_RDFS_RANGE, Some(&axiom.object))
+    {
+        return false;
+    }
+    for predicate in [
+        LOO_OWL_ON_PROPERTY,
+        LOO_OWL_UNION_OF,
+        LOO_OWL_DISJOINT_UNION_OF,
+        LOO_OWL_INTERSECTION_OF,
+        LOO_OWL_ONE_OF,
+    ] {
+        if dataset_has_pattern(edb, Some(&axiom.object), predicate, None) {
+            return false;
+        }
+    }
+    [
+        LOO_RDF_TYPE,
+        LOO_RDFS_DOMAIN,
+        LOO_RDFS_RANGE,
+        LOO_OWL_ONE_OF,
+        LOO_OWL_INTERSECTION_OF,
+    ]
+    .into_iter()
+    .all(|predicate| !dataset_may_generate_dynamic_predicate(edb, predicate))
+}
+
+fn leave_one_out_probe(
+    edb: &RdfDataset,
+    worlds: &[LeaveOneOutWorld],
+    axiom: &LeaveOneOutAxiom,
+) -> gmeow_errors::Result<bool> {
+    let candidate = crate::rule_ir::Fact {
+        subject: TermValue::iri(axiom.subject.clone()),
+        predicate: axiom.predicate.clone(),
+        object: TermValue::iri(axiom.object.clone()),
+    };
+    let candidate_key = candidate.key();
+    let mut inferred = Vec::new();
+
+    for state in worlds {
+        if state.asserted.contains(&candidate_key) {
+            let mut fork = state.session.clone();
+            fork.apply([crate::physical::SignedFact {
+                fact: candidate.clone(),
+                weight: -1,
+            }])?;
+            inferred.extend(incremental_axioms(&fork, &state.world)?);
+        } else {
+            inferred.extend(state.base_axioms.iter().cloned());
+        }
+    }
+
+    let target_is_inferred = |inferred: &InferredAxiom| {
+        inferred.subject == axiom.subject
+            && inferred.predicate == axiom.predicate
+            && inferred
+                .object
+                .trim_start_matches('<')
+                .trim_end_matches('>')
+                == axiom.object
+    };
+
+    // The positive rule closure is a sound subset of the complete native result.
+    // Most redundant authored axioms are already witnessed here, so avoid rebuilding
+    // the reduced RDF dataset and rerunning the finite DL pass when the answer is
+    // irrevocably true. A miss still takes the exact production DL path below.
+    if inferred.iter().any(&target_is_inferred) {
+        return Ok(true);
+    }
+    if !finite_dl_may_rederive_after_rule_miss(edb, &inferred, axiom) {
+        return Ok(false);
+    }
+
+    // The finite DL pass reads structural lists, restrictions, and raw resource
+    // facts directly from the RDF dataset. Give it the exact same reduced dataset
+    // as the former scratch implementation so this optimization changes cost, not
+    // semantics.
+    let reduced = dataset_without_axiom(edb, axiom)?;
+    dl::augment_inferred_with_dl(&mut inferred, &reduced)?;
+    Ok(inferred.iter().any(target_is_inferred))
+}
+
+/// Determine which authored axioms are re-derived after exact leave-one-out.
+///
+/// Exact class/property reachability, finite union edges, fixed-head absence, and
+/// finite-disjoint impossibility are answered from shared batch indexes. Remaining
+/// probes plan and settle the fixed native calculus once per RDF world, then fork
+/// that immutable state and apply one signed EDB retraction. Results retain input
+/// order and ambiguous finite-DL cases still use the same production augmentation
+/// as [`reason_closure_axioms`].
+///
+/// # Errors
+///
+/// Returns an error if the current fixed calculus leaves the finite positive binary
+/// fragment, an RDF world cannot be decoded, a retraction is invalid, or the native
+/// DL augmentation fails. There is no hidden scratch fallback.
+pub fn leave_one_out_rederived(
+    edb: &RdfDataset,
+    axioms: &[LeaveOneOutAxiom],
+) -> gmeow_errors::Result<Vec<bool>> {
+    use rayon::prelude::*;
+
+    if axioms.is_empty() {
+        return Ok(Vec::new());
+    }
+    let subclass_reachability = batch_subclass_reachability_is_exact(edb).then(|| {
+        TransitiveReachability::new(edb, LOO_RDFS_SUBCLASS_OF, LOO_OWL_EQUIVALENT_CLASS, false)
+            .with_finite_dl_subclasses(edb)
+    });
+    let subproperty_reachability = batch_subproperty_reachability_is_exact(edb).then(|| {
+        TransitiveReachability::new(
+            edb,
+            LOO_RDFS_SUBPROPERTY_OF,
+            LOO_OWL_EQUIVALENT_PROPERTY,
+            true,
+        )
+    });
+    let disjoint_possibility =
+        batch_disjoint_support_is_exact(edb).then(|| DisjointPossibility::new(edb));
+    let mut results = vec![false; axioms.len()];
+    let mut slow = Vec::new();
+    for (index, axiom) in axioms.iter().enumerate() {
+        if axiom.predicate == LOO_RDFS_SUBCLASS_OF
+            && axiom.object != LOO_OWL_NOTHING
+            && let Some(reachability) = &subclass_reachability
+        {
+            results[index] = reachability.rederived_without(axiom);
+        } else if axiom.predicate == LOO_RDFS_SUBPROPERTY_OF
+            && let Some(reachability) = &subproperty_reachability
+        {
+            results[index] = reachability.rederived_without(axiom);
+        } else if axiom.predicate == LOO_OWL_DISJOINT_WITH {
+            if disjoint_possibility
+                .as_ref()
+                .is_some_and(|possibility| possibility.cannot_be_rederived(axiom))
+            {
+                results[index] = false;
+            } else {
+                slow.push((index, axiom));
+            }
+        } else if let Some(reachability) = &subclass_reachability
+            && characteristic_type_has_no_alternative_producer(edb, reachability, axiom)
+        {
+            results[index] = false;
+        } else if fixed_head_is_absent(edb, &axiom.predicate) {
+            results[index] = false;
+        } else {
+            slow.push((index, axiom));
+        }
+    }
+    if slow.is_empty() {
+        return Ok(results);
+    }
+
+    let worlds = leave_one_out_worlds(edb)?;
+    let slow_results = slow
+        .par_iter()
+        .map(|(index, axiom)| Ok((*index, leave_one_out_probe(edb, &worlds, axiom)?)))
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    for (index, value) in slow_results {
+        results[index] = value;
+    }
+    Ok(results)
 }
 
 /// Run native predicate-as-DATA entailment + DL consistency, returning the typed
@@ -1142,6 +1682,26 @@ mod tests {
         builder.freeze().expect("valid test dataset")
     }
 
+    fn quad_in(world: &str, s: &str, p: &str, o: &str) -> RdfQuad {
+        RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(world))
+    }
+
+    fn scratch_leave_one_out(edb: &RdfDataset, axiom: &LeaveOneOutAxiom) -> bool {
+        let reduced = dataset_without_axiom(edb, axiom).expect("reduced dataset freezes");
+        reason_closure_axioms(&reduced)
+            .expect("scratch leave-one-out reasons")
+            .iter()
+            .any(|inferred| {
+                inferred.subject == axiom.subject
+                    && inferred.predicate == axiom.predicate
+                    && inferred
+                        .object
+                        .trim_start_matches('<')
+                        .trim_end_matches('>')
+                        == axiom.object
+            })
+    }
+
     fn fact_surfaces(facts: &TypedFactSet) -> Vec<(String, Vec<String>)> {
         let mut rows = facts
             .facts()
@@ -1210,6 +1770,123 @@ mod tests {
             fact_surfaces(&direct),
             fact_surfaces(&via_store),
             "the direct frozen-IR fold preserves the exact named-world fact set"
+        );
+    }
+
+    #[test]
+    fn incremental_leave_one_out_matches_scratch_across_worlds_and_alternative_proofs() {
+        const W2: &str = "urn:gmeow:test:leave-one-out-world-2";
+        const D: &str = "http://gmeow.example/D";
+        const DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+        const P: &str = "http://gmeow.example/p";
+
+        let store = dataset(vec![
+            // World one gives A -> C two proofs: the direct assertion and A -> B -> C.
+            quad(A, SUBCLASS, B),
+            quad(B, SUBCLASS, C),
+            quad(A, SUBCLASS, C),
+            // The same A -> B assertion exists in another world but has an independent
+            // alternate proof there. Leave-one-out removes BOTH asserted occurrences.
+            quad_in(W2, A, SUBCLASS, B),
+            quad_in(W2, A, SUBCLASS, D),
+            quad_in(W2, D, SUBCLASS, B),
+            // A predicate outside the fixed rule heads stays load-bearing.
+            quad(P, DOMAIN, A),
+        ]);
+        let probes = vec![
+            LeaveOneOutAxiom::new(A, SUBCLASS, C),
+            LeaveOneOutAxiom::new(A, SUBCLASS, B),
+            LeaveOneOutAxiom::new(B, SUBCLASS, C),
+            LeaveOneOutAxiom::new(P, DOMAIN, A),
+        ];
+
+        let incremental =
+            leave_one_out_rederived(&store, &probes).expect("incremental leave-one-out reasons");
+        let scratch = probes
+            .iter()
+            .map(|probe| scratch_leave_one_out(&store, probe))
+            .collect::<Vec<_>>();
+        assert_eq!(incremental, scratch);
+        assert_eq!(incremental, vec![true, true, false, false]);
+    }
+
+    #[test]
+    fn incremental_leave_one_out_preserves_finite_dl_union_derivation() {
+        const U: &str = "http://gmeow.example/U";
+        const UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+        let list = RdfTerm::blank_node("union-list");
+        let store = dataset(vec![
+            quad(A, SUBCLASS, U),
+            RdfQuad::new(RdfTerm::iri(U), UNION_OF, list.clone()).in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(list.clone(), RDF_FIRST, RdfTerm::iri(A)).in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(list, RDF_REST, RdfTerm::iri(RDF_NIL)).in_graph(RdfTerm::iri(W)),
+        ]);
+        let probe = LeaveOneOutAxiom::new(A, SUBCLASS, U);
+
+        let incremental = leave_one_out_rederived(&store, std::slice::from_ref(&probe))
+            .expect("incremental union leave-one-out reasons");
+        assert_eq!(incremental, vec![scratch_leave_one_out(&store, &probe)]);
+        assert_eq!(incremental, vec![true]);
+    }
+
+    #[test]
+    fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
+        const SUBPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+        const DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+        const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+        const EQUIVALENT: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+        const INVERSE: &str = "http://www.w3.org/2002/07/owl#inverseOf";
+        const COMPLEMENT: &str = "http://www.w3.org/2002/07/owl#complementOf";
+        const FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+        const P: &str = "http://gmeow.example/p";
+        const Q: &str = "http://gmeow.example/q";
+        const R: &str = "http://gmeow.example/r";
+        const MARKER: &str = "http://gmeow.example/FunctionalMarker";
+
+        let store = dataset(vec![
+            quad(P, SUBPROPERTY, R),
+            quad(P, SUBPROPERTY, Q),
+            quad(Q, SUBPROPERTY, R),
+            quad(A, EQUIVALENT, B),
+            quad(P, DOMAIN, A),
+            quad(P, RANGE, B),
+            quad(P, INVERSE, Q),
+            quad(A, DISJOINT, C),
+            quad(A, COMPLEMENT, C),
+            quad(B, DISJOINT, C),
+            quad(P, TYPE, FUNCTIONAL),
+            quad(Q, TYPE, MARKER),
+            quad(MARKER, SUBCLASS, FUNCTIONAL),
+            quad(Q, TYPE, FUNCTIONAL),
+        ]);
+        let probes = vec![
+            LeaveOneOutAxiom::new(P, SUBPROPERTY, R),
+            LeaveOneOutAxiom::new(Q, SUBPROPERTY, R),
+            LeaveOneOutAxiom::new(A, EQUIVALENT, B),
+            LeaveOneOutAxiom::new(P, DOMAIN, A),
+            LeaveOneOutAxiom::new(P, RANGE, B),
+            LeaveOneOutAxiom::new(P, INVERSE, Q),
+            LeaveOneOutAxiom::new(A, DISJOINT, C),
+            LeaveOneOutAxiom::new(B, DISJOINT, C),
+            LeaveOneOutAxiom::new(P, TYPE, FUNCTIONAL),
+            LeaveOneOutAxiom::new(Q, TYPE, FUNCTIONAL),
+        ];
+
+        let batched = leave_one_out_rederived(&store, &probes).expect("batch reasons");
+        let scratch = probes
+            .iter()
+            .map(|probe| scratch_leave_one_out(&store, probe))
+            .collect::<Vec<_>>();
+        assert_eq!(batched, scratch);
+        assert_eq!(
+            batched,
+            vec![
+                true, false, false, false, false, false, true, false, false, true
+            ]
         );
     }
 
