@@ -2,30 +2,30 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Counter-example: a boundary math:CellIncidence and its declared transpose coboundary
-# math:CellIncidence (linked by math:adjointIncidence) carry DISAGREEING ±1 signs (+1
-# vs −1), so the coboundary matrix is not the transpose of the boundary matrix and the
-# adjunction δ = ∂* fails. It fires math:BoundaryCoboundaryAdjunctionConstraint
-# (shacl.SPARQLConstraintComponent → math:BrokenBoundaryCoboundaryAdjunction) and NO
-# other finding: both incidences are complete (coface, face, sign), and the two are on
-# disjoint cells so they form no codimension-2 boundary composition the general-sum
-# constraint would score.
+# math:CellIncidence (linked by math:adjointIncidence) name the SAME two cells with their
+# incidenceCoface/incidenceFace endpoints swapped — a TRUE transpose entry, per
+# math:adjointIncidence's own definition ("the two endpoints swapped and the sign
+# preserved") — but carry DISAGREEING ±1 signs (+1 vs −1), so the coboundary matrix is
+# not the transpose of the boundary matrix and the adjunction δ = ∂* fails. It fires
+# math:BoundaryCoboundaryAdjunctionConstraint (shacl.SPARQLConstraintComponent →
+# math:BrokenBoundaryCoboundaryAdjunction) and NO other finding: both incidences are
+# complete (coface, face, sign), and no math:incidentTo relation is asserted between the
+# two cells, so no codimension-2 boundary composition the general-sum constraint would
+# score can form.
 
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/adjunction-inconsistent/> .
 
 ex:cX a math:Cell ; math:cellDimension ex:dim2 .
 ex:cY a math:Cell ; math:cellDimension ex:dim1 .
-ex:cZ a math:Cell ; math:cellDimension ex:dim1 .
-ex:cW a math:Cell ; math:cellDimension ex:dim0 .
-ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
 ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
 ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
 
-# The boundary entry [∂cX : cY] = +1 and its declared adjoint coboundary entry, whose
-# transpose sign should also be +1 but is authored as −1 — the adjunction is broken.
-# The two incidences share no chaining endpoint, so no boundary composition forms.
+# The boundary entry [∂cX : cY] = +1 and its declared adjoint coboundary entry [δcY:cX] —
+# the SAME two cells, endpoints swapped — whose transpose sign should also be +1 but is
+# authored as −1: a genuine transpose pair with a broken adjunction.
 ex:iBoundary a math:CellIncidence ;
     math:incidenceCoface ex:cX ; math:incidenceFace ex:cY ; math:incidenceSign 1 ;
     math:adjointIncidence ex:iCoboundary .
 ex:iCoboundary a math:CellIncidence ;
-    math:incidenceCoface ex:cZ ; math:incidenceFace ex:cW ; math:incidenceSign -1 .
+    math:incidenceCoface ex:cY ; math:incidenceFace ex:cX ; math:incidenceSign -1 .

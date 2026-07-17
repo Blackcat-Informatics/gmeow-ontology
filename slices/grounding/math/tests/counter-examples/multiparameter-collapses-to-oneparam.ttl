@@ -25,8 +25,13 @@ ex:collapsed a math:MultiparameterFiltration ;
 ex:grid a math:MathematicalObject .
 
 # The stage carries a bare one-parameter threshold and NO math:multiIndex — the collapse.
+# math:stageStructure completes the stage's own (threshold, substructure) frame, so the
+# stage is not ALSO ill-formed for an unrelated reason.
 ex:stage a math:FiltrationStage ;
-    math:filtrationThreshold ex:eps .
+    math:filtrationThreshold ex:eps ;
+    math:stageStructure ex:cx .
+
+ex:cx a math:TopologicalSpace .
 
 ex:eps a math:Quantity ; math:quantityValue "0.5"^^xsd:decimal .
 <http://example.org/math/eps> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

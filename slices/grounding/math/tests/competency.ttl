@@ -2684,6 +2684,7 @@ ex:rowCoverageVectorSymbolic a gmeow:ExpectedRow ;
 
 ex:cqBoundarySquareZero a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/boundary-square-zero.rq" ;
+    gmeow:cqDataFile "examples/chain-complex.ttl" ;
     gmeow:cqReasoning gmeow:reasoningLogic ;
     gmeow:cqRationale "The boundary square-zero law ∂∘∂ = 0 made a LIVE entailment consumer: authored as a real first-order logic:Formula over the reified incidence signature and evaluated by the native logic: reasoner over the concrete simplicial triangle, it DERIVES the binary consequent math:cancellingPairRel(edgeAB, edgeAC) — the two intermediate edges composing faceABC to vertexA with opposite sign products, the fixed-point-free involution of the codimension-2 diamond. Nothing asserts that tuple; only the law derives it. Over the reasoned closure, pinned by VALUES to edgeAB, the answer is exactly {edgeAB, edgeAC}. Removing the law formula makes the answer empty." ;
     gmeow:cqExactRows true ;
@@ -2704,6 +2705,7 @@ ex:rowBoundarySquareZero a gmeow:ExpectedRow ;
 
 ex:cqCoboundarySquareZero a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/coboundary-square-zero.rq" ;
+    gmeow:cqDataFile "examples/chain-complex.ttl" ;
     gmeow:cqReasoning gmeow:reasoningLogic ;
     gmeow:cqRationale "The coboundary square-zero law δ∘δ = 0 made a LIVE entailment consumer: authored as a distinct first-order logic:Formula over the transposed coface traversal and evaluated by the native logic: reasoner over the concrete triangle, it DERIVES the binary consequent math:coCancellingPairRel(edgeAB, edgeAC) — the two intermediate cofaces of the upward co-diamond over (vertexA, faceABC). Nothing asserts that tuple; only the law derives it. Over the reasoned closure, pinned by VALUES to edgeAB, the answer is exactly {edgeAB, edgeAC}. Removing the law formula makes the answer empty." ;
     gmeow:cqExactRows true ;

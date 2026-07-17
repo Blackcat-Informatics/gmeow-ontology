@@ -361,6 +361,9 @@ gmeow:CompilationMustRecordCorrespondence
     logic:message "A gmeow:ComplexCompilation must record a gmeow:CellSourceCorrespondence through gmeow:recordsCorrespondence that carries at least one genuine row (a gmeow:correspondenceCell naming a math:Cell that itself carries a gmeow:cellSource); a compilation with no correspondence, or one recording an empty correspondence, cannot trace its cells to their evidence spans." ;
     logic:integrity gmeow:cmrcForall .
 gmeow:cmrcForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Compilation-must-record-correspondence formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→∃(∧∧) integrity formula of gmeow:CompilationMustRecordCorrespondence: every gmeow:ComplexCompilation must record a gmeow:CellSourceCorrespondence carrying at least one genuine cell→evidence row."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cmrcImpl .
 gmeow:cmrcImpl a logic:Formula ; logic:antecedent gmeow:cmrcGuard ; logic:consequent gmeow:cmrcExists .
@@ -395,6 +398,9 @@ gmeow:CompilationMustRecordLoss
     logic:message "A gmeow:ComplexCompilation must record at least one gmeow:CompilationPreservationRecord through gmeow:recordsPreservation; a compilation without one hides whether it preserved or dropped structure." ;
     logic:integrity gmeow:cmrlForall .
 gmeow:cmrlForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Compilation-must-record-loss formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→∃ integrity formula of gmeow:CompilationMustRecordLoss: every gmeow:ComplexCompilation must record a gmeow:CompilationPreservationRecord naming its preservation/loss judgment."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cmrlImpl .
 gmeow:cmrlImpl a logic:Formula ; logic:antecedent gmeow:cmrlGuard ; logic:consequent gmeow:cmrlExists .
@@ -420,6 +426,9 @@ gmeow:CompilationPreservationBoundaryConstraint
     logic:message "A gmeow:CompilationPreservationRecord whose logic:preservationKind is not logic:ExactPreservation must name a logic:ExpressivenessBoundary through logic:expressivenessBoundary; a lossy or unsupported preservation judgment without a named boundary hides what it dropped." ;
     logic:integrity gmeow:cpbcForall .
 gmeow:cpbcForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Compilation-preservation-boundary formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→∃ integrity formula of gmeow:CompilationPreservationBoundaryConstraint: a gmeow:CompilationPreservationRecord whose logic:preservationKind is not logic:ExactPreservation must name a logic:ExpressivenessBoundary."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cpbcImpl .
 gmeow:cpbcImpl a logic:Formula ; logic:antecedent gmeow:cpbcGuard ; logic:consequent gmeow:cpbcExists .
@@ -457,6 +466,9 @@ gmeow:CompilationContextConstraint
     logic:message "A gmeow:ComplexCompilation must carry a gmeow:compilationStandpoint, a gmeow:compilationWorld, and a gmeow:compilationTimeScope; a compilation missing any of the three has no epistemic context (gmeow:CompilationMissingContext)." ;
     logic:integrity gmeow:cmcForall .
 gmeow:cmcForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Compilation-context formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→(∃∧∃∧∃) integrity formula of gmeow:CompilationContextConstraint: every gmeow:ComplexCompilation must carry a gmeow:compilationStandpoint, a gmeow:compilationWorld, and a gmeow:compilationTimeScope."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cmcImpl .
 gmeow:cmcImpl a logic:Formula ; logic:antecedent gmeow:cmcGuard ; logic:consequent gmeow:cmcExists .
@@ -489,6 +501,9 @@ gmeow:TopologyClaimStatusConstraint
     logic:message "A gmeow:TopologyClaim must carry an attributed status through gmeow:vantage (the standpoint or agent the feature is claimed from); an unattributed topology claim is an anonymous assertion (gmeow:TopologyClaimMissingStatus)." ;
     logic:integrity gmeow:tcsForall .
 gmeow:tcsForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Topology-claim attributed-status formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→∃ integrity formula of gmeow:TopologyClaimStatusConstraint: every gmeow:TopologyClaim must carry an attributed status through gmeow:vantage."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:tcsImpl .
 gmeow:tcsImpl a logic:Formula ; logic:antecedent gmeow:tcsGuard ; logic:consequent gmeow:tcsExists .
@@ -518,6 +533,9 @@ gmeow:AssertedTopologyResultConstraint
     logic:message "A gmeow:TopologyComputation asserting a global truth (gmeow:assertsGlobalTruth true) must be discharged by a resource TYPED gmeow:TopologyClaim that gmeow:claimForComputation it, gmeow:extendsToGlobalSection, and gmeow:dischargesObstruction; a raw result asserted as global truth without a genuinely typed claim wrapper and a discharged H¹ gluing obstruction is forbidden — a computed feature is a math:LocalSection, not a global truth." ;
     logic:integrity gmeow:artForall .
 gmeow:artForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Asserted-topology-result formula"@x-gmeow-english ;
+    skos:definition "The top-level, GOVERNING ∀→∃(∧∧) integrity formula of gmeow:AssertedTopologyResultConstraint: a gmeow:TopologyComputation asserting a global truth must be discharged by a genuinely typed gmeow:TopologyClaim that extends its local data to a math:GlobalSection and discharges the H¹ math:GluingObstruction."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:artImpl .
 gmeow:artImpl a logic:Formula ; logic:antecedent gmeow:artGuard ; logic:consequent gmeow:artDischarged .
@@ -560,6 +578,9 @@ gmeow:ResultObjectConflationConstraint
     logic:message "A gmeow:TopologyComputation's gmeow:producesResult value must be TYPED gmeow:TopologyResult and must NOT itself be typed in the math: namespace; an untyped result, or one conflated with a raw math: object, is gmeow:ResultObjectConflation." ;
     logic:integrity gmeow:rocForall .
 gmeow:rocForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "Result-object-conflation formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→(∃∧¬∃) integrity formula of gmeow:ResultObjectConflationConstraint: a gmeow:TopologyComputation's gmeow:producesResult value must be typed gmeow:TopologyResult and must not itself be typed in the math: namespace."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:rocImpl .
 gmeow:rocImpl a logic:Formula ; logic:antecedent gmeow:rocGuard ; logic:consequent gmeow:rocConsequent .

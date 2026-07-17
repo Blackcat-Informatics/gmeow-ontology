@@ -1375,7 +1375,7 @@ ex:ecAdjunctionInconsistent a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/adjunction-inconsistent.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example links a boundary math:CellIncidence and its declared transpose coboundary math:CellIncidence (math:adjointIncidence) carrying disagreeing ±1 signs (+1 vs −1), so the adjunction δ = ∂* fails; the sh:sparql constraint of math:BoundaryCoboundaryAdjunctionConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundaryCoboundaryAdjunction). The two incidences are on disjoint cells, forming no boundary composition the general-sum constraint would score, isolating the single violation." .
+    gmeow:conformanceRationale "The counter-example links a boundary math:CellIncidence and its declared transpose coboundary math:CellIncidence (math:adjointIncidence) — a TRUE transpose pair naming the SAME two cells with their incidenceCoface/incidenceFace endpoints swapped — carrying disagreeing ±1 signs (+1 vs −1), so the adjunction δ = ∂* fails; the sh:sparql constraint of math:BoundaryCoboundaryAdjunctionConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundaryCoboundaryAdjunction). No math:incidentTo relation is asserted between the two cells, so no boundary composition the general-sum constraint would score can form, isolating the single violation." .
 
 ex:ecCochainComplexNoCoboundary a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/cochain-complex-no-coboundary.ttl" ;

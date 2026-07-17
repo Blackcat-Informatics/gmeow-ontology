@@ -12,6 +12,7 @@
 # assertion, not a result-object conflation.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
 
 ex:computationBad a gmeow:TopologyComputation ;
@@ -21,4 +22,4 @@ ex:computationBad a gmeow:TopologyComputation ;
 ex:result a gmeow:TopologyResult ;
     gmeow:resultArtifact ex:diagram .
 
-ex:diagram a gmeow:TopologyResult .               # opaque referent stand-in (NOT math-typed)
+ex:diagram a math:PersistenceDiagram .            # pure math: referent (NOT gmeow:TopologyResult)
