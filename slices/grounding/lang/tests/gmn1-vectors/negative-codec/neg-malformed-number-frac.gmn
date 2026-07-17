@@ -1,3 +1,2 @@
 @gmn{v: 1, aliases: dict-v3, glyphs: 2}
-@c{s: gate1, p: hasState, o: doorGate1, q: 9.5e-1}
 @c{s: gate2, p: hasState, o: doorGate2, q: 0.951}
