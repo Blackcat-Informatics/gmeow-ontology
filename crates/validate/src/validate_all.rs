@@ -600,6 +600,22 @@ impl ValidationRun {
             authoring.extend(crate::authoring_integrity::module_iri_findings(
                 project_root,
             )?);
+            // R3: term-declaration + language-tag discipline. Reuse the live
+            // declared-term authority (Phase 6) — no re-derivation.
+            let declared_set: std::collections::BTreeSet<String> =
+                declared_terms.iter().cloned().collect();
+            authoring.extend(
+                crate::authoring_integrity::example_undeclared_term_findings(
+                    project_root,
+                    &declared_set,
+                )?,
+            );
+            authoring.extend(crate::authoring_integrity::slice_source_untagged_findings(
+                project_root,
+            )?);
+            authoring.extend(
+                crate::authoring_integrity::nonslice_authored_untagged_findings(project_root)?,
+            );
             for finding in authoring
                 .into_iter()
                 .filter(|finding| finding.severity == Severity::Error)

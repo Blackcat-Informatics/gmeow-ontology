@@ -595,6 +595,434 @@ pub fn module_iri_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     Ok(findings)
 }
 
+// ── R3: term-declaration + language-tag discipline ───────────────────────────
+
+use std::collections::BTreeSet;
+
+/// A minimal [`crate::lint::LintConfig`] for declared-term collection — only
+/// `namespace` is read by `collect_typed_terms_dataset` (it filters GMEOW terms).
+fn minimal_lint_cfg() -> crate::lint::LintConfig {
+    crate::lint::LintConfig {
+        namespace: GMEOW_NS.to_string(),
+        ontology_iri: ONTOLOGY_IRI.to_string(),
+        selector_tokens: BTreeSet::new(),
+        core_slice_iris: std::collections::HashSet::new(),
+        annotation_predicates: std::collections::HashSet::new(),
+    }
+}
+
+/// The authored GMEOW vocabulary sources — the files that MINT terms: the root
+/// ontology, every slice module, the slice-manifest vocabulary, the test-DSL and
+/// mapping/statement DSL vocabularies, and the authored shapes. A term is
+/// "declared" iff it is a typed subject in one of these (the same universe the
+/// deleted gate's declared set + the DSL vocabularies covered).
+fn vocabulary_source_files(repo_root: &Path) -> Vec<PathBuf> {
+    let mut files = vec![repo_root.join("ontology/gmeow.ttl")];
+    files.extend(slice_module_files(&repo_root.join("slices")));
+    for optional in [
+        "slices/vocabulary.ttl",
+        "dsl/tests/vocabulary.ttl",
+        "shapes/gmeow-shapes.ttl",
+    ] {
+        let p = repo_root.join(optional);
+        if p.is_file() {
+            files.push(p);
+        }
+    }
+    files.extend(ttl_recursive(&repo_root.join("dsl/mappings")));
+    files.extend(ttl_recursive(&repo_root.join("dsl/statements")));
+    files.sort();
+    files.dedup();
+    files
+}
+
+/// The declared GMEOW vocabulary terms — the single authority
+/// [`crate::lint::declared_terms_dataset`] over the merged vocabulary sources (NOT
+/// a re-derivation). The typed-term set is the canonical "declared vocabulary"; an
+/// undeclared predicate a fixture/example uses is the silent typo SHACL leaves
+/// inert.
+pub fn declared_ontology_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
+    use purrdf::slice::rdf_query::DatasetAccumulator;
+    let mut acc = DatasetAccumulator::new();
+    for source in vocabulary_source_files(repo_root) {
+        let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
+        acc.add_turtle(&bytes, &source.display().to_string())
+            .map_err(|e| parse_err(&source, &e.to_string()))?;
+    }
+    let ds = acc
+        .freeze()
+        .map_err(|e| parse_err(repo_root, &e.to_string()))?;
+    Ok(
+        crate::lint::declared_terms_dataset(ds.inner(), &minimal_lint_cfg())
+            .into_iter()
+            .collect(),
+    )
+}
+
+/// Every GMEOW-namespace vocabulary term used in a dataset (any triple position),
+/// excluding instance IRIs (the `…/examples/` and `…/example/` worked-example
+/// namespaces — the latter is the Rust-referenced convention in
+/// `logic-compile`/`docs`) and ontology-module IRIs (`…/modules/`).
+fn gmeow_vocab_terms(ds: &Dataset) -> BTreeSet<String> {
+    let examples = format!("{GMEOW_NS}examples/");
+    let example = format!("{GMEOW_NS}example/");
+    let modules = format!("{GMEOW_NS}modules/");
+    let mut out = BTreeSet::new();
+    let mut consider = |iri: &str| {
+        if iri.starts_with(GMEOW_NS)
+            && !iri.starts_with(&examples)
+            && !iri.starts_with(&example)
+            && !iri.starts_with(&modules)
+        {
+            out.insert(iri.to_string());
+        }
+    };
+    ds.for_each_quad(|s, p, o, _g| {
+        if let Subject::Named(iri) = &s {
+            consider(iri);
+        }
+        consider(p);
+        if let Object::Named(iri) = &o {
+            consider(iri);
+        }
+    });
+    out
+}
+
+/// The pure "uses only declared terms" logic over already-parsed files.
+fn detect_undeclared_terms(
+    declared: &BTreeSet<String>,
+    files: &[(PathBuf, Dataset)],
+    root: &Path,
+) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    for (path, ds) in files {
+        let undeclared: Vec<String> = gmeow_vocab_terms(ds)
+            .into_iter()
+            .filter(|t| !declared.contains(t))
+            .collect();
+        for term in undeclared {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_UNDECLARED_TERM,
+                format!(
+                    "{file} references undeclared GMEOW term {term} — declare it or fix the typo",
+                    file = rel(path, root),
+                ),
+                Some(term),
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    findings
+}
+
+/// Load every `*.ttl` under a glob-like set of directories.
+fn load_ttl_files(paths: &[PathBuf]) -> Result<Vec<(PathBuf, Dataset)>> {
+    let mut out = Vec::with_capacity(paths.len());
+    for p in paths {
+        out.push((p.clone(), parse_ttl(p)?));
+    }
+    Ok(out)
+}
+
+/// `*.ttl` directly in a directory (non-recursive), sorted.
+fn ttl_in_dir(dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "ttl") && path.is_file() {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// `*.ttl` recursively under a directory, sorted.
+fn ttl_recursive(dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&d) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() && !path.is_symlink() {
+                stack.push(path);
+            } else if path.extension().is_some_and(|e| e == "ttl") {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// Every `slices/*/*/examples/*.ttl`, sorted.
+fn slice_example_files(slices_dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    for module in slice_module_files(slices_dir) {
+        if let Some(slice_dir) = module.parent() {
+            out.extend(ttl_in_dir(&slice_dir.join("examples")));
+        }
+    }
+    out.sort();
+    out
+}
+
+/// R3b: slice worked examples reference only declared terms.
+pub fn example_undeclared_term_findings(
+    repo_root: &Path,
+    declared: &BTreeSet<String>,
+) -> Result<Vec<Finding>> {
+    let files = load_ttl_files(&slice_example_files(&repo_root.join("slices")))?;
+    Ok(detect_undeclared_terms(declared, &files, repo_root))
+}
+
+/// R3a: coverage fixtures reference only declared terms.
+pub fn coverage_fixture_undeclared_findings(
+    repo_root: &Path,
+    declared: &BTreeSet<String>,
+) -> Result<Vec<Finding>> {
+    let files = load_ttl_files(&ttl_in_dir(&repo_root.join("tests/fixtures/coverage")))?;
+    Ok(detect_undeclared_terms(declared, &files, repo_root))
+}
+
+/// The pure "localizable literals carry a language tag" logic. A literal object of
+/// a localizable predicate with NO language tag is a distinct, untranslatable RDF
+/// term (the retired `*_localizable_literals_are_language_tagged`).
+fn detect_untagged_localizable(files: &[(PathBuf, Dataset)], root: &Path) -> Vec<Finding> {
+    let localizable: BTreeSet<&str> = crate::localizable::LOCALIZABLE_PREDICATES
+        .iter()
+        .copied()
+        .collect();
+    let mut findings = Vec::new();
+    for (path, ds) in files {
+        let mut hits: Vec<String> = Vec::new();
+        ds.for_each_quad(|_s, p, o, _g| {
+            if localizable.contains(p)
+                && let Object::Literal {
+                    value, language, ..
+                } = &o
+                && language.is_none()
+            {
+                hits.push(format!("{p} \"{value}\""));
+            }
+        });
+        hits.sort();
+        hits.dedup();
+        for hit in hits {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
+                format!(
+                    "{file}: localizable literal {hit} carries no language tag — add \
+                     @x-gmeow-english (a plain literal is untranslatable)",
+                    file = rel(path, root),
+                ),
+                None,
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    findings
+}
+
+/// R3c: every localizable literal in slice source (`module.ttl`, `shapes.ttl`,
+/// `mappings/*.ttl`, `examples/*.ttl`) carries a language tag.
+pub fn slice_source_untagged_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let slices = repo_root.join("slices");
+    let mut paths = Vec::new();
+    for module in slice_module_files(&slices) {
+        paths.push(module.clone());
+        if let Some(dir) = module.parent() {
+            let shapes = dir.join("shapes.ttl");
+            if shapes.is_file() {
+                paths.push(shapes);
+            }
+            paths.extend(ttl_recursive(&dir.join("mappings")));
+            paths.extend(ttl_in_dir(&dir.join("examples")));
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    let files = load_ttl_files(&paths)?;
+    Ok(detect_untagged_localizable(&files, repo_root))
+}
+
+/// R3d: every localizable literal in hand-authored non-slice source (`shapes/*.ttl`,
+/// `governance/*.ttl`, `dsl/mappings/**/*.ttl`, `dsl/statements/**/*.ttl`) carries a
+/// language tag.
+pub fn nonslice_authored_untagged_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let mut paths = ttl_in_dir(&repo_root.join("shapes"));
+    paths.extend(ttl_in_dir(&repo_root.join("governance")));
+    paths.extend(ttl_recursive(&repo_root.join("dsl/mappings")));
+    paths.extend(ttl_recursive(&repo_root.join("dsl/statements")));
+    paths.sort();
+    paths.dedup();
+    let files = load_ttl_files(&paths)?;
+    Ok(detect_untagged_localizable(&files, repo_root))
+}
+
+/// Retired terms permitted to appear in historical/migration docs prose.
+const RETIRED_DOCS_TERMS: &[&str] = &["alternateName", "gender", "sex"];
+
+/// Documentation-only GMEOW names permitted in docs prose/examples — intentionally
+/// NOT declared terms, allowlisted exactly (the analogue of the retired
+/// `_RETIRED_DOCS_TERMS`): a retired documentation-only shape recorded for
+/// historical context, and a migration-guide illustrative `logic:Constraint` name.
+const DOCS_DOCUMENTATION_ONLY_TERMS: &[&str] = &[
+    // The standpoint module records this retired documentation-only shape in prose.
+    "StandpointCoexistenceShape",
+    // MIGRATING-SHAPES-TO-LOGIC.md's illustrative constraint, paired with the real
+    // gmeow:ClaimNeedsEvidenceShape it would replace.
+    "ClaimNeedsEvidenceConstraint",
+];
+
+/// Extract every `gmeow:LocalName` referenced in a markdown document — inside
+/// fenced ```turtle blocks (backticked and bare) and inline `` `gmeow:Name` `` —
+/// as full IRIs. Pure over the text, so a unit test can drive it.
+fn extract_gmeow_terms_from_markdown(text: &str) -> BTreeSet<String> {
+    use regex::Regex;
+    // Compiled once per call — docs corpora are small and this runs off-gate.
+    let inline = Regex::new(r"`gmeow:([A-Za-z][A-Za-z0-9_]*)`").expect("static regex");
+    let bare = Regex::new(r"\bgmeow:([A-Za-z][A-Za-z0-9_]*)\b").expect("static regex");
+    let fence = Regex::new(r"(?s)```turtle\n(.*?)\n```").expect("static regex");
+    let mut out = BTreeSet::new();
+    let mut add = |name: &str| {
+        out.insert(format!("{GMEOW_NS}{name}"));
+    };
+    // Fenced turtle blocks: both backticked and bare prefixed names.
+    for block in fence.captures_iter(text) {
+        let body = &block[1];
+        for cap in inline.captures_iter(body) {
+            add(&cap[1]);
+        }
+        for cap in bare.captures_iter(body) {
+            add(&cap[1]);
+        }
+    }
+    // Inline backticked terms anywhere in the prose.
+    for cap in inline.captures_iter(text) {
+        add(&cap[1]);
+    }
+    out
+}
+
+/// Every GMEOW-namespace term appearing in ANY triple position across a set of TTL
+/// files — the set of real term IRIs a doc example may legitimately name (a shape
+/// named only as a `logic:formalizes` object is still a real term). A docs `gmeow:`
+/// reference is a typo only when it appears NOWHERE in the authored/generated
+/// ontology. Instance IRIs (`…/example(s)/`, `…/modules/`) are excluded.
+fn gmeow_terms_any_position(files: &[PathBuf]) -> Result<BTreeSet<String>> {
+    let mut out = BTreeSet::new();
+    for path in files {
+        let ds = parse_ttl(path)?;
+        out.extend(gmeow_vocab_terms(&ds));
+    }
+    Ok(out)
+}
+
+/// The `docs/*.md` files (top-level, non-recursive), sorted.
+fn docs_md_files(repo_root: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(repo_root.join("docs")) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "md") && path.is_file() {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// Every `gmeow:` term referenced across the docs corpus — exposed so the gate's
+/// non-vacuity guard can prove the fence/inline extractor is not silently
+/// yielding an empty set (a broken regex would otherwise pass vacuously).
+pub fn docs_gmeow_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
+    let mut out = BTreeSet::new();
+    for md in docs_md_files(repo_root) {
+        let text = std::fs::read_to_string(&md).map_err(|e| io_err(&md, &e))?;
+        out.extend(extract_gmeow_terms_from_markdown(&text));
+    }
+    Ok(out)
+}
+
+/// The allowlist of `gmeow:` terms a doc example may legitimately name: every
+/// GMEOW-namespace SUBJECT declared across the root ontology + slice modules
+/// (which mint the classes, properties, and shape individuals), the authored
+/// `gmeow-shapes.ttl`, the slice-manifest vocabulary, the test-DSL vocabulary, the
+/// mapping/statement DSL sources, plus the retired-terms prose allowance. This
+/// mirrors the retired `_docs_allowlist` exactly.
+fn docs_allowlist(repo_root: &Path) -> Result<BTreeSet<String>> {
+    let mut files = vec![repo_root.join("ontology/gmeow.ttl")];
+    files.extend(slice_module_files(&repo_root.join("slices")));
+    for optional in [
+        "shapes/gmeow-shapes.ttl",
+        "slices/vocabulary.ttl",
+        "dsl/tests/vocabulary.ttl",
+    ] {
+        let p = repo_root.join(optional);
+        if p.is_file() {
+            files.push(p);
+        }
+    }
+    files.extend(ttl_recursive(&repo_root.join("dsl/mappings")));
+    files.extend(ttl_recursive(&repo_root.join("dsl/statements")));
+    // Slice shape files declare shape IRIs a doc may name; the derived SHACL shapes
+    // and the shape-grounding ledger carry the logic:formalizes shape names.
+    for module in slice_module_files(&repo_root.join("slices")) {
+        if let Some(dir) = module.parent() {
+            let shapes = dir.join("shapes.ttl");
+            if shapes.is_file() {
+                files.push(shapes);
+            }
+        }
+    }
+    files.extend(ttl_in_dir(&repo_root.join("generated/shapes")));
+    files.extend(ttl_in_dir(&repo_root.join("generated/logic")));
+    files.sort();
+    files.dedup();
+    let mut allow = gmeow_terms_any_position(&files)?;
+    for name in RETIRED_DOCS_TERMS
+        .iter()
+        .chain(DOCS_DOCUMENTATION_ONLY_TERMS)
+    {
+        allow.insert(format!("{GMEOW_NS}{name}"));
+    }
+    Ok(allow)
+}
+
+/// R3e: user-copyable docs examples reference only allowlisted `gmeow:` terms.
+pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let allow = docs_allowlist(repo_root)?;
+    let mut findings = Vec::new();
+    for md in docs_md_files(repo_root) {
+        let text = std::fs::read_to_string(&md).map_err(|e| io_err(&md, &e))?;
+        for term in extract_gmeow_terms_from_markdown(&text) {
+            if !allow.contains(&term) {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::AUTHORING_UNDECLARED_TERM,
+                    format!(
+                        "docs example {file} references unallowlisted GMEOW term {term}",
+                        file = rel(&md, repo_root),
+                    ),
+                    Some(term),
+                ));
+            }
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    Ok(findings)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -605,6 +1033,7 @@ mod tests {
              @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
              @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
              @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
              @prefix dcterms: <http://purl.org/dc/terms/> .\n\
              @prefix ex: <https://example.org/> .\n";
         Dataset::parse_turtle(format!("{prefixes}{ttl}").as_bytes(), "test").unwrap()
@@ -813,6 +1242,79 @@ mod tests {
         assert_eq!(
             expected,
             "https://blackcatinformatics.ca/gmeow/slices/temporal"
+        );
+    }
+
+    #[test]
+    fn undeclared_term_fires_on_a_term_absent_from_the_declared_set() {
+        let declared: BTreeSet<String> =
+            ["https://blackcatinformatics.ca/gmeow/Person".to_string()]
+                .into_iter()
+                .collect();
+        // Uses gmeow:Person (declared) and gmeow:hasBogusProp (undeclared).
+        let d = ds("ex:x a gmeow:Person ; gmeow:hasBogusProp ex:y .");
+        let findings =
+            detect_undeclared_terms(&declared, &[(PathBuf::from("f.ttl"), d)], Path::new(""));
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].code, codes::AUTHORING_UNDECLARED_TERM);
+        assert!(findings[0].message.contains("hasBogusProp"));
+    }
+
+    #[test]
+    fn vocab_terms_exclude_examples_and_modules_iris() {
+        let d = ds("gmeow:RealTerm a gmeow:Class .\n\
+             <https://blackcatinformatics.ca/gmeow/examples/foo> a gmeow:RealTerm .\n\
+             <https://blackcatinformatics.ca/gmeow/modules/bar> a gmeow:RealTerm .");
+        let terms = gmeow_vocab_terms(&d);
+        assert!(terms.contains("https://blackcatinformatics.ca/gmeow/RealTerm"));
+        assert!(!terms.iter().any(|t| t.contains("/examples/")));
+        assert!(!terms.iter().any(|t| t.contains("/modules/")));
+    }
+
+    #[test]
+    fn untagged_localizable_literal_fires_and_tagged_is_clean() {
+        // rdfs:label untagged → flagged; skos:definition tagged → clean.
+        let bad = ds("ex:x rdfs:label \"plain\" ; skos:definition \"tagged\"@x-gmeow-english .");
+        let findings = detect_untagged_localizable(&[(PathBuf::from("m.ttl"), bad)], Path::new(""));
+        assert_eq!(findings.len(), 1, "only the untagged label is flagged");
+        assert_eq!(
+            findings[0].code,
+            codes::AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL
+        );
+        assert!(findings[0].message.contains("label"));
+    }
+
+    #[test]
+    fn untagged_ignores_non_localizable_predicates() {
+        // A plain literal on a NON-localizable predicate is not a translation concern.
+        let d = ds("ex:x ex:count \"42\" .");
+        assert!(
+            detect_untagged_localizable(&[(PathBuf::from("m.ttl"), d)], Path::new("")).is_empty()
+        );
+    }
+
+    #[test]
+    fn docs_markdown_extraction_finds_fenced_and_inline_terms() {
+        let md = "# Doc\n\nUse `gmeow:Person` inline.\n\n```turtle\n\
+             ex:a a gmeow:Organization ; `gmeow:memberOf` ex:b .\n```\n";
+        let terms = extract_gmeow_terms_from_markdown(md);
+        assert!(terms.contains("https://blackcatinformatics.ca/gmeow/Person"));
+        assert!(terms.contains("https://blackcatinformatics.ca/gmeow/Organization"));
+        assert!(terms.contains("https://blackcatinformatics.ca/gmeow/memberOf"));
+    }
+
+    #[test]
+    fn docs_term_absent_from_every_allowlist_source_is_flagged() {
+        // The firing negative for R3e: a fenced turtle term in no allowlist source.
+        let md = "```turtle\nex:a `gmeow:TotallyUndeclaredXyz` ex:b .\n```";
+        let terms = extract_gmeow_terms_from_markdown(md);
+        let allow: BTreeSet<String> = BTreeSet::new();
+        let unallowed: Vec<&String> = terms.iter().filter(|t| !allow.contains(*t)).collect();
+        assert!(
+            unallowed
+                .iter()
+                .any(|t| t.ends_with("/TotallyUndeclaredXyz")),
+            "an unallowlisted docs term must be flagged: {unallowed:?}"
         );
     }
 }
