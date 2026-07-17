@@ -15,11 +15,11 @@
 ep:saObservationRetrievalDisjoint a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
-    gmeow:saRationale "gmeow:SimilarityObservation must be owl:disjointWith gmeow:RetrievalEvent (AC2 non-duplication)." ;
+    gmeow:saRationale "gmeow:SimilarityObservation must be logic:disjointWith gmeow:RetrievalEvent (AC2 non-duplication); the boundary axiom is authored in the canonical logic: grounding form (Principle 17)." ;
     gmeow:saPattern """
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-        PREFIX owl: <http://www.w3.org/2002/07/owl#>
-        ASK { gmeow:SimilarityObservation owl:disjointWith gmeow:RetrievalEvent }
+        PREFIX logic: <https://blackcatinformatics.ca/logic/>
+        ASK { gmeow:SimilarityObservation logic:disjointWith gmeow:RetrievalEvent }
     """ .
 
 # F1 boundary axiom: an EmbeddingProjection AGGREGATES embeddings, it is not a
@@ -27,11 +27,11 @@ ep:saObservationRetrievalDisjoint a gmeow:StructuralAssertion ;
 ep:saProjectionNotSubclassEmbedding a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
-    gmeow:saRationale "gmeow:EmbeddingProjection must NOT be rdfs:subClassOf gmeow:Embedding — it aggregates via gmeow:aggregatesEmbedding (AC2)." ;
+    gmeow:saRationale "gmeow:EmbeddingProjection must NOT be logic:subClassOf gmeow:Embedding — it aggregates via gmeow:aggregatesEmbedding (AC2); subsumption is authored in the canonical logic: grounding form (Principle 17)." ;
     gmeow:saPattern """
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        ASK { gmeow:EmbeddingProjection rdfs:subClassOf gmeow:Embedding }
+        PREFIX logic: <https://blackcatinformatics.ca/logic/>
+        ASK { gmeow:EmbeddingProjection logic:subClassOf gmeow:Embedding }
     """ .
 
 # CT11: no banned legacy RDF-1.1 container vocabulary in the module or its examples.
