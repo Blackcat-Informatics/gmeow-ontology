@@ -25,6 +25,8 @@
 @prefix rcf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/> .
 @prefix cov:   <https://blackcatinformatics.ca/gmeow/examples/math/coverage/> .
 @prefix covf:  <http://example.org/math/coverage/> .
+# The worked graded cell complex (examples/graded-cell-complex.ttl).
+@prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -2435,6 +2437,41 @@ ex:rowCoverageHodgeStalk a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:hodgeComplex ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:hodgeStalk ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:hodgeRestriction ] .
+
+ex:cqCoverageGradedCell a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/graded-cell-frame.rq" ;
+    gmeow:cqDataFile "examples/graded-cell-complex.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A graded cell complex exposes each cell's grade (math:cellDimension) and the exact ±1 sign of each reified boundary math:CellIncidence as separate reusable data. Over the worked triangle the coface of every signed incidence is the 2-cell faceABC (grade exg:dim2), and the answer is exactly the three signed boundary coefficients of ∂(faceABC) = +edgeAB + edgeBC − edgeAC." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageGradedCellShape ;
+    gmeow:cqExpectRow ex:rowGradedCellAB , ex:rowGradedCellAC , ex:rowGradedCellBC .
+
+ex:cqCoverageGradedCellShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "cell" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "incidence" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sign" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGradedCellAB a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cell" ; gmeow:cellValueIri exg:faceABC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceAB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "1" ] .
+
+ex:rowGradedCellAC a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cell" ; gmeow:cellValueIri exg:faceABC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceAC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "-1" ] .
+
+ex:rowGradedCellBC a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cell" ; gmeow:cellValueIri exg:faceABC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceBC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "1" ] .
 
 ex:cqCoverageCliffordExtension a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/clifford-extension-frame.rq" ;

@@ -7158,6 +7158,95 @@ math:CoboundaryOperator
     skos:definition "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Graded cells, incidence, and orientation ------------------------------ #
+# The building blocks a math:CellComplex is assembled from: a graded math:Cell,
+# the reified signed math:CellIncidence carrying the ±1 boundary coefficient, and
+# the open math:CellOrientation vocabulary. math:incidentTo is the unsigned
+# codimension-1 face relation the boundary operator runs over; it is load-bearing
+# for the boundary-square-zero law (∂∘∂ = 0), which is enforced downstream by the
+# boundary-square-zero constraint predicating over it. This surface covers the
+# PRESENCE of the boundary sign; the COHERENCE of the signs is a separate law.
+
+math:Cell
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cell"@x-gmeow-english ;
+    skos:definition "One graded cell of a math:CellComplex: an n-dimensional building block — a 0-cell vertex, a 1-cell edge, a 2-cell face, and so on — whose grade n is fixed by math:cellDimension and whose codimension-1 faces are named through math:incidentTo. A subclass of math:MathematicalObject that carries its own grade and, optionally, its math:orientation. It is NOT the whole math:CellComplex it belongs to, NOT a math:SheafStalk sitting over a cell, and NOT a math:BettiNumber counting cells of a grade — it is a single graded cell, and a cell whose dimension is left implicit is ill-formed (math:IncompleteCell)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CellIncidence
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cell Incidence"@x-gmeow-english ;
+    skos:definition "A reified, signed incidence between a coface and one of its codimension-1 faces: it names the higher cell (math:incidenceCoface), the lower cell (math:incidenceFace), and the exact orientation sign ±1 (math:incidenceSign) that the boundary operator attaches to that face. A subclass of math:MathematicalObject reifying one entry of the signed boundary (incidence) matrix so the sign is inspectable. It is NOT bare set-membership and NOT the unsigned math:incidentTo adjacency, and NOT a math:SheafRestrictionMap transporting stalk data along an incidence — it is the signed boundary coefficient itself. An incidence missing its coface, face, or sign is ill-formed (math:UnorientedIncidence)."@x-gmeow-english ;
+    skos:scopeNote "This class carries the PRESENCE of a boundary sign on a single incidence. The COHERENCE of the signs — that composing incidences around any cell makes the twice-applied boundary vanish (∂∘∂ = 0) — is enforced downstream by the boundary-square-zero constraint predicating over math:incidentTo, not here: this surface covers sign presence, that constraint covers sign coherence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CellOrientation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cell Orientation"@x-gmeow-english ;
+    skos:definition "The orientation a math:Cell carries: the chosen sign of an ordering of the cell — one of math:positivelyOriented or math:negativelyOriented. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), exactly like math:MonotonicityKind, so a new orientation convention joins by minting an individual. A cell names its orientation through math:orientation. It is NOT the incidence sign ±1 (that is math:incidenceSign on a math:CellIncidence) and NOT a numeric coordinate — it is the qualitative choice of the cell's own orientation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the type of a cell's chosen orientation — the reference (+) sense or its reversal (−)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not model it as an owl:oneOf enumeration and do not conflate it with the ±1 math:incidenceSign; a new orientation convention joins by minting a math:NamedIndividual."@x-gmeow-english ;
+    gmeow:howToUse "Attach one of its members to a math:Cell through math:orientation."@x-gmeow-english ;
+    skos:example "exg:faceABC math:orientation math:positivelyOriented ."@x-gmeow-english .
+
+math:positivelyOriented
+    a owl:NamedIndividual , math:CellOrientation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "positively oriented"@x-gmeow-english ;
+    skos:definition "Positive orientation: the math:CellOrientation naming a cell's chosen ordering as the reference (+) orientation. A member of the open math:CellOrientation vocabulary; it is the orientation whose signed boundary the math:incidenceSign coefficients are read relative to."@x-gmeow-english .
+
+math:negativelyOriented
+    a owl:NamedIndividual , math:CellOrientation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "negatively oriented"@x-gmeow-english ;
+    skos:definition "Negative orientation: the math:CellOrientation naming the reversal of the reference ordering — the (−) orientation. A member of the open math:CellOrientation vocabulary; reversing a cell's orientation flips the sign the boundary operator attaches to it."@x-gmeow-english .
+
+math:cellDimension
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cell dimension (grade)"@x-gmeow-english ;
+    skos:definition "Relates a math:Cell to the math:NaturalNumber that is its grade n — 0 for a vertex, 1 for an edge, 2 for a face, and so on. Domain math:Cell, range math:NaturalNumber (stated in prose). The single canonical carrier of a cell's grade: 'grade' is only a synonym in this label, never a second property (there is no math:grade). A cell whose dimension is left implicit is ill-formed (math:IncompleteCell)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasCell
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has cell"@x-gmeow-english ;
+    skos:definition "Relates a math:CellComplex to one of the math:Cells it is assembled from. Domain math:CellComplex, range math:Cell (stated in prose). The complex names its cells explicitly rather than leaving them implicit in a mesh or partition, so each cell's grade and incidences are first-class and inspectable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:incidentTo
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "incident to"@x-gmeow-english ;
+    skos:definition "Relates a math:Cell to a codimension-1 face of it — the lower-dimensional cell attached along its boundary. Domain math:Cell, range math:Cell (stated in prose). This is the unsigned face relation the boundary operator runs over, and it is load-bearing for the boundary-square-zero law (∂∘∂ = 0): the downstream boundary-square-zero constraint predicates over this relation. It is NOT the signed math:CellIncidence — the ±1 sign lives on the reified incidence; this names only which cell is a codimension-1 face of which."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:incidenceCoface
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "incidence coface"@x-gmeow-english ;
+    skos:definition "Relates a math:CellIncidence to its coface — the higher-dimensional cell on whose boundary the incidence sits. Domain math:CellIncidence, range math:Cell (stated in prose). An incidence missing its coface is ill-formed (math:UnorientedIncidence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:incidenceFace
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "incidence face"@x-gmeow-english ;
+    skos:definition "Relates a math:CellIncidence to its face — the codimension-1 cell that the coface's boundary passes through. Domain math:CellIncidence, range math:Cell (stated in prose). An incidence missing its face is ill-formed (math:UnorientedIncidence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:incidenceSign
+    a owl:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "incidence sign"@x-gmeow-english ;
+    skos:definition "Relates a math:CellIncidence to the exact orientation sign the boundary operator attaches to its face: the integer +1 or −1, carried as an exact xsd:integer and never a decimal. Domain math:CellIncidence, range xsd:integer, whose only well-formed values are +1 and −1 (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean). An incidence missing its sign is ill-formed (math:UnorientedIncidence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:orientation
+    a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "orientation"@x-gmeow-english ;
+    skos:definition "Relates a math:Cell to the math:CellOrientation it carries — math:positivelyOriented or math:negativelyOriented. Domain math:Cell, range math:CellOrientation (stated in prose). It records the cell's own chosen orientation, distinct from the ±1 math:incidenceSign that a math:CellIncidence attaches to a boundary face."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:VietorisRipsComplex
     a owl:Class ; logic:subClassOf math:SimplicialComplex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -8281,6 +8370,20 @@ math:IncompleteHamiltonianSystem
     skos:definition "The failure raised when a Hamiltonian system lacks its smooth state space, symplectic form, Hamiltonian function, or generated Hamiltonian flow."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:IncompleteCell
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Cell"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Cell lacks its math:cellDimension: a cell whose grade is not declared is ill-formed, because the dimension is constitutive — an undimensioned cell cannot sit in the graded boundary chain of a math:CellComplex, and its faces cannot be placed one grade below it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnorientedIncidence
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unoriented Incidence"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:CellIncidence lacks its math:incidenceCoface, its math:incidenceFace, or its math:incidenceSign: a signed incidence missing its coface, its face, or its ±1 sign is ill-formed, because all three are constitutive of a boundary coefficient. This is the executable boundary-orientation coverage: it enforces the PRESENCE of the boundary sign on each incidence. The COHERENCE of the signs — that the twice-applied boundary vanishes (∂∘∂ = 0) — is a separate law enforced downstream by the boundary-square-zero constraint, not by this frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 math:IncompleteCellularSheaf
     a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -8402,6 +8505,29 @@ math:HamiltonianSystem logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:generatesFlow ; owl:maxQualifiedCardinality 1 ; owl:onClass math:HamiltonianFlow ] ,
     [ a owl:Restriction ; owl:onProperty math:generatesFlow ; owl:allValuesFrom math:HamiltonianFlow ] ;
     gmeow:enforcesFailureClass math:IncompleteHamiltonianSystem .
+
+# Graded-cell coverage: a math:Cell is well-formed only when its grade is
+# declared — the minQualifiedCardinality-1 + allValuesFrom pair on
+# math:cellDimension/math:NaturalNumber is an EL-safe restriction that derives the
+# paired sh:minCount + sh:class property shape; an undimensioned cell fails the
+# derived QualifiedMinCount and isolates math:IncompleteCell.
+math:Cell logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:cellDimension ; owl:minQualifiedCardinality 1 ; owl:onClass math:NaturalNumber ] ,
+    [ a owl:Restriction ; owl:onProperty math:cellDimension ; owl:allValuesFrom math:NaturalNumber ] ;
+    gmeow:enforcesFailureClass math:IncompleteCell .
+
+# Boundary-orientation coverage: a math:CellIncidence is well-formed only when all
+# three of its coface, face, and ±1 sign are present — three minQualifiedCardinality-1
+# restrictions (two onClass math:Cell, one onDataRange xsd:integer), each EL-safe and
+# each deriving a sh:qualifiedMinCount property shape. A missing coface, face, or sign
+# fails the derived QualifiedMinCount and isolates math:UnorientedIncidence. This frame
+# covers sign PRESENCE; sign COHERENCE (∂∘∂ = 0) is the downstream boundary-square-zero
+# constraint over math:incidentTo.
+math:CellIncidence logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:incidenceCoface ; owl:minQualifiedCardinality 1 ; owl:onClass math:Cell ] ,
+    [ a owl:Restriction ; owl:onProperty math:incidenceFace ; owl:minQualifiedCardinality 1 ; owl:onClass math:Cell ] ,
+    [ a owl:Restriction ; owl:onProperty math:incidenceSign ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
+    gmeow:enforcesFailureClass math:UnorientedIncidence .
 
 math:CellularSheaf logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:sheafBaseComplex ; owl:minQualifiedCardinality 1 ; owl:onClass math:CellComplex ] ,
@@ -12634,7 +12760,10 @@ math:BettiNumber a logic:AbstractIndividualType .
 math:BettiSummary a logic:AbstractIndividualType .
 math:BoundaryOperator a logic:AbstractIndividualType .
 math:CechComplex a logic:AbstractIndividualType .
+math:Cell a logic:AbstractIndividualType .
 math:CellComplex a logic:AbstractIndividualType .
+math:CellIncidence a logic:AbstractIndividualType .
+math:CellOrientation a logic:AbstractIndividualType .
 math:CellularSheaf a logic:AbstractIndividualType .
 math:ChainComplex a logic:AbstractIndividualType .
 math:CliffordAlgebra a logic:AbstractIndividualType .
@@ -12835,6 +12964,7 @@ math:UnscopedVariableOccurrence a logic:Situation .
 math:UnsituatedNumber a logic:Situation .
 math:UnwiredFlagshipScenario a logic:Situation .
 math:WrongE8WeylOrder a logic:Situation .
+math:IncompleteCell a logic:Situation .
 math:IncompleteCellularSheaf a logic:Situation .
 math:IncompleteCliffordAlgebra a logic:Situation .
 math:IncompleteCliffordExtension a logic:Situation .
@@ -12845,4 +12975,5 @@ math:IncompleteInformationMeasure a logic:Situation .
 math:IncompleteMapperConstruction a logic:Situation .
 math:IncompletePersistentHomologyAnalysis a logic:Situation .
 math:IncompleteVectorSymbolicOperation a logic:Situation .
+math:UnorientedIncidence a logic:Situation .
 math:ZeroDenominator a logic:Situation .

@@ -1206,6 +1206,25 @@ ex:ecCellularSheafNoRestriction a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies a base complex and stalk but no restriction map, isolating math:IncompleteCellularSheaf." .
 
+# === Rule: a graded cell declares its dimension; a signed incidence its coface, face, and sign === #
+
+ex:ecGradedCellComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/graded-cell-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An oriented simplicial triangle: seven math:Cells each declaring a situated, exact math:cellDimension, the codimension-1 faces named through math:incidentTo, and the 2-cell's boundary reified as three signed math:CellIncidences (±1). It satisfies the derived math:Cell and math:CellIncidence frame shapes and validates with no findings." .
+
+ex:ecCellNoDimension a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cell-no-dimension.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:cellDimension on a math:Cell (sh:qualifiedMinCount 1 onClass math:NaturalNumber, derived from the math:Cell frame's exact-one qualified math:cellDimension restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCell)." .
+
+ex:ecIncidenceNoSign a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incidence-no-sign.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example supplies math:incidenceCoface and math:incidenceFace but omits math:incidenceSign on a math:CellIncidence (sh:qualifiedMinCount 1 onDataRange xsd:integer, derived from the math:CellIncidence frame's qualified math:incidenceSign restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnorientedIncidence). Its two referenced cells are fully dimensioned, so the missing sign is the single isolated violation." .
+
 ex:ecCliffordComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/clifford-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;

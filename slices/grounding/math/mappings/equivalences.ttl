@@ -1547,6 +1547,45 @@ gmeow:eqMathHomologyGroupWd a gmeow:TermEquivalence, logic:GroundingCorresponden
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
 
+gmeow:eqMathCellWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Cell ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q189061 ;
+    logic:sourceEndpoint math:Cell ; logic:targetEndpoint wd:Q189061 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "CW complex" ;
+    gmeow:comment "math:Cell is a single graded cell of a cell complex; wd:Q189061 (CW complex, 'type of topological space' built by attaching cells) is the complex a cell is a constituent of. A cell vs the complex it builds, close but not invertibly identical, so skos:closeMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathCellIncidenceWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:CellIncidence ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q939272 ;
+    logic:sourceEndpoint math:CellIncidence ; logic:targetEndpoint wd:Q939272 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "incidence matrix" ;
+    gmeow:comment "math:CellIncidence reifies one signed entry of the boundary (incidence) matrix — a coface, a codimension-1 face, and the ±1 orientation sign; wd:Q939272 (incidence matrix, 'matrix that shows the relationship between two classes of objects') is the whole matrix. A single signed incidence vs the whole matrix, so skos:closeMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathCellDimensionWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:cellDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q4440864 ;
+    logic:sourceEndpoint math:cellDimension ; logic:targetEndpoint wd:Q4440864 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "dimension" ;
+    gmeow:comment "math:cellDimension carries a cell's grade n — the dimension of the cell; wd:Q4440864 (dimension, 'maximum number of independent directions within a mathematical space') is the general dimension concept. The property carrying a cell's dimension vs the general concept, so skos:closeMatch; QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
 gmeow:eqMathTangentSpaceWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
     gmeow:alignSubject math:TangentSpace ;
     gmeow:alignPredicate skos:exactMatch ;
