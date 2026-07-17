@@ -70,6 +70,8 @@ pub mod crate_layering;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod crossref;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod distinctiveness;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod dsl;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod dsl_shacl;
