@@ -65,9 +65,12 @@ FAIL, never a silent degradation.
 
 ## 3. Identity mapping
 
-Every domain-separated identity PurRDF isolates in the container maps onto an
-exact GMEOW carrier. The mapping is total: nothing in the container's identity
-model is left without a graph-side term.
+Every domain-separated identity PurRDF isolates in the container maps onto a
+GMEOW carrier: no part of the container's identity model is left without a
+graph-side term. The mapping is total **at the carrier level**, but GMEOW is a
+super-ontology, not a byte-mirror of the container — it organizes one axis (the
+distance metric) at a different level than PurRDF, as the note after this table
+records. It is not a claim of fold-for-fold digest identity.
 
 | PurRDF `.purremb` domain-separated identity | GMEOW carrier |
 | --- | --- |
@@ -94,15 +97,32 @@ check the container's integrity claims without duplicating its bytes (Principle
 12).
 
 The domain separation is load-bearing. A `gmeow:EmbeddingFamily` is the model
-plus the full generation contract (model, inference engine, tokenizer,
-preprocessing, chunking, pooling, truncation, dtype, byte order, quantization)
-that produces and stores the top-dimensional matrix **once**; its
+plus the full generation contract (model, inference engine, execution
+configuration, tokenizer, subject-projection/text-serialization, preprocessing,
+chunking, pooling, generation-time normalization, truncation, dtype, byte order,
+quantization) that produces and stores the top-dimensional matrix **once**; its
 `gmeow:contentDigest` folds over that whole contract. A `gmeow:VectorSpaceContract`
 is an **effective** space — the full family space or a declared leading prefix of
-it (Matryoshka) — carrying only the effective dimension, metric, normalization,
-and prefix policy, anchored to its family by the functional
-`gmeow:effectiveOfFamily`. Comparability is therefore decidable by digest
-equality on the effective space, never by prose agreement.
+it (Matryoshka) — carrying the effective dimension, the distance metric, the
+per-prefix normalization, and the prefix policy, anchored to its family by the
+functional `gmeow:effectiveOfFamily`. Comparability is therefore decidable by
+digest equality on the effective space, never by prose agreement.
+
+**One deliberate divergence from PurRDF's identity structure.** PurRDF folds the
+distance metric into its *family* contract (`FamilyContractDigest → FamilyId`), so
+`VectorSpaceId = H(D_SPACE; FamilyId, effective_dimension, prefix_postprocessing)`
+inherits the metric through the family. GMEOW instead places `gmeow:distanceMetric`
+on the *effective* `gmeow:VectorSpaceContract`: the metric is a property of
+comparability, not of the vectors the family produces — the same stored matrix is
+compared under different metrics — so it belongs to the space, not the
+vector-producing family. The **comparability decision is identical** under both
+structures: two projections that differ only in metric are a cross-space comparison
+in GMEOW (distinct `gmeow:VectorSpaceContract` digests) exactly as they are distinct
+`VectorSpaceId`s in PurRDF. What differs is the family/space boundary — GMEOW's
+`gmeow:EmbeddingFamily` identity is **not** byte-isomorphic to PurRDF's `FamilyId`
+across the metric axis (two metric-differing configurations share one GMEOW family
+but are two PurRDF families). A producer computes each system's digests within that
+system; it never derives one from the other.
 
 **Digest algorithms are not interchangeable across the two identity systems.**
 GMEOW content-addresses its own terms — `gmeow:contentDigest` on families, spaces,
