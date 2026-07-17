@@ -34,7 +34,8 @@ use crate::score::slice_terms;
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 /// The `owl:` namespace — a TBox term is an `owl:Class` or an `owl:*Property`.
 const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
-/// The usage-coat predicate local names guarded with the CURIE-stripping skeleton.
+/// The usage-coat predicate local names guarded with the single no-strip skeleton
+/// (lowercase + whitespace-collapse; CURIEs kept as content).
 const USAGE_COATS: &[&str] = &["useWhen", "avoidWhen", "howToUse"];
 
 /// Whether `subject` is a TBox term: typed `owl:Class` or some `owl:*Property`. Mirrors

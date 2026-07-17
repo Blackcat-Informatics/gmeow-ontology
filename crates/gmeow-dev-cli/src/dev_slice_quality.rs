@@ -389,11 +389,12 @@ pub fn slice_quality_gate() -> i32 {
 
     // Coat-side DISTINCTIVENESS gate: within a slice, no two distinct TBox terms may
     // share a normalized skeleton for a distinguishing coat — usage coats
-    // (useWhen/avoidWhen/howToUse) under the CURIE-stripping skeleton, and skos:definition
-    // under an exact-match (load-bearing CURIEs kept). A hard boolean reject at N=2 (any
-    // collision), NOT a scored axis or a tuned floor: a coat cosmetically dressed up but
-    // substantively identical to another term's is a near-duplicate template. Reds the
-    // gate on any collision, naming the slice, predicate, skeleton, and colliding terms.
+    // (useWhen/avoidWhen/howToUse) and skos:definition, all under one no-strip skeleton
+    // (lowercase + whitespace-collapse; load-bearing CURIEs kept as content). A hard
+    // boolean reject at N=2 (any collision), NOT a scored axis or a tuned floor: a coat
+    // cosmetically dressed up but substantively identical to another term's is a
+    // near-duplicate template. Reds the gate on any collision, naming the slice,
+    // predicate, skeleton, and colliding terms.
     let coat_dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let mut coat_collisions: Vec<String> = Vec::new();
     for dir in &coat_dirs {
