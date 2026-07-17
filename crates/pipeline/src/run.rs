@@ -213,13 +213,16 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-statements",
             ],
         ),
-        // The production consumer of the native proof-carrying full-FOL backward engine:
-        // it evaluates the shipped goal-directed demonstrator corpus, proof-checks every
-        // answer, and attaches graph/goal-directed (folded into gmeow.gts by stage-snapshot).
-        st(
+        // The production consumer of the native proof-carrying full-FOL backward engine: it
+        // compiles the authored `logic:ReasoningProgram` demonstrator corpus (read off the
+        // stage-compile-logic Logic handle) against the reasoned rdfs:subClassOf closure
+        // (read off the stage-reason product's Reasoning handle, for the order-sorted
+        // math-subsort demonstrator), proof-checks every answer, and attaches
+        // graph/goal-directed (folded into gmeow.gts by stage-snapshot).
+        st_goal_directed(
             "stage-goal-directed",
             "goal_directed",
-            &["stage-compile-logic"],
+            &["stage-compile-logic", "stage-reason"],
         ),
         st(
             "stage-gts-compose",
@@ -596,6 +599,21 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),
         crate::stages::compile_logic::carrier_entity_list(),
+    )];
+    s
+}
+
+/// The goal-directed stage: its `stage-reason` dependency is narrowed to the single
+/// `graph/reasoning` named graph (the typed Reasoning handle's backing graph, C7) — the
+/// reasoned `rdfs:subClassOf` closure the order-sorted math-subsort demonstrator's
+/// `subsort_edges` are read from. Derives the SAME entity list as
+/// [`crate::stages::goal_directed::GoalDirectedStage`]'s consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_goal_directed(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.dataflow_entities = vec![(
+        "stage-reason".to_string(),
+        vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
     )];
     s
 }
