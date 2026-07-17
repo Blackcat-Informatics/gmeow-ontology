@@ -578,44 +578,29 @@ impl ValidationRun {
         // present). Error findings gate `make validate` — a duplicate slice IRI, a
         // missing tier, a merged-shape IRI collision, or a norms graft leaking into
         // the core `rights` module HARD-FAILS on the live path, not just in a test.
-        if slice_analysis.is_some()
-            && let (Some(project_root), Some(slices_dir)) =
-                (&options.project_root, &options.slices_dir)
+        // Ontology-surface authoring gates run whenever `project_root` names a real
+        // repository source tree (it carries `slices/` and `shapes/`), deriving the
+        // slice tree from the repo root when `slices_dir` is not supplied
+        // explicitly. Gating on the repo-source MARKERS — NOT `slice_analysis` — is
+        // deliberate: the live `gmeow-dev validate` / `make validate` entry sets
+        // `project_root` but not `slices_dir`, so this fold fires there and its
+        // Error findings HARD-FAIL the live gate (a merged-shape IRI collision, a
+        // norms graft leak, a duplicate slice IRI, a missing tier, an undeclared
+        // term, or an untagged localizable literal). A `--gts` bundle validation or
+        // a repo-free cache harness has no `slices/`/`shapes/` source tree, so the
+        // gates correctly do not apply there (feature scoping, not degradation).
+        if let Some(project_root) = &options.project_root
+            && project_root.join("slices").is_dir()
+            && project_root.join("shapes").is_dir()
         {
-            let slices_path = std::path::Path::new(slices_dir);
-            let mut authoring =
-                crate::authoring_integrity::shape_iri_collision_findings(project_root)?;
-            authoring.extend(crate::authoring_integrity::graft_isolation_findings(
-                project_root,
-            )?);
-            authoring.extend(crate::authoring_integrity::slice_discipline_findings(
-                slices_path,
-            )?);
-            authoring.extend(crate::authoring_integrity::profile_closure_findings(
-                project_root,
-            )?);
-            authoring.extend(crate::authoring_integrity::catalog_closure_findings(
-                project_root,
-            )?);
-            authoring.extend(crate::authoring_integrity::module_iri_findings(
-                project_root,
-            )?);
-            // R3: term-declaration + language-tag discipline. Reuse the live
-            // declared-term authority (Phase 6) — no re-derivation.
-            let declared_set: std::collections::BTreeSet<String> =
-                declared_terms.iter().cloned().collect();
-            authoring.extend(
-                crate::authoring_integrity::example_undeclared_term_findings(
-                    project_root,
-                    &declared_set,
-                )?,
+            let slices_path = options.slices_dir.as_deref().map_or_else(
+                || project_root.join("slices"),
+                |d| std::path::Path::new(d).to_path_buf(),
             );
-            authoring.extend(crate::authoring_integrity::slice_source_untagged_findings(
+            let authoring = crate::authoring_integrity::authoring_integrity_findings(
                 project_root,
-            )?);
-            authoring.extend(
-                crate::authoring_integrity::nonslice_authored_untagged_findings(project_root)?,
-            );
+                &slices_path,
+            )?;
             for finding in authoring
                 .into_iter()
                 .filter(|finding| finding.severity == Severity::Error)

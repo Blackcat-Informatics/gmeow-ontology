@@ -212,6 +212,60 @@ fn nonslice_authored_localizable_literals_are_language_tagged() {
     );
 }
 
+/// The live-fold proof: `authoring_integrity_findings` is the SINGLE aggregator
+/// `validate_all` folds onto its run ledger (see `validate_all.rs`, the
+/// `validate.authoring_integrity` stage). Driving it here over the real corpus and
+/// over a planted-bad slice tree proves the fold both (a) runs clean on the
+/// production inputs and (b) FIRES on a real loader defect — not a test-only
+/// demonstration and not dead code.
+#[test]
+fn live_aggregator_is_clean_on_the_real_corpus() {
+    let root = repo_root();
+    let findings = authoring_integrity::authoring_integrity_findings(&root, &root.join("slices"))
+        .expect("aggregator runs on the real repo");
+    let errors: Vec<&str> = findings
+        .iter()
+        .filter(|f| f.severity == gmeow_errors::Severity::Error)
+        .map(|f| f.message.as_str())
+        .collect();
+    assert!(
+        errors.is_empty(),
+        "the folded authoring gate must be clean on the committed corpus:\n{}",
+        errors.join("\n")
+    );
+}
+
+#[test]
+fn live_aggregator_fires_on_a_planted_loader_defect() {
+    let root = repo_root();
+    let tmp = tempfile::tempdir().expect("temp slices dir");
+    let slices = tmp.path();
+
+    // A slice manifest with NO gmeow:sliceTier (the missing-tier loader hole) and a
+    // second dir redeclaring an existing slice IRI (the duplicate-IRI hole).
+    let bad_dir = slices.join("extensions/bad");
+    std::fs::create_dir_all(&bad_dir).unwrap();
+    std::fs::write(
+        bad_dir.join("manifest.ttl"),
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         <https://blackcatinformatics.ca/gmeow/slices/bad> a gmeow:Slice ;\n\
+           rdfs:label \"bad\"@x-gmeow-english .\n",
+    )
+    .unwrap();
+
+    // The aggregator scans project_root=real (clean) and slices_dir=the bad tree.
+    let findings = authoring_integrity::authoring_integrity_findings(&root, slices)
+        .expect("aggregator runs with a bad slices dir");
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "slice-discipline.missing-tier" && f.message.contains("slices/bad")),
+        "the folded slice-discipline gate must fire missing-tier on the live path; got: {:?}",
+        findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+    );
+}
+
 #[test]
 fn docs_examples_use_only_allowlisted_terms() {
     let root = repo_root();

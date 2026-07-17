@@ -114,6 +114,34 @@ fn all_manifests(slices_dir: &Path) -> Vec<PathBuf> {
     out
 }
 
+// ── the live aggregator ──────────────────────────────────────────────────────
+
+/// Run every ontology-surface authoring gate over the committed corpus and return
+/// the union of their findings. This is the SINGLE function `validate_all` folds
+/// onto the run ledger, so the live `make validate` path and the integration test
+/// exercise exactly the same production aggregation — no re-implementation.
+///
+/// `project_root` is the repository root (the shape/profile/catalog/graft/term
+/// gates scan it); `slices_dir` is the slice tree (the slice-discipline gate scans
+/// it). Any read/parse failure is a HARD FAIL (propagated), never a silently
+/// skipped gate.
+pub fn authoring_integrity_findings(
+    project_root: &Path,
+    slices_dir: &Path,
+) -> Result<Vec<Finding>> {
+    let declared = declared_ontology_terms(project_root)?;
+    let mut findings = shape_iri_collision_findings(project_root)?;
+    findings.extend(graft_isolation_findings(project_root)?);
+    findings.extend(slice_discipline_findings(slices_dir)?);
+    findings.extend(profile_closure_findings(project_root)?);
+    findings.extend(catalog_closure_findings(project_root)?);
+    findings.extend(module_iri_findings(project_root)?);
+    findings.extend(example_undeclared_term_findings(project_root, &declared)?);
+    findings.extend(slice_source_untagged_findings(project_root)?);
+    findings.extend(nonslice_authored_untagged_findings(project_root)?);
+    Ok(findings)
+}
+
 // ── R1: shape-IRI ownership collision ────────────────────────────────────────
 
 /// Every `sh:NodeShape` IRI must be declared in exactly one shape file: merged
