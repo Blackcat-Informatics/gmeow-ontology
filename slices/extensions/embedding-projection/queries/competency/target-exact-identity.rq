@@ -1,0 +1,14 @@
+# CT4 — target exact identity (violation finder). A gmeow:VectorTarget carrying a
+# gmeow:targetOrdinal (a NON-identifying acceleration hint) but NEITHER a
+# gmeow:targetsResource binding NOR its own gmeow:contentDigest — a vector slot with
+# no exact identity. Independent SPARQL twin of gmeow:TargetExactIdentityConstraint
+# (C4), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?vt WHERE {
+  ?vt a gmeow:VectorTarget ;
+      gmeow:targetOrdinal ?o .
+  FILTER NOT EXISTS { ?vt gmeow:targetsResource ?r }
+  FILTER NOT EXISTS { ?vt gmeow:contentDigest ?d }
+}
+ORDER BY ?vt

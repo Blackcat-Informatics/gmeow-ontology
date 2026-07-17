@@ -1,0 +1,13 @@
+# R4 — within-tolerance reproducibility needs a tolerance (violation finder). A
+# gmeow:EmbeddingProjection whose gmeow:reproducibilityLevel is
+# gmeow:reproducibleWithinTolerance but which carries NO gmeow:reproducibilityTolerance
+# — a within-tolerance claim with no stated bound is uninterpretable. Independent
+# SPARQL twin of the conditional-requiredness axiom.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:reproducibilityLevel gmeow:reproducibleWithinTolerance .
+  FILTER NOT EXISTS { ?proj gmeow:reproducibilityTolerance ?t }
+}
+ORDER BY ?proj
