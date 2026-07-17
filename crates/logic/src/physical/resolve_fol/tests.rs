@@ -879,6 +879,101 @@ fn g10_distinct_binder_valued_answers_both_survive() {
     assert_all_proofs_check(&mut dag, &outcome);
 }
 
+// ── G11: comma-bearing answer surfaces collide under render, but both survive ────────
+
+#[test]
+fn g11_comma_bearing_answer_surfaces_collide_but_both_survive_by_content_key() {
+    // Two facts `wraps(f(a, b)).` / `wraps(f("a,b")).` whose goal-variable binding renders to
+    // the SAME comma-joined surface `"f(a,b)"` — the 2-ary application of two leaves and the
+    // 1-ary application of a single IRI leaf whose lexical text CONTAINS a comma both render
+    // identically, because `render` comma-joins `App` arguments. Their ARENA CONTENT KEYS
+    // differ (distinct arity + content). `project` must dedup by the content key, NOT by the
+    // rendered surface; keying on the surface would silently drop one of two genuinely distinct
+    // answers (a completeness bug — before the #10 fix this test drops one, after it both
+    // survive).
+    let mut dag = TermDag::new();
+    let a = iri(&mut dag, "a");
+    let b = iri(&mut dag, "b");
+    // A single IRI leaf whose lexical text legally contains a comma.
+    let ab = iri(&mut dag, "a,b");
+    let t1 = atom(&mut dag, "f", vec![a, b]); // renders "f(a,b)"
+    let t2 = atom(&mut dag, "f", vec![ab]); // renders "f(a,b)" — SAME surface, DISTINCT content
+
+    // Test preconditions: the two surfaces collide, but the content keys differ.
+    assert_eq!(
+        render(&dag, t1),
+        render(&dag, t2),
+        "precondition: the two terms render to the SAME comma-joined surface"
+    );
+    assert_eq!(
+        render(&dag, t1),
+        "f(a,b)",
+        "the colliding surface is f(a,b)"
+    );
+    assert_ne!(
+        dag.key(t1),
+        dag.key(t2),
+        "precondition: the two terms have DISTINCT arena content keys"
+    );
+
+    let wraps1 = atom(&mut dag, "wraps", vec![t1]);
+    let wraps2 = atom(&mut dag, "wraps", vec![t2]);
+
+    let (_xm, x) = var(&mut dag);
+    let goal = atom(&mut dag, "wraps", vec![x]);
+
+    let program = FolProgram {
+        clauses: vec![
+            FolClause {
+                head: wraps1,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 0),
+            },
+            FolClause {
+                head: wraps2,
+                body: vec![],
+                rule_iri: rule_iri(&mut dag, 1),
+            },
+        ],
+        goal,
+        goal_vars: vec![(x, "X".to_owned())],
+        meta_sorts: HashMap::new(),
+    };
+
+    let outcome =
+        decided(resolve_fol(&mut dag, &program, &empty_ctx(), &Budget::default()).unwrap());
+    assert_eq!(outcome.status, BudgetStatus::Ok);
+    assert_eq!(
+        outcome.answers.len(),
+        2,
+        "both answers whose surfaces collide under comma-joining must survive (content-keyed \
+         dedup), not collapse to one: {:?}",
+        outcome
+            .answers
+            .iter()
+            .map(|a| a.bindings["X"].clone())
+            .collect::<Vec<_>>()
+    );
+    // Both bind X to the IDENTICAL rendered surface — that is the whole point; only the content
+    // key distinguishes them, and both survive because dedup keys on content, not the surface.
+    let surfaces: Vec<String> = outcome
+        .answers
+        .iter()
+        .map(|a| a.bindings["X"].clone())
+        .collect();
+    assert_eq!(
+        surfaces,
+        vec!["f(a,b)".to_owned(), "f(a,b)".to_owned()],
+        "both distinct answers render to the same human-facing surface"
+    );
+    // The two answers are distinct arena atoms (the content that dedup preserved).
+    assert_ne!(
+        outcome.answers[0].atom, outcome.answers[1].atom,
+        "the two surviving answers are distinct arena atoms"
+    );
+    assert_all_proofs_check(&mut dag, &outcome);
+}
+
 // ── G8: budget on the structured (resolve_native_fol) result path ───────────────────
 
 #[test]

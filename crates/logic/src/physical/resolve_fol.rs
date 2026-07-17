@@ -374,11 +374,19 @@ fn canon_rec(
 /// — rather than collapsing to an opaque literal. Bound occurrences inside `body` already
 /// render as `_b{debruijn}.{slot}` (locally-nameless, alpha-invariant), so two
 /// structurally-distinct binder terms render to two distinct surfaces and two alpha-equal
-/// ones render identically. Rendering the literal `"<binder>"` for every binder would
-/// collapse any two distinct binder-valued answers onto the SAME binding surface, and the
-/// caller ([`project`]) dedups answers by that surface — silently dropping a genuinely
-/// distinct answer. A render that is injective over content (mirroring the DAG's own content
-/// key) keeps dedup sound.
+/// ones render identically.
+///
+/// # NOT an identity key (G11)
+///
+/// This surface is **human-facing** — the `goalDirectedAtom` binding literal — and is **NOT**
+/// the answer identity/dedup key. The `op(arg,…)` application join and the `op[sorts…].body`
+/// binder join are **comma-delimited**, so the rendering is **NON-INJECTIVE over comma-bearing
+/// content**: an IRI or literal whose lexical text legally contains a comma (or a compound
+/// sort) can make two structurally DISTINCT terms render to the SAME string — e.g. the 2-ary
+/// `f(a, b)` and the 1-ary application of the single IRI leaf `"a,b"` both render `"f(a,b)"`.
+/// [`project`] therefore dedups (and orders on tie) by the arena CONTENT KEY ([`TermDag::key`],
+/// the engine's content address for answer tables and rule identity), NEVER by this rendered
+/// string — so a genuinely distinct answer is never silently dropped (a completeness bug).
 pub(crate) fn render(dag: &TermDag, node: NodeId) -> String {
     match dag.data(node) {
         NodeData::Leaf(tid) | NodeData::Free(tid) => render_atom(dag.atom_value(*tid)),
@@ -1045,8 +1053,11 @@ fn project(
     w: &BTreeSet<String>,
     proofs: &HashMap<String, NodeId>,
 ) -> gmeow_errors::Result<Vec<FolBinding>> {
-    // Candidate true atoms in deterministic content-key order.
-    let mut rows: Vec<FolBinding> = Vec::new();
+    // Candidate true atoms in deterministic content-key order. Each row carries a CONTENT
+    // identity key (built from the arena content address of every goal-variable binding) used
+    // for dedup and tie-order — never the rendered binding surface, which comma-joins compound
+    // terms and is therefore non-injective over comma-bearing content (see [`render`] § G11).
+    let mut rows: Vec<(String, FolBinding)> = Vec::new();
     let mut seen: BTreeSet<String> = BTreeSet::new();
     let true_atoms: Vec<(String, NodeId)> = engine
         .atoms
@@ -1066,9 +1077,24 @@ fn project(
             continue;
         }
         let mut binding: Binding = BTreeMap::new();
+        // The CONTENT identity of this answer: each goal variable paired with the arena content
+        // key of its resolved sub-term. Length-framed so the concatenation is injective (a name
+        // or key legally containing the delimiter cannot forge a collision). The rendered
+        // surface goes into `binding` for the human-facing literal; `dag.key` is the identity.
+        let mut identity = String::new();
         for (meta_node, name) in &program.goal_vars {
             let resolved = apply(dag, &s, *meta_node);
-            binding.insert(name.clone(), render(dag, resolved));
+            let rendered = render(dag, resolved);
+            let key = dag.key(resolved);
+            identity.push_str(&(name.len() as u64).to_string());
+            identity.push(':');
+            identity.push_str(name);
+            identity.push('=');
+            identity.push_str(&(key.len() as u64).to_string());
+            identity.push(':');
+            identity.push_str(key);
+            identity.push(';');
+            binding.insert(name.clone(), rendered);
         }
         let proof = proofs.get(&atom_key).copied().ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
@@ -1078,27 +1104,28 @@ fn project(
                 ),
             })
         })?;
-        // Deterministic dedup by the full binding surface.
-        let dedup_key = binding
-            .iter()
-            .map(|(k, v)| format!("{k}={v}"))
-            .collect::<Vec<_>>()
-            .join(";");
-        if seen.insert(dedup_key) {
-            rows.push(FolBinding {
-                bindings: binding,
-                atom,
-                proof,
-            });
+        // Deterministic dedup by the CONTENT identity — two answers whose surfaces collide
+        // under comma-joining but whose content differs BOTH survive (completeness).
+        if seen.insert(identity.clone()) {
+            rows.push((
+                identity,
+                FolBinding {
+                    bindings: binding,
+                    atom,
+                    proof,
+                },
+            ));
         }
     }
-    // Sort rows by their binding surface for a stable, deterministic answer order.
+    // Sort rows by their binding surface for a stable, deterministic answer order, breaking a
+    // rendered-surface tie (a comma-join collision) by the content identity so colliding
+    // answers still order deterministically and byte-stably.
     rows.sort_by(|a, b| {
-        let ka: Vec<(&String, &String)> = a.bindings.iter().collect();
-        let kb: Vec<(&String, &String)> = b.bindings.iter().collect();
-        ka.cmp(&kb)
+        let ka: Vec<(&String, &String)> = a.1.bindings.iter().collect();
+        let kb: Vec<(&String, &String)> = b.1.bindings.iter().collect();
+        ka.cmp(&kb).then_with(|| a.0.cmp(&b.0))
     });
-    Ok(rows)
+    Ok(rows.into_iter().map(|(_, b)| b).collect())
 }
 
 // ── The core entry ──────────────────────────────────────────────────────────────────
