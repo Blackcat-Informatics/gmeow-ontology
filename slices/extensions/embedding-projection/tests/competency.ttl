@@ -447,3 +447,26 @@ ep:epCqDisagreementAllSurfacesClean a gmeow:CompetencyQuestion ;
     gmeow:cqResultShape ep:shapeProjEmpty ;
     gmeow:cqRationale "The scene's container and manifest surfaces agree on all three recorded digests — zero disagreements." ;
     gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# C7 — with-metric agreement. A gmeow:SimilarityObservation's gmeow:withMetric   #
+# must equal its gmeow:overVectorSpace's gmeow:distanceMetric. EMPTY over the     #
+# scene (every observation agrees with its space); a companion fixture whose      #
+# observation reports cosine over a dot-product space makes it non-empty.         #
+# =========================================================================== #
+ep:epCqWithMetricAgreementClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/with-metric-agreement.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeObsEmpty ;
+    gmeow:cqRationale "Every similarity observation in the scene reports the metric its overVectorSpace declares — no disagreement. Zero rows." ;
+    gmeow:cqExpectRowCount 0 .
+
+ep:epCqWithMetricAgreementViolation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/with-metric-agreement.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-with-metric-disagree.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeObsExact ;
+    gmeow:cqRationale "An observation reporting cosine over a dot-product space is caught: ce:disagreeObs." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:disagreeObs ] ] .
