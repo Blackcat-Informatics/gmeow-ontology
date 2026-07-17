@@ -4440,9 +4440,11 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
             // OPTIONAL for a specific tool, so marking it required THERE would advertise
             // a dishonest schema. `competency_questions` accepts an optional `term` (the
             // whole-index form omits it); `recall` accepts an optional `query` (an empty
-            // query recalls everything).
+            // query recalls everything); `list_candidates` accepts an optional `slice`
+            // (an absent filter lists every candidate).
             let optional_here = (name == "competency_questions" && *prop == "term")
-                || (name == "recall" && *prop == "query");
+                || (name == "recall" && *prop == "query")
+                || (name == "list_candidates" && *prop == "slice");
             (required_by_name && !optional_here).then_some(*prop)
         })
         .collect();
@@ -6370,6 +6372,31 @@ mod tests {
             "refute_conjecture's `dry_run` is optional at call time; must not be advertised as \
              required: {refute_required:?}"
         );
+
+        // The authoring-factory tools enforce EXACTLY these keys via `required_str` in their
+        // bodies (see `tool_slice_quality` / `tool_slice_brief` / `tool_submit_candidate` /
+        // `tool_withdraw_candidate` / `tool_list_candidates`); every other advertised arg is
+        // read with `optional_*`. The advertised `required` array must equal the enforced set —
+        // no more (a client would get a runtime error omitting a merely-optional arg), no less.
+        let expected_required: &[(&str, &[&str])] = &[
+            ("slice_quality", &["path"]),
+            ("slice_brief", &["slice"]),
+            ("submit_candidate", &["formula", "kb", "standpoint"]),
+            ("withdraw_candidate", &["candidate_id"]),
+            // `slice` and `disposition` are BOTH optional filters — `list_candidates` enforces
+            // nothing, so it must advertise an EMPTY required array (the dishonest-`slice`-required
+            // gap this asserts against).
+            ("list_candidates", &[]),
+        ];
+        for (name, enforced) in expected_required {
+            let required = required_of(name);
+            let want: BTreeSet<String> = enforced.iter().map(|s| (*s).to_string()).collect();
+            assert_eq!(
+                required, want,
+                "{name} must advertise EXACTLY the args it enforces via required_str \
+                 ({want:?}); advertised {required:?}"
+            );
+        }
     }
 
     #[test]
