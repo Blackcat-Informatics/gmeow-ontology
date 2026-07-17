@@ -387,6 +387,31 @@ pub fn slice_quality_gate() -> i32 {
         ));
     }
 
+    // Coat-side DISTINCTIVENESS gate: within a slice, no two distinct TBox terms may
+    // share a normalized skeleton for a distinguishing coat — usage coats
+    // (useWhen/avoidWhen/howToUse) under the CURIE-stripping skeleton, and skos:definition
+    // under an exact-match (load-bearing CURIEs kept). A hard boolean reject at N=2 (any
+    // collision), NOT a scored axis or a tuned floor: a coat cosmetically dressed up but
+    // substantively identical to another term's is a near-duplicate template. Reds the
+    // gate on any collision, naming the slice, predicate, skeleton, and colliding terms.
+    let coat_dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+    let mut coat_collisions: Vec<String> = Vec::new();
+    for dir in &coat_dirs {
+        match gmeow_slice_quality::coat_guard::slice_coat_collisions(dir) {
+            Ok(hits) => coat_collisions.extend(hits),
+            Err(e) => return fail(format!("slice-quality-gate: {e}")),
+        }
+    }
+    if !coat_collisions.is_empty() {
+        for e in &coat_collisions {
+            emit_error("gmeow-dev.slice-quality.gate", format!("FAIL {e}"));
+        }
+        return fail(format!(
+            "slice-quality-gate: {} coat distinctiveness violation(s) — a coat must distinguish its term",
+            coat_collisions.len()
+        ));
+    }
+
     // Roll-up tier floor ranks by slice IRI, projected from the ontology-resident
     // gmeow:SliceTierFloor commitments and resolved against the ladder. An unknown
     // floorTier is a HARD FAIL here (.goals no-optionality), never a silently-
