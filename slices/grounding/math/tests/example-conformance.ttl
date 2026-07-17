@@ -1348,6 +1348,12 @@ ex:ecGeneralCwSquareZeroBroken a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a general math:CellComplex (not simplicial) whose codimension-2 (coface cX, far-face aZ) group has a single boundary composition of sign product +1, so the finite signed sum Σ_b [cX:b]·[b:aZ] = +1 ≠ 0; the logic:JoinAggregateConstraint math:GeneralBoundarySquareZeroConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). Being a plain math:CellComplex, the simplicial math:BoundarySquareZeroConstraint does not target it, isolating the single violation." .
 
+ex:ecSimplicialSignedNoncancellingDiamond a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/simplicial-signed-noncancelling-diamond.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:SimplicialComplex whose codimension-2 diamond IS combinatorially complete (coface cX has two distinct codimension-1 faces bY, bW, each a codimension-1 face of far-face aZ), so the unsigned math:BoundarySquareZeroConstraint ∃-partner check passes and does NOT fire. But its reified ±1 math:CellIncidence records carry the wrong (non-induced) orientation — both composition sign products are +1, so Σ_b [cX:b]·[b:aZ] = +2 ≠ 0 — and the logic:JoinAggregateConstraint math:GeneralBoundarySquareZeroConstraint (onClass math:Cell, so it also targets signed simplicial complexes) fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). This isolates the composition point of the two enforcement layers: the combinatorial check passes while the general signed-sum check catches the orientation error, proving a signed simplicial complex is never left unchecked." .
+
 ex:ecCoboundarySquareZeroBroken a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/coboundary-square-zero-broken.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;

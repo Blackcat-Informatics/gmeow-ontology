@@ -169,6 +169,16 @@ mathematical distinction, not a scope dodge.**
   `math:BoundarySquareZeroConstraint` (scoped to `math:SimplicialComplex`) /
   `math:CoboundarySquareZeroConstraint` (scoped to `math:CochainComplex`): every codim-2 composition path
   must have a distinct partner face, else `math:BrokenBoundarySquareZero` / `math:BrokenCoboundarySquareZero`.
+  This constraint is the **combinatorial** completeness check over the unsigned `math:incidentTo` relation
+  and deliberately does **not** read `math:incidenceSign`: a plain `logic:Constraint` lowers to a
+  triple-pattern `sh:SPARQLConstraint` that cannot compute a sign product, so an `oppositeProduct` atom here
+  would be a vacuous always-satisfied pattern. Under the induced orientation the diamond lemma makes the two
+  faces' ±1 coefficients cancel automatically, so partner-completeness **is** ∂∘∂ = 0 there; the explicit
+  signed arithmetic (required the moment a complex carries reified `math:CellIncidence` records, simplicial or
+  not) is owned entirely by `math:GeneralBoundarySquareZeroConstraint` below, whose `onClass math:Cell` scope
+  also covers signed simplicial complexes. The two layers compose: a signed simplicial diamond that is
+  combinatorially complete yet sign-non-cancelling passes this constraint but is caught by the general SUM = 0
+  constraint (`tests/counter-examples/simplicial-signed-noncancelling-diamond.ttl`).
 
 - **The general-CW per-instance conformance constraint.** On a *general* CW complex the two-intermediate
   diamond is **not** a theorem — the exact statement is the finite signed sum Σ_b [c:b]·[b:a] = 0 over all
