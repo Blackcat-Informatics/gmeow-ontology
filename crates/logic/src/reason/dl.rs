@@ -824,6 +824,104 @@ fn raw_resource_facts(edb: &RdfDataset) -> Vec<Fact> {
     rows
 }
 
+/// Resource facts, grouped by the exact world key the finite DL pass uses, in the
+/// fixed-rule evaluator's public fact shape.
+///
+/// Leave-one-out batching uses this bridge so default graphs, named graphs, blank
+/// graph names, and skolemized resource terms enter the incremental closure with
+/// the same identity as [`augment_inferred_with_dl`].
+pub(crate) fn fixed_rule_resource_facts(edb: &RdfDataset) -> Vec<(String, crate::rule_ir::Fact)> {
+    raw_resource_facts(edb)
+        .into_iter()
+        .map(|fact| {
+            (
+                fact.world,
+                crate::rule_ir::Fact {
+                    subject: TermValue::iri(fact.subject),
+                    predicate: fact.predicate,
+                    object: TermValue::iri(fact.object),
+                },
+            )
+        })
+        .collect()
+}
+
+/// World keys admitted by the fixed structured-rule adapter.
+///
+/// The adapter intentionally evaluates only named-IRI graphs; the finite DL
+/// post-pass additionally handles default and blank-node graph names. Batch
+/// indexes consult this set for rule families (notably `owl:equivalentClass`)
+/// implemented only by the structured adapter.
+pub(crate) fn structured_rule_worlds(edb: &RdfDataset) -> BTreeSet<String> {
+    edb.owned_quads()
+        .filter_map(|quad| match quad.graph_name {
+            Some(RdfTerm::Iri(world)) => Some(world),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Non-`owl:Nothing` subclass edges introduced by finite union expansion.
+///
+/// These are the only fixed-predicate subclass heads the finite DL post-pass adds
+/// outside unsatisfiability. Surfacing them lets the exact leave-one-out batch run
+/// transitive-reduction probes over one complete direct class graph instead of
+/// invoking the whole post-pass once per candidate.
+pub(crate) fn finite_dl_subclass_edges(edb: &RdfDataset) -> Vec<(String, String, String)> {
+    let lists = read_lists(edb);
+    let mut edges = Vec::new();
+    for fact in raw_resource_facts(edb) {
+        if fact.predicate != OWL_UNION_OF && fact.predicate != OWL_DISJOINT_UNION_OF {
+            continue;
+        }
+        let Some(members) = lists.get(&(fact.world.clone(), fact.object)) else {
+            continue;
+        };
+        edges.extend(
+            members
+                .iter()
+                .map(|member| (fact.world.clone(), member.clone(), fact.subject.clone())),
+        );
+    }
+    edges
+}
+
+/// Candidate `owl:disjointWith` pairs introduced by the finite DL post-pass.
+///
+/// `owl:members` lists are intentionally treated as disjoint-class lists even
+/// before checking their owner's type. That is a safe over-approximation for the
+/// leave-one-out negative filter: a pair absent here cannot be produced by the
+/// complement, disjoint-union, or all-disjoint-class handlers.
+pub(crate) fn finite_dl_disjoint_candidates(edb: &RdfDataset) -> Vec<(String, String, String)> {
+    let lists = read_lists(edb);
+    let mut pairs = BTreeSet::new();
+    for fact in raw_resource_facts(edb) {
+        if fact.predicate == OWL_COMPLEMENT_OF {
+            pairs.insert((
+                fact.world.clone(),
+                fact.subject.clone(),
+                fact.object.clone(),
+            ));
+            pairs.insert((fact.world, fact.object, fact.subject));
+            continue;
+        }
+        if fact.predicate != OWL_DISJOINT_UNION_OF && fact.predicate != OWL_MEMBERS {
+            continue;
+        }
+        let Some(members) = lists.get(&(fact.world.clone(), fact.object)) else {
+            continue;
+        };
+        for (index, left) in members.iter().enumerate() {
+            for (other_index, right) in members.iter().enumerate() {
+                if index != other_index {
+                    pairs.insert((fact.world.clone(), left.clone(), right.clone()));
+                }
+            }
+        }
+    }
+    pairs.into_iter().collect()
+}
+
 fn build_index(facts: &BTreeSet<Fact>) -> HashMap<(String, String, String), BTreeSet<String>> {
     let mut index: HashMap<(String, String, String), BTreeSet<String>> = HashMap::new();
     for fact in facts {

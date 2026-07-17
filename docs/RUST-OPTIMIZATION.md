@@ -52,8 +52,24 @@ Useful lanes:
 make bench           # criterion hot-path benchmark suite, report-only
 make bench-compare   # live criterion run compared to bench/baseline.json
 make rust-test       # always-on Rust correctness gate
-make check           # full Docker-free, Java-free local gate
+make check           # synchronize outputs, then run the evidence-complete impact gate
+make check-full      # synchronize outputs, then physically run every local gate task
 ```
+
+Impact selection is proof reuse, not capability degradation. A reused task must
+come from a GitHub-attested successful `main`-push receipt matching the exact base
+commit/tree, current task registry, and toolchain contract. The complete local diff
+is then classified conservatively; unknown paths and Rust/tooling changes select
+the full registry. If receipt discovery, signature verification, or any contract
+check fails, `make check` automatically executes `make check-full` semantics.
+`--explain` and `--timings-json` are observational surfaces only and never enter
+artifacts, cache keys, or correctness decisions.
+
+Local `make check` owns update-mode synchronization, so a developer does not need
+to run `make sync` first. The whole-run manifest makes a clean fixed point a fast
+no-op; after relevant source changes, check pays the one required regeneration.
+CI invokes the internal `make check-sync` target in read-only mode so committed
+drift remains a hard failure.
 
 For targeted investigation, use crate-local `cargo bench`, `cargo test`, `perf`,
 `hyperfine`, or profiler output only as evidence for the local change. The final
