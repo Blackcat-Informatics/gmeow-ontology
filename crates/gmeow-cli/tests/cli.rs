@@ -312,7 +312,13 @@ fn validate_unknown_extension_hard_fails() {
 
 #[test]
 fn export_respects_language_selector() {
-    // test_export_respects_language_selector: --lang fr yields a label_fr column.
+    // test_export_respects_language_selector: --lang fr yields fr-keyed labels /
+    // definitions in the JSONL term records. purrdf's CSVW package (dist/csvw/*, see
+    // stages::export's module doc) is now a generic lossless RDF-1.2-in-CSV encoding
+    // with no per-language columns, so the selector's effect is asserted against
+    // gmeow-terms.jsonl (the flattened Term surface still carries a
+    // language-tag-keyed `labels`/`definitions` map) instead of the retired
+    // gmeow-classes.csv.
     let out = scratch("export");
     gmeow()
         .arg("export")
@@ -321,11 +327,17 @@ fn export_respects_language_selector() {
         .args(["--lang", "fr"])
         .assert()
         .success();
-    let csv = out.join("gmeow-classes.csv");
-    assert!(csv.exists(), "gmeow-classes.csv written");
-    let text = std::fs::read_to_string(&csv).unwrap();
-    assert!(text.contains("label_fr"), "french label column present");
-    assert!(text.contains("label_fallback"), "fallback column present");
+    let jsonl = out.join("gmeow-terms.jsonl");
+    assert!(jsonl.exists(), "gmeow-terms.jsonl written");
+    let text = std::fs::read_to_string(&jsonl).unwrap();
+    assert!(
+        text.contains("\"fr\":"),
+        "french label/definition key present"
+    );
+    assert!(
+        text.contains("labelFallback") || text.contains("definitionFallback"),
+        "fallback flag present"
+    );
 }
 
 #[test]
