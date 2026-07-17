@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: a math:SimplicialComplex with a codimension-2 composition path
+# (faceX ▷ edgeP ▷ vertexQ) that has NO distinct partner face — a broken diamond, so
+# ∂∘∂ ≠ 0. It fires math:BoundarySquareZeroConstraint (the regular/simplicial diamond,
+# shacl.SPARQLConstraintComponent → math:BrokenBoundarySquareZero) and NO other finding:
+# it carries no math:CellIncidence (so the general-sum constraint has nothing to sum),
+# is not a math:CochainComplex (so the coboundary constraint does not target it), and
+# every cell declares its math:cellDimension.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/square-zero-broken/> .
+
+ex:broken a math:SimplicialComplex ;
+    math:hasCell ex:faceX , ex:edgeP , ex:vertexQ .
+
+ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+
+ex:faceX a math:Cell ; math:cellDimension ex:dim2 ; math:incidentTo ex:edgeP .
+ex:edgeP a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexQ .
+ex:vertexQ a math:Cell ; math:cellDimension ex:dim0 .

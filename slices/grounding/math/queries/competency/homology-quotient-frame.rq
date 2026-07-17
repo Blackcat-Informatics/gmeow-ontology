@@ -1,0 +1,14 @@
+# Competency question: "For a math:HomologyGroup, which math:Cycle and which bounding
+# math:Boundary generate it as the quotient H = Z/B?"  Over the worked filled triangle
+# the answer is exactly {homologyH1 → cycleZ / boundaryB}: the 1-cycle ∂(faceABC) bounds
+# faceABC, so its homology class is zero — H₁ = Z/B made concrete through
+# math:homologyCycles (the numerator Z) and math:homologyBoundaries (the denominator B).
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/chain-complex/>
+
+SELECT ?homology ?cycle ?boundary WHERE {
+    ?homology a math:HomologyGroup ;
+        math:homologyCycles ?cycle ;
+        math:homologyBoundaries ?boundary .
+}
+ORDER BY ?homology

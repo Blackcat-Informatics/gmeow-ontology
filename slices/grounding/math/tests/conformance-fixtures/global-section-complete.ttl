@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A genuinely-gluing global section over the WHOLE base of a cellular sheaf, plus a
+# local section over a proper subcomplex and an anchored H¹ gluing obstruction. It
+# demonstrates the global/local surface conforming: the global section names its
+# carrier (math:overSheaf) and the whole base (math:sectionRegion = ex:base), so it
+# is correctly scoped (math:MisscopedSection inert), and its declared restriction
+# map's math:RestrictionImage sends the vertex stalk's value 1 to 1, which AGREES
+# with the edge stalk's declared value 1, so it glues (math:SectionGluingInconsistency
+# inert). The local section covers a proper subcomplex; the obstruction names the
+# sheaf it reasons about.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/gluing/> .
+
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:base ;
+    math:hasStalk ex:vertexStalk , ex:edgeStalk ;
+    math:restrictionMap ex:vertexToEdge ;
+    math:hasGlobalSection ex:globalSection .
+ex:base a math:CellComplex .
+ex:subregion a math:CellComplex .
+
+ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertex ; math:stalkValue 1 .
+ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edge ; math:stalkValue 1 .
+ex:vertexToEdge a math:SheafRestrictionMap ;
+    math:sourceObject ex:vertexStalk ;
+    math:targetObject ex:edgeStalk ;
+    math:restrictionImage ex:vertexToEdgeImage .
+ex:vertexToEdgeImage a math:RestrictionImage ;
+    math:imageSourceValue 1 ; math:imageTargetValue 1 .
+
+# The global section over the ENTIRE base — the map's declared image agrees with
+# the target stalk's declared value (1 ↦ 1 = 1).
+ex:globalSection a math:GlobalSection ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:base .
+
+# A local section over a proper subcomplex — legitimately scoped smaller.
+ex:localSection a math:LocalSection ;
+    math:overSheaf ex:sheaf ;
+    math:sectionRegion ex:subregion .
+
+# The H¹ obstruction class, anchored to the sheaf whose lifting it reasons about.
+ex:gluingObstruction a math:GluingObstruction ;
+    math:obstructionOf ex:sheaf .
+
+ex:vertex a math:MathematicalObject .
+ex:edge a math:MathematicalObject .

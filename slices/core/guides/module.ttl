@@ -241,6 +241,20 @@ logic:guidesGroundingAttributeSub a logic:Formula ; logic:relation rdf:type ;
 logic:guidesGroundingAttributeSuper a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:QualityValue ] .
 
+logic:guidesAuthoringCandidateSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "AuthoringCandidate ⊑ Conjecture"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:AuthoringCandidate rdfs:subClassOf logic:Conjecture taxonomy edge projects from: ∀x. AuthoringCandidate(x) → Conjecture(x) — every authoring candidate carries a logic:Conjecture verdict (an admissibility-gated proposal is a conjecture with an authoring role)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:guidesAuthoringCandidateImpl .
+logic:guidesAuthoringCandidateImpl a logic:Formula ;
+    logic:antecedent logic:guidesAuthoringCandidateSub ; logic:consequent logic:guidesAuthoringCandidateSuper .
+logic:guidesAuthoringCandidateSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthoringCandidate ] .
+logic:guidesAuthoringCandidateSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:Conjecture ] .
+
 # Authoring-packet properties (RBox)
 
 gmeow:packetSourceSlice
@@ -491,6 +505,40 @@ gmeow:groundingConflictWith
     rdfs:label "grounding conflict with"@x-gmeow-english ;
     skos:definition "The equivalent term whose translation disagrees with this cell's, when gmeow:groundingConflict is true. It points at the OTHER, equivalent term whose translation disagrees, not the cell's own covered term (gmeow:groundingTerm)."@x-gmeow-english ;
     skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingConflictWith logic:InferenceRule ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Authoring candidate: the neurosymbolic propose/verify seam (TBox) ────────────
+
+gmeow:AuthoringCandidate
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Authoring Candidate"@x-gmeow-english ;
+    rdfs:subClassOf logic:Conjecture ;
+    logic:formalizes logic:guidesAuthoringCandidateSubsumption ;
+    skos:definition "A proposed authoring contribution submitted through the propose/verify seam: a candidate logic: formula whose admissibility was decided by an isolated-world reasoning verdict, then — ONLY when the verdict corroborated it — appended to the append-only candidate library. It is a logic:Conjecture (it carries the same content-addressed, standpoint-scoped verdict) marked with the authoring role it plays and the slice it targets, so the library answers 'which admissible candidates were proposed for slice X?'. The seam is 'propose (untrusted) / verify (trusted symbolic)': a score moves only via gate-passing content, so a refuted or open candidate is never an AuthoringCandidate in the library."@x-gmeow-english ;
+    skos:example "ex:candidateForLogicRuleAssoc a gmeow:AuthoringCandidate ; gmeow:candidateForSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author candidate individuals by hand or treat the candidate library as a source of truth: a candidate is admitted only by a gate-passing isolated-world verdict through submit_candidate, and the library is runtime agent memory (the read-only twin of the conjecture library), never folded into base-KB reasoning. Do not read a refuted or open proposal as a candidate: only a corroborated verdict admits one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:candidateForSlice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringCandidate ;
+    rdfs:range gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "candidate for slice"@x-gmeow-english ;
+    skos:definition "Relates an authoring candidate to the slice its proposed contribution targets — the provenance that makes the candidate library queryable by slice. It names the slice a candidate is proposed FOR, not the terms it would touch."@x-gmeow-english ;
+    skos:example "ex:candidateForLogicRuleAssoc a gmeow:AuthoringCandidate ; gmeow:candidateForSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:candidateForPacket
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringCandidate ;
+    rdfs:range gmeow:AuthoringPacket ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "candidate for packet"@x-gmeow-english ;
+    skos:definition "Relates an authoring candidate to the specific gmeow:AuthoringPacket brief its proposed contribution answers, when the proposer worked from a served brief — the finer-grained provenance twin of gmeow:candidateForSlice."@x-gmeow-english ;
+    skos:example "ex:candidateForLogicRuleAssoc a gmeow:AuthoringCandidate ; gmeow:candidateForPacket <https://blackcatinformatics.ca/gmeow/slices/logic/authoring-packet/whole/batch-0> ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Recipes (ABox) ─────────────────────────────────────────────────────────────

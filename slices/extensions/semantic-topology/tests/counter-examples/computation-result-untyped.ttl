@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ResultObjectConflationConstraint's POSITIVE obligation: a
+# gmeow:TopologyComputation whose gmeow:producesResult value is a genuine, unrelated
+# resource — never conflated with a raw math: object (so the ∀→¬∃ math-namespace arm is
+# NOT the violation under test) — but also never asserted rdf:type gmeow:TopologyResult.
+# The wrapper type is POSITIVELY required, not merely "permitted and preferred": an
+# untyped or wrongly-typed resource does not satisfy gmeow:producesResult's obligation
+# any more than a raw math: object does. The computation asserts no global truth, so
+# gmeow:AssertedTopologyResultConstraint does not engage. The ∀→(∃∧¬∃) SPARQL constraint
+# MUST reject it with shacl.SPARQLConstraintComponent, and nothing else — the untyped
+# result is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:computationBad a gmeow:TopologyComputation ;
+    gmeow:producesResult ex:untypedResult .        # <-- present, but never typed TopologyResult
+
+ex:untypedResult a gmeow:InformationObject .       # a real resource, just not the wrapper type
