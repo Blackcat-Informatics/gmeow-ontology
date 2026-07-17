@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# By-reference annotation: prose guidance text (not identifier-shaped) rides by reference
+# as a v: r_<hash> token whose payload lives in the out-of-band reference table.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:HowToUseExample gmeow:howToUse "Mint one entry per aliased term; changelog and provenance notes ride by reference."^^xsd:string .

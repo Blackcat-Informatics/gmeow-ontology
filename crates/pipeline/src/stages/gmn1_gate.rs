@@ -39,16 +39,17 @@
 //! grounding sources. Both audits run in `run.rs`'s reconcile phase; both are total,
 //! hard-fail gates over the same source domain.
 
-use std::collections::BTreeMap;
-use std::path::Path;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
 
 use gmeow_lang_bridge::registry::NamedSource;
 use gmeow_lang_bridge::{
-    ConstructCoverageTally, Gmn0Model, Gmn1ConstructCategory, Gmn1Error, GmnDictionary,
-    gmn0_canonically_equal, gmn1_read, gmn1_write, round_trip_check,
+    ConstructCoverageTally, CurrentCodebook, Gmn0Model, Gmn1ConstructCategory, Gmn1Error,
+    GmnDictionary, codebook_digest, gmn0_canonically_equal, gmn1_read, gmn1_write, pack_root,
+    per_claim_round_trip_check, resolve_current_codebook, round_trip_check,
 };
-use purrdf::parse_dataset;
 use purrdf::slice::SliceCatalog;
+use purrdf::{RdfDataset, RdfTerm, parse_dataset};
 
 /// The grounding slice directories this gate is total over (mirrors the
 /// `axisGmn1Coverage` axis's own `slices/grounding/` scope, minus `kernel`: the kernel
@@ -111,6 +112,24 @@ fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag
         .map_err(|e| stage_err(&format!("parse {}: {e}", lang_module_path.display())))?;
     GmnDictionary::from_dataset(&lang_ds)
         .map_err(|e| stage_err(&format!("gmeow:gmnDictV3 failed to load: {}", e.0)))
+}
+
+/// Resolve `gmeow:gmnCodebookCurrent` from the lang slice's authored `module.ttl` — the
+/// content-address-bearing carrier (`gmeow:references` inventory, script graphemes, pinned
+/// versions) the codebook-digest Merkle root folds over. Loaded from the SAME `module.ttl`
+/// as [`load_lang_dictionary`], so the digest gate recomputes over the one shipped codebook.
+fn load_current_codebook(root: &Path) -> Result<CurrentCodebook, gmeow_errors::Diag> {
+    let lang_module_path = root.join("slices/grounding/lang/module.ttl");
+    let lang_bytes = std::fs::read(&lang_module_path)
+        .map_err(|e| stage_err(&format!("read {}: {e}", lang_module_path.display())))?;
+    let lang_ds = parse_dataset(&lang_bytes, "text/turtle", None)
+        .map_err(|e| stage_err(&format!("parse {}: {e}", lang_module_path.display())))?;
+    resolve_current_codebook(&lang_ds).map_err(|e| {
+        stage_err(&format!(
+            "gmeow:gmnCodebookCurrent failed to resolve: {}",
+            e.0
+        ))
+    })
 }
 
 /// Every grounding source path (`slices/grounding/<slice>/module.ttl` plus every
@@ -182,11 +201,23 @@ pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_er
         // The codec's OWN round-trip primitive is the single classifier: write, read,
         // canonically compare, and surface the ONE typed `Gmn1Error` (uncovered construct,
         // parse defect, or canonical mismatch) — the gate never re-derives a class of its own.
-        if let Err(e) = round_trip_check(&model, &dict) {
-            failures.push(Gmn1RoundTripFailure {
+        // The whole-model round-trip is proven FIRST; then the per-claim inversion witness
+        // ([`per_claim_round_trip_check`]) re-runs the round-trip, compares per canonical-subject
+        // claim (naturality), and runs the idempotence leg — so the on-gate witness is
+        // per-claim, not merely whole-model. Both legs are HARD: either failing reds the gate.
+        match round_trip_check(&model, &dict) {
+            Err(e) => failures.push(Gmn1RoundTripFailure {
                 path: source.clone(),
                 error: e,
-            });
+            }),
+            Ok(()) => {
+                if let Err(e) = per_claim_round_trip_check(&model, &dict) {
+                    failures.push(Gmn1RoundTripFailure {
+                        path: source.clone(),
+                        error: e,
+                    });
+                }
+            }
         }
     }
 
@@ -406,6 +437,234 @@ pub fn check_gmn1_shipped_projections(
 
     failures.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(Gmn1ShippedReport { failures, verified })
+}
+
+// ── The native codebook-digest gate: lang:GmnCodebookDigestMismatch ─────────────────────
+
+/// The full `lang:` failure-class IRI a codebook-digest mismatch resolves to — the SAME IRI
+/// `slices/grounding/lang/module.ttl` mints under `lang:LangConformanceFailure`. Unlike the
+/// per-record codec classes this is NOT a [`Gmn1Error`] variant: a codebook-digest mismatch is
+/// a graph-level cross-node check (an envelope's declared digest vs. the codebook's recomputed
+/// Merkle root), whose state lives in the codebook and the recomputation, not in a single record
+/// a codec byte-parse or SHACL shape can see. Enforced HERE, by the native GMN gate.
+pub const CLASS_GMN_CODEBOOK_DIGEST_MISMATCH: &str =
+    "https://blackcatinformatics.ca/lang/GmnCodebookDigestMismatch";
+
+const GMN_ENVELOPE_IRI: &str = "https://blackcatinformatics.ca/gmeow/GmnEnvelope";
+const GMN_CODEBOOK_DIGEST_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnCodebookDigest";
+const GMN_PACK_ROOT_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnPackRoot";
+const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The AUTHORED GMN grammar (pre-render) — the grammar leaf [`pack_root`] hashes.
+const GMN_GRAMMAR_REL: &str = "slices/grounding/lang/grammars/gmn.ebnf";
+/// The shipped self-certifying conformance-pack projection (regenerated by the fanout). When
+/// present, the pack-root check byte-asserts its declared `gmeow:gmnPackRoot` against the
+/// recomputation; when absent (a source checkout with no generated fanout yet) the check is a
+/// no-op that the post-pipeline fanout activates.
+const CONFORMANCE_PACK_REL: &str = "generated/projections/lang/gmn1/conformance-pack.ttl";
+
+/// One `gmeow:GmnEnvelope` whose declared `gmeow:gmnCodebookDigest` does not equal the
+/// codebook's recomputed Merkle root — a [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] discharge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Gmn1CodebookDigestMismatch {
+    /// The source file the envelope was read from.
+    pub source: String,
+    /// The offending `gmeow:GmnEnvelope` individual IRI.
+    pub envelope: String,
+    /// The digest the envelope declared (a content address the codebook does not have).
+    pub declared: String,
+    /// The codebook's recomputed Merkle root (what a reader recomputes and refuses against).
+    pub recomputed: String,
+}
+
+impl Gmn1CodebookDigestMismatch {
+    /// The full `lang:` failure-class IRI — the ONE canonical class for a digest mismatch.
+    #[must_use]
+    pub fn failure_class(&self) -> &'static str {
+        CLASS_GMN_CODEBOOK_DIGEST_MISMATCH
+    }
+}
+
+/// [`check_gmn1_codebook_digest`]'s outcome: every envelope whose declared codebook digest
+/// disagreed with the recomputed Merkle root. Empty ⇒ every checked envelope names the real
+/// codebook frame.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Gmn1CodebookDigestReport {
+    /// Every mismatching envelope, in a stable (source, envelope) order.
+    pub mismatches: Vec<Gmn1CodebookDigestMismatch>,
+    /// How many envelope digests were actually compared (a zero over a source set that
+    /// declares no envelope digest is honest, not a suppressed check — an envelope with NO
+    /// declared digest is the SHACL `lang:GmnMissingEnvelopeField` contract's concern, never
+    /// this recompute-and-compare gate's).
+    pub checked: usize,
+}
+
+impl Gmn1CodebookDigestReport {
+    /// The gate passes when every checked envelope's declared digest equals the recomputation.
+    #[must_use]
+    pub fn is_clean(&self) -> bool {
+        self.mismatches.is_empty()
+    }
+}
+
+/// Every `(envelope IRI, declared codebook-digest lexical)` pair in a dataset: an IRI subject
+/// typed `gmeow:GmnEnvelope` that declares a `gmeow:gmnCodebookDigest` literal.
+fn envelope_declared_digests(ds: &RdfDataset) -> Vec<(String, String)> {
+    let envelopes: BTreeSet<String> = ds
+        .owned_quads()
+        .filter(|q| q.predicate == RDF_TYPE_IRI)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(s), RdfTerm::Iri(o)) if o == GMN_ENVELOPE_IRI => Some(s.clone()),
+            _ => None,
+        })
+        .collect();
+    ds.owned_quads()
+        .filter(|q| q.predicate == GMN_CODEBOOK_DIGEST_IRI)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(s), RdfTerm::Literal(l)) if envelopes.contains(s) => {
+                Some((s.clone(), l.lexical_form.clone()))
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+/// The native codebook-digest gate ENGINE: recompute `codebook_digest` from the shipped lang
+/// codebook, then, for every `gmeow:GmnEnvelope` in `envelope_sources` that declares a
+/// `gmeow:gmnCodebookDigest`, discharge [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] when the declared
+/// digest differs from the recomputation (and pass when equal). NOT a SHACL shape and NOT the
+/// per-record codec validator — the recomputation state lives in the codebook, outside any
+/// single record a byte-parse or shape can see. `envelope_sources` is explicit so the conformance
+/// discharge harness can drive a negative fixture (trips) and a worked envelope (passes) through
+/// the SAME engine `run.rs` wires on-gate.
+pub fn check_gmn1_codebook_digest(
+    root: &Path,
+    envelope_sources: &[PathBuf],
+) -> Result<Gmn1CodebookDigestReport, gmeow_errors::Diag> {
+    let dict = load_lang_dictionary(root)?;
+    let codebook = load_current_codebook(root)?;
+    let recomputed = codebook_digest(&codebook, &dict);
+
+    let mut mismatches = Vec::new();
+    let mut checked = 0usize;
+    for source in envelope_sources {
+        let bytes = std::fs::read(source)
+            .map_err(|e| stage_err(&format!("read {}: {e}", source.display())))?;
+        let ds = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| stage_err(&format!("parse {}: {e}", source.display())))?;
+        for (envelope, declared) in envelope_declared_digests(&ds) {
+            checked += 1;
+            if declared != recomputed {
+                mismatches.push(Gmn1CodebookDigestMismatch {
+                    source: source.to_string_lossy().into_owned(),
+                    envelope,
+                    declared,
+                    recomputed: recomputed.clone(),
+                });
+            }
+        }
+    }
+    mismatches.sort_by(|a, b| (&a.source, &a.envelope).cmp(&(&b.source, &b.envelope)));
+    Ok(Gmn1CodebookDigestReport {
+        mismatches,
+        checked,
+    })
+}
+
+/// The on-gate default source set for the codebook-digest gate: every grounding source
+/// ([`collect_grounding_sources`]) plus the shipped conformance pack when present. The negative
+/// `tests/gmn1-vectors/negative-graph/` fixtures are NOT scanned in production (they are
+/// test-only counter-examples, exactly like the SHACL `tests/counter-examples/` corpus); their
+/// discharge is proven by the conformance harness, not by scanning the source tree.
+fn default_envelope_sources(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+    let mut sources: Vec<PathBuf> = collect_grounding_sources(root)?
+        .into_iter()
+        .map(|s| root.join(s))
+        .collect();
+    // GENERATED-READ-OK: reconcile-phase audit — the codebook-digest gate lints the committed
+    // conformance pack's declared digest against the recomputed codebook; the read is a
+    // verification oracle whose result never folds into gmeow.gts.
+    let pack = root.join(CONFORMANCE_PACK_REL);
+    if pack.is_file() {
+        sources.push(pack);
+    }
+    Ok(sources)
+}
+
+/// The on-gate codebook-digest gate: [`check_gmn1_codebook_digest`] over
+/// [`default_envelope_sources`]. Wired into `run.rs`'s reconcile so a shipped envelope that
+/// declares a stale codebook digest reds the build.
+pub fn check_gmn1_codebook_digest_on_gate(
+    root: &Path,
+) -> Result<Gmn1CodebookDigestReport, gmeow_errors::Diag> {
+    let sources = default_envelope_sources(root)?;
+    check_gmn1_codebook_digest(root, &sources)
+}
+
+// ── The pack-root check: recompute gmeow:gmnPackRoot and byte-assert the shipped pack ────────
+
+/// [`check_gmn1_pack_root`]'s outcome: the recomputed conformance-pack Merkle root and, when a
+/// pack is shipped, the root it declares. Clean ⇒ no pack (a no-op the fanout activates) OR a
+/// shipped pack whose declared `gmeow:gmnPackRoot` byte-equals the recomputation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Gmn1PackRootReport {
+    /// The independently recomputed pack Merkle root (`pack_root(codebook_digest, dict, grammar)`).
+    pub recomputed_root: String,
+    /// Whether a shipped `generated/projections/lang/gmn1/conformance-pack.ttl` was present.
+    pub pack_present: bool,
+    /// The `gmeow:gmnPackRoot` the shipped pack declared, if any.
+    pub declared_root: Option<String>,
+}
+
+impl Gmn1PackRootReport {
+    /// The check passes when no pack is shipped (a no-op the post-pipeline fanout activates in
+    /// Task 11) OR the shipped pack's declared root byte-equals the recomputation. A shipped
+    /// pack that declares NO root, or a different root, is a hard fail.
+    #[must_use]
+    pub fn is_clean(&self) -> bool {
+        !self.pack_present || self.declared_root.as_deref() == Some(self.recomputed_root.as_str())
+    }
+}
+
+/// The native pack-root check: recompute the conformance pack's `gmeow:gmnPackRoot` Merkle root
+/// (the codebook digest, the authored grammar bytes, and the sigil table) and, if the shipped
+/// `generated/projections/lang/gmn1/conformance-pack.ttl` exists, assert its declared root equals
+/// the recomputation. When the pack is absent (a source checkout with no generated fanout yet)
+/// the check is a NO-OP that the post-pipeline fanout activates — it never fakes a pass.
+pub fn check_gmn1_pack_root(root: &Path) -> Result<Gmn1PackRootReport, gmeow_errors::Diag> {
+    let dict = load_lang_dictionary(root)?;
+    let codebook = load_current_codebook(root)?;
+    let digest = codebook_digest(&codebook, &dict);
+    let grammar_path = root.join(GMN_GRAMMAR_REL);
+    let grammar_bytes = std::fs::read(&grammar_path)
+        .map_err(|e| stage_err(&format!("read GMN grammar {}: {e}", grammar_path.display())))?;
+    let recomputed_root = pack_root(&digest, &dict, &grammar_bytes);
+
+    // GENERATED-READ-OK: verification oracle — recompute the pack root and compare it to the
+    // committed pack's declared gmeow:gmnPackRoot; the comparison result never folds into gmeow.gts.
+    let pack_path = root.join(CONFORMANCE_PACK_REL);
+    if !pack_path.is_file() {
+        return Ok(Gmn1PackRootReport {
+            recomputed_root,
+            pack_present: false,
+            declared_root: None,
+        });
+    }
+    let bytes = std::fs::read(&pack_path)
+        .map_err(|e| stage_err(&format!("read {}: {e}", pack_path.display())))?;
+    let ds = parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| stage_err(&format!("parse {}: {e}", pack_path.display())))?;
+    let declared_root = ds
+        .owned_quads()
+        .filter(|q| q.predicate == GMN_PACK_ROOT_IRI)
+        .find_map(|q| match &q.object {
+            RdfTerm::Literal(l) => Some(l.lexical_form.clone()),
+            _ => None,
+        });
+    Ok(Gmn1PackRootReport {
+        recomputed_root,
+        pack_present: true,
+        declared_root,
+    })
 }
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
@@ -631,6 +890,62 @@ mod tests {
              only real occurrence is removed — proof the assertion is falsifiable, not a \
              vacuous pass: {:#?}",
             filtered_tally.unexercised_categories()
+        );
+    }
+
+    /// The on-gate codebook-digest gate is clean over the real source tree: the grounding
+    /// envelopes declare no `gmeow:gmnCodebookDigest`, so there is nothing to mismatch (an
+    /// absent digest is the SHACL missing-field contract's concern, never this gate's).
+    #[test]
+    fn codebook_digest_gate_is_clean_over_the_real_tree() {
+        let root = repo_root();
+        let report = check_gmn1_codebook_digest_on_gate(&root).expect("digest gate runs");
+        assert!(
+            report.is_clean(),
+            "the on-gate codebook-digest gate must be clean over the real tree: {:#?}",
+            report.mismatches
+        );
+    }
+
+    /// The codebook-digest gate has NEGATIVE teeth: driven over the committed digest-mismatch
+    /// fixture (an envelope declaring a codebook digest the real codebook does not have) it
+    /// discharges EXACTLY `lang:GmnCodebookDigestMismatch`, naming the offending envelope.
+    #[test]
+    fn codebook_digest_gate_reds_on_the_mismatch_fixture() {
+        let root = repo_root();
+        let fixture = root
+            .join("slices/grounding/lang/tests/gmn1-vectors/negative-graph")
+            .join("envelope-digest-mismatch.ttl");
+        let report = check_gmn1_codebook_digest(&root, std::slice::from_ref(&fixture))
+            .expect("digest gate runs over the fixture");
+        assert!(
+            !report.is_clean(),
+            "the digest-mismatch fixture must red the gate, not pass vacuously"
+        );
+        assert_eq!(report.checked, 1, "exactly one envelope digest is checked");
+        assert!(
+            report
+                .mismatches
+                .iter()
+                .all(|m| m.failure_class() == CLASS_GMN_CODEBOOK_DIGEST_MISMATCH),
+            "every mismatch classifies as lang:GmnCodebookDigestMismatch: {:#?}",
+            report.mismatches
+        );
+    }
+
+    /// The pack-root check is clean over the real tree: either no pack is shipped yet (a no-op
+    /// the fanout activates) or a shipped pack whose declared root byte-equals the recomputation.
+    #[test]
+    fn pack_root_check_is_clean_over_the_real_tree() {
+        let root = repo_root();
+        let report = check_gmn1_pack_root(&root).expect("pack-root check runs");
+        assert!(
+            report.is_clean(),
+            "the pack-root check must be clean over the real tree (pack absent = no-op, or \
+             present-and-matching): declared={:?} recomputed={} present={}",
+            report.declared_root,
+            report.recomputed_root,
+            report.pack_present
         );
     }
 
