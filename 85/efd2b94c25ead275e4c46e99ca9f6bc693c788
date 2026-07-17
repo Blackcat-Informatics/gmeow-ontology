@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 85efd2b94c25ead275e4c46e99ca9f6bc693c788
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1584
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1584
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: ea0799da3980850e5d1e1c5bd4c339d097ae5f23
+GhpRsq-Head-Ref: paudley/1577-dogfood-goal-directed
+GhpRsq-Head-OID: 85efd2b94c25ead275e4c46e99ca9f6bc693c788
+GhpRsq-Result-Tree: 9e2f6915ceac6e47ec190c72b9e520b26051f281
+GhpRsq-Result-Commit: 44cfabe20b781681baccf6e5106e079bd99316c5
+GhpRsq-Parent-Hashes: 85efd2b94c25ead275e4c46e99ca9f6bc693c788
+GhpRsq-Squash-Notes-SHA256: 17ae2bf2afb1de84acfbe7bd304b23d0a21a362537f44645d596304cfc5a7489
