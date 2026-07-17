@@ -11,14 +11,15 @@
 //! clash rule whether the result is inconsistent: if it is, every model of `A`
 //! satisfies `C`, so `A ⊨ C`.
 //!
-//! This module lives OUTSIDE [`crate::reason`] on purpose (mirroring
-//! [`crate::entail_oracle`]): it composes the reasoner without adding a rule to it,
-//! so it does not perturb [`crate::reason::native_contract_hash`].
+//! This module lives OUTSIDE [`crate::reason`] on purpose: it composes the
+//! reasoner without adding a rule to it, so it does not perturb
+//! [`crate::reason::native_contract_hash`].
 //!
 //! ## The conclusion-shape calculus (the one negation waist)
 //!
 //! A conclusion is a set of RDF triples. Each triple is normalized into a
-//! [`ConclusionShape`] and negated by one shared [`negate`] primitive:
+//! [`ConclusionShape`](crate::entail::ConclusionShape) and negated by one shared
+//! [`negate`](crate::entail::negate) primitive:
 //!
 //! * a ground membership `a rdf:type C` → assert a counter-model `a ∈ C̄` with
 //!   `C owl:disjointWith C̄` (`C̄` a fresh complement); the EDB clashes iff `A ⊨ C(a)`;
@@ -35,8 +36,9 @@
 //!
 //! Refuting `P ⊑ Q` needs a counter-model `∃x,y.(P(x,y) ∧ ¬Q(x,y))`, whose role
 //! complement `¬Q` is NOT EL-expressible — so subproperty entailment cannot go through
-//! the [`negate`]/[`crate::reason::dl_consistency`] refutation waist at all. It is
-//! instead decided directly ([`decide_subproperty`]) by REFLEXIVE-TRANSITIVE
+//! the [`negate`](crate::entail::negate)/[`crate::reason::dl_consistency`] refutation
+//! waist at all. It is
+//! instead decided directly (`decide_subproperty`) by REFLEXIVE-TRANSITIVE
 //! reachability over the premise's property hierarchy: `A ⊨ (P ⊑ Q)` iff `Q` is reachable
 //! from `P` along asserted `rdfs:subPropertyOf` edges and `owl:equivalentProperty`
 //! (mutual) edges, plus the reflexive `P ⊑ P` and the universal `owl:top{Object,Data}Property`
@@ -49,12 +51,12 @@
 //! characteristic type, a property-expression endpoint, a named-graph or class-level
 //! axiom that could derive further subproperty facts or make the premise inconsistent),
 //! the reachability closure is not a complete account, so an unreachable `Q` yields an
-//! honest [`GapShape::NativeCoverage`] gap — never a guessed `NotEntailed`.
+//! honest [`GapShape::NativeCoverage`](crate::entail::GapShape::NativeCoverage) gap — never a guessed `NotEntailed`.
 //!
 //! ## Sound fresh-symbol minting (the soundness floor)
 //!
 //! The fresh complement/witness IRIs are minted in a reserved namespace
-//! ([`ENTAIL_RESERVED_NS`]) with a blake3-of-input suffix, and [`Minter::new`]
+//! ([`ENTAIL_RESERVED_NS`](crate::entail::ENTAIL_RESERVED_NS)) with a blake3-of-input suffix, and [`Minter::new`](crate::entail::Minter::new)
 //! HARD-FAILS if the premise∪conclusion vocabulary already contains any reserved
 //! IRI. This is load-bearing for soundness: a premise legitimately mentioning a
 //! would-be complement IRI must never collide with a minted one, because a
@@ -68,7 +70,7 @@
 //! A conclusion shape the native DL fragment cannot soundly refute — a role /
 //! property assertion (role negation is not EL-expressible), a blank-node
 //! (existential) subject/object that needs Skolemization, a malformed triple — is
-//! an [`EntailmentGap`] carrying a structured [`GapShape`] token, never a silent
+//! an [`EntailmentGap`](crate::entail::EntailmentGap) carrying a structured [`GapShape`](crate::entail::GapShape) token, never a silent
 //! skip and never a guessed verdict.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -227,7 +229,7 @@ impl CapabilityGapShape {
     /// the SINGLE authority tying the ontology's closed `gmeow:GapShape` value class to
     /// this enum, so `slices/core/diagnostics/module.ttl` and the Rust taxonomy can
     /// never drift apart. Used by the conformance reifier
-    /// ([`gmeow_conformance::divergence::emit_capability_gap_nq`]) to mint the
+    /// (`gmeow_conformance::divergence::emit_capability_gap_nq`) to mint the
     /// `gmeow:gapShape` object IRI (`{GMEOW}{local}`).
     #[must_use]
     pub fn ontology_individual_local(&self) -> &'static str {

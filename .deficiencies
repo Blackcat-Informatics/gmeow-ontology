@@ -1239,6 +1239,36 @@ criteria DEMONSTRATED-IN-PRODUCTION on the merged tree via live `gmeow hybrid-qu
   external-relation vocabulary terms plus merged origin/main terms lacking full doc facets) —
   tracked in the baseline, not concealed; the established re-bless-after-merge pattern.
 
+## 2026-07-16 — #1572 removal of the live PurRDF entail cross-check (coverage reconciliation)
+
+The live native-vs-PurRDF differential reasoning oracle (`gmeow-dev reason-crosscheck` /
+`make reason-crosscheck`, driving `entail_crosscheck.rs` + `entail_oracle.rs`) is REMOVED with **no
+live replacement**, by design. Under Principles 4 (single authority) and 7 (no downstream
+duplication) the bundle-wide `native ⊇ purrdf-OWL-RL-subsumption` comparison was downstream
+duplication of PurRDF's own compliance corpus, not an independent GMEOW specification, so it is
+retired rather than re-homed. This block records the coverage reconciliation so the removal is
+transparent, not a silent shrink (`.goals`: no silent capability degradation).
+
+Reconciliation — every GMEOW-specific contract the oracle touched retains an engine-independent
+witness (all offline, Docker/PurRDF-oracle-free):
+
+- consistency / unsatisfiable-class detection → `crates/conformance/tests/dl_oracle_gold.rs`
+  proves `native ⊇` the FROZEN external OWL-2-DL oracle verdicts over the curated OWL/gUFO datasets
+  in `coverage/external/697-dl-oracle-gold/` (committed engine-independent gold), plus the native
+  reasoner's own four-valued consistency verdict (`reason-verify`, on-gate).
+- named subsumption / entailment preservation → `crates/logic/tests/ontology_entailments.rs`
+  (GMEOW's own hand-authored entailment goldens, e.g. `proximity_measurement_is_a_measurement`).
+- native coverage defects (the former `DlGap` class) → the native gap-zero DL·EL ledger
+  (`meta:gate-dl-el-crosscheck`, `generated/logic/dl-el-crosscheck-report.ttl`, gapCount MUST be 0),
+  computed from native results only (`full_parity.rs` certifies "no external oracle").
+
+What is intentionally NOT replaced: the oracle ran its subsumption comparison over the **entire
+folded EDB** on every gate; the retained frozen-gold exercises a curated dataset set, not the whole
+bundle. That breadth was exactly the generic-PurRDF-compliance mirror the issue retires; GMEOW's
+specific subsumption/entailment contracts remain witnessed by the named goldens above, and the new
+`check_lane_purity` anti-reintroduction seal (this PR) prevents a live differential oracle from
+silently regrowing. No GMEOW integration contract is left unwitnessed.
+
 ## 2026-07-16 — #1532 / slice authoring factory A2 (gmeow slice quality/lint consumer subcommands)
 Adds `gmeow slice lint <dir>` (tier-domination gate + graded advisories) to the consumer
 binary; `gmeow slice quality <dir>` already shipped under #1531 (commit da596648b, mis-trailered

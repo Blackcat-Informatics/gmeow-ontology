@@ -416,7 +416,7 @@ fn select_tasks(
                 "wikidata",
                 "coverage",
                 "acceptance",
-                "reason-gate",
+                "reason-verify",
                 "lint-alignment",
                 "i18n-lint",
                 "doc-lint",
@@ -538,7 +538,7 @@ mod tests {
         "rust-build",
         "rust-gate",
         "validate",
-        "reason-gate",
+        "reason-verify",
         "doc-lint",
         "compliance-report",
     ];
@@ -570,8 +570,8 @@ mod tests {
             "semantic-prefix markdown must select rust-build: {selected:?}"
         );
         assert!(
-            selected.contains("reason-gate"),
-            "semantic-prefix markdown must select reason-gate: {selected:?}"
+            selected.contains("reason-verify"),
+            "semantic-prefix markdown must select reason-verify: {selected:?}"
         );
         let docs_only: BTreeSet<String> = ["check-lint", "compliance-report", "doc-lint", "sync"]
             .into_iter()
@@ -617,15 +617,15 @@ mod tests {
 
         // The reuse payoff: under a validated base receipt, a docs-only
         // change selects a strict subset of the full task registry (no
-        // rust-build, no reason-gate), instead of the fail-closed full set.
+        // rust-build, no reason-verify), instead of the fail-closed full set.
         let (selected, _) = select_tasks(&["docs/guide.md".to_owned()], TASKS);
         assert!(
             !selected.contains("rust-build"),
             "docs-only change under a validated receipt must not select rust-build: {selected:?}"
         );
         assert!(
-            !selected.contains("reason-gate"),
-            "docs-only change under a validated receipt must not select reason-gate: {selected:?}"
+            !selected.contains("reason-verify"),
+            "docs-only change under a validated receipt must not select reason-verify: {selected:?}"
         );
         assert!(
             selected.len() < TASKS.len(),

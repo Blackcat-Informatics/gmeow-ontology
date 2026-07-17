@@ -49,7 +49,7 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     discover::validate_case(&case_dir).map_err(|d| d.to_string())?;
 
     // Lane routing: a Lane-B external corpus is heavy / oracle-backed and runs
-    // ONLY in the non-required `make -C validations/classic-cross-check validate` lane. A
+    // ONLY in the non-required external-corpus validation lane, never on the required gate. A
     // Divergence-lane corpus is the named honest-DlGap quarantine — those cases
     // are UNDECIDED by the native path (a gapped verdict the zero-defer
     // consistency runner refuses), so they are pinned exactly by the dedicated

@@ -24,8 +24,8 @@
 //! 5. **LATTICE-DERIVATION** — each reified comparison's `comparisonLatticeRelation`
 //!    is the RDF image of its `DivergenceKind`: `VerdictEquivalent`⟺Agree,
 //!    `VerdictWeaker`⟺DlGap, `VerdictIncomparable`⟺CorpusOnly.
-//! 6. **FATAL-REGRESSION** — `CorpusOnly` / `DlGap` / `OracleOnly` still grade to a
-//!    BLOCKING category (`gate()` == Fatal) while `NativeOnly` + `Agree` do not, so
+//! 6. **FATAL-REGRESSION** — `CorpusOnly` / `DlGap` still grade to a
+//!    BLOCKING category (`gate()` == Fatal) while `Agree` does not, so
 //!    Task 4's every-comparison fold did not weaken the soundness gate.
 //!
 //! Gates 4/5/6 drive the real Rust emitter (`divergence_findings` /
@@ -46,8 +46,7 @@ use gmeow_conformance::paths::repo_root;
 use gmeow_conformance::serialize::VerdictStatus;
 use gmeow_errors::grade::{Blocking, GateVerdict, Grade, gate};
 use gmeow_logic::reason::{
-    ExternalComparison, build_ledger, compare_external_corpus, compare_subsumption,
-    divergence_findings, dl_gap_rows,
+    ExternalComparison, build_ledger, compare_external_corpus, divergence_findings, dl_gap_rows,
 };
 use purrdf::{RdfDataset, TermRef};
 
@@ -638,7 +637,7 @@ fn corroboration_agreements_fold_non_blocking_corroboration_findings() {
         cmp("beyond/decided", "w", "consistent", "consistent"),
     ];
     let rows = compare_external_corpus("w3c-owl2-el", &comparisons);
-    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = build_ledger(Vec::new(), Vec::new(), rows);
     let findings = divergence_findings(&ledger);
 
     assert_eq!(
@@ -756,14 +755,9 @@ fn lattice_relation_is_the_rdf_image_of_the_divergence_kind() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
+fn fatal_regression_blocking_kinds_still_gate_and_agree_does_not() {
     // Build one ledger holding one row of every kind, then drive the REAL emitter +
     // the REAL gate() morphism over the resulting grades.
-    //   native {A⊑B}, oracle {C⊑B}: A⊑B is NativeOnly, C⊑B is OracleOnly.
-    let subs = compare_subsumption(
-        &[tup("http://ex/A", "http://ex/B", "http://ex/w")],
-        &[tup("http://ex/C", "http://ex/B", "http://ex/w")],
-    );
     let gaps = dl_gap_rows(&[gmeow_logic::reason::DlGap::new(
         "reason.dl-gap.union",
         "beyond EL",
@@ -775,7 +769,7 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
             cmp("wrong", "w", "consistent", "inconsistent"), // CorpusOnly
         ],
     );
-    let ledger = build_ledger(subs, Vec::new(), gaps, corpus);
+    let ledger = build_ledger(Vec::new(), gaps, corpus);
     let findings = divergence_findings(&ledger);
 
     // Every kind's code must be present, so the gate is genuinely exercised.
@@ -784,10 +778,8 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
         .map(|f| (f.code.as_str(), gate(grade_of(f))))
         .collect();
     for code in [
-        "reason.divergence.oracle-only",
         "reason.divergence.dl-gap",
         "reason.divergence.corpus-only",
-        "reason.divergence.native-only",
         "reason.divergence.agreement",
     ] {
         assert!(
@@ -797,29 +789,20 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
         );
     }
 
-    // The three soundness-failing kinds STILL gate Fatal (the Task-4 change is additive).
-    for code in [
-        "reason.divergence.oracle-only",
-        "reason.divergence.dl-gap",
-        "reason.divergence.corpus-only",
-    ] {
+    // The two soundness-failing kinds STILL gate Fatal (the Task-4 change is additive).
+    for code in ["reason.divergence.dl-gap", "reason.divergence.corpus-only"] {
         assert_eq!(
             by_code[code],
             GateVerdict::Fatal,
             "FATAL-REGRESSION: {code} must still gate Fatal (blocking soundness kind)"
         );
     }
-    // Agree + NativeOnly are non-blocking and must NOT gate.
-    for code in [
-        "reason.divergence.native-only",
-        "reason.divergence.agreement",
-    ] {
-        assert_eq!(
-            by_code[code],
-            GateVerdict::Collected,
-            "FATAL-REGRESSION: {code} must NOT gate (non-blocking corroboration/richness)"
-        );
-    }
+    // Agree is non-blocking and must NOT gate.
+    assert_eq!(
+        by_code["reason.divergence.agreement"],
+        GateVerdict::Collected,
+        "FATAL-REGRESSION: agreement must NOT gate (non-blocking corroboration)"
+    );
 }
 
 // ── shared test helpers ────────────────────────────────────────────────────────
@@ -831,10 +814,6 @@ fn cmp(case: &str, world: &str, native: &str, published: &str) -> ExternalCompar
         native: native.to_owned(),
         published: published.to_owned(),
     }
-}
-
-fn tup(s: &str, o: &str, w: &str) -> (String, String, String) {
-    (s.to_owned(), o.to_owned(), w.to_owned())
 }
 
 /// Reconstruct the diagnostic [`Grade`] a folded finding carries, so the real

@@ -22,10 +22,13 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-// The ELK/HermiT/Docker OWL-reasoner lane has been DELETED entirely — the
-// native `logic:` reasoner + in-process `purrdf::entail` oracle replaced it, so
-// no Makefile target reaches Docker/Java anymore. The invariant is now that the
-// Makefile and required CI are ENTIRELY Docker-free.
+// The ELK/HermiT/Docker OWL-reasoner lane AND the in-process `purrdf::entail`
+// differential reasoning oracle (both since retired) have been DELETED
+// entirely — the native `logic:` reasoner is the single reasoning authority, so
+// no Makefile target reaches Docker/Java and none wires a live second reasoner
+// on-gate. The invariant is now that the Makefile and required CI are ENTIRELY
+// Docker-free AND carry no live differential reasoning oracle (see
+// `check_differential_oracle_seal`).
 //
 // `LANE_MAKE_TARGETS` is the allowlist of targets permitted to reach Docker. No
 // legitimate Docker lane exists any longer, so it is EMPTY: every Makefile
@@ -44,12 +47,25 @@ const DOCKER_PATTERNS: &[&str] = &[
     r"\b(?:javac|gradlew?)\b",
 ];
 
-static DOCKER_REGEXES: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+static DOCKER_REGEXES: LazyLock<Result<Vec<Regex>, regex::Error>> = LazyLock::new(|| {
     DOCKER_PATTERNS
         .iter()
-        .map(|pattern| Regex::new(&format!("(?i){pattern}")).expect("static regex"))
+        .map(|pattern| Regex::new(&format!("(?i){pattern}")))
         .collect()
 });
+
+// The single-authority seal: after the live native-vs-`purrdf::entail`
+// differential reasoning oracle was retired, the native `logic:` reasoner is the
+// SOLE reasoner on-gate. A live external/second reasoner wired as an on-gate
+// subsumption/entailment oracle — the shape the deleted `reason-crosscheck` lane
+// had — must never silently regrow. This regex matches a Makefile TARGET NAME of
+// that shape (`*-crosscheck`); it deliberately scans target names only, so the
+// RETAINED committed engine-independent goldens — the offline `dl_oracle_gold`
+// frozen corpus and the native gap-zero `dl-el-crosscheck-report.ttl` ledger,
+// which appear as recipe artifact PATHS or `conformance` tests, never as gate
+// targets — stay green.
+static DIFFERENTIAL_ORACLE_TARGET: LazyLock<Result<Regex, regex::Error>> =
+    LazyLock::new(|| Regex::new(r"(?i)cross-?check"));
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RepoStaticReport {
@@ -727,6 +743,45 @@ fn check_lane_purity(root: &Path, report: &mut RepoStaticReport) {
     // that the Makefile is entirely Docker-free (below) and that required CI never
     // re-introduces the oracle tokens (in check_required_ci_jobs).
     check_makefile_lane_purity(root, report);
+    // The single-authority seal: no live differential reasoning oracle may regrow
+    // as a gate target.
+    check_differential_oracle_seal(root, report);
+}
+
+/// Anti-regrowth seal for the retired live differential reasoning oracle.
+///
+/// After the native-vs-`purrdf::entail` `reason-crosscheck` lane was removed, the
+/// native `logic:` reasoner is the single reasoning authority. This seal HARD-FAILS
+/// if any Makefile target re-introduces a live second-reasoner subsumption/entailment
+/// oracle gate (a `*-crosscheck` gate target). It scans target NAMES only, so the
+/// retained committed engine-independent goldens — the offline frozen `dl_oracle_gold`
+/// corpus (proven under `make conformance`) and the native gap-zero
+/// `dl-el-crosscheck-report.ttl` ledger (a recipe artifact PATH) — are ALLOWED and
+/// stay green; only a live differential-oracle GATE is forbidden.
+fn check_differential_oracle_seal(root: &Path, report: &mut RepoStaticReport) {
+    let rel = "Makefile";
+    let re = match &*DIFFERENTIAL_ORACLE_TARGET {
+        Ok(re) => re,
+        Err(e) => {
+            report.error(format!(
+                "{rel}: failed to compile differential-oracle target regex: {e}"
+            ));
+            return;
+        }
+    };
+    let Some(text) = read_required(root, rel, report) else {
+        return;
+    };
+    for target in makefile_recipes(&text).keys() {
+        if re.is_match(target) {
+            report.error(format!(
+                "{rel}: target {target:?} re-introduces a live differential reasoning oracle \
+                 gate — the native-vs-purrdf reason-crosscheck lane was retired; the native \
+                 reasoner is the single authority and only committed engine-independent goldens \
+                 are permitted, never a live second reasoner on-gate"
+            ));
+        }
+    }
 }
 
 fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
@@ -762,6 +817,14 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
         return;
     }
 
+    let docker_regexes = match &*DOCKER_REGEXES {
+        Ok(res) => res,
+        Err(e) => {
+            report.error(format!("{rel}: failed to compile docker lane regex: {e}"));
+            return;
+        }
+    };
+
     let mut required_jobs = needs.clone();
     required_jobs.push("quality".to_owned());
     for job_name in &required_jobs {
@@ -770,7 +833,7 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
             continue;
         };
         let blob = recursive_yaml_text(job);
-        let hits = forbidden_hits(&blob);
+        let hits = forbidden_hits(&blob, docker_regexes);
         if !hits.is_empty() {
             report.error(format!(
                 "required CI job {job_name:?} reaches Docker/Java: {}",
@@ -782,6 +845,9 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
             "make maint-classic-cross-check",
             "--reasoner hermit",
             "--reasoner elk",
+            // The retired live native-vs-purrdf differential oracle lane.
+            "reason-crosscheck",
+            "run_entail_crosscheck",
         ] {
             if lowered.contains(token) {
                 report.error(format!(
@@ -805,12 +871,19 @@ fn check_makefile_lane_purity(root: &Path, report: &mut RepoStaticReport) {
     };
     let recipes = makefile_recipes(&text);
     let lane_targets = LANE_MAKE_TARGETS.iter().copied().collect::<BTreeSet<_>>();
+    let docker_regexes = match &*DOCKER_REGEXES {
+        Ok(res) => res,
+        Err(e) => {
+            report.error(format!("{rel}: failed to compile docker lane regex: {e}"));
+            return;
+        }
+    };
 
     for (target, lines) in &recipes {
         if lane_targets.contains(target.as_str()) {
             continue;
         }
-        let hits = forbidden_hits(&lines.join("\n"));
+        let hits = forbidden_hits(&lines.join("\n"), docker_regexes);
         if !hits.is_empty() {
             report.error(format!(
                 "non-lane Makefile target {target:?} reaches Docker/Java: {}",
@@ -874,9 +947,9 @@ fn recursive_yaml_text(value: &Yaml) -> String {
     }
 }
 
-fn forbidden_hits(text: &str) -> BTreeSet<String> {
+fn forbidden_hits(text: &str, docker_regexes: &[Regex]) -> BTreeSet<String> {
     let mut hits = BTreeSet::new();
-    for (pattern, re) in DOCKER_PATTERNS.iter().zip(DOCKER_REGEXES.iter()) {
+    for (pattern, re) in DOCKER_PATTERNS.iter().zip(docker_regexes.iter()) {
         if re.is_match(text) {
             hits.insert((*pattern).to_owned());
         }
@@ -1903,6 +1976,52 @@ mod tests {
                 .iter()
                 .any(|e| e.contains("invokes the oracle lane") && e.contains("--reasoner hermit")),
             "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn differential_oracle_crosscheck_target_reintroduction_fails() {
+        // The retired live native-vs-purrdf reason-crosscheck oracle. A
+        // re-introduced `*-crosscheck` gate target regrows the forbidden lane;
+        // the single-authority seal must red on it.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join("Makefile"),
+            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\nfoo-crosscheck:\n\t$(GMEOW_DEV) foo-crosscheck\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(
+            report.errors.iter().any(|e| e.contains("foo-crosscheck")
+                && e.contains("live differential reasoning oracle")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn differential_oracle_seal_allows_retained_engine_independent_goldens() {
+        // The retained native gap-zero DL-EL ledger is a committed
+        // engine-independent golden referenced by ARTIFACT PATH in a recipe, and
+        // the frozen oracle-gold is proven under `conformance` — neither is a
+        // live-oracle GATE target, so the seal stays green.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join("Makefile"),
+            "check:\n\t$(MAKE) reason-verify\n\
+             reason-verify:\n\t$(GMEOW_DEV) reason-verify\n\
+             conformance:\n\t$(GMEOW_DEV) conformance\n\
+             release:\n\t--evidence generated/logic/dl-el-crosscheck-report.ttl\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("live differential reasoning oracle")),
+            "retained engine-independent goldens must not trip the seal: {:?}",
             report.errors
         );
     }

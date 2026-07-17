@@ -1757,7 +1757,7 @@ mod tests {
         );
 
         // Routed into the counted divergence ledger it IS tallied and fails enforce…
-        let ledger = crate::reason::ledger::build_ledger(Vec::new(), Vec::new(), rows, Vec::new());
+        let ledger = crate::reason::ledger::build_ledger(Vec::new(), rows, Vec::new());
         assert_eq!(ledger.dl_gap, 1, "counted as a DL gap in reason::ledger");
         assert!(!crate::reason::ledger::enforce(&ledger).passed);
 

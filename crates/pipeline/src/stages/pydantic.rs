@@ -17,7 +17,7 @@
 //!
 //! # Package layout
 //!
-//! * `gmeow_models/_base.py` — the shared [`ConfiguredBaseModel`] config.
+//! * `gmeow_models/_base.py` — the shared `ConfiguredBaseModel` config.
 //! * `gmeow_models/_envelope.py` — the synthetic JSON-LD envelope `Node` def.
 //! * `gmeow_models/<slice>.py` — one module per owning slice, its models + the
 //!   value-vocabulary `StrEnum`s they reference.
