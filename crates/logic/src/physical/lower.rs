@@ -173,17 +173,17 @@ fn lower_term_in(dag: &mut TermDag, term: &Term, env: &[Vec<String>]) -> Result<
             )));
         }
         Term::App { symbol, args } => {
-            // The `logic:` authoring surface and the typed-IR frontend now express a compound
-            // function term, but lowering it into this arena's `NodeData::App` node is the
-            // deliberate seam for a later step. Hard-fail with the exact symbol/arity rather
-            // than silently coercing it to a leaf, so nothing downstream mistakes an
-            // un-lowered application for a resolved term.
-            return Err(ir_err(format!(
-                "compound function term {symbol}/{} is not yet lowered into the physical term \
-                 DAG; this is the seam for the application-lowering step, and lowering it is a \
-                 hard fail rather than a silent single-term coercion",
-                args.len()
-            )));
+            // A compound function-term application `f(t0, .., tn)`: mirror how
+            // `Formula::Atom` lowers its relation (a reified leaf op applied to its lowered
+            // argument carriers) — the reified function-symbol IRI becomes the `App` node's
+            // `op` child, and each argument is lowered recursively through this same
+            // function, so a nested application (`cons(H, cons(1, nil))`) round-trips.
+            let op = dag.intern_leaf(TermValue::iri(symbol.clone()));
+            let mut arg_nodes = Vec::with_capacity(args.len());
+            for a in args {
+                arg_nodes.push(lower_term_in(dag, a, env)?);
+            }
+            dag.intern_app(op, arg_nodes)
         }
     })
 }
@@ -217,9 +217,12 @@ fn lower_formula_in(dag: &mut TermDag, f: &Formula, env: &mut Vec<Vec<String>>) 
                 lower_formula_in(dag, a, env)?,
                 lower_formula_in(dag, b, env)?,
             ];
-            // Interned operand ids are order-independent, so sorting canonicalizes the
-            // commutative pair exactly as `ir.rs` sorts the biconditional's operand keys.
-            pair.sort();
+            // Sort by CONTENT KEY, never NodeId: a `NodeId` is an interning-order artifact
+            // (arbitrary across two separate DAGs), while `dag.key(..)` is the same
+            // structural fingerprint `ir.rs` sorts the biconditional's operand keys by, so
+            // the same commutative formula built in two separate fresh DAGs interns to the
+            // same content key regardless of interning order.
+            pair.sort_by(|&x, &y| dag.key(x).cmp(dag.key(y)));
             dag.intern_app(op, pair.to_vec())
         }
         Formula::Forall { vars, body } => lower_logic_binder(dag, canon::FORALL, vars, body, env)?,
@@ -239,10 +242,10 @@ fn flatten_commutative<'a>(is_and: bool, fs: &'a [Formula], out: &mut Vec<&'a Fo
     }
 }
 
-/// Lower a flattened, order-normalized commutative connective. Interning the operands
-/// yields order-independent node ids, so sorting them canonicalizes operand order exactly
-/// as `ir.rs` sorts operand keys (duplicates preserved), while the DAG `App` stays strictly
-/// positional.
+/// Lower a flattened, order-normalized commutative connective. Sorting the interned
+/// operands by CONTENT KEY (never `NodeId`, which is only meaningful within the DAG that
+/// minted it) canonicalizes operand order exactly as `ir.rs` sorts operand keys (duplicates
+/// preserved), while the DAG `App` stays strictly positional.
 fn lower_commutative(
     dag: &mut TermDag,
     op_iri: &str,
@@ -257,7 +260,11 @@ fn lower_commutative(
     for f in operands {
         nodes.push(lower_formula_in(dag, f, env)?);
     }
-    nodes.sort();
+    // Sort by CONTENT KEY, never NodeId (see the `Iff` arm's comment above): a `NodeId` is
+    // interning-order-dependent and not comparable across two separate DAGs, while
+    // `dag.key(..)` is the structural fingerprint, so this matches `ir.rs`'s own operand-key
+    // sort and is deterministic regardless of which DAG / interning order built the operands.
+    nodes.sort_by(|&x, &y| dag.key(x).cmp(dag.key(y)));
     Ok(dag.intern_app(op, nodes))
 }
 
@@ -306,8 +313,17 @@ const M_LITERAL_VALUE: &str = "https://blackcatinformatics.ca/math/literalValue"
 enum Obj {
     /// An IRI or blank-node reference — a node the lowering can follow.
     Ref(String),
-    /// A literal's lexical form (e.g. a `math:slotIndex` integer).
-    Lit(String),
+    /// A literal (e.g. a `math:slotIndex` integer or a `math:literalValue` number), carrying
+    /// its lexical form AND its datatype/language — a `math:NumberLiteral` must lower with
+    /// its datatype/language intact, never discarded.
+    Lit {
+        /// The lexical form, byte-for-byte as authored.
+        lexical: String,
+        /// The datatype IRI (never empty — the parser expands the RDF default).
+        datatype: String,
+        /// The (lowercased) language tag, for a language-tagged literal.
+        language: Option<String>,
+    },
 }
 
 /// A read-only subject → predicate → objects index over the default graph of a parsed
@@ -333,7 +349,7 @@ impl MathGraph {
                 continue;
             }
             let (Some(subject), TermRef::Iri(predicate), Some(object)) =
-                (node_key(&quad.s), quad.p, obj_of(&quad.o))
+                (node_key(&quad.s), quad.p, obj_of(&quad.o, &dataset))
             else {
                 continue;
             };
@@ -361,7 +377,7 @@ impl MathGraph {
             .iter()
             .find_map(|o| match o {
                 Obj::Ref(value) => Some(value.as_str()),
-                Obj::Lit(_) => None,
+                Obj::Lit { .. } => None,
             })
     }
 
@@ -371,16 +387,34 @@ impl MathGraph {
             .iter()
             .filter_map(|o| match o {
                 Obj::Ref(value) => Some(value.as_str()),
-                Obj::Lit(_) => None,
+                Obj::Lit { .. } => None,
             })
     }
 
-    /// The first literal lexical form of `(subject, predicate, ?)`, if any.
+    /// The first literal lexical form of `(subject, predicate, ?)`, if any. Datatype/language
+    /// fidelity is dropped here deliberately — callers that need full literal identity (a
+    /// `math:NumberLiteral`'s `math:literalValue`) use [`Self::first_lit_typed`] instead.
     fn first_lit(&self, subject: &str, predicate: &str) -> Option<&str> {
+        self.first_lit_typed(subject, predicate)
+            .map(|(lexical, _, _)| lexical)
+    }
+
+    /// The first literal object of `(subject, predicate, ?)`, if any, as
+    /// `(lexical, datatype, language)` — full fidelity, never discarding the datatype/language
+    /// a `math:NumberLiteral`'s `math:literalValue` carries.
+    fn first_lit_typed(
+        &self,
+        subject: &str,
+        predicate: &str,
+    ) -> Option<(&str, &str, Option<&str>)> {
         self.objects(subject, predicate)
             .iter()
             .find_map(|o| match o {
-                Obj::Lit(value) => Some(value.as_str()),
+                Obj::Lit {
+                    lexical,
+                    datatype,
+                    language,
+                } => Some((lexical.as_str(), datatype.as_str(), language.as_deref())),
                 Obj::Ref(_) => None,
             })
     }
@@ -406,12 +440,34 @@ fn node_key(term: &TermRef<'_>) -> Option<String> {
     }
 }
 
-/// The object of an expression edge: an IRI/blank reference or a literal's lexical form.
-fn obj_of(term: &TermRef<'_>) -> Option<Obj> {
+/// The object of an expression edge: an IRI/blank reference, or a literal carrying its
+/// lexical form AND its datatype/language (resolved against `dataset`, since a borrowed
+/// [`TermRef`]'s datatype is a dataset-local [`purrdf::TermId`], not a portable IRI string —
+/// never dropped, so a `math:NumberLiteral`'s datatype survives into the [`MathGraph`]
+/// index).
+fn obj_of(term: &TermRef<'_>, dataset: &purrdf::RdfDataset) -> Option<Obj> {
     match term {
         TermRef::Iri(iri) => Some(Obj::Ref((*iri).to_owned())),
         TermRef::Blank { label, .. } => Some(Obj::Ref(format!("_:{label}"))),
-        TermRef::Literal { lexical, .. } => Some(Obj::Lit((*lexical).to_owned())),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            ..
+        } => {
+            let datatype = match dataset.resolve(*datatype) {
+                TermRef::Iri(dt) => dt.to_owned(),
+                other => unreachable!(
+                    "a literal's datatype term resolves to an IRI by RDF construction, got \
+                     {other:?}"
+                ),
+            };
+            Some(Obj::Lit {
+                lexical: (*lexical).to_owned(),
+                datatype,
+                language: language.map(|l| (*l).to_owned()),
+            })
+        }
         TermRef::Triple { .. } => None,
     }
 }
@@ -427,8 +483,9 @@ fn obj_of(term: &TermRef<'_>) -> Option<Obj> {
 /// - `math:VariableExpression` → `Bound` if its occurrence's `math:declaredVariable`
 ///   resolves to an enclosing binder, else `Free` iff the declaration is a
 ///   `math:FreeVariableDeclaration` (an occurrence bound to nothing is a HARD FAIL).
-/// - `math:NumberLiteral` → a `Leaf` of its `math:literalValue`; a bare IRI operand → a
-///   `Leaf` of that IRI.
+/// - `math:NumberLiteral` → a `Leaf` of its `math:literalValue`, a TYPED (or
+///   language-tagged) RDF literal — the datatype/language is NEVER dropped; a bare IRI
+///   operand → a `Leaf` of that IRI.
 pub(crate) fn lower_math_expression(
     dag: &mut TermDag,
     graph: &MathGraph,
@@ -452,12 +509,23 @@ fn lower_math_node(
     } else if types.contains(&M_VARIABLE_EXPRESSION) {
         lower_math_variable(dag, graph, node, env)
     } else if types.contains(&M_NUMBER_LITERAL) {
-        let value = graph.first_ref(node, M_LITERAL_VALUE).ok_or_else(|| {
-            ir_err(format!(
-                "math:NumberLiteral {node} missing math:literalValue"
-            ))
-        })?;
-        Ok(dag.intern_leaf(TermValue::iri(value.to_owned())))
+        // A `math:literalValue` is an RDF literal (e.g. `"42"^^xsd:integer`), never an
+        // IRI/blank reference, so it is read with `first_lit_typed` — and its datatype/
+        // language is preserved into the interned leaf, never discarded (a bare
+        // `TermValue::iri` here would silently coerce a typed number to an untyped
+        // constant).
+        let (lexical, datatype, language) = graph
+            .first_lit_typed(node, M_LITERAL_VALUE)
+            .ok_or_else(|| {
+                ir_err(format!(
+                    "math:NumberLiteral {node} missing math:literalValue"
+                ))
+            })?;
+        let tv = match language {
+            Some(lang) => TermValue::lang_literal(lexical.to_owned(), lang),
+            None => TermValue::typed_literal(lexical.to_owned(), datatype.to_owned()),
+        };
+        Ok(dag.intern_leaf(tv))
     } else if !node.starts_with("_:") {
         // A bare IRI constant operand (a mathematical symbol / individual): a leaf.
         Ok(dag.intern_leaf(TermValue::iri(node.to_owned())))
@@ -1025,5 +1093,161 @@ mod tests {
         let empty = lower_lang_denotation(&mut dag, &LangDenotation::Class(String::new()))
             .expect_err("empty class IRI hard-fails");
         assert!(empty.message().contains("non-empty"), "{}", empty.message());
+    }
+
+    // ── logic: Term::App lowers into a real App node (the former hard-fail seam) ───────
+
+    #[test]
+    fn term_app_lowers_matching_hand_built_intern_app() {
+        let mut dag = TermDag::new();
+        let term = Term::app(
+            "https://example.org/f",
+            vec![
+                Term::iri("https://example.org/a").unwrap(),
+                Term::iri("https://example.org/b").unwrap(),
+            ],
+        )
+        .unwrap();
+        let lowered = lower_logic_term(&mut dag, &term).expect("Term::App lowers");
+
+        // By hand, exactly mirroring `Formula::Atom`'s own lowering shape: a reified leaf
+        // op applied to its lowered argument carriers.
+        let op = dag.intern_leaf(TermValue::iri("https://example.org/f"));
+        let a = dag.intern_leaf(TermValue::iri("https://example.org/a"));
+        let b = dag.intern_leaf(TermValue::iri("https://example.org/b"));
+        let hand_built = dag.intern_app(op, vec![a, b]);
+
+        // Hash-consing means a matching by-hand build interns to the SAME NodeId, not
+        // merely an equal content key.
+        assert_eq!(
+            lowered, hand_built,
+            "Term::App lowering interns to the same node as a by-hand intern_app build"
+        );
+        assert_eq!(dag.key(lowered), dag.key(hand_built));
+        assert!(
+            dag.key(lowered).starts_with("APP"),
+            "lowered node is an application: {}",
+            dag.key(lowered)
+        );
+    }
+
+    #[test]
+    fn nested_application_lowers_and_round_trips() {
+        // cons(H, cons(1, nil)): the second argument is itself an application, so a nested
+        // `Term::App` must round-trip through the lowering, not just a flat one.
+        fn cons_h_cons_one_nil() -> Term {
+            Term::app(
+                "https://example.org/cons",
+                vec![
+                    Term::var("H").unwrap(),
+                    Term::app(
+                        "https://example.org/cons",
+                        vec![
+                            Term::literal("1", None).unwrap(),
+                            Term::iri("https://example.org/nil").unwrap(),
+                        ],
+                    )
+                    .unwrap(),
+                ],
+            )
+            .unwrap()
+        }
+
+        // Built and lowered in two SEPARATE fresh arenas: the nested shape must fold to
+        // the identical content key regardless of which arena minted it — hash-consing
+        // determinism for a NESTED application, not just a flat one.
+        let mut dag_a = TermDag::new();
+        let node_a =
+            lower_logic_term(&mut dag_a, &cons_h_cons_one_nil()).expect("nested lowers (a)");
+        let mut dag_b = TermDag::new();
+        let node_b =
+            lower_logic_term(&mut dag_b, &cons_h_cons_one_nil()).expect("nested lowers (b)");
+        assert_eq!(
+            dag_a.key(node_a),
+            dag_b.key(node_b),
+            "the same nested-application shape interns to the same content key in a \
+             separate arena"
+        );
+
+        // Structural sanity: TWO application nodes (outer cons, inner cons) and the free
+        // occurrence of H both survive lowering.
+        let key = dag_a.key(node_a);
+        assert_eq!(
+            key.matches("APP").count(),
+            2,
+            "outer and inner cons applications both lowered: {key}"
+        );
+        assert!(
+            key.contains("free_\"H\""),
+            "H lowers as a free occurrence: {key}"
+        );
+        assert!(key.contains("nil"), "the nil constant survives: {key}");
+    }
+
+    // ── G4: commutative sort key is CONTENT KEY, never NodeId ───────────────────────────
+
+    #[test]
+    fn g4_and_operand_order_content_key_stable_across_separate_dags() {
+        fn atom(name: &str) -> Formula {
+            Formula::atom(
+                Term::iri(format!("https://example.org/{name}")).unwrap(),
+                Vec::new(),
+            )
+            .unwrap()
+        }
+        let pq = Formula::And(vec![atom("p"), atom("q")]);
+        let qp = Formula::And(vec![atom("q"), atom("p")]);
+
+        // Built and interned in two SEPARATE fresh DAGs, so `p`/`q`'s NodeIds are minted
+        // in the OPPOSITE order between the two arenas — a NodeId-keyed sort would then
+        // disagree on operand order between the two DAGs, while a content-key-keyed sort
+        // agrees regardless.
+        let mut dag1 = TermDag::new();
+        let node_pq = lower_logic_formula(&mut dag1, &pq).expect("And[p,q] lowers");
+        let mut dag2 = TermDag::new();
+        let node_qp = lower_logic_formula(&mut dag2, &qp).expect("And[q,p] lowers");
+
+        assert_eq!(
+            dag1.key(node_pq),
+            dag2.key(node_qp),
+            "And[p,q] and And[q,p], each built in a SEPARATE fresh DAG, must intern to the \
+             same content key regardless of interning order (sorted by content key, never \
+             NodeId)"
+        );
+    }
+
+    // ── G7: a math:NumberLiteral's typed literalValue lowers, datatype preserved ────────
+
+    #[test]
+    fn g7_math_number_literal_preserves_typed_datatype() {
+        // `math:literalValue` as a genuine RDF typed literal (`"42"^^xsd:integer`) must
+        // lower to a TYPED leaf — not hard-fail, and not silently drop the datatype.
+        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:lit a math:NumberLiteral ; math:literalValue \"42\"^^xsd:integer .\n";
+        let mut dag = TermDag::new();
+        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
+        let node = lower_math_expression(&mut dag, &graph, "https://example.org/lit")
+            .expect("typed math:NumberLiteral lowers, not a hard fail");
+
+        // The lowered leaf's key must carry BOTH the lexical form and the datatype IRI — a
+        // dropped datatype would collapse a typed number to an untyped constant.
+        let key = dag.key(node);
+        assert!(key.contains("42"), "lexical form survives: {key}");
+        assert!(
+            key.contains("XMLSchema#integer"),
+            "datatype IRI survives (not silently dropped): {key}"
+        );
+
+        // It interns to the SAME node as a by-hand `typed_literal` build through the arena.
+        let hand_built = dag.intern_leaf(TermValue::typed_literal(
+            "42",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ));
+        assert_eq!(
+            node, hand_built,
+            "math:NumberLiteral lowering interns to the SAME node as a by-hand typed literal"
+        );
     }
 }
