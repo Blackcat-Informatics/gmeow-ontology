@@ -126,7 +126,12 @@ pub fn dataset_from_texts(texts: &[&str]) -> gmeow_errors::Result<Arc<RdfDataset
 /// guarded [`ProjectionVocabulary`] registry) is loaded from. The DISTRIBUTED half
 /// (governance commitments: floors, tier floors, ceilings, exemptions) is loaded from
 /// every slice's `module.ttl` — see [`governance_source_modules`].
-const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
+///
+/// `pub` because this is the crate-public canonical path to the centralized
+/// measurement-standard / vocabulary-registry authoring module — the single
+/// defining literal; downstream crates (e.g. `gmeow-dev-cli`) reference this
+/// constant instead of redeclaring the path.
+pub const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
 
 /// DISTRIBUTED per-slice governance commitments (`gmeow:AxisFloorCommitment`,
 /// `gmeow:SliceTierFloor`, `gmeow:ProjectionCeilingCommitment`, `gmeow:AxisExemption`)
