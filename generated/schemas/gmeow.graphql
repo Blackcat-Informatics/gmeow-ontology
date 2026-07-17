@@ -1336,6 +1336,10 @@ input BuildDataFlowInput {
   type: GmeowScalar
 }
 
+enum ByteOrderEnum {
+  VALUE_0
+}
+
 type CadastralReference {
   annotation: GmeowScalar
   gmeowReferenceAuthority: GmeowScalar
@@ -2318,6 +2322,20 @@ enum DayOfWeekEnum {
   VALUE_6
 }
 
+type DeclassificationAct {
+  annotation: GmeowScalar
+  gmeowDeclassifies: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input DeclassificationActInput {
+  annotation: GmeowScalar
+  gmeowDeclassifies: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 type DegreeOfFreedom {
   annotation: GmeowScalar
   gmeowDofConstraintFunction: GmeowScalar
@@ -2420,6 +2438,24 @@ type DerivedAffectIntensityObservation {
 
 input DerivedAffectIntensityObservationInput {
   annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type DerivedVectorIndex {
+  annotation: GmeowScalar
+  gmeowApproximationRecall: GmeowScalar
+  gmeowIndexOfProjection: GmeowScalar
+  gmeowIndexOverSpace: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input DerivedVectorIndexInput {
+  annotation: GmeowScalar
+  gmeowApproximationRecall: GmeowScalar
+  gmeowIndexOfProjection: GmeowScalar
+  gmeowIndexOverSpace: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -2738,6 +2774,20 @@ type Embedding {
   type: GmeowScalar
 }
 
+type EmbeddingFamily {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input EmbeddingFamilyInput {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 type EmbeddingGmeowEmbeddingOf {
   id: String!
 }
@@ -2751,6 +2801,26 @@ input EmbeddingInput {
   gmeowDistanceMetric: DistanceMetricEnum!
   gmeowEmbeddingModel: GmeowScalar
   gmeowEmbeddingOf: EmbeddingGmeowEmbeddingOfInput!
+  id: String
+  type: GmeowScalar
+}
+
+type EmbeddingProjection {
+  annotation: GmeowScalar
+  gmeowHasSensitivity: GmeowScalar
+  gmeowHasVectorSpaceContract: GmeowScalar
+  gmeowProjectionSource: GmeowScalar
+  gmeowReproducibilityLevel: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input EmbeddingProjectionInput {
+  annotation: GmeowScalar
+  gmeowHasSensitivity: GmeowScalar
+  gmeowHasVectorSpaceContract: GmeowScalar
+  gmeowProjectionSource: GmeowScalar
+  gmeowReproducibilityLevel: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -3137,6 +3207,20 @@ enum ExpressionLanguageEnum {
   VALUE_6
 }
 
+type ExternalBinding {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input ExternalBindingInput {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 type ExtractedRelationship {
   annotation: GmeowScalar
   gmeowRelationshipSource: ExtractedRelationshipGmeowRelationshipSource!
@@ -3321,6 +3405,7 @@ enum GTSProfileEnum {
   VALUE_4
   VALUE_5
   VALUE_6
+  VALUE_7
 }
 
 type GTSSegment {
@@ -7229,6 +7314,11 @@ input MathZigzagDiagramInput {
   type: GmeowScalar
 }
 
+enum MatryoshkaPolicyEnum {
+  VALUE_0
+  VALUE_1
+}
+
 enum MaximViolationTypeEnum {
   VALUE_0
   VALUE_1
@@ -8914,6 +9004,27 @@ input ProfileInput {
   type: GmeowScalar
 }
 
+type ProfileSurface {
+  annotation: GmeowScalar
+  gmeowProfileSurfaceKind: GmeowScalar
+  gmeowProfileSurfaceOf: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input ProfileSurfaceInput {
+  annotation: GmeowScalar
+  gmeowProfileSurfaceKind: GmeowScalar
+  gmeowProfileSurfaceOf: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+enum ProfileSurfaceKindEnum {
+  VALUE_0
+  VALUE_1
+}
+
 enum ProjectionContextEnum {
   VALUE_0
   VALUE_1
@@ -9680,6 +9791,18 @@ enum SignatureSchemeEnum {
   VALUE_4
 }
 
+type SimilarityObservation {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input SimilarityObservationInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 enum SiteTypeEnum {
   VALUE_0
   VALUE_1
@@ -10001,6 +10124,20 @@ type Tagging {
 
 input TaggingInput {
   annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type TargetSet {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input TargetSetInput {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -12049,6 +12186,47 @@ input UsageAttestationInput {
   gmeowAttestedInSource: GmeowScalar
   id: String
   type: GmeowScalar
+}
+
+type VectorSpaceContract {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  gmeowEffectiveOfFamily: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input VectorSpaceContractInput {
+  annotation: GmeowScalar
+  gmeowContentDigest: GmeowScalar
+  gmeowEffectiveOfFamily: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type VectorTarget {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input VectorTargetInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+enum VectorTargetKindEnum {
+  VALUE_0
+  VALUE_1
+  VALUE_2
+  VALUE_3
+  VALUE_4
+  VALUE_5
+  VALUE_6
+  VALUE_7
+  VALUE_8
+  VALUE_9
 }
 
 enum VerdictLatticeRelationEnum {
