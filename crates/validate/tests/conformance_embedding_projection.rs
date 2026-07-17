@@ -6,8 +6,8 @@
 //! * **F1** (AC2 non-duplication): the module REUSES graphrag/kernel terms and never
 //!   REDECLARES them (no `rdfs:isDefinedBy` the slice on a reused term), while its own
 //!   new terms are slice-owned; plus the boundary axioms
-//!   (`gmeow:SimilarityObservation owl:disjointWith gmeow:RetrievalEvent`, and
-//!   `gmeow:EmbeddingProjection` is NOT `rdfs:subClassOf gmeow:Embedding`).
+//!   (`gmeow:SimilarityObservation logic:disjointWith gmeow:RetrievalEvent`, and
+//!   `gmeow:EmbeddingProjection` is NOT `logic:subClassOf gmeow:Embedding`).
 //! * **F2** (AC5 four-way separation): the four operational categories — the pack-level
 //!   projection, the similarity/retrieval observations, the derived index, and the
 //!   per-object source embedding — are pairwise non-conflated classes (no
@@ -28,8 +28,14 @@ const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const LANG: &str = "https://blackcatinformatics.ca/lang/";
 
-const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
-const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+// The boundary / separation axioms are authored in the canonical `logic:` grounding
+// forms (Principle 17: `logic:` is canonical; OWL/RDFS are generated projections). The
+// `GraphStore::ontology()` source store parses the authored modules directly, so it
+// carries `logic:subClassOf` / `logic:disjointWith` / `logic:equivalentClass` — the OWL
+// projection is materialized downstream by the pipeline, not present in this store.
+const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+const LOGIC_EQUIVALENT_CLASS: &str = "https://blackcatinformatics.ca/logic/equivalentClass";
+const LOGIC_DISJOINT_WITH: &str = "https://blackcatinformatics.ca/logic/disjointWith";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/embedding-projection";
 
@@ -54,18 +60,18 @@ fn f1_non_duplication_and_boundary_axioms() {
     assert!(
         g.has(
             Some(&gm("SimilarityObservation")),
-            Some(OWL_DISJOINT_WITH),
+            Some(LOGIC_DISJOINT_WITH),
             Some(&gm("RetrievalEvent"))
         ),
-        "F1: gmeow:SimilarityObservation must be owl:disjointWith gmeow:RetrievalEvent"
+        "F1: gmeow:SimilarityObservation must be logic:disjointWith gmeow:RetrievalEvent"
     );
     assert!(
         !g.has(
             Some(&gm("EmbeddingProjection")),
-            Some(RDFS_SUBCLASS_OF),
+            Some(LOGIC_SUBCLASS_OF),
             Some(&gm("Embedding"))
         ),
-        "F1: gmeow:EmbeddingProjection must NOT be rdfs:subClassOf gmeow:Embedding \
+        "F1: gmeow:EmbeddingProjection must NOT be logic:subClassOf gmeow:Embedding \
          (it AGGREGATES via gmeow:aggregatesEmbedding)"
     );
     assert!(
@@ -143,12 +149,12 @@ fn f2_four_way_separation() {
                 continue;
             }
             assert!(
-                !g.has(Some(&gm(a)), Some(RDFS_SUBCLASS_OF), Some(&gm(b))),
-                "F2: gmeow:{a} must not be rdfs:subClassOf gmeow:{b}"
+                !g.has(Some(&gm(a)), Some(LOGIC_SUBCLASS_OF), Some(&gm(b))),
+                "F2: gmeow:{a} must not be logic:subClassOf gmeow:{b}"
             );
             assert!(
-                !g.has(Some(&gm(a)), Some(OWL_EQUIVALENT_CLASS), Some(&gm(b))),
-                "F2: gmeow:{a} must not be owl:equivalentClass gmeow:{b}"
+                !g.has(Some(&gm(a)), Some(LOGIC_EQUIVALENT_CLASS), Some(&gm(b))),
+                "F2: gmeow:{a} must not be logic:equivalentClass gmeow:{b}"
             );
         }
     }
@@ -161,12 +167,12 @@ fn f2_four_way_separation() {
         ("Embedding", "EmbeddingProjection"),
     ] {
         assert!(
-            !g.has(Some(&gm(a)), Some(RDFS_SUBCLASS_OF), Some(&gm(b))),
-            "F2: gmeow:{a} must not be rdfs:subClassOf gmeow:{b}"
+            !g.has(Some(&gm(a)), Some(LOGIC_SUBCLASS_OF), Some(&gm(b))),
+            "F2: gmeow:{a} must not be logic:subClassOf gmeow:{b}"
         );
         assert!(
-            !g.has(Some(&gm(a)), Some(OWL_EQUIVALENT_CLASS), Some(&gm(b))),
-            "F2: gmeow:{a} must not be owl:equivalentClass gmeow:{b}"
+            !g.has(Some(&gm(a)), Some(LOGIC_EQUIVALENT_CLASS), Some(&gm(b))),
+            "F2: gmeow:{a} must not be logic:equivalentClass gmeow:{b}"
         );
     }
 }
