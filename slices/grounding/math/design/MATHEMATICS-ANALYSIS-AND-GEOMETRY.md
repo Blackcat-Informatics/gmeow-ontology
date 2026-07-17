@@ -328,6 +328,25 @@ Laplacians, and Hodge decomposition are separate reusable structures. `math:Hodg
 names harmonic, exact, and coexact components rather than treating those readings as intrinsic
 labels on a vector. A sheaf without a base, stalk, or restriction map is structurally incomplete.
 
+Three distinct Laplacian classes now sit side by side, and the ontology is deliberately explicit
+about which one is which. `math:CombinatorialLaplacian` is the degree-k discrete construction
+`L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k`, built purely from a `math:CellComplex`'s own signed boundary
+operators — no metric, smooth structure, or sheaf stalk is assumed. It names its carrier complex
+(`math:combinatorialLaplacianComplex`), its degree (`math:laplacianDegree`), and both constitutive
+operators (`math:upperBoundaryOperator` for the degree-(k+1) up term, `math:lowerBoundaryOperator`
+for the degree-k down term) as a full, checkable frame; a Laplacian missing any of the four is
+ill-formed (`math:IncompleteCombinatorialLaplacian`). This is **not** the general `math:HodgeLaplacian`
+(L = δδ\* + δ\*δ), the continuum operator formed from a differential-form Hodge star and exterior
+derivative over a smooth or Riemannian structure — `math:CombinatorialLaplacian` is that operator's
+finite-dimensional, purely combinatorial specialisation over a bare cell complex. Nor is it the
+`math:SheafLaplacian`, which generalises the same L_k construction to a `math:CellularSheaf`'s
+NON-CONSTANT stalks and restriction maps: `math:CombinatorialLaplacian` is exactly the
+`math:SheafLaplacian`'s specialisation to the `math:ConstantSheaf` case, the operator-level companion
+of `math:constantSheafRecoversHomologyLaw`. Its kernel dimension at degree k is the k-th
+`math:BettiNumber` of the complex — the discrete Hodge theorem — so the class sits at the meeting
+point of the boundary/incidence surface above and the persistent-homology surface below, without
+re-minting either.
+
 #### Global versus local sections — the H¹ gluing obstruction
 
 Sections carry a scope. A `math:GlobalSection` is a section over the **entire** base
