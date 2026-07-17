@@ -3598,6 +3598,54 @@ fn collect_carrier_variable_sort(
     Ok(())
 }
 
+/// Collect every `Term::Iri` CONSTANT appearing in argument position across `f`'s tree
+/// (never `Formula::Atom`'s own `relation` — a reified predicate/relation IRI, not a
+/// sortable individual — see [`ReasoningProgramIr::constant_sorts`]), appending into `out`.
+/// Recurses into `Term::App` argument lists so a constant nested inside a function-term
+/// application (`s(one)`, `cons(a, cons(b, nil))`) is not missed, and into every
+/// `Formula` connective/quantifier so a constant anywhere in a rule's
+/// antecedent/consequent is captured. A pure in-memory walk of the already-parsed
+/// [`Formula`]/[`Term`] AST — no second RDF-link traversal, unlike
+/// [`collect_variable_sorts`] (which must walk `logic:TermCarrier` links because a
+/// variable's declared sort lives on the carrier, not in the `Term` AST itself).
+fn collect_constant_iris(f: &Formula, out: &mut Vec<String>) {
+    match f {
+        Formula::Atom { args, .. } => {
+            for a in args {
+                collect_constant_iris_from_term(a, out);
+            }
+        }
+        Formula::Not(inner) => collect_constant_iris(inner, out),
+        Formula::And(fs) | Formula::Or(fs) => {
+            for g in fs {
+                collect_constant_iris(g, out);
+            }
+        }
+        Formula::Implies(a, b) | Formula::Iff(a, b) => {
+            collect_constant_iris(a, out);
+            collect_constant_iris(b, out);
+        }
+        Formula::Forall { body, .. } | Formula::Exists { body, .. } => {
+            collect_constant_iris(body, out);
+        }
+    }
+}
+
+/// The [`Term`] half of [`collect_constant_iris`]: an IRI is a constant; a compound
+/// application recurses into its arguments; a variable/literal/sequence-marker carries no
+/// constant identity to sort-type.
+fn collect_constant_iris_from_term(t: &Term, out: &mut Vec<String>) {
+    match t {
+        Term::Iri(iri) => out.push(iri.clone()),
+        Term::App { args, .. } => {
+            for a in args {
+                collect_constant_iris_from_term(a, out);
+            }
+        }
+        Term::Var(_) | Term::Literal { .. } | Term::SequenceMarker(_) => {}
+    }
+}
+
 /// Reconstruct one [`ReasoningProgramIr`] rooted at a `logic:ReasoningProgram` node, or
 /// return the reason it is malformed (surfaced as one `MALFORMED_REASONING_PROGRAM` error
 /// diagnostic by [`extract_reasoning_programs`], which then skips the program). Reuses
@@ -3704,7 +3752,42 @@ fn read_reasoning_program(
     }
     collect_variable_sorts(store, &query_node, &mut variable_sorts)?;
 
-    ReasoningProgramIr::new(iri, mode, clauses, query, verdict_probes, variable_sorts)
+    // Per-constant order-sort declarations: every `Term::Iri` constant referenced in
+    // argument position across the clause set, query, and verdict probes, paired with
+    // EVERY `rdf:type` object IRI asserted on it in `store`. The raw `ex:one a
+    // math:Integer` triple is otherwise dropped by the stage's L3 fold (it is ordinary
+    // domain data, not `logic:` structural vocabulary), so it MUST be captured here or an
+    // order-sorted demonstrator downstream cannot discriminate a typed constant from an
+    // untyped one. An unsorted constant is legal (it stays order-sort top) — never a hard
+    // fail.
+    let mut constant_iris = Vec::new();
+    for clause in &clauses {
+        collect_constant_iris(clause, &mut constant_iris);
+    }
+    collect_constant_iris(&query, &mut constant_iris);
+    for probe in &verdict_probes {
+        collect_constant_iris(probe, &mut constant_iris);
+    }
+    constant_iris.sort();
+    constant_iris.dedup();
+    let mut constant_sorts = Vec::new();
+    for constant_iri in &constant_iris {
+        for ty in objects(store, &Subject::Iri(constant_iri.clone()), &nn(RDF_TYPE)) {
+            if let Node::Iri(sort_iri) = ty {
+                constant_sorts.push((constant_iri.clone(), sort_iri));
+            }
+        }
+    }
+
+    ReasoningProgramIr::new(
+        iri,
+        mode,
+        clauses,
+        query,
+        verdict_probes,
+        variable_sorts,
+        constant_sorts,
+    )
 }
 
 /// Read every authored `logic:ReasoningProgram` individual into a [`ReasoningProgramIr`] —

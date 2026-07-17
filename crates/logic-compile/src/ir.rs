@@ -2673,11 +2673,24 @@ pub struct ReasoningProgramIr {
     /// authored sort simply has no entry (sort-checking is opt-in per variable, not a
     /// closed-world requirement).
     pub variable_sorts: Vec<(String, String)>,
+    /// Per-constant order-sort declarations: `(constant IRI, `rdf:type` IRI)` pairs for
+    /// every `Term::Iri` constant appearing in argument position across [`Self::clauses`],
+    /// [`Self::query`], and [`Self::verdict_probes`], deduplicated and sorted for
+    /// determinism. A constant carries ALL of its asserted `rdf:type` object IRIs (never
+    /// just the first) — the order-sort narrowing that actually discriminates on a lattice
+    /// edge happens downstream (a type absent from the reasoned subsort closure is simply
+    /// ignored there), so this IR-level capture stays a complete, unfiltered readout of the
+    /// source's `rdf:type` assertions. A constant with no declared type simply has no entry
+    /// (it is order-sort top, not a hard-fail) — a downstream backward-resolution lowerer
+    /// populates an order-sorted unification context's constant-typing map from this field,
+    /// mirroring [`Self::variable_sorts`]'s role for the per-metavariable sort map.
+    pub constant_sorts: Vec<(String, String)>,
 }
 
 impl ReasoningProgramIr {
     /// Construct a reasoning program, canonicalizing [`Self::clauses`],
-    /// [`Self::verdict_probes`], and [`Self::variable_sorts`] into sorted order.
+    /// [`Self::verdict_probes`], [`Self::variable_sorts`], and [`Self::constant_sorts`]
+    /// into sorted order.
     ///
     /// **Hard-fails** (mirrors [`LogicProgram::with_formulas`]'s trivially-Horn guard and
     /// `module.ttl`'s `logic:ReasoningProgramClauseConstraint` /
@@ -2687,6 +2700,11 @@ impl ReasoningProgramIr {
     ///   one atom's three-valued verdict, never a compound formula's);
     /// * the same variable name paired with two DIFFERENT sort IRIs in `variable_sorts`
     ///   (an ambiguous order-sort context the unifier cannot seed deterministically).
+    ///
+    /// `constant_sorts` carries NO analogous conflict guard: unlike a variable (whose order-
+    /// sort context must be unambiguous), a constant legitimately carries several asserted
+    /// `rdf:type`s at once (`ex:one a math:Integer, math:PositiveNumber`), so multiple
+    /// entries for the same constant IRI are expected and kept, merely deduplicated.
     pub fn new(
         iri: impl Into<String>,
         mode: EvaluationMode,
@@ -2694,6 +2712,7 @@ impl ReasoningProgramIr {
         query: Formula,
         verdict_probes: Vec<Formula>,
         variable_sorts: Vec<(String, String)>,
+        constant_sorts: Vec<(String, String)>,
     ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
@@ -2738,6 +2757,9 @@ impl ReasoningProgramIr {
                 }));
             }
         }
+        let mut constant_sorts = constant_sorts;
+        constant_sorts.sort();
+        constant_sorts.dedup();
         Ok(Self {
             iri,
             mode,
@@ -2745,12 +2767,13 @@ impl ReasoningProgramIr {
             query,
             verdict_probes,
             variable_sorts,
+            constant_sorts,
         })
     }
 
     /// The content key: the IRI bound to the mode, the clause/query/probe content keys
-    /// (each clause/probe already canonically sorted), and the variable-sort pairs. Two
-    /// reasoning programs are the same iff they share this key.
+    /// (each clause/probe already canonically sorted), the variable-sort pairs, and the
+    /// constant-sort pairs. Two reasoning programs are the same iff they share this key.
     pub fn content_key(&self) -> String {
         let clauses = self
             .clauses
@@ -2770,8 +2793,14 @@ impl ReasoningProgramIr {
             .map(|(v, s)| format!("{v}{SEP}{s}"))
             .collect::<Vec<_>>()
             .join(",");
+        let const_sorts = self
+            .constant_sorts
+            .iter()
+            .map(|(c, s)| format!("{c}{SEP}{s}"))
+            .collect::<Vec<_>>()
+            .join(",");
         format!(
-            "{}{SEP}{}{SEP}[{clauses}]{SEP}{}{SEP}[{probes}]{SEP}[{sorts}]",
+            "{}{SEP}{}{SEP}[{clauses}]{SEP}{}{SEP}[{probes}]{SEP}[{sorts}]{SEP}[{const_sorts}]",
             self.iri,
             self.mode.as_str(),
             self.query.content_key(),

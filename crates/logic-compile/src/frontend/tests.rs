@@ -3429,6 +3429,79 @@ fn reasoning_program_parse_is_deterministic() {
     assert_eq!(first.canonical_key(), second.canonical_key());
 }
 
+/// A `logic:ReasoningProgram` referencing a TYPED constant (`ex:one`, asserted `rdf:type`
+/// `math:Integer` AND `math:PositiveNumber` — plural types, on purpose) nested one function
+/// application deep (`s(one)`), plus an UNTYPED constant (`ex:untyped`) in the verdict
+/// probe, to prove [`ReasoningProgramIr::constant_sorts`] captures the plain `rdf:type`
+/// domain triple the stage's L3 fold otherwise drops, recurses into `Term::App` argument
+/// carriers, and leaves an unsorted constant absent (never a hard fail).
+const REASONING_PROGRAM_WITH_TYPED_CONSTANT_TTL: &str = "\
+    @prefix math: <https://blackcatinformatics.ca/math/> .
+    ex:one a math:Integer, math:PositiveNumber .
+    ex:prog2 a logic:ReasoningProgram ;
+        logic:evaluationMode logic:BackwardEvaluation ;
+        logic:programQuery [ a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ]
+        ] ;
+        logic:verdictProbe [ a logic:Formula ;
+            logic:relation ex:q ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:untyped ]
+        ] ;
+        logic:clause [ a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:sOne ]
+        ] .
+    ex:sOne a logic:FunctionTerm ;
+        logic:functionSymbol ex:s ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:one ] .
+";
+
+#[test]
+fn reasoning_program_captures_constant_rdf_type_as_sort_declarations() {
+    let ex = "https://example.org/test/";
+    let math = "https://blackcatinformatics.ca/math/";
+    let (prog, diags) = parse(REASONING_PROGRAM_WITH_TYPED_CONSTANT_TTL);
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "unexpected error diagnostics: {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+
+    // Both asserted rdf:type IRIs on the constant nested inside s(one) are captured — not
+    // just the first — since a constant may legitimately carry several sorts at once.
+    assert!(
+        rp.constant_sorts
+            .contains(&(format!("{ex}one"), format!("{math}Integer"))),
+        "ex:one's math:Integer type must be captured from a Term::App argument: {:?}",
+        rp.constant_sorts
+    );
+    assert!(
+        rp.constant_sorts
+            .contains(&(format!("{ex}one"), format!("{math}PositiveNumber"))),
+        "ex:one's SECOND asserted type (math:PositiveNumber) must ALSO be captured, not just \
+         the first: {:?}",
+        rp.constant_sorts
+    );
+    assert_eq!(
+        rp.constant_sorts.len(),
+        2,
+        "exactly the two asserted types on ex:one — the untyped verdict-probe constant \
+         (ex:untyped) contributes NO entry, and it is not a hard fail: {:?}",
+        rp.constant_sorts
+    );
+
+    // Deterministic: sorted, deduplicated.
+    let mut sorted = rp.constant_sorts.clone();
+    sorted.sort();
+    sorted.dedup();
+    assert_eq!(
+        rp.constant_sorts, sorted,
+        "constant_sorts is already sorted and deduplicated by ReasoningProgramIr::new"
+    );
+}
+
 /// Assert that `ttl` fails to yield any [`ReasoningProgramIr`] and instead emits an
 /// error-grade `MALFORMED_REASONING_PROGRAM` diagnostic containing `expected_detail` —
 /// mirrors [`assert_malformed_formula_error`] for the reasoning-program surface.
