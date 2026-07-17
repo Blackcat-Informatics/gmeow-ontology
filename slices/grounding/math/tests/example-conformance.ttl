@@ -1434,3 +1434,33 @@ ex:ecPersistenceMorphismNoTarget a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:PersistenceMorphism naming its math:morphismSource but omitting its math:morphismTarget (sh:qualifiedMinCount 1, derived from the min-1 qualified math:morphismTarget restriction); the math:morphismSource arm stays satisfied by a well-formed math:PersistenceModule (naming its math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceMorphism)." .
+
+# === Rule: a connection names what it is ON; transport names rule + path; holonomy names loop + connection (issue #1527, Commit E) === #
+
+ex:ecHolonomyLoopComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/holonomy-loop-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture carries both readings fully framed: the DISCRETE math:FlatConnection is the math:CellularSheaf's restriction maps (math:connectionOfSheaf / math:connectionOn) with a math:transportCochain that is a math:Cocycle (flat ⇔ closed), a math:ParallelTransport naming its rule and path, and a math:Holonomy naming its loop and connection; the SECONDARY manifold reading is a math:Connection ON a math:Atlas with a math:Holonomy around a coordinate loop. Every connection names what it is ON, every transport names rule and path, every holonomy names loop and connection, and the flat connection's transport cochain is a cocycle, so validation emits no findings." .
+
+ex:ecHolonomyBundle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/holonomy.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The bundle demonstrator exhibits the discrete sheaf connection (a math:FlatConnection whose math:transportCochain is a math:Cocycle), its math:ParallelTransport and math:Holonomy around a 3-cell loop, and the secondary manifold math:Connection on a math:Atlas with its own math:Holonomy — every object satisfies its frame and none trips a failure class, so validation emits no findings." .
+
+ex:ecHolonomyNoLoop a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/holonomy-no-loop.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Holonomy naming its math:holonomyOf math:Connection but omitting its math:holonomyLoop (sh:qualifiedMinCount 1, derived from the min-1 qualified math:holonomyLoop restriction); the math:holonomyOf arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteHolonomy)." .
+
+ex:ecConnectionNoTransportRule a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/connection-no-transport-rule.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Connection naming NEITHER a math:CellularSheaf (math:connectionOfSheaf) NOR a math:Atlas/bundle (math:connectionOn) — a connection with no base to transport over (sh:qualifiedMinCount 1, derived from the min-1 qualified math:connectionOn restriction). The node declares no other property, so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteConnection)." .
+
+ex:ecParallelTransportNoPath a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/parallel-transport-no-path.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ParallelTransport naming its math:transportConnection rule but omitting its math:transportAlong path (sh:qualifiedMinCount 1, derived from the min-1 qualified math:transportAlong restriction); the math:transportConnection arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteParallelTransport)." .

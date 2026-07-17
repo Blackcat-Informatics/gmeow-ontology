@@ -1,0 +1,131 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The bundle-visible demonstrator for connections, parallel transport, and holonomy
+# (issue #1527, Commit E). It exhibits BOTH readings side by side:
+#
+#   PRIMARY (discrete): the math:SheafRestrictionMaps of a math:CellularSheaf on a
+#   3-cell loop ARE a math:Connection (math:connectionOfSheaf). Parallel transport is
+#   the COMPOSITION of those restriction maps along the loop (math:ParallelTransport,
+#   math:transportAlong), and holonomy is that composite around the CLOSED loop
+#   (math:Holonomy). The connection is a math:FlatConnection: its math:transportCochain
+#   is a math:Cocycle — flat ⇔ closed — tying the surface to the landed
+#   math:Cocycle / math:SheafLaplacian / math:HodgeDecomposition machinery.
+#
+#   SECONDARY (manifold): a math:Atlas of two overlapping math:Charts with a
+#   math:transitionMap; a math:Connection ON that atlas (math:connectionOn), with a
+#   math:Holonomy around a closed coordinate loop.
+#
+# The universal path-ordered curvature F = dA + A∧A is NOT modelled here — it is the
+# honest higher-order boundary math:holonomyCurvatureBoundary. This is a minimal
+# realization, not a full curvature calculus.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exh:  <https://blackcatinformatics.ca/gmeow/examples/math/holonomy/> .
+
+# ============================================================================ #
+# PRIMARY — the discrete sheaf connection on a closed 3-cell loop A → B → C → A #
+# ============================================================================ #
+
+exh:loopSheaf a math:CellularSheaf ;
+    rdfs:label "cellular sheaf on a closed 3-cell loop"@x-gmeow-english ;
+    math:sheafBaseComplex exh:loopComplex ;
+    math:hasStalk exh:stalkA , exh:stalkB , exh:stalkC ;
+    math:restrictionMap exh:rAB , exh:rBC , exh:rCA .
+
+exh:loopComplex a math:CellComplex ; rdfs:label "loop base complex"@x-gmeow-english .
+
+exh:stalkA a math:SheafStalk ; math:stalkOverCell exh:cellA .
+exh:stalkB a math:SheafStalk ; math:stalkOverCell exh:cellB .
+exh:stalkC a math:SheafStalk ; math:stalkOverCell exh:cellC .
+exh:cellA a math:MathematicalObject ; rdfs:label "cell A"@x-gmeow-english .
+exh:cellB a math:MathematicalObject ; rdfs:label "cell B"@x-gmeow-english .
+exh:cellC a math:MathematicalObject ; rdfs:label "cell C"@x-gmeow-english .
+
+# The three restriction maps whose composite around the loop IS the holonomy.
+exh:rAB a math:SheafRestrictionMap ;
+    rdfs:label "restriction A → B"@x-gmeow-english ;
+    math:sourceObject exh:stalkA ; math:targetObject exh:stalkB .
+exh:rBC a math:SheafRestrictionMap ;
+    rdfs:label "restriction B → C"@x-gmeow-english ;
+    math:sourceObject exh:stalkB ; math:targetObject exh:stalkC .
+exh:rCA a math:SheafRestrictionMap ;
+    rdfs:label "restriction C → A"@x-gmeow-english ;
+    math:sourceObject exh:stalkC ; math:targetObject exh:stalkA .
+
+# The discrete connection is the sheaf's restriction maps; it is FLAT because its
+# transport cochain is a math:Cocycle (closed): flat ⇔ closed.
+exh:discreteConnection a math:FlatConnection ;
+    rdfs:label "the discrete (sheaf) connection — flat"@x-gmeow-english ;
+    math:connectionOfSheaf exh:loopSheaf ;
+    math:connectionOn exh:loopSheaf ;
+    math:transportCochain exh:transportCocycle .
+
+exh:transportCocycle a math:Cocycle ;
+    rdfs:label "closed transport cochain (a cocycle) — the flatness witness"@x-gmeow-english .
+
+# The closed loop A → B → C → A the transport runs around.
+exh:loop a math:MathematicalObject ;
+    rdfs:label "closed loop A → B → C → A"@x-gmeow-english .
+
+# Parallel transport = the composition of the restriction maps along the loop.
+exh:discreteTransport a math:ParallelTransport ;
+    rdfs:label "parallel transport along the loop (composed restriction maps)"@x-gmeow-english ;
+    math:transportConnection exh:discreteConnection ;
+    math:transportAlong exh:loop .
+
+# Holonomy = the transport composite around the CLOSED loop.
+exh:discreteHolonomy a math:Holonomy ;
+    rdfs:label "holonomy around the discrete loop"@x-gmeow-english ;
+    math:holonomyLoop exh:loop ;
+    math:holonomyOf exh:discreteConnection .
+
+# ============================================================================ #
+# SECONDARY — the manifold reading: an atlas, charts, a transition map, and a   #
+# connection ON the atlas with a holonomy around a coordinate loop.             #
+# ============================================================================ #
+
+exh:atlas a math:Atlas ;
+    rdfs:label "atlas of two overlapping charts"@x-gmeow-english ;
+    math:hasChart exh:chartU , exh:chartV ;
+    math:transitionMap exh:transitionUV .
+
+exh:chartU a math:Chart ;
+    rdfs:label "chart U"@x-gmeow-english ;
+    math:chartDomain exh:regionU ;
+    math:coordinateMap exh:coordU ;
+    math:targetCoordinateSpace exh:coordSpace .
+exh:chartV a math:Chart ;
+    rdfs:label "chart V"@x-gmeow-english ;
+    math:chartDomain exh:regionV ;
+    math:coordinateMap exh:coordV ;
+    math:targetCoordinateSpace exh:coordSpace .
+
+exh:regionU a math:OpenSet ; rdfs:label "chart-U domain"@x-gmeow-english .
+exh:regionV a math:OpenSet ; rdfs:label "chart-V domain"@x-gmeow-english .
+
+exh:coordU a math:CoordinateMap ;
+    math:domain exh:regionU ; math:codomain exh:coordSpace .
+exh:coordV a math:CoordinateMap ;
+    math:domain exh:regionV ; math:codomain exh:coordSpace .
+
+exh:coordSpace a math:Set ; math:spaceDimension 2 ;
+    rdfs:label "coordinate space ℝ²"@x-gmeow-english .
+
+# The transition map φ_U ∘ φ_V⁻¹ on the overlap — a framed math:Function.
+exh:transitionUV a math:Function ;
+    rdfs:label "transition map on the chart overlap"@x-gmeow-english ;
+    math:domain exh:coordSpace ; math:codomain exh:coordSpace .
+
+# A connection ON the atlas (the manifold reading of what it is a connection on).
+exh:manifoldConnection a math:Connection ;
+    rdfs:label "a connection on the atlas"@x-gmeow-english ;
+    math:connectionOn exh:atlas .
+
+exh:manifoldLoop a math:MathematicalObject ;
+    rdfs:label "closed coordinate loop across the chart overlap"@x-gmeow-english .
+
+exh:manifoldHolonomy a math:Holonomy ;
+    rdfs:label "holonomy around the coordinate loop"@x-gmeow-english ;
+    math:holonomyLoop exh:manifoldLoop ;
+    math:holonomyOf exh:manifoldConnection .

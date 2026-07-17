@@ -8035,6 +8035,138 @@ math:CoexactComponent
     skos:definition "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Connections, parallel transport, and holonomy (issue #1527, Commit E) --- #
+# The PRIMARY reading is DISCRETE: the math:SheafRestrictionMaps of a math:CellularSheaf
+# ARE a connection; parallel transport is their composition along a path; holonomy is the
+# composite around a CLOSED loop; and flatness is the closedness (δ-kernel) of the
+# associated transport cochain — a math:FlatConnection's transport cochain is a math:Cocycle
+# (flat ⇔ closed). This links directly to the landed math:SheafLaplacian / math:HodgeDecomposition
+# / math:Cocycle surface. The manifold math:Atlas / math:Chart / math:transitionMap composition is
+# the SECONDARY geometric reading. The UNIVERSAL curvature statement F = dA + A∧A over all loops
+# is genuinely higher-order and is recorded as the honest boundary math:holonomyCurvatureBoundary,
+# never faked as a first-order formula — this is deliberately a minimal realization, not a full
+# curvature calculus.
+
+math:Connection
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Connection"@x-gmeow-english ;
+    rdfs:seeAlso math:SheafLaplacian , math:HodgeDecomposition , math:Cocycle , math:holonomyCurvatureBoundary ;
+    math:definingLaw math:holonomyCurvatureBoundary ;
+    skos:definition "A rule of parallel transport: a prescription for carrying fibre data along paths of a base object consistently. The PRIMARY reading here is DISCRETE — the math:SheafRestrictionMaps of a math:CellularSheaf ARE a connection, transporting stalk data along each incidence, named through math:connectionOfSheaf; its transport cochain (math:transportCochain) is the object whose closedness decides flatness, so a math:FlatConnection's transport cochain is a math:Cocycle (flat ⇔ closed), linking this surface to the landed math:SheafLaplacian / math:HodgeDecomposition machinery. A subclass of math:MathematicalObject naming what it is a connection ON through math:connectionOn (a math:CellularSheaf for the discrete reading, a math:Atlas or bundle for the SECONDARY manifold reading). The full path-ordered curvature calculus F = dA + A∧A is genuinely higher-order and is NOT authored as a first-order law but recorded as the honest boundary math:holonomyCurvatureBoundary (math:definingLaw). It is NOT the metric (a math:MetricTensor measures lengths and angles; a connection transports fibre data), and NOT a math:transitionMap (a coordinate change on chart overlaps, not a transport rule); a connection naming nothing it is a connection ON is ill-formed (math:IncompleteConnection)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ParallelTransport
+    a owl:Class ; logic:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Parallel Transport"@x-gmeow-english ;
+    rdfs:seeAlso math:SheafRestrictionMap , math:Connection ;
+    skos:definition "The transport of a fibre element along a DECLARED path under a connection: it names the math:Connection giving the rule through math:transportConnection and the path it runs along through math:transportAlong. For the discrete sheaf reading it is the COMPOSITION of the math:SheafRestrictionMaps met along the path, so it reuses the object-layer math:Morphism parent rather than minting a fresh map algebra. A subclass of math:Morphism. It is NOT a generic isomorphism (transport is path-dependent and need not be invertible or structure-agnostic), and NOT the math:Connection itself (it is the connection APPLIED along one path); a parallel transport naming no connection or no path transports nothing and is ill-formed (math:IncompleteParallelTransport)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Holonomy
+    a owl:Class ; logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Holonomy"@x-gmeow-english ;
+    rdfs:seeAlso math:transitionMap , math:Cocycle ;
+    skos:definition "The parallel transport around a CLOSED loop: the composite transport that returns to its starting fibre, whose deviation from the identity is the curvature witness. It names the closed loop it runs around through math:holonomyLoop and the math:Connection whose transport it composes through math:holonomyOf. For the discrete sheaf reading it is the composite of the math:SheafRestrictionMaps around a cycle of cells; identity holonomy on every loop is exactly flatness, the transport cochain being closed — a math:Cocycle (rdfs:seeAlso math:Cocycle). It is NOT a coordinate change and NOT a math:transitionMap (rdfs:seeAlso — a transition map re-coordinatises a chart overlap, whereas holonomy measures the failure of transport to close up around a loop); a holonomy naming no loop or no connection witnesses nothing and is ill-formed (math:IncompleteHolonomy)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FlatConnection
+    a owl:Class ; logic:subClassOf math:Connection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Flat Connection"@x-gmeow-english ;
+    rdfs:seeAlso math:Cocycle ;
+    skos:definition "A connection whose transport cochain is CLOSED — flat ⇔ closed. A subclass of math:Connection carrying the EL-safe, CHECKABLE link that its math:transportCochain is a math:Cocycle (the min-1 qualified + allValuesFrom restriction onto math:Cocycle): flatness is the vanishing of holonomy around every loop, which for the discrete reading is exactly the closedness (δ-kernel, a math:Cocycle from the chain-complex surface) of the associated transport cochain. This is a checkable frame link, NOT a claim of the full curvature calculus — the path-ordered curvature integral F = dA + A∧A over all loops stays the honest higher-order boundary math:holonomyCurvatureBoundary carried on math:Connection. It is NOT an arbitrary math:Connection (a flat connection's transport cochain is closed) and NOT a math:Cocycle itself (it is the connection whose transport cochain IS one)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Connection / transport / holonomy properties -------------------------- #
+
+math:connectionOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "connection on"@x-gmeow-english ;
+    skos:definition "Relates a math:Connection to the object it is a connection ON — a math:CellularSheaf for the discrete reading (whose math:SheafRestrictionMaps ARE the connection) or a math:Atlas or bundle for the manifold reading. Domain math:Connection, range a math:CellularSheaf, math:Atlas, or bundle (stated in prose). The minimal datum a connection must declare; a connection naming none transports over no base and is ill-formed (math:IncompleteConnection). math:connectionOfSheaf is its discrete refinement (rdfs:subPropertyOf)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:connectionOfSheaf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf math:connectionOn ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "connection of sheaf"@x-gmeow-english ;
+    skos:definition "Relates a math:Connection to the math:CellularSheaf whose math:SheafRestrictionMaps ARE that discrete connection — the PRIMARY reading of this surface. Domain math:Connection, range math:CellularSheaf (stated in prose). A subproperty of math:connectionOn (the discrete refinement of 'what the connection is on'). The sheaf's restriction maps compose into the math:ParallelTransport and, around a loop, the math:Holonomy; the closedness of the transport cochain is flatness (math:FlatConnection)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:transportCochain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "transport cochain"@x-gmeow-english ;
+    skos:definition "Relates a math:Connection to the math:Cochain encoding its transport around the base — the cochain whose closedness (δ = 0) decides flatness. Domain math:Connection, range math:Cochain (stated in prose). For a math:FlatConnection this cochain is a math:Cocycle (flat ⇔ closed), the EL-safe link the math:FlatConnection restriction checks, tying the connection surface to the landed cochain-complex machinery rather than restating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:transportConnection
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "transport connection"@x-gmeow-english ;
+    skos:definition "Relates a math:ParallelTransport to the math:Connection giving its transport rule. Domain math:ParallelTransport, range math:Connection (stated in prose). Every parallel transport names exactly one; a transport naming none applies no rule and is ill-formed (math:IncompleteParallelTransport)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:transportAlong
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "transport along"@x-gmeow-english ;
+    skos:definition "Relates a math:ParallelTransport to the path it runs along — the declared route (a cell path for the discrete reading, a curve for the manifold reading) whose met math:SheafRestrictionMaps compose into the transport. Domain math:ParallelTransport, range a path object (stated in prose). Every parallel transport names exactly one; a transport naming no path transports along nothing and is ill-formed (math:IncompleteParallelTransport)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:holonomyLoop
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "holonomy loop"@x-gmeow-english ;
+    skos:definition "Relates a math:Holonomy to the CLOSED loop it runs around — the cycle of cells (discrete reading) or closed curve (manifold reading) whose transport composite the holonomy measures. Domain math:Holonomy, range a closed-loop object (stated in prose). Every holonomy names exactly one; a holonomy naming no loop measures nothing and is ill-formed (math:IncompleteHolonomy)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:holonomyOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "holonomy of"@x-gmeow-english ;
+    skos:definition "Relates a math:Holonomy to the math:Connection whose parallel transport it composes around the loop. Domain math:Holonomy, range math:Connection (stated in prose). Every holonomy names exactly one; a holonomy naming no connection has no transport rule to compose and is ill-formed (math:IncompleteHolonomy)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Connection / transport / holonomy conformance failures ---------------- #
+
+math:IncompleteConnection
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Connection"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Connection does not name what it is a connection ON — neither a math:CellularSheaf through the math:connectionOfSheaf discrete refinement nor a math:Atlas/bundle through the general math:connectionOn edge. A connection is a transport rule ON some base; one naming no base transports nothing and is ill-formed. The declarative frame gate deriving a sh:qualifiedMinCount on math:connectionOn."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteParallelTransport
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Parallel Transport"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ParallelTransport does not name BOTH its math:transportConnection (the math:Connection giving the rule) and its math:transportAlong (the path it runs along). Transport is a rule applied along a path; one missing either applies nothing or goes nowhere and is ill-formed. The declarative frame gate deriving a sh:qualifiedMinCount on each endpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteHolonomy
+    a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Holonomy"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Holonomy does not name BOTH its math:holonomyLoop (the closed loop it runs around) and its math:holonomyOf (the math:Connection whose transport it composes). Holonomy is transport-around-a-loop; one missing the loop or the connection measures nothing and is ill-formed. The declarative frame gate deriving a sh:qualifiedMinCount on each."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# The honest higher-order boundary (mirrors math:smoothnessBoundary / math:compactnessBoundary):
+# the DISCRETE surface stays first-order and checkable (flat ⇔ closed is an EL-safe restriction,
+# holonomy around a NAMED loop is a concrete composite of restriction maps), but the UNIVERSAL
+# curvature statement over ALL loops is genuinely second-order and is recorded honestly, never
+# faked as a first-order logic:Formula.
+math:holonomyCurvatureBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "holonomy curvature: an honest recorded second-order boundary (no first-order formula)"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing math:Connection's curvature: the path-ordered curvature F = dA + A∧A — the infinitesimal holonomy accumulated around every loop — is genuinely second-order. It ∀-quantifies over the FAMILY of ALL loops (and, in the continuum, over a path-ordered exponential integral) to certify flatness, a quantification over an unbounded family of paths that is not first-order axiomatizable. The DISCRETE surface stays first-order and checkable — a math:FlatConnection's math:transportCochain being a math:Cocycle (flat ⇔ closed) is an EL-safe restriction, and holonomy around a NAMED loop is the concrete composite of math:SheafRestrictionMaps — but the UNIVERSAL curvature statement over all loops is carried here as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never faked as a first-order logic:Formula (Principle 17). Exactly as math:smoothnessBoundary and math:compactnessBoundary are, and referenced by math:Connection through math:definingLaw."@x-gmeow-english .
+
 # --- Reduction, reconstruction, and information ---------------------------- #
 
 math:DimensionalReduction
@@ -9398,6 +9530,48 @@ math:PersistenceMorphism logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:morphismTarget ; owl:minQualifiedCardinality 1 ; owl:onClass math:PersistenceModule ] ,
     [ a owl:Restriction ; owl:onProperty math:morphismTarget ; owl:allValuesFrom math:PersistenceModule ] ;
     gmeow:enforcesFailureClass math:IncompletePersistenceMorphism .
+
+# Connection frame (issue #1527, Commit E): a math:Connection names what it is a connection ON
+# through math:connectionOn — a math:CellularSheaf (its restriction maps ARE the discrete
+# connection, via the math:connectionOfSheaf refinement) or a math:Atlas/bundle for the manifold
+# reading. A min-1 qualified restriction (onClass owl:Thing, like the CliffordAlgebra scalarField
+# arm, so an Atlas value is admitted) deriving a sh:qualifiedMinCount; a connection naming no base
+# isolates math:IncompleteConnection.
+math:Connection logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:connectionOn ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:connectionOn ; owl:allValuesFrom owl:Thing ] ;
+    gmeow:enforcesFailureClass math:IncompleteConnection .
+
+# Parallel-transport frame (issue #1527, Commit E): a math:ParallelTransport names BOTH its
+# math:transportConnection (the math:Connection rule) and its math:transportAlong (the path) —
+# two min-1 qualified restrictions. A transport missing either isolates
+# math:IncompleteParallelTransport.
+math:ParallelTransport logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:transportConnection ; owl:minQualifiedCardinality 1 ; owl:onClass math:Connection ] ,
+    [ a owl:Restriction ; owl:onProperty math:transportConnection ; owl:allValuesFrom math:Connection ] ,
+    [ a owl:Restriction ; owl:onProperty math:transportAlong ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:transportAlong ; owl:allValuesFrom owl:Thing ] ;
+    gmeow:enforcesFailureClass math:IncompleteParallelTransport .
+
+# Holonomy frame (issue #1527, Commit E): a math:Holonomy names BOTH its math:holonomyLoop (the
+# closed loop) and its math:holonomyOf (the math:Connection) — two min-1 qualified restrictions.
+# A holonomy missing either isolates math:IncompleteHolonomy.
+math:Holonomy logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:holonomyLoop ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:holonomyLoop ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:holonomyOf ; owl:minQualifiedCardinality 1 ; owl:onClass math:Connection ] ,
+    [ a owl:Restriction ; owl:onProperty math:holonomyOf ; owl:allValuesFrom math:Connection ] ;
+    gmeow:enforcesFailureClass math:IncompleteHolonomy .
+
+# Flat-connection cocycle link (issue #1527, Commit E): flat ⇔ closed. A math:FlatConnection is a
+# math:Connection whose math:transportCochain is a math:Cocycle — the EL-safe min-1 qualified
+# restriction encodes 'a flat connection HAS a closed transport cochain', the paired allValuesFrom
+# that EVERY transport cochain it names is closed. This is the CHECKABLE discrete link, NOT the
+# full curvature calculus (that stays the honest math:holonomyCurvatureBoundary on math:Connection).
+# No gmeow:enforcesFailureClass: it is a semantic subclass link, not a well-formedness frame.
+math:FlatConnection logic:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:transportCochain ; owl:minQualifiedCardinality 1 ; owl:onClass math:Cocycle ] ,
+    [ a owl:Restriction ; owl:onProperty math:transportCochain ; owl:allValuesFrom math:Cocycle ] .
 
 math:CliffordAlgebra logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:scalarField ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -14101,6 +14275,12 @@ math:PersistenceMorphism a logic:AbstractIndividualType .
 math:ZigzagDiagram a logic:AbstractIndividualType .
 math:ArrowDirection a logic:AbstractIndividualType .
 
+# Connections / holonomy / parallel transport (issue #1527, Commit E)
+math:Connection a logic:AbstractIndividualType .
+math:ParallelTransport a logic:AbstractIndividualType .
+math:Holonomy a logic:AbstractIndividualType .
+math:FlatConnection a logic:AbstractIndividualType .
+
 # Event
 
 math:InferenceRun a logic:Event .
@@ -14257,3 +14437,8 @@ math:IncompletePersistenceModule a logic:Situation .
 math:IncompletePersistenceMorphism a logic:Situation .
 math:DegenerateZigzagDiagram a logic:Situation .
 math:PersistenceModuleLifetimeConflation a logic:Situation .
+
+# Connections / holonomy / parallel transport failures (issue #1527, Commit E)
+math:IncompleteConnection a logic:Situation .
+math:IncompleteParallelTransport a logic:Situation .
+math:IncompleteHolonomy a logic:Situation .

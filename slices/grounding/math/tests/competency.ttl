@@ -32,6 +32,8 @@
 @prefix exmf:  <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration/> .
 @prefix expm:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-module/> .
 @prefix expx:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-morphism/> .
+# The connection / holonomy bundle demonstrator (examples/holonomy.ttl, issue #1527 Commit E).
+@prefix exh:   <https://blackcatinformatics.ca/gmeow/examples/math/holonomy/> .
 # The worked chain complex (examples/chain-complex.ttl).
 @prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
 # The conforming chain-complex fixture (tests/conformance-fixtures/chain-complex-square-zero-complete.ttl).
@@ -2801,3 +2803,52 @@ ex:rowPersistenceMorphismFrame a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "morphism" ; gmeow:cellValueIri expx:morphism ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri expx:sourceModule ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri expx:targetModule ] .
+
+# === Connections / holonomy / parallel transport (issue #1527, Commit E) ==== #
+
+ex:cqHolonomyLoopFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/holonomy-loop-frame.rq" ;
+    gmeow:cqDataFile "examples/holonomy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Holonomy exposes BOTH its closed loop (math:holonomyLoop) and the math:Connection whose parallel transport it composes (math:holonomyOf) — the transport-around-a-loop frame. The bundle demonstrator carries two holonomies: the discrete sheaf-connection holonomy around the 3-cell loop and the manifold holonomy around a coordinate loop, so the answer is exactly those two {holonomy → loop / connection} rows." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHolonomyLoopFrameShape ;
+    gmeow:cqExpectRow ex:rowHolonomyLoopDiscrete , ex:rowHolonomyLoopManifold .
+
+ex:cqHolonomyLoopFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "holonomy" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "loop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "connection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHolonomyLoopDiscrete a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "holonomy" ; gmeow:cellValueIri exh:discreteHolonomy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loop" ; gmeow:cellValueIri exh:loop ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:discreteConnection ] .
+
+ex:rowHolonomyLoopManifold a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "holonomy" ; gmeow:cellValueIri exh:manifoldHolonomy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loop" ; gmeow:cellValueIri exh:manifoldLoop ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:manifoldConnection ] .
+
+ex:cqDiscreteConnectionFlatness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/discrete-connection-flatness.rq" ;
+    gmeow:cqDataFile "examples/holonomy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:FlatConnection is the discrete sheaf connection (math:connectionOfSheaf) whose transport cochain (math:transportCochain) is a math:Cocycle — flat ⇔ closed. Over the bundle demonstrator's sheaf data the answer is exactly {discreteConnection → loopSheaf / transportCocycle}, the checkable discrete witness of flatness (the universal path-ordered curvature stays the honest math:holonomyCurvatureBoundary)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDiscreteConnectionFlatnessShape ;
+    gmeow:cqExpectRow ex:rowDiscreteConnectionFlatness .
+
+ex:cqDiscreteConnectionFlatnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "connection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cochain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDiscreteConnectionFlatness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:discreteConnection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exh:loopSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cochain" ; gmeow:cellValueIri exh:transportCocycle ] .

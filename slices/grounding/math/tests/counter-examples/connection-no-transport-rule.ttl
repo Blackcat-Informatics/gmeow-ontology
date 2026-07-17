@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the math:Connection frame (issue #1527, Commit E): a math:Connection
+# naming NEITHER a math:CellularSheaf (via math:connectionOfSheaf, the discrete reading) NOR
+# a math:Atlas/bundle (via math:connectionOn, the manifold reading) — a connection with no
+# base to transport over. The min-1 qualified restriction on math:connectionOn derives a
+# sh:qualifiedMinCount property shape, so validation MUST emit
+# shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteConnection).
+# ISOLATION: the node is ONLY a math:Connection and declares no other property, so no other
+# frame or constraint applies.
+# Back-reference: math:IncompleteConnection (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecConnectionNoTransportRule).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:connection a math:Connection .        # names neither a sheaf nor an atlas — no math:connectionOn
