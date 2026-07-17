@@ -11,9 +11,9 @@
 //! clash rule whether the result is inconsistent: if it is, every model of `A`
 //! satisfies `C`, so `A ⊨ C`.
 //!
-//! This module lives OUTSIDE [`crate::reason`] on purpose (mirroring
-//! [`crate::entail_oracle`]): it composes the reasoner without adding a rule to it,
-//! so it does not perturb [`crate::reason::native_contract_hash`].
+//! This module lives OUTSIDE [`crate::reason`] on purpose: it composes the
+//! reasoner without adding a rule to it, so it does not perturb
+//! [`crate::reason::native_contract_hash`].
 //!
 //! ## The conclusion-shape calculus (the one negation waist)
 //!

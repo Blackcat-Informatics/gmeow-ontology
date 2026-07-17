@@ -392,14 +392,6 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "native entailment-by-refutation (A ⊨ C iff premise ∪ ¬C inconsistent) composed over dl_consistency — forward consistency reduction, not backward query dispatch",
     ),
     (
-        "entail_crosscheck.rs",
-        "native vs entail-oracle OWL-RL subsumption divergence cross-check — forward reasoning-oracle gate, not backward dispatch",
-    ),
-    (
-        "entail_oracle.rs",
-        "native OWL-RL/RDFS forward-closure reasoning oracle, not backward dispatch",
-    ),
-    (
         "entrenchment.rs",
         "epistemic-entrenchment ordering for AGM revision — Stratum-C forward/generative revision support, not backward dispatch",
     ),
