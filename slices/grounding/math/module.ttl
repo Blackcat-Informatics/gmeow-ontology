@@ -7940,9 +7940,8 @@ math:PersistenceModule
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Persistence Module"@x-gmeow-english ;
     rdfs:seeAlso math:MultiparameterPersistence , math:PersistenceLifetime , math:Functor ;
-    skos:definition "The ALGEBRAIC object a persistence computation decomposes: the functor P assigning a vector space to each point of an index poset and a linear map to each comparable pair, P: (index poset as a category) → Vect. A subclass of math:MathematicalObject AND of the EXISTING math:Functor grounding — a persistence module IS a functor on its math:moduleIndex poset, so it reuses the shipped category-theory referent rather than minting a parallel structure (L1 reuse). It names the index poset it is defined over through math:moduleIndex and its comparable-pair transition maps through math:structureMap. It is NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso) that produces or decomposes it, and it is NOT a math:PersistenceLifetime — the birth–death interval of ONE feature is a single decorated bar, whereas a persistence module is the whole functor whose barcode decomposition those intervals summarise. The two are held owl:disjointWith (math:PersistenceModuleLifetimeConflation): a lifetime handed where a module is required is a caught error, never a silent one."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:enforcesFailureClass math:PersistenceModuleLifetimeConflation .
+    skos:definition "The ALGEBRAIC object a persistence computation decomposes: the functor P assigning a vector space to each point of an index poset and a linear map to each comparable pair, P: (index poset as a category) → Vect. A subclass of math:MathematicalObject AND of the EXISTING math:Functor grounding — a persistence module IS a functor on its math:moduleIndex poset, so it reuses the shipped category-theory referent rather than minting a parallel structure (L1 reuse). It names the index poset it is defined over through math:moduleIndex and its comparable-pair transition maps through math:structureMap. It is NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso) that produces or decomposes it, and it is NOT a math:PersistenceLifetime — the birth–death interval of ONE feature is a single decorated bar, whereas a persistence module is the whole functor whose barcode decomposition those intervals summarise. The two are held owl:disjointWith and a node typed both is caught by math:PersistenceModuleLifetimeConflationConstraint (math:PersistenceModuleLifetimeConflation): a lifetime handed where a module is required is a caught error, never a silent one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PersistenceMorphism
     a owl:Class ; logic:subClassOf math:Morphism ;
@@ -10928,6 +10927,25 @@ math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord .
 # math:PersistenceModuleLifetimeConflation, read by the native DL coherence check and
 # paired with the derived math:PersistenceModuleLifetimeConflationShape (sh:not).
 math:PersistenceModule owl:disjointWith math:PersistenceLifetime .
+
+# The typed-failure grounding of that disjointness. math:PersistenceModule already carries a
+# presence frame (math:IncompletePersistenceModule), so the conflation's gmeow:enforcesFailureClass
+# cannot ride the class TBox alongside it (a class may declare only one failure class); it is
+# carried HERE on a dedicated logic:ForbiddenPatternConstraint, exactly as
+# math:IntervalKindConflationConstraint grounds the ConfidenceInterval/CredibleInterval conflation
+# whose classes both carry frames.
+math:PersistenceModuleLifetimeConflationConstraint
+    a logic:ForbiddenPatternConstraint ;
+    rdfs:label "Persistence-module/lifetime conflation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The typed-failure grounding of the math:PersistenceModule owl:disjointWith math:PersistenceLifetime axiom: a math:PersistenceModule is NOT also typed math:PersistenceLifetime — the whole algebraic functor P: (index poset) → Vect is not the birth–death interval of a SINGLE feature; typing one node as both conflates them (math:PersistenceModuleLifetimeConflation)."@x-gmeow-english ;
+    logic:onClass math:PersistenceModule ;
+    logic:forbiddenPredicate rdf:type ;
+    logic:forbiddenValue math:PersistenceLifetime ;
+    logic:formalizes math:PersistenceModuleLifetimeConflationShape ;
+    gmeow:enforcesFailureClass math:PersistenceModuleLifetimeConflation ;
+    logic:message "A math:PersistenceModule must not also be a math:PersistenceLifetime — the whole persistence functor conflated with the birth–death interval of a single feature; the two are held owl:disjointWith and typing one node as both is math:PersistenceModuleLifetimeConflation." .
 
 # --- Structural restriction axioms (presence gates) ------------------------- #
 # A math:ProbabilitySpace requires a sample-space, a σ-algebra, and a measure
