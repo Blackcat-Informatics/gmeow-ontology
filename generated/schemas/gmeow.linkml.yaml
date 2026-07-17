@@ -1987,6 +1987,10 @@ classes:
   GmnCompartment:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnCompartment
     title: GMN Compartment
+  GmnConformancePack:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnConformancePack
+    title: GMN Conformance Pack
+    is_a: InformationObject
   GmnDictionary:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
     title: GMN Dictionary
@@ -2007,9 +2011,21 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnEnvelope
     title: GMN Envelope
     is_a: AttestationArtifact
+  GmnErr:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnErr
+    title: GMN Err
+    is_a: StandpointClaim
   GmnFixity:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     title: GMN Fixity
+  GmnPatch:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnPatch
+    title: GMN Patch
+    is_a: StandpointClaim
+  GmnRetract:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRetract
+    title: GMN Retract
+    is_a: StandpointClaim
   GmnRingCriterion:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnRingCriterion
     title: GMN Ring Criterion
@@ -8900,6 +8916,11 @@ slots:
     title: gmn candidate target
     range: uriorcurie
     multivalued: false
+  gmnCodebookDigest:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnCodebookDigest
+    title: gmn codebook digest
+    range: string
+    multivalued: true
   gmnCodepoints:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnCodepoints
     title: gmn codepoints
@@ -8998,9 +9019,24 @@ slots:
     title: gmn migrates to
     range: uriorcurie
     multivalued: true
+  gmnPackRoot:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnPackRoot
+    title: gmn pack root
+    range: string
+    multivalued: true
   gmnPrecedence:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnPrecedence
     title: gmn precedence
+    range: string
+    multivalued: true
+  gmnRepairClass:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRepairClass
+    title: gmn repair class
+    range: uriorcurie
+    multivalued: true
+  gmnRepairId:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRepairId
+    title: gmn repair id
     range: string
     multivalued: true
   gmnRingAdmits:

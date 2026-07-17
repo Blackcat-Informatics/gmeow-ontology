@@ -580,6 +580,9 @@ fn default_envelope_sources(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::D
         .into_iter()
         .map(|s| root.join(s))
         .collect();
+    // GENERATED-READ-OK: reconcile-phase audit — the codebook-digest gate lints the committed
+    // conformance pack's declared digest against the recomputed codebook; the read is a
+    // verification oracle whose result never folds into gmeow.gts.
     let pack = root.join(CONFORMANCE_PACK_REL);
     if pack.is_file() {
         sources.push(pack);
@@ -636,6 +639,8 @@ pub fn check_gmn1_pack_root(root: &Path) -> Result<Gmn1PackRootReport, gmeow_err
         .map_err(|e| stage_err(&format!("read GMN grammar {}: {e}", grammar_path.display())))?;
     let recomputed_root = pack_root(&digest, &dict, &grammar_bytes);
 
+    // GENERATED-READ-OK: verification oracle — recompute the pack root and compare it to the
+    // committed pack's declared gmeow:gmnPackRoot; the comparison result never folds into gmeow.gts.
     let pack_path = root.join(CONFORMANCE_PACK_REL);
     if !pack_path.is_file() {
         return Ok(Gmn1PackRootReport {

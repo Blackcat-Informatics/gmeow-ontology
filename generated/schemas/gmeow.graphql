@@ -6772,6 +6772,11 @@ type GmnCompartment {
   iri: String
 }
 
+type GmnConformancePack {
+  id: String
+  iri: String
+}
+
 type GmnDictionary {
   id: String
   iri: String
@@ -6795,7 +6800,22 @@ type GmnEnvelope {
   iri: String
 }
 
+type GmnErr {
+  id: String
+  iri: String
+}
+
 type GmnFixity {
+  id: String
+  iri: String
+}
+
+type GmnPatch {
+  id: String
+  iri: String
+}
+
+type GmnRetract {
   id: String
   iri: String
 }

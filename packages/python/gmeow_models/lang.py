@@ -186,8 +186,9 @@ class GmnEnvelope(ConfiguredBaseModel):
     byte-exact identity is a gmeow:contentDigest, semantic fingerprints are
     gmeow:versionFingerprint literals, and the asserting standpoint is carried through the
     gmeow:accordingTo pattern. It declares its own dialect coordinates through
-    gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion, its
-    boundary ring through gmeow:gmnSecurityRing, and its losslessness judgment through
+    gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion, the
+    exact codebook it decodes against through gmeow:gmnCodebookDigest, its boundary ring
+    through gmeow:gmnSecurityRing, and its losslessness judgment through
     gmeow:gmnEnvelopeCorrespondence — a logic:Correspondence, never a boolean flag.
 
     When to use:
@@ -202,7 +203,8 @@ class GmnEnvelope(ConfiguredBaseModel):
 
     How to use:
         - Mint one envelope per serialized GMN payload; set gmeow:contentDigest for byte identity,
-          the three gmeow:gmn*Version literals for its dialect coordinates, one
+          the three gmeow:gmn*Version literals for its dialect coordinates,
+          gmeow:gmnCodebookDigest for the codebook identity it decodes against, one
           gmeow:gmnSecurityRing, and point gmeow:gmnEnvelopeCorrespondence at the
           logic:Correspondence judging its crossing back to the normal form.
 
@@ -223,7 +225,7 @@ class GmnEnvelope(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnEnvelope", "curie": "gmeow:GmnEnvelope", "definitionDigest": "blake3:9dbc477993e79a78aa13c287a9e3e47c2b20c0be6a2c7f43e3174a335042d839", "iri": "https://blackcatinformatics.ca/gmeow/GmnEnvelope"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GmnEnvelope", "curie": "gmeow:GmnEnvelope", "definitionDigest": "blake3:e0c39a7c56d7ff1699e0b7b00f757b572930d11bfd6bf1bba66a39a3ad40a1be", "iri": "https://blackcatinformatics.ca/gmeow/GmnEnvelope"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -231,6 +233,7 @@ class GmnEnvelope(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     accordingTo: list[Any] = Field(min_length=1, description="The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal.", alias="gmeow:accordingTo")
     contentDigest: list[Any] = Field(min_length=1, description="A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms.", alias="gmeow:contentDigest")
+    gmnCodebookDigest: list[Any] = Field(min_length=1, description="The content-addressed identity of a gmeow:GmnCodebook: an algorithm-tagged digest literal (e.g. \"blake3:…\") that is a Merkle root over the codebook's per-part digest leaves — its gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion coordinates, its script graphemes, its ten-role sigil table, its dictionary alias bijection, its glyph table, and its declared rate. It is the digest an encoding declares to pin exactly which codebook it decodes against — hashing the codebook's parts rather than any one serialization, so two codebooks with the same parts share one identity regardless of how they were written down. Not functional: a codebook may carry digests under several algorithms.", alias="gmeow:gmnCodebookDigest")
     gmnDictionaryVersion: Any = Field(description="The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable.", alias="gmeow:gmnDictionaryVersion")
     gmnEnvelopeCorrespondence: list[Any] | None = Field(default=None, description="Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope, range logic:Correspondence (stated in prose). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing.", alias="gmeow:gmnEnvelopeCorrespondence")
     gmnGlyphTableVersion: list[Any] = Field(min_length=1, description="The glyph-table version an envelope or codebook was serialized against — the coordinate of the projected glyph/codepoint table (the gmeow:gmnGlyph / gmeow:gmnCodepoints projection state). Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose).", alias="gmeow:gmnGlyphTableVersion")

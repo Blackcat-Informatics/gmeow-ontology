@@ -6168,6 +6168,9 @@ export interface GmnCompaction extends StandpointClaim {
 export interface GmnCompartment {
 }
 
+export interface GmnConformancePack extends InformationObject {
+}
+
 export interface GmnDictionary extends InformationObject {
     gmnDictionaryEntry?: GmnDictionaryEntry[],
 }
@@ -6183,7 +6186,16 @@ export interface GmnDispositionBasis {
 export interface GmnEnvelope extends AttestationArtifact {
 }
 
+export interface GmnErr extends StandpointClaim {
+}
+
 export interface GmnFixity {
+}
+
+export interface GmnPatch extends StandpointClaim {
+}
+
+export interface GmnRetract extends StandpointClaim {
 }
 
 export interface GmnRingCriterion {

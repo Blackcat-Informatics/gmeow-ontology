@@ -677,6 +677,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> . + ;
   <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> IRI ;
   <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> . + ;
+  <https://blackcatinformatics.ca/gmeow/gmnCodebookDigest> . + ;
   <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> . ;
   <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> . + ;
   <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> IRI ;

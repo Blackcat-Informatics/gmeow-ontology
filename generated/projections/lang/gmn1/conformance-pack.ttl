@@ -1,0 +1,6 @@
+<https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent> <https://blackcatinformatics.ca/gmeow/gmnCodebookDigest> "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" .
+<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/GmnConformancePack> .
+<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> <https://blackcatinformatics.ca/gmeow/gmnPackRoot> "blake3:828dfc67c24734cd4fee97f25d02d11f58774fd429b82f44b319cbd3d5696023" .
+<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> <https://blackcatinformatics.ca/gmeow/references> <https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent> .
+<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> <https://blackcatinformatics.ca/gmeow/references> <https://blackcatinformatics.ca/gmeow/gmnDictV3> .
+<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> <https://blackcatinformatics.ca/gmeow/references> <https://blackcatinformatics.ca/gmeow/gmnGrammar> .
