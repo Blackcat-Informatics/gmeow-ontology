@@ -8391,6 +8391,7 @@ lang:DuplicateSlotIndex a logic:Situation .
 lang:ExactPreservationViolated a logic:Situation .
 lang:FabricatedEquivalence a logic:Situation .
 lang:FregeConflation a logic:Situation .
+lang:GlossaryTermInconsistency a logic:Situation .
 lang:GmnCompactionOverclaim a logic:Situation .
 lang:GmnCompactionWithoutProvenance a logic:Situation .
 lang:GmnConfusableGlyph a logic:Situation .
