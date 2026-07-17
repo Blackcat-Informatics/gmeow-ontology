@@ -43,23 +43,20 @@ pub struct LintConfig {
     pub annotation_predicates: HashSet<String>,
 }
 
-/// The canonical annotation predicates whose literals the Check-2 language-tag
-/// policy polices — `rdfs:label`, `skos:definition`, `rdfs:comment`, `dcterms:title`,
-/// `dcterms:description`. This crate owns the registry; the Python
-/// `language_tags` helpers read it back through the PyO3 `annotation_predicates`
-/// surface rather than maintaining a parallel constant.
+/// The annotation predicates whose literals the Check-2 external-language-tag
+/// policy polices — a **view over the single localizable authority**
+/// ([`crate::localizable::LOCALIZABLE_PREDICATES`]), never a parallel constant.
+/// Check-2 skips GMEOW-namespace predicates by its own namespace guard (they are
+/// Check-1's concern), so the GMEOW members of the authority are harmless no-ops
+/// here; the effective surface is the standard cross-vocabulary annotation
+/// predicates plus the SKOS lexical predicates. The Python `language_tags` helpers
+/// read this back through the PyO3 `annotation_predicates` surface.
 #[must_use]
 pub fn default_annotation_predicates() -> Vec<String> {
-    [
-        "http://www.w3.org/2000/01/rdf-schema#label",
-        "http://www.w3.org/2004/02/skos/core#definition",
-        "http://www.w3.org/2000/01/rdf-schema#comment",
-        "http://purl.org/dc/terms/title",
-        "http://purl.org/dc/terms/description",
-    ]
-    .iter()
-    .map(|s| (*s).to_owned())
-    .collect()
+    crate::localizable::LOCALIZABLE_PREDICATES
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect()
 }
 
 /// The structural kind of a GMEOW term — the priority order is the index here,
@@ -2606,6 +2603,28 @@ mod tests {
 
     fn store_from(ttl: &str) -> Arc<RdfDataset> {
         parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
+    }
+
+    /// The Check-2 policy is a VIEW over the single localizable authority, never a
+    /// peer constant: every predicate it polices is a member of the authority, and
+    /// the authority is the full 14-predicate surface.
+    #[test]
+    fn check2_policy_is_a_view_over_the_localizable_authority() {
+        let authority: HashSet<&str> = crate::localizable::LOCALIZABLE_PREDICATES
+            .iter()
+            .copied()
+            .collect();
+        assert!(
+            default_annotation_predicates()
+                .iter()
+                .all(|p| authority.contains(p.as_str())),
+            "default_annotation_predicates must be a subset of the localizable authority"
+        );
+        assert_eq!(
+            crate::localizable::LOCALIZABLE_PREDICATES.len(),
+            14,
+            "the localizable authority must carry all 14 predicates"
+        );
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\

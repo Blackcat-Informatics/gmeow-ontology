@@ -3898,23 +3898,10 @@ pub(crate) fn rooted_in_graph(
 // ── default graph (authored ontology, NO imports) ───────────────────────────────
 
 /// The localizable predicates shared with `gmeow-docs` i18n compilation: the
-/// vocabulary surface a slice `.po` catalog may translate. Full IRIs.
-const LOCALIZABLE_PREDICATES: &[&str] = &[
-    "http://www.w3.org/2000/01/rdf-schema#label",
-    "http://www.w3.org/2000/01/rdf-schema#comment",
-    "http://www.w3.org/2004/02/skos/core#definition",
-    "http://www.w3.org/2004/02/skos/core#scopeNote",
-    "http://www.w3.org/2004/02/skos/core#example",
-    "http://www.w3.org/2004/02/skos/core#prefLabel",
-    "http://www.w3.org/2004/02/skos/core#altLabel",
-    "http://www.w3.org/2004/02/skos/core#note",
-    "http://purl.org/dc/terms/title",
-    "http://purl.org/dc/terms/description",
-    "https://blackcatinformatics.ca/gmeow/name",
-    "https://blackcatinformatics.ca/gmeow/title",
-    "https://blackcatinformatics.ca/gmeow/description",
-    "https://blackcatinformatics.ca/gmeow/fullName",
-];
+/// vocabulary surface a slice `.po` catalog may translate. Single authority in
+/// `gmeow-validate`; imported here so the carrier and the i18n/Check-2 surfaces
+/// cannot drift.
+use gmeow_validate::localizable::LOCALIZABLE_PREDICATES;
 
 /// Load `ontology/gmeow.ttl` + every slice `module.ttl` into one store, merge the
 /// slice `.po` translations onto its localizable literals, and return canonical
