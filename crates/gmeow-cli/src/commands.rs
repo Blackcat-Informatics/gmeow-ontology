@@ -645,6 +645,164 @@ pub fn conjecture_test(
     0
 }
 
+// ── candidate (propose/verify seam) ──────────────────────────────────────────
+
+/// `gmeow candidate submit` — test a candidate `logic:` formula against a KB and, ONLY if the
+/// isolated-world verdict CORROBORATES it (admissible), APPEND it to the append-only candidate
+/// library. Delegates to the SHARED [`gmeow_pipeline::mcp::run_submit_candidate`] core (the same
+/// path the MCP `submit_candidate` tool runs), so there is one implementation, not two. A refuted
+/// or open candidate is not admitted (a non-zero exit), and `--dry-run` writes nothing.
+#[allow(clippy::too_many_arguments)]
+pub fn candidate_submit(
+    reporter: &dyn Reporter,
+    formula: &Path,
+    kb: &Path,
+    standpoint: &str,
+    math_conjecture: Option<&str>,
+    for_slice: Option<&str>,
+    for_packet: Option<&str>,
+    dry_run: bool,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
+) -> i32 {
+    let formula_ttl = match std::fs::read_to_string(formula) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.read",
+                format!("cannot read {}: {e}", formula.display()),
+            );
+        }
+    };
+    let kb_ttl = match std::fs::read_to_string(kb) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.read",
+                format!("cannot read {}: {e}", kb.display()),
+            );
+        }
+    };
+
+    let out = match gmeow_pipeline::mcp::run_submit_candidate(
+        &gmeow_pipeline::mcp::CandidateSubmitInput {
+            formula_ttl: &formula_ttl,
+            kb_ttl: &kb_ttl,
+            standpoint,
+            math_conjecture,
+            for_slice,
+            for_packet,
+            dry_run,
+            max_steps,
+            max_answers,
+        },
+    ) {
+        Ok(out) => out,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("candidate submission failed: {e}"),
+            );
+        }
+    };
+
+    println!("lifecycle {}", out.lifecycle);
+    println!("information {}", out.information);
+    println!("evaluation {}", out.evaluation);
+    println!("completeness {}", out.completeness);
+    println!("discharge {}", out.discharge);
+    println!("admissible {}", out.admissible);
+    println!("candidate {}", out.node_iri);
+
+    // NOT admissible (refuted / open): the write was refused and nothing was appended. Report and
+    // fail (exit 1), mirroring the MCP `ok:false` path.
+    if let Some(reason) = &out.precondition_unmet {
+        return fail(
+            reporter,
+            "gmeow-cli.candidate.not-admissible",
+            format!("submitCandidate precondition unmet (candidate not admissible): {reason}"),
+        );
+    }
+    if out.dry_run {
+        println!("persisted dry-run (nothing written)");
+    } else if out.committed {
+        println!("persisted committed");
+    } else {
+        println!("persisted no");
+    }
+    0
+}
+
+/// `gmeow candidate withdraw` — withdraw a persisted candidate (P10 supersession). Delegates to
+/// the SHARED [`gmeow_pipeline::mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
+/// or already-withdrawn id is a hard error (a non-zero exit).
+pub fn candidate_withdraw(
+    reporter: &dyn Reporter,
+    candidate_id: &str,
+    reason: Option<&str>,
+    dry_run: bool,
+) -> i32 {
+    let body = match gmeow_pipeline::mcp::run_withdraw_candidate(
+        candidate_id,
+        reason.unwrap_or(""),
+        dry_run,
+    ) {
+        Ok(body) => body,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.withdraw-failed",
+                format!("candidate withdrawal failed: {e}"),
+            );
+        }
+    };
+    render_candidate_json(reporter, &body, "gmeow-cli.candidate.withdraw")
+}
+
+/// `gmeow candidate list` — list admitted candidates with their disposition + provenance.
+/// Delegates to the SHARED [`gmeow_pipeline::mcp::run_list_candidates`] core.
+pub fn candidate_list(
+    reporter: &dyn Reporter,
+    slice: Option<&str>,
+    disposition: Option<&str>,
+) -> i32 {
+    let body = match gmeow_pipeline::mcp::run_list_candidates(slice, disposition) {
+        Ok(body) => body,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.list-failed",
+                format!("candidate list failed: {e}"),
+            );
+        }
+    };
+    render_candidate_json(reporter, &body, "gmeow-cli.candidate.list")
+}
+
+/// Print a candidate tool's JSON response body verbatim, mapping its `ok` flag to the process
+/// exit: an `ok:false` envelope (e.g. an unmet withdrawal precondition) is a hard failure.
+fn render_candidate_json(reporter: &dyn Reporter, body: &str, code: &str) -> i32 {
+    let value: serde_json::Value = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(e) => return fail(reporter, code, format!("malformed tool response: {e}")),
+    };
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&value).unwrap_or_else(|_| body.to_string())
+    );
+    if value.get("ok").and_then(serde_json::Value::as_bool) == Some(false) {
+        let msg = value
+            .get("error")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("candidate operation failed");
+        return fail(reporter, code, msg.to_string());
+    }
+    0
+}
+
 // ── hybrid-query ─────────────────────────────────────────────────────────────
 
 /// The isolated query world every `hybrid-query --facts` document is re-homed
