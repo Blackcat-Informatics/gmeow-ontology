@@ -77,7 +77,8 @@ ex:compile-run a gmeow:Activity ;
     rdfs:label "compilation pass 2026-06-01"@en .
 
 ex:correspondence a gmeow:CellSourceCorrespondence ;
-    rdfs:label "cell↔span correspondence for the compilation"@en .
+    rdfs:label "cell↔span correspondence for the compilation"@en ;
+    gmeow:correspondenceCell ex:cell-a , ex:cell-b .
 
 # The preservation record REUSES the logic: loss ledger verbatim: this compilation
 # is sound-under-approximation and honestly names the boundary it dropped.
