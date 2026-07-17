@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT1 counter-example (Don't): a projection that OMITS gmeow:projectionSourceDigest
+# entirely. It is complete in every other required respect — a content-addressed
+# source, an effective vector space over a content-addressed family, a sensitivity,
+# and a reproducibility level — so the missing RECORDED source digest is the sole
+# requiredness defect. gmeow:projectionSourceDigest is a required datum on
+# gmeow:EmbeddingProjection (a logic:allValuesFrom carrier closed to sh:minCount 1
+# by its class-scoped logic:ClosureEntry), so validation MUST emit
+# shacl.MinCountConstraintComponent. This closes the CT1 hole the present-but-wrong
+# case (ce-source-digest-mismatch.ttl) cannot reach: without a recorded digest,
+# gmeow:SourceDigestMatchConstraint's guard is vacuous and the exact-source binding
+# invariant is silently escapable — which is exactly what this rejects.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:missPack a gmeow:InformationObject ;
+    gmeow:contentDigest "blake3:1111000011112222333344445555666677778888999900001111222233334444" .
+
+ce:missFamily a gmeow:EmbeddingFamily ;
+    gmeow:contentDigest "blake3:2222000011112222333344445555666677778888999900001111222233334444" .
+
+ce:missVsc a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily ce:missFamily ;
+    gmeow:contentDigest "blake3:3333000011112222333344445555666677778888999900001111222233334444" .
+
+# gmeow:projectionSourceDigest is DELIBERATELY OMITTED — the sole requiredness defect.
+ce:missProj a gmeow:EmbeddingProjection ;
+    gmeow:projectionSource       ce:missPack ;
+    gmeow:hasVectorSpaceContract ce:missVsc ;
+    gmeow:hasSensitivity         gmeow:sensitivityInternal ;
+    gmeow:reproducibilityLevel   gmeow:regenerableOnly .
