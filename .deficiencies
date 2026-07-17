@@ -1513,3 +1513,76 @@ generator requests so the native code has a retirement path:
   https://github.com/Blackcat-Informatics/purrdf/issues/139
 - DCAT (Turtle/CONSTRUCT) + VoID dataset-description generators:
   https://github.com/Blackcat-Informatics/purrdf/issues/140
+
+## 2026-07-17 — #1527 / math + semantic-topology epic, stage-2 gap remediation
+Completion-adversary STAGE=2 exit gate returned PASS with ZERO open findings against green
+HEAD 712423a62: every acceptance criterion (C1–C7) DEMONSTRATED-IN-PRODUCTION on the shipped
+surface (regenerated generated/shapes derived SHACL, both live conformance sweeps
+grounding/math + extensions/semantic-topology, folded gmeow.gts + pydantic fanout, Rust
+no-optionality hard-fails). FULL `make check` passed green on HEAD ("all checks passed"; sync,
+validate, slice-quality-gate, rust-gate, reason-verify, coherence-gate-teeth, compliance-report;
+DL⊇EL soak 3/3 gap-zero with byte-identical finding-graph digests). No human sign-off was
+required at the exit gate (no findings).
+
+Two recorded HUMAN decisions (not self-cleared):
+- AC7 "decompose the epic into dependency-ordered issues before code changes" was superseded by
+  two verbatim AskUserQuestion confirmations (recorded in the #1527 plan comment) to implement
+  the gaps directly as one code PR including Workstream B. A recorded supersession, not a silent
+  skip. (Process criterion, discharged by human sign-off.)
+- The epic's Workstream-A "combinatorial Laplacians" item: pre-existing math:HodgeLaplacian/
+  SheafLaplacian/HodgeDecomposition already grounded Hodge on main; per an explicit user decision
+  the literal item was closed by MINTING a new math:CombinatorialLaplacian (L_k = ∂∂*+∂*∂ over the
+  cell complex's own signed boundary operators, non-conflated with the Hodge/sheaf Laplacians)
+  rather than re-minting Hodge. Full delivery, not a descope.
+
+One honest scoped boundary (shipped as a first-class ontology term, not a deferral):
+- Multiparameter non-collapse (AC4). The reviewer asked to "detect any functionally dependent
+  multi-index." The concrete asked cases — literal diagonal (t,t), affine (t,2t)/(t,t+1) — ARE
+  detected (math:DiagonalDegenerateFiltrationConstraint + math:MultiparameterFunctionalDependence
+  Constraint's fix-one-vary-another declaration-completeness witness, with firing counter-examples
+  and a conformant grid bifiltration). Detecting an ARBITRARY latent dependence t₂=f(t₁) from a
+  finite set of stage samples is mathematically undecidable (any finite point set lies on some
+  curve), so that residue is carried as the honest logic:expressivenessBoundary
+  math:multiparameterDependenceBoundary (logic:SecondOrder, logic:Unsupported) — a sibling of the
+  pre-existing math:cellBoundarySumBoundary / math:smoothnessBoundary. FORWARD PATH: none — this is
+  the correct mathematical ceiling, not a proxy awaiting replacement.
+
+One cross-cutting core-gate enhancement (SUBSUME/EXTEND/ENHANCE, MAXIMAL GROUNDING):
+- The OntoUML identity gate (crates/validate/src/gufo.rs proper_ancestors / gmeow_subclasses)
+  traced sortal Kind-ancestry over rdfs:subClassOf only, forcing a new SubKind slice to hand-author
+  an ungrounded rdfs:subClassOf SubKind→Kind edge (which the projection-residue ratchet then blocks
+  for a brand-new slice). Fixed at root: the gate now ALSO traverses the canonical logic:subClassOf,
+  so gmeow:TopologyClaim is grounded as logic:subClassOf gmeow:StandpointClaim (semantic-topology
+  rdfs residue → 0, slice-quality-gate green) with the identity checks intact (all 20 gufo unit
+  tests pass; no new MixIden across the full ontology at make check). Not a ceiling exception —
+  the ungrounded residue was eliminated, not grandfathered.
+
+================================================================================
+2026-07-17 — Issue #1536 (stage 1): MCP surface for the slice authoring factory
+================================================================================
+Scope delivered in full: slice_quality promoted to Consumer (bundle-scored external
+dirs); slice_brief serves pre-assembled AuthoringPackets from the embedded
+graph/authoring-briefs; verdict-gated candidate seam (submit/withdraw/list) as MCP
+tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteria
+(AC1-AC6) execute on the production surface; `make check` green.
+
+- SCOPED-DOWN ENHANCEMENT (weaker mechanism, forward path): the plan's Enhancement-Audit
+  item "packet-closure-as-KB composition" (submit_candidate reuses an AuthoringPacket's
+  depth-1 CBD + definitional closure as the candidate KB) is NOT delivered as specified.
+  Implementation reality: the bundle's graph/authoring-briefs carries the SPARSE packet
+  index (covered-term IRIs + grounding cells + margins), NOT the per-term axiom/neighbour
+  closure — that closure lives only in the base graph / a repo checkout (assemble_packet).
+  So a bundle-served closure-as-KB is not reconstructable checkout-free. WEAKER MECHANISM
+  SHIPPED: submit_candidate records the target packet/slice as PROVENANCE
+  (gmeow:candidateForPacket / candidateForSlice) and requires the KB supplied explicitly;
+  the covered-term IRIs the packet lists resolve to full content via lookup_term/doc_card.
+  FORWARD PATH: a dev-mode (McpMode::Dev, repo-anchored) tool could assemble the closure
+  turtle from a checkout and feed it as the candidate KB, closing the loop for in-repo
+  authoring without changing the shipped consumer surface.
+
+- BY-DESIGN BOUNDARY (not a descope): slice_brief serves the packet as canonical turtle +
+  a JSON reading of the bundle's sparse packet body (the user-selected scope). It does NOT
+  reconstruct the full AuthoringPacket model's render_text, because the model's rich
+  per-term fields (coat/axioms/neighbours/closure) are dropped in to_turtle and are not in
+  the bundle graph. This matches the shipped bundle's contents; the rich content is reached
+  per covered-term IRI via the existing lookup_term / doc_card tools.

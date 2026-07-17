@@ -1,0 +1,11 @@
+# External-corpus coverage: a global section names its carrier sheaf and the
+# whole base complex it globalises over (H⁰ frame).
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?section ?sheaf ?region
+WHERE {
+  ?section a math:GlobalSection ;
+           math:overSheaf ?sheaf ;
+           math:sectionRegion ?region .
+}
+ORDER BY ?section

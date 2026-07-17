@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:PersistenceModuleLifetimeConflationShape: ONE node
+# typed BOTH math:PersistenceModule AND math:PersistenceLifetime — the whole algebraic functor
+# P: (index poset) → Vect conflated with the birth–death interval of a SINGLE feature. They are
+# held owl:disjointWith by a DIRECT axiom (both descend from math:MathematicalObject, so the
+# disjointness is NOT entailed by their parents), so the sh:not [ sh:class math:PersistenceLifetime ]
+# derived on math:PersistenceModule fires — shacl.NotConstraintComponent
+# (math:PersistenceModuleLifetimeConflation).
+# ISOLATION: the node is COMPLETE for BOTH kinds — its math:moduleIndex and math:structureMap
+# satisfy the persistence-module frame, and its math:overFiltration, math:persistenceFeature,
+# math:bornAt and math:diesAt satisfy the persistence-lifetime frame (an essential H0 component,
+# diesAt math:PositiveInfinity) — so ONLY the sh:not fires, EXACTLY ONE finding. Every supporting
+# object (the filtration, the homology group) is well-formed for its own shape.
+# Back-reference: math:PersistenceModuleLifetimeConflation (slices/grounding/math/module.ttl).
+# Wired exactly like counter-examples/calibration-sense-conflation.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecPersistenceModuleLifetimeConflation).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# ONE node typed BOTH kinds, complete for each, so only the conflation fires.
+ex:conflated a math:PersistenceModule , math:PersistenceLifetime ;
+    math:moduleIndex ex:indexPoset ;             # completes the module frame
+    math:structureMap ex:transition ;            # completes the module frame
+    math:overFiltration ex:filtration ;          # completes the lifetime frame
+    math:persistenceFeature ex:h0Component ;     # completes the lifetime frame
+    math:bornAt ex:eps ;                         # completes the lifetime frame
+    math:diesAt math:PositiveInfinity .          # essential feature: never dies within the filtration
+
+ex:indexPoset a math:MathematicalObject .
+ex:transition a math:MathematicalObject .
+
+# The filtration the lifetime is read over: a well-formed single-parameter math:Filtration.
+ex:filtration a math:Filtration ;
+    math:filtrationAmbient ex:ambient ;
+    math:filtrationIndexKind math:lengthDimension ;
+    math:hasFiltrationStage ex:stage .
+ex:ambient a math:TopologicalSpace .
+ex:stage a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps ;
+    math:stageStructure ex:cx .
+ex:cx a math:TopologicalSpace .
+
+# The feature the lifetime tracks: an essential H0 component (a well-formed abelian group).
+ex:h0Component a math:HomologyGroup ;
+    math:underlyingSet ex:h0Carrier ;
+    math:structureOperation ex:h0Addition ;
+    math:satisfiesAxiom ex:h0CommutativityAxiom .
+ex:h0Carrier a math:Set .
+ex:h0Addition a math:Operation .
+ex:h0CommutativityAxiom a math:MathematicalObject .
+
+ex:eps a math:Quantity ; math:quantityValue "0.10"^^xsd:decimal .
+<http://example.org/math/eps> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .
