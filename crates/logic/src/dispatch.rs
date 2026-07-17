@@ -12,6 +12,10 @@ use crate::annotation::{
     AnnotatedAnswerSet, AnnotationContract, AnnotationFactRef, AnnotationRequest,
     TupleAnnotationAlgebra,
 };
+use crate::external_relation::{
+    QueryRelationProviders, RelationContractError, RelationExecution, RelationExecutionError,
+    RelationExecutionFailureKind, RelationQueryFailureReceipt, RelationQueryResult,
+};
 use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::seam::{RdfViewFactSource, WorldFactSource, WorldSourceIdentity, WorldSourceMetrics};
@@ -82,6 +86,93 @@ pub struct CompleteAnnotatedViewQuery<Element, BackendEvidence> {
     pub identity: QueryExecutionIdentity,
 }
 
+/// A view-backed provider-aware answer certified complete under every source identity.
+#[derive(Debug, Clone)]
+pub struct CompleteRelationViewQuery<Element, BackendEvidence> {
+    /// Native annotated answer and provider operational receipt.
+    pub result: RelationQueryResult<Element>,
+    /// Backend and RDF source-access evidence captured after result materialization.
+    pub evidence: QueryExecutionEvidence<BackendEvidence>,
+    /// RDF source, engine, and provider-aware query identities.
+    pub identity: QueryExecutionIdentity,
+}
+
+/// Annotation algebra and immutable provider set for one query execution.
+///
+/// Grouping the two related inputs makes the query-local provider boundary explicit:
+/// the provider set is borrowed by one native evaluation and cannot escape into a
+/// process-wide registry or an implicit fallback path.
+pub struct RelationAnnotationRequest<'query, 'provider, A, F>
+where
+    A: TupleAnnotationAlgebra,
+{
+    /// Algebra, admission contract, and asserted-RDF annotation source.
+    pub annotation: AnnotationRequest<'query, A, F>,
+    /// Immutable external relations available to this query only.
+    pub providers: &'query QueryRelationProviders<'provider, A::Element>,
+}
+
+impl<'query, 'provider, A, F> RelationAnnotationRequest<'query, 'provider, A, F>
+where
+    A: TupleAnnotationAlgebra,
+{
+    /// Bundle annotation and provider inputs for one native evaluation.
+    #[must_use]
+    pub const fn new(
+        annotation: AnnotationRequest<'query, A, F>,
+        providers: &'query QueryRelationProviders<'provider, A::Element>,
+    ) -> Self {
+        Self {
+            annotation,
+            providers,
+        }
+    }
+}
+
+/// Typed non-result from provider-aware annotated dispatch.
+#[derive(Debug)]
+pub enum RelationQueryError {
+    /// The immutable provider set and selected annotation algebra disagree.
+    Contract(RelationContractError),
+    /// Profile or native evaluation refused while retaining provider attempt evidence.
+    Query {
+        /// Ordinary GMEOW diagnostic.
+        diagnostic: gmeow_errors::Diag,
+        /// Content-addressed failed-operation receipt.
+        receipt: Box<RelationQueryFailureReceipt>,
+    },
+    /// A provider failed, was incomplete/cancelled, exhausted its governor, or broke contract.
+    Provider {
+        /// Typed provider/executor terminal state.
+        error: RelationExecutionError,
+        /// Content-addressed failed-operation receipt.
+        receipt: Box<RelationQueryFailureReceipt>,
+    },
+}
+
+impl RelationQueryError {
+    /// Failed-operation evidence, when execution began.
+    #[must_use]
+    pub fn receipt(&self) -> Option<&RelationQueryFailureReceipt> {
+        match self {
+            Self::Contract(_) => None,
+            Self::Query { receipt, .. } | Self::Provider { receipt, .. } => Some(receipt.as_ref()),
+        }
+    }
+}
+
+impl std::fmt::Display for RelationQueryError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Contract(error) => error.fmt(formatter),
+            Self::Query { diagnostic, .. } => diagnostic.fmt(formatter),
+            Self::Provider { error, .. } => error.fmt(formatter),
+        }
+    }
+}
+
+impl std::error::Error for RelationQueryError {}
+
 impl<BackendEvidence> CompleteViewQuery<BackendEvidence> {
     /// Decompose the completeness certificate.
     #[must_use]
@@ -107,6 +198,86 @@ pub type FallibleAnnotatedViewQueryResult<Element, OperationalError, BackendEvid
     CompleteAnnotatedViewQuery<Element, BackendEvidence>,
     Box<FallibleViewQueryError<OperationalError, BackendEvidence>>,
 >;
+
+/// Public return type for provider-aware annotated dispatch over a fallible RDF view.
+pub type FallibleRelationViewQueryResult<Element, OperationalError, BackendEvidence> = Result<
+    CompleteRelationViewQuery<Element, BackendEvidence>,
+    Box<FallibleRelationViewQueryError<OperationalError, BackendEvidence>>,
+>;
+
+/// Three-way failure boundary for provider-aware dispatch over a fallible RDF view.
+#[derive(Debug)]
+pub enum FallibleRelationViewQueryError<OperationalError, BackendEvidence> {
+    /// Profile/native/provider evaluation failed while the RDF view remained ready.
+    Relation {
+        /// Typed query/provider non-result.
+        error: RelationQueryError,
+        /// Backend and source-access evidence at the final ready checkpoint.
+        evidence: QueryExecutionEvidence<BackendEvidence>,
+        /// Source and engine identities for the failed attempt.
+        identity: QueryExecutionIdentity,
+    },
+    /// Lazy RDF access failed and takes precedence over any internal partial result.
+    Operational {
+        /// Sticky typed RDF provider/budget/cancellation/generation error.
+        error: OperationalError,
+        /// Backend and source-access evidence at the failure boundary.
+        evidence: QueryExecutionEvidence<BackendEvidence>,
+        /// Source and engine identities for the failed attempt.
+        identity: QueryExecutionIdentity,
+    },
+}
+
+impl<OperationalError, BackendEvidence>
+    FallibleRelationViewQueryError<OperationalError, BackendEvidence>
+{
+    /// Borrow the evidence carried by either terminal variant.
+    #[must_use]
+    pub const fn evidence(&self) -> &QueryExecutionEvidence<BackendEvidence> {
+        match self {
+            Self::Relation { evidence, .. } | Self::Operational { evidence, .. } => evidence,
+        }
+    }
+
+    /// Borrow the RDF operational root cause, when one occurred.
+    #[must_use]
+    pub const fn operational_error(&self) -> Option<&OperationalError> {
+        match self {
+            Self::Relation { .. } => None,
+            Self::Operational { error, .. } => Some(error),
+        }
+    }
+
+    /// Borrow the provider-aware query error, when the RDF view remained ready.
+    #[must_use]
+    pub const fn relation_error(&self) -> Option<&RelationQueryError> {
+        match self {
+            Self::Relation { error, .. } => Some(error),
+            Self::Operational { .. } => None,
+        }
+    }
+
+    /// Borrow the execution identities carried by either terminal variant.
+    #[must_use]
+    pub const fn identity(&self) -> &QueryExecutionIdentity {
+        match self {
+            Self::Relation { identity, .. } | Self::Operational { identity, .. } => identity,
+        }
+    }
+}
+
+impl<OperationalError: std::fmt::Display, BackendEvidence> std::fmt::Display
+    for FallibleRelationViewQueryError<OperationalError, BackendEvidence>
+{
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Relation { error, .. } => error.fmt(formatter),
+            Self::Operational { error, .. } => {
+                write!(formatter, "operational RDF query failure: {error}")
+            }
+        }
+    }
+}
 
 /// Failure of GMEOW dispatch over an operationally fallible RDF view.
 #[derive(Debug)]
@@ -225,14 +396,41 @@ pub(crate) fn annotated_query_contract_hash(
     profile: &str,
     budget: &Budget,
     annotation: &AnnotationContract,
+    algebra_identity: &str,
 ) -> String {
     let base_contract = query_contract_hash(profile, budget);
     let annotation_frame = annotation.canonical_key();
-    blake3::hash(
-        format!("gmeow-annotated-query-contract-v1:{base_contract}:{annotation_frame}").as_bytes(),
-    )
-    .to_hex()
-    .to_string()
+    let mut hasher = blake3::Hasher::new();
+    for value in [
+        "gmeow-annotated-query-contract-v2",
+        base_contract.as_str(),
+        annotation_frame.as_str(),
+        algebra_identity,
+    ] {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+    hasher.finalize().to_hex().to_string()
+}
+
+pub(crate) fn external_relation_query_contract_hash(
+    profile: &str,
+    budget: &Budget,
+    annotation: &AnnotationContract,
+    algebra_identity: &str,
+    provider_manifest_hash: &str,
+) -> String {
+    let annotated = annotated_query_contract_hash(profile, budget, annotation, algebra_identity);
+    let mut hasher = blake3::Hasher::new();
+    for value in [
+        "gmeow-external-relation-query-contract-v1",
+        annotated.as_str(),
+        provider_manifest_hash,
+    ] {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+    hasher.finalize().to_hex().to_string()
 }
 
 /// Resolve `program` against `world` with the native physical core.
@@ -405,7 +603,12 @@ where
     profile_gate::reject_cut(program)?;
     profile_gate::check_builtin_profile(program, profile)?;
 
-    let contract_hash = annotated_query_contract_hash(profile, budget, annotation.contract);
+    let contract_hash = annotated_query_contract_hash(
+        profile,
+        budget,
+        annotation.contract,
+        annotation.algebra.identity(),
+    );
     match crate::physical::resolve_native_annotated_under(
         &contract_hash,
         foreign,
@@ -421,6 +624,123 @@ where
                     "native annotated backward engine does not support {kind:?}; query refused because annotations cannot be demoted to post-hoc scoring"
                 ),
             }))
+        }
+    }
+}
+
+fn provider_terminal_wire(kind: &RelationExecutionFailureKind) -> &'static str {
+    match kind {
+        RelationExecutionFailureKind::ProviderFailure(_) => "provider-failure",
+        RelationExecutionFailureKind::ProviderIncomplete(_) => "provider-incomplete",
+        RelationExecutionFailureKind::BudgetExhausted => "provider-budget-exhausted",
+        RelationExecutionFailureKind::Cancelled => "provider-cancelled",
+        RelationExecutionFailureKind::ContractViolation => "provider-contract-violation",
+    }
+}
+
+/// Resolve an annotated query with immutable operation-scoped external relations.
+///
+/// Provider atoms execute as typed EDB operators inside the native arity-generic
+/// fixpoint. Returned tuples are not inserted into the RDF source and never cross into a
+/// scratch world. Every non-result retains typed attempt evidence; provider failure or
+/// incompleteness is never presented as a complete empty relation.
+pub fn dispatch_query_annotated_with_relations<A, F>(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    request: RelationAnnotationRequest<'_, '_, A, F>,
+) -> Result<RelationQueryResult<A::Element>, RelationQueryError>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let RelationAnnotationRequest {
+        annotation,
+        providers,
+    } = request;
+    let contract_hash = external_relation_query_contract_hash(
+        profile,
+        budget,
+        annotation.contract,
+        annotation.algebra.identity(),
+        providers.manifest_hash(),
+    );
+    let mut execution = RelationExecution::new(providers, annotation.algebra, &contract_hash)
+        .map_err(RelationQueryError::Contract)?;
+    let source = foreign.identity().clone();
+    let engine_descriptor_hash = crate::runtime::EngineContract::current().descriptor_hash;
+
+    for gate in [
+        profile_gate::reject_cut(program),
+        profile_gate::check_builtin_profile(program, profile),
+    ] {
+        if let Err(diagnostic) = gate {
+            let receipt = execution.failure_receipt(
+                source.clone(),
+                engine_descriptor_hash.clone(),
+                "query-gate",
+                diagnostic.to_string(),
+            );
+            return Err(RelationQueryError::Query {
+                diagnostic,
+                receipt: Box::new(receipt),
+            });
+        }
+    }
+
+    match crate::physical::resolve_native_annotated_with_relations_under(
+        foreign,
+        world,
+        program,
+        budget,
+        &annotation,
+        &mut execution,
+    ) {
+        Ok(crate::physical::NativeOutcome::Decided(answer)) => {
+            Ok(execution.finish(answer, source, engine_descriptor_hash))
+        }
+        Ok(crate::physical::NativeOutcome::Unsupported(kind)) => {
+            let diagnostic = gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "native provider-aware annotated engine does not support {kind:?}; query refused because provider tuples cannot be materialized or scores demoted"
+                ),
+            });
+            let receipt = execution.failure_receipt(
+                source,
+                engine_descriptor_hash,
+                "query-unsupported",
+                diagnostic.to_string(),
+            );
+            Err(RelationQueryError::Query {
+                diagnostic,
+                receipt: Box::new(receipt),
+            })
+        }
+        Err(crate::physical::ExternalRelationEvaluationError::Query(diagnostic)) => {
+            let receipt = execution.failure_receipt(
+                source,
+                engine_descriptor_hash,
+                "query-diagnostic",
+                diagnostic.to_string(),
+            );
+            Err(RelationQueryError::Query {
+                diagnostic,
+                receipt: Box::new(receipt),
+            })
+        }
+        Err(crate::physical::ExternalRelationEvaluationError::Provider(error)) => {
+            let receipt = execution.failure_receipt(
+                source,
+                engine_descriptor_hash,
+                provider_terminal_wire(&error.kind),
+                error.to_string(),
+            );
+            Err(RelationQueryError::Provider {
+                error,
+                receipt: Box::new(receipt),
+            })
         }
     }
 }
@@ -451,7 +771,12 @@ where
 {
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
-        annotated_query_contract_hash(profile, budget, annotation.contract),
+        annotated_query_contract_hash(
+            profile,
+            budget,
+            annotation.contract,
+            annotation.algebra.identity(),
+        ),
     );
     let source = RdfViewFactSource::new(view, profile, identity.source.clone());
     let answer = dispatch_query_annotated(&source, world, program, profile, budget, annotation)?;
@@ -489,7 +814,12 @@ where
 {
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
-        annotated_query_contract_hash(profile, budget, annotation.contract),
+        annotated_query_contract_hash(
+            profile,
+            budget,
+            annotation.contract,
+            annotation.algebra.identity(),
+        ),
     );
     if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
         return Err(Box::new(FallibleViewQueryError::Operational {
@@ -537,6 +867,123 @@ where
     }
 }
 
+/// Resolve a provider-aware annotated query directly over a resident RDF 1.2 view.
+pub fn dispatch_query_annotated_with_relations_view<V, A, F>(
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    request: RelationAnnotationRequest<'_, '_, A, F>,
+) -> Result<CompleteRelationViewQuery<A::Element, ResidentViewEvidence>, RelationQueryError>
+where
+    V: DatasetView,
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let identity = QueryExecutionIdentity::for_contract(
+        source_identity,
+        external_relation_query_contract_hash(
+            profile,
+            budget,
+            request.annotation.contract,
+            request.annotation.algebra.identity(),
+            request.providers.manifest_hash(),
+        ),
+    );
+    let source = RdfViewFactSource::new(view, profile, identity.source.clone());
+    let result =
+        dispatch_query_annotated_with_relations(&source, world, program, profile, budget, request)?;
+    Ok(CompleteRelationViewQuery {
+        result,
+        evidence: QueryExecutionEvidence {
+            backend: ResidentViewEvidence {
+                len_hint: view.len_hint(),
+                stats_fingerprint: view.stats_fingerprint(),
+            },
+            source: source.metrics(),
+        },
+        identity,
+    })
+}
+
+/// Resolve a provider-aware annotated query over an operationally fallible RDF view.
+///
+/// RDF source failure, provider/query failure, and semantic absence remain separate.
+/// A sticky RDF failure observed after evaluation takes precedence and discards the
+/// internal result exactly as on the ordinary fallible dispatch boundary.
+pub fn dispatch_query_annotated_with_relations_fallible_view<V, A, F>(
+    view: &V,
+    source_identity: WorldSourceIdentity,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    request: RelationAnnotationRequest<'_, '_, A, F>,
+) -> FallibleRelationViewQueryResult<A::Element, V::Error, V::Evidence>
+where
+    V: FallibleDatasetView,
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let identity = QueryExecutionIdentity::for_contract(
+        source_identity,
+        external_relation_query_contract_hash(
+            profile,
+            budget,
+            request.annotation.contract,
+            request.annotation.algebra.identity(),
+            request.providers.manifest_hash(),
+        ),
+    );
+    if let ViewOperationStatus::Failed { error, evidence } = view.operation_status() {
+        return Err(Box::new(FallibleRelationViewQueryError::Operational {
+            error,
+            evidence: QueryExecutionEvidence {
+                backend: evidence,
+                source: WorldSourceMetrics::default(),
+            },
+            identity,
+        }));
+    }
+
+    let source = RdfViewFactSource::new(view, profile, identity.source.clone());
+    let evaluation =
+        dispatch_query_annotated_with_relations(&source, world, program, profile, budget, request);
+    let source_metrics = source.metrics();
+    match view.operation_status() {
+        ViewOperationStatus::Failed { error, evidence } => {
+            Err(Box::new(FallibleRelationViewQueryError::Operational {
+                error,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }))
+        }
+        ViewOperationStatus::Ready { evidence } => match evaluation {
+            Ok(result) => Ok(CompleteRelationViewQuery {
+                result,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            }),
+            Err(error) => Err(Box::new(FallibleRelationViewQueryError::Relation {
+                error,
+                evidence: QueryExecutionEvidence {
+                    backend: evidence,
+                    source: source_metrics,
+                },
+                identity,
+            })),
+        },
+    }
+}
+
 // ── Unit tests ─────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -572,6 +1019,14 @@ mod tests {
 
     impl crate::annotation::TupleAnnotationAlgebra for FloatingScore {
         type Element = f64;
+
+        fn identity(&self) -> &str {
+            "https://example.org/algebra/floating-score-v1"
+        }
+
+        fn canonical_element(&self, element: &Self::Element) -> String {
+            format!("{:016x}", element.to_bits())
+        }
 
         fn zero(&self) -> Self::Element {
             0.0
@@ -614,6 +1069,14 @@ mod tests {
 
     impl crate::annotation::TupleAnnotationAlgebra for PeakAlgebra {
         type Element = i64;
+
+        fn identity(&self) -> &str {
+            &self._runtime_identity
+        }
+
+        fn canonical_element(&self, element: &Self::Element) -> String {
+            element.to_string()
+        }
 
         fn zero(&self) -> Self::Element {
             0
@@ -674,6 +1137,34 @@ mod tests {
             query_contract_hash(
                 "<https://blackcatinformatics.ca/logic/PositiveHornProfile>",
                 &unlimited,
+            )
+        );
+    }
+
+    #[test]
+    fn annotated_query_contract_hash_covers_algebra_identity() {
+        let contract = AnnotationContract::exact();
+        let budget = Budget::default();
+        let left = annotated_query_contract_hash(
+            HORN_PROFILE,
+            &budget,
+            &contract,
+            "https://example.org/algebra/left",
+        );
+        let right = annotated_query_contract_hash(
+            HORN_PROFILE,
+            &budget,
+            &contract,
+            "https://example.org/algebra/right",
+        );
+        assert_ne!(left, right);
+        assert_eq!(
+            left,
+            annotated_query_contract_hash(
+                HORN_PROFILE,
+                &budget,
+                &contract,
+                "https://example.org/algebra/left",
             )
         );
     }
@@ -1223,12 +1714,11 @@ mod tests {
         assert_eq!(b["Wg"], format!("<{W}>"), "world binding");
     }
 
-    /// An n-ary shape the generic evaluator CANNOT serve — an arity-3 IDB over a binary
-    /// EDB predicate (`edge`) that the generic-triple EDB never loads — must NOT be a
-    /// silent-empty `Ok`. Native declares `Unsupported(NonBinaryAtom)` and production
-    /// dispatch hard-fails with the same typed reason.
+    /// An n-ary IDB can join ordinary binary RDF EDB predicates in the same generic
+    /// fixpoint. This is the parser-driven regression proof for the provider/RDF join
+    /// seam: the native result is complete and production dispatch preserves it.
     #[test]
-    fn dispatch_query_parsed_nary_over_binary_edb_not_silent_empty() {
+    fn dispatch_query_parsed_nary_over_binary_edb_decides() {
         let store = WorldStore::new();
         store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
         store.insert_quad(W, &p("b"), &p("edge"), &p("c"));
@@ -1242,8 +1732,8 @@ mod tests {
         let prog = parse_query_program(&src).unwrap();
         let budget = Budget::default();
 
-        // Native MUST declare the gap (never a silent-empty `Decided`): the generic
-        // evaluator cannot load the binary `edge` EDB, so it is `NonBinaryAtom`.
+        // Native admits the absolute-IRI binary EDB predicate into the generic source
+        // plan and derives the arity-3 head without crossing to another evaluator.
         let native = crate::physical::resolve_native(
             &WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap(),
             &world_nn,
@@ -1251,24 +1741,18 @@ mod tests {
             &budget,
         )
         .unwrap();
-        assert!(
-            matches!(
-                native,
-                crate::physical::NativeOutcome::Unsupported(
-                    crate::physical::UnsupportedKind::NonBinaryAtom
-                )
-            ),
-            "an un-servable n-ary shape must be a declared gap, not silent-empty: {native:?}"
-        );
+        let crate::physical::NativeOutcome::Decided(native_answer) = native else {
+            panic!("binary RDF must be servable inside the n-ary fixpoint: {native:?}");
+        };
+        assert_eq!(native_answer.bindings.len(), 1);
+        assert_eq!(native_answer.bindings[0]["Y"], format!("<{BASE}b>"));
+        assert_eq!(native_answer.bindings[0]["Z"], format!("<{BASE}c>"));
 
-        // Production dispatch preserves the refusal instead of fabricating an empty answer.
+        // Production dispatch preserves the same complete answer.
         let foreign = WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap();
-        let error = dispatch_query(&foreign, &world_nn, &prog, HORN_PROFILE, &budget)
-            .expect_err("unsupported n-ary shape must hard-fail");
-        assert_eq!(
-            error.message(),
-            "native backward engine does not support NonBinaryAtom; query refused because no fallback engine remains"
-        );
+        let answer = dispatch_query(&foreign, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        assert_eq!(answer.status, BudgetStatus::Ok);
+        assert_eq!(answer.bindings, native_answer.bindings);
     }
 
     /// Cut is retained in the parser only to produce a stable retirement diagnostic.

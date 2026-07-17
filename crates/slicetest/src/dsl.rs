@@ -525,6 +525,7 @@ fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<Result
             TermKind::Iri => ColumnKind::Iri,
             TermKind::BlankNode => ColumnKind::BlankNode,
             TermKind::Literal => ColumnKind::Literal { datatype },
+            TermKind::TripleTerm => ColumnKind::TripleTerm,
         };
         columns.push(ResultColumn { var, kind, binding });
     }

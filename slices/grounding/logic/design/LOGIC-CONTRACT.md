@@ -243,6 +243,19 @@ memory tooling, deep validation, and every generated proof or coherence certific
 identity travels with the result (see [`LOGIC-SEMANTICS.md` § The reasoning result](LOGIC-SEMANTICS.md)),
 so an answer is never interpretable apart from the contract it was produced under.
 
+Provider-aware queries extend that identity with an immutable, query-scoped external-relation
+manifest. The manifest pins each provider, artifact generation, model, relation/schema,
+annotation-algebra identity and dimension, order/limit policy, preservation claim, and the shared
+call/row budget. It is an explicit execution-DAG input, not an optional dependency or ambient
+registry. The combined hash governs the same profile gate and native fixpoint as an ordinary query;
+a provider cannot select another semantics, demote annotations to a post-hoc score, or bypass the
+answer's preservation ledger. Changing any manifest field changes the query contract identity.
+
+Completion remains a contract claim. A provider may return a complete empty ordered prefix, but a
+failure, stale generation, cancellation, exhausted governor, or uncertified prefix is incomplete and
+must cross the typed non-result boundary. Receipts retain that distinction and bind the result or
+failed attempt to the RDF source generation and engine descriptor that observed it.
+
 ## Constitutional alignment
 
 This is the canonical-source / generated-surface doctrine applied to reasoning configuration, and

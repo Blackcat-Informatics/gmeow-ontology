@@ -512,10 +512,9 @@ const LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString
 /// language-tagged literal; normalised to [`LANG_STRING`] for contract checking.
 const DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
 
-/// Project one native result binding into the pure-data [`ObservedTerm`] the
-/// result-shape contract checks. An RDF-star triple term cannot be typed by a
-/// column kind, so it hard-fails rather than being silently misclassified.
-fn observed_term(cq_iri: &str, var: &str, term: &TermValue) -> Result<ObservedTerm> {
+/// Project one native RDF 1.2 result binding into the pure-data [`ObservedTerm`]
+/// the result-shape contract checks.
+fn observed_term(_cq_iri: &str, _var: &str, term: &TermValue) -> Result<ObservedTerm> {
     Ok(match term {
         TermValue::Iri(_) => ObservedTerm::Iri,
         TermValue::Blank { .. } => ObservedTerm::BlankNode,
@@ -532,13 +531,7 @@ fn observed_term(cq_iri: &str, var: &str, term: &TermValue) -> Result<ObservedTe
             };
             ObservedTerm::Literal { datatype }
         }
-        TermValue::Triple { .. } => {
-            return Err(Diag::of_kind(CompetencyMismatch {
-                detail: format!(
-                    "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
-                ),
-            }));
-        }
+        TermValue::Triple { .. } => ObservedTerm::TripleTerm,
     })
 }
 

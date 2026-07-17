@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use purrdf::RdfDataset;
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 
 use gmeow_cli_core::{Reporter, report_diag};
 use gmeow_errors::dag::DagNode;
@@ -19,6 +19,23 @@ use gmeow_errors::model::Finding;
 use gmeow_errors::{
     Diag, FindingCategory, Grade, ResultExt, Severity, Standpoint, define_diag_kind,
 };
+use gmeow_logic::annotation::{
+    AnnotationContract, AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
+};
+use gmeow_logic::dispatch::{
+    RelationAnnotationRequest, RelationQueryError, dispatch_query_annotated_with_relations,
+};
+use gmeow_logic::external_relation::{
+    NeverCancelled, QueryRelationProviders, RelationAnnotationDimension, RelationOrderDirection,
+    RelationOrdering, RelationProviderBudget, RelationProviderDescriptor,
+    RelationProviderRegistration, RelationTuple, TableRelationProvider,
+};
+use gmeow_logic::provenance::ZWeightSemiring;
+use gmeow_logic::query_ir::{Budget, parse_query_program};
+use gmeow_logic::result::PreservationClaim;
+use gmeow_logic::seam::WorldFactSnapshot;
+use gmeow_logic::store::WorldStore;
+use gmeow_logic_compile::result_shape::ColumnKind;
 use gmeow_pipeline::diagnostics_reader::{
     FindingIndex, WitnessIndex, WitnessRecord, explain_finding, explain_witness, minimal_fatal_cut,
     read_findings, read_invented_witnesses, render_shared_dag, verdict,
@@ -626,6 +643,421 @@ pub fn conjecture_test(
         println!("persisted no");
     }
     0
+}
+
+// ── hybrid-query ─────────────────────────────────────────────────────────────
+
+/// The isolated query world every `hybrid-query --facts` document is re-homed
+/// into, mirroring `gmeow conjecture test`'s scenario-world isolation: the
+/// caller's facts are ordinary asserted RDF, never mutated, and never joined
+/// against any other world already resident in the process.
+const HYBRID_QUERY_WORLD: &str = "https://blackcatinformatics.ca/gmeow/hybrid-query/world";
+
+/// The semantic profile `hybrid-query` evaluates under: positive Horn Datalog,
+/// the same default the `gmeow-dev logic query` developer surface uses.
+const HYBRID_QUERY_PROFILE: &str = "PositiveHornProfile";
+
+/// No caller-supplied asserted-RDF annotation source: every asserted fact
+/// contributes the multiplicative identity, so an answer's combined annotation
+/// is driven entirely by the provider's own ZWeight scores.
+fn hybrid_query_unscored(_: AnnotationFactRef<'_>) -> Option<i64> {
+    None
+}
+
+/// Stable per-site diagnostic code every `--candidates` parse failure lowers to
+/// (the Diag substrate replaces a bare `String` error — Phase-6 honest invariant).
+const CANDIDATES_DIAG_CODE: &str = "gmeow-cli.hybrid-query.candidates";
+
+/// Parse one non-blank, non-comment `--candidates` line into a provider row.
+///
+/// The line format is `<arg1-iri> <arg2-iri> annotation order-key`,
+/// whitespace-separated (tabs or spaces are both accepted, and repeated
+/// whitespace is collapsed): `arg1-iri`/`arg2-iri` MUST be bracketed absolute
+/// IRIs (`<https://example.org/x>`); `annotation` is a signed 64-bit ZWeight
+/// integer; `order-key` is the provider's own lexical rank token for the
+/// pushed-down total order (the final field, taken verbatim — it may not
+/// itself contain whitespace).
+fn parse_candidate_line(line: &str, line_no: usize) -> Result<RelationTuple<i64>, Diag> {
+    let fields: Vec<&str> = line.split_whitespace().collect();
+    let [arg1, arg2, annotation, order_key] = fields.as_slice() else {
+        return Err(error_diag(
+            CANDIDATES_DIAG_CODE,
+            format!(
+                "line {line_no}: expected 4 whitespace-separated fields \
+                 `<arg1-iri> <arg2-iri> annotation order-key`, got {} field(s)",
+                fields.len()
+            ),
+        ));
+    };
+    let parse_iri = |field: &str| -> Result<String, Diag> {
+        let trimmed = field.strip_prefix('<').and_then(|s| s.strip_suffix('>'));
+        let Some(trimmed) = trimmed else {
+            return Err(error_diag(
+                CANDIDATES_DIAG_CODE,
+                format!(
+                    "line {line_no}: {field:?} must be a bracketed absolute IRI, \
+                     e.g. <https://example.org/x>"
+                ),
+            ));
+        };
+        purrdf::iri::parse(trimmed).map_err(|e| {
+            error_diag(
+                CANDIDATES_DIAG_CODE,
+                format!("line {line_no}: invalid IRI {trimmed:?}: {e}"),
+            )
+        })?;
+        Ok(trimmed.to_owned())
+    };
+    let arg1 = parse_iri(arg1)?;
+    let arg2 = parse_iri(arg2)?;
+    let annotation: i64 = annotation.parse().map_err(|e| {
+        error_diag(
+            CANDIDATES_DIAG_CODE,
+            format!("line {line_no}: invalid annotation integer {annotation:?}: {e}"),
+        )
+    })?;
+    Ok(RelationTuple {
+        arguments: vec![TermValue::iri(arg1), TermValue::iri(arg2)],
+        annotation,
+        order_key: (*order_key).to_owned(),
+    })
+}
+
+/// Parse a whole `--candidates` file: one tuple per non-blank, non-`#`-comment
+/// line (see [`parse_candidate_line`] for the line grammar).
+fn parse_candidates_file(text: &str) -> Result<Vec<RelationTuple<i64>>, Diag> {
+    let mut rows = Vec::new();
+    for (offset, raw_line) in text.lines().enumerate() {
+        let line = raw_line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        rows.push(parse_candidate_line(line, offset + 1)?);
+    }
+    Ok(rows)
+}
+
+/// Load an RDF facts file (Turtle or N-Triples, chosen by extension) and
+/// re-home every triple into the isolated [`HYBRID_QUERY_WORLD`] — the
+/// caller's asserted facts join against the provider relation inside one
+/// scenario world, never against any other world.
+fn load_hybrid_query_facts(reporter: &dyn Reporter, facts: &Path) -> Result<WorldStore, i32> {
+    let suffix = facts
+        .extension()
+        .map(|e| format!(".{}", e.to_string_lossy().to_lowercase()))
+        .unwrap_or_default();
+    let media = match suffix.as_str() {
+        ".ttl" | ".turtle" => "text/turtle",
+        ".nt" | ".ntriples" => "application/n-triples",
+        _ => {
+            return Err(fail(
+                reporter,
+                "gmeow-cli.hybrid-query.facts-format",
+                format!(
+                    "--facts {} must be Turtle (.ttl/.turtle) or N-Triples (.nt/.ntriples)",
+                    facts.display()
+                ),
+            ));
+        }
+    };
+    let bytes = read_bytes(reporter, facts)?;
+    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.hybrid-query.facts-parse",
+            format!("cannot parse {}: {e}", facts.display()),
+        )
+    })?;
+    let world = RdfTerm::iri(HYBRID_QUERY_WORLD);
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        builder.push_owned_quad(
+            &RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone()),
+        );
+    }
+    let dataset = builder.freeze().map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.hybrid-query.facts-rehome",
+            format!(
+                "cannot re-home {} into the query world: {e}",
+                facts.display()
+            ),
+        )
+    })?;
+    let store = WorldStore::new();
+    store.load_dataset(&dataset).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.hybrid-query.facts-load",
+            format!("cannot load {} into the query world: {e}", facts.display()),
+        )
+    })?;
+    Ok(store)
+}
+
+/// `gmeow hybrid-query` — register one external relation provider (a table of
+/// candidate tuples the caller supplies, e.g. lexical or vector-similarity
+/// hits) and drive a query-scoped, annotated Datalog query against it END TO
+/// END on the shipped `gmeow` binary: load ordinary asserted RDF facts, parse
+/// the query program, seal the provider registration + deterministic budget,
+/// dispatch through [`dispatch_query_annotated_with_relations`], and print
+/// both the resolved answer bindings and the query receipt (every
+/// contributing provider's identity, artifact generation, and per-invocation
+/// request/response evidence) — so this capability is observably exercised
+/// from the consumer CLI, not only from `crates/logic`'s own test binary.
+///
+/// External relation tuples are DERIVED QUERY INPUTS, never asserted ontology
+/// facts: `--candidates` is a plain line-oriented table, deliberately not RDF.
+/// A provider failure or declared incompleteness is printed to stderr and
+/// yields a non-zero exit — it never renders as an empty completed answer.
+#[allow(clippy::too_many_arguments)]
+pub fn hybrid_query(
+    reporter: &dyn Reporter,
+    facts: &Path,
+    program: &Path,
+    candidates: &Path,
+    relation: &str,
+    provider_iri: &str,
+    model_iri: &str,
+    artifact_generation: &str,
+    per_call_limit: usize,
+    max_calls: u64,
+    max_rows: u64,
+) -> i32 {
+    let store = match load_hybrid_query_facts(reporter, facts) {
+        Ok(store) => store,
+        Err(code) => return code,
+    };
+    let source =
+        match WorldFactSnapshot::from_world(&store, HYBRID_QUERY_WORLD, HYBRID_QUERY_PROFILE) {
+            Ok(source) => source,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.hybrid-query.snapshot",
+                    format!("cannot snapshot the query world: {e}"),
+                );
+            }
+        };
+
+    let program_src = match std::fs::read_to_string(program) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.io.read",
+                format!("cannot read {}: {e}", program.display()),
+            );
+        }
+    };
+    let program = match parse_query_program(&program_src) {
+        Ok(program) => program,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.program",
+                format!("cannot parse query program: {e}"),
+            );
+        }
+    };
+
+    let candidates_text = match std::fs::read_to_string(candidates) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.io.read",
+                format!("cannot read {}: {e}", candidates.display()),
+            );
+        }
+    };
+    let rows = match parse_candidates_file(&candidates_text) {
+        Ok(rows) => rows,
+        Err(detail) => {
+            return fail(
+                reporter,
+                CANDIDATES_DIAG_CODE,
+                format!(
+                    "cannot parse {}: {}",
+                    candidates.display(),
+                    detail.message()
+                ),
+            );
+        }
+    };
+
+    let provider = TableRelationProvider::new(artifact_generation, rows);
+    let algebra_iri = TupleAnnotationAlgebra::identity(&ZWeightSemiring).to_owned();
+    let ordering = match RelationOrdering::new(
+        format!("{relation}/order"),
+        RelationOrderDirection::Ascending,
+    ) {
+        Ok(ordering) => ordering,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider ordering contract: {e}"),
+            );
+        }
+    };
+    let descriptor = match RelationProviderDescriptor::new(
+        provider_iri,
+        artifact_generation,
+        model_iri,
+        relation,
+        vec![ColumnKind::Iri, ColumnKind::Iri],
+        RelationAnnotationDimension::Similarity,
+        algebra_iri,
+        PreservationClaim::exact(),
+        ordering,
+    ) {
+        Ok(descriptor) => descriptor,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider descriptor: {e}"),
+            );
+        }
+    };
+    let registration =
+        match RelationProviderRegistration::new(descriptor, per_call_limit, &provider) {
+            Ok(registration) => registration,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.hybrid-query.contract",
+                    format!("invalid provider registration: {e}"),
+                );
+            }
+        };
+    let budget = match RelationProviderBudget::new(max_calls, max_rows) {
+        Ok(budget) => budget,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider budget: {e}"),
+            );
+        }
+    };
+    // A named local, not a call-site temporary: `providers` below borrows this for
+    // the whole query execution, and a temporary's scope would not outlive the
+    // statement that constructs `providers`.
+    let never_cancelled = NeverCancelled;
+    let providers = match QueryRelationProviders::new(vec![registration], budget, &never_cancelled)
+    {
+        Ok(providers) => providers,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider set: {e}"),
+            );
+        }
+    };
+
+    let contract = AnnotationContract::exact();
+    let request = RelationAnnotationRequest::new(
+        AnnotationRequest::new(&ZWeightSemiring, &contract, hybrid_query_unscored),
+        &providers,
+    );
+    let result = dispatch_query_annotated_with_relations(
+        &source,
+        HYBRID_QUERY_WORLD,
+        &program,
+        HYBRID_QUERY_PROFILE,
+        &Budget::default(),
+        request,
+    );
+
+    match result {
+        Ok(result) => {
+            for answer in &result.answer.answers {
+                // `Binding` is a `BTreeMap`, so this is already deterministically
+                // sorted by variable name.
+                let rendered: Vec<String> = answer
+                    .binding
+                    .iter()
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect();
+                println!(
+                    "answer {} annotation={}",
+                    if rendered.is_empty() {
+                        "(true)".to_owned()
+                    } else {
+                        rendered.join(", ")
+                    },
+                    answer.annotation
+                );
+            }
+            println!("status {:?}", result.answer.status);
+            println!(
+                "receipt query-contract {}",
+                result.receipt.query_contract_hash
+            );
+            println!(
+                "receipt provider-manifest {}",
+                result.receipt.provider_manifest_hash
+            );
+            println!("receipt engine {}", result.receipt.engine_descriptor_hash);
+            println!("receipt hash {}", result.receipt.receipt_hash);
+            for (provider_iri, generation) in &result.receipt.contributing_providers {
+                println!("receipt contributing-provider {provider_iri} generation {generation}");
+            }
+            for invocation in &result.receipt.invocations {
+                println!(
+                    "receipt invocation relation={} provider={} model={} generation={} \
+                     status={:?} request={} response-hash={} delivered={} admitted={} \
+                     contributed={}",
+                    invocation.relation_iri,
+                    invocation.provider_iri,
+                    invocation.model_iri,
+                    invocation.artifact_generation,
+                    invocation.status,
+                    invocation.request_iri,
+                    invocation.response_hash.as_deref().unwrap_or("-"),
+                    invocation.delivered_rows,
+                    invocation.admitted_rows,
+                    invocation.contributed,
+                );
+            }
+            0
+        }
+        Err(RelationQueryError::Contract(e)) => fail(
+            reporter,
+            "gmeow-cli.hybrid-query.contract",
+            format!("provider/algebra contract mismatch: {e}"),
+        ),
+        Err(RelationQueryError::Query {
+            diagnostic,
+            receipt,
+        }) => {
+            emit_error(
+                reporter,
+                "gmeow-cli.hybrid-query.query-failed",
+                format!(
+                    "query evaluation failed: {diagnostic} (provider calls {}, admitted rows {})",
+                    receipt.metrics.provider_calls, receipt.metrics.admitted_rows
+                ),
+            );
+            1
+        }
+        Err(RelationQueryError::Provider { error, receipt }) => {
+            emit_error(
+                reporter,
+                "gmeow-cli.hybrid-query.provider-failed",
+                format!(
+                    "external relation provider did not complete: {error} \
+                     (provider calls {}, admitted rows {})",
+                    receipt.metrics.provider_calls, receipt.metrics.admitted_rows
+                ),
+            );
+            1
+        }
+    }
 }
 
 // ── entails ──────────────────────────────────────────────────────────────────

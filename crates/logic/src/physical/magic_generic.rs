@@ -49,6 +49,9 @@ use crate::annotation::{
     AnnotationFactRef, AnnotationLineageContract, AnnotationQueryClass, AnnotationRequest,
     TupleAnnotationAlgebra,
 };
+use crate::external_relation::{
+    ProviderTupleSource, RelationExecution, RelationExecutionError, ResolvedRelationTuple,
+};
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedProvenance, TypedRow};
 use crate::physical::binding_pattern::BindingPattern;
@@ -326,48 +329,99 @@ fn magic_transform_generic(
 
 // ── The n-ary generic-triple EDB ─────────────────────────────────────────────────
 
-/// Build the arity-4 generic-triple EDB `triple(subject, predicate, object, world)` by
-/// visiting the minimized source patterns consumed by the generic program — the REAL
-/// n-ary data (the predicate carried as a DATA term) the binary store cannot represent.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct GenericSourcePattern {
+    relation: String,
+    pattern: WorldFactPattern,
+    triple_encoding: bool,
+}
+
+/// Build the query's generic EDB source plan.
+///
+/// The reserved `triple/4` relation retains predicate-as-data. Ordinary RDF predicates
+/// are admitted as binary relations, which lets a provider/RDF join remain inside this
+/// one arity-generic fixpoint. Query-scoped provider relations and ordinary IDB relations
+/// are never scanned from RDF. The reserved `triple/4` carrier is deliberately both an
+/// EDB encoding and a legal rule head, so it is planned before the ordinary-IDB exclusion.
 fn generic_source_patterns(
     rules: &[GenericRule],
     goal: &GenericAtom,
     world: &str,
-) -> Vec<WorldFactPattern> {
-    fn source_pattern(atom: &GenericAtom, world: &str) -> Option<WorldFactPattern> {
-        if atom.relation != GENERIC_TRIPLE_RELATION || atom.args.len() != 4 {
+    provider_relations: &BTreeSet<String>,
+) -> Vec<GenericSourcePattern> {
+    let idb = rules
+        .iter()
+        .map(|rule| rule.head.relation.as_str())
+        .collect::<BTreeSet<_>>();
+    fn source_pattern(
+        atom: &GenericAtom,
+        world: &str,
+        idb: &BTreeSet<&str>,
+        provider_relations: &BTreeSet<String>,
+    ) -> Option<GenericSourcePattern> {
+        if provider_relations.contains(&atom.relation) {
             return None;
         }
-        match &atom.args[3] {
-            EvalTerm::Var(_) => {}
-            EvalTerm::ConstNamed(iri) if iri == world => {}
-            EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(_) => return None,
+        if atom.relation == GENERIC_TRIPLE_RELATION {
+            if atom.args.len() != 4 {
+                return None;
+            }
+            match &atom.args[3] {
+                EvalTerm::Var(_) => {}
+                EvalTerm::ConstNamed(iri) if iri == world => {}
+                EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(_) => return None,
+            }
+            let predicate = match &atom.args[1] {
+                EvalTerm::Var(_) => None,
+                EvalTerm::ConstNamed(iri) => Some(iri.clone()),
+                EvalTerm::ConstLit(_) => return None,
+            };
+            return Some(GenericSourcePattern {
+                relation: GENERIC_TRIPLE_RELATION.to_owned(),
+                pattern: WorldFactPattern::new(
+                    source_term(&atom.args[0]),
+                    predicate,
+                    source_term(&atom.args[2]),
+                ),
+                triple_encoding: true,
+            });
         }
-        let predicate = match &atom.args[1] {
-            EvalTerm::Var(_) => None,
-            EvalTerm::ConstNamed(iri) => Some(iri.clone()),
-            EvalTerm::ConstLit(_) => return None,
-        };
-        Some(WorldFactPattern::new(
-            source_term(&atom.args[0]),
-            predicate,
-            source_term(&atom.args[2]),
-        ))
+        if idb.contains(atom.relation.as_str()) {
+            return None;
+        }
+        if atom.args.len() != 2 {
+            return None;
+        }
+        let absolute = purrdf::iri::parse(&atom.relation).is_ok_and(|iri| iri.has_scheme());
+        absolute.then(|| GenericSourcePattern {
+            relation: atom.relation.clone(),
+            pattern: WorldFactPattern::new(
+                source_term(&atom.args[0]),
+                Some(atom.relation.clone()),
+                source_term(&atom.args[1]),
+            ),
+            triple_encoding: false,
+        })
     }
 
     let mut patterns = Vec::new();
     let atoms = std::iter::once(goal).chain(rules.iter().flat_map(|rule| rule.body.iter()));
     for atom in atoms {
-        let Some(pattern) = source_pattern(atom, world) else {
+        let Some(pattern) = source_pattern(atom, world, &idb, provider_relations) else {
             continue;
         };
-        if patterns
-            .iter()
-            .any(|existing: &WorldFactPattern| existing.subsumes(&pattern))
-        {
+        if patterns.iter().any(|existing: &GenericSourcePattern| {
+            existing.relation == pattern.relation
+                && existing.triple_encoding == pattern.triple_encoding
+                && existing.pattern.subsumes(&pattern.pattern)
+        }) {
             continue;
         }
-        patterns.retain(|existing| !pattern.subsumes(existing));
+        patterns.retain(|existing| {
+            existing.relation != pattern.relation
+                || existing.triple_encoding != pattern.triple_encoding
+                || !pattern.pattern.subsumes(&existing.pattern)
+        });
         patterns.push(pattern);
     }
     patterns.sort();
@@ -377,17 +431,28 @@ fn generic_source_patterns(
 fn build_generic_edb(
     foreign: &dyn WorldFactSource,
     world: &str,
-    patterns: &[WorldFactPattern],
+    patterns: &[GenericSourcePattern],
 ) -> gmeow_errors::Result<TypedFactSet> {
     let mut facts = TypedFactSet::new();
-    super::visit_edb_patterns(foreign, world, patterns, &mut |quad| {
-        let s = facts.intern(&quad.subject);
-        let p = facts.intern(&TermValue::iri(quad.predicate.as_str()));
-        let o = facts.intern(&quad.object);
-        let w = facts.intern(&TermValue::iri(world));
-        facts.push_fact(GENERIC_TRIPLE_RELATION, vec![s, p, o, w]);
-        Ok(())
-    })?;
+    for source in patterns {
+        super::visit_edb_patterns(
+            foreign,
+            world,
+            std::slice::from_ref(&source.pattern),
+            &mut |quad| {
+                let s = facts.intern(&quad.subject);
+                let o = facts.intern(&quad.object);
+                if source.triple_encoding {
+                    let p = facts.intern(&TermValue::iri(quad.predicate.as_str()));
+                    let w = facts.intern(&TermValue::iri(world));
+                    facts.push_fact(&source.relation, vec![s, p, o, w]);
+                } else {
+                    facts.push_fact(&source.relation, vec![s, o]);
+                }
+                Ok(())
+            },
+        )?;
+    }
     Ok(facts)
 }
 
@@ -396,28 +461,32 @@ fn build_generic_edb(
 /// Decide whether the generic evaluator can SOUNDLY serve every EDB relation the
 /// program references.
 ///
-/// The generic-triple EDB ([`build_generic_edb`]) loads world facts under EXACTLY ONE
-/// relation — the arity-4 reserved [`GENERIC_TRIPLE_RELATION`].  A relation that is not
-/// a rule head (not IDB) is therefore satisfiable ONLY if it is that reserved arity-4
-/// relation; any OTHER non-IDB relation (e.g. a binary EDB predicate named `edge`) has
-/// NO facts in the generic EDB, so a demand-restricted fixpoint over it derives nothing.
-/// Returning that empty set as a decided answer would be a SILENT WRONG ANSWER — the
-/// worst outcome.  Such a program is an honest gap: it is reported as
-/// [`UnsupportedKind::NonBinaryAtom`] so dispatch routes it to the oracle, never a
-/// silent-empty `Ok`.
+/// The generic EDB ([`build_generic_edb`]) loads the arity-4 reserved
+/// [`GENERIC_TRIPLE_RELATION`] and absolute-IRI binary RDF predicates demanded by the
+/// program. A relation that is neither a rule head, a registered provider, the reserved
+/// carrier, nor a loadable binary RDF predicate cannot be served without fabricating an
+/// empty answer, so it remains an honest [`UnsupportedKind::NonBinaryAtom`] gap.
 ///
 /// A reserved-`triple` atom of the wrong arity is likewise un-servable (the EDB rows are
 /// arity 4), so it is a gap too — never silently no-matched.
-fn generic_program_servable(rules: &[GenericRule], goal: &GenericAtom) -> bool {
+fn generic_program_servable(
+    rules: &[GenericRule],
+    goal: &GenericAtom,
+    provider_relations: &BTreeSet<String>,
+) -> bool {
     let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.relation.as_str()).collect();
 
-    // A non-IDB relation is servable iff it is the reserved arity-4 generic-triple
-    // relation; a reserved-`triple` atom (IDB or not) must be arity 4.
+    // A non-IDB relation is servable when it is a registered provider, the reserved
+    // arity-4 generic-triple relation, or an absolute-IRI binary RDF predicate. A
+    // reserved-`triple` atom (IDB or not) must be arity 4.
     let atom_ok = |atom: &GenericAtom| -> bool {
         if atom.relation == GENERIC_TRIPLE_RELATION {
             return atom.args.len() == 4;
         }
         idb.contains(atom.relation.as_str())
+            || provider_relations.contains(&atom.relation)
+            || (atom.args.len() == 2
+                && purrdf::iri::parse(&atom.relation).is_ok_and(|iri| iri.has_scheme()))
     };
 
     if !atom_ok(goal) {
@@ -573,11 +642,11 @@ pub(super) fn resolve_native_generic(
     //      would derive nothing.  Emitting that empty set as `Decided` is a SILENT
     //      WRONG ANSWER; instead declare an honest gap so dispatch routes it to the
     //      oracle.  (The reserved `triple/4` shape passes this gate and decides below.)
-    if !generic_program_servable(&rules, &goal_atom) {
+    if !generic_program_servable(&rules, &goal_atom, &BTreeSet::new()) {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
 
-    let source_patterns = generic_source_patterns(&rules, &goal_atom, world);
+    let source_patterns = generic_source_patterns(&rules, &goal_atom, world, &BTreeSet::new());
     let transformed = magic_transform_generic(&rules, &goal_atom, pattern)?;
 
     // (3) Build the generic-triple EDB, insert the seed demand fact, and run the
@@ -627,6 +696,8 @@ pub(super) fn resolve_native_generic(
 }
 
 type GenericAnnotationKey = (String, Vec<String>);
+type GenericSolution = (BTreeMap<String, TermValue>, Vec<GenericAnnotationKey>);
+type GenericSolutions = Vec<GenericSolution>;
 
 #[derive(Clone)]
 struct GenericAnnotatedRow<E> {
@@ -634,6 +705,7 @@ struct GenericAnnotatedRow<E> {
     args: Vec<TermValue>,
     annotation: E,
     derivations: Vec<AnnotationDerivation<E>>,
+    provider_sources: Vec<ProviderTupleSource>,
 }
 
 fn generic_key(relation: &str, args: &[TermValue]) -> GenericAnnotationKey {
@@ -691,28 +763,173 @@ fn ground_generic(
         .collect()
 }
 
+/// The non-provider per-atom join step: for every current partial solution, join every
+/// already-materialized row on `atom`'s relation, extending the binding and appending the
+/// row's key to the lineage.
+///
+/// Shared verbatim by [`generic_solutions`] (which has no provider relations at all) and
+/// the non-provider branch of [`generic_solutions_with_providers`] (which falls back to
+/// this exact join for a body atom that is not a query-scoped external relation) — same
+/// bindings, same row order (`BTreeMap::iter` is deterministic), same short-circuit-free
+/// control flow, no new allocations beyond the `Vec` the join already produced.
+fn join_generic_atom<E: Clone>(
+    atom: &GenericAtom,
+    rows: &BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<E>>,
+    solutions: GenericSolutions,
+) -> GenericSolutions {
+    let mut next = Vec::new();
+    for (binding, sources) in solutions {
+        for (key, row) in rows.iter().filter(|(_, row)| row.relation == atom.relation) {
+            if let Some(merged) = bind_generic(atom, row, &binding) {
+                let mut lineage = sources.clone();
+                lineage.push(key.clone());
+                next.push((merged, lineage));
+            }
+        }
+    }
+    next
+}
+
 fn generic_solutions<E: Clone>(
     rule: &GenericRule,
     rows: &BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<E>>,
-) -> Vec<(BTreeMap<String, TermValue>, Vec<GenericAnnotationKey>)> {
+) -> GenericSolutions {
+    let mut solutions: GenericSolutions = vec![(BTreeMap::new(), Vec::new())];
+    for atom in &rule.body {
+        solutions = join_generic_atom(atom, rows, solutions);
+        if solutions.is_empty() {
+            break;
+        }
+    }
+    solutions
+}
+
+#[derive(Debug)]
+pub(crate) enum ExternalRelationEvaluationError {
+    Query(gmeow_errors::Diag),
+    Provider(RelationExecutionError),
+}
+
+impl From<gmeow_errors::Diag> for ExternalRelationEvaluationError {
+    fn from(error: gmeow_errors::Diag) -> Self {
+        Self::Query(error)
+    }
+}
+
+fn provider_bounds(
+    atom: &GenericAtom,
+    binding: &BTreeMap<String, TermValue>,
+) -> Vec<Option<TermValue>> {
+    atom.args
+        .iter()
+        .map(|argument| match argument {
+            EvalTerm::ConstNamed(iri) => Some(TermValue::iri(iri.clone())),
+            EvalTerm::ConstLit(literal) => Some(literal.clone()),
+            EvalTerm::Var(variable) => binding.get(variable).cloned(),
+        })
+        .collect()
+}
+
+fn admit_provider_row<E: Clone>(
+    relation: &str,
+    resolved: ResolvedRelationTuple<E>,
+    rows: &mut BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<E>>,
+    seeds: &mut BTreeMap<GenericAnnotationKey, E>,
+    seed_provider_sources: &mut BTreeMap<GenericAnnotationKey, Vec<ProviderTupleSource>>,
+) -> bool {
+    let key = generic_key(relation, &resolved.arguments);
+    match rows.entry(key.clone()) {
+        std::collections::btree_map::Entry::Vacant(entry) => {
+            let provider_sources = vec![resolved.source.clone()];
+            seeds.insert(key.clone(), resolved.annotation.clone());
+            seed_provider_sources.insert(key, provider_sources.clone());
+            entry.insert(GenericAnnotatedRow {
+                relation: relation.to_owned(),
+                args: resolved.arguments,
+                annotation: resolved.annotation.clone(),
+                derivations: vec![AnnotationDerivation {
+                    rule_iri: "https://blackcatinformatics.ca/logic/external-relation-input"
+                        .to_owned(),
+                    sources: Vec::new(),
+                    tuple_sources: Vec::new(),
+                    provider_sources: provider_sources.clone(),
+                    annotation: resolved.annotation,
+                }],
+                provider_sources,
+            });
+            true
+        }
+        std::collections::btree_map::Entry::Occupied(mut entry) => {
+            // The same tuple can be legitimately returned by more than one
+            // provider request (different `request_iri` / `resolved.source`).
+            // Every contributing source must be retained so the query receipt
+            // reports every provider that contributed, not just the first.
+            let row = entry.get_mut();
+            if !row.provider_sources.contains(&resolved.source) {
+                row.provider_sources.push(resolved.source.clone());
+            }
+            if let Some(seed_derivation) = row.derivations.first_mut()
+                && !seed_derivation.provider_sources.contains(&resolved.source)
+            {
+                seed_derivation
+                    .provider_sources
+                    .push(resolved.source.clone());
+            }
+            let entry_sources = seed_provider_sources.entry(key).or_default();
+            if !entry_sources.contains(&resolved.source) {
+                entry_sources.push(resolved.source);
+            }
+            false
+        }
+    }
+}
+
+fn generic_solutions_with_providers<A>(
+    rule: &GenericRule,
+    rows: &mut BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<A::Element>>,
+    seeds: &mut BTreeMap<GenericAnnotationKey, A::Element>,
+    seed_provider_sources: &mut BTreeMap<GenericAnnotationKey, Vec<ProviderTupleSource>>,
+    relation_execution: &mut RelationExecution<'_, '_, '_, A>,
+) -> Result<(GenericSolutions, bool), RelationExecutionError>
+where
+    A: TupleAnnotationAlgebra,
+{
     let mut solutions = vec![(BTreeMap::new(), Vec::new())];
+    let mut inserted = false;
     for atom in &rule.body {
         let mut next = Vec::new();
-        for (binding, sources) in solutions {
-            for (key, row) in rows.iter().filter(|(_, row)| row.relation == atom.relation) {
-                if let Some(merged) = bind_generic(atom, row, &binding) {
-                    let mut lineage = sources.clone();
-                    lineage.push(key.clone());
-                    next.push((merged, lineage));
+        if relation_execution.is_provider_relation(&atom.relation) {
+            for (binding, sources) in solutions {
+                let resolved =
+                    relation_execution.resolve(&atom.relation, provider_bounds(atom, &binding))?;
+                for provider_row in resolved {
+                    let key = generic_key(&atom.relation, &provider_row.arguments);
+                    inserted |= admit_provider_row(
+                        &atom.relation,
+                        provider_row,
+                        rows,
+                        seeds,
+                        seed_provider_sources,
+                    );
+                    let row = rows
+                        .get(&key)
+                        .expect("an admitted provider row is immediately visible");
+                    if let Some(merged) = bind_generic(atom, row, &binding) {
+                        let mut lineage = sources.clone();
+                        lineage.push(key);
+                        next.push((merged, lineage));
+                    }
                 }
             }
+        } else {
+            next = join_generic_atom(atom, rows, solutions);
         }
         solutions = next;
         if solutions.is_empty() {
             break;
         }
     }
-    solutions
+    Ok((solutions, inserted))
 }
 
 fn generic_annotation_class(rules: &[GenericRule]) -> AnnotationQueryClass {
@@ -765,24 +982,43 @@ fn generic_annotation_class(rules: &[GenericRule]) -> AnnotationQueryClass {
 
 /// Score-carrying n-ary magic evaluation. Tuple membership, `oplus`/`otimes`, and
 /// positional lineage are committed by one arity-generic fixpoint.
-pub(super) fn resolve_native_generic_annotated<A, F>(
+fn resolve_native_generic_annotated_core<A, F>(
     foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
     annotation: &AnnotationRequest<'_, A, F>,
-) -> gmeow_errors::Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>>
+    mut relation_execution: Option<&mut RelationExecution<'_, '_, '_, A>>,
+) -> Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>, ExternalRelationEvaluationError>
 where
     A: TupleAnnotationAlgebra,
     F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
 {
     let goal = &program.goal.atoms[0];
+    let provider_relations = relation_execution
+        .as_ref()
+        .map(|execution| {
+            execution
+                .relation_names()
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>()
+        })
+        .unwrap_or_default();
     let mut rules = Vec::with_capacity(program.rules.len());
     for source in &program.rules {
         let head = match generic_atom_of(&source.head) {
             Ok(atom) => atom,
             Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
+        if provider_relations.contains(&head.relation) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                detail: format!(
+                    "query-scoped external relation <{}> cannot appear in a rule head",
+                    head.relation
+                ),
+            })
+            .into());
+        }
         let mut body = Vec::new();
         for literal in &source.body {
             match literal {
@@ -806,14 +1042,34 @@ where
         Ok(atom) => atom,
         Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
     };
-    if !generic_program_servable(&rules, &goal_atom) {
+    for atom in std::iter::once(&goal_atom).chain(
+        rules
+            .iter()
+            .flat_map(|rule| std::iter::once(&rule.head).chain(rule.body.iter())),
+    ) {
+        if let Some(execution) = relation_execution.as_ref()
+            && let Some(expected) = execution.relation_arity(&atom.relation)
+            && atom.args.len() != expected
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                detail: format!(
+                    "external relation <{}> is used at arity {}, but its descriptor declares {}",
+                    atom.relation,
+                    atom.args.len(),
+                    expected
+                ),
+            })
+            .into());
+        }
+    }
+    if !generic_program_servable(&rules, &goal_atom, &provider_relations) {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
     let certification = annotation.contract.certify_physical_class(
         generic_annotation_class(&rules),
         AnnotationLineageContract::AllPhysicalDerivations,
     )?;
-    let source_patterns = generic_source_patterns(&rules, &goal_atom, world);
+    let source_patterns = generic_source_patterns(&rules, &goal_atom, world, &provider_relations);
     let transformed = magic_transform_generic(&rules, &goal_atom, goal_pattern(goal))?;
     let mut facts = build_generic_edb(foreign, world, &source_patterns)?;
     let mut control_relations = transformed
@@ -831,6 +1087,8 @@ where
     let interner = facts.interner();
     let mut rows = BTreeMap::<GenericAnnotationKey, GenericAnnotatedRow<A::Element>>::new();
     let mut seeds = BTreeMap::<GenericAnnotationKey, A::Element>::new();
+    let mut seed_provider_sources =
+        BTreeMap::<GenericAnnotationKey, Vec<ProviderTupleSource>>::new();
     for fact in facts.facts() {
         let args = fact
             .args
@@ -852,6 +1110,14 @@ where
                 object: &args[2],
             })
             .unwrap_or_else(|| annotation.algebra.one())
+        } else if args.len() == 2 {
+            (annotation.annotation_for)(AnnotationFactRef {
+                world,
+                subject: &args[0],
+                predicate: &fact.predicate,
+                object: &args[1],
+            })
+            .unwrap_or_else(|| annotation.algebra.one())
         } else {
             annotation.algebra.one()
         };
@@ -866,37 +1132,80 @@ where
                     rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
                     sources: Vec::new(),
                     tuple_sources: Vec::new(),
+                    provider_sources: Vec::new(),
                     annotation: value,
                 }],
+                provider_sources: Vec::new(),
             },
         );
+    }
+
+    if let Some(execution) = relation_execution.as_deref_mut()
+        && execution.is_provider_relation(&goal_atom.relation)
+    {
+        let resolved = execution
+            .resolve(
+                &goal_atom.relation,
+                provider_bounds(&goal_atom, &BTreeMap::new()),
+            )
+            .map_err(ExternalRelationEvaluationError::Provider)?;
+        for provider_row in resolved {
+            admit_provider_row(
+                &goal_atom.relation,
+                provider_row,
+                &mut rows,
+                &mut seeds,
+                &mut seed_provider_sources,
+            );
+        }
     }
 
     let mut consumed = 0_u64;
     let mut status = BudgetStatus::Ok;
     let mut converged = false;
     for _round in 0..annotation.contract.max_fixpoint_rounds {
+        let mut inserted = false;
         let mut contributions = BTreeMap::<
             GenericAnnotationKey,
             Vec<(
                 String,
                 Vec<TermValue>,
                 Vec<GenericAnnotationKey>,
+                Vec<ProviderTupleSource>,
                 A::Element,
             )>,
         >::new();
         for rule in &transformed.rules {
-            for (binding, sources) in generic_solutions(rule, &rows) {
+            let solutions = if let Some(execution) = relation_execution.as_deref_mut() {
+                let (solutions, provider_inserted) = generic_solutions_with_providers(
+                    rule,
+                    &mut rows,
+                    &mut seeds,
+                    &mut seed_provider_sources,
+                    execution,
+                )
+                .map_err(ExternalRelationEvaluationError::Provider)?;
+                inserted |= provider_inserted;
+                solutions
+            } else {
+                generic_solutions(rule, &rows)
+            };
+            for (binding, sources) in solutions {
                 let args = ground_generic(&rule.head, &binding)?;
                 let key = generic_key(&rule.head.relation, &args);
                 let mut product = annotation.algebra.one();
+                let mut provider_sources = BTreeSet::new();
                 for source in &sources {
                     let factor = if control_relations.contains(&source.0) {
                         annotation.algebra.one()
                     } else {
-                        rows.get(source)
-                            .map(|row| row.annotation.clone())
-                            .unwrap_or_else(|| annotation.algebra.zero())
+                        rows.get(source).map_or_else(
+                            || annotation.algebra.zero(),
+                            |row| {
+                                provider_sources.extend(row.provider_sources.iter().cloned());
+                                row.annotation.clone()
+                            },
+                        )
                     };
                     product = annotation.algebra.multiply(&product, &factor)?;
                 }
@@ -904,12 +1213,12 @@ where
                     rule.rule_iri.clone(),
                     args,
                     sources,
+                    provider_sources.into_iter().collect(),
                     product,
                 ));
             }
         }
 
-        let mut inserted = false;
         for (key, direct) in &contributions {
             if rows.contains_key(key) {
                 continue;
@@ -918,7 +1227,7 @@ where
                 status = BudgetStatus::Exhausted;
                 break;
             }
-            let (_, args, _, _) = direct.first().expect("a contribution is non-empty");
+            let (_, args, _, _, _) = direct.first().expect("a contribution is non-empty");
             rows.insert(
                 key.clone(),
                 GenericAnnotatedRow {
@@ -926,6 +1235,7 @@ where
                     args: args.clone(),
                     annotation: annotation.algebra.zero(),
                     derivations: Vec::new(),
+                    provider_sources: Vec::new(),
                 },
             );
             consumed = consumed.saturating_add(1);
@@ -938,19 +1248,28 @@ where
                 .get(key)
                 .cloned()
                 .unwrap_or_else(|| annotation.algebra.zero());
+            let mut row_provider_sources =
+                seed_provider_sources.get(key).cloned().unwrap_or_default();
             let mut derivations = seeds.get(key).map_or_else(Vec::new, |seed| {
+                let provider_sources = seed_provider_sources.get(key).cloned().unwrap_or_default();
                 vec![AnnotationDerivation {
-                    rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
+                    rule_iri: if provider_sources.is_empty() {
+                        crate::provenance::ASSERT_RULE_IRI.to_owned()
+                    } else {
+                        "https://blackcatinformatics.ca/logic/external-relation-input".to_owned()
+                    },
                     sources: Vec::new(),
                     tuple_sources: Vec::new(),
+                    provider_sources,
                     annotation: seed.clone(),
                 }]
             });
             if control_relations.contains(&row.relation) {
                 value = annotation.algebra.one();
             } else if let Some(direct) = contributions.get(key) {
-                for (rule_iri, _, sources, product) in direct {
+                for (rule_iri, _, sources, provider_sources, product) in direct {
                     value = annotation.algebra.add(&value, product)?;
+                    row_provider_sources.extend(provider_sources.iter().cloned());
                     derivations.push(AnnotationDerivation {
                         rule_iri: rule_iri.clone(),
                         sources: Vec::new(),
@@ -963,13 +1282,18 @@ where
                                 arguments: arguments.clone(),
                             })
                             .collect(),
+                        provider_sources: provider_sources.clone(),
                         annotation: product.clone(),
                     });
                 }
             }
-            annotation_changed |= value != row.annotation;
+            row_provider_sources.sort();
+            row_provider_sources.dedup();
+            annotation_changed |=
+                value != row.annotation || row_provider_sources != row.provider_sources;
             row.annotation = value;
             row.derivations = derivations;
+            row.provider_sources = row_provider_sources;
         }
         if status == BudgetStatus::Exhausted {
             break;
@@ -985,7 +1309,8 @@ where
                 "generic annotation fixed point did not converge within {} deterministic rounds",
                 annotation.contract.max_fixpoint_rounds
             ),
-        }));
+        })
+        .into());
     }
 
     let mut grouped =
@@ -1052,6 +1377,48 @@ where
     }))
 }
 
+pub(super) fn resolve_native_generic_annotated<A, F>(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    annotation: &AnnotationRequest<'_, A, F>,
+) -> gmeow_errors::Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    match resolve_native_generic_annotated_core(foreign, world, program, budget, annotation, None) {
+        Ok(outcome) => Ok(outcome),
+        Err(ExternalRelationEvaluationError::Query(error)) => Err(error),
+        Err(ExternalRelationEvaluationError::Provider(_)) => {
+            unreachable!("provider-free annotated evaluation cannot execute a provider")
+        }
+    }
+}
+
+pub(super) fn resolve_native_generic_annotated_with_relations<A, F>(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    annotation: &AnnotationRequest<'_, A, F>,
+    relation_execution: &mut RelationExecution<'_, '_, '_, A>,
+) -> Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>, ExternalRelationEvaluationError>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    resolve_native_generic_annotated_core(
+        foreign,
+        world,
+        program,
+        budget,
+        annotation,
+        Some(relation_execution),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1068,6 +1435,14 @@ mod tests {
 
     impl TupleAnnotationAlgebra for SumProduct {
         type Element = f64;
+
+        fn identity(&self) -> &str {
+            "https://blackcatinformatics.ca/logic/algebra/test-sum-product-v1"
+        }
+
+        fn canonical_element(&self, element: &Self::Element) -> String {
+            format!("{:016x}", element.to_bits())
+        }
 
         fn zero(&self) -> Self::Element {
             0.0
@@ -1313,7 +1688,7 @@ mod tests {
         );
         assert_eq!(term_display(&seed_args[0]), format!("<{P2}>"));
 
-        let source_patterns = generic_source_patterns(&rules, &goal_atom, &world);
+        let source_patterns = generic_source_patterns(&rules, &goal_atom, &world, &BTreeSet::new());
         let mut facts = build_generic_edb(&foreign, &world, &source_patterns).unwrap();
         let ids: Vec<_> = seed_args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(&seed_rel, ids);
