@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed, genuinely two-parameter math:MultiparameterFiltration whose DECLARED
+# stages actively demonstrate coordinate independence — the positive path of
+# math:MultiparameterFunctionalDependenceConstraint. It samples three grid points of a
+# distance × density bifiltration: (1,2), (1,3), (2,3). Stages (1,2) and (1,3) share the
+# SAME math:componentValue node (exmg:one) at index 0 while differing at index 1 — a
+# fix-coordinate-0, vary-coordinate-1 witness — and stages (1,3) and (2,3) share exmg:three
+# at index 1 while differing at index 0, the mirror witness. No single stage is a literal
+# (t, t) diagonal (each stage's two components carry distinct value nodes), so it also
+# satisfies math:DiagonalDegenerateFiltrationConstraint, and the math:multiIndex is present
+# so it is not math:CollapsedMultiparameterFiltration. Equal coordinates across stages reuse
+# the same math:RationalValue node, the node-identity convention the witness relies on.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exmg: <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration-grid/> .
+
+exmg:filtration a math:MultiparameterFiltration ;
+    rdfs:label "distance × density bifiltration sampled on a 2×2-minus-one grid"@x-gmeow-english ;
+    math:filtrationAmbient exmg:pointCloud ;
+    math:filtrationIndexPoset exmg:grid ;
+    math:hasFiltrationStage exmg:stage12 , exmg:stage13 , exmg:stage23 .
+
+exmg:pointCloud a math:MathematicalObject ; rdfs:label "sampled point cloud"@x-gmeow-english .
+exmg:grid a math:MathematicalObject ; rdfs:label "distance × density parameter poset (dimension 2)"@x-gmeow-english .
+
+# Stage (1, 2)
+exmg:stage12 a math:FiltrationStage ;
+    rdfs:label "stage at multi-index (1, 2)"@x-gmeow-english ;
+    math:multiIndex exmg:index12 ;
+    math:stageStructure exmg:sub12 .
+exmg:sub12 a math:TopologicalSpace ; rdfs:label "substructure at (1, 2)"@x-gmeow-english .
+exmg:index12 a math:Vector ; rdfs:label "multi-index (1, 2)"@x-gmeow-english ;
+    math:hasComponent exmg:c12a , exmg:c12b .
+exmg:c12a a math:VectorComponent ; math:atIndex 0 ; math:componentValue exmg:one .
+exmg:c12b a math:VectorComponent ; math:atIndex 1 ; math:componentValue exmg:two .
+
+# Stage (1, 3) — shares exmg:one at index 0 with stage (1, 2): coordinate 1 varies free.
+exmg:stage13 a math:FiltrationStage ;
+    rdfs:label "stage at multi-index (1, 3)"@x-gmeow-english ;
+    math:multiIndex exmg:index13 ;
+    math:stageStructure exmg:sub13 .
+exmg:sub13 a math:TopologicalSpace ; rdfs:label "substructure at (1, 3)"@x-gmeow-english .
+exmg:index13 a math:Vector ; rdfs:label "multi-index (1, 3)"@x-gmeow-english ;
+    math:hasComponent exmg:c13a , exmg:c13b .
+exmg:c13a a math:VectorComponent ; math:atIndex 0 ; math:componentValue exmg:one .
+exmg:c13b a math:VectorComponent ; math:atIndex 1 ; math:componentValue exmg:three .
+
+# Stage (2, 3) — shares exmg:three at index 1 with stage (1, 3): coordinate 0 varies free.
+exmg:stage23 a math:FiltrationStage ;
+    rdfs:label "stage at multi-index (2, 3)"@x-gmeow-english ;
+    math:multiIndex exmg:index23 ;
+    math:stageStructure exmg:sub23 .
+exmg:sub23 a math:TopologicalSpace ; rdfs:label "substructure at (2, 3)"@x-gmeow-english .
+exmg:index23 a math:Vector ; rdfs:label "multi-index (2, 3)"@x-gmeow-english ;
+    math:hasComponent exmg:c23a , exmg:c23b .
+exmg:c23a a math:VectorComponent ; math:atIndex 0 ; math:componentValue exmg:two .
+exmg:c23b a math:VectorComponent ; math:atIndex 1 ; math:componentValue exmg:three .
+
+# Shared exact rational coordinate values (reused across stages by node identity).
+exmg:one a math:RationalValue ; math:numerator 1 ; math:denominator 1 ; math:isExact true .
+exmg:two a math:RationalValue ; math:numerator 2 ; math:denominator 1 ; math:isExact true .
+exmg:three a math:RationalValue ; math:numerator 3 ; math:denominator 1 ; math:isExact true .

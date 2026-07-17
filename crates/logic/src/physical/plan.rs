@@ -1132,3 +1132,86 @@ impl Executable {
             .map(move |&i| self.rules[i].head.predicate.as_str())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::physical::term_dag::TermDag;
+    use crate::query_ir::StructNode;
+
+    /// A minimal single-fact `EvalRule` (`rule_iri` "r") carrying one `QBuiltin::Compare`
+    /// whose `lhs` operand is `term` — the shape `canonical_rule_hash`'s `hash_qterm`
+    /// dispatches on.
+    fn rule_with_builtin_operand(term: QTerm) -> EvalRule {
+        let mut rule = EvalRule::positive(
+            "https://example.org/r",
+            EvalAtom::positive(
+                EvalTerm::var("?X"),
+                "https://example.org/p",
+                EvalTerm::var("?X"),
+            ),
+            Vec::new(),
+        );
+        rule.builtins.push(QBuiltin::Compare {
+            lhs: term,
+            op: crate::query_ir::CmpOp::Eq,
+            rhs: QTerm::Num(0),
+        });
+        rule
+    }
+
+    /// G13 lock: `canonical_rule_hash`'s flat rule-IR pipeline never threads a `TermDag` (it
+    /// is a distinct, arena-free pipeline from the structured-term `physical::term_dag`
+    /// world), so a `QTerm::Struct` reaching `hash_qterm` cannot be content-hashed by
+    /// `TermDag::key` here — hashing its arena-local `NodeId::index()` instead would risk a
+    /// false collision between two DIFFERENT structured terms from unrelated arenas that
+    /// happen to share a raw index. `hash_qterm`'s `QTerm::Struct` arm is therefore a hard
+    /// `unreachable!` (never a silent index hash), justified by `QBuiltin`'s own contract
+    /// (`query_ir::QBuiltin` operands are documented `Var`/`Num` only — arithmetic never
+    /// carries a compound term) rather than papered over.
+    ///
+    /// This test proves the arm's chosen failure mode DIRECTLY: two independently-built
+    /// `TermDag`s each intern one leaf node first, so their first `NodeId`s share
+    /// `index() == 0` by construction — exactly the collision a naive `NodeId::index()`
+    /// hash would silently forge into an equal digest for two DIFFERENT structured terms.
+    /// Wrapping each into a `QBuiltin` operand and hashing the enclosing rule must instead
+    /// PANIC (the documented `unreachable!` firing), never silently succeed with a
+    /// forged-equal (or any) hash.
+    #[test]
+    fn canonical_rule_hash_hard_fails_on_a_struct_builtin_operand_rather_than_hashing_arena_index()
+    {
+        let mut dag_a = TermDag::new();
+        let leaf_a = dag_a.intern_leaf(purrdf::TermValue::iri("https://example.org/a"));
+        let mut dag_b = TermDag::new();
+        let leaf_b = dag_b.intern_leaf(purrdf::TermValue::iri("https://example.org/b"));
+        assert_eq!(
+            leaf_a.index(),
+            leaf_b.index(),
+            "two independently-built arenas' first interned node share the same raw index \
+             — exactly the collision NodeId::index() hashing would silently forge"
+        );
+
+        let struct_a = QTerm::Struct(StructNode::new(leaf_a, dag_a.arena()));
+        let struct_b = QTerm::Struct(StructNode::new(leaf_b, dag_b.arena()));
+
+        let rule_a = rule_with_builtin_operand(struct_a);
+        let rule_b = rule_with_builtin_operand(struct_b);
+
+        let result_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            canonical_rule_hash(std::slice::from_ref(&rule_a))
+        }));
+        assert!(
+            result_a.is_err(),
+            "a Struct QBuiltin operand must hard-panic canonical_rule_hash, never silently \
+             hash a raw NodeId::index()"
+        );
+        let result_b = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            canonical_rule_hash(std::slice::from_ref(&rule_b))
+        }));
+        assert!(
+            result_b.is_err(),
+            "the SAME guard must fire for the second (index-colliding, different-arena) \
+             Struct rule — never silently forging an equal hash for two distinct terms"
+        );
+    }
+}

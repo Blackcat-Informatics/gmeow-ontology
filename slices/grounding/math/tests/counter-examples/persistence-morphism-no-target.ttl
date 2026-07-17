@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the math:PersistenceMorphism frame: a
+# math:PersistenceMorphism naming its math:morphismSource but omitting its
+# math:morphismTarget — a map of persistence modules that names only one endpoint. The
+# min-1 qualified restriction on math:morphismTarget derives a sh:qualifiedMinCount
+# property shape, so validation MUST emit shacl.QualifiedMinCountConstraintComponent and
+# NO other finding (math:IncompletePersistenceMorphism).
+# ISOLATION: the math:morphismSource arm is satisfied by a well-formed math:PersistenceModule
+# (naming its math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays
+# silent), so only the math:morphismTarget arm fires.
+# Back-reference: math:IncompletePersistenceMorphism (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecPersistenceMorphismNoTarget).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:morphism a math:PersistenceMorphism ;
+    math:morphismSource ex:sourceModule .        # names the source but NO math:morphismTarget
+
+ex:sourceModule a math:PersistenceModule ;
+    math:moduleIndex ex:indexPoset ;
+    math:structureMap ex:transition .
+ex:indexPoset a math:MathematicalObject .
+ex:transition a math:MathematicalObject .

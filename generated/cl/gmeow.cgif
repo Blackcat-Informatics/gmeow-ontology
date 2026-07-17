@@ -1376,6 +1376,7 @@
 ("https://blackcatinformatics.ca/logic/subClassOf" "https://blackcatinformatics.ca/gmeow/FlagshipScenario" "https://blackcatinformatics.ca/logic/restriction/db19b3cde71c")
 ("https://blackcatinformatics.ca/logic/subClassOf" "https://blackcatinformatics.ca/logic/AggregateBalanceConstraint" "https://blackcatinformatics.ca/logic/ConstraintSugar")
 ("https://blackcatinformatics.ca/logic/subClassOf" "https://blackcatinformatics.ca/logic/FunctionTerm" "https://blackcatinformatics.ca/logic/ArgumentStructure")
+("https://blackcatinformatics.ca/logic/subClassOf" "https://blackcatinformatics.ca/logic/JoinAggregateConstraint" "https://blackcatinformatics.ca/logic/ConstraintSugar")
 ("https://blackcatinformatics.ca/logic/subClassOf" "https://blackcatinformatics.ca/logic/RecoveryCase" "https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82")
 ("https://blackcatinformatics.ca/logic/subClassOf" "https://blackcatinformatics.ca/logic/UniqueLangConstraint" "https://blackcatinformatics.ca/logic/ConstraintSugar")
 ("https://blackcatinformatics.ca/logic/szsStrengthens" "https://blackcatinformatics.ca/logic/SzsContradictoryAxioms" "https://blackcatinformatics.ca/logic/SzsUnsatisfiable")

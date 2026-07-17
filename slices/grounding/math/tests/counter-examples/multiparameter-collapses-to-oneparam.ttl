@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:CollapsedMultiparameterFiltrationConstraint: a
+# math:MultiparameterFiltration whose stages carry ONLY a single real
+# math:filtrationThreshold and NO math:multiIndex — a nominally multi-parameter
+# filtration silently degraded to the one-parameter case. The cross-node existence
+# constraint (a multiparameter filtration must have at least one stage carrying a
+# math:multiIndex) fires — shacl.SPARQLConstraintComponent (math:CollapsedMultiparameterFiltration).
+# ISOLATION: the filtration IS complete for its frame — it names math:filtrationIndexPoset
+# and a math:hasFiltrationStage, so math:IncompleteMultiparameterFiltration stays silent;
+# there is no math:multiIndex at all, so math:DiagonalDegenerateFiltration cannot fire; the
+# threshold quantity is well-formed (a dimensionless math:Quantity). So EXACTLY ONE finding.
+# Back-reference: math:CollapsedMultiparameterFiltration (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecMultiparameterCollapse).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:collapsed a math:MultiparameterFiltration ;
+    math:filtrationIndexPoset ex:grid ;          # completes the frame (poset present)
+    math:hasFiltrationStage ex:stage .           # completes the frame (stage present)
+
+ex:grid a math:MathematicalObject .
+
+# The stage carries a bare one-parameter threshold and NO math:multiIndex — the collapse.
+# math:stageStructure completes the stage's own (threshold, substructure) frame, so the
+# stage is not ALSO ill-formed for an unrelated reason.
+ex:stage a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps ;
+    math:stageStructure ex:cx .
+
+ex:cx a math:TopologicalSpace .
+
+ex:eps a math:Quantity ; math:quantityValue "0.5"^^xsd:decimal .
+<http://example.org/math/eps> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

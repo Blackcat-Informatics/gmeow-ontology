@@ -72426,6 +72426,7 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/AppraisalValueRequiresDimensionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ArcSamplePositionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ArcSampleStateConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/AssertedTopologyResultConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/AssessmentMethodConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/AttackKindTargetAgreementConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72447,6 +72448,10 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CoarsenToReachabilityConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CommentParentSuppressionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CompetesWithIrreflexiveConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CompilationContextConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CompilationMustRecordCorrespondence> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CompilationMustRecordLoss> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/CompilationPreservationBoundaryConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ConditionEvaluationVerdictConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ConditionExpressionTextConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ConditionGroupMemberCountConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72572,6 +72577,7 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ProximityToPresentConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ReadingOrderAccordingToConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ReminderTriggerLiteralConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ResultObjectConflationConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionSuppressionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/RetractedTaggingSuppressionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/ReversedTransactionSuppressionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72608,6 +72614,7 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/SupportNotSelfConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/TeachingSelfTeachConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/TemporalMeasurementDateOrAgeConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/TopologyClaimStatusConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/TrademarkMarkConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/TransactionPartiesConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/gmeow/UnitBearingQuantityValueConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72660,6 +72667,8 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/logic/ReasoningProgramClauseConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/logic/ReasoningProgramQueryConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/logic/SealedFrameRecipientConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72668,9 +72677,15 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ArgumentSlotContiguityConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ArgumentSlotIndexNonNegativeConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/BoundaryCoboundaryAdjunctionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/BoundarySquareZeroConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ChartDimensionMatchConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/CoboundarySquareZeroConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/CollapsedMultiparameterFiltrationConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ConfidenceAsProbabilityDeclaredConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/DegenerateZigzagDiagramConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/DerivativeOrderPositiveConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/DiagonalDegenerateFiltrationConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/DimensionExponentDenominatorNonZeroConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/DistributionParameterizationDeclaredConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/E8WeylOrderConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72678,6 +72693,7 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/FlagshipScenarioFailureClassConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/FormalVerificationResultGroundingConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/FormalVerificationResultVantageGroundingConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/GeneralBoundarySquareZeroConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/GramMatrixSymmetryConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/IntervalKindConflationConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/LimitResultOutcomeValueConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
@@ -72687,20 +72703,25 @@
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/MeasureTotalMassValueConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/MetricSignatureDimensionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/MisscopedSectionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/MissingnessMechanismDeclaredConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/MultiparameterFunctionalDependenceConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/NormPositiveDefiniteConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/PValueFrameConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ParameterRoleOverfilledConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ParameterRoleUnfilledConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/PersistenceDeathNamedConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/PersistenceModuleLifetimeConflationConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/PreservationLawNodeKindConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ProbabilityValueFramedConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/ProbabilityValueRangeConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/RandomVariableContextConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/RationalValueDenominatorNonZeroConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/RiemannianSignatureConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/SectionGluingConsistencyConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/SetBuilderMemberConditionNodeKindConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/SetExtentDisjointConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
+        "actual: logic:Constraint <https://blackcatinformatics.ca/math/StageIndexPresenceConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/TangentSpaceDimensionConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "actual: logic:Constraint <https://blackcatinformatics.ca/math/TheoremWarrantConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer" ,
         "full-FOL, standpoint/world/time-indexed, and aggregate-comparison (COUNT/SUM threshold) integrity conditions exceed that fragment; there is no formula-level aggregate term, so an aggregate comparison cannot be expressed as a genuine GROUP BY sub-SELECT and is carried-and-flagged, not projected" ,
@@ -73687,6 +73708,7 @@
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/lang/paraphraseSamenessKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/lang/renderingKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/lang/translationCorrespondence has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/logic/preservationKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/approximates has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/baseAlgebra has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/boundVector has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73696,6 +73718,7 @@
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/codomain has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/coexactComponent has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/combinatorialLaplacianComplex has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/complementSemantics has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/convergenceMode has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/coverScheme has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73726,9 +73749,11 @@
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/informationBase has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/informationUnit has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/integrand has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/laplacianDegree has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/leftGenerator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/likelihoodModel has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/limitOutcome has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/lowerBoundaryOperator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/lowerInclusion has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/manifoldStructureKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/measureOn has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73736,6 +73761,7 @@
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/metricSignature has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/moduleBaseSummand has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/moduleExtensionSummand has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/obstructionOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/ofOutcome has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/operationCapacity has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/operatorCodomain has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73762,6 +73788,7 @@
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/symplecticForm has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/unbindingKey has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/underlyingSet has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/upperBoundaryOperator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/upperInclusion has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(1)) on https://blackcatinformatics.ca/math/withRespectTo has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=None, max=Some(2)) on https://blackcatinformatics.ca/gmeow/glutWitnessOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73828,6 +73855,7 @@
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/lang/renderingKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/lang/translationCorrespondence has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/lang/translationMethod has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/logic/preservationKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/analysisInput has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/analysisOutput has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/approximates has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73837,15 +73865,21 @@
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/boundVector has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/boundaryAtInfinity has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/cartanMatrix has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/cellDimension has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/centeringPolicy has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/chainOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/cliffordInvolution has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/clusteringRule has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/coboundaryOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/cochainCoboundary has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/codomain has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/coexactComponent has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/combinatorialLaplacianComplex has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/complementSemantics has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/convergenceMode has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/coverScheme has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/cycleOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/decomposedObject has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/decomposesFlow has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/definingExpression has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73860,6 +73894,7 @@
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/extendedAlgebra has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/extensionGenerator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/filterFunction has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/filtrationIndexPoset has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/fittedToData has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/formalArgument has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/generatesFlow has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73869,23 +73904,29 @@
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasBasisBlade has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasConvergence has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasDimension has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasFiltrationStage has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasGrading has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasMathematicalSymbol has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasPiece has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasRootSystem has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hasStalk has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/hodgeBoundaryOperator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/holonomyOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/homomorphicOver has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/inBasis has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/inNumberSystem has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/inParameterSpace has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/incidenceCoface has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/incidenceFace has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/informationBase has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/informationUnit has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/ingestCorrespondence has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/integrand has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/laplacianDegree has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/leftGenerator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/likelihoodModel has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/limitOutcome has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/lowerBoundaryOperator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/lowerInclusion has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/manifoldStructureKind has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/measureOn has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73894,6 +73935,10 @@
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/modelFormula has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/moduleBaseSummand has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/moduleExtensionSummand has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/moduleIndex has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/morphismSource has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/morphismTarget has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/obstructionOf has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/ofOutcome has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/operationCapacity has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/operatorCodomain has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -73917,14 +73962,19 @@
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/sampleSpace has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/scalingPolicy has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/scoreParameter has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/sectionRegion has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/securityAssumption has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/sheafBaseComplex has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/sourceMetricSpace has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/stateSpace has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/structureMap has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/structureOperation has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/symplecticForm has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/transportCochain has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/transportConnection has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/unbindingKey has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/underlyingSet has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
+        "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/upperBoundaryOperator has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/upperInclusion has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/weylGroup has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
         "actual: qualified value-shape count (min=Some(1), max=None) on https://blackcatinformatics.ca/math/withRespectTo has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer" ,
@@ -74307,16 +74357,28 @@
         "actual: sh:class https://blackcatinformatics.ca/math/BasisBlade on https://blackcatinformatics.ca/math/extensionGenerator has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/BasisBlade on https://blackcatinformatics.ca/math/hasBasisBlade has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/BoundaryOperator on https://blackcatinformatics.ca/math/hodgeBoundaryOperator has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/BoundaryOperator on https://blackcatinformatics.ca/math/lowerBoundaryOperator has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/BoundaryOperator on https://blackcatinformatics.ca/math/upperBoundaryOperator has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CartanMatrix on https://blackcatinformatics.ca/math/cartanMatrix has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/CellComplex on https://blackcatinformatics.ca/math/combinatorialLaplacianComplex has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/CellComplex on https://blackcatinformatics.ca/math/sectionRegion has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CellComplex on https://blackcatinformatics.ca/math/sheafBaseComplex has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/CellularSheaf on https://blackcatinformatics.ca/math/obstructionOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CellularSheaf on https://blackcatinformatics.ca/math/overSheaf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CenteringPolicy on https://blackcatinformatics.ca/math/centeringPolicy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/ChainComplex on https://blackcatinformatics.ca/math/chainOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/ChainComplex on https://blackcatinformatics.ca/math/cycleOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CliffordAlgebra on https://blackcatinformatics.ca/math/baseAlgebra has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CliffordAlgebra on https://blackcatinformatics.ca/math/extendedAlgebra has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CliffordInvolution on https://blackcatinformatics.ca/math/cliffordInvolution has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/ClusteringRule on https://blackcatinformatics.ca/math/clusteringRule has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/CoboundaryOperator on https://blackcatinformatics.ca/math/coboundaryOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/CoboundaryOperator on https://blackcatinformatics.ca/math/cochainCoboundary has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/Cocycle on https://blackcatinformatics.ca/math/transportCochain has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/CoexactComponent on https://blackcatinformatics.ca/math/coexactComponent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/ComplementSemantics on https://blackcatinformatics.ca/math/complementSemantics has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/Connection on https://blackcatinformatics.ca/math/holonomyOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/Connection on https://blackcatinformatics.ca/math/transportConnection has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/Convergence on https://blackcatinformatics.ca/math/hasConvergence has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/ConvergenceMode on https://blackcatinformatics.ca/math/convergenceMode has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/Cover on https://blackcatinformatics.ca/math/coverScheme has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
@@ -74347,7 +74409,10 @@
         "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/analysisInput has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/analysisOutput has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/decomposesFlow has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/filtrationIndexPoset has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/moduleIndex has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/ofOutcome has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/MathematicalObject on https://blackcatinformatics.ca/math/structureMap has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MathematicalSymbol on https://blackcatinformatics.ca/math/hasMathematicalSymbol has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MeasurableFunction on https://blackcatinformatics.ca/math/integrand has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MeasurableSpace on https://blackcatinformatics.ca/math/measureOn has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
@@ -74355,6 +74420,8 @@
         "actual: sh:class https://blackcatinformatics.ca/math/MetricSignature on https://blackcatinformatics.ca/math/metricSignature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/MetricSpace on https://blackcatinformatics.ca/math/sourceMetricSpace has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/ModelFormula on https://blackcatinformatics.ca/math/modelFormula has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/NaturalNumber on https://blackcatinformatics.ca/math/cellDimension has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/NaturalNumber on https://blackcatinformatics.ca/math/laplacianDegree has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/NerveComplex on https://blackcatinformatics.ca/math/outputNerve has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/Number on https://blackcatinformatics.ca/math/approximates has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/NumberSystem on https://blackcatinformatics.ca/math/inNumberSystem has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
@@ -74363,6 +74430,8 @@
         "actual: sh:class https://blackcatinformatics.ca/math/Operation on https://blackcatinformatics.ca/math/structureOperation has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/ParameterSpace on https://blackcatinformatics.ca/math/inParameterSpace has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/PersistenceLifetime on https://blackcatinformatics.ca/math/calibrationEvidence has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/PersistenceModule on https://blackcatinformatics.ca/math/morphismSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:class https://blackcatinformatics.ca/math/PersistenceModule on https://blackcatinformatics.ca/math/morphismTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/RationalValue on https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/RationalValue on https://blackcatinformatics.ca/math/exactCoexactInnerProduct has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/math/RationalValue on https://blackcatinformatics.ca/math/exactHarmonicInnerProduct has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
@@ -82252,6 +82321,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:033f841c0811c490>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:033f841c0811c490" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Holonomy|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q907926" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:037a0da7f474df51>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:037a0da7f474df51" ;
@@ -82619,6 +82699,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:053d66f18a2921f6" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/WeylGroup|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q768074" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:0545e3cdcf95929d>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:0545e3cdcf95929d" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/PersistenceModule|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q117101306" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -88645,6 +88736,17 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:29be1f2cd0b98416> ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:29da6ac4161919ae>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:29da6ac4161919ae" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/cellDimension|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q4440864" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:29e0f3048f77e3c0>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:29e0f3048f77e3c0" ;
@@ -90615,6 +90717,17 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:35a71cf90fb3bc86> ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:35cbcfb09586e254>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:35cbcfb09586e254" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Cocycle|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q5139921" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:35f22c32bbfab575>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:35f22c32bbfab575" ;
@@ -90982,6 +91095,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:379711f5dfcb1d12" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q1948412" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:37a7b00f8ac9c3b1>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:37a7b00f8ac9c3b1" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/CombinatorialLaplacian|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q772067" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -93833,6 +93957,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:49310d1f780be088" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/domain|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.w3.org/2000/01/rdf-schema#domain" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:494171ac2d5ba337>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:494171ac2d5ba337" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/GlobalSection|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q91783823" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -102864,6 +102999,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:7c247a5de4eb97fc>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:7c247a5de4eb97fc" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Cell|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q189061" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:7c7a5337b8e7b5be>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:7c7a5337b8e7b5be" ;
@@ -103253,6 +103399,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:7f076efb1ada8167" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/complexNumbers|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q11567" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:7f15275abcb498e3>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:7f15275abcb498e3" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/CellIncidence|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q939272" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -103742,6 +103899,17 @@
     gmeow:lossySourceTerm gmeow:observationMethod ;
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:82380bdea1c00637> ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:8246e87aa6052abf>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:8246e87aa6052abf" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/CochainComplex|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q78271410" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/sssom:824e3a9972d1848c>
@@ -104655,6 +104823,17 @@
     gmeow:lossySourceTerm gmeow:roleConceptualization ;
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:87c65a20cf770f13> ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:87c7f6a13c448029>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:87c7f6a13c448029" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/ParallelTransport|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q1814838" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/sssom:87e4b983c0d1a02d>
@@ -109147,6 +109326,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:a57507fe627e7576>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:a57507fe627e7576" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/MultiparameterFiltration|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q59442784" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:a599bc4963a10d82>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:a599bc4963a10d82" ;
@@ -109596,6 +109786,17 @@
     gmeow:lossySourceTerm gmeow:Standpoint ;
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:a85366ed31a4a75e> ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:a85875982d82e942>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:a85875982d82e942" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/GluingObstruction|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q5572389" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/sssom:a8593df1a8dc691b>
@@ -111595,6 +111796,17 @@
     gmeow:lossySourceTerm gmeow:timeScaleTAI ;
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:b428c2ac9e391479> ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:b435dcebaa7baed2>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:b435dcebaa7baed2" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/ZigzagDiagram|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q59442785" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/sssom:b46e061c3c0e3b2f>
@@ -115266,6 +115478,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:c9937c3420dbb5b8>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:c9937c3420dbb5b8" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Boundary|http://www.w3.org/2004/02/skos/core#relatedMatch|https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Homology/HomologicalComplex.html" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:c9f535570ba7db01>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:c9f535570ba7db01" ;
@@ -115330,6 +115553,17 @@
     gmeow:lossySourceTerm gmeow:organizationTypeCompany ;
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:ca71b8d67e052caf> ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:ca99d1eddd769837>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:ca99d1eddd769837" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Cycle|http://www.w3.org/2004/02/skos/core#relatedMatch|https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Homology/ShortComplex/Homology.html" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/sssom:caad240f9d2659bd>
@@ -119938,6 +120172,17 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/sssom:e7168b76ebc50bf5> ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:e7175e6163560fd4>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:e7175e6163560fd4" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Connection|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q31924" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:e727c1847a3ea0a3>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:e727c1847a3ea0a3" ;
@@ -124457,7 +124702,7 @@
 
 logic:projection-report
     a logic:ProjectionReport ;
-    logic:axiomCount 692 ;
+    logic:axiomCount 693 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 7 ;
@@ -131702,6 +131947,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:02ebd085c63d75d8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:03038b9704aff385> ,
         <https://blackcatinformatics.ca/logic/target/sssom:030b57deefbfa876> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:033f841c0811c490> ,
         <https://blackcatinformatics.ca/logic/target/sssom:037a0da7f474df51> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0380f6a6fa3a3d0e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:03a3293b528367db> ,
@@ -131722,6 +131968,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:0529c5531ae9c5d5> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0532dfee142a4861> ,
         <https://blackcatinformatics.ca/logic/target/sssom:053d66f18a2921f6> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:0545e3cdcf95929d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:055d218a5939d9ba> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0582f41127e6f40b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:05ac012307c6dec3> ,
@@ -132034,6 +132281,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:293589afd278d812> ,
         <https://blackcatinformatics.ca/logic/target/sssom:2984e0d1079e8b9d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:29be1f2cd0b98416> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:29da6ac4161919ae> ,
         <https://blackcatinformatics.ca/logic/target/sssom:29e0f3048f77e3c0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:2a08681ecf545772> ,
         <https://blackcatinformatics.ca/logic/target/sssom:2a2bbafe0fb687d9> ,
@@ -132134,6 +132382,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:359f61420289544f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:359ff2829238f32a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:35a71cf90fb3bc86> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:35cbcfb09586e254> ,
         <https://blackcatinformatics.ca/logic/target/sssom:35f22c32bbfab575> ,
         <https://blackcatinformatics.ca/logic/target/sssom:35fd7a181bedb285> ,
         <https://blackcatinformatics.ca/logic/target/sssom:361c4947ccdececa> ,
@@ -132156,6 +132405,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:378be4a34cdac7a2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:378c6028b9b6f5b4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:379711f5dfcb1d12> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:37a7b00f8ac9c3b1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:37bbbf7657ddd073> ,
         <https://blackcatinformatics.ca/logic/target/sssom:37dd619c49ba1de1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:380ef21680aaaa4c> ,
@@ -132304,6 +132554,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:490289c5c54ad4ae> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4914d5f46afd8738> ,
         <https://blackcatinformatics.ca/logic/target/sssom:49310d1f780be088> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:494171ac2d5ba337> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4942ea98196a313d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:49691a7652d68fc0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4971a19e4b304c12> ,
@@ -132767,6 +133018,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:7bae3031f7efcf16> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7bb3962f09a38ff4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7bbbe9ddb627fc37> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:7c247a5de4eb97fc> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7c7a5337b8e7b5be> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7c825530ff40efe9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7c83babe9484f2d5> ,
@@ -132788,6 +133040,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:7eb4fdfc16d5fe5d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7edee0620865e5d6> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7f076efb1ada8167> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:7f15275abcb498e3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7f4c5292a14b725f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7f708a7d93e82b16> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7f7a450eb393b6d8> ,
@@ -132812,6 +133065,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:820542cda097676b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:820b06cf0a6a0570> ,
         <https://blackcatinformatics.ca/logic/target/sssom:82380bdea1c00637> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:8246e87aa6052abf> ,
         <https://blackcatinformatics.ca/logic/target/sssom:824e3a9972d1848c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:825dc33a89b7a4c8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:8264c6f26cac006a> ,
@@ -132857,6 +133111,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:878b56a9f3b126a0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:87920c57669bbe11> ,
         <https://blackcatinformatics.ca/logic/target/sssom:87c65a20cf770f13> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:87c7f6a13c448029> ,
         <https://blackcatinformatics.ca/logic/target/sssom:87e4b983c0d1a02d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:87eb853f2da8b636> ,
         <https://blackcatinformatics.ca/logic/target/sssom:87f16c29d83bc4a8> ,
@@ -133094,6 +133349,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:a511a19e1602f92a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a55ac3ddd9669a41> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a55cceeadb1262f9> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:a57507fe627e7576> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a599bc4963a10d82> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a603692e7c920dce> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a60e9499ba11180d> ,
@@ -133118,6 +133374,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:a826bd24e2c4721d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a82f0258396e1b20> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a85366ed31a4a75e> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:a85875982d82e942> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a8593df1a8dc691b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a86137715f6f48f2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a8687ac2988ff541> ,
@@ -133222,6 +133479,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b3df74046ffed35a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b3f38ec5b29705e9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b428c2ac9e391479> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:b435dcebaa7baed2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b46e061c3c0e3b2f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b48c3ddf08bfa183> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b4ae995f626bd1e0> ,
@@ -133412,10 +133670,12 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:c964de33a0d3bd11> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c98fb96deca72093> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c990c4a6c22f3f92> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:c9937c3420dbb5b8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c9f535570ba7db01> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ca056394ef00be14> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ca0c8e4fda712e89> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ca71b8d67e052caf> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:ca99d1eddd769837> ,
         <https://blackcatinformatics.ca/logic/target/sssom:caad240f9d2659bd> ,
         <https://blackcatinformatics.ca/logic/target/sssom:cacb6dc900897e0c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:caf616461aa883ae> ,
@@ -133651,6 +133911,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:e6c616ace9a960a3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e6fcedd50a3cb219> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e7168b76ebc50bf5> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:e7175e6163560fd4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e727c1847a3ea0a3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e74575cf2cd8614d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e768e0fb32607996> ,

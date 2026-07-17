@@ -46,9 +46,10 @@ use super::graphutil::{
 use super::ir::{
     AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
     ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
-    Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule,
-    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId,
-    ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    Correspondence, EvaluationMode, Formula, JoinAggregate, JoinLeg, LOGIC_NAMESPACE, LogicAxiom,
+    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr,
+    ReasoningContract, ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity,
+    ShapeTarget, ShapeValue, Term, ValidationShapeIr, VariableSortScope,
 };
 use super::restriction;
 
@@ -286,6 +287,8 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "minInclusiveBound" | "maxInclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
+            // Join-aggregate satellite (multi-hop join + product aggregate + threshold).
+            | "joinPath" | "aggThreshold" | "legRecordType" | "legSource" | "legTarget" | "legValue"
             // Aggregate-balance satellite (double-entry balance: partitioned two-sum equality).
             | "balancePostingPredicate" | "balancePartitionPredicate" | "balanceDebitValue"
             | "balanceCreditValue" | "balanceAmountNodePredicate" | "balanceValuePredicate"
@@ -322,6 +325,8 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ForbiddenPatternConstraint"
             | "ValueRangeConstraint"
             | "AggregateConstraint"
+            | "JoinAggregateConstraint"
+            | "JoinLeg"
             | "AggregateBalanceConstraint"
             | "ComparisonConstraint"
             | "PathNodeKindConstraint"
@@ -332,6 +337,18 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "ValueSetMembershipConstraint"
             | "StringPatternConstraint"
             | "UniqueLangConstraint"
+    )
+}
+
+/// The reserved `logic:` predicate-local names that carry a `logic:ReasoningProgram`'s
+/// clause set, goal, verdict probes, evaluation-strategy selector, and per-variable
+/// order-sort declarations. Like the formula-structural predicates, these are consumed by
+/// [`extract_reasoning_programs`] and must NOT leak into `prog.axioms` (where they would
+/// pollute the Datalog / N3 / ledger projections and break the canonical round-trip).
+fn is_reasoning_program_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "clause" | "programQuery" | "verdictProbe" | "evaluationMode" | "variableSort"
     )
 }
 
@@ -508,6 +525,11 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_constraint_structural_predicate(p_local) {
             continue;
         }
+        // Reasoning-program structural triples are consumed by extract_reasoning_programs;
+        // they are never domain facts.
+        if is_reasoning_program_structural_predicate(p_local) {
+            continue;
+        }
         match LogicAxiom::new(
             subject_str(&quad.subject),
             p_str,
@@ -557,6 +579,11 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // the same authored node two IR homes; the CL writer would then emit a constructorless
         // duplicate under the source IRI alongside the content-addressed formula tree.
         if matches!(o_local, "Formula" | "TermCarrier") {
+            continue;
+        }
+        // A `logic:ReasoningProgram` type triple declares a typed reasoning-program node and
+        // is owned by `extract_reasoning_programs`, exactly like Formula/TermCarrier above.
+        if o_local == "ReasoningProgram" {
             continue;
         }
         // A `logic:RecoveryCase` type triple is owned by the correspondence that reaches it
@@ -2888,6 +2915,25 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             referenced.insert(term_str(&obj));
         }
     }
+    // A formula reached as a `logic:ReasoningProgram`'s `logic:clause` / `logic:programQuery`
+    // / `logic:verdictProbe` is owned by that program, not a free-standing assertion — exactly
+    // like a constraint's `logic:integrity` and a recovery case's `logic:recoveryTransform`
+    // above. Excluding every clause/query/probe root here is what lets
+    // `extract_reasoning_programs` reuse `parse_formula` without giving one authored formula
+    // two content-addressed IR homes.
+    let reasoning_programs = subjects_with(
+        store,
+        &nn(RDF_TYPE),
+        &Node::iri(logic_iri("ReasoningProgram")),
+    );
+    for link in ["clause", "programQuery", "verdictProbe"] {
+        let pred = nn(&logic_iri(link));
+        for program in &reasoning_programs {
+            for obj in objects(store, program, &pred) {
+                referenced.insert(term_str(&obj));
+            }
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -3503,6 +3549,363 @@ fn validate_contiguous_indices<T>(
         }
     }
     Ok(())
+}
+
+// --------------------------------------------------------------------------- //
+// Reasoning-program extraction (`logic:ReasoningProgram`)
+// --------------------------------------------------------------------------- //
+
+/// The `logic:` sub-formula links a `logic:variableSort` declaration may be reached
+/// through, mirroring [`FORMULA_SUBLINKS`] (the SAME structural links [`parse_formula`]
+/// already validates). Walking these links again to harvest sort declarations — rather
+/// than re-deriving term identity — keeps the sort harvest a read-only companion pass over
+/// an already-validated tree, not a second clause reader.
+const SORT_WALK_SUBFORMULA_LINKS: [&str; 8] = [
+    "not",
+    "and",
+    "or",
+    "antecedent",
+    "consequent",
+    "iff",
+    "forall",
+    "exists",
+];
+
+/// Collect `(variable name, sort IRI)` pairs from every `logic:variableSort`-bearing
+/// `logic:TermCarrier` reachable from `node`, a `logic:Formula` tree already known
+/// well-formed ([`read_reasoning_program`] only calls this after [`parse_formula`] returned
+/// `Ok` for the same node). Appends into `out`; duplicate or conflicting pairs are resolved
+/// by [`ReasoningProgramIr::new`], not here.
+fn collect_variable_sorts(
+    store: &RdfDataset,
+    node: &Subject,
+    out: &mut Vec<(String, String)>,
+) -> gmeow_errors::Result<()> {
+    for link in SORT_WALK_SUBFORMULA_LINKS {
+        for obj in formula_objects(store, node, link) {
+            if let Some(child) = term_as_subject(&obj) {
+                collect_variable_sorts(store, &child, out)?;
+            }
+        }
+    }
+    for link in ["argument", "quantifiedVariable"] {
+        for carrier_term in formula_objects(store, node, link) {
+            if let Some(carrier) = term_as_subject(&carrier_term) {
+                collect_carrier_variable_sort(store, &carrier, out)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Record a `logic:TermCarrier`'s `logic:variableSort` (when the carrier holds a
+/// `logic:termVariable`), then recurse into a `logic:termApplication` carrier's own
+/// argument carriers so a sort declared on a nested compound-term variable (`s(X)`,
+/// `cons(H, T)`) is not missed.
+fn collect_carrier_variable_sort(
+    store: &RdfDataset,
+    carrier: &Subject,
+    out: &mut Vec<(String, String)>,
+) -> gmeow_errors::Result<()> {
+    let var_values = formula_objects(store, carrier, "termVariable");
+    if let Some(var_value) = var_values.first() {
+        let var_name = term_str(var_value);
+        for sort_obj in formula_objects(store, carrier, "variableSort") {
+            let Node::Iri(sort_iri) = sort_obj else {
+                return Err(formula_err(
+                    carrier,
+                    format!(
+                        "logic:TermCarrier {} requires an IRI-valued logic:variableSort",
+                        subject_str(carrier)
+                    ),
+                ));
+            };
+            out.push((var_name.clone(), sort_iri));
+        }
+    }
+    if let Some(app_term) = formula_objects(store, carrier, "termApplication")
+        .into_iter()
+        .next()
+        && let Some(app_node) = term_as_subject(&app_term)
+    {
+        for carrier_term in formula_objects(store, &app_node, "argument") {
+            if let Some(nested) = term_as_subject(&carrier_term) {
+                collect_carrier_variable_sort(store, &nested, out)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Collect every `Term::Iri` CONSTANT appearing in argument position across `f`'s tree
+/// (never `Formula::Atom`'s own `relation` — a reified predicate/relation IRI, not a
+/// sortable individual — see [`ReasoningProgramIr::constant_sorts`]), appending into `out`.
+/// Recurses into `Term::App` argument lists so a constant nested inside a function-term
+/// application (`s(one)`, `cons(a, cons(b, nil))`) is not missed, and into every
+/// `Formula` connective/quantifier so a constant anywhere in a rule's
+/// antecedent/consequent is captured. A pure in-memory walk of the already-parsed
+/// [`Formula`]/[`Term`] AST — no second RDF-link traversal, unlike
+/// [`collect_variable_sorts`] (which must walk `logic:TermCarrier` links because a
+/// variable's declared sort lives on the carrier, not in the `Term` AST itself).
+fn collect_constant_iris(f: &Formula, out: &mut Vec<String>) {
+    match f {
+        Formula::Atom { args, .. } => {
+            for a in args {
+                collect_constant_iris_from_term(a, out);
+            }
+        }
+        Formula::Not(inner) => collect_constant_iris(inner, out),
+        Formula::And(fs) | Formula::Or(fs) => {
+            for g in fs {
+                collect_constant_iris(g, out);
+            }
+        }
+        Formula::Implies(a, b) | Formula::Iff(a, b) => {
+            collect_constant_iris(a, out);
+            collect_constant_iris(b, out);
+        }
+        Formula::Forall { body, .. } | Formula::Exists { body, .. } => {
+            collect_constant_iris(body, out);
+        }
+    }
+}
+
+/// The [`Term`] half of [`collect_constant_iris`]: an IRI is a constant; a compound
+/// application recurses into its arguments; a variable/literal/sequence-marker carries no
+/// constant identity to sort-type.
+fn collect_constant_iris_from_term(t: &Term, out: &mut Vec<String>) {
+    match t {
+        Term::Iri(iri) => out.push(iri.clone()),
+        Term::App { args, .. } => {
+            for a in args {
+                collect_constant_iris_from_term(a, out);
+            }
+        }
+        Term::Var(_) | Term::Literal { .. } | Term::SequenceMarker(_) => {}
+    }
+}
+
+/// Reconstruct one [`ReasoningProgramIr`] rooted at a `logic:ReasoningProgram` node, or
+/// return the reason it is malformed (surfaced as one `MALFORMED_REASONING_PROGRAM` error
+/// diagnostic by [`extract_reasoning_programs`], which then skips the program). Reuses
+/// [`parse_formula`] for every clause/query/probe root — there is no second clause reader —
+/// and [`collect_variable_sorts`] to harvest each clause/query's `logic:variableSort`
+/// declarations.
+fn read_reasoning_program(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ReasoningProgramIr> {
+    let iri = subject_str(node);
+
+    // Clause set: zero-or-more logic:clause roots, each an existing logic:Formula tree.
+    // Cardinality (at least one) is enforced by ReasoningProgramIr::new, not duplicated here.
+    let mut clause_nodes = Vec::new();
+    for obj in formula_objects(store, node, "clause") {
+        let clause_node = term_as_subject(&obj).ok_or_else(|| {
+            formula_err(
+                node,
+                format!("logic:ReasoningProgram {iri} has a non-resource logic:clause object"),
+            )
+        })?;
+        clause_nodes.push(clause_node);
+    }
+    let mut clauses = Vec::with_capacity(clause_nodes.len());
+    for clause_node in &clause_nodes {
+        clauses.push(parse_formula(store, clause_node)?);
+    }
+
+    // Goal: exactly one logic:programQuery root — never zero, never more than one.
+    let query_objs = formula_objects(store, node, "programQuery");
+    if query_objs.len() != 1 {
+        return Err(formula_err(
+            node,
+            format!(
+                "logic:ReasoningProgram {iri} requires exactly one logic:programQuery; found {}",
+                query_objs.len()
+            ),
+        ));
+    }
+    let query_node = term_as_subject(&query_objs[0]).ok_or_else(|| {
+        formula_err(
+            node,
+            format!("logic:ReasoningProgram {iri} has a non-resource logic:programQuery object"),
+        )
+    })?;
+    let query = parse_formula(store, &query_node)?;
+
+    // Verdict probes: zero-or-more logic:verdictProbe roots. Atomicity is enforced by
+    // ReasoningProgramIr::new, not duplicated here.
+    let mut probe_nodes = Vec::new();
+    for obj in formula_objects(store, node, "verdictProbe") {
+        let probe_node = term_as_subject(&obj).ok_or_else(|| {
+            formula_err(
+                node,
+                format!(
+                    "logic:ReasoningProgram {iri} has a non-resource logic:verdictProbe object"
+                ),
+            )
+        })?;
+        probe_nodes.push(probe_node);
+    }
+    let mut verdict_probes = Vec::with_capacity(probe_nodes.len());
+    for probe_node in &probe_nodes {
+        verdict_probes.push(parse_formula(store, probe_node)?);
+    }
+
+    // Evaluation strategy: exactly one logic:evaluationMode, drawn from the closed
+    // logic:EvaluationMode set. Absent, duplicated, or unrecognized is a hard fail — NEVER a
+    // silent default to logic:BackwardEvaluation.
+    let mode_objs = formula_objects(store, node, "evaluationMode");
+    if mode_objs.len() != 1 {
+        return Err(formula_err(
+            node,
+            format!(
+                "logic:ReasoningProgram {iri} requires exactly one logic:evaluationMode; found {}",
+                mode_objs.len()
+            ),
+        ));
+    }
+    let Node::Iri(mode_iri) = &mode_objs[0] else {
+        return Err(formula_err(
+            node,
+            format!("logic:ReasoningProgram {iri} requires an IRI-valued logic:evaluationMode"),
+        ));
+    };
+    let mode_local = mode_iri
+        .strip_prefix(LOGIC_NAMESPACE)
+        .unwrap_or(mode_iri.as_str());
+    let mode = EvaluationMode::from_local(mode_local).ok_or_else(|| {
+        formula_err(
+            node,
+            format!(
+                "logic:ReasoningProgram {iri} logic:evaluationMode {mode_iri:?} is not a \
+                 recognized logic:EvaluationMode value (only logic:BackwardEvaluation is \
+                 supported today)"
+            ),
+        )
+    })?;
+
+    // Per-variable order-sort declarations, harvested from the clause set's and query's term
+    // carriers (logic:variableSort on a logic:TermCarrier). Both are already known
+    // well-formed (parse_formula above returned Ok), so this is a read-only companion walk
+    // over the SAME validated links, not a second clause reader.
+    // Each clause / the query / each probe is a SEPARATE variable scope (a fresh set of
+    // metavariables): the same authored name in two clauses is two unrelated variables, so a
+    // sort declared on `X` in one scope must not constrain an unrelated `X` in another. The
+    // scope is identified by the owning clause/probe's `Formula::content_key` (stable across
+    // the canonical sort `ReasoningProgramIr::new` applies), so it survives reordering.
+    let mut variable_sorts: Vec<(VariableSortScope, String, String)> = Vec::new();
+    // Every position a `logic:variableSort` can attach to, paired with the scope that owns it.
+    // Probes must be ground (enforced by `ReasoningProgramIr::new`), so their walk collects
+    // nothing for a well-formed program; including them keeps the scope taxonomy total.
+    // The scope key is the owning clause/probe's `Formula::content_key` PLUS an occurrence
+    // index — the number of PRIOR clauses/probes sharing that same content_key — so two
+    // structurally-identical clauses carrying DIFFERENT `logic:variableSort` declarations key
+    // DISTINCT scopes rather than colliding. Both facets are stable across the canonical sort
+    // `ReasoningProgramIr::new` applies: that sort is stable and same-content_key ⟹ same
+    // sort_key, so each clause's occurrence index is preserved between here and the lowerer.
+    let scoped_roots = clause_nodes
+        .iter()
+        .zip(clauses.iter())
+        .enumerate()
+        .map(|(idx, (node, clause))| {
+            let key = clause.content_key();
+            let occurrence = clauses[..idx]
+                .iter()
+                .filter(|prior| prior.content_key() == key)
+                .count();
+            (node, VariableSortScope::Clause { key, occurrence })
+        })
+        .chain(std::iter::once((&query_node, VariableSortScope::Query)))
+        .chain(
+            probe_nodes
+                .iter()
+                .zip(verdict_probes.iter())
+                .enumerate()
+                .map(|(idx, (node, probe))| {
+                    let key = probe.content_key();
+                    let occurrence = verdict_probes[..idx]
+                        .iter()
+                        .filter(|prior| prior.content_key() == key)
+                        .count();
+                    (node, VariableSortScope::Probe { key, occurrence })
+                }),
+        );
+    for (root, scope) in scoped_roots {
+        let mut pairs = Vec::new();
+        collect_variable_sorts(store, root, &mut pairs)?;
+        for (name, sort) in pairs {
+            variable_sorts.push((scope.clone(), name, sort));
+        }
+    }
+
+    // Per-constant order-sort declarations: every `Term::Iri` constant referenced in
+    // argument position across the clause set, query, and verdict probes, paired with
+    // EVERY `rdf:type` object IRI asserted on it in `store`. The raw `ex:one a
+    // math:Integer` triple is otherwise dropped by the stage's L3 fold (it is ordinary
+    // domain data, not `logic:` structural vocabulary), so it MUST be captured here or an
+    // order-sorted demonstrator downstream cannot discriminate a typed constant from an
+    // untyped one. An unsorted constant is legal (it stays order-sort top) — never a hard
+    // fail.
+    let mut constant_iris = Vec::new();
+    for clause in &clauses {
+        collect_constant_iris(clause, &mut constant_iris);
+    }
+    collect_constant_iris(&query, &mut constant_iris);
+    for probe in &verdict_probes {
+        collect_constant_iris(probe, &mut constant_iris);
+    }
+    constant_iris.sort();
+    constant_iris.dedup();
+    let mut constant_sorts = Vec::new();
+    for constant_iri in &constant_iris {
+        for ty in objects(store, &Subject::Iri(constant_iri.clone()), &nn(RDF_TYPE)) {
+            if let Node::Iri(sort_iri) = ty {
+                constant_sorts.push((constant_iri.clone(), sort_iri));
+            }
+        }
+    }
+
+    ReasoningProgramIr::new(
+        iri,
+        mode,
+        clauses,
+        query,
+        verdict_probes,
+        variable_sorts,
+        constant_sorts,
+    )
+}
+
+/// Read every authored `logic:ReasoningProgram` individual into a [`ReasoningProgramIr`] —
+/// the authored clause-set-plus-goal surface a downstream compiler lowers directly to the
+/// native reasoning engine. **Hard-fails** on any structural malformation (an `Error`-grade
+/// `MALFORMED_REASONING_PROGRAM` diagnostic, mirroring `MALFORMED_FORMULA` /
+/// `ORPHAN_RECOVERY_CASE`): the malformed program is skipped — never silently repaired or
+/// completed with a default — while every other authored program still compiles. See
+/// [`read_reasoning_program`] for the exact structural requirements.
+///
+/// A reasoning-program-free source yields an empty vector, and
+/// `with_reasoning_programs(vec![])` is a no-op in [`LogicProgram::canonical_key`] (the
+/// segment is append-only) — so adding this stage to every parse leaves every existing
+/// artifact byte-identical.
+fn extract_reasoning_programs(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<ReasoningProgramIr> {
+    let program_ty = Node::iri(logic_iri("ReasoningProgram"));
+    let mut programs = Vec::new();
+    for subj in subjects_with(store, &nn(RDF_TYPE), &program_ty) {
+        match read_reasoning_program(store, &subj) {
+            Ok(p) => programs.push(p),
+            Err(err) => diagnostics.push(Diagnostic::error(
+                "MALFORMED_REASONING_PROGRAM",
+                err.message().to_owned(),
+                Some(subject_str(&subj)),
+            )),
+        }
+    }
+    programs
 }
 
 /// Read every authored `logic:Correspondence` individual into the IR — the input the
@@ -4321,6 +4724,122 @@ fn read_aggregate_constraint(
     Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
 }
 
+/// Read ONE `logic:JoinLeg` structural predicate (`legSource`/`legTarget`/`legValue`/
+/// `legRecordType`), enforcing it names an IRI — these are record→endpoint/value PREDICATES, not
+/// data literals, so a literal or blank-node value is malformed, not a value to stringify.
+/// `Ok(None)` ⇒ the predicate is absent (the caller decides whether that is a hard-skip); a
+/// PRESENT non-IRI value is rejected outright via `Err` rather than silently stringified.
+fn read_leg_iri(
+    store: &RdfDataset,
+    leg: &Subject,
+    local: &str,
+) -> gmeow_errors::Result<Option<String>> {
+    match value(store, leg, &nn(&logic_iri(local))) {
+        None => Ok(None),
+        Some(Node::Iri(iri)) => Ok(Some(iri)),
+        Some(other) => Err(sugar_err(format!(
+            "logic:JoinLeg.{local} must be an IRI (a record → endpoint/value predicate), not {}",
+            term_str(&other)
+        ))),
+    }
+}
+
+/// Read ONE `logic:JoinLeg` (a member of a `logic:joinPath` list): the required source / target /
+/// value predicates plus the optional record type. A leg missing any of the three predicates is a
+/// hard skip (the whole join-aggregate record degrades to one MALFORMED_CONSTRAINT warning); a
+/// leg carrying a non-IRI (literal or blank node) value for any of the four is likewise rejected —
+/// see [`read_leg_iri`].
+fn read_join_leg(store: &RdfDataset, leg: &Subject) -> gmeow_errors::Result<JoinLeg> {
+    let source = read_leg_iri(store, leg, "legSource")?.ok_or_else(|| {
+        sugar_err("logic:JoinLeg requires logic:legSource (record → source endpoint)")
+    })?;
+    let target = read_leg_iri(store, leg, "legTarget")?.ok_or_else(|| {
+        sugar_err("logic:JoinLeg requires logic:legTarget (record → target endpoint)")
+    })?;
+    let val = read_leg_iri(store, leg, "legValue")?.ok_or_else(|| {
+        sugar_err("logic:JoinLeg requires logic:legValue (record → numeric leaf value)")
+    })?;
+    let record_type = read_leg_iri(store, leg, "legRecordType")?;
+    JoinLeg::new(record_type, source, target, val)
+}
+
+/// P9 / join-aggregate — a multi-hop-join product-aggregate constraint: a `logic:onClass` focus, an
+/// ordered `logic:joinPath` of at least two `logic:JoinLeg`s (each a reified relation record with a
+/// source / target / value predicate), a `logic:aggFunction` (SUM for ∂²), a `logic:aggComparator`
+/// invariant, and a fixed literal `logic:aggThreshold`. Expands to a [`ConstraintIr`] carrying BOTH
+/// the honest reified FOL integrity (`joinAggregateComparison(this, fn, cmp, thr)`, guarded by the
+/// class so the target derives) AND the structured [`JoinAggregate`] satellite (which drives the
+/// real multi-hop-join `GROUP BY`/`HAVING` SPARQL projection). Generalizes
+/// [`read_aggregate_constraint`] from a single-predicate focus aggregate to a chained-join product
+/// aggregate; it is the sanctioned home of the general-CW ∂²=0 conformance check.
+fn read_join_aggregate_constraint(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
+    let class = sugar_target_class(store, node)?;
+    let function = value(store, node, &nn(&logic_iri("aggFunction")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| sugar_err("logic:JoinAggregateConstraint requires logic:aggFunction"))?;
+    let comparator = value(store, node, &nn(&logic_iri("aggComparator")))
+        .map(|t| term_str(&t))
+        .and_then(|s| AggregateComparator::from_symbol(&s))
+        .ok_or_else(|| {
+            sugar_err(
+                "logic:JoinAggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=",
+            )
+        })?;
+    let (threshold_lexical, threshold_datatype) = match value(
+        store,
+        node,
+        &nn(&logic_iri("aggThreshold")),
+    ) {
+        Some(Node::Lit {
+            lexical, datatype, ..
+        }) => (lexical, datatype),
+        _ => {
+            return Err(sugar_err(
+                "logic:JoinAggregateConstraint requires a literal logic:aggThreshold (the fixed \
+                 comparison value, e.g. 0)",
+            ));
+        }
+    };
+    // The ordered join path: an rdf:List whose members are the JoinLeg records, read in list order
+    // (order is semantic — the chain composes leg[k].target into leg[k+1].source).
+    let head = value(store, node, &nn(&logic_iri("joinPath"))).ok_or_else(|| {
+        sugar_err("logic:JoinAggregateConstraint requires logic:joinPath (an rdf:List of ≥2 logic:JoinLeg)")
+    })?;
+    let leg_subjects = read_list_member_subjects(store, &head);
+    let mut legs = Vec::with_capacity(leg_subjects.len());
+    for leg in &leg_subjects {
+        legs.push(read_join_leg(store, leg)?);
+    }
+    let ja = JoinAggregate::new(
+        function,
+        legs,
+        comparator,
+        threshold_lexical,
+        threshold_datatype,
+    )?;
+
+    // The honest reified FOL integrity: a single reified `joinAggregateComparison` predication over
+    // the focus, guarded by the target class so the target derives. It carries the aggregate
+    // function, the comparator, and the threshold; the structured leg chain lives in the satellite,
+    // which drives the real multi-hop-join GROUP BY/HAVING SPARQL projection.
+    let threshold_term =
+        Term::literal(ja.threshold_lexical.clone(), ja.threshold_datatype.clone())?;
+    let reified = Formula::atom(
+        Term::iri(logic_iri("joinAggregateComparison"))?,
+        vec![
+            t_var("this"),
+            Term::literal(ja.function.clone(), None)?,
+            Term::literal(ja.comparator.as_sparql(), None)?,
+            threshold_term,
+        ],
+    )?;
+    let integrity = f_forall_this(f_guard_class(&class)?, reified);
+    Ok(finalize_sugar(store, node, integrity)?.with_join_aggregate(ja))
+}
+
 /// The double-entry balance sugar (`logic:AggregateBalanceConstraint`): a target class + the seven
 /// predicate/value bindings of an [`AggregateBalance`]. Expands to a canonical guarded universal
 /// carrying an honest reified `balancedByGroup` FOL predication (so the FOL canon is complete + the
@@ -4669,7 +5188,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
-    let readers: [(&str, Reader); 17] = [
+    let readers: [(&str, Reader); 18] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -4681,6 +5200,7 @@ fn extract_sugar_constraints(
         ("ForbiddenPatternConstraint", read_forbidden_pattern),
         ("ValueRangeConstraint", read_value_range),
         ("AggregateConstraint", read_aggregate_constraint),
+        ("JoinAggregateConstraint", read_join_aggregate_constraint),
         (
             "AggregateBalanceConstraint",
             read_aggregate_balance_constraint,
@@ -4803,13 +5323,19 @@ pub fn parse_logic_dataset(
     let mut constraints = extract_constraints(store, &mut diagnostics, &malformed_formulas);
     constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
 
+    // Authored `logic:ReasoningProgram` clause-set-plus-goal individuals. A structurally
+    // malformed program emits an error-grade MALFORMED_REASONING_PROGRAM diagnostic above
+    // and is excluded here; every other authored program still compiles.
+    let reasoning_programs = extract_reasoning_programs(store, &mut diagnostics);
+
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
         .with_correspondences(correspondences)
         .map_err(|e| LogicParseError(e.message().to_owned()))?
         .with_transaction_programs(transaction_programs)
         .with_formulas(formulas)
-        .with_constraints(constraints);
+        .with_constraints(constraints)
+        .with_reasoning_programs(reasoning_programs);
     Ok((program, diagnostics))
 }
 

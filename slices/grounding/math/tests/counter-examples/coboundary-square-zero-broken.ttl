@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: a math:CochainComplex with a codimension-2 co-composition path
+# (vertexA ◁ edgeB ◁ faceC) that has NO distinct partner coface — a broken co-diamond,
+# so δ∘δ ≠ 0. It fires math:CoboundarySquareZeroConstraint (the regular/simplicial
+# co-diamond, shacl.SPARQLConstraintComponent → math:BrokenCoboundarySquareZero) and NO
+# other finding: it names its math:cochainCoboundary (so the cochain-complex frame is
+# satisfied), carries no math:CellIncidence (so the general-sum constraint is silent),
+# is not a math:SimplicialComplex (so the boundary constraint does not target it), and
+# every cell declares its math:cellDimension.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coboundary-broken/> .
+
+ex:broken a math:CochainComplex ;
+    math:cochainCoboundary ex:delta ;
+    math:hasCell ex:faceC , ex:edgeB , ex:vertexA .
+ex:delta a math:CoboundaryOperator .
+
+ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+
+# The lone co-composition vertexA ◁ edgeB ◁ faceC (incidentTo read upward): edgeB is
+# the only coface of vertexA that is a face of faceC, so it has no cancelling partner.
+ex:faceC a math:Cell ; math:cellDimension ex:dim2 ; math:incidentTo ex:edgeB .
+ex:edgeB a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexA .
+ex:vertexA a math:Cell ; math:cellDimension ex:dim0 .
