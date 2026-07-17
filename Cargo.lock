@@ -1596,6 +1596,7 @@ dependencies = [
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",
+ "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-music",
