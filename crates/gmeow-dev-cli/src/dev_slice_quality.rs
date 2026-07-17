@@ -340,13 +340,22 @@ fn is_grounding_slice(slice_dir: &Path) -> bool {
         .any(|w| w[0] == "slices" && w[1] == "grounding")
 }
 
-/// The `make check` opt-in tier ratchet gate.
+/// The `make check` opt-in tier ratchet gate, over the real repository root.
 ///
 /// For every slice that declares `gmeow:sliceQualityTier`: the measured roll-up
 /// must be ≥ the declared tier, and the declared tier must be ≥ the committed
 /// floor. Undeclared slices are advisory and never fail. Exit 1 on any failure.
 pub fn slice_quality_gate() -> i32 {
-    let root = project_root();
+    slice_quality_gate_at(&project_root())
+}
+
+/// The root-parameterized core of [`slice_quality_gate`]: run the whole opt-in
+/// ratchet gate against `repo_root` rather than the hardwired [`project_root`], so the
+/// gate can be driven end-to-end against a fixture repository (dependency-injected
+/// root) instead of only the live checkout. The public zero-argument
+/// [`slice_quality_gate`] is the thin `make check` entry point over `project_root()`.
+pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
+    let root = repo_root.to_path_buf();
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
@@ -2431,6 +2440,120 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
                 .any(|v| v.contains("sliceDemo") && v.contains("DELETED")),
             "a still-live non-rubric floor deletion must red naming the slice: {:?}",
             mono.violations
+        );
+    }
+}
+
+/// End-to-end coverage of the ratchet gate's floor ENFORCEMENT after the
+/// governance-source widening — both the gate's per-axis floor DECISION over a floor
+/// authored in a NON-rubric slice, and the whole real-repository gate driven through the
+/// extracted root-parameterized [`slice_quality_gate_at`].
+#[cfg(test)]
+mod gate_enforcement_tests {
+    use super::*;
+    use gmeow_slice_quality::gate::evaluate_axis_floor;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    struct TempFixture {
+        root: std::path::PathBuf,
+    }
+    impl Drop for TempFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.root);
+        }
+    }
+
+    /// A minimal on-disk fixture repo (no git): a complete rubric slice plus a
+    /// non-rubric demo slice authoring one `gmeow:AxisFloorCommitment` at `floor`.
+    fn fixture_with_non_rubric_floor(floor: &str) -> TempFixture {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let mut root = std::env::temp_dir();
+        root.push(format!("gmeow-gate-enforce-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::create_dir_all(&demo_dir).unwrap();
+        std::fs::write(
+            rubric_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 .
+gmeow:axisGmn1Coverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "gmn1_coverage_axis" ;
+    gmeow:axisDimension gmeow:dimGmn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrGmn .
+gmeow:thrGmn a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(rubric_dir.join("manifest.ttl"), "# rubric slice\n").unwrap();
+        std::fs::write(
+            demo_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+gmeow:afc-demo a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceDemo ;
+    gmeow:floorAxis gmeow:axisGmn1Coverage ;
+    gmeow:floorValue {floor} .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
+        TempFixture { root }
+    }
+
+    #[test]
+    fn a_non_rubric_slice_floor_is_enforced_by_the_gate_per_axis_decision() {
+        // A floor committed at 1.0 in a NON-rubric slice's module.ttl.
+        let fx = fixture_with_non_rubric_floor("1.0");
+        let slice = format!("{NS}sliceDemo");
+
+        // The gate reads floors through the same segregated loader; project them into the
+        // (slice, axis-local) → floor map the per-axis floor pass consumes.
+        let rubric = gmeow_slice_quality::load_repo_rubric(&fx.root).unwrap();
+        let axis_floors = axis_floors_from_rubric(&rubric).unwrap();
+
+        // The gate's per-axis floor RESOLUTION (`axis_floor_for`) now RESOLVES the
+        // non-rubric floor — before the widening the loader never saw it, so this
+        // returned None and the axis went silently unfloored.
+        let resolved = axis_floor_for(&axis_floors, &slice, "axisGmn1Coverage", false)
+            .unwrap()
+            .expect("the non-rubric slice's committed floor is resolved by the gate");
+        assert_eq!(resolved, 1.0);
+
+        // The gate's per-axis VERDICT reds a measured score below the committed floor,
+        // and passes one that meets it — exactly the decision the gate emits per grade.
+        assert!(
+            evaluate_axis_floor(0.5, resolved).is_failure(),
+            "a measured score below the committed non-rubric floor must red the gate"
+        );
+        assert!(
+            !evaluate_axis_floor(1.0, resolved).is_failure(),
+            "a measured score meeting the floor must not red"
+        );
+    }
+
+    #[test]
+    fn the_real_repository_slice_quality_gate_is_green_end_to_end() {
+        // Drive the WHOLE gate through the extracted root-parameterized entry against the
+        // live checkout. Exit 0 confirms (a) `slice_quality_gate_at` runs end-to-end and
+        // (b) the governance-source widening did not red the real gate — only the rubric
+        // slice authors floors today, so the union equals the pre-widening set. This is
+        // the production-surface analog of the `make check` slice-quality gate.
+        assert_eq!(
+            slice_quality_gate_at(&project_root()),
+            0,
+            "the real-repo slice-quality gate must stay green after the governance-source widening"
         );
     }
 }
