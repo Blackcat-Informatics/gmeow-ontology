@@ -516,10 +516,21 @@ fn lower_reasoning_program(
     };
 
     let mut clauses = Vec::with_capacity(program.clauses.len());
-    for clause_formula in &program.clauses {
+    for (idx, clause_formula) in program.clauses.iter().enumerate() {
         let mut scope: VarScope = HashMap::new();
         let clause = lower_clause(&mut dag, &program.iri, clause_formula, &mut scope)?;
-        let clause_sorts = sorts_in_scope(&VariableSortScope::Clause(clause_formula.content_key()));
+        // The scope is keyed by `content_key` PLUS the clause's occurrence index among clauses
+        // sharing that key (the number of prior such clauses). `program.clauses` is the
+        // post-`ReasoningProgramIr::new` order; because `new` sorts clauses STABLY and two
+        // clauses with an identical `content_key` have an identical `sort_key`, this occurrence
+        // index matches the one the frontend recorded — so two structurally-identical clauses
+        // with different `logic:variableSort` declarations each draw their OWN scope's sorts.
+        let key = clause_formula.content_key();
+        let occurrence = program.clauses[..idx]
+            .iter()
+            .filter(|prior| prior.content_key() == key)
+            .count();
+        let clause_sorts = sorts_in_scope(&VariableSortScope::Clause { key, occurrence });
         for (name, (meta, _)) in &scope {
             if let Some(sort_iri) = clause_sorts.get(name.as_str()) {
                 let sort_node = leaf(&mut dag, sort_iri);
@@ -1466,6 +1477,84 @@ mod tests {
             "without the reasoned ℤ⊑ℝ edge, an Integer constant does NOT bind a RealNumber \
              variable — order-sortedness comes from subsort_edges, not a hardcoded tower: {:?}",
             positive_no_edges.answers
+        );
+    }
+
+    /// Two STRUCTURALLY-IDENTICAL clauses `p(X)`, one declaring `X:Nat` and one `X:Real`. They
+    /// share a `Formula::content_key` (a `logic:variableSort` is harvested separately, not part
+    /// of the clause AST), so ONLY the per-clause occurrence-index disambiguation keeps their
+    /// scopes distinct. Proves consequence #2 of the residual bug is closed: each clause lowers
+    /// under its OWN sort, never one scope's declarations bleeding into the other's `X`.
+    const DUP_CLAUSES_DISTINCT_SORTS_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        \n\
+        ex:dupSorts a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"R\" ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ;\n\
+                                  logic:variableSort ex:Nat ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:p ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ;\n\
+                                  logic:variableSort ex:Real ]\n\
+            ] .\n\
+    ";
+
+    #[test]
+    fn identical_clauses_with_distinct_sorts_each_lower_under_their_own_sort() {
+        const EX: &str = "https://example.org/goal-directed-test/";
+        let (prog, diags) =
+            gmeow_logic_compile::frontend::parse_logic_str(DUP_CLAUSES_DISTINCT_SORTS_TTL, None)
+                .expect("parse succeeds");
+        // Consequence #1 closed: the two identical clauses are ACCEPTED, not falsely rejected
+        // by `ReasoningProgramIr::new`'s intra-scope conflict guard.
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "two identical clauses with different variable sorts must be accepted: {diags:#?}"
+        );
+        assert_eq!(prog.reasoning_programs.len(), 1);
+        let rp = &prog.reasoning_programs[0];
+        assert_eq!(rp.clauses.len(), 2, "both identical clauses are retained");
+
+        // Lower directly (the SOLE production path) and inspect the per-metavariable sort map.
+        let built = lower_reasoning_program(rp, &[]).expect("lower the compiled program");
+        let BuiltDemonstrator {
+            mut dag, program, ..
+        } = built;
+        // Exactly two sorted metavariables: clause-0's X (Nat) and clause-1's X (Real). The
+        // query variable R carries no sort, so it is absent. If the scopes had collided (the
+        // bug), a single clause scope would have carried BOTH sorts and lowering would apply an
+        // ambiguous sort — here each clause's X gets exactly its own.
+        assert_eq!(
+            program.meta_sorts.len(),
+            2,
+            "each identical clause's X is a distinct sorted metavariable: {:?}",
+            program.meta_sorts
+        );
+        // Hash-consing: re-interning a sort IRI returns the SAME NodeId lowering used, so the
+        // two authored sorts must BOTH appear among the metavariable sort tags.
+        let nat = leaf(&mut dag, &format!("{EX}Nat"));
+        let real = leaf(&mut dag, &format!("{EX}Real"));
+        let sort_nodes: std::collections::HashSet<NodeId> =
+            program.meta_sorts.values().copied().collect();
+        assert!(
+            sort_nodes.contains(&nat),
+            "one identical clause's X lowers under ex:Nat: {:?}",
+            program.meta_sorts
+        );
+        assert!(
+            sort_nodes.contains(&real),
+            "the other identical clause's X lowers under ex:Real: {:?}",
+            program.meta_sorts
         );
     }
 

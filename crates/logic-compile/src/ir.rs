@@ -2678,26 +2678,69 @@ impl EvaluationMode {
 /// A scope is identified by the CONTENT KEY of the clause/probe it belongs to (stable across
 /// the canonical clause sort [`ReasoningProgramIr::new`] applies), never a positional index —
 /// so the scope survives reordering exactly like every other content-addressed identity here.
+///
+/// A content key alone is NOT unique: two STRUCTURALLY-IDENTICAL clauses (say `p(X):-q(X)`
+/// authored twice, one with `X:Nat` and one with `X:Real`) share a `content_key`, yet they
+/// are DIFFERENT variable scopes whose `X`s must carry different sorts. The `occurrence`
+/// disambiguates them: it is the number of PRIOR clauses (resp. probes) sharing the same
+/// `content_key`, so the *n*-th occurrence of a given key is scope *n*. This index is stable
+/// across [`ReasoningProgramIr::new`]'s clause canonicalization: `new` sorts clauses with a
+/// STABLE sort (`sort_by_cached_key(Formula::sort_key)`) and two clauses with an identical
+/// `content_key` have an identical `sort_key` (`Formula::sort_key == Formula::content_key`),
+/// so their relative order — and hence each one's occurrence index — is preserved between the
+/// frontend's authoring order and the post-sort order the lowerer walks.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VariableSortScope {
-    /// A variable occurring in the clause whose [`Formula::content_key`] is given.
-    Clause(String),
+    /// A variable occurring in the clause whose [`Formula::content_key`] is `key`, further
+    /// disambiguated by `occurrence` (the number of prior clauses sharing that same key) so
+    /// two structurally-identical clauses with different `logic:variableSort` declarations key
+    /// distinct scopes.
+    Clause {
+        /// The owning clause's [`Formula::content_key`].
+        key: String,
+        /// The clause's occurrence index among clauses sharing that `content_key`.
+        occurrence: usize,
+    },
     /// A variable occurring in the single program query.
     Query,
-    /// A variable occurring in the verdict probe whose [`Formula::content_key`] is given.
+    /// A variable occurring in the verdict probe whose [`Formula::content_key`] is `key`,
+    /// disambiguated by `occurrence` exactly as for [`Self::Clause`].
     /// (A probe MUST be ground — see [`ReasoningProgramIr::new`] — so this scope carries no
     /// declarations in practice; it exists so the scope taxonomy is total over every position
     /// a `logic:variableSort` could syntactically attach to.)
-    Probe(String),
+    Probe {
+        /// The owning probe's [`Formula::content_key`].
+        key: String,
+        /// The probe's occurrence index among probes sharing that `content_key`.
+        occurrence: usize,
+    },
 }
 
 impl VariableSortScope {
     /// A stable string token for this scope, folded into [`ReasoningProgramIr::content_key`].
+    ///
+    /// The occurrence suffix is emitted ONLY for `occurrence > 0`, so a program with no
+    /// duplicate-`content_key` clauses/probes (every occurrence is 0 — the case for the entire
+    /// shipped corpus) produces the exact same token it did before occurrence disambiguation
+    /// existed, keeping [`ReasoningProgramIr::content_key`] / [`LogicProgram::canonical_key`] /
+    /// the shipped `gmeow.gts` byte-identical.
     fn key_token(&self) -> String {
         match self {
-            VariableSortScope::Clause(k) => format!("clause{SEP}{k}"),
+            VariableSortScope::Clause { key, occurrence } => {
+                if *occurrence == 0 {
+                    format!("clause{SEP}{key}")
+                } else {
+                    format!("clause{SEP}{key}{SEP}{occurrence}")
+                }
+            }
             VariableSortScope::Query => "query".to_owned(),
-            VariableSortScope::Probe(k) => format!("probe{SEP}{k}"),
+            VariableSortScope::Probe { key, occurrence } => {
+                if *occurrence == 0 {
+                    format!("probe{SEP}{key}")
+                } else {
+                    format!("probe{SEP}{key}{SEP}{occurrence}")
+                }
+            }
         }
     }
 }
