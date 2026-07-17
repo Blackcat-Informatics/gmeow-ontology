@@ -63,19 +63,35 @@ fn objects_of<'a>(
         .collect()
 }
 
-/// The query node IRI for one goal-directed demonstrator (matches
-/// `gmeow_logic::goal_directed::query_iri`'s `"{GMEOW}goal-directed/{name}"` minting).
-fn query_iri(name: &str) -> String {
-    format!("{GMEOW}goal-directed/{name}")
+/// Locate a demonstrator's query-node SUBJECT by its (unchanged) `{GMEOW}goalDirectedName`
+/// literal, rather than by constructing an IRI from `name`.
+///
+/// The projected query-node IRI carries a trailing content hash of the demonstrator's
+/// authored `logic:ReasoningProgram` IRI (`{GMEOW}goal-directed/{name}/{blake3hash}`, see
+/// `gmeow_logic::goal_directed::query_iri`), so it can never be reconstructed from `name`
+/// alone. Looking the subject up by its `goalDirectedName` literal instead makes this test
+/// robust to the query-node IRI scheme.
+fn query_node<'a>(triples: &'a [(String, String, String)], name: &str) -> &'a str {
+    let name_pred = format!("{GMEOW}goalDirectedName");
+    triples
+        .iter()
+        .find(|(_, p, o)| p == &name_pred && o == name)
+        .map(|(s, _, _)| s.as_str())
+        .unwrap_or_else(|| panic!("no query node found with {name_pred} {name:?}"))
+}
+
+/// Every answer-node subject reachable from `name`'s query node via `hasGoalDirectedAnswer`.
+fn answer_nodes<'a>(triples: &'a [(String, String, String)], name: &str) -> Vec<&'a str> {
+    let q = query_node(triples, name);
+    let has_answer = format!("{GMEOW}hasGoalDirectedAnswer");
+    objects_of(triples, q, &has_answer)
 }
 
 /// The rendered `goalDirectedAtom` of every answer reachable from `name`'s query node via
 /// `hasGoalDirectedAnswer`.
 fn answers_of(triples: &[(String, String, String)], name: &str) -> Vec<String> {
-    let q = query_iri(name);
-    let has_answer = format!("{GMEOW}hasGoalDirectedAnswer");
     let atom_pred = format!("{GMEOW}goalDirectedAtom");
-    objects_of(triples, &q, &has_answer)
+    answer_nodes(triples, name)
         .into_iter()
         .flat_map(|answer| objects_of(triples, answer, &atom_pred))
         .map(str::to_owned)
@@ -85,10 +101,8 @@ fn answers_of(triples: &[(String, String, String)], name: &str) -> Vec<String> {
 /// The rendered `goalDirectedBinding` ("<var> = <surface>") of every answer reachable from
 /// `name`'s query node via `hasGoalDirectedAnswer`.
 fn bindings_of(triples: &[(String, String, String)], name: &str) -> Vec<String> {
-    let q = query_iri(name);
-    let has_answer = format!("{GMEOW}hasGoalDirectedAnswer");
     let binding_pred = format!("{GMEOW}goalDirectedBinding");
-    objects_of(triples, &q, &has_answer)
+    answer_nodes(triples, name)
         .into_iter()
         .flat_map(|answer| objects_of(triples, answer, &binding_pred))
         .map(str::to_owned)
@@ -98,11 +112,11 @@ fn bindings_of(triples: &[(String, String, String)], name: &str) -> Vec<String> 
 /// The `(goalDirectedVerdictAtom, goalDirectedVerdict)` pairs of every verdict reachable from
 /// `name`'s query node via `hasGoalDirectedVerdict`.
 fn verdicts_of(triples: &[(String, String, String)], name: &str) -> Vec<(String, String)> {
-    let q = query_iri(name);
+    let q = query_node(triples, name);
     let has_verdict = format!("{GMEOW}hasGoalDirectedVerdict");
     let atom_pred = format!("{GMEOW}goalDirectedVerdictAtom");
     let verdict_pred = format!("{GMEOW}goalDirectedVerdict");
-    objects_of(triples, &q, &has_verdict)
+    objects_of(triples, q, &has_verdict)
         .into_iter()
         .flat_map(|verdict| {
             let atoms = objects_of(triples, verdict, &atom_pred);
@@ -156,6 +170,30 @@ fn shipped_bundle_goal_directed_graph_is_nonvacuous() {
         "peanoAdd: expected the answer atom {peano_atom:?}, got {peano_answers:?}"
     );
 
+    // peanoAdd (proof-carrying, CodeRabbit #15): the shipped answer is not merely PRESENT —
+    // it carries the proof-checked flag AND a non-empty derivation IRI, proving the answer is
+    // genuinely proof-carrying rather than a bare atom/binding pair.
+    let atom_pred = format!("{GMEOW}goalDirectedAtom");
+    let proof_checked_pred = format!("{GMEOW}goalDirectedProofChecked");
+    let derivation_pred = format!("{GMEOW}goalDirectedDerivation");
+    let peano_answer_node = answer_nodes(&triples, "peanoAdd")
+        .into_iter()
+        .find(|answer| objects_of(&triples, answer, &atom_pred).contains(&peano_atom.as_str()))
+        .unwrap_or_else(|| {
+            panic!("peanoAdd: expected an answer node carrying atom {peano_atom:?}")
+        });
+    let peano_proof_checked = objects_of(&triples, peano_answer_node, &proof_checked_pred);
+    assert_eq!(
+        peano_proof_checked,
+        vec!["true"],
+        "peanoAdd: expected goalDirectedProofChecked \"true\", got {peano_proof_checked:?}"
+    );
+    let peano_derivation = objects_of(&triples, peano_answer_node, &derivation_pred);
+    assert!(
+        !peano_derivation.is_empty() && peano_derivation.iter().all(|d| !d.is_empty()),
+        "peanoAdd: expected a non-empty goalDirectedDerivation IRI, got {peano_derivation:?}"
+    );
+
     // reachability: both reachable-pair answer atoms.
     let reach_answers = answers_of(&triples, "reachability");
     for expected in [
@@ -206,16 +244,16 @@ fn shipped_bundle_goal_directed_graph_is_nonvacuous() {
     // mathSubsortControl (R6 presence-of-absence): status "ok" AND zero answers — a positive
     // assertion that the empty result is a real "ok, zero answers", not a silently dropped
     // program masquerading as a correct empty result.
-    let control_query = query_iri("mathSubsortControl");
+    let control_query = query_node(&triples, "mathSubsortControl");
     let status_pred = format!("{GMEOW}goalDirectedStatus");
-    let control_status = objects_of(&triples, &control_query, &status_pred);
+    let control_status = objects_of(&triples, control_query, &status_pred);
     assert_eq!(
         control_status,
         vec!["ok"],
         "mathSubsortControl: expected status \"ok\", got {control_status:?}"
     );
     let has_answer_pred = format!("{GMEOW}hasGoalDirectedAnswer");
-    let control_answer_edges = objects_of(&triples, &control_query, &has_answer_pred);
+    let control_answer_edges = objects_of(&triples, control_query, &has_answer_pred);
     assert!(
         control_answer_edges.is_empty(),
         "mathSubsortControl: expected ZERO hasGoalDirectedAnswer edges, got {control_answer_edges:?}"
@@ -225,8 +263,8 @@ fn shipped_bundle_goal_directed_graph_is_nonvacuous() {
     // structural type, not just loose literal triples.
     let query_type = format!("{GMEOW}GoalDirectedQuery");
     for name in &names {
-        let q = query_iri(name);
-        let types = objects_of(&triples, &q, RDF_TYPE);
+        let q = query_node(&triples, name);
+        let types = objects_of(&triples, q, RDF_TYPE);
         assert!(
             types.contains(&query_type.as_str()),
             "{name}: expected {q} to carry rdf:type gmeow:GoalDirectedQuery, got {types:?}"
