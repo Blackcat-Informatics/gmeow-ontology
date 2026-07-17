@@ -4,17 +4,17 @@ assertion_line: 192
 expression: coverage
 ---
 {
-  "docs/missing-annotation-coat": 3642,
-  "docs/missing-competency-rationale": 5097,
+  "docs/missing-annotation-coat": 3643,
+  "docs/missing-competency-rationale": 5112,
   "docs/missing-definition": 1,
-  "docs/missing-example": 3611,
-  "docs/missing-fixture-pair": 5106,
+  "docs/missing-example": 3623,
+  "docs/missing-fixture-pair": 5121,
   "docs/missing-label": 1,
-  "docs/missing-prose-quality": 5299,
+  "docs/missing-prose-quality": 5314,
   "docs/missing-realized-state": 79,
-  "docs/missing-scope-note": 5219,
-  "docs/missing-test-reach": 4713,
+  "docs/missing-scope-note": 5234,
+  "docs/missing-test-reach": 4728,
   "docs/missing-translation-coverage": 5000,
-  "docs/missing-usage-advice": 3630,
-  "docs/missing-worked-instance": 4639
+  "docs/missing-usage-advice": 3631,
+  "docs/missing-worked-instance": 4654
 }
