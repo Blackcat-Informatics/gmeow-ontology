@@ -8033,6 +8033,86 @@ logic:SequenceMarker
     skos:definition "A variadic argument placeholder (the Common Logic '…x' form) that binds a sequence of terms rather than a single term, generalizing the fixed arity-three atom to predications of any arity. A term-carrier argument whose value is a logic:termSequenceMarker denotes one; keeping it a distinct kind stops a single-term variable from being mistaken for a sequence one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# ── The authored logic:ReasoningProgram surface (TBox + RBox) ─────────────────
+# A general, mode-annotated authoring envelope over the EXISTING clause
+# constructs above: logic:Formula atoms/Horn rules via logic:antecedent /
+# logic:consequent, logic:not for negated body literals, and
+# logic:termApplication / logic:FunctionTerm / logic:functionSymbol for
+# compound terms. It mints no second clause language — a logic:ReasoningProgram
+# is a named clause set plus a goal, evaluated under a selected strategy.
+
+logic:ReasoningProgram
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Program"@x-gmeow-english ;
+    skos:definition "A named clause set evaluated under a selected strategy: the authored surface that drives the native reasoning engine directly from slice content. A logic:ReasoningProgram carries a set of logic:clause atoms — facts and Horn rules, the SAME logic:Formula clause shape the forward relational-core lane already consumes, so there is no separate clause language — exactly one logic:programQuery goal atom whose logic:termVariable term-carriers are the answer variables the engine binds, zero or more logic:verdictProbe atoms whose three-valued well-founded verdict is projected independently of the query's bindings, and exactly one logic:evaluationMode selecting the evaluation strategy. 'Backward' resolution is a STRATEGY over a clause set, not a kind of program: keeping the mode a selector on a shared clause set, rather than splitting programs into forward and backward kinds, is what lets the SAME authored clauses later be evaluated forward once a chase strategy is added, without re-authoring."@x-gmeow-english ;
+    skos:example "A program with two logic:clause facts, a rule concluding path(X,Z) from edge(X,Y) and path(Y,Z), one logic:programQuery path(a, V), and logic:evaluationMode logic:BackwardEvaluation resolves V by goal-directed SLG-WFS backward resolution over the clause set."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author a separate forward-only or backward-only program class; author one logic:ReasoningProgram and select the strategy on logic:evaluationMode, since the clause set itself is strategy-neutral."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Author one or more logic:clause facts/rules using the existing logic:Formula / logic:antecedent / logic:consequent / logic:not shape, attach exactly one logic:programQuery goal atom, optionally attach logic:verdictProbe atoms, and select exactly one logic:evaluationMode."@x-gmeow-english ;
+    gmeow:useWhen "Use when a slice needs to author a normal logic program — a clause set plus a goal query — directly as data the native engine evaluates, rather than describing reasoning behavior only in prose."@x-gmeow-english .
+
+logic:EvaluationMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Mode"@x-gmeow-english ;
+    skos:definition "The closed value class of the evaluation strategy a logic:ReasoningProgram selects via logic:evaluationMode — which procedure resolves the SAME authored clause set. Its sole individual today is logic:BackwardEvaluation, the goal-directed SLG-WFS backward-resolution strategy; the set is closed and a misspelt or otherwise-unrecognized value is rejected. A forward chase over the identical clause shape is a future member of this same closed set, not a competing program kind, which is why evaluation strategy is carried as a selector value rather than a class distinction on logic:ReasoningProgram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:BackwardEvaluation
+    a owl:NamedIndividual ,
+        logic:EvaluationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Backward Evaluation"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationMode value selecting goal-directed SLG-WFS backward resolution: subsumptive demand-driven answer keying (SLG tabling), structured-term unification over logic:FunctionTerm arguments, explicit proof objects for each derived answer, and three-valued well-founded negation for logic:not-negated body literals. The one evaluation strategy this vocabulary supports today; contrast a future forward-chase member of logic:EvaluationMode over the identical clause set."@x-gmeow-english .
+
+logic:evaluationMode
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:EvaluationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluation mode"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to the single logic:EvaluationMode strategy it selects to resolve its clause set. Functional: a program selects exactly one strategy, never a mix. An unrecognized or unsupported mode value is a HARD FAIL at compile time — explicit feature selection under the closed logic:EvaluationMode set, never a silent fallback to a weaker or default strategy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:clause
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "clause"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to each authored clause: an atomic fact or a Horn rule whose logic:antecedent body atoms entail its logic:consequent head, with any body atom optionally logic:not-negated. Reuses the SAME logic:Formula clause shape the forward relational-core lane already lowers from — there is no separate, program-specific clause language. Multi-valued; a program with no clauses is malformed (logic:ReasoningProgramClauseConstraint)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:programQuery
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "program query"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to the single goal atom it resolves against its clause set. Functional: a program declares exactly one goal (logic:ReasoningProgramQueryConstraint requires it; the owl:FunctionalProperty declaration caps it at one). The goal's logic:termVariable term-carriers are the answer variables the engine binds and returns, distinct from a logic:verdictProbe atom's three-valued verdict projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:verdictProbe
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReasoningProgram ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "verdict probe"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningProgram to zero or more atoms whose three-valued (true/false/undefined) well-founded verdict is projected as a standalone win/move-style check, rather than an answer-variable binding. Distinct from logic:programQuery: a probe reports which of the three verdicts an atom carries under the well-founded model, while the query resolves variable bindings for its single goal. Multi-valued; a program may carry no probes at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:variableSort
+    a owl:ObjectProperty ;
+    rdfs:domain logic:TermCarrier ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "variable sort"@x-gmeow-english ;
+    skos:definition "Assigns an order-sort to a variable term-carrier: the reasoned class (any math:, logic:, or domain-slice owl:Class, not only the numeric tower) the term-carrier's bound variable ranges over, consumed to build the order-sorted unification context a backward-resolution engine unifies structured terms under. It is ONE case of a general sort-assignment pattern, not a variable-only special case: logic:variableSort is the named extension point where a future logic:functionSort (assigning a rank/sort signature to a function symbol rather than a variable) slots in, so nothing here precludes rank-sorted compound terms later. It is not a value restriction on an ordinary OWL property; it is metadata the typed-IR frontend reads to seed sort-checked unification."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:hasFormula
     a owl:ObjectProperty ;
     rdfs:range logic:Formula ;
@@ -8200,6 +8280,29 @@ logic:AggregateConstraint
     gmeow:howToUse "Specify the target, aggregate function, path, comparator, and literal or property-valued right-hand side; request DISTINCT only when duplicate values must collapse."@x-gmeow-english ;
     gmeow:useWhen "Use when validity depends on COUNT, SUM, MIN, or MAX over the values reached by one predicate."@x-gmeow-english .
 
+logic:JoinAggregateConstraint
+    a owl:Class ;
+    logic:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Join Aggregate Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a multi-hop-join product-aggregate constraint (P9): a logic:onClass focus, an ordered logic:joinPath of at least two logic:JoinLeg records (each a reified relation with a logic:legSource / logic:legTarget / logic:legValue predicate and an optional logic:legRecordType), a logic:aggFunction (SUM for ∂²), a logic:aggComparator invariant, and a fixed literal logic:aggThreshold. Each leg hops from an already-bound endpoint through a record to the next endpoint, chaining leg[k].target into leg[k+1].source (the shared join variable); the aggregate is applied to the PRODUCT of the joined leaf values, GROUPED BY the (focus, far-endpoint) tuple, and a violation fires when a group value fails the invariant. It GENERALIZES logic:AggregateConstraint from a single-predicate focus aggregate to a chained-join product aggregate, and is the sanctioned home of the general-CW ∂²=0 conformance check (a SUM of incidence-sign products over composable cells that must equal 0). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured join-aggregate satellite, lowered to a SELECT $this ?far … GROUP BY $this ?far HAVING(…) sh:SPARQLConstraint whose join order uses the incidence index and scales with the number of records, never cells². It is not a single-predicate aggregate (use logic:AggregateConstraint), not a derivation rule (a reduce head belongs on logic:aggregateFunction), and not a cartesian product over cells. Frontend-only authoring shortcut."@x-gmeow-english ;
+    skos:example "ex:boundarySquareZero a logic:JoinAggregateConstraint ; logic:onClass ex:TopCell ; logic:aggFunction \"SUM\" ; logic:aggComparator \"=\" ; logic:aggThreshold 0 ; logic:joinPath ( [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ] [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ] ) ; logic:formalizes ex:BoundaryOperator ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a join-aggregate constraint for a single-predicate focus aggregate (use logic:AggregateConstraint) or for a per-value condition that needs no join; and do not use it to derive triples (a reduce head belongs on a logic:Rule)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the focus class, an ordered joinPath of two or more JoinLeg records whose target/source predicates chain the endpoints, the aggregate function, the invariant comparator, and the fixed literal threshold; each leg's legValue predicate carries the numeric leaf multiplied into the group product."@x-gmeow-english ;
+    gmeow:useWhen "Use when validity depends on an aggregate (typically SUM) of a PRODUCT of leaf values gathered over a multi-hop JOIN and grouped by a pair of endpoints — most canonically the ∂²=0 boundary-composition law of a chain complex."@x-gmeow-english .
+
+logic:JoinLeg
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Join Leg"@x-gmeow-english ;
+    skos:definition "One hop (leg) of a logic:JoinAggregateConstraint's logic:joinPath: a reified relation record whose logic:legSource predicate reaches this leg's source endpoint, whose logic:legTarget predicate reaches its target endpoint, and whose logic:legValue predicate carries the numeric leaf value multiplied into the group product; an optional logic:legRecordType types the record for the index-anchored join. The legs are ORDERED (the list order is semantic) and chain leg[k].target into leg[k+1].source, so a leg is a hop specification, not a data record — it names the predicates the projected SPARQL joins on, never an incidence itself."@x-gmeow-english ;
+    skos:example "[ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]"@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a JoinLeg outside a logic:joinPath list, and do not confuse it with the incidence record it describes: a leg names role/value PREDICATES, not endpoints or signs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Give each leg exactly one logic:legSource, one logic:legTarget, and one logic:legValue predicate (and optionally one logic:legRecordType class); place the legs in composition order inside the joinPath rdf:List."@x-gmeow-english ;
+    gmeow:useWhen "Use as a member of a logic:joinPath to declare one hop of a multi-hop join whose leaf value participates in the group product."@x-gmeow-english .
+
 logic:AggregateBalanceConstraint
     a owl:Class ;
     logic:subClassOf logic:ConstraintSugar ;
@@ -8281,7 +8384,6 @@ logic:termHasLang
     rdfs:label "term has language tag"@x-gmeow-english ;
     skos:definition "A language-tag presence relation the procedural-constraint SPARQL fragment lowers to a unary FILTER ( LANG(x) != \"\" ) over a bound term. The companion to logic:termLangMatches: it restricts a language-tag check to genuinely tagged literals, so a plain or typed literal is never swept into a tag-pattern violation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
-
 logic:onClass
     a owl:ObjectProperty ;
     rdfs:range owl:Class ;
@@ -8436,6 +8538,49 @@ logic:aggCompareTo
     skos:definition "The right-hand side a logic:AggregateConstraint's aggregate is compared to: an IRI object is a compared PROPERTY of the focus ($this <prop> ?rhs), and a literal is a fixed comparison value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:joinPath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "join path"@x-gmeow-english ;
+    skos:definition "The ordered join specification of a logic:JoinAggregateConstraint: an rdf:List of at least two logic:JoinLeg records whose target/source predicates chain the endpoints (leg[k].target is the shared join variable leg[k+1].source re-binds). The list order is SEMANTIC — it is the composition order of the hops — so a joinPath is a traversal specification, not an unordered set of predicates; a single-element list is not a JOIN and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legRecordType
+    a owl:ObjectProperty ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg record type"@x-gmeow-english ;
+    skos:definition "The optional class typing the reified relation record a logic:JoinLeg traverses (e.g. an incidence-record class), emitted as an index-anchoring `?record a <Type>` triple in the projected join and a well-formedness guard. Optional: a leg with no logic:legRecordType is bound solely by its role and value predicates. It types the RECORD node, not the endpoints the leg connects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg source predicate"@x-gmeow-english ;
+    skos:definition "The predicate from a logic:JoinLeg's record to this leg's SOURCE endpoint (record → from). The first leg's source binds to the focus $this; every later leg's source binds to the preceding leg's logic:legTarget (the shared join variable). It names a role PREDICATE the projected SPARQL anchors the join on, never an endpoint node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legTarget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg target predicate"@x-gmeow-english ;
+    skos:definition "The predicate from a logic:JoinLeg's record to this leg's TARGET endpoint (record → to). The intermediate legs' targets are aggregated away (summed over); the LAST leg's target is the far endpoint of the (focus, far-endpoint) group key. It names a role PREDICATE the join binds the next endpoint on, never an endpoint node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:legValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "leg value predicate"@x-gmeow-english ;
+    skos:definition "The predicate from a logic:JoinLeg's record to the numeric leaf value multiplied into the group product (record → value). For the ∂² check it is the incidence sign; the projected SPARQL computes the PRODUCT of every leg's leaf value inside the aggregate. It names the value PREDICATE, not the value literal itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggThreshold
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate threshold"@x-gmeow-english ;
+    skos:definition "The fixed literal value the group aggregate of a logic:JoinAggregateConstraint is tested against under logic:aggComparator (e.g. 0 for ∂²=0). Always a literal: the (focus, far-endpoint) group key already consumes the far endpoint, so unlike logic:aggCompareTo there is no per-focus property right-hand side. The projected sh:SPARQLConstraint HAVING negates the comparator, because a sh:select returns the VIOLATING groups."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:termEqual
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -8503,6 +8648,13 @@ logic:aggregateComparison
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "aggregate comparison"@x-gmeow-english ;
     skos:definition "The reified relation an expanded logic:AggregateConstraint carries as its honest FOL integrity: aggregateComparison(this, function, distinct, path, comparator, rhs). The realized FOL formula core has no aggregate node, so this predication makes the aggregate meaning complete in the FOL canon while the structured satellite drives the real GROUP BY/HAVING SPARQL projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:joinAggregateComparison
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "join aggregate comparison"@x-gmeow-english ;
+    skos:definition "The reified relation an expanded logic:JoinAggregateConstraint carries as its honest FOL integrity: joinAggregateComparison(this, function, comparator, threshold). The realized FOL formula core has neither an aggregate nor a join node, so this predication makes the multi-hop-join product-aggregate meaning complete in the FOL canon while the structured join-aggregate satellite (the ordered leg chain) drives the real multi-hop-join GROUP BY/HAVING SPARQL projection. It carries only the scalar core, not the leg chain, which lives in the satellite."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:forall
@@ -8798,6 +8950,38 @@ logic:FunctionTermArityConstraint
     gmeow:graphBoxRole gmeow:boxCBox ;
     gmeow:howToUse "Require one or more logic:argument carriers on each function term, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
     gmeow:useWhen "Use when validating a compound function-term node reached through a carrier's logic:termApplication."@x-gmeow-english .
+
+logic:ReasoningProgramClauseConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:ReasoningProgram ;
+    logic:onClass logic:ReasoningProgram ;
+    logic:requires logic:clause ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:ReasoningProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Program Clause Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:ReasoningProgram to carry at least one logic:clause. A program with no clauses has nothing to resolve its goal against and is malformed. It is not the query check: the required goal atom is validated separately by logic:ReasoningProgramQueryConstraint."@x-gmeow-english ;
+    skos:example "A logic:ReasoningProgram with a logic:programQuery but no logic:clause violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this constraint to check clause well-formedness; each clause's own logic:Formula constructor-selection constraints apply independently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require one or more logic:Formula-valued logic:clause edges on each declared reasoning program before constructing its clause set."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating an authored logic:ReasoningProgram before compiling it to the native engine's clause set."@x-gmeow-english .
+
+logic:ReasoningProgramQueryConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:ReasoningProgram ;
+    logic:onClass logic:ReasoningProgram ;
+    logic:requires logic:programQuery ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:ReasoningProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Program Query Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:ReasoningProgram to carry a logic:programQuery. Paired with the owl:FunctionalProperty declaration on logic:programQuery (which caps it at one), it makes a program bear EXACTLY one goal atom. It is not the clause-set check: a program's facts and rules are validated separately by logic:ReasoningProgramClauseConstraint."@x-gmeow-english ;
+    skos:example "A logic:ReasoningProgram with logic:clause facts but no logic:programQuery violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a default goal from the clause set; a query-less program is malformed, not defaulted to some implicit answer atom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require exactly one logic:Formula-valued logic:programQuery on each declared reasoning program before constructing its goal."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating an authored logic:ReasoningProgram before compiling it to the native engine's goal resolution."@x-gmeow-english .
 
 logic:TermCarrierIndexConstraint
     a logic:GuardedImplicationConstraint ;
@@ -11661,7 +11845,7 @@ logic:minCardinality
     skos:example "ex:teamRestriction logic:minCardinality 1 ."@x-gmeow-english ;
     skos:scopeNote "The count ranges over all distinct fillers of the selected property."@x-gmeow-english ;
     gmeow:useWhen "Use to require at least a non-negative number of property fillers regardless of their type."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use when only fillers of a qualifying class or datarange should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set a lower bound when only fillers of a qualifying class or datarange should be counted; use logic:minQualifiedCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:minQualifiedCardinality for a qualified count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11674,7 +11858,7 @@ logic:maxCardinality
     skos:example "ex:primaryContactRestriction logic:maxCardinality 1 ."@x-gmeow-english ;
     skos:scopeNote "The count ranges over all distinct fillers of the selected property."@x-gmeow-english ;
     gmeow:useWhen "Use to permit at most a non-negative number of property fillers regardless of their type."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use when only fillers of a qualifying class or datarange should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set an upper bound when only fillers of a qualifying class or datarange should be counted; use logic:maxQualifiedCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair a non-negative integer with logic:onProperty; use logic:maxQualifiedCardinality for a qualified count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11713,7 +11897,7 @@ logic:minQualifiedCardinality
     skos:example "ex:committeeRestriction logic:minQualifiedCardinality 2 ; logic:onClass ex:Member ."@x-gmeow-english ;
     skos:scopeNote "The lower bound applies only to fillers satisfying the one declared qualifier."@x-gmeow-english ;
     gmeow:useWhen "Use when at least a stated number of fillers must satisfy one class or datarange qualifier."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use without exactly one qualifier or when all fillers should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set a lower bound without exactly one qualifier, or when all fillers should be counted; use logic:minCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair the lower bound with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11726,7 +11910,7 @@ logic:maxQualifiedCardinality
     skos:example "ex:leadRestriction logic:maxQualifiedCardinality 1 ; logic:onClass ex:Lead ."@x-gmeow-english ;
     skos:scopeNote "The upper bound applies only to fillers satisfying the one declared qualifier."@x-gmeow-english ;
     gmeow:useWhen "Use when at most a stated number of fillers may satisfy one class or datarange qualifier."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use without exactly one qualifier or when all fillers should be counted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to set an upper bound without exactly one qualifier, or when all fillers should be counted; use logic:maxCardinality instead."@x-gmeow-english ;
     gmeow:howToUse "Pair the upper bound with logic:onProperty and exactly one of logic:onClass or logic:onDataRange."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

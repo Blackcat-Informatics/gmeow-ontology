@@ -16,7 +16,7 @@ gmeow:AcquaintanceRelationship
     skos:example "ex:acq a gmeow:AcquaintanceRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the bare symmetric fact (use gmeow:hasMet) and for a working tie (use gmeow:ProfessionalRelationship)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the relator, bind its agents with gmeow:relationshipParty, and carry its span with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator for the low-tie social acquaintance, bind its agents with gmeow:relationshipParty, and carry the span since they met with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
     gmeow:useWhen "Use as the reified form of gmeow:hasMet — a social acquaintance tie that must carry its own interval, confidence, or evidence."@x-gmeow-english .
 
 gmeow:AddressTenure
@@ -147,7 +147,7 @@ gmeow:ProfessionalRelationship
     skos:example "ex:collab a gmeow:ProfessionalRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the bare symmetric fact (use gmeow:hasWorkedWith) and for a purely social tie (use gmeow:AcquaintanceRelationship)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the relator, bind its agents with gmeow:relationshipParty, and carry its span with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator for the work-context tie between colleagues, collaborators, or a client and provider, bind its agents with gmeow:relationshipParty, and carry the span of the working arrangement with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
     gmeow:useWhen "Use as the reified form of gmeow:hasWorkedWith — a working tie between agents that must carry its own interval, confidence, or evidence."@x-gmeow-english .
 
 gmeow:TelephoneNumber

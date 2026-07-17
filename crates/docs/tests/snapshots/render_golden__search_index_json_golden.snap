@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 423
 expression: summary
 ---
 {
@@ -21,12 +22,11 @@ expression: summary
       "scope_note",
       "fixture_pair",
       "competency_rationale",
-      "worked_instance",
       "annotation_coat",
       "test_reach",
       "prose_quality"
     ],
     "url": "terms/zigzagpersistence/index.html"
   },
-  "record_count": 5496
+  "record_count": 5637
 }

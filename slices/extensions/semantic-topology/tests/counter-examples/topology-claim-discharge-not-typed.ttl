@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the GOVERNING gmeow:AssertedTopologyResultConstraint's typed-witness
+# obligation: a gmeow:TopologyComputation asserts a global truth (gmeow:assertsGlobalTruth
+# true) and gmeow:producesResult correctly points at a gmeow:TopologyResult wrapper (so
+# that is NOT the violation under test). A resource DOES carry all three discharge edges
+# (gmeow:claimForComputation naming this computation, gmeow:dischargesObstruction, and
+# gmeow:extendsToGlobalSection) — but it is never asserted rdf:type gmeow:TopologyClaim.
+# Any resource carrying three predicates is not a discharging claim: only a genuinely
+# TYPED gmeow:TopologyClaim can legitimise an asserted global truth. The ∀→∃(join) SPARQL
+# constraint MUST reject it with shacl.SPARQLConstraintComponent, and nothing else — the
+# untyped discharge witness is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:computationBad a gmeow:TopologyComputation ;
+    gmeow:producesResult ex:result ;
+    gmeow:assertsGlobalTruth true .
+
+ex:result a gmeow:TopologyResult ;
+    gmeow:resultArtifact ex:diagram .
+ex:diagram a gmeow:TopologyResult .               # opaque referent stand-in (NOT math-typed)
+
+# The would-be discharge witness: carries every discharge EDGE but is never typed
+# gmeow:TopologyClaim — the exact hole the fix closes.
+ex:fakeDischarge gmeow:claimForComputation ex:computationBad ;
+    gmeow:dischargesObstruction ex:obstruction ;
+    gmeow:extendsToGlobalSection ex:globalsection .
+
+ex:obstruction a math:GluingObstruction .
+ex:globalsection a math:GlobalSection .

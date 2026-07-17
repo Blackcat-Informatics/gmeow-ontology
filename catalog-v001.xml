@@ -81,6 +81,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/quality" uri="slices/core/quality/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/rights" uri="slices/core/rights/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/risk" uri="slices/extensions/risk/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/semantic-topology" uri="slices/extensions/semantic-topology/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/sensory" uri="slices/extensions/sensory/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/sensory-environment" uri="slices/extensions/sensory-environment/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/sexuality" uri="slices/core/sexuality/module.ttl"/>

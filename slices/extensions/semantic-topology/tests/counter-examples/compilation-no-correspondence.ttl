@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:CompilationMustRecordCorrespondence: a gmeow:ComplexCompilation
+# that records its preservation/loss judgment and carries its full standpoint/world/time
+# context but records NO gmeow:CellSourceCorrespondence. The ∀→∃ SPARQL constraint MUST
+# reject it with shacl.SPARQLConstraintComponent, and nothing else — the loss record and
+# the context are present, so the missing correspondence is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:compilationBad a gmeow:ComplexCompilation ;
+    gmeow:recordsPreservation ex:pres ;          # loss record present
+    gmeow:compilationStandpoint ex:sp ;
+    gmeow:compilationWorld ex:w ;
+    gmeow:compilationTimeScope ex:t .             # <-- but NO gmeow:recordsCorrespondence
+
+ex:pres a gmeow:CompilationPreservationRecord ;
+    logic:preservationKind logic:ExactPreservation .
+ex:sp a gmeow:Standpoint .
+ex:w a logic:PossibleWorld .
+ex:t a gmeow:TimeScopedRelation .

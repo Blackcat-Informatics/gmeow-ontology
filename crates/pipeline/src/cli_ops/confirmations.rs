@@ -89,8 +89,8 @@ pub fn compile_mappings(
 /// one would be a category error (and would make the label/definition completeness
 /// check permanently red on a healthy bundle, since evidence records are, by
 /// definition, never hand-documented). The "term catalog" contract is over the
-/// documented surface — classes and properties — matching the `gmeow-classes.csv` /
-/// `gmeow-properties.csv` export split.
+/// documented surface — classes and properties — the same `category` split
+/// `stages::export::collect_terms` folds into `gmeow-terms.jsonl`.
 ///
 /// # Errors
 ///

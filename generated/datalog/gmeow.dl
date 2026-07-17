@@ -44,6 +44,7 @@ obligationDischargeCondition("https://blackcatinformatics.ca/logic/IntentNotFrom
 obligationDischargeCondition("https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation", "https://blackcatinformatics.ca/logic/DischargeSyntacticReachability", "default").
 obligationDischargeVerdict("https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation", "https://blackcatinformatics.ca/logic/ObligationDischarged", "default").
 obligationForbiddenPredicate("https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation", 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim', "default").
+subClassOf("https://blackcatinformatics.ca/logic/JoinAggregateConstraint", "https://blackcatinformatics.ca/logic/ConstraintSugar", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/MereologyProfile", "https://blackcatinformatics.ca/logic/MereologicalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/Path", "https://blackcatinformatics.ca/logic/TemporalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/PossibleWorld", "https://blackcatinformatics.ca/logic/ModalFramework", "default").

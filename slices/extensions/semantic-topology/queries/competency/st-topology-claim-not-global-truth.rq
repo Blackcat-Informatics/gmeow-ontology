@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (the GOVERNING question): a computed feature is a math:LocalSection and is a
+# global truth ONLY when it extends to a math:GlobalSection (H⁰) AND discharges the H¹
+# math:GluingObstruction. This query JOINS a gmeow:TopologyClaim through
+# gmeow:claimForComputation to the gmeow:TopologyComputation whose gmeow:assertsGlobalTruth
+# is true — proving the RULE executably, not merely displaying a claim that happens to carry
+# three fields: for the one computation that actually asserts a global truth, the query
+# returns the claim's local section, the global section it extends to, and the discharged
+# obstruction, so a global-truth assertion appears ONLY together with a genuine discharge.
+# Over the worked example this is exactly one row; a computation that never asserts global
+# truth, or a claim with no discharge, would not appear, which is the point.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?claim ?computation ?localSection ?globalSection ?obstruction WHERE {
+    ?claim a gmeow:TopologyClaim ;
+        gmeow:claimLocalSection ?localSection ;
+        gmeow:claimForComputation ?computation ;
+        gmeow:extendsToGlobalSection ?globalSection ;
+        gmeow:dischargesObstruction ?obstruction .
+    ?computation a gmeow:TopologyComputation ;
+        gmeow:assertsGlobalTruth true .
+}
+ORDER BY ?claim

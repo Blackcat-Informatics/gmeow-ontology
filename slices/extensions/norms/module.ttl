@@ -531,7 +531,7 @@ gmeow:complianceVerdict
     rdfs:range gmeow:EvaluationVerdict ;
     skos:definition "The assessor's verdict, reusing the EvaluationVerdict vocabulary: held = compliant, not held = violative, undetermined = undetermined. Functional and mandatory (SHACL)."@x-gmeow-english ;
     skos:example "ex:ca1 gmeow:complianceVerdict gmeow:verdictHeld ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an assessment with no compliance verdict or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:complianceVerdict once per assessment, reading held as compliant and not-held as violative; pair with gmeow:assessedEvent and gmeow:assessedNorm."@x-gmeow-english ;
     gmeow:useWhen "Use on a ComplianceAssessment to carry the assessor's single verdict, reusing the gmeow:EvaluationVerdict vocabulary (held = compliant, not held = violative)."@x-gmeow-english .
@@ -831,7 +831,7 @@ gmeow:expressionLanguage
     rdfs:range gmeow:ExpressionLanguage ;
     skos:definition "The language of this expression. Functional and mandatory (SHACL)."@x-gmeow-english ;
     skos:example "ex:e1 gmeow:expressionLanguage gmeow:exprLangSparqlAsk ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an expression with no declared language or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:expressionLanguage once per gmeow:ConditionExpression, paired with gmeow:expressionText."@x-gmeow-english ;
     gmeow:useWhen "Use to declare the single named language of a condition expression from the gmeow:ExpressionLanguage vocabulary."@x-gmeow-english .
@@ -885,7 +885,7 @@ gmeow:groupOperator
     rdfs:range gmeow:GroupOperator ;
     skos:definition "The combination operator of this group. Functional and mandatory (SHACL)."@x-gmeow-english ;
     skos:example "ex:cg1 gmeow:groupOperator gmeow:operatorAll ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a group with no combination operator or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:groupOperator once per gmeow:ConditionGroup, paired with at least two gmeow:groupMember conditions."@x-gmeow-english ;
     gmeow:useWhen "Use to set a condition group's single combination operator from the gmeow:GroupOperator vocabulary."@x-gmeow-english .
@@ -1024,7 +1024,7 @@ gmeow:parameterName
     rdfs:range xsd:string ;
     skos:definition "The parameter's name as used in the condition text or expressions. Functional and mandatory (SHACL)."@x-gmeow-english ;
     skos:example "ex:p1 gmeow:parameterName \"threshold\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a parameter with no name or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:parameterName once per gmeow:ConditionParameter, paired with exactly one of gmeow:parameterValue / gmeow:parameterEntity."@x-gmeow-english ;
     gmeow:useWhen "Use to name a parameter as it appears in the condition's text or expressions — the binding's key."@x-gmeow-english .

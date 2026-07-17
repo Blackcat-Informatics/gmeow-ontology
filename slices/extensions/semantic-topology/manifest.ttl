@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/semantic-topology>
+    a gmeow:Slice ;
+    rdfs:label "semantic-topology"@x-gmeow-english ;
+    skos:definition "The semantic-topology slice of the GMEOW ontology (extension tier): GMEOW Semantic-Topology Module. A consumer extension that compiles RDF 1.2 claim/evidence/proof structures into declared math: complexes, filtrations, and persistence computations, recording correspondence and preservation/loss, under the governing rule that a computed topological feature is a math:LocalSection and NEVER automatically a global truth. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    dcterms:title "GMEOW Semantic-Topology Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
+        <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
+        <https://blackcatinformatics.ca/gmeow/slices/inference> ,
+        <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:sliceConsumer "lillith_decodes — a consumer that compiles RDF 1.2 claim/evidence/proof structures into topological complexes and persistence computations, and needs every compiled feature auditable back to its evidence, honestly loss-ledgered, and held as a standpoint-relative claim that is never silently a global truth (Principle 15). This slice is the vocabulary; the compiled RDF 1.2 instance data lives in lillith_decodes."@x-gmeow-english .

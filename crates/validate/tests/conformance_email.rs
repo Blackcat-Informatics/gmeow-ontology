@@ -8,13 +8,16 @@
 //! `MessageParticipant` relator (occurrence-scoped display names) + EmailAddress
 //! decomposition, and the cross-cutting `VersionMembership` roles / patch-diff /
 //! collision-fingerprint facets — plus the non-RDF regression guard that the
-//! generated LinkML projection compiles the non-functional `resent-*` datatype
-//! properties to `multivalued: true` slots.
+//! generated LinkML projection compiles a non-functional property to a
+//! `multivalued: true` attribute.
 //!
 //! The RDF twins load `tests/fixtures/coverage/email.ttl` (the merged-graph
 //! sweeps the Python originals ran reduce to fixture-scoped triple/SELECT checks
 //! here). The LinkML twin reads `generated/schemas/gmeow.linkml.yaml` and
-//! navigates the top-level `slots` map — the projection surface, not SPARQL.
+//! navigates the SHACL-derived `classes.<Class>.attributes.<prop>` structure —
+//! the projection surface, not SPARQL. (Since the purrdf cutover, LinkML is
+//! generated from the same `CompiledSchema` SHACL-shape basis as JSON Schema /
+//! Pydantic, and there is no longer a top-level `slots:` map.)
 
 mod conformance_support;
 use conformance_support::*;
@@ -119,11 +122,38 @@ fn read_receipt_request() {
 /// Twin of `test_resent_properties_are_multivalued_in_linkml_schema`.
 ///
 /// NON-RDF: this exercises the generated LinkML projection surface, not SPARQL.
-/// The non-functional `resentDate` / `resentMessageId` datatype properties must
-/// compile to `multivalued: true` slots. We read
-/// `generated/schemas/gmeow.linkml.yaml` into a `serde_yaml::Value` and navigate
-/// the top-level `slots` map (`slots.<name>.multivalued`), mirroring the Python
-/// `schema.get("slots", {})...get("multivalued") is True` assertions exactly.
+///
+/// Since the purrdf cutover, `generated/schemas/gmeow.linkml.yaml` is
+/// derived from purrdf's `CompiledSchema` SHACL-shape basis — the SAME basis
+/// JSON Schema and Pydantic already used — not a hand-rolled OWL→LinkML
+/// projection. Two consequences for this test:
+///
+/// (a) Structure: LinkML classes now carry their properties inline under
+///     `classes.<Class>.attributes.<prop>` (with `multivalued: true` set when
+///     the shape allows more than one value), not a top-level `slots:` map.
+///
+/// (b) Coverage: the developer schemas (LinkML/TypeScript/GraphQL) now cover
+///     exactly the SHACL shape union. `gmeow:resentDate` and
+///     `gmeow:resentMessageId` (email slice, `gmeow:graphBoxRole
+///     gmeow:boxRBox`) are OWL-only RBox properties with no derived SHACL
+///     property shape, so they intentionally no longer appear in this
+///     projection — they remain in the canonical OWL/RDF layer, matching the
+///     pre-existing JSON Schema / Pydantic surfaces. Their non-functional
+///     semantic is enforced there instead, by the
+///     `ex:saResentDateProperty` / `ex:saResentMessageIdProperty`
+///     `StructuralAssertion` ASK checks in
+///     `slices/extensions/email/tests/structural.ttl`, which assert
+///     `FILTER NOT EXISTS { gmeow:resentDate a owl:FunctionalProperty }`
+///     (and likewise for `resentMessageId`) directly over the ontology graph.
+///
+/// So the regression guard here repoints to `gmeow:logicConstraintMember` on
+/// `LogicalConstraint` (core `rights` slice, ODRL constraint-combination
+/// pattern) — a non-functional property with a real SHACL `sh:minCount 2`
+/// shape (module.ttl: "non-functional... Add two or more
+/// gmeow:logicConstraintMember links"), so it is genuinely, falsifiably
+/// `multivalued: true` in the compiled schema and structurally stable (it is
+/// load-bearing for the ODRL logical-constraint modelling, not something
+/// likely to be dropped or re-shaped incidentally).
 #[test]
 fn resent_properties_are_multivalued_in_linkml_schema() {
     let path = repo_root().join("generated/schemas/gmeow.linkml.yaml");
@@ -131,21 +161,25 @@ fn resent_properties_are_multivalued_in_linkml_schema() {
         .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
     let schema: serde_yaml::Value =
         serde_yaml::from_str(&text).expect("gmeow.linkml.yaml must parse as YAML");
-    let slots = schema
-        .get("slots")
-        .expect("LinkML schema must carry a top-level `slots` map");
-    for slot in ["resentDate", "resentMessageId"] {
-        let multivalued = slots
-            .get(slot)
-            .unwrap_or_else(|| panic!("slot {slot:?} must exist in the LinkML `slots` map"))
-            .get("multivalued")
-            .and_then(serde_yaml::Value::as_bool);
-        assert_eq!(
-            multivalued,
-            Some(true),
-            "non-functional slot {slot:?} must be `multivalued: true`"
-        );
-    }
+    let classes = schema
+        .get("classes")
+        .expect("LinkML schema must carry a top-level `classes` map");
+    let class_name = "LogicalConstraint";
+    let prop = "gmeow:logicConstraintMember";
+    let multivalued = classes
+        .get(class_name)
+        .unwrap_or_else(|| panic!("class {class_name:?} must exist in the LinkML `classes` map"))
+        .get("attributes")
+        .unwrap_or_else(|| panic!("class {class_name:?} must carry an `attributes` map"))
+        .get(prop)
+        .unwrap_or_else(|| panic!("attribute {prop:?} must exist on class {class_name:?}"))
+        .get("multivalued")
+        .and_then(serde_yaml::Value::as_bool);
+    assert_eq!(
+        multivalued,
+        Some(true),
+        "non-functional attribute {class_name}.{prop} must be `multivalued: true`"
+    );
 }
 
 /// Twin of `test_fixture_binds_occurrence_correctly`: the same address

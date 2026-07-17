@@ -1,0 +1,11 @@
+# A persistence morphism names both endpoints — its domain math:morphismSource and its
+# codomain math:morphismTarget, each a math:PersistenceModule — the map-of-modules frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?morphism ?source ?target
+WHERE {
+  ?morphism a math:PersistenceMorphism ;
+            math:morphismSource ?source ;
+            math:morphismTarget ?target .
+}
+ORDER BY ?morphism

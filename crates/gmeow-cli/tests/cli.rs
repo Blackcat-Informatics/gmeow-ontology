@@ -312,7 +312,13 @@ fn validate_unknown_extension_hard_fails() {
 
 #[test]
 fn export_respects_language_selector() {
-    // test_export_respects_language_selector: --lang fr yields a label_fr column.
+    // test_export_respects_language_selector: --lang fr yields fr-keyed labels /
+    // definitions in the JSONL term records. purrdf's CSVW package (dist/csvw/*, see
+    // stages::export's module doc) is now a generic lossless RDF-1.2-in-CSV encoding
+    // with no per-language columns, so the selector's effect is asserted against
+    // gmeow-terms.jsonl (the flattened Term surface still carries a
+    // language-tag-keyed `labels`/`definitions` map) instead of the retired
+    // gmeow-classes.csv.
     let out = scratch("export");
     gmeow()
         .arg("export")
@@ -321,11 +327,17 @@ fn export_respects_language_selector() {
         .args(["--lang", "fr"])
         .assert()
         .success();
-    let csv = out.join("gmeow-classes.csv");
-    assert!(csv.exists(), "gmeow-classes.csv written");
-    let text = std::fs::read_to_string(&csv).unwrap();
-    assert!(text.contains("label_fr"), "french label column present");
-    assert!(text.contains("label_fallback"), "fallback column present");
+    let jsonl = out.join("gmeow-terms.jsonl");
+    assert!(jsonl.exists(), "gmeow-terms.jsonl written");
+    let text = std::fs::read_to_string(&jsonl).unwrap();
+    assert!(
+        text.contains("\"fr\":"),
+        "french label/definition key present"
+    );
+    assert!(
+        text.contains("labelFallback") || text.contains("definitionFallback"),
+        "fallback flag present"
+    );
 }
 
 #[test]
@@ -955,5 +967,205 @@ fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
             ))
             .and(predicate::str::contains("status Ok")),
         );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+// ── logic backward (Task 8: interactive backward-engine CLI surface) ────────
+
+/// The repo-committed goal-directed demonstrator corpus — the SAME
+/// `logic:ReasoningProgram` cell `stage-goal-directed` compiles into
+/// `gmeow.gts`'s `graph/goal-directed`.
+fn reasoning_programs_fixture() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/logic/examples/reasoning-programs.ttl")
+}
+
+/// The repo-committed `math:` grounding module, whose told `rdfs:subClassOf`
+/// chain (`math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber ⊑ …`) seeds
+/// the order-sorted `ex:mathSubsort` demonstrator's unification lattice.
+fn math_module_fixture() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/math/module.ttl")
+}
+
+/// The example corpus's namespace (`@prefix ex:` in `reasoning-programs.ttl`).
+const LOGIC_BACKWARD_EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
+
+/// `gmeow logic backward` over the full shipped demonstrator corpus (no
+/// `--program-iri`, no `--subsort-source`) drives the SAME
+/// `evaluate_reasoning_programs` production path `stage-goal-directed` folds
+/// into `gmeow.gts`, and prints the Peano-addition proof-checked answer, the
+/// reachability answers, and the three-valued WFS verdicts. The order-sorted
+/// `mathSubsort`/`mathSubsortControl` pair correctly yields zero answers here —
+/// no subsort edges are supplied, which is an honest gap, never a silent
+/// fallback to a hardcoded math tower.
+#[test]
+fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
+    const EX: &str = LOGIC_BACKWARD_EX;
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program peanoAdd")
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),\
+                     {EX}s({EX}s({EX}s({EX}zero))))"
+                )))
+                .and(predicate::str::contains(format!(
+                    "binding R = {EX}s({EX}s({EX}s({EX}zero)))"
+                )))
+                .and(predicate::str::contains("proof-checked=true"))
+                .and(predicate::str::contains("program reachability"))
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}reach({EX}a,{EX}b)"
+                )))
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}reach({EX}a,{EX}c)"
+                )))
+                .and(predicate::str::contains("program memberCons"))
+                .and(predicate::str::contains(format!("binding M = {EX}a")))
+                .and(predicate::str::contains(format!("binding M = {EX}b")))
+                .and(predicate::str::contains(format!("binding M = {EX}c")))
+                .and(predicate::str::contains("program winWfs"))
+                .and(predicate::str::contains(format!(
+                    "verdict atom={EX}win({EX}a) verdict=undefined"
+                )))
+                .and(predicate::str::contains(format!(
+                    "verdict atom={EX}win({EX}c) verdict=true"
+                )))
+                .and(predicate::str::contains(format!(
+                    "verdict atom={EX}win({EX}d) verdict=false"
+                )))
+                .and(predicate::str::contains("program mathSubsort"))
+                .and(predicate::str::contains("program mathSubsortControl")),
+        );
+
+    // Narrowed to just `mathSubsort`, with no `--subsort-source` supplied,
+    // the order-sorted lattice is empty and the demonstrator honestly
+    // produces zero answers — proving the positive case exercised elsewhere
+    // (`logic_backward_subsort_source_seeds_the_order_sorted_lattice`) is
+    // reasoned-closure-driven from the told `math:` subsort chain, never a
+    // hardcoded math tower baked into the engine.
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsort")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsort")
+                .and(predicate::str::contains("answer atom=").not()),
+        );
+}
+
+/// `--program-iri` narrows evaluation to exactly the named program: the output
+/// carries only `peanoAdd` and neither `reachability` nor `winWfs` appears.
+#[test]
+fn logic_backward_program_iri_narrows_to_one_program() {
+    const EX: &str = LOGIC_BACKWARD_EX;
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}peanoAdd")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program peanoAdd")
+                .and(predicate::str::contains("program reachability").not())
+                .and(predicate::str::contains("program winWfs").not()),
+        );
+}
+
+/// `--subsort-source` seeds the order-sorted unification lattice from the
+/// `math:` module's TOLD `rdfs:subClassOf` chain: the engine composes its own
+/// reflexive-transitive closure, so `ex:mathSubsort` (whose query variable
+/// carries `logic:variableSort math:RealNumber`) accepts the `math:Integer`
+/// constant `ex:one` (ℤ ⊑ ℝ), while the negative control `ex:mathSubsortControl`
+/// (an incomparable `math:Set` sort) still correctly refuses it.
+#[test]
+fn logic_backward_subsort_source_seeds_the_order_sorted_lattice() {
+    const EX: &str = LOGIC_BACKWARD_EX;
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsort")])
+        .arg("--subsort-source")
+        .arg(math_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsort")
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}p({EX}one)"
+                )))
+                .and(predicate::str::contains(format!("binding X = {EX}one"))),
+        );
+
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsortControl")])
+        .arg("--subsort-source")
+        .arg(math_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsortControl")
+                .and(predicate::str::contains("answer atom=").not()),
+        );
+}
+
+/// A missing `--program-file` is a hard fail (exit 1), never a silent empty
+/// success.
+#[test]
+fn logic_backward_missing_program_file_hard_fails() {
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg("/nonexistent-reasoning-programs.ttl")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("does not exist"));
+}
+
+/// An unknown `--program-iri` is a hard fail listing the known program IRIs —
+/// never a silently empty result set.
+#[test]
+fn logic_backward_unknown_program_iri_hard_fails() {
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", "https://example.org/nope"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("names no logic:ReasoningProgram")
+                .and(predicate::str::contains("known:")),
+        );
+}
+
+/// A cell carrying zero `logic:ReasoningProgram` individuals is a hard fail,
+/// never a silent empty success.
+#[test]
+fn logic_backward_program_free_cell_hard_fails() {
+    let dir = scratch("logic-backward-empty");
+    let empty = dir.join("empty.ttl");
+    std::fs::write(&empty, "@prefix ex: <http://ex/> .\nex:a ex:knows ex:b .\n")
+        .expect("write program-free cell");
+
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(&empty)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("zero logic:ReasoningProgram"));
     std::fs::remove_dir_all(&dir).ok();
 }

@@ -3088,6 +3088,173 @@ fn value_range_record_without_any_bound_is_a_malformed_record() {
 }
 
 #[test]
+fn join_aggregate_record_expands_and_contributes_nothing_to_the_reasoned_axiom_set() {
+    // A well-formed two-leg join-aggregate record expands to exactly one canonical logic:Constraint
+    // carrying the JoinAggregate satellite, targets the guarded class, and none of its structural
+    // triples (joinPath / leg role predicates / the leg blank nodes) leak into prog.axioms.
+    let (prog, diags) = parse(
+        "ex:boundarySquareZero a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+             [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert_eq!(prog.constraints.len(), 1, "exactly one constraint expands");
+    let c = &prog.constraints[0];
+    let ja = c
+        .join_aggregate
+        .as_ref()
+        .expect("the join-aggregate satellite must be present");
+    assert_eq!(ja.function, "SUM");
+    assert_eq!(ja.legs.len(), 2, "two legs — a genuine multi-hop join");
+    assert_eq!(ja.threshold_lexical, "0");
+    assert!(
+        matches!(&c.target, ShapeTarget::Class(cl) if cl.ends_with("/TopCell")),
+        "the join-aggregate must target the guarded class: {:?}",
+        c.target
+    );
+    assert!(
+        !prog.axioms.iter().any(|a| {
+            a.predicate.contains("/legSource")
+                || a.predicate.contains("/legTarget")
+                || a.predicate.contains("/legValue")
+                || a.predicate.contains("/legRecordType")
+                || a.predicate.contains("/joinPath")
+        }),
+        "no join-aggregate structural triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+#[test]
+fn join_aggregate_leg_missing_a_value_predicate_is_a_malformed_record() {
+    // A leg without logic:legValue cannot form the group product — fail-soft: one
+    // MALFORMED_CONSTRAINT diagnostic, never a silent partial constraint.
+    let (prog, diags) = parse(
+        "ex:brokenLeg a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+    );
+    assert!(prog.constraints.is_empty(), "no constraint may expand");
+    assert!(
+        diags.iter().any(|d| d.message.contains("legValue")),
+        "a value-less leg must diagnose: {diags:?}"
+    );
+}
+
+#[test]
+fn join_aggregate_single_leg_is_not_a_join() {
+    // One hop is a plain aggregate, not a JOIN — the record is malformed (needs ≥ 2 legs).
+    let (prog, diags) = parse(
+        "ex:oneHop a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+    );
+    assert!(prog.constraints.is_empty(), "no constraint may expand");
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("at least two join legs")),
+        "a single-leg record must diagnose: {diags:?}"
+    );
+}
+
+/// Build a two-leg `logic:joinPath` Turtle fragment where `bad_pred`'s value on the FIRST leg is
+/// replaced with `bad_value_ttl` (a literal or blank node), and every other structural predicate
+/// on that leg — plus the whole second leg — is a well-formed IRI. Used to falsify Gap 12b: each
+/// of `legSource`/`legTarget`/`legValue`/`legRecordType` must reject a non-IRI value rather than
+/// silently stringify it.
+fn join_leg_with_bad_value(bad_pred: &str, bad_value_ttl: &str) -> String {
+    let mut fields = Vec::new();
+    for (pred, iri) in [
+        ("legSource", "ex:incidenceCoface"),
+        ("legTarget", "ex:incidenceFace"),
+        ("legValue", "ex:incidenceSign"),
+    ] {
+        if pred == bad_pred {
+            fields.push(format!("logic:{pred} {bad_value_ttl}"));
+        } else {
+            fields.push(format!("logic:{pred} {iri}"));
+        }
+    }
+    if bad_pred == "legRecordType" {
+        fields.push(format!("logic:legRecordType {bad_value_ttl}"));
+    }
+    format!(
+        "ex:badLeg a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ {} ]\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+        fields.join(" ; "),
+    )
+}
+
+#[test]
+fn join_aggregate_leg_rejects_a_literal_value_for_every_structural_predicate() {
+    // legSource/legTarget/legValue/legRecordType are record→endpoint/value PREDICATES; a
+    // literal value must be rejected as malformed, not silently stringified (Gap 12b).
+    for bad_pred in ["legSource", "legTarget", "legValue", "legRecordType"] {
+        let (prog, diags) = parse(&join_leg_with_bad_value(bad_pred, "\"not-an-iri\""));
+        assert!(
+            prog.constraints.is_empty(),
+            "a leg with a literal {bad_pred} must not expand: {:?}",
+            prog.constraints
+        );
+        assert!(
+            diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"
+                && d.message.contains(bad_pred)
+                && d.message.contains("must be an IRI")),
+            "a literal {bad_pred} must diagnose as malformed: {diags:?}"
+        );
+    }
+}
+
+#[test]
+fn join_aggregate_leg_rejects_a_blank_node_value_for_every_structural_predicate() {
+    // Same as above, but the malformed value is a blank node rather than a literal — neither
+    // is an IRI, and both must be rejected the same way (Gap 12b).
+    for bad_pred in ["legSource", "legTarget", "legValue", "legRecordType"] {
+        let (prog, diags) = parse(&join_leg_with_bad_value(bad_pred, "[ ]"));
+        assert!(
+            prog.constraints.is_empty(),
+            "a leg with a blank-node {bad_pred} must not expand: {:?}",
+            prog.constraints
+        );
+        assert!(
+            diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"
+                && d.message.contains(bad_pred)
+                && d.message.contains("must be an IRI")),
+            "a blank-node {bad_pred} must diagnose as malformed: {diags:?}"
+        );
+    }
+}
+
+#[test]
 fn pinned_forbidden_pattern_record_contributes_nothing_to_the_reasoned_axiom_set() {
     // The record is a validation descriptor: it expands to exactly one canonical
     // logic:Constraint and its structural triples MUST NOT leak into `prog.axioms`
@@ -3275,5 +3442,532 @@ fn term_application_carrier_excludes_other_value_kinds() {
             logic:functionSymbol ex:f ;
             logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] .",
         "requires exactly one term-value property",
+    );
+}
+
+// ── Reasoning programs (`logic:ReasoningProgram`) — R1 hard-fail (Task 3) ─────────────────
+
+/// A well-formed `logic:ReasoningProgram`: a ground fact `add(z, Y, Y)`, a Horn rule
+/// `add(s(X), Y, s(Z)) :- add(X, Y, Z), not blocked(X)` (a compound `Term::App` head over a
+/// negated body literal), a single goal `add(A, B, Q)`, one `blocked(a)` verdict probe, and
+/// a `logic:variableSort` on the rule's `X` carrier.
+const REASONING_PROGRAM_TTL: &str = "\
+    ex:prog1 a logic:ReasoningProgram ;
+        logic:evaluationMode logic:BackwardEvaluation ;
+        logic:programQuery [ a logic:Formula ;
+            logic:relation ex:add ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"A\" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable \"B\" ] ,
+                           [ logic:termIndex 2 ; logic:termVariable \"Q\" ]
+        ] ;
+        logic:verdictProbe [ a logic:Formula ;
+            logic:relation ex:blocked ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ]
+        ] ;
+        logic:clause [ a logic:Formula ;
+            logic:relation ex:add ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:z ] ,
+                           [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,
+                           [ logic:termIndex 2 ; logic:termVariable \"Y\" ]
+        ] ;
+        logic:clause [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                      logic:relation ex:add ;
+                      logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ] ,
+                                     [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,
+                                     [ logic:termIndex 2 ; logic:termVariable \"Z\" ]
+                    ] ,
+                    [ a logic:Formula ;
+                      logic:not [ a logic:Formula ;
+                          logic:relation ex:blocked ;
+                          logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ]
+                      ]
+                    ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:relation ex:add ;
+                logic:argument [ logic:termIndex 0 ; logic:termApplication ex:sX ] ,
+                               [ logic:termIndex 1 ; logic:termVariable \"Y\" ] ,
+                               [ logic:termIndex 2 ; logic:termApplication ex:sZ ]
+            ]
+        ] .
+    ex:sX a logic:FunctionTerm ;
+        logic:functionSymbol ex:s ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] .
+    ex:sZ a logic:FunctionTerm ;
+        logic:functionSymbol ex:s ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable \"Z\" ] .
+";
+
+#[test]
+fn reasoning_program_with_compound_clause_and_negation_parses() {
+    let ex = "https://example.org/test/";
+    let (prog, diags) = parse(REASONING_PROGRAM_TTL);
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "unexpected error diagnostics: {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+    assert_eq!(rp.iri, format!("{ex}prog1"));
+    assert_eq!(rp.mode, EvaluationMode::Backward);
+    assert_eq!(
+        rp.clauses.len(),
+        2,
+        "both the fact and the rule clause parsed: {:?}",
+        rp.clauses
+    );
+    assert_eq!(rp.verdict_probes.len(), 1, "the probe parsed");
+    assert!(
+        matches!(&rp.query, Formula::Atom { relation, .. } if *relation == Term::Iri(format!("{ex}add"))),
+        "query is the add/3 goal atom: {:?}",
+        rp.query
+    );
+    assert!(
+        rp.variable_sorts.iter().any(|(scope, v, s)| {
+            matches!(scope, crate::ir::VariableSortScope::Clause { .. })
+                && v == "X"
+                && *s == format!("{ex}Nat")
+        }),
+        "the antecedent's X carrier's logic:variableSort must be captured, scoped to its OWN \
+         clause: {:?}",
+        rp.variable_sorts
+    );
+
+    // The clause/query/probe formula trees are owned by the reasoning program; they must
+    // never also enter LogicProgram.formulas (the same one-fact-two-homes hazard
+    // extract_formulas already guards for constraint integrity / recovery-transform roots).
+    assert!(
+        prog.formulas.is_empty(),
+        "clause/query/probe formulas must not also enter LogicProgram.formulas: {:?}",
+        prog.formulas
+    );
+    // Nor must the program's structural predicates/type leak into generic axioms.
+    assert!(
+        prog.axioms.iter().all(|a| {
+            a.obj != logic_iri("ReasoningProgram")
+                && !a.predicate.ends_with("/clause")
+                && !a.predicate.ends_with("/programQuery")
+                && !a.predicate.ends_with("/verdictProbe")
+                && !a.predicate.ends_with("/evaluationMode")
+        }),
+        "reasoning-program structure leaked into generic axioms: {:#?}",
+        prog.axioms
+    );
+
+    // The rule clause carries the nested compound Term::App head (s(X), s(Z)) and the
+    // logic:not body literal.
+    let rule_clause = rp
+        .clauses
+        .iter()
+        .find(|f| matches!(f, Formula::Implies(..)))
+        .expect("the rule clause must be present");
+    let Formula::Implies(antecedent, consequent) = rule_clause else {
+        unreachable!("matched above")
+    };
+    let Formula::Atom { args, .. } = consequent.as_ref() else {
+        panic!("consequent must be an atom: {consequent:?}");
+    };
+    assert!(
+        matches!(&args[0], Term::App { symbol, .. } if symbol == &format!("{ex}s")),
+        "head arg0 must be s(X): {:?}",
+        args[0]
+    );
+    assert!(
+        matches!(&args[2], Term::App { symbol, .. } if symbol == &format!("{ex}s")),
+        "head arg2 must be s(Z): {:?}",
+        args[2]
+    );
+    assert!(
+        matches!(
+            antecedent.as_ref(),
+            Formula::And(parts) if parts.iter().any(|p| matches!(p, Formula::Not(_)))
+        ),
+        "antecedent must carry a logic:not body literal: {antecedent:?}"
+    );
+}
+
+#[test]
+fn reasoning_program_parse_is_deterministic() {
+    // The authored source triples ARE the canonical round-trip surface for reasoning-program
+    // content (see the `projections::rdf::project_canonical_rdf12` doc comment): re-parsing
+    // the identical source twice must yield byte-identical IR, since nothing downstream of
+    // the frontend re-serializes and re-reads this content.
+    let (first, _) = parse(REASONING_PROGRAM_TTL);
+    let (second, _) = parse(REASONING_PROGRAM_TTL);
+    assert_eq!(first.canonical_key(), second.canonical_key());
+}
+
+/// A `logic:ReasoningProgram` referencing a TYPED constant (`ex:one`, asserted `rdf:type`
+/// `math:Integer` AND `math:PositiveNumber` — plural types, on purpose) nested one function
+/// application deep (`s(one)`), plus an UNTYPED constant (`ex:untyped`) in the verdict
+/// probe, to prove [`ReasoningProgramIr::constant_sorts`] captures the plain `rdf:type`
+/// domain triple the stage's L3 fold otherwise drops, recurses into `Term::App` argument
+/// carriers, and leaves an unsorted constant absent (never a hard fail).
+const REASONING_PROGRAM_WITH_TYPED_CONSTANT_TTL: &str = "\
+    @prefix math: <https://blackcatinformatics.ca/math/> .
+    ex:one a math:Integer, math:PositiveNumber .
+    ex:prog2 a logic:ReasoningProgram ;
+        logic:evaluationMode logic:BackwardEvaluation ;
+        logic:programQuery [ a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ]
+        ] ;
+        logic:verdictProbe [ a logic:Formula ;
+            logic:relation ex:q ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:untyped ]
+        ] ;
+        logic:clause [ a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:sOne ]
+        ] .
+    ex:sOne a logic:FunctionTerm ;
+        logic:functionSymbol ex:s ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:one ] .
+";
+
+#[test]
+fn reasoning_program_captures_constant_rdf_type_as_sort_declarations() {
+    let ex = "https://example.org/test/";
+    let math = "https://blackcatinformatics.ca/math/";
+    let (prog, diags) = parse(REASONING_PROGRAM_WITH_TYPED_CONSTANT_TTL);
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "unexpected error diagnostics: {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+
+    // Both asserted rdf:type IRIs on the constant nested inside s(one) are captured — not
+    // just the first — since a constant may legitimately carry several sorts at once.
+    assert!(
+        rp.constant_sorts
+            .contains(&(format!("{ex}one"), format!("{math}Integer"))),
+        "ex:one's math:Integer type must be captured from a Term::App argument: {:?}",
+        rp.constant_sorts
+    );
+    assert!(
+        rp.constant_sorts
+            .contains(&(format!("{ex}one"), format!("{math}PositiveNumber"))),
+        "ex:one's SECOND asserted type (math:PositiveNumber) must ALSO be captured, not just \
+         the first: {:?}",
+        rp.constant_sorts
+    );
+    assert_eq!(
+        rp.constant_sorts.len(),
+        2,
+        "exactly the two asserted types on ex:one — the untyped verdict-probe constant \
+         (ex:untyped) contributes NO entry, and it is not a hard fail: {:?}",
+        rp.constant_sorts
+    );
+
+    // Deterministic: sorted, deduplicated.
+    let mut sorted = rp.constant_sorts.clone();
+    sorted.sort();
+    sorted.dedup();
+    assert_eq!(
+        rp.constant_sorts, sorted,
+        "constant_sorts is already sorted and deduplicated by ReasoningProgramIr::new"
+    );
+}
+
+/// Assert that `ttl` fails to yield any [`ReasoningProgramIr`] and instead emits an
+/// error-grade `MALFORMED_REASONING_PROGRAM` diagnostic containing `expected_detail` —
+/// mirrors [`assert_malformed_formula_error`] for the reasoning-program surface.
+fn assert_malformed_reasoning_program(ttl: &str, expected_detail: &str) {
+    let (prog, diags) = parse(ttl);
+    assert!(
+        prog.reasoning_programs.is_empty(),
+        "a malformed reasoning program must never enter the IR: {:?}",
+        prog.reasoning_programs
+    );
+    assert!(
+        diags.iter().any(|d| {
+            d.code == "MALFORMED_REASONING_PROGRAM"
+                && d.severity == Severity::Error
+                && d.message.contains(expected_detail)
+        }),
+        "expected an error-grade MALFORMED_REASONING_PROGRAM containing {expected_detail:?}: {diags:?}"
+    );
+}
+
+#[test]
+fn reasoning_program_with_zero_clauses_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ]
+            ] .",
+        "at least one logic:clause",
+    );
+}
+
+#[test]
+fn reasoning_program_missing_query_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "exactly one logic:programQuery",
+    );
+}
+
+#[test]
+fn reasoning_program_with_two_queries_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ,
+            [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termVariable \"Y\" ]
+            ] .",
+        "exactly one logic:programQuery",
+    );
+}
+
+#[test]
+fn reasoning_program_with_non_atomic_verdict_probe_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:verdictProbe [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                      logic:relation ex:p ;
+                      logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                                     [ logic:termIndex 1 ; logic:termIri ex:b ] ] ,
+                    [ a logic:Formula ;
+                      logic:relation ex:q ;
+                      logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                                     [ logic:termIndex 1 ; logic:termIri ex:b ] ]
+            ] .",
+        "must be an atomic logic:Formula",
+    );
+}
+
+#[test]
+fn reasoning_program_with_unknown_evaluation_mode_is_hard_failed() {
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:FooBarEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "not a recognized logic:EvaluationMode value",
+    );
+}
+
+#[test]
+fn reasoning_program_with_non_ground_verdict_probe_is_hard_failed() {
+    // A `logic:verdictProbe` reports ONE ground atom's three-valued well-founded verdict, so a
+    // variable-bearing probe (`win(X)`) has no single verdict to report — it would lower to
+    // `win(?0)` whose truth is a silent MISREPORT (`false`). `ReasoningProgramIr::new` hard-fails
+    // it instead.
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:verdictProbe [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "must be a GROUND atom",
+    );
+}
+
+#[test]
+fn reasoning_program_with_conflicting_variable_sorts_within_one_scope_is_hard_failed() {
+    // The same variable `X` is assigned two DIFFERENT sorts on its two carriers WITHIN ONE
+    // clause — an ambiguous order-sort context the unifier cannot seed deterministically
+    // (`ReasoningProgramIr::new`'s per-scope conflict guard, not a `module.ttl` cardinality
+    // rule). Both `X` occurrences are the SAME variable (one clause is one scope), so the two
+    // sorts genuinely conflict.
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ] ,
+                               [ logic:termIndex 1 ; logic:termVariable \"X\" ; logic:variableSort ex:Str ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "two distinct sorts",
+    );
+}
+
+#[test]
+fn reasoning_program_same_name_different_sorts_across_scopes_is_accepted() {
+    // The SAME authored name `X` carries `ex:Nat` in the clause and `ex:Str` in the query.
+    // These are DIFFERENT scopes (each clause / the query is a fresh variable scope), so the
+    // two `X`s are UNRELATED variables and may legitimately carry different sorts — this must
+    // NOT be a conflict. Both declarations are captured, each tagged with its owning scope.
+    let ex = "https://example.org/test/";
+    let (prog, diags) = parse(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Str ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+    );
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "same-named vars in different scopes must NOT conflict: {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+    assert!(
+        rp.variable_sorts.iter().any(|(scope, v, s)| {
+            matches!(scope, crate::ir::VariableSortScope::Clause { .. })
+                && v == "X"
+                && *s == format!("{ex}Nat")
+        }),
+        "the clause's X:Nat is captured under its clause scope: {:?}",
+        rp.variable_sorts
+    );
+    assert!(
+        rp.variable_sorts.iter().any(|(scope, v, s)| {
+            *scope == crate::ir::VariableSortScope::Query && v == "X" && *s == format!("{ex}Str")
+        }),
+        "the query's X:Str is captured under the query scope: {:?}",
+        rp.variable_sorts
+    );
+}
+
+#[test]
+fn reasoning_program_identical_clauses_distinct_sorts_are_accepted_and_scoped() {
+    // Two STRUCTURALLY-IDENTICAL clauses `p(X)` are authored, one declaring `X:Nat` and the
+    // other `X:Real`. They share a `Formula::content_key` (a `logic:variableSort` is harvested
+    // separately and is NOT part of the clause AST), so the ONLY thing that keeps their scopes
+    // apart is the occurrence-index disambiguation. This must be ACCEPTED — the two `X`s are
+    // unrelated variables in two distinct clause scopes — not falsely rejected as an
+    // intra-scope sort conflict (the residual bug this fix closes: a content_key-only scope key
+    // collapsed both clauses into one scope and hard-failed them).
+    let ex = "https://example.org/test/";
+    let (prog, diags) = parse(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ]
+            ] ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Real ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"R\" ]
+            ] .",
+    );
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "two identical clauses with different variable sorts must be accepted (distinct scopes, \
+         no false conflict): {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+    assert_eq!(
+        rp.clauses.len(),
+        2,
+        "both structurally-identical clauses are retained: {:?}",
+        rp.clauses
+    );
+
+    // Both clause-scoped `X` declarations are present, keyed by the SAME content_key but
+    // DIFFERENT occurrence indices {0, 1}, carrying the two distinct sorts {Nat, Real}.
+    let clause_x: Vec<(&str, usize, &str)> = rp
+        .variable_sorts
+        .iter()
+        .filter_map(|(scope, v, s)| match scope {
+            crate::ir::VariableSortScope::Clause { key, occurrence } if v == "X" => {
+                Some((key.as_str(), *occurrence, s.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        clause_x.len(),
+        2,
+        "both clause-scoped X declarations are captured: {:?}",
+        rp.variable_sorts
+    );
+    assert_eq!(
+        clause_x[0].0, clause_x[1].0,
+        "the two clauses share one content_key (they are structurally identical)"
+    );
+    let occurrences: std::collections::BTreeSet<usize> =
+        clause_x.iter().map(|(_, occ, _)| *occ).collect();
+    assert_eq!(
+        occurrences,
+        [0, 1].into_iter().collect(),
+        "the two identical clauses are disambiguated by occurrence index 0 and 1: {:?}",
+        rp.variable_sorts
+    );
+    let sorts: std::collections::BTreeSet<&str> = clause_x.iter().map(|(_, _, s)| *s).collect();
+    assert_eq!(
+        sorts,
+        [format!("{ex}Nat"), format!("{ex}Real")]
+            .iter()
+            .map(String::as_str)
+            .collect(),
+        "each occurrence carries its OWN authored sort (Nat and Real): {:?}",
+        rp.variable_sorts
     );
 }
