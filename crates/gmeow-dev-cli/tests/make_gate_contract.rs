@@ -61,7 +61,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "wikidata",
         "coverage",
         "acceptance",
-        "reason-gate",
+        "reason-verify",
         "lint-alignment",
         "i18n-lint",
         "doc-lint",
@@ -80,13 +80,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
     let unique: BTreeSet<_> = targets.iter().copied().collect();
     assert_eq!(unique.len(), targets.len(), "aggregate repeats a target");
 
-    for redundant in [
-        "lint",
-        "reason-verify",
-        "reason-crosscheck",
-        "mappings",
-        "bench-golden-gate",
-    ] {
+    for redundant in ["lint", "mappings", "bench-golden-gate"] {
         assert!(
             !targets.contains(&redundant),
             "aggregate reintroduced subsumed target {redundant}"
@@ -125,8 +119,6 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     for target in [
         "lint-issue-refs",
         "reason-verify",
-        "reason-crosscheck",
-        "reason-gate",
         "mappings",
         "bench-golden-gate",
         "bench-soak",
@@ -135,8 +127,8 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         assert!(!recipe.trim().is_empty(), "{target} must remain runnable");
     }
 
-    assert!(target_recipe(&source, "reason-gate").contains("$(GMEOW_DEV) reason-gate"));
+    assert!(target_recipe(&source, "reason-verify").contains("$(GMEOW_DEV) reason-verify"));
     assert!(target_recipe(&source, "bench-soak").contains("--soak 3"));
-    assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-gate"));
-    assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-gate\"]"));
+    assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-verify"));
+    assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-verify\"]"));
 }

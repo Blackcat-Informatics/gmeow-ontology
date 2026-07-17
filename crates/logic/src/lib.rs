@@ -31,15 +31,6 @@ pub mod dispatch;
 /// negation calculus with sound reserved-namespace minting. Lives OUTSIDE `reason`
 /// so it is not folded into `reason::native_contract_hash` (it adds no rule).
 pub mod entail;
-/// The native EL/DL ↔ entail-oracle divergence cross-check: drives gmeow's own
-/// reasoner against [`entail_oracle`] and folds the comparison into the structured
-/// [`reason::ledger::DivergenceLedger`]. Docker-free and on-gate; lives OUTSIDE
-/// `reason` so it is not folded into `reason::native_contract_hash`.
-pub mod entail_crosscheck;
-/// Native OWL-RL/OWL-Direct reasoning oracle over purrdf-entail — an independent
-/// cross-check engine, deliberately OUTSIDE `reason` so it is not folded into
-/// `reason::native_contract_hash` (it is not part of gmeow's own reasoning contract).
-pub mod entail_oracle;
 pub mod entrenchment;
 /// Reasoning-core diagnostic-kind catalog: the typed [`gmeow_errors::DiagKind`]
 /// set the core raises on the shared diagnostic substrate, one per subsystem.

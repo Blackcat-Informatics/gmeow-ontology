@@ -4,9 +4,9 @@
 //! Divergence ledger over the native reasoner versus an independent oracle.
 //!
 //! This module compares the native engine's subsumption results
-//! ([`crate::reason::el`]) against an independent reasoning oracle — the
-//! in-process, conformance-tested [`crate::entail_oracle`] over `purrdf::entail` —
-//! on **structured tuples, not message bytes**, mirroring the doctrine that
+//! ([`crate::reason::el`]) against an independent reference set (the native
+//! DL·EL fragment closure or a committed engine-independent corpus) on
+//! **structured tuples, not message bytes**, mirroring the doctrine that
 //! comparison happens on the structured shape, never on rendered human strings.
 //!
 //! It classifies each tuple as agreeing, native-only, oracle-only, or a native
