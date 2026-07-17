@@ -1006,6 +1006,30 @@ impl ReasoningContract {
             .unwrap_or("");
         format!("{}{SEP}|compl|{SEP}{compl}", self.sort_key())
     }
+
+    /// A framed, domain-tagged BLAKE3 content digest over every contract facet —
+    /// including the resource/execution policies — for content-addressed pinning.
+    ///
+    /// This is the stable value an operational `ReasoningSession` folds as its
+    /// `contract_hash` axis: unlike the incidental ordering of [`Self::sort_key`], it
+    /// is a fixed-length hex address that moves iff any facet (single-valued,
+    /// set-valued, closure map, complexity, preset, or a `resource_policies` member)
+    /// changes. The framing mirrors the shared discipline in
+    /// `gmeow_logic::runtime` (length-prefixed, domain tag first) so no facet boundary
+    /// can collide with another. The digest is taken over the full
+    /// [`Self::content_key`], which already renders every facet in a fixed,
+    /// determinism-pinned order.
+    #[must_use]
+    pub fn content_digest(&self) -> String {
+        let mut hasher = blake3::Hasher::new();
+        let key = self.content_key();
+        let tag: &[u8] = b"gmeow-logic-reasoning-contract-v1";
+        hasher.update(&(tag.len() as u64).to_le_bytes());
+        hasher.update(tag);
+        hasher.update(&(key.len() as u64).to_le_bytes());
+        hasher.update(key.as_bytes());
+        hasher.finalize().to_hex().to_string()
+    }
 }
 
 // --------------------------------------------------------------------------- //
