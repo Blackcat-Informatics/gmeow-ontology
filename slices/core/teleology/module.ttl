@@ -277,19 +277,28 @@ gmeow:Desire rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:intentBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:intentionGoal ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+# gmeow:Intention carries the SAME exact-one bearer/goal contract as gmeow:Desire
+# (raw-graph SHACL does no subclass inference, so each concrete intentional-mode
+# class carries its own axioms).
+gmeow:Intention logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:intentBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:intentionGoal ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
 gmeow:IntentionTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:tenureAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:tenureIntention ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Desire> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/intentBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Desire> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/intentionGoal> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Intention> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/intentBearer> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Intention> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/intentionGoal> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/IntentionTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/IntentionTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureIntention> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world teleology            #
+# Migrated procedural constraints: the closed-world teleology                    #
 # well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17). The         #
 # intent-bearer shape targets Desire and Intention directly (raw-graph SHACL      #
 # does no subclass inference), so one record per concrete class.                  #
@@ -327,3 +336,11 @@ gmeow:IntentionTenureAgentConstraint
     logic:anyOf gmeow:tenureAgent ;
     logic:formalizes gmeow:IntentionTenure ;
     logic:message "An IntentionTenure must record exactly one gmeow:tenureAgent." .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/committedAgent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intentionGoal> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/commitmentBeneficiary" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/committedAgent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/intentionGoal" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .

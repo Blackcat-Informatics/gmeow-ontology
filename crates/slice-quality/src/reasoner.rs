@@ -16,12 +16,16 @@
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
+#[cfg(test)]
 use std::sync::Arc;
 
 use gmeow_errors::Finding;
-use gmeow_logic::reason::{InferredAxiom, dl_consistency, reason_all, reason_closure_axioms};
-use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfTerm, TermRef};
-use rayon::prelude::*;
+#[cfg(test)]
+use gmeow_logic::reason::InferredAxiom;
+use gmeow_logic::reason::{LeaveOneOutAxiom, dl_consistency, leave_one_out_rederived};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
+#[cfg(test)]
+use purrdf::{RdfDatasetBuilder, RdfTerm};
 
 use crate::graph::id;
 use crate::model::GMEOW;
@@ -31,6 +35,7 @@ const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// The SHACL namespace — the shape vocabulary the disjointness-projection check reads.
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
 
+#[cfg(test)]
 /// Normalize an inferred axiom's surface object to a bare IRI, or `None` when the
 /// object is a literal / blank (not an IRI surface).
 fn surface_iri(object: &str) -> Option<&str> {
@@ -41,6 +46,7 @@ fn surface_iri(object: &str) -> Option<&str> {
     Some(o.trim_start_matches('<').trim_end_matches('>'))
 }
 
+#[cfg(test)]
 /// Whether the closure contains one target IRI-object axiom.
 ///
 /// A leave-one-out probe asks exactly one membership question. Borrowing the existing
@@ -131,6 +137,7 @@ fn named_subclass_triples(ds: &RdfDataset) -> Vec<(String, String)> {
         .collect()
 }
 
+#[cfg(test)]
 /// Rebuild the dataset without the single IRI triple `(s, p, o)`, preserving every
 /// OTHER quad of every kind — blank-node (`owl:Restriction`-encoded) and literal
 /// quads included. Only the exact `(s, p, o)` triple under test is removed; because
@@ -163,18 +170,11 @@ fn edb_without_triple(
         .unwrap_or_else(|_| Arc::new(RdfDataset::union(&[])))
 }
 
-/// Run the independent leave-one-out probes and retain their sorted input order.
-///
-/// Each probe owns its reduced dataset and closure. The multi-probe path evaluates
-/// those immutable units through Rayon; indexed collection restores authored-axiom
-/// order before findings are folded. A zero/one-probe slice stays direct.
-fn redundancy_probe(
-    ds: &RdfDataset,
+/// Fold the exact batch leave-one-out verdicts into findings in authored-axiom order.
+fn redundancy_finding(
     (subject, predicate, object): &(String, String, String),
+    redundant: bool,
 ) -> Option<Finding> {
-    let reduced = edb_without_triple(ds, subject, predicate, object);
-    let redundant = reason_closure_axioms(&reduced)
-        .is_ok_and(|closure| closure_contains_iri(&closure, subject, predicate, object));
     redundant.then(|| {
         advisory(
             "slice-quality.reasoner.closure-redundant",
@@ -185,18 +185,20 @@ fn redundancy_probe(
     })
 }
 
-fn redundancy_probes(ds: &RdfDataset, axioms: &[(String, String, String)]) -> Vec<Option<Finding>> {
-    if axioms.len() <= 1 {
-        axioms
-            .iter()
-            .map(|axiom| redundancy_probe(ds, axiom))
-            .collect()
-    } else {
-        axioms
-            .par_iter()
-            .map(|axiom| redundancy_probe(ds, axiom))
-            .collect()
-    }
+fn redundancy_probes(
+    ds: &RdfDataset,
+    axioms: &[(String, String, String)],
+) -> gmeow_errors::Result<Vec<Option<Finding>>> {
+    let probes = axioms
+        .iter()
+        .map(|(subject, predicate, object)| LeaveOneOutAxiom::new(subject, predicate, object))
+        .collect::<Vec<_>>();
+    let rederived = leave_one_out_rederived(ds, &probes)?;
+    Ok(axioms
+        .iter()
+        .zip(rederived)
+        .map(|(axiom, redundant)| redundancy_finding(axiom, redundant))
+        .collect())
 }
 
 /// The reasoner-derived axis primitive.
@@ -224,16 +226,6 @@ fn redundancy_probes(ds: &RdfDataset, axioms: &[(String, String, String)]) -> Ve
 /// logical counter-examples is vacuously perfect (1.0) with an informational note.
 pub fn reasoner_axis(ctx: &ScoreContext) -> AxisScore {
     let ds = ctx.graph;
-    // Reasoning must succeed once to establish the baseline closure exists.
-    if let Err(e) = reason_all(ds) {
-        return AxisScore {
-            score: 0.0,
-            findings: vec![advisory(
-                "slice-quality.reasoner.no-closure",
-                format!("the native reasoner could not establish a closure for the slice: {e}"),
-            )],
-        };
-    }
 
     let mut findings = Vec::new();
 
@@ -243,7 +235,18 @@ pub fn reasoner_axis(ctx: &ScoreContext) -> AxisScore {
     // The probe reads only the closure's one target IRI-object triple, never the DL
     // verdict, so it takes the verdict-free closure entry point and performs a borrowed
     // early-exit scan instead of indexing the complete closure.
-    let probe_findings = redundancy_probes(ds, &axioms[..cap]);
+    let probe_findings = match redundancy_probes(ds, &axioms[..cap]) {
+        Ok(findings) => findings,
+        Err(error) => {
+            return AxisScore {
+                score: 0.0,
+                findings: vec![advisory(
+                    "slice-quality.reasoner.no-closure",
+                    format!("the native reasoner could not complete leave-one-out: {error}"),
+                )],
+            };
+        }
+    };
     let redundant = probe_findings
         .iter()
         .filter(|finding| finding.is_some())
@@ -493,15 +496,17 @@ fn cotyped_disjoint(
 pub fn closure_redundant_subclasses(
     ds: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<(String, String)>> {
-    let mut out = Vec::new();
-    for (s, o) in named_subclass_triples(ds) {
-        let reduced = edb_without_triple(ds, &s, SUBCLASS, &o);
-        let r = reason_closure_axioms(&reduced)?;
-        if closure_contains_iri(&r, &s, SUBCLASS, &o) {
-            out.push((s, o));
-        }
-    }
-    Ok(out)
+    let subclasses = named_subclass_triples(ds);
+    let probes = subclasses
+        .iter()
+        .map(|(subject, object)| LeaveOneOutAxiom::new(subject, SUBCLASS, object))
+        .collect::<Vec<_>>();
+    let rederived = leave_one_out_rederived(ds, &probes)?;
+    Ok(subclasses
+        .into_iter()
+        .zip(rederived)
+        .filter_map(|(axiom, redundant)| redundant.then_some(axiom))
+        .collect())
 }
 
 #[cfg(test)]
@@ -595,14 +600,26 @@ mod tests {
         let axioms = authored_axioms(&ds);
         let serial: Vec<Option<Finding>> = axioms
             .iter()
-            .map(|axiom| redundancy_probe(&ds, axiom))
+            .map(|(subject, predicate, object)| {
+                let reduced = edb_without_triple(&ds, subject, predicate, object);
+                let redundant =
+                    gmeow_logic::reason::reason_closure_axioms(&reduced).is_ok_and(|closure| {
+                        closure_contains_iri(&closure, subject, predicate, object)
+                    });
+                redundancy_finding(
+                    &(subject.clone(), predicate.clone(), object.clone()),
+                    redundant,
+                )
+            })
             .collect();
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(4)
             .build()
             .expect("four-worker pool");
         for _ in 0..8 {
-            let parallel = pool.install(|| redundancy_probes(&ds, &axioms));
+            let parallel = pool
+                .install(|| redundancy_probes(&ds, &axioms))
+                .expect("incremental leave-one-out succeeds");
             let summary = |findings: &[Option<Finding>]| {
                 findings
                     .iter()
@@ -614,6 +631,161 @@ mod tests {
                     .collect::<Vec<_>>()
             };
             assert_eq!(summary(&parallel), summary(&serial));
+        }
+    }
+
+    /// Recursively collect every `.ttl` file under `dir`, sorted — the deterministic
+    /// file set every batch/scratch parity test builds its dataset from.
+    fn collect_turtle(dir: &Path, paths: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(dir).expect("slice directory reads") {
+            let path = entry.expect("slice entry reads").path();
+            if path.is_dir() {
+                collect_turtle(&path, paths);
+            } else if path.extension().is_some_and(|extension| extension == "ttl") {
+                paths.push(path);
+            }
+        }
+    }
+
+    /// Resolve the repo root from the crate's manifest dir — the same anchor every
+    /// real-slice batch/scratch parity test resolves `slices/...` paths against.
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("repo root canonicalizes")
+    }
+
+    /// Prove the production BATCH leave-one-out path (`redundancy_probes`) agrees
+    /// EXACTLY with the from-scratch oracle (`edb_without_triple` +
+    /// `reason_closure_axioms` + `closure_contains_iri`) over one real slice's
+    /// authored axioms, capped at `REDUNDANCY_CAP` for bounded on-gate runtime.
+    ///
+    /// Returns the number of axioms actually compared, so callers can assert
+    /// non-vacuity — a slice with zero authored axioms would otherwise pass this
+    /// check by asserting an equality between two empty vectors.
+    fn assert_slice_batch_matches_scratch(slice_relpath: &str) -> usize {
+        let slice = repo_root().join("slices").join(slice_relpath);
+        let mut paths = Vec::new();
+        collect_turtle(&slice, &mut paths);
+        paths.sort();
+        let refs = paths.iter().map(PathBuf::as_path).collect::<Vec<_>>();
+        let ds = crate::dataset_from_paths(&refs)
+            .unwrap_or_else(|error| panic!("{slice_relpath} dataset parses: {error}"));
+        let axioms = authored_axioms(&ds);
+        let capped = &axioms[..axioms.len().min(REDUNDANCY_CAP)];
+        let batched = redundancy_probes(&ds, capped).expect("batch reasons");
+        let scratch = capped
+            .iter()
+            .map(|(subject, predicate, object)| {
+                let reduced = edb_without_triple(&ds, subject, predicate, object);
+                let redundant =
+                    gmeow_logic::reason::reason_closure_axioms(&reduced).is_ok_and(|closure| {
+                        closure_contains_iri(&closure, subject, predicate, object)
+                    });
+                redundancy_finding(
+                    &(subject.clone(), predicate.clone(), object.clone()),
+                    redundant,
+                )
+            })
+            .collect::<Vec<_>>();
+        let flags =
+            |findings: &[Option<Finding>]| findings.iter().map(Option::is_some).collect::<Vec<_>>();
+        assert_eq!(
+            flags(&batched),
+            flags(&scratch),
+            "{slice_relpath}: batch/scratch flag mismatch"
+        );
+        capped.len()
+    }
+
+    #[test]
+    fn epistemics_batch_matches_scratch_for_the_real_capped_population() {
+        let compared = assert_slice_batch_matches_scratch("core/epistemics");
+        assert!(
+            compared > 0,
+            "core/epistemics must contribute a non-empty capped axiom population"
+        );
+    }
+
+    /// A fixed, deterministic, logically-diverse curated set of REAL slices whose
+    /// authored TBox axioms exercise the fast batch guards
+    /// (`batch_subclass_reachability_is_exact`, `batch_subproperty_reachability_is_exact`,
+    /// `batch_disjoint_support_is_exact`, `characteristic_type_has_no_alternative_producer`,
+    /// `fixed_head_is_absent`) against real-world shapes, without paying for the
+    /// exhaustive all-slice audit (`every_real_slice_batch_matches_parallel_scratch`,
+    /// which stays `#[ignore]`d). `core/epistemics` is the original real-slice anchor;
+    /// `grounding/logic` is the canonical reasoning core; `core/kernel` is the
+    /// foundational upper-layer slice every other slice builds on; `core/inhabitation`
+    /// carries the richest inhabitation/typing TBox structure. The list is a fixed
+    /// literal array — no runtime skipping, no conditional inclusion.
+    #[test]
+    fn curated_real_slices_batch_matches_scratch() {
+        const CURATED_SLICES: [&str; 4] = [
+            "core/epistemics",
+            "grounding/logic",
+            "core/kernel",
+            "core/inhabitation",
+        ];
+        let mut total = 0usize;
+        for slice_relpath in CURATED_SLICES {
+            total += assert_slice_batch_matches_scratch(slice_relpath);
+        }
+        assert!(
+            total > 0,
+            "curated real-slice set must contribute a non-empty total capped axiom population"
+        );
+    }
+
+    #[test]
+    #[ignore = "exhaustive repo audit; focused real/synthetic parity tests stay on-gate"]
+    fn every_real_slice_batch_matches_parallel_scratch() {
+        use rayon::prelude::*;
+
+        let root = repo_root();
+        let mut slices = Vec::new();
+        for group in std::fs::read_dir(root.join("slices")).expect("slice groups read") {
+            let group = group.expect("group entry reads").path();
+            if !group.is_dir() {
+                continue;
+            }
+            for slice in std::fs::read_dir(group).expect("slice group reads") {
+                let slice = slice.expect("slice entry reads").path();
+                if slice.join("manifest.ttl").is_file() {
+                    slices.push(slice);
+                }
+            }
+        }
+        slices.sort();
+
+        for slice in slices {
+            let mut paths = Vec::new();
+            collect_turtle(&slice, &mut paths);
+            paths.sort();
+            let refs = paths.iter().map(PathBuf::as_path).collect::<Vec<_>>();
+            let ds = crate::dataset_from_paths(&refs).expect("slice dataset parses");
+            let axioms = authored_axioms(&ds);
+            let capped = &axioms[..axioms.len().min(REDUNDANCY_CAP)];
+            let batched = redundancy_probes(&ds, capped).expect("batch reasons");
+            let scratch = capped
+                .par_iter()
+                .map(|(subject, predicate, object)| {
+                    let reduced = edb_without_triple(&ds, subject, predicate, object);
+                    gmeow_logic::reason::reason_closure_axioms(&reduced).is_ok_and(|closure| {
+                        closure_contains_iri(&closure, subject, predicate, object)
+                    })
+                })
+                .collect::<Vec<_>>();
+            for (index, ((subject, predicate, object), batch)) in
+                capped.iter().zip(batched.iter()).enumerate()
+            {
+                assert_eq!(
+                    batch.is_some(),
+                    scratch[index],
+                    "{}: batch/scratch mismatch for <{subject}> <{predicate}> <{object}>",
+                    slice.display()
+                );
+            }
         }
     }
 }

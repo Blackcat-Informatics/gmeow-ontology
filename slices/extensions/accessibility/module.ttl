@@ -203,7 +203,7 @@ gmeow:RetractedAccessibilityAssertionSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a retracted or superseded gmeow:AccessibilityAssertion (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:AccessibilityAssertion ;
+    logic:formalizes gmeow:RetractedAccessibilityAssertionShape ;
     logic:severity "Warning" ;
     logic:message "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supAxForall .
@@ -223,3 +223,20 @@ logic:supAxValid a logic:Formula ; logic:relation gmeow:validUntil ;
 logic:supAxNotSuppressed a logic:Formula ; logic:not logic:supAxDisp .
 logic:supAxDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assertionFacet> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assertionPolarity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assertionSubject> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assertionFacet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assertionPolarity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/assertionSubject" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: accessibility assertion cardinality + suppression ---
+# gmeow:AccessibilityAssertionShape — an AccessibilityAssertion assesses exactly one subject,
+# asserts exactly one facet, and declares exactly one polarity.
+gmeow:AccessibilityAssertion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:assertionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assertionFacet ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assertionPolarity ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .

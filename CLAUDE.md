@@ -29,6 +29,7 @@ and the no-debug-symbol policy intact.
 * **Deal-breakers — never:** `git checkout --theirs/--ours .`, `git merge -X theirs/ours`, `--no-verify`, skipping/mocking the component under test, or batch-resolving conflicts "to save time" (resolve each one individually).
 * **GPG / signing is off-limits** — never run `gpg`/`gpgconf` or touch the agent or keys; if a step needs signing, ask the user to run it.
 * **No time/effort estimates** — reason in dependency order and relative risk.
+* **`.deficiencies` is a CODE-deficiency log ONLY.** It records deficiencies in the shipped code/artifacts (a scoped-down requirement, a weaker-proxy mechanism, a human-signed-off descope) with a forward path — never infrastructure/environment complaints (a full disk, a loaded machine, a killed process, an expensive gate), never workflow narration ("deferred to a later stage", "delegated to CI", "ran green later", "aborted to protect the worktree"), never self-justification. A gate that could not be run is unfinished work: run it or STOP and tell the user — it is never a `.deficiencies` entry. If your only note is about process rather than the code, write nothing.
 
 ## Regenerate & gates
 
@@ -78,5 +79,7 @@ Maintainer-only targets are prefixed with `maint-`. Use `make help` for the
 complete list. Common lanes are `make maint-wikidata-live` and
 `make maint-rust-heavy` (the off-gate heavy Rust suite). The native,
 Docker-free reasoning-oracle cross-check (`gmeow-dev reason-crosscheck` over
-`purrdf::entail`) runs on-gate as its own `make check` target
-(`make reason-crosscheck`), not as a `maint-` lane.
+`purrdf::entail`) runs on-gate inside `make reason-gate`, which shares one
+fresh native closure between reasoned-graph verification and the purrdf-entail
+oracle. `make reason-crosscheck` remains a standalone, focused convenience lane
+(not a `maint-` lane), but it is no longer a separate `make check` gate task.

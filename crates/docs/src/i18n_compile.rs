@@ -403,6 +403,35 @@ pub fn language_from_po(text: &str) -> Result<Option<String>> {
     Ok(None)
 }
 
+/// A `.po` entry that is a candidate reviewed translation: a real (non-empty)
+/// translation that is NOT flagged `#, fuzzy` (human-reviewed, not machine-seeded).
+pub fn is_candidate_translation(entry: &PoEntry) -> bool {
+    !entry.fuzzy && !entry.msgstr.is_empty()
+}
+
+/// The target surface that counts as a LIVE translation when projecting a catalog entry
+/// into the shipped `gmeow.gts` bundle (docs-rendering + translation-crossing corpora).
+/// A machine-seeded `#, fuzzy` entry is not yet a reviewed translation, so it contributes
+/// no live target — treated as not-yet-live (English fallback), byte-identical to an
+/// untranslated entry. Single source of truth shared by both pipeline corpus builders so
+/// the fuzzy-gating cannot drift between them or from the coverage axis.
+pub fn live_translation_target(entry: &PoEntry) -> &str {
+    if entry.fuzzy {
+        ""
+    } else {
+        entry.msgstr.as_str()
+    }
+}
+
+/// Whether a `.po` entry counts toward reviewed translation coverage: a candidate
+/// translation that also passes the translation-integrity guard (not copied/hybrid
+/// English). Single source of truth shared by the slice-quality translation axis and
+/// the PO linter, so the reviewed-coverage policy cannot drift between them.
+pub fn counts_as_reviewed_coverage(entry: &PoEntry, language: &str) -> bool {
+    is_candidate_translation(entry)
+        && crate::i18n::translation_has_integrity(language, &entry.msgid, &entry.msgstr)
+}
+
 fn po_header(lang: Option<&str>) -> String {
     let mut out = String::new();
     out.push_str("msgid \"\"\n");
@@ -730,7 +759,7 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
             if entry.fuzzy {
                 fuzzy += 1;
             }
-            if !entry.msgstr.is_empty()
+            if is_candidate_translation(&entry)
                 && let Some(reason) =
                     translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
             {
@@ -1124,8 +1153,13 @@ pub fn export_xliff(root: &Path, output: Option<&Path>) -> Result<String> {
         text.push_str("    <body>\n");
         for row in rows {
             let id = format!("{}|{}", row.term_iri, row.predicate);
+            let state = if row.fuzzy {
+                "needs-review-translation"
+            } else {
+                "translated"
+            };
             text.push_str(&format!(
-                "      <trans-unit id=\"{}\">\n        <source>{}</source>\n        <target>{}</target>\n        <note>Term: {} Predicate: {}</note>\n      </trans-unit>\n",
+                "      <trans-unit id=\"{}\">\n        <source>{}</source>\n        <target state=\"{state}\">{}</target>\n        <note>Term: {} Predicate: {}</note>\n      </trans-unit>\n",
                 xml_escape(&id),
                 xml_escape(&row.msgid),
                 xml_escape(&row.msgstr),
@@ -1951,6 +1985,29 @@ mod tests {
     }
 
     #[test]
+    fn live_translation_target_gates_fuzzy_seeds() {
+        // The shared fuzzy-gating policy consumed by both pipeline corpus builders: a
+        // reviewed entry contributes its msgstr; a machine-seeded `#, fuzzy` entry
+        // contributes NO live target (English fallback), byte-identical to untranslated.
+        let reviewed = PoEntry {
+            msgctxt: "x|rdfs:label".to_owned(),
+            msgid: "A".to_owned(),
+            msgstr: "B".to_owned(),
+            fuzzy: false,
+        };
+        assert_eq!(live_translation_target(&reviewed), "B");
+        let seeded = PoEntry {
+            fuzzy: true,
+            ..reviewed
+        };
+        assert_eq!(
+            live_translation_target(&seeded),
+            "",
+            "a #, fuzzy seed contributes no live target to the shipped bundle"
+        );
+    }
+
+    #[test]
     fn markdown_extract_uses_stable_hash() {
         let entries = extract_markdown_text("# Title\n\nBody.", "README.md");
         assert_eq!(entries.len(), 2);
@@ -2120,6 +2177,8 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         let text = export_xliff(&root, None).unwrap();
         assert!(text.contains("original=\"slices/extensions/example\""));
         assert!(!text.contains("original=\"slices/core/example\""));
+        // A non-fuzzy entry is emitted as an XLIFF `translated` target state.
+        assert!(text.contains("<target state=\"translated\">example label translated</target>"));
         let _ = fs::remove_dir_all(root);
     }
 
