@@ -645,6 +645,164 @@ pub fn conjecture_test(
     0
 }
 
+// ── candidate (propose/verify seam) ──────────────────────────────────────────
+
+/// `gmeow candidate submit` — test a candidate `logic:` formula against a KB and, ONLY if the
+/// isolated-world verdict CORROBORATES it (admissible), APPEND it to the append-only candidate
+/// library. Delegates to the SHARED [`gmeow_pipeline::mcp::run_submit_candidate`] core (the same
+/// path the MCP `submit_candidate` tool runs), so there is one implementation, not two. A refuted
+/// or open candidate is not admitted (a non-zero exit), and `--dry-run` writes nothing.
+#[allow(clippy::too_many_arguments)]
+pub fn candidate_submit(
+    reporter: &dyn Reporter,
+    formula: &Path,
+    kb: &Path,
+    standpoint: &str,
+    math_conjecture: Option<&str>,
+    for_slice: Option<&str>,
+    for_packet: Option<&str>,
+    dry_run: bool,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
+) -> i32 {
+    let formula_ttl = match std::fs::read_to_string(formula) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.read",
+                format!("cannot read {}: {e}", formula.display()),
+            );
+        }
+    };
+    let kb_ttl = match std::fs::read_to_string(kb) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.read",
+                format!("cannot read {}: {e}", kb.display()),
+            );
+        }
+    };
+
+    let out = match gmeow_pipeline::mcp::run_submit_candidate(
+        &gmeow_pipeline::mcp::CandidateSubmitInput {
+            formula_ttl: &formula_ttl,
+            kb_ttl: &kb_ttl,
+            standpoint,
+            math_conjecture,
+            for_slice,
+            for_packet,
+            dry_run,
+            max_steps,
+            max_answers,
+        },
+    ) {
+        Ok(out) => out,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("candidate submission failed: {e}"),
+            );
+        }
+    };
+
+    println!("lifecycle {}", out.lifecycle);
+    println!("information {}", out.information);
+    println!("evaluation {}", out.evaluation);
+    println!("completeness {}", out.completeness);
+    println!("discharge {}", out.discharge);
+    println!("admissible {}", out.admissible);
+    println!("candidate {}", out.node_iri);
+
+    // NOT admissible (refuted / open): the write was refused and nothing was appended. Report and
+    // fail (exit 1), mirroring the MCP `ok:false` path.
+    if let Some(reason) = &out.precondition_unmet {
+        return fail(
+            reporter,
+            "gmeow-cli.candidate.not-admissible",
+            format!("submitCandidate precondition unmet (candidate not admissible): {reason}"),
+        );
+    }
+    if out.dry_run {
+        println!("persisted dry-run (nothing written)");
+    } else if out.committed {
+        println!("persisted committed");
+    } else {
+        println!("persisted no");
+    }
+    0
+}
+
+/// `gmeow candidate withdraw` — withdraw a persisted candidate (P10 supersession). Delegates to
+/// the SHARED [`gmeow_pipeline::mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
+/// or already-withdrawn id is a hard error (a non-zero exit).
+pub fn candidate_withdraw(
+    reporter: &dyn Reporter,
+    candidate_id: &str,
+    reason: Option<&str>,
+    dry_run: bool,
+) -> i32 {
+    let body = match gmeow_pipeline::mcp::run_withdraw_candidate(
+        candidate_id,
+        reason.unwrap_or(""),
+        dry_run,
+    ) {
+        Ok(body) => body,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.withdraw-failed",
+                format!("candidate withdrawal failed: {e}"),
+            );
+        }
+    };
+    render_candidate_json(reporter, &body, "gmeow-cli.candidate.withdraw")
+}
+
+/// `gmeow candidate list` — list admitted candidates with their disposition + provenance.
+/// Delegates to the SHARED [`gmeow_pipeline::mcp::run_list_candidates`] core.
+pub fn candidate_list(
+    reporter: &dyn Reporter,
+    slice: Option<&str>,
+    disposition: Option<&str>,
+) -> i32 {
+    let body = match gmeow_pipeline::mcp::run_list_candidates(slice, disposition) {
+        Ok(body) => body,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.list-failed",
+                format!("candidate list failed: {e}"),
+            );
+        }
+    };
+    render_candidate_json(reporter, &body, "gmeow-cli.candidate.list")
+}
+
+/// Print a candidate tool's JSON response body verbatim, mapping its `ok` flag to the process
+/// exit: an `ok:false` envelope (e.g. an unmet withdrawal precondition) is a hard failure.
+fn render_candidate_json(reporter: &dyn Reporter, body: &str, code: &str) -> i32 {
+    let value: serde_json::Value = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(e) => return fail(reporter, code, format!("malformed tool response: {e}")),
+    };
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&value).unwrap_or_else(|_| body.to_string())
+    );
+    if value.get("ok").and_then(serde_json::Value::as_bool) == Some(false) {
+        let msg = value
+            .get("error")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("candidate operation failed");
+        return fail(reporter, code, msg.to_string());
+    }
+    0
+}
+
 // ── hybrid-query ─────────────────────────────────────────────────────────────
 
 /// The isolated query world every `hybrid-query --facts` document is re-homed
@@ -1129,6 +1287,194 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
     if let gmeow_logic::entail::EntailmentVerdict::Gap(gap) = &verdict {
         println!("gap-shape {}", gap.shape.as_token());
         println!("gap-detail {}", gap.detail);
+    }
+    0
+}
+
+// ── logic backward ───────────────────────────────────────────────────────────
+
+/// `rdfs:subClassOf` — the covering-edge predicate `stage-goal-directed` filters
+/// its reasoned closure on (`crates/pipeline/src/stages/goal_directed.rs`), read
+/// here directly off a parsed source graph instead of a full pipeline reasoning
+/// pass.
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+/// The TOLD `rdfs:subClassOf` covering edges `(sub IRI, super IRI)` in `dataset`
+/// — an IRI-to-IRI triple on that predicate — deduplicated and sorted.
+/// `crate::physical::unify::SortOrder::from_subclass_edges` (inside
+/// `gmeow_logic`) computes its OWN reflexive-transitive closure over whatever
+/// covering edges it is handed, so passing the told edges of a simple subsort
+/// chain (e.g. `math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber`) is
+/// sufficient for the engine to accept `math:Integer ⊑ math:RealNumber` —
+/// there is no need (and this command makes no attempt) to pre-compute a
+/// reasoned closure.
+fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
+    let mut edges: Vec<(String, String)> = dataset
+        .owned_quads()
+        .filter(|q| q.predicate == RDFS_SUBCLASS_OF)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(s), RdfTerm::Iri(o)) => Some((s.clone(), o.clone())),
+            _ => None,
+        })
+        .collect();
+    edges.sort();
+    edges.dedup();
+    edges
+}
+
+/// Parse a Turtle file into a raw [`RdfDataset`] for `rdfs:subClassOf` edge
+/// extraction — deliberately independent of the `logic:` compiler frontend
+/// (which never surfaces a told `rdfs:subClassOf` triple as `LogicAxiom`/
+/// `Formula` data an engine caller can read back), so this reads the file's own
+/// triples directly.
+fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-backward.subsort-parse",
+            format!("cannot parse {} as Turtle: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow logic backward` — evaluate one or more authored `logic:ReasoningProgram`
+/// cells through the native proof-carrying SLG-WFS backward engine
+/// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
+/// production path `stage-goal-directed` folds into `gmeow.gts`'s
+/// `graph/goal-directed`. Never a reimplementation: this command lowers the
+/// authored cell via `gmeow_logic_compile::frontend::parse_logic_path`,
+/// collects `rdfs:subClassOf` covering edges straight off the parsed source
+/// (see [`collect_subclass_edges`]), and hands both to the SAME engine entry
+/// point the pipeline stage calls.
+///
+/// Hard-fails (exit 1, never a silent empty success) on: a missing
+/// `--program-file`, an unparsable file (or one carrying error-grade parse
+/// diagnostics), a file with zero `logic:ReasoningProgram` individuals, or a
+/// `--program-iri` naming no program in the file.
+pub fn logic_backward(
+    reporter: &dyn Reporter,
+    program_file: &Path,
+    program_iri: Option<&str>,
+    subsort_source: Option<&Path>,
+) -> i32 {
+    if !program_file.exists() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.missing-file",
+            format!("--program-file {} does not exist", program_file.display()),
+        );
+    }
+    let (program, diagnostics) =
+        match gmeow_logic_compile::frontend::parse_logic_path(program_file, None) {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.parse",
+                    format!("cannot parse {}: {e}", program_file.display()),
+                );
+            }
+        };
+    let errors: Vec<String> = diagnostics
+        .iter()
+        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        .map(|d| format!("{} {}: {}", d.severity.as_str(), d.code, d.message))
+        .collect();
+    if !errors.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.malformed",
+            format!(
+                "{} carries {} error-grade parse diagnostic(s): {}",
+                program_file.display(),
+                errors.len(),
+                errors.join("; ")
+            ),
+        );
+    }
+    if program.reasoning_programs.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.no-programs",
+            format!(
+                "{} carries zero logic:ReasoningProgram individuals",
+                program_file.display()
+            ),
+        );
+    }
+
+    let selected: Vec<gmeow_logic_compile::ir::ReasoningProgramIr> = match program_iri {
+        None => program.reasoning_programs,
+        Some(iri) => {
+            let mut programs = program.reasoning_programs;
+            let Some(pos) = programs.iter().position(|p| p.iri == iri) else {
+                let known: Vec<&str> = programs.iter().map(|p| p.iri.as_str()).collect();
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.unknown-program",
+                    format!(
+                        "--program-iri {iri:?} names no logic:ReasoningProgram in {}; known: {}",
+                        program_file.display(),
+                        known.join(", ")
+                    ),
+                );
+            };
+            vec![programs.swap_remove(pos)]
+        }
+    };
+
+    // Collect `rdfs:subClassOf` covering edges directly off the parsed source
+    // graph(s) — never a hardcoded subsort tower (see `collect_subclass_edges`).
+    let program_dataset = match parse_turtle_dataset(reporter, program_file) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut subsort_edges = collect_subclass_edges(&program_dataset);
+    if let Some(source) = subsort_source {
+        let extra_dataset = match parse_turtle_dataset(reporter, source) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        subsort_edges.extend(collect_subclass_edges(&extra_dataset));
+        subsort_edges.sort();
+        subsort_edges.dedup();
+    }
+
+    // The SAME production entry point `stage-goal-directed` calls — no second
+    // engine, no reimplementation.
+    let evals =
+        match gmeow_logic::goal_directed::evaluate_reasoning_programs(&selected, &subsort_edges) {
+            Ok(evals) => evals,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.evaluate",
+                    format!("backward evaluation failed: {e}"),
+                );
+            }
+        };
+
+    // Deterministic ordering throughout: `evaluate_reasoning_programs` already
+    // sorts programs by name, answers by `(atom, bindings, derivation_iri)`, and
+    // verdicts by `(atom, verdict)` (G12).
+    for eval in &evals {
+        println!("program {}", eval.name);
+        println!("  description: {}", eval.description);
+        println!("  goal: {}", eval.goal);
+        println!("  status: {}", eval.status);
+        for ans in &eval.answers {
+            println!(
+                "  answer atom={} proof-checked={} derivation={}",
+                ans.atom, ans.proof_checks, ans.derivation_iri
+            );
+            for (var, surface) in &ans.bindings {
+                println!("    binding {var} = {surface}");
+            }
+        }
+        for v in &eval.verdicts {
+            println!("  verdict atom={} verdict={}", v.atom, v.verdict);
+        }
     }
     0
 }
@@ -2693,18 +3039,138 @@ pub fn slice_lint(
 
 // ── slice brief ──────────────────────────────────────────────────────────────
 
-/// `gmeow slice brief` — assemble and render a `gmeow:AuthoringPacket` for a slice
-/// directory, computed over the slice's OWN sources (module.ttl, mappings/, i18n/).
+/// `gmeow slice brief` — render a slice's `gmeow:AuthoringPacket`(s) in one of two
+/// explicit modes (exactly one source, both/neither is a hard error):
 ///
-/// The per-term exemplar tiers come from the SINGLE canonical library tiering
-/// [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
-/// pipeline stage uses, gated by SHACL per-term conformance against the SAME repo
-/// shape union — so an in-repo slice's live CLI brief and its committed
-/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The repo
-/// root (holding `generated/shapes/`) is resolved by walking up from the slice dir. A
-/// `--batch` out of range returns a typed hard failure through [`fail`] (a non-zero
-/// exit), never a panic or an empty packet.
+/// * a slice `dir` → LIVE re-assembly over the slice's OWN sources (module.ttl,
+///   mappings/, i18n/), gated by SHACL per-term conformance against the repo shape
+///   union (needs a checkout with `generated/shapes/`) — see [`slice_brief_live`].
+/// * `--from-bundle <slice>` → serve the PRE-ASSEMBLED packet(s) straight from the
+///   embedded gmeow.gts bundle, checkout-free — see [`slice_brief_from_bundle`].
+///
+/// The live path's per-term exemplar tiers come from the SINGLE canonical library
+/// tiering [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
+/// pipeline stage uses — so an in-repo slice's live CLI brief and its committed
+/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The
+/// bundle path runs the SAME [`gmeow_pipeline::mcp::extract_authoring_packets`] core the
+/// MCP `slice_brief` tool serves. A `--batch` out of range is a typed hard failure
+/// through [`fail`] (a non-zero exit) on both paths, never a panic or an empty packet.
 pub fn slice_brief(
+    reporter: &dyn Reporter,
+    dir: Option<&Path>,
+    from_bundle: Option<&str>,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    // Exactly one source: LIVE re-assembly from a slice `dir`, or the pre-assembled
+    // packet served `--from-bundle`. Both/neither is a hard error (explicit selection,
+    // no silent default).
+    match (dir, from_bundle) {
+        (Some(_), Some(_)) => fail(
+            reporter,
+            "gmeow-cli.slice.brief.ambiguous-source",
+            "pass EITHER a slice directory OR --from-bundle <slice>, not both".to_string(),
+        ),
+        (None, None) => fail(
+            reporter,
+            "gmeow-cli.slice.brief.missing-source",
+            "pass a slice directory (live re-assembly) or --from-bundle <slice> (bundle serve)"
+                .to_string(),
+        ),
+        (None, Some(slice)) => slice_brief_from_bundle(reporter, slice, axis, batch, format),
+        (Some(dir), None) => slice_brief_live(reporter, dir, axis, batch, format),
+    }
+}
+
+/// `gmeow slice brief --from-bundle <slice>` — serve the pre-assembled authoring
+/// packet(s) for a slice straight from the embedded gmeow.gts bundle, via the SAME
+/// [`gmeow_pipeline::mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
+/// runs (one implementation, not two). Checkout-free: no repo root, no SHACL shape union.
+fn slice_brief_from_bundle(
+    reporter: &dyn Reporter,
+    slice: &str,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    let out = match gmeow_pipeline::mcp::slice_brief_from_bundle(
+        BUNDLE_GTS,
+        slice,
+        axis,
+        batch.map(u64::from),
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.bundle",
+                format!("cannot serve packet for slice {slice:?}: {e}"),
+            );
+        }
+    };
+    let rendered = match format {
+        "json" => serde_json::to_string_pretty(&out).unwrap_or_else(|_| out.to_string()),
+        "turtle" => out
+            .get("turtle")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        "human" => render_bundle_brief_human(&out),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or turtle"),
+            );
+        }
+    };
+    println!("{rendered}");
+    0
+}
+
+/// A compact human summary of a bundle-served authoring brief: per-packet identity,
+/// term/exemplar counts, coverage margins, and the covered-term IRIs (whose full
+/// definitions resolve via `gmeow lookup`).
+fn render_bundle_brief_human(out: &serde_json::Value) -> String {
+    // Write directly into the buffer (infallible into a `String`) rather than allocating a fresh
+    // `format!` string per line/term.
+    use std::fmt::Write as _;
+    let mut s = String::new();
+    let slice = out.get("slice").and_then(|v| v.as_str()).unwrap_or("?");
+    let count = out
+        .get("packet_count")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let _ = writeln!(s, "slice {slice} — {count} packet(s)");
+    if let Some(packets) = out.get("packets").and_then(|v| v.as_array()) {
+        for p in packets {
+            let iri = p.get("packet_iri").and_then(|v| v.as_str()).unwrap_or("?");
+            let terms = p.get("term_count").and_then(|v| v.as_i64()).unwrap_or(0);
+            let axis = p.get("axis").and_then(|v| v.as_str()).unwrap_or("?");
+            let batch = p.get("batch").and_then(|v| v.as_i64()).unwrap_or(0);
+            let grounding = p
+                .get("grounding")
+                .and_then(|v| v.as_array())
+                .map_or(0, Vec::len);
+            let _ = writeln!(
+                s,
+                "\n{iri}\n  axis {axis}, batch {batch}, {terms} term(s), {grounding} grounding cell(s)"
+            );
+            if let Some(covers) = p.get("covers_terms").and_then(|v| v.as_array()) {
+                for t in covers {
+                    if let Some(t) = t.as_str() {
+                        let _ = writeln!(s, "  - {t}");
+                    }
+                }
+            }
+        }
+    }
+    s
+}
+
+/// `gmeow slice brief <dir>` — the live, checkout-anchored re-assembly path.
+fn slice_brief_live(
     reporter: &dyn Reporter,
     dir: &Path,
     axis: Option<&str>,

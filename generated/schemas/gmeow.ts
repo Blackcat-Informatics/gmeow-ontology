@@ -1021,6 +1021,7 @@ export enum BranchConditionTypeEnum {
 
 export enum BuildDataFlowEnum {
     pipeline_dataflow_compile_logic_source_load = "pipeline-dataflow-compile-logic-source-load",
+    pipeline_dataflow_goal_directed_reason = "pipeline-dataflow-goal-directed-reason",
     pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic",
     pipeline_dataflow_validate_compile_logic = "pipeline-dataflow-validate-compile-logic",
 }
@@ -4862,6 +4863,11 @@ export interface AuthenticationResult extends InformationObject {
 export interface AuthorIdentity extends InformationObject {
     authorIdentityString?: string,
     canonicalizedIdentity?: Agent[],
+}
+
+export interface AuthoringCandidate {
+    candidateForPacket?: AuthoringPacket[],
+    candidateForSlice?: string[],
 }
 
 export interface AuthoringPacket {
