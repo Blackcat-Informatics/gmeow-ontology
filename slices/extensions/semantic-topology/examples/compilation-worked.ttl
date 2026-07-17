@@ -24,7 +24,7 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The core claim/evidence spine the compilation reads (Principle 14) ------ #
-ex:source-brief a gmeow:Source ;
+ex:source-brief a gmeow:CreativeWork ;
     rdfs:label "field brief, 2026"@en .
 
 ex:span-a a gmeow:EvidenceSpan ;

@@ -231,7 +231,7 @@ For every changed localizable literal:
   described formalism;
 - use target-language bound-variable names or neutral mathematical variables;
 - ensure formula examples still bind and refer to the same variables;
-- avoid templates equivalent to “In English this is `gmeow:term`”;
+- avoid templates equivalent to “In English this is ‹the term IRI›”;
 - avoid copying English prose inside a translated definition merely to satisfy
   non-empty coverage.
 
