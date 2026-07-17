@@ -1026,7 +1026,7 @@ gmeow:ProfileSurface
             logic:allValuesFrom gmeow:ProfileSurfaceKind ;
         ] ;
     skos:definition "A view of an embedding projection that records the digests of the referents it shares with its siblings — either the container view (gmeow:surfaceContainer, the digests as the packaged .purremb container carries them) or the sidecar-manifest view (gmeow:surfaceManifest, the digests as the accompanying manifest declares them). The two views of one projection MUST agree on the source-pack, model-contract, and target-table digests (gmeow:ProfileSourceDigestAgreementConstraint and its siblings); disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
-    skos:example "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"blake3:aa02…\" ; gmeow:recordsModelContractDigest \"blake3:9ab3…\" ; gmeow:recordsTargetTableDigest \"blake3:7d21…\" ."@x-gmeow-english ;
+    skos:example "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"sha256:aa02…\" ; gmeow:recordsModelContractDigest \"sha256:9ab3…\" ; gmeow:recordsTargetTableDigest \"sha256:7d21…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as the projection itself (it is a digest-recording VIEW of a projection) and avoid letting a container and a manifest surface of one projection disagree on any recorded digest — that is a hard fail."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type each digest-recording view gmeow:ProfileSurface, bind it to its projection with gmeow:profileSurfaceOf, classify it gmeow:surfaceContainer or gmeow:surfaceManifest with gmeow:profileSurfaceKind, and record the three shared-referent digests with gmeow:recordsSourceDigest, gmeow:recordsModelContractDigest, and gmeow:recordsTargetTableDigest."@x-gmeow-english ;
@@ -1094,7 +1094,7 @@ gmeow:recordsSourceDigest
     rdfs:label "records source digest"@x-gmeow-english ;
     rdfs:range xsd:string ;
     skos:definition "The source-pack digest a profile surface records for its projection. The container and manifest surfaces of one projection MUST record the same value (gmeow:ProfileSourceDigestAgreementConstraint); a disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
-    skos:example "ex:sc1 gmeow:recordsSourceDigest \"blake3:aa02…\" ."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:recordsSourceDigest \"sha256:aa02…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid letting a container and a manifest surface record differing source digests (the agreement constraint reds it) and avoid omitting it on a surface that must be cross-checked."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Carry gmeow:recordsSourceDigest on each gmeow:ProfileSurface; the container and manifest values are compared by gmeow:ProfileSourceDigestAgreementConstraint."@x-gmeow-english ;
@@ -1107,7 +1107,7 @@ gmeow:recordsModelContractDigest
     rdfs:label "records model contract digest"@x-gmeow-english ;
     rdfs:range xsd:string ;
     skos:definition "The model/vector-space-contract digest a profile surface records for its projection. The container and manifest surfaces of one projection MUST record the same value (gmeow:ProfileModelContractAgreementConstraint); a disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
-    skos:example "ex:sc1 gmeow:recordsModelContractDigest \"blake3:9ab3…\" ."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:recordsModelContractDigest \"sha256:9ab3…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid letting a container and a manifest surface record differing model-contract digests (the agreement constraint reds it) and avoid omitting it on a surface that must be cross-checked."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Carry gmeow:recordsModelContractDigest on each gmeow:ProfileSurface; the container and manifest values are compared by gmeow:ProfileModelContractAgreementConstraint."@x-gmeow-english ;
@@ -1120,7 +1120,7 @@ gmeow:recordsTargetTableDigest
     rdfs:label "records target table digest"@x-gmeow-english ;
     rdfs:range xsd:string ;
     skos:definition "The target-table digest a profile surface records for its projection. The container and manifest surfaces of one projection MUST record the same value (gmeow:ProfileTargetTableAgreementConstraint); a disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
-    skos:example "ex:sc1 gmeow:recordsTargetTableDigest \"blake3:7d21…\" ."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:recordsTargetTableDigest \"sha256:7d21…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid letting a container and a manifest surface record differing target-table digests (the agreement constraint reds it) and avoid omitting it on a surface that must be cross-checked."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Carry gmeow:recordsTargetTableDigest on each gmeow:ProfileSurface; the container and manifest values are compared by gmeow:ProfileTargetTableAgreementConstraint."@x-gmeow-english ;

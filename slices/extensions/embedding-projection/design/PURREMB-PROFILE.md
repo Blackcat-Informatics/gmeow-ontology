@@ -71,7 +71,7 @@ model is left without a graph-side term.
 
 | PurRDF `.purremb` domain-separated identity | GMEOW carrier |
 | --- | --- |
-| Exact source (source byte digest) | `gmeow:projectionSourceDigest` recorded in the projection header, checked against the resolved source's live `gmeow:contentDigest` |
+| Exact source (source byte digest, PurRDF SHA-256 `source_exact_digest`) | recorded opaquely on `gmeow:ProfileSurface` via `gmeow:recordsSourceDigest` (the container's SHA-256, for cross-check). GMEOW's own source identity is separate: `gmeow:projectionSource`'s `gmeow:contentDigest` (BLAKE3), with `gmeow:projectionSourceDigest` its recorded drift-check copy (`gmeow:SourceDigestMatchConstraint`) |
 | Certified RDF (RDFC digest / committed history) | the source's `gmeow:gtsHeadId`, propagated into the projection as `gmeow:projectionSourceGtsHeadId` |
 | Chunking contract | `gmeow:chunkingContract` on the `gmeow:EmbeddingFamily`, folded into the family's `gmeow:contentDigest` |
 | Embedding family (model + full generation contract) | `gmeow:EmbeddingFamily`, identity is its `gmeow:contentDigest` |
@@ -103,6 +103,24 @@ it (Matryoshka) — carrying only the effective dimension, metric, normalization
 and prefix policy, anchored to its family by the functional
 `gmeow:effectiveOfFamily`. Comparability is therefore decidable by digest
 equality on the effective space, never by prose agreement.
+
+**Digest algorithms are not interchangeable across the two identity systems.**
+GMEOW content-addresses its own terms — `gmeow:contentDigest` on families, spaces,
+target sets, external bindings, and derived indexes, and the recorded
+`gmeow:projectionSourceDigest` — with GMEOW's ontology-wide content-addressing,
+**BLAKE3**, so `gmeow:SourceDigestMatchConstraint` and every intra-graph digest
+comparison stays within one algorithm. PurRDF, independently, computes the
+container's exact and typed digests as **SHA-256** (domain-separated for typed
+identities; see the PurRDF PURREMB v1 container format). The digests a
+`gmeow:ProfileSurface` records for cross-check — `gmeow:recordsSourceDigest`,
+`gmeow:recordsModelContractDigest`, and `gmeow:recordsTargetTableDigest` — are the
+**container's** digests and are therefore SHA-256, distinct in both value and
+algorithm from the BLAKE3 `gmeow:contentDigest` of the same referent. A conforming
+producer records the container's SHA-256 digests verbatim on the profile surfaces
+and never coerces them into GMEOW's BLAKE3 space; a consumer cross-checking a
+surface against the opened container compares SHA-256 to SHA-256, and checks a
+projection's `gmeow:projectionSourceDigest` against its source's BLAKE3
+`gmeow:contentDigest` within GMEOW's own space.
 
 ## 4. Required and optional metadata
 
