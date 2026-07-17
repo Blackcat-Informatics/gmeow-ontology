@@ -225,7 +225,6 @@ full-release: ## Signed release-as-evidence: gate + oracle lane + conformance + 
 		--evidence "generated/diagnostics/shacl.sarif:application/sarif+json:attestationTypeQualityReport:shacl:SHACL diagnostics SARIF" \
 		--evidence "dist/compliance-report.ttl:text/turtle:attestationTypeQualityReport:compliance:Compliance report" \
 		--evidence "generated/conformance/verdicts.json:application/json:attestationTypeConformanceVerdict:conformance:Logic conformance suite verdicts" \
-		--evidence "generated/logic/dl-el-crosscheck-report.ttl:text/turtle:attestationTypeCrossCheckAgreement:nativeoracle:Native gap-zero DL-EL agreement ledger" \
 		--evidence "bench/baseline.json:application/json:attestationTypeQualityReport:perf:Perf baseline"
 	$(MAKE) verify-release
 	$(MAKE) crossref

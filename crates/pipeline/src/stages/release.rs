@@ -64,7 +64,7 @@ const EVIDENCE_REP_PREFIX: &str = "release-evidence:";
 /// The bytes are read by the (thin) CLI layer — a missing or unreadable file is
 /// a hard failure there, never an `Option` skip here. `attestation_type_iri` is
 /// the `gmeow:attestationType*` individual naming the KIND of check this artifact
-/// records (e.g. `gmeow:attestationTypeCrossCheckAgreement`).
+/// records (e.g. `gmeow:attestationTypeConformanceVerdict`).
 pub struct EvidenceInput {
     /// The decoded artifact bytes (the check result document).
     pub data: Vec<u8>,
@@ -925,11 +925,11 @@ mod tests {
     fn evidence_inputs() -> Vec<EvidenceInput> {
         vec![
             EvidenceInput {
-                data: b"{\"cross_check\": \"agree\"}".to_vec(),
+                data: b"{\"quality\": \"ok\"}".to_vec(),
                 media_type: "application/json".to_string(),
-                attestation_type_iri: format!("{GMEOW_NS}attestationTypeCrossCheckAgreement"),
-                rep: "cross-check".to_string(),
-                subject_label: "native↔oracle agreement".to_string(),
+                attestation_type_iri: format!("{GMEOW_NS}attestationTypeQualityReport"),
+                rep: "quality".to_string(),
+                subject_label: "quality report".to_string(),
             },
             EvidenceInput {
                 data: b"{\"conformance\": \"pass\"}".to_vec(),
@@ -1101,8 +1101,8 @@ mod tests {
             "top-level release-manifest attestation must be present"
         );
         assert!(
-            nquads.contains("attestationTypeCrossCheckAgreement"),
-            "cross-check child attestation must be present"
+            nquads.contains("attestationTypeQualityReport"),
+            "quality-report child attestation must be present"
         );
         assert!(
             nquads.contains("attestationTypeConformanceVerdict"),
@@ -1503,9 +1503,9 @@ mod tests {
         );
         assert_eq!(
             resolve_attestation_type_iri(
-                "https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement"
+                "https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict"
             ),
-            "https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement"
+            "https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict"
         );
     }
 
