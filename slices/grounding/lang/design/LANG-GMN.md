@@ -303,7 +303,9 @@ byte-comparable — the property the digest discipline of the envelope contract 
 forbidden. The grammar's fraction production is exactly two digits, so the rule is enforced by
 the parse table itself, not by convention.
 
-The four validator-tier failure classes, each with its labeled INVALID block:
+Four of the six validator-tier failure classes carry a labeled INVALID block below (the two
+residuals — `lang:GmnNonDecodableGrammar` and the default-graph refusal `lang:GmnGraphOutOfDomain`
+— carry none, being driven from synthetic inputs rather than a normative example):
 
 INVALID — `lang:GmnNonCanonicalOrder` (wrong key order: the confidence precedes the subject):
 
@@ -384,7 +386,7 @@ negative rather than an honest boundary.
 grounding sources carries **no named-graph quads** — a fact verified over the sources, not assumed
 — so GMN-1's declared domain is the default graph. A named-graph quad is therefore **not** a
 generic uncovered term: it is the honest typed domain boundary `lang:GmnGraphOutOfDomain`, raised
-by the writer's default-graph domain check and **never silently dropped, mislabeled
+by the writer's default-graph domain check and **never quietly discarded, mislabeled
 `lang:GmnUncoveredTerm`, or flattened into the default graph**. Widening the domain to named graphs
 would be a future crossing carrying its own witness, never a silent tolerance.
 
