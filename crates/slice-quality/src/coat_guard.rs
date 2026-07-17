@@ -100,30 +100,22 @@ pub fn slice_coat_collisions(slice_dir: &Path) -> gmeow_errors::Result<Vec<Strin
         let Some(pred) = id(&ds, &g(local)) else {
             continue; // predicate never used in this slice
         };
-        let pairs: Vec<(String, String)> = tbox
-            .iter()
-            .flat_map(|(iri, sid)| {
-                all_lits(&ds, *sid, pred)
-                    .into_iter()
-                    .map(move |v| (iri.clone(), skeleton(&v)))
-            })
-            .collect();
-        for c in collisions(&pairs) {
+        for c in collisions(tbox.iter().flat_map(|(iri, sid)| {
+            all_lits(&ds, *sid, pred)
+                .into_iter()
+                .map(move |v| (iri.clone(), skeleton(&v)))
+        })) {
             out.push(message(&slice_iri, local, &c));
         }
     }
 
     // Definitions: same exact-match skeleton (load-bearing CURIEs kept as content).
     if let Some(def_p) = id(&ds, SKOS_DEFINITION) {
-        let pairs: Vec<(String, String)> = tbox
-            .iter()
-            .flat_map(|(iri, sid)| {
-                all_lits(&ds, *sid, def_p)
-                    .into_iter()
-                    .map(move |v| (iri.clone(), skeleton(&v)))
-            })
-            .collect();
-        for c in collisions(&pairs) {
+        for c in collisions(tbox.iter().flat_map(|(iri, sid)| {
+            all_lits(&ds, *sid, def_p)
+                .into_iter()
+                .map(move |v| (iri.clone(), skeleton(&v)))
+        })) {
             out.push(message(&slice_iri, "skos:definition", &c));
         }
     }
