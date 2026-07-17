@@ -1632,6 +1632,30 @@ input CommunitySummaryInput {
   type: GmeowScalar
 }
 
+type CompilationPreservationRecord {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input CompilationPreservationRecordInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type ComplexCompilation {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input ComplexCompilationInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 type ComplianceAssessment {
   annotation: GmeowScalar
   gmeowAssessedEvent: GmeowScalar
@@ -5309,6 +5333,38 @@ input MathBindingExpressionMathBoundVariableInput {
   id: String!
 }
 
+type MathCell {
+  annotation: GmeowScalar
+  id: String
+  mathCellDimension: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathCellIncidence {
+  annotation: GmeowScalar
+  id: String
+  mathIncidenceCoface: GmeowScalar
+  mathIncidenceFace: GmeowScalar
+  mathIncidenceSign: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathCellIncidenceInput {
+  annotation: GmeowScalar
+  id: String
+  mathIncidenceCoface: GmeowScalar
+  mathIncidenceFace: GmeowScalar
+  mathIncidenceSign: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathCellInput {
+  annotation: GmeowScalar
+  id: String
+  mathCellDimension: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathCellularSheaf {
   annotation: GmeowScalar
   id: String
@@ -5324,6 +5380,20 @@ input MathCellularSheafInput {
   mathHasStalk: GmeowScalar
   mathRestrictionMap: GmeowScalar
   mathSheafBaseComplex: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathChain {
+  annotation: GmeowScalar
+  id: String
+  mathChainOf: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathChainInput {
+  annotation: GmeowScalar
+  id: String
+  mathChainOf: GmeowScalar
   type: GmeowScalar
 }
 
@@ -5469,6 +5539,52 @@ input MathClosedFormFunctionInput {
   type: GmeowScalar
 }
 
+type MathCoboundary {
+  annotation: GmeowScalar
+  id: String
+  mathCoboundaryOf: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathCoboundaryInput {
+  annotation: GmeowScalar
+  id: String
+  mathCoboundaryOf: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathCochainComplex {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input MathCochainComplexInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type MathCombinatorialLaplacian {
+  annotation: GmeowScalar
+  id: String
+  mathCombinatorialLaplacianComplex: GmeowScalar
+  mathLaplacianDegree: GmeowScalar
+  mathLowerBoundaryOperator: GmeowScalar
+  mathUpperBoundaryOperator: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathCombinatorialLaplacianInput {
+  annotation: GmeowScalar
+  id: String
+  mathCombinatorialLaplacianComplex: GmeowScalar
+  mathLaplacianDegree: GmeowScalar
+  mathLowerBoundaryOperator: GmeowScalar
+  mathUpperBoundaryOperator: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathCompactSpace {
   annotation: GmeowScalar
   id: String
@@ -5591,6 +5707,20 @@ input MathConnectedSpaceInput {
   type: GmeowScalar
 }
 
+type MathConnection {
+  annotation: GmeowScalar
+  id: String
+  mathConnectionOn: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathConnectionInput {
+  annotation: GmeowScalar
+  id: String
+  mathConnectionOn: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathContinuousMap {
   annotation: GmeowScalar
   id: String
@@ -5660,6 +5790,20 @@ input MathCrossEntropyInput {
   mathInformationBase: GmeowScalar
   mathOverDistribution: GmeowScalar
   mathReferenceDistribution: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathCycle {
+  annotation: GmeowScalar
+  id: String
+  mathCycleOf: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathCycleInput {
+  annotation: GmeowScalar
+  id: String
+  mathCycleOf: GmeowScalar
   type: GmeowScalar
 }
 
@@ -5846,7 +5990,7 @@ input MathFiltrationInput {
 type MathFiltrationStage {
   annotation: GmeowScalar
   id: String
-  mathFiltrationThreshold: MathFiltrationStageMathFiltrationThreshold!
+  mathFiltrationThreshold: MathFiltrationStageMathFiltrationThreshold
   mathStageStructure: MathFiltrationStageMathStageStructure!
   type: GmeowScalar
 }
@@ -5854,7 +5998,7 @@ type MathFiltrationStage {
 input MathFiltrationStageInput {
   annotation: GmeowScalar
   id: String
-  mathFiltrationThreshold: MathFiltrationStageMathFiltrationThresholdInput!
+  mathFiltrationThreshold: MathFiltrationStageMathFiltrationThresholdInput
   mathStageStructure: MathFiltrationStageMathStageStructureInput!
   type: GmeowScalar
 }
@@ -5907,6 +6051,20 @@ input MathFittedModelInput {
   type: GmeowScalar
 }
 
+type MathFlatConnection {
+  annotation: GmeowScalar
+  id: String
+  mathTransportCochain: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathFlatConnectionInput {
+  annotation: GmeowScalar
+  id: String
+  mathTransportCochain: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathFunction {
   annotation: GmeowScalar
   id: String
@@ -5936,6 +6094,36 @@ input MathFunctionPieceInput {
   id: String
   mathPieceDomain: GmeowScalar
   mathPieceExpression: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathGlobalSection {
+  annotation: GmeowScalar
+  id: String
+  mathOverSheaf: GmeowScalar
+  mathSectionRegion: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathGlobalSectionInput {
+  annotation: GmeowScalar
+  id: String
+  mathOverSheaf: GmeowScalar
+  mathSectionRegion: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathGluingObstruction {
+  annotation: GmeowScalar
+  id: String
+  mathObstructionOf: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathGluingObstructionInput {
+  annotation: GmeowScalar
+  id: String
+  mathObstructionOf: GmeowScalar
   type: GmeowScalar
 }
 
@@ -6020,6 +6208,22 @@ input MathHodgeDecompositionInput {
   mathHodgeBoundaryOperator: GmeowScalar
   mathOverSheaf: GmeowScalar
   mathReconstructionResidual: GmeowScalar
+  type: GmeowScalar
+}
+
+type MathHolonomy {
+  annotation: GmeowScalar
+  id: String
+  mathHolonomyLoop: GmeowScalar
+  mathHolonomyOf: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathHolonomyInput {
+  annotation: GmeowScalar
+  id: String
+  mathHolonomyLoop: GmeowScalar
+  mathHolonomyOf: GmeowScalar
   type: GmeowScalar
 }
 
@@ -6193,6 +6397,22 @@ input MathLimitResultInput {
   type: GmeowScalar
 }
 
+type MathLocalSection {
+  annotation: GmeowScalar
+  id: String
+  mathOverSheaf: GmeowScalar
+  mathSectionRegion: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathLocalSectionInput {
+  annotation: GmeowScalar
+  id: String
+  mathOverSheaf: GmeowScalar
+  mathSectionRegion: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathManifold {
   annotation: GmeowScalar
   id: String
@@ -6351,6 +6571,18 @@ input MathModelFormulaInput {
   type: GmeowScalar
 }
 
+type MathMultiparameterFiltration {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input MathMultiparameterFiltrationInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
 type MathMutualInformation {
   annotation: GmeowScalar
   id: String
@@ -6449,6 +6681,22 @@ input MathPValueInput {
   type: GmeowScalar
 }
 
+type MathParallelTransport {
+  annotation: GmeowScalar
+  id: String
+  mathTransportAlong: GmeowScalar
+  mathTransportConnection: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathParallelTransportInput {
+  annotation: GmeowScalar
+  id: String
+  mathTransportAlong: GmeowScalar
+  mathTransportConnection: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathPersistenceLifetime {
   annotation: GmeowScalar
   id: String
@@ -6458,6 +6706,22 @@ type MathPersistenceLifetime {
 input MathPersistenceLifetimeInput {
   annotation: GmeowScalar
   id: String
+  type: GmeowScalar
+}
+
+type MathPersistenceMorphism {
+  annotation: GmeowScalar
+  id: String
+  mathMorphismSource: GmeowScalar
+  mathMorphismTarget: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathPersistenceMorphismInput {
+  annotation: GmeowScalar
+  id: String
+  mathMorphismSource: GmeowScalar
+  mathMorphismTarget: GmeowScalar
   type: GmeowScalar
 }
 
@@ -6603,6 +6867,22 @@ input MathResidualInterpretationClaimInput {
   type: GmeowScalar
 }
 
+type MathRestrictionImage {
+  annotation: GmeowScalar
+  id: String
+  mathImageSourceValue: GmeowScalar
+  mathImageTargetValue: GmeowScalar
+  type: GmeowScalar
+}
+
+input MathRestrictionImageInput {
+  annotation: GmeowScalar
+  id: String
+  mathImageSourceValue: GmeowScalar
+  mathImageTargetValue: GmeowScalar
+  type: GmeowScalar
+}
+
 type MathRing {
   annotation: GmeowScalar
   id: String
@@ -6688,6 +6968,18 @@ input MathSetBuilderExpressionMathMemberConditionInput {
 }
 
 input MathSetInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type MathSimplicialComplex {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input MathSimplicialComplexInput {
   annotation: GmeowScalar
   id: String
   type: GmeowScalar
@@ -6923,6 +7215,18 @@ type MathWeightTensorMathInParameterSpace {
 
 input MathWeightTensorMathInParameterSpaceInput {
   id: String!
+}
+
+type MathZigzagDiagram {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input MathZigzagDiagramInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
 }
 
 enum MaximViolationTypeEnum {
@@ -11474,6 +11778,30 @@ input ToolCallInput {
   gmeowToolArguments: GmeowScalar
   gmeowToolResult: GmeowScalar
   gmeowUsedTool: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type TopologyClaim {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input TopologyClaimInput {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+type TopologyComputation {
+  annotation: GmeowScalar
+  id: String
+  type: GmeowScalar
+}
+
+input TopologyComputationInput {
+  annotation: GmeowScalar
   id: String
   type: GmeowScalar
 }

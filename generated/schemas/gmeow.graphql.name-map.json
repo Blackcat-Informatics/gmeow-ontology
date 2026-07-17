@@ -494,6 +494,14 @@
       "output_type": "CommunitySummary",
       "input_type": "CommunitySummaryInput"
     },
+    "CompilationPreservationRecord": {
+      "output_type": "CompilationPreservationRecord",
+      "input_type": "CompilationPreservationRecordInput"
+    },
+    "ComplexCompilation": {
+      "output_type": "ComplexCompilation",
+      "input_type": "ComplexCompilationInput"
+    },
     "ComplianceAssessment": {
       "output_type": "ComplianceAssessment",
       "input_type": "ComplianceAssessmentInput"
@@ -2286,6 +2294,14 @@
       "output_type": "ToolCall",
       "input_type": "ToolCallInput"
     },
+    "TopologyClaim": {
+      "output_type": "TopologyClaim",
+      "input_type": "TopologyClaimInput"
+    },
+    "TopologyComputation": {
+      "output_type": "TopologyComputation",
+      "input_type": "TopologyComputationInput"
+    },
     "Trademark": {
       "output_type": "Trademark",
       "input_type": "TrademarkInput"
@@ -2614,9 +2630,21 @@
       "output_type": "GmeowScalar",
       "input_type": "GmeowScalar"
     },
+    "math:Cell": {
+      "output_type": "MathCell",
+      "input_type": "MathCellInput"
+    },
+    "math:CellIncidence": {
+      "output_type": "MathCellIncidence",
+      "input_type": "MathCellIncidenceInput"
+    },
     "math:CellularSheaf": {
       "output_type": "MathCellularSheaf",
       "input_type": "MathCellularSheafInput"
+    },
+    "math:Chain": {
+      "output_type": "MathChain",
+      "input_type": "MathChainInput"
     },
     "math:Chart": {
       "output_type": "MathChart",
@@ -2641,6 +2669,18 @@
     "math:ClosedFormFunction": {
       "output_type": "MathClosedFormFunction",
       "input_type": "MathClosedFormFunctionInput"
+    },
+    "math:Coboundary": {
+      "output_type": "MathCoboundary",
+      "input_type": "MathCoboundaryInput"
+    },
+    "math:CochainComplex": {
+      "output_type": "MathCochainComplex",
+      "input_type": "MathCochainComplexInput"
+    },
+    "math:CombinatorialLaplacian": {
+      "output_type": "MathCombinatorialLaplacian",
+      "input_type": "MathCombinatorialLaplacianInput"
     },
     "math:CompactSpace": {
       "output_type": "MathCompactSpace",
@@ -2674,6 +2714,10 @@
       "output_type": "MathConnectedSpace",
       "input_type": "MathConnectedSpaceInput"
     },
+    "math:Connection": {
+      "output_type": "MathConnection",
+      "input_type": "MathConnectionInput"
+    },
     "math:ContinuousMap": {
       "output_type": "MathContinuousMap",
       "input_type": "MathContinuousMapInput"
@@ -2689,6 +2733,10 @@
     "math:CrossEntropy": {
       "output_type": "MathCrossEntropy",
       "input_type": "MathCrossEntropyInput"
+    },
+    "math:Cycle": {
+      "output_type": "MathCycle",
+      "input_type": "MathCycleInput"
     },
     "math:Derivative": {
       "output_type": "MathDerivative",
@@ -2750,6 +2798,10 @@
       "output_type": "MathFittedModel",
       "input_type": "MathFittedModelInput"
     },
+    "math:FlatConnection": {
+      "output_type": "MathFlatConnection",
+      "input_type": "MathFlatConnectionInput"
+    },
     "math:FormalVerificationResult": {
       "output_type": "GmeowScalar",
       "input_type": "GmeowScalar"
@@ -2766,6 +2818,14 @@
       "output_type": "MathFunctionPiece",
       "input_type": "MathFunctionPieceInput"
     },
+    "math:GlobalSection": {
+      "output_type": "MathGlobalSection",
+      "input_type": "MathGlobalSectionInput"
+    },
+    "math:GluingObstruction": {
+      "output_type": "MathGluingObstruction",
+      "input_type": "MathGluingObstructionInput"
+    },
     "math:GramMatrix": {
       "output_type": "MathGramMatrix",
       "input_type": "MathGramMatrixInput"
@@ -2777,6 +2837,10 @@
     "math:HodgeDecomposition": {
       "output_type": "MathHodgeDecomposition",
       "input_type": "MathHodgeDecompositionInput"
+    },
+    "math:Holonomy": {
+      "output_type": "MathHolonomy",
+      "input_type": "MathHolonomyInput"
     },
     "math:HomomorphicEncryptionScheme": {
       "output_type": "MathHomomorphicEncryptionScheme",
@@ -2818,6 +2882,10 @@
       "output_type": "MathLimitResult",
       "input_type": "MathLimitResultInput"
     },
+    "math:LocalSection": {
+      "output_type": "MathLocalSection",
+      "input_type": "MathLocalSectionInput"
+    },
     "math:LogOddsValue": {
       "output_type": "GmeowScalar",
       "input_type": "GmeowScalar"
@@ -2858,6 +2926,10 @@
       "output_type": "MathModelFormula",
       "input_type": "MathModelFormulaInput"
     },
+    "math:MultiparameterFiltration": {
+      "output_type": "MathMultiparameterFiltration",
+      "input_type": "MathMultiparameterFiltrationInput"
+    },
     "math:MutualInformation": {
       "output_type": "MathMutualInformation",
       "input_type": "MathMutualInformationInput"
@@ -2886,9 +2958,21 @@
       "output_type": "MathPValue",
       "input_type": "MathPValueInput"
     },
+    "math:ParallelTransport": {
+      "output_type": "MathParallelTransport",
+      "input_type": "MathParallelTransportInput"
+    },
     "math:PersistenceLifetime": {
       "output_type": "MathPersistenceLifetime",
       "input_type": "MathPersistenceLifetimeInput"
+    },
+    "math:PersistenceModule": {
+      "output_type": "GmeowScalar",
+      "input_type": "GmeowScalar"
+    },
+    "math:PersistenceMorphism": {
+      "output_type": "MathPersistenceMorphism",
+      "input_type": "MathPersistenceMorphismInput"
     },
     "math:PersistentHomology": {
       "output_type": "MathPersistentHomology",
@@ -2934,6 +3018,10 @@
       "output_type": "MathResidualInterpretationClaim",
       "input_type": "MathResidualInterpretationClaimInput"
     },
+    "math:RestrictionImage": {
+      "output_type": "MathRestrictionImage",
+      "input_type": "MathRestrictionImageInput"
+    },
     "math:Ring": {
       "output_type": "MathRing",
       "input_type": "MathRingInput"
@@ -2957,6 +3045,10 @@
     "math:SetBuilderExpression": {
       "output_type": "MathSetBuilderExpression",
       "input_type": "MathSetBuilderExpressionInput"
+    },
+    "math:SimplicialComplex": {
+      "output_type": "MathSimplicialComplex",
+      "input_type": "MathSimplicialComplexInput"
     },
     "math:StabilityCalibrationRecord": {
       "output_type": "MathStabilityCalibrationRecord",
@@ -3005,6 +3097,10 @@
     "math:WeightTensor": {
       "output_type": "MathWeightTensor",
       "input_type": "MathWeightTensorInput"
+    },
+    "math:ZigzagDiagram": {
+      "output_type": "MathZigzagDiagram",
+      "input_type": "MathZigzagDiagramInput"
     },
     "test_all_datatypes.en.v1-at0000": {
       "output_type": "TestAllDatatypesEnV1At0000",
@@ -4001,6 +4097,16 @@
       "@id": "id",
       "@type": "type",
       "gmeow:summarizesCommunity": "gmeowSummarizesCommunity"
+    },
+    "#/$defs/CompilationPreservationRecord": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
+    "#/$defs/ComplexCompilation": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
     },
     "#/$defs/ComplianceAssessment": {
       "@annotation": "annotation",
@@ -5649,6 +5755,16 @@
       "gmeow:toolResult": "gmeowToolResult",
       "gmeow:usedTool": "gmeowUsedTool"
     },
+    "#/$defs/TopologyClaim": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
+    "#/$defs/TopologyComputation": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
     "#/$defs/Trademark": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6064,6 +6180,20 @@
     "#/$defs/math:BindingExpression/properties/math:boundVariable": {
       "@id": "id"
     },
+    "#/$defs/math:Cell": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:cellDimension": "mathCellDimension"
+    },
+    "#/$defs/math:CellIncidence": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:incidenceCoface": "mathIncidenceCoface",
+      "math:incidenceFace": "mathIncidenceFace",
+      "math:incidenceSign": "mathIncidenceSign"
+    },
     "#/$defs/math:CellularSheaf": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6071,6 +6201,12 @@
       "math:hasStalk": "mathHasStalk",
       "math:restrictionMap": "mathRestrictionMap",
       "math:sheafBaseComplex": "mathSheafBaseComplex"
+    },
+    "#/$defs/math:Chain": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:chainOf": "mathChainOf"
     },
     "#/$defs/math:Chart": {
       "@annotation": "annotation",
@@ -6134,6 +6270,26 @@
       "math:definingExpression": "mathDefiningExpression",
       "math:formalArgument": "mathFormalArgument"
     },
+    "#/$defs/math:Coboundary": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:coboundaryOf": "mathCoboundaryOf"
+    },
+    "#/$defs/math:CochainComplex": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
+    "#/$defs/math:CombinatorialLaplacian": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:combinatorialLaplacianComplex": "mathCombinatorialLaplacianComplex",
+      "math:laplacianDegree": "mathLaplacianDegree",
+      "math:lowerBoundaryOperator": "mathLowerBoundaryOperator",
+      "math:upperBoundaryOperator": "mathUpperBoundaryOperator"
+    },
     "#/$defs/math:CompactSpace": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6186,6 +6342,12 @@
       "@type": "type",
       "math:isConnected": "mathIsConnected"
     },
+    "#/$defs/math:Connection": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:connectionOn": "mathConnectionOn"
+    },
     "#/$defs/math:ContinuousMap": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6216,6 +6378,12 @@
       "math:informationBase": "mathInformationBase",
       "math:overDistribution": "mathOverDistribution",
       "math:referenceDistribution": "mathReferenceDistribution"
+    },
+    "#/$defs/math:Cycle": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:cycleOf": "mathCycleOf"
     },
     "#/$defs/math:Derivative": {
       "@annotation": "annotation",
@@ -6321,6 +6489,12 @@
       "math:fittedToData": "mathFittedToData",
       "math:modelFormula": "mathModelFormula"
     },
+    "#/$defs/math:FlatConnection": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:transportCochain": "mathTransportCochain"
+    },
     "#/$defs/math:Function": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6334,6 +6508,19 @@
       "@type": "type",
       "math:pieceDomain": "mathPieceDomain",
       "math:pieceExpression": "mathPieceExpression"
+    },
+    "#/$defs/math:GlobalSection": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:overSheaf": "mathOverSheaf",
+      "math:sectionRegion": "mathSectionRegion"
+    },
+    "#/$defs/math:GluingObstruction": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:obstructionOf": "mathObstructionOf"
     },
     "#/$defs/math:GramMatrix": {
       "@annotation": "annotation",
@@ -6371,6 +6558,13 @@
       "math:hodgeBoundaryOperator": "mathHodgeBoundaryOperator",
       "math:overSheaf": "mathOverSheaf",
       "math:reconstructionResidual": "mathReconstructionResidual"
+    },
+    "#/$defs/math:Holonomy": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:holonomyLoop": "mathHolonomyLoop",
+      "math:holonomyOf": "mathHolonomyOf"
     },
     "#/$defs/math:HomomorphicEncryptionScheme": {
       "@annotation": "annotation",
@@ -6445,6 +6639,13 @@
       "math:limitOutcome": "mathLimitOutcome",
       "math:limitResultValue": "mathLimitResultValue"
     },
+    "#/$defs/math:LocalSection": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:overSheaf": "mathOverSheaf",
+      "math:sectionRegion": "mathSectionRegion"
+    },
     "#/$defs/math:Manifold": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6513,6 +6714,11 @@
       "@type": "type",
       "math:argumentSlot": "mathArgumentSlot"
     },
+    "#/$defs/math:MultiparameterFiltration": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
     "#/$defs/math:MutualInformation": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6554,10 +6760,24 @@
       "@type": "type",
       "math:alternativeSidedness": "mathAlternativeSidedness"
     },
+    "#/$defs/math:ParallelTransport": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:transportAlong": "mathTransportAlong",
+      "math:transportConnection": "mathTransportConnection"
+    },
     "#/$defs/math:PersistenceLifetime": {
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type"
+    },
+    "#/$defs/math:PersistenceMorphism": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:morphismSource": "mathMorphismSource",
+      "math:morphismTarget": "mathMorphismTarget"
     },
     "#/$defs/math:PersistentHomology": {
       "@annotation": "annotation",
@@ -6619,6 +6839,13 @@
       "gmeow:observedFeature": "gmeowObservedFeature",
       "gmeow:vantage": "gmeowVantage"
     },
+    "#/$defs/math:RestrictionImage": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "math:imageSourceValue": "mathImageSourceValue",
+      "math:imageTargetValue": "mathImageTargetValue"
+    },
     "#/$defs/math:Ring": {
       "@annotation": "annotation",
       "@id": "id",
@@ -6656,6 +6883,11 @@
     },
     "#/$defs/math:SetBuilderExpression/properties/math:memberCondition": {
       "@id": "id"
+    },
+    "#/$defs/math:SimplicialComplex": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
     },
     "#/$defs/math:StabilityCalibrationRecord": {
       "@annotation": "annotation",
@@ -6756,6 +6988,11 @@
     },
     "#/$defs/math:WeightTensor/properties/math:inParameterSpace": {
       "@id": "id"
+    },
+    "#/$defs/math:ZigzagDiagram": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
     },
     "#/$defs/test_all_datatypes.en.v1-at0000": {
       "@annotation": "annotation",

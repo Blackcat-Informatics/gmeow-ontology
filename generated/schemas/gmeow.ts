@@ -1373,6 +1373,20 @@ export type CommunitySummary = {
   readonly [key: string]: JsonValue;
 };
 
+export type CompilationPreservationRecord = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type ComplexCompilation = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type ComplianceAssessment = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -6151,6 +6165,20 @@ export type ToolCall = {
   readonly [key: string]: JsonValue;
 };
 
+export type TopologyClaim = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type TopologyComputation = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type Trademark = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -7451,6 +7479,42 @@ export type MathCalibrationDiagnostic = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathCell = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:cellDimension"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathCellIncidence = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:incidenceCoface"?: JsonValue;
+  readonly "math:incidenceFace"?: JsonValue;
+  readonly "math:incidenceSign": ((number | {
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(number | {
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(number | {
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathCellularSheaf = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -7470,6 +7534,20 @@ export type MathCellularSheaf = {
             readonly [key: string]: JsonValue;
           })[]);
   readonly "math:sheafBaseComplex"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathChain = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:chainOf"?: ({
         readonly "@id": string;
         readonly [key: string]: JsonValue;
       } | readonly ({
@@ -7623,6 +7701,62 @@ export type MathClosedFormFunction = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathCoboundary = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:coboundaryOf"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathCochainComplex = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathCombinatorialLaplacian = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:combinatorialLaplacianComplex"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly "math:laplacianDegree"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly "math:lowerBoundaryOperator"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly "math:upperBoundaryOperator"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathCompactSpace = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -7742,6 +7876,23 @@ export type MathConnectedSpace = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathConnection = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:connectionOn": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathContinuousMap = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -7827,6 +7978,20 @@ export type MathCrossEntropy = {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
             }))[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathCycle = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:cycleOf"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
   readonly [key: string]: JsonValue;
 };
 
@@ -8117,7 +8282,7 @@ export type MathFiltrationStage = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "math:filtrationThreshold": {
+  readonly "math:filtrationThreshold"?: {
       readonly "@id": string;
       readonly [key: string]: JsonValue;
     };
@@ -8176,6 +8341,20 @@ export type MathFittedModel = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathFlatConnection = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:transportCochain"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathFormalVerificationResult = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -8211,6 +8390,41 @@ export type MathFunctionPiece = {
   readonly "@type"?: (string | readonly (string)[]);
   readonly "math:pieceDomain"?: JsonValue;
   readonly "math:pieceExpression"?: JsonValue;
+  readonly [key: string]: JsonValue;
+};
+
+export type MathGlobalSection = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:overSheaf"?: ((MathCellularSheaf | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathCellularSheaf | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
+  readonly "math:sectionRegion"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathGluingObstruction = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:obstructionOf"?: ((MathCellularSheaf | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathCellularSheaf | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
   readonly [key: string]: JsonValue;
 };
 
@@ -8335,6 +8549,30 @@ export type MathHodgeDecomposition = {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
         }) | readonly ((MathRationalValue | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathHolonomy = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:holonomyLoop": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly "math:holonomyOf"?: ((MathConnection | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathConnection | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
             }))[]);
@@ -8559,6 +8797,27 @@ export type MathLimitResult = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathLocalSection = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:overSheaf"?: ((MathCellularSheaf | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathCellularSheaf | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
+  readonly "math:sectionRegion"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathLogOddsValue = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -8737,6 +8996,13 @@ export type MathModelFormula = {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
             })>]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathMultiparameterFiltration = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
   readonly [key: string]: JsonValue;
 };
 
@@ -8941,10 +9207,76 @@ export type MathPValue = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathParallelTransport = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:transportAlong": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly "math:transportConnection"?: ((MathConnection | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathConnection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathPersistenceLifetime = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathPersistenceModule = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:moduleIndex"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly "math:structureMap"?: ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly ({
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          })[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type MathPersistenceMorphism = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:morphismSource"?: ((MathPersistenceModule | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathPersistenceModule | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
+  readonly "math:morphismTarget"?: ((MathPersistenceModule | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly ((MathPersistenceModule | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }))[]);
   readonly [key: string]: JsonValue;
 };
 
@@ -9141,6 +9473,39 @@ export type MathResidualInterpretationClaim = {
   readonly [key: string]: JsonValue;
 };
 
+export type MathRestrictionImage = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "math:imageSourceValue": ((number | {
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(number | {
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(number | {
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "math:imageTargetValue": ((number | {
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(number | {
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(number | {
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly [key: string]: JsonValue;
+};
+
 export type MathRing = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -9224,6 +9589,13 @@ export type MathSetBuilderExpression = {
       readonly "@id": string;
       readonly [key: string]: JsonValue;
     };
+  readonly [key: string]: JsonValue;
+};
+
+export type MathSimplicialComplex = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
   readonly [key: string]: JsonValue;
 };
 
@@ -9498,6 +9870,13 @@ export type MathWeightTensor = {
       readonly "@id": string;
       readonly [key: string]: JsonValue;
     };
+  readonly [key: string]: JsonValue;
+};
+
+export type MathZigzagDiagram = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
   readonly [key: string]: JsonValue;
 };
 

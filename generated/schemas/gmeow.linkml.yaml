@@ -3456,6 +3456,50 @@ classes:
     class_uri: gmeow:CommunitySummary
     extra_slots:
       allowed: true
+  CompilationPreservationRecord:
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:CompilationPreservationRecord
+    extra_slots:
+      allowed: true
+  ComplexCompilation:
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:ComplexCompilation
+    extra_slots:
+      allowed: true
   ComplianceAssessment:
     attributes:
       '@annotation':
@@ -14431,6 +14475,50 @@ classes:
     class_uri: gmeow:InlineDefsMathCalibrationDiagnosticAllOf0NotObject
     extra_slots:
       allowed: true
+  InlineDefsMathCellIncidencePropertiesMathIncidenceSignAnyOf0AnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCellIncidencePropertiesMathIncidenceSignAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCellIncidencePropertiesMathIncidenceSignAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCellIncidencePropertiesMathIncidenceSignAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCellPropertiesMathCellDimensionAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCellPropertiesMathCellDimensionAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCellPropertiesMathCellDimensionAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCellPropertiesMathCellDimensionAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
   InlineDefsMathCellularSheafPropertiesMathHasStalkAnyOf0Object:
     attributes:
       '@id':
@@ -14483,6 +14571,24 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathCellularSheafPropertiesMathSheafBaseComplexAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathChainPropertiesMathChainOfAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathChainPropertiesMathChainOfAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathChainPropertiesMathChainOfAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathChainPropertiesMathChainOfAnyOf1ItemsObject
     extra_slots:
       allowed: true
   InlineDefsMathChartPropertiesMathChartDomainObject:
@@ -14708,6 +14814,96 @@ classes:
     class_uri: gmeow:InlineDefsMathCliffordModuleDecompositionPropertiesMathSplitJoinVerifiedAnyOf1Object
     extra_slots:
       allowed: true
+  InlineDefsMathCoboundaryPropertiesMathCoboundaryOfAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCoboundaryPropertiesMathCoboundaryOfAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCoboundaryPropertiesMathCoboundaryOfAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCoboundaryPropertiesMathCoboundaryOfAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathCombinatorialLaplacianComplexAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathCombinatorialLaplacianComplexAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathCombinatorialLaplacianComplexAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathCombinatorialLaplacianComplexAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathLaplacianDegreeAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathLaplacianDegreeAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathLaplacianDegreeAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathLaplacianDegreeAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathLowerBoundaryOperatorAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathLowerBoundaryOperatorAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathLowerBoundaryOperatorAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathLowerBoundaryOperatorAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathUpperBoundaryOperatorAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathUpperBoundaryOperatorAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCombinatorialLaplacianPropertiesMathUpperBoundaryOperatorAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCombinatorialLaplacianPropertiesMathUpperBoundaryOperatorAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
   InlineDefsMathCompactSpacePropertiesMathIsCompactAnyOf1Object:
     attributes:
       '@type':
@@ -14826,6 +15022,24 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathConnectedSpacePropertiesMathIsConnectedAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathConnectionPropertiesMathConnectionOnAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathConnectionPropertiesMathConnectionOnAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathConnectionPropertiesMathConnectionOnAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathConnectionPropertiesMathConnectionOnAnyOf1ItemsObject
     extra_slots:
       allowed: true
   InlineDefsMathContinuousMapPropertiesMathIsContinuousAnyOf1Object:
@@ -14956,6 +15170,24 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathCrossEntropyPropertiesMathReferenceDistributionAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCyclePropertiesMathCycleOfAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCyclePropertiesMathCycleOfAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathCyclePropertiesMathCycleOfAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathCyclePropertiesMathCycleOfAnyOf1ItemsObject
     extra_slots:
       allowed: true
   InlineDefsMathDerivativePropertiesMathDerivativeOfObject:
@@ -15527,6 +15759,24 @@ classes:
     class_uri: gmeow:InlineDefsMathFittedModelPropertiesMathModelFormulaAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
+  InlineDefsMathFlatConnectionPropertiesMathTransportCochainAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathFlatConnectionPropertiesMathTransportCochainAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathFlatConnectionPropertiesMathTransportCochainAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathFlatConnectionPropertiesMathTransportCochainAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
   InlineDefsMathFormalVerificationResultAllOf0NotObject:
     attributes:
       '@type':
@@ -15582,6 +15832,60 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathFunctionPropertiesMathDomainAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathGlobalSectionPropertiesMathOverSheafAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathGlobalSectionPropertiesMathOverSheafAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathGlobalSectionPropertiesMathOverSheafAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathGlobalSectionPropertiesMathOverSheafAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathGlobalSectionPropertiesMathSectionRegionAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathGlobalSectionPropertiesMathSectionRegionAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathGlobalSectionPropertiesMathSectionRegionAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathGlobalSectionPropertiesMathSectionRegionAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathGluingObstructionPropertiesMathObstructionOfAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathGluingObstructionPropertiesMathObstructionOfAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathGluingObstructionPropertiesMathObstructionOfAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathGluingObstructionPropertiesMathObstructionOfAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
   InlineDefsMathGramMatrixPropertiesMathInBasisObject:
@@ -15852,6 +16156,42 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathHodgeDecompositionPropertiesMathReconstructionResidualAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathHolonomyPropertiesMathHolonomyLoopAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathHolonomyPropertiesMathHolonomyLoopAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathHolonomyPropertiesMathHolonomyLoopAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathHolonomyPropertiesMathHolonomyLoopAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathHolonomyPropertiesMathHolonomyOfAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathHolonomyPropertiesMathHolonomyOfAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathHolonomyPropertiesMathHolonomyOfAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathHolonomyPropertiesMathHolonomyOfAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
   InlineDefsMathHomomorphicEncryptionSchemePropertiesMathHomomorphicOverAnyOf0Object:
@@ -16157,6 +16497,42 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathLimitPropertiesMathLimitPointObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathLocalSectionPropertiesMathOverSheafAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathLocalSectionPropertiesMathOverSheafAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathLocalSectionPropertiesMathOverSheafAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathLocalSectionPropertiesMathOverSheafAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathLocalSectionPropertiesMathSectionRegionAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathLocalSectionPropertiesMathSectionRegionAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathLocalSectionPropertiesMathSectionRegionAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathLocalSectionPropertiesMathSectionRegionAnyOf1ItemsObject
     extra_slots:
       allowed: true
   InlineDefsMathLogOddsValueAllOf0NotObject:
@@ -16660,6 +17036,127 @@ classes:
     class_uri: gmeow:InlineDefsMathPCAAnalysisPropertiesMathScoreVectorAnyOf1ItemsObject
     extra_slots:
       allowed: true
+  InlineDefsMathParallelTransportPropertiesMathTransportAlongAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathParallelTransportPropertiesMathTransportAlongAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathParallelTransportPropertiesMathTransportAlongAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathParallelTransportPropertiesMathTransportAlongAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathParallelTransportPropertiesMathTransportConnectionAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathParallelTransportPropertiesMathTransportConnectionAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathParallelTransportPropertiesMathTransportConnectionAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathParallelTransportPropertiesMathTransportConnectionAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceModuleAllOf0NotObject:
+    attributes:
+      '@type':
+        alias: '@type'
+        any_of:
+        - equals_string: math:PersistenceLifetime
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceModuleAllOf0NotObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceModulePropertiesMathModuleIndexAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceModulePropertiesMathModuleIndexAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceModulePropertiesMathModuleIndexAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceModulePropertiesMathModuleIndexAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceModulePropertiesMathStructureMapAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceModulePropertiesMathStructureMapAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceModulePropertiesMathStructureMapAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceModulePropertiesMathStructureMapAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceMorphismPropertiesMathMorphismSourceAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceMorphismPropertiesMathMorphismSourceAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceMorphismPropertiesMathMorphismSourceAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceMorphismPropertiesMathMorphismSourceAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceMorphismPropertiesMathMorphismTargetAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceMorphismPropertiesMathMorphismTargetAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathPersistenceMorphismPropertiesMathMorphismTargetAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathPersistenceMorphismPropertiesMathMorphismTargetAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
   InlineDefsMathPersistentHomologyPropertiesMathAnalysisInputAnyOf0Object:
     attributes:
       '@id':
@@ -16908,6 +17405,58 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsMathResidualInterpretationClaimPropertiesGmeowVantageAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsMathRestrictionImagePropertiesMathImageSourceValueAnyOf0AnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathRestrictionImagePropertiesMathImageSourceValueAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathRestrictionImagePropertiesMathImageSourceValueAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathRestrictionImagePropertiesMathImageSourceValueAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathRestrictionImagePropertiesMathImageTargetValueAnyOf0AnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathRestrictionImagePropertiesMathImageTargetValueAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsMathRestrictionImagePropertiesMathImageTargetValueAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsMathRestrictionImagePropertiesMathImageTargetValueAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
   InlineDefsMathRingPropertiesMathSatisfiesDistributivityAnyOf0Object:
@@ -25810,6 +26359,98 @@ classes:
     class_uri: gmeow:MathCalibrationDiagnostic
     extra_slots:
       allowed: true
+  MathCell:
+    alias: math:Cell
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:cellDimension:
+        alias: math:cellDimension
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCellPropertiesMathCellDimensionAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCellPropertiesMathCellDimensionAnyOf1ItemsObject
+        required: false
+        slot_uri: math:cellDimension
+    class_uri: gmeow:MathCell
+    extra_slots:
+      allowed: true
+  MathCellIncidence:
+    alias: math:CellIncidence
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:incidenceCoface:
+        alias: math:incidenceCoface
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+        slot_uri: math:incidenceCoface
+      math:incidenceFace:
+        alias: math:incidenceFace
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+        slot_uri: math:incidenceFace
+      math:incidenceSign:
+        alias: math:incidenceSign
+        any_of:
+        - any_of:
+          - range: integer
+          - inlined: true
+            range: InlineDefsMathCellIncidencePropertiesMathIncidenceSignAnyOf0AnyOf1Object
+        - any_of:
+          - range: integer
+          - inlined: true
+            range: InlineDefsMathCellIncidencePropertiesMathIncidenceSignAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: math:incidenceSign
+    class_uri: gmeow:MathCellIncidence
+    extra_slots:
+      allowed: true
   MathCellularSheaf:
     alias: math:CellularSheaf
     attributes:
@@ -25867,6 +26508,41 @@ classes:
         required: false
         slot_uri: math:sheafBaseComplex
     class_uri: gmeow:MathCellularSheaf
+    extra_slots:
+      allowed: true
+  MathChain:
+    alias: math:Chain
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:chainOf:
+        alias: math:chainOf
+        any_of:
+        - inlined: true
+          range: InlineDefsMathChainPropertiesMathChainOfAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathChainPropertiesMathChainOfAnyOf1ItemsObject
+        required: false
+        slot_uri: math:chainOf
+    class_uri: gmeow:MathChain
     extra_slots:
       allowed: true
   MathChart:
@@ -26236,6 +26912,135 @@ classes:
     class_uri: gmeow:MathClosedFormFunction
     extra_slots:
       allowed: true
+  MathCoboundary:
+    alias: math:Coboundary
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:coboundaryOf:
+        alias: math:coboundaryOf
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCoboundaryPropertiesMathCoboundaryOfAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCoboundaryPropertiesMathCoboundaryOfAnyOf1ItemsObject
+        required: false
+        slot_uri: math:coboundaryOf
+    class_uri: gmeow:MathCoboundary
+    extra_slots:
+      allowed: true
+  MathCochainComplex:
+    alias: math:CochainComplex
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:MathCochainComplex
+    extra_slots:
+      allowed: true
+  MathCombinatorialLaplacian:
+    alias: math:CombinatorialLaplacian
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:combinatorialLaplacianComplex:
+        alias: math:combinatorialLaplacianComplex
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathCombinatorialLaplacianComplexAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathCombinatorialLaplacianComplexAnyOf1ItemsObject
+        required: false
+        slot_uri: math:combinatorialLaplacianComplex
+      math:laplacianDegree:
+        alias: math:laplacianDegree
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathLaplacianDegreeAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathLaplacianDegreeAnyOf1ItemsObject
+        required: false
+        slot_uri: math:laplacianDegree
+      math:lowerBoundaryOperator:
+        alias: math:lowerBoundaryOperator
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathLowerBoundaryOperatorAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathLowerBoundaryOperatorAnyOf1ItemsObject
+        required: false
+        slot_uri: math:lowerBoundaryOperator
+      math:upperBoundaryOperator:
+        alias: math:upperBoundaryOperator
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathUpperBoundaryOperatorAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCombinatorialLaplacianPropertiesMathUpperBoundaryOperatorAnyOf1ItemsObject
+        required: false
+        slot_uri: math:upperBoundaryOperator
+    class_uri: gmeow:MathCombinatorialLaplacian
+    extra_slots:
+      allowed: true
   MathCompactSpace:
     alias: math:CompactSpace
     attributes:
@@ -26529,6 +27334,42 @@ classes:
     class_uri: gmeow:MathConnectedSpace
     extra_slots:
       allowed: true
+  MathConnection:
+    alias: math:Connection
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:connectionOn:
+        alias: math:connectionOn
+        any_of:
+        - inlined: true
+          range: InlineDefsMathConnectionPropertiesMathConnectionOnAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+          range: InlineDefsMathConnectionPropertiesMathConnectionOnAnyOf1ItemsObject
+        required: true
+        slot_uri: math:connectionOn
+    class_uri: gmeow:MathConnection
+    extra_slots:
+      allowed: true
   MathContinuousMap:
     alias: math:ContinuousMap
     attributes:
@@ -26718,6 +27559,41 @@ classes:
         required: false
         slot_uri: math:referenceDistribution
     class_uri: gmeow:MathCrossEntropy
+    extra_slots:
+      allowed: true
+  MathCycle:
+    alias: math:Cycle
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:cycleOf:
+        alias: math:cycleOf
+        any_of:
+        - inlined: true
+          range: InlineDefsMathCyclePropertiesMathCycleOfAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathCyclePropertiesMathCycleOfAnyOf1ItemsObject
+        required: false
+        slot_uri: math:cycleOf
+    class_uri: gmeow:MathCycle
     extra_slots:
       allowed: true
   MathDerivative:
@@ -27316,7 +28192,7 @@ classes:
         alias: math:filtrationThreshold
         inlined: true
         range: InlineDefsMathFiltrationStagePropertiesMathFiltrationThresholdObject
-        required: true
+        required: false
         slot_uri: math:filtrationThreshold
       math:stageStructure:
         alias: math:stageStructure
@@ -27431,6 +28307,41 @@ classes:
         required: true
         slot_uri: math:modelFormula
     class_uri: gmeow:MathFittedModel
+    extra_slots:
+      allowed: true
+  MathFlatConnection:
+    alias: math:FlatConnection
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:transportCochain:
+        alias: math:transportCochain
+        any_of:
+        - inlined: true
+          range: InlineDefsMathFlatConnectionPropertiesMathTransportCochainAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathFlatConnectionPropertiesMathTransportCochainAnyOf1ItemsObject
+        required: false
+        slot_uri: math:transportCochain
+    class_uri: gmeow:MathFlatConnection
     extra_slots:
       allowed: true
   MathFormalVerificationResult:
@@ -27567,6 +28478,98 @@ classes:
         required: false
         slot_uri: math:pieceExpression
     class_uri: gmeow:MathFunctionPiece
+    extra_slots:
+      allowed: true
+  MathGlobalSection:
+    alias: math:GlobalSection
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:overSheaf:
+        alias: math:overSheaf
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathCellularSheaf
+          - inlined: true
+            range: InlineDefsMathGlobalSectionPropertiesMathOverSheafAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathCellularSheaf
+          - inlined: true
+            range: InlineDefsMathGlobalSectionPropertiesMathOverSheafAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:overSheaf
+      math:sectionRegion:
+        alias: math:sectionRegion
+        any_of:
+        - inlined: true
+          range: InlineDefsMathGlobalSectionPropertiesMathSectionRegionAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathGlobalSectionPropertiesMathSectionRegionAnyOf1ItemsObject
+        required: false
+        slot_uri: math:sectionRegion
+    class_uri: gmeow:MathGlobalSection
+    extra_slots:
+      allowed: true
+  MathGluingObstruction:
+    alias: math:GluingObstruction
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:obstructionOf:
+        alias: math:obstructionOf
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathCellularSheaf
+          - inlined: true
+            range: InlineDefsMathGluingObstructionPropertiesMathObstructionOfAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathCellularSheaf
+          - inlined: true
+            range: InlineDefsMathGluingObstructionPropertiesMathObstructionOfAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:obstructionOf
+    class_uri: gmeow:MathGluingObstruction
     extra_slots:
       allowed: true
   MathGramMatrix:
@@ -27841,6 +28844,59 @@ classes:
         required: false
         slot_uri: math:reconstructionResidual
     class_uri: gmeow:MathHodgeDecomposition
+    extra_slots:
+      allowed: true
+  MathHolonomy:
+    alias: math:Holonomy
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:holonomyLoop:
+        alias: math:holonomyLoop
+        any_of:
+        - inlined: true
+          range: InlineDefsMathHolonomyPropertiesMathHolonomyLoopAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+          range: InlineDefsMathHolonomyPropertiesMathHolonomyLoopAnyOf1ItemsObject
+        required: true
+        slot_uri: math:holonomyLoop
+      math:holonomyOf:
+        alias: math:holonomyOf
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathConnection
+          - inlined: true
+            range: InlineDefsMathHolonomyPropertiesMathHolonomyOfAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathConnection
+          - inlined: true
+            range: InlineDefsMathHolonomyPropertiesMathHolonomyOfAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:holonomyOf
+    class_uri: gmeow:MathHolonomy
     extra_slots:
       allowed: true
   MathHomomorphicEncryptionScheme:
@@ -28344,6 +29400,58 @@ classes:
     class_uri: gmeow:MathLimitResult
     extra_slots:
       allowed: true
+  MathLocalSection:
+    alias: math:LocalSection
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:overSheaf:
+        alias: math:overSheaf
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathCellularSheaf
+          - inlined: true
+            range: InlineDefsMathLocalSectionPropertiesMathOverSheafAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathCellularSheaf
+          - inlined: true
+            range: InlineDefsMathLocalSectionPropertiesMathOverSheafAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:overSheaf
+      math:sectionRegion:
+        alias: math:sectionRegion
+        any_of:
+        - inlined: true
+          range: InlineDefsMathLocalSectionPropertiesMathSectionRegionAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathLocalSectionPropertiesMathSectionRegionAnyOf1ItemsObject
+        required: false
+        slot_uri: math:sectionRegion
+    class_uri: gmeow:MathLocalSection
+    extra_slots:
+      allowed: true
   MathLogOddsValue:
     alias: math:LogOddsValue
     all_of:
@@ -28767,6 +29875,29 @@ classes:
     class_uri: gmeow:MathModelFormula
     extra_slots:
       allowed: true
+  MathMultiparameterFiltration:
+    alias: math:MultiparameterFiltration
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:MathMultiparameterFiltration
+    extra_slots:
+      allowed: true
   MathMutualInformation:
     alias: math:MutualInformation
     attributes:
@@ -29119,6 +30250,59 @@ classes:
     class_uri: gmeow:MathPValue
     extra_slots:
       allowed: true
+  MathParallelTransport:
+    alias: math:ParallelTransport
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:transportAlong:
+        alias: math:transportAlong
+        any_of:
+        - inlined: true
+          range: InlineDefsMathParallelTransportPropertiesMathTransportAlongAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+          range: InlineDefsMathParallelTransportPropertiesMathTransportAlongAnyOf1ItemsObject
+        required: true
+        slot_uri: math:transportAlong
+      math:transportConnection:
+        alias: math:transportConnection
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathConnection
+          - inlined: true
+            range: InlineDefsMathParallelTransportPropertiesMathTransportConnectionAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathConnection
+          - inlined: true
+            range: InlineDefsMathParallelTransportPropertiesMathTransportConnectionAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:transportConnection
+    class_uri: gmeow:MathParallelTransport
+    extra_slots:
+      allowed: true
   MathPersistenceLifetime:
     alias: math:PersistenceLifetime
     attributes:
@@ -29140,6 +30324,113 @@ classes:
           range: string
         required: false
     class_uri: gmeow:MathPersistenceLifetime
+    extra_slots:
+      allowed: true
+  MathPersistenceModule:
+    alias: math:PersistenceModule
+    all_of:
+    - none_of:
+      - is_a: InlineDefsMathPersistenceModuleAllOf0NotObject
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:moduleIndex:
+        alias: math:moduleIndex
+        any_of:
+        - inlined: true
+          range: InlineDefsMathPersistenceModulePropertiesMathModuleIndexAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathPersistenceModulePropertiesMathModuleIndexAnyOf1ItemsObject
+        required: false
+        slot_uri: math:moduleIndex
+      math:structureMap:
+        alias: math:structureMap
+        any_of:
+        - inlined: true
+          range: InlineDefsMathPersistenceModulePropertiesMathStructureMapAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          multivalued: true
+          range: InlineDefsMathPersistenceModulePropertiesMathStructureMapAnyOf1ItemsObject
+        required: false
+        slot_uri: math:structureMap
+    class_uri: gmeow:MathPersistenceModule
+    extra_slots:
+      allowed: true
+  MathPersistenceMorphism:
+    alias: math:PersistenceMorphism
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:morphismSource:
+        alias: math:morphismSource
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathPersistenceModule
+          - inlined: true
+            range: InlineDefsMathPersistenceMorphismPropertiesMathMorphismSourceAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathPersistenceModule
+          - inlined: true
+            range: InlineDefsMathPersistenceMorphismPropertiesMathMorphismSourceAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:morphismSource
+      math:morphismTarget:
+        alias: math:morphismTarget
+        any_of:
+        - any_of:
+          - inlined: true
+            range: MathPersistenceModule
+          - inlined: true
+            range: InlineDefsMathPersistenceMorphismPropertiesMathMorphismTargetAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: MathPersistenceModule
+          - inlined: true
+            range: InlineDefsMathPersistenceMorphismPropertiesMathMorphismTargetAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          multivalued: true
+        required: false
+        slot_uri: math:morphismTarget
+    class_uri: gmeow:MathPersistenceMorphism
     extra_slots:
       allowed: true
   MathPersistentHomology:
@@ -29576,6 +30867,61 @@ classes:
     class_uri: gmeow:MathResidualInterpretationClaim
     extra_slots:
       allowed: true
+  MathRestrictionImage:
+    alias: math:RestrictionImage
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      math:imageSourceValue:
+        alias: math:imageSourceValue
+        any_of:
+        - any_of:
+          - range: integer
+          - inlined: true
+            range: InlineDefsMathRestrictionImagePropertiesMathImageSourceValueAnyOf0AnyOf1Object
+        - any_of:
+          - range: integer
+          - inlined: true
+            range: InlineDefsMathRestrictionImagePropertiesMathImageSourceValueAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: math:imageSourceValue
+      math:imageTargetValue:
+        alias: math:imageTargetValue
+        any_of:
+        - any_of:
+          - range: integer
+          - inlined: true
+            range: InlineDefsMathRestrictionImagePropertiesMathImageTargetValueAnyOf0AnyOf1Object
+        - any_of:
+          - range: integer
+          - inlined: true
+            range: InlineDefsMathRestrictionImagePropertiesMathImageTargetValueAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: math:imageTargetValue
+    class_uri: gmeow:MathRestrictionImage
+    extra_slots:
+      allowed: true
   MathRing:
     alias: math:Ring
     attributes:
@@ -29780,6 +31126,29 @@ classes:
         required: true
         slot_uri: math:memberCondition
     class_uri: gmeow:MathSetBuilderExpression
+    extra_slots:
+      allowed: true
+  MathSimplicialComplex:
+    alias: math:SimplicialComplex
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:MathSimplicialComplex
     extra_slots:
       allowed: true
   MathStabilityCalibrationRecord:
@@ -30378,6 +31747,29 @@ classes:
         required: true
         slot_uri: math:inParameterSpace
     class_uri: gmeow:MathWeightTensor
+    extra_slots:
+      allowed: true
+  MathZigzagDiagram:
+    alias: math:ZigzagDiagram
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:MathZigzagDiagram
     extra_slots:
       allowed: true
   Measurement:
@@ -39246,6 +40638,50 @@ classes:
         required: false
         slot_uri: gmeow:usedTool
     class_uri: gmeow:ToolCall
+    extra_slots:
+      allowed: true
+  TopologyClaim:
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:TopologyClaim
+    extra_slots:
+      allowed: true
+  TopologyComputation:
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+    class_uri: gmeow:TopologyComputation
     extra_slots:
       allowed: true
   Trademark:
