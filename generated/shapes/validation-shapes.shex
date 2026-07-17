@@ -5734,6 +5734,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/what3words> . {0,1} ;
 }
 
+# targetClass <https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph> (associate via ShapeMap)
+<https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph-shape> {
+  <https://blackcatinformatics.ca/lang/homographSource> <http://www.w3.org/2001/XMLSchema#string> {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/lang/Denotation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/lang/Denotation-shape> {
   <https://blackcatinformatics.ca/lang/denotedForm> IRI + ;
@@ -5842,11 +5847,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/lang/WordForm> (associate via ShapeMap)
 <https://blackcatinformatics.ca/lang/WordForm-shape> {
   <https://blackcatinformatics.ca/lang/lexemeOf> IRI + ;
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/lang/homographSource> (associate via ShapeMap)
-<https://blackcatinformatics.ca/lang/homographSource-domain-shape> {
-  <https://blackcatinformatics.ca/lang/homographSource> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/logic/ActionSchema> (associate via ShapeMap)

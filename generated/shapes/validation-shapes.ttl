@@ -4846,6 +4846,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/what3words> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/what3words> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/lang/homographSource> ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
+
 <https://blackcatinformatics.ca/lang/Denotation-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/lang/UnderspecifiedDenotation> ;
     sh:targetClass <https://blackcatinformatics.ca/lang/Denotation> ;
@@ -4957,10 +4961,6 @@
 <https://blackcatinformatics.ca/lang/WordForm-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/lang/WordForm> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/lang/lexemeOf> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/lang/Lexeme> ] .
-
-<https://blackcatinformatics.ca/lang/homographSource-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/homographSource> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/lang/homographSource> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/ActionSchema-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/ActionSchema> ;

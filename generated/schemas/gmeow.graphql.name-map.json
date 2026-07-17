@@ -2418,6 +2418,10 @@
       "output_type": "LangComposedForm",
       "input_type": "LangComposedFormInput"
     },
+    "lang:DeclaredTerminologyHomograph": {
+      "output_type": "LangDeclaredTerminologyHomograph",
+      "input_type": "LangDeclaredTerminologyHomographInput"
+    },
     "lang:Denotation": {
       "output_type": "LangDenotation",
       "input_type": "LangDenotationInput"
@@ -5870,6 +5874,12 @@
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type"
+    },
+    "#/$defs/lang:DeclaredTerminologyHomograph": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "lang:homographSource": "langHomographSource"
     },
     "#/$defs/lang:Denotation": {
       "@annotation": "annotation",

@@ -6427,6 +6427,18 @@ export type LangComposedForm = {
   readonly [key: string]: JsonValue;
 };
 
+export type LangDeclaredTerminologyHomograph = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "lang:homographSource"?: (string | {
+        readonly "@type"?: string;
+        readonly "@value": JsonValue;
+        readonly [key: string]: JsonValue;
+      });
+  readonly [key: string]: JsonValue;
+};
+
 export type LangDenotation = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;

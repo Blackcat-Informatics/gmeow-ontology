@@ -4288,6 +4288,20 @@ input LangComposedFormInput {
   type: GmeowScalar
 }
 
+type LangDeclaredTerminologyHomograph {
+  annotation: GmeowScalar
+  id: String
+  langHomographSource: GmeowScalar
+  type: GmeowScalar
+}
+
+input LangDeclaredTerminologyHomographInput {
+  annotation: GmeowScalar
+  id: String
+  langHomographSource: GmeowScalar
+  type: GmeowScalar
+}
+
 type LangDenotation {
   annotation: GmeowScalar
   id: String

@@ -634,8 +634,8 @@ msgid "homograph source"
 msgstr "同形异义词源"
 
 msgctxt "https://blackcatinformatics.ca/lang/homographSource|skos:definition"
-msgid "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. Functional: one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."
-msgstr "一个 lang:DeclaredTerminologyHomograph 标记为同形异义词的英文表层形式——术语表一致性闸门所豁免的字符串。函数性：每项声明一个表层形式。定义域 lang:DeclaredTerminologyHomograph，值域 xsd:string。与 gmeow:glossarySource（后者限定于条目且为派生）不同：该谓词仅在同形异义词声明上撰写，因而闸门对豁免集的读取绝不会拾取派生的条目字面量。"
+msgid "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. At most one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."
+msgstr "一个 lang:DeclaredTerminologyHomograph 标记为同形异义词的英文表层形式——术语表一致性闸门所豁免的字符串。每项声明至多一个表层形式。定义域 lang:DeclaredTerminologyHomograph，值域 xsd:string。与 gmeow:glossarySource（后者限定于条目且为派生）不同：该谓词仅在同形异义词声明上撰写，因而闸门对豁免集的读取绝不会拾取派生的条目字面量。"
 
 msgctxt "https://blackcatinformatics.ca/lang/homographConcept|rdfs:label"
 msgid "homograph concept"

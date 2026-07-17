@@ -28527,6 +28527,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "lang:DeclaredTerminologyHomograph"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:DeclaredTerminologyHomograph"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:DeclaredTerminologyHomograph"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "lang:Denotation"
                     },
                     {
@@ -45696,6 +45721,49 @@
                   "type": "string"
                 },
                 "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "lang:DeclaredTerminologyHomograph": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "lang:homographSource": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
               }
             ]
           }

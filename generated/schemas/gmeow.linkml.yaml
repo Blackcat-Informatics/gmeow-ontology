@@ -12541,6 +12541,19 @@ classes:
     class_uri: gmeow:InlineDefsLandTenurePropertiesGmeowTenurePlaceAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
+  InlineDefsLangDeclaredTerminologyHomographPropertiesLangHomographSourceAnyOf1Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsLangDeclaredTerminologyHomographPropertiesLangHomographSourceAnyOf1Object
+    extra_slots:
+      allowed: true
   InlineDefsLangFormAllOf0NotObject:
     attributes:
       '@type':
@@ -23546,6 +23559,37 @@ classes:
           range: string
         required: false
     class_uri: gmeow:LangComposedForm
+    extra_slots:
+      allowed: true
+  LangDeclaredTerminologyHomograph:
+    alias: lang:DeclaredTerminologyHomograph
+    attributes:
+      '@annotation':
+        alias: '@annotation'
+        inlined: true
+        range: Annotation
+        required: false
+      '@id':
+        alias: '@id'
+        range: string
+        required: false
+      '@type':
+        alias: '@type'
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          multivalued: true
+          range: string
+        required: false
+      lang:homographSource:
+        alias: lang:homographSource
+        any_of:
+        - range: string
+        - inlined: true
+          range: InlineDefsLangDeclaredTerminologyHomographPropertiesLangHomographSourceAnyOf1Object
+        required: false
+        slot_uri: lang:homographSource
+    class_uri: gmeow:LangDeclaredTerminologyHomograph
     extra_slots:
       allowed: true
   LangDenotation:
