@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the math:ParallelTransport frame (issue #1527, Commit E): a
+# math:ParallelTransport naming its math:transportConnection rule but omitting its
+# math:transportAlong path — transport that goes nowhere. The min-1 qualified restriction on
+# math:transportAlong derives a sh:qualifiedMinCount property shape, so validation MUST emit
+# shacl.QualifiedMinCountConstraintComponent and NO other finding
+# (math:IncompleteParallelTransport).
+# ISOLATION: the math:transportConnection arm is satisfied by a well-formed math:Connection
+# (naming its math:connectionOn so math:IncompleteConnection stays silent), so only the
+# math:transportAlong arm fires.
+# Back-reference: math:IncompleteParallelTransport (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecParallelTransportNoPath).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:transport a math:ParallelTransport ;
+    math:transportConnection ex:connection .    # names the rule but NO math:transportAlong
+
+ex:connection a math:Connection ;
+    math:connectionOn ex:sheaf .
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:base ;
+    math:hasStalk ex:stalk ;
+    math:restrictionMap ex:restriction .
+ex:base a math:CellComplex .
+ex:stalk a math:SheafStalk ; math:stalkOverCell ex:cell .
+ex:cell a math:MathematicalObject .
+ex:restriction a math:SheafRestrictionMap ; math:sourceObject ex:stalk ; math:targetObject ex:stalk .

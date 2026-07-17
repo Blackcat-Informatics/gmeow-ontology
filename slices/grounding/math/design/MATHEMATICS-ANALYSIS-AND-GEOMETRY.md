@@ -357,6 +357,45 @@ disagree" claims are unauthorable, and an obstruction must name the sheaf it obs
 that computes a feature over a cover states it as local data, and only a discharged
 `math:GluingObstruction` promotes it to a global claim.
 
+### Connections and holonomy
+
+The **primary reading of a connection here is DISCRETE**: the `math:SheafRestrictionMap`s of a
+`math:CellularSheaf` **are** a connection. A `math:Connection` names what it is a connection **on**
+through `math:connectionOn`; for the discrete reading that is the sheaf itself
+(`math:connectionOfSheaf`, a refinement of `math:connectionOn`), whose restriction maps transport
+stalk data along each incidence. `math:ParallelTransport` is the **composition** of those restriction
+maps along a declared path — it names its rule through `math:transportConnection` and its path
+through `math:transportAlong`, reusing the object-layer `math:Morphism` parent rather than minting a
+fresh map algebra. `math:Holonomy` is that transport composite around a **closed loop**: it names the
+loop through `math:holonomyLoop` and the connection through `math:holonomyOf`, and its deviation from
+the identity is the curvature witness.
+
+**Flatness is closedness.** A `math:FlatConnection` is a `math:Connection` whose `math:transportCochain`
+is a `math:Cocycle` — flat ⇔ closed. This is an **EL-safe, checkable** subclass restriction (a min-1
+qualified + `allValuesFrom` restriction onto `math:Cocycle`), tying the connection surface directly to
+the landed chain/cochain machinery: the transport cochain lives in the same cochain complex whose
+`math:SheafLaplacian` and `math:HodgeDecomposition` measure incompatibility of local data, so a flat
+connection is exactly one whose transport class is a δ-kernel element (a cocycle from
+[the square-zero section](#chain-and-cochain-complexes--the-square-zero-laws-and-their-adjunction)).
+
+The **secondary geometric reading** is the manifold one: a `math:Atlas` of `math:Chart`s with
+`math:transitionMap`s, and a `math:Connection` whose `math:connectionOn` is that atlas (or a bundle),
+with a `math:Holonomy` around a closed coordinate loop. Both readings share one term surface; the
+frame gates keep them honest — a connection must name what it is **on** (`math:IncompleteConnection`),
+a parallel transport must name **rule and path** (`math:IncompleteParallelTransport`), and a holonomy
+must name **loop and connection** (`math:IncompleteHolonomy`).
+
+This is deliberately a **minimal realization, not a full curvature calculus**. The universal
+path-ordered curvature F = dA + A∧A — the infinitesimal holonomy accumulated around **every** loop —
+is genuinely second-order (it quantifies over the unbounded family of all loops and, in the continuum,
+over a path-ordered exponential), so it is **not** faked as a first-order law but recorded as the
+honest higher-order gap `math:holonomyCurvatureBoundary` (`logic:expressivenessBoundary`
+`logic:SecondOrder`, `logic:preservationKind` `logic:Unsupported`), referenced by `math:Connection`
+through `math:definingLaw` and mirroring `math:smoothnessBoundary` and `math:compactnessBoundary`. The
+discrete surface stays first-order and checkable — flat ⇔ closed is a restriction, and holonomy around
+a **named** loop is a concrete composite of restriction maps — while the universal statement over all
+loops is disclosed in the loss ledger rather than as silent prose.
+
 ### Hamiltonian systems
 
 A `math:HamiltonianSystem` is framed by exactly one smooth state space, symplectic form,

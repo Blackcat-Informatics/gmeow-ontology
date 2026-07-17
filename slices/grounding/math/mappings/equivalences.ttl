@@ -2627,3 +2627,48 @@ gmeow:eqMathMultiparameterFiltrationWd a gmeow:TermEquivalence, logic:GroundingC
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
+
+# --- Connections / holonomy / parallel transport → Wikidata (issue #1527) ---- #
+# All three QIDs verified via the Wikidata API (en.wikipedia sitelink + wbgetentities).
+# Each is a concept item aligned skos:closeMatch: the gmeow object commits to a discrete
+# sheaf-connection reading and an explicit frame that its Wikidata counterpart does not,
+# a close but not invertibly identical match — never an invented QID.
+
+gmeow:eqMathConnectionWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Connection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q31924 ;
+    logic:sourceEndpoint math:Connection ; logic:targetEndpoint wd:Q31924 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "connection" ;
+    gmeow:comment "math:Connection is a rule of parallel transport; wd:Q31924 (connection, 'geometrical idea of transporting data along a curve or family of curves in a parallel and consistent manner') names the same concept. closeMatch, not exactMatch: the gmeow object additionally commits to the PRIMARY discrete sheaf-connection reading (math:connectionOfSheaf over a math:CellularSheaf) and the math:connectionOn frame, a close but not invertibly identical counterpart. QID verified via the Wikidata API (Connection (mathematics) sitelink)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathHolonomyWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:Holonomy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q907926 ;
+    logic:sourceEndpoint math:Holonomy ; logic:targetEndpoint wd:Q907926 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "holonomy" ;
+    gmeow:comment "math:Holonomy is the parallel transport around a CLOSED loop whose deviation from the identity is the curvature witness; wd:Q907926 (holonomy, 'concept in differential geometry') names the same concept. closeMatch, not exactMatch: the gmeow object commits to the explicit math:holonomyLoop / math:holonomyOf frame and the discrete restriction-map-composite reading, a close but not invertibly identical counterpart. QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathParallelTransportWd a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:ParallelTransport ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1814838 ;
+    logic:sourceEndpoint math:ParallelTransport ; logic:targetEndpoint wd:Q1814838 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "parallel transport" ;
+    gmeow:comment "math:ParallelTransport is the transport of a fibre element along a DECLARED path under a connection; wd:Q1814838 (parallel transport, 'a map between two fibres of a fibre bundle induced by a path ... and a connection in the fibre bundle') names the same concept. closeMatch, not exactMatch: the gmeow object commits to the math:transportConnection / math:transportAlong frame and, for the discrete reading, to a COMPOSITION of math:SheafRestrictionMaps, a close but not invertibly identical counterpart. QID verified via the Wikidata search API." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
