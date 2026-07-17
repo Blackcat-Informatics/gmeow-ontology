@@ -279,17 +279,17 @@ ex:containerSurfaceA a gmeow:ProfileSurface ;
     rdfs:label "container view of projection A"@en ;
     gmeow:profileSurfaceOf          ex:bookshelfProjA ;
     gmeow:profileSurfaceKind        gmeow:surfaceContainer ;
-    gmeow:recordsSourceDigest        "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
-    gmeow:recordsModelContractDigest "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" ;
-    gmeow:recordsTargetTableDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" .
+    gmeow:recordsSourceDigest        "sha256:8e75a99f5c0ee19e5d808eacd18272a29f1eefc1cc09e0840f80abcc805dd4f7" ;
+    gmeow:recordsModelContractDigest "sha256:6e4016ce69d81eac3f2d37e6ad182e7229f76a7afb7cb4eeff51182dcf76e031" ;
+    gmeow:recordsTargetTableDigest   "sha256:88e766d4022744f4a1438b28eb4ffb38cd0dad6222c3bc1ce136b04d4ba6447d" .
 
 ex:manifestSurfaceA a gmeow:ProfileSurface ;
     rdfs:label "sidecar-manifest view of projection A"@en ;
     gmeow:profileSurfaceOf          ex:bookshelfProjA ;
     gmeow:profileSurfaceKind        gmeow:surfaceManifest ;
-    gmeow:recordsSourceDigest        "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
-    gmeow:recordsModelContractDigest "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" ;
-    gmeow:recordsTargetTableDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" .
+    gmeow:recordsSourceDigest        "sha256:8e75a99f5c0ee19e5d808eacd18272a29f1eefc1cc09e0840f80abcc805dd4f7" ;
+    gmeow:recordsModelContractDigest "sha256:6e4016ce69d81eac3f2d37e6ad182e7229f76a7afb7cb4eeff51182dcf76e031" ;
+    gmeow:recordsTargetTableDigest   "sha256:88e766d4022744f4a1438b28eb4ffb38cd0dad6222c3bc1ce136b04d4ba6447d" .
 
 # ===========================================================================
 # 7. Derived rebuildable index + append-only supersession. ex:annIndexA is a
