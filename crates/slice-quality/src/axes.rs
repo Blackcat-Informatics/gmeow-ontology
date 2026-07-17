@@ -1202,8 +1202,19 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
         let mut rejected = 0usize;
         let mut seeded = 0usize;
         let covered: HashSet<(String, String)> = match std::fs::read_to_string(&po) {
-            // A missing catalog legitimately means no coverage for this language.
-            Err(_) => HashSet::new(),
+            // A genuinely-absent catalog legitimately means no coverage for this language.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => HashSet::new(),
+            // Any OTHER read error (permission, transient I/O) is a broken input, not honest
+            // absence: surface it as a finding and force zero coverage for this language,
+            // never a silent empty set that would fake a clean score.
+            Err(e) => {
+                findings.push(advisory(
+                    "slice-quality.translation.read-error",
+                    format!("{tag} catalog i18n/{stem}.po failed to read: {e}"),
+                ));
+                lang_cov.push(0.0);
+                continue;
+            }
             Ok(text) => {
                 // A PRESENT catalog is required input: a malformed one is surfaced as a
                 // finding with zero coverage for this language, never a silent skip that

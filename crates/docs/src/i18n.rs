@@ -287,10 +287,14 @@ impl Translations {
                 if artifact.role != ArtifactRole::TranslationCatalog {
                     continue;
                 }
-                let text = String::from_utf8_lossy(&artifact.content);
                 // A present translation catalog is required input: a malformed one is a
-                // HARD FAIL, never a silent skip that would drop measured coverage.
-                let language = language_from_po(&text).unwrap_or_else(|e| {
+                // HARD FAIL, never a silent skip that would drop measured coverage. Invalid
+                // UTF-8 is a hard fail too — `from_utf8_lossy` would silently substitute
+                // replacement chars and let a corrupt catalog parse with altered translations.
+                let text = std::str::from_utf8(&artifact.content).unwrap_or_else(|e| {
+                    panic!("i18n catalog for slice {owner} is not valid UTF-8: {e}")
+                });
+                let language = language_from_po(text).unwrap_or_else(|e| {
                     panic!("i18n catalog for slice {owner} failed to parse: {e}")
                 });
                 let Some(language) = language else {
@@ -299,7 +303,7 @@ impl Translations {
                 if language.is_empty() || language.eq_ignore_ascii_case("en") {
                     continue;
                 }
-                let entries = parse_po(&text, false).unwrap_or_else(|e| {
+                let entries = parse_po(text, false).unwrap_or_else(|e| {
                     panic!("i18n catalog for slice {owner} failed to parse: {e}")
                 });
                 langs.insert(language.clone());
@@ -862,14 +866,25 @@ impl UiCatalog {
         use crate::i18n_compile::{language_from_po, parse_po};
 
         let mut overrides: BTreeMap<(String, String), String> = BTreeMap::new();
-        // An absent `i18n/` dir means no overrides; a present-but-unreadable/unparsable
-        // template file is a HARD FAIL.
-        let Ok(read) = std::fs::read_dir(dir) else {
-            return Self { overrides };
+        // A genuinely-absent `i18n/` dir means no overrides; any OTHER read error
+        // (permission, transient I/O) is a HARD FAIL, never laundered into "no overrides"
+        // that would hide a broken input behind a clean result.
+        let read = match std::fs::read_dir(dir) {
+            Ok(read) => read,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Self { overrides },
+            Err(e) => panic!("UI template dir {} failed to read: {e}", dir.display()),
         };
         let mut paths: Vec<std::path::PathBuf> = read
-            .flatten()
-            .map(|e| e.path())
+            .map(|e| {
+                // A per-entry directory-iteration error is also a hard fail, not a silent drop.
+                e.unwrap_or_else(|err| {
+                    panic!(
+                        "UI template dir {} entry failed to read: {err}",
+                        dir.display()
+                    )
+                })
+                .path()
+            })
             .filter(|p| {
                 p.file_name()
                     .and_then(|n| n.to_str())
