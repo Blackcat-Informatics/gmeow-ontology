@@ -19,7 +19,10 @@
 
 mod commands;
 mod error;
+mod gmn;
 mod passthrough;
+
+pub use gmn::{DecodeFormat, DigestFormat};
 
 use std::path::PathBuf;
 
@@ -272,6 +275,15 @@ pub enum Commands {
         #[command(subcommand)]
         command: SliceCommands,
     },
+    /// GMN-1 conformance surface: the shipped, checkout-free twin of the GMN-1
+    /// codec gates. `digest`/`encode`/`decode` expose the digest + codec legs, and
+    /// `verify` is the conformance driver an independent GMN-1 implementation runs
+    /// against the frozen vector corpus. Every subcommand HARD-FAILS (non-zero exit)
+    /// on any codec / digest / pack-root mismatch.
+    Gmn {
+        #[command(subcommand)]
+        command: GmnCommands,
+    },
     /// Register an external relation provider and run a hybrid-retrieval query.
     ///
     /// Loads ordinary asserted RDF facts (Turtle or N-Triples) into an isolated
@@ -396,6 +408,66 @@ pub enum SliceCommands {
         /// Output serialization: `human` (default) or `tsv`.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
+    },
+}
+
+/// The `gmeow gmn` nested subcommands (the GMN-1 conformance surface over
+/// `gmeow_lang_bridge`'s digest / codec / witness / pack layer).
+#[derive(Debug, Subcommand)]
+pub enum GmnCommands {
+    /// Print the codebook Merkle root (`codebook_digest`) AND the input's content
+    /// digest (`content_digest`, over its RDFC-1.0 canonical N-Quads).
+    Digest {
+        /// The RDF (Turtle) input to digest.
+        input: PathBuf,
+        /// The lang `module.ttl` carrying `gmeow:gmnCodebookCurrent` + `gmeow:gmnDictV3`
+        /// (default: `slices/grounding/lang/module.ttl`).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+        /// Output serialization: `text` (two labeled lines, default) or `json`.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = DigestFormat::Text)]
+        format: DigestFormat,
+    },
+    /// Encode an RDF (Turtle) input to GMN-1 text on stdout (hard-fails with the
+    /// typed `Gmn1Error` on any uncovered / out-of-domain construct).
+    Encode {
+        /// The RDF (Turtle) input to encode.
+        input: PathBuf,
+        /// The lang `module.ttl` (default: `slices/grounding/lang/module.ttl`).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+    },
+    /// Decode GMN-1 text back to the reconstructed GMN-0 model on stdout.
+    Decode {
+        /// The GMN-1 (`.gmn`) document to decode.
+        input: PathBuf,
+        /// The lang `module.ttl` (default: `slices/grounding/lang/module.ttl`).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+        /// Output serialization: `nquads` (canonical, default) or `turtle`.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = DecodeFormat::Nquads)]
+        format: DecodeFormat,
+    },
+    /// The conformance driver: over the frozen vector corpus, prove every positive
+    /// vector is byte-frozen + round-trips, every codec-tier negative raises its
+    /// recorded class, and the recomputed pack root matches the shipped pack. Exits
+    /// non-zero on any failure.
+    Verify {
+        /// The frozen vector corpus dir (default:
+        /// `slices/grounding/lang/tests/gmn1-vectors`).
+        #[arg(long = "vectors")]
+        vectors: Option<PathBuf>,
+        /// The lang `module.ttl` (default: `slices/grounding/lang/module.ttl`).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+        /// The authored GMN grammar the pack root hashes (default:
+        /// `slices/grounding/lang/grammars/gmn.ebnf`).
+        #[arg(long = "grammar")]
+        grammar: Option<PathBuf>,
+        /// The shipped conformance-pack projection (default:
+        /// `generated/projections/lang/gmn1/conformance-pack.ttl`).
+        #[arg(long = "pack")]
+        pack: Option<PathBuf>,
     },
 }
 
@@ -648,6 +720,33 @@ pub fn run() -> i32 {
             SliceCommands::ProjectionCeilings { format } => {
                 commands::slice_projection_ceilings(reporter, &format)
             }
+        },
+        Commands::Gmn { command } => match command {
+            GmnCommands::Digest {
+                input,
+                lang_module,
+                format,
+            } => gmn::digest(reporter, &input, lang_module.as_deref(), format),
+            GmnCommands::Encode { input, lang_module } => {
+                gmn::encode(reporter, &input, lang_module.as_deref())
+            }
+            GmnCommands::Decode {
+                input,
+                lang_module,
+                format,
+            } => gmn::decode(reporter, &input, lang_module.as_deref(), format),
+            GmnCommands::Verify {
+                vectors,
+                lang_module,
+                grammar,
+                pack,
+            } => gmn::verify(
+                reporter,
+                vectors.as_deref(),
+                lang_module.as_deref(),
+                grammar.as_deref(),
+                pack.as_deref(),
+            ),
         },
         Commands::HybridQuery {
             facts,
