@@ -59,12 +59,15 @@ class Commitment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Commitment", "curie": "gmeow:Commitment", "definitionDigest": "blake3:7deabe56615c02dbe8791453e477bf45ddaabe5462bd90a1956c1b53545b1331", "iri": "https://blackcatinformatics.ca/gmeow/Commitment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Commitment", "curie": "gmeow:Commitment", "definitionDigest": "blake3:169b14bbb4993968283a0459f7e6bd687908a84bc9ebba62c02350732ac2687a", "iri": "https://blackcatinformatics.ca/gmeow/Commitment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    commitmentBeneficiary: list[str] = Field(min_length=1, description="An agent toward whom the commitment is made. NOT functional: a commitment may be made toward several beneficiaries at once. Must be distinct from the committed agent (the logic:commitmentBeneficiaryDistinctness axiom, projected to SHACL); a resolution one makes purely to oneself is an Intention, not a Commitment.", alias="gmeow:commitmentBeneficiary")
+    committedAgent: list[str] = Field(min_length=1, description="The agent bound by a commitment — the one who has committed. Functional: one commitment, one committed agent; mutual promises are two Commitments, one in each direction, which keeps withdrawal, breach, and tenure independent per direction.", alias="gmeow:committedAgent")
+    intentionGoal: list[str] = Field(min_length=1, description="The goal at which a desire, intention, or commitment aims — its propositional content. Functional: one mode, one goal; an agent pursuing five goals bears five modes. Sharing is at the Goal: two agents committed to the same outcome hold distinct modes aiming at one Goal individual.", alias="gmeow:intentionGoal")
 
 
 class Desire(ConfiguredBaseModel):
@@ -209,12 +212,14 @@ class Intention(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Intention", "curie": "gmeow:Intention", "definitionDigest": "blake3:9509acea7285e807d6008d01fd5f02225eeb1b997cada1be82f2696520a29a7e", "iri": "https://blackcatinformatics.ca/gmeow/Intention"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Intention", "curie": "gmeow:Intention", "definitionDigest": "blake3:3515ea31c2e5dee83d6be19269a4f034364096971596ae5605d8859ccd8d76f8", "iri": "https://blackcatinformatics.ca/gmeow/Intention"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    intentBearer: Any = Field(description="The agent in whom a desire or intention inheres. Functional: an intrinsic mode has exactly one bearer (gUFO inherence, asserted with GMEOW's own property by Principle 5 — gufo:inheresIn is the alignment target, not the asserted axiom). Two agents wanting the same goal are two modes sharing one gmeow:intentionGoal.", alias="gmeow:intentBearer")
+    intentionGoal: Any = Field(description="The goal at which a desire, intention, or commitment aims — its propositional content. Functional: one mode, one goal; an agent pursuing five goals bears five modes. Sharing is at the Goal: two agents committed to the same outcome hold distinct modes aiming at one Goal individual.", alias="gmeow:intentionGoal")
 
 
 class IntentionTenure(ConfiguredBaseModel):

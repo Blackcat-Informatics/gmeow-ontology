@@ -29,15 +29,20 @@ fn bundle_bytes() -> Vec<u8> {
 }
 
 /// A data graph that trips the Tier-1 shape surface. Its problems are a
-/// disjoint identity-axis overtyping (error), an under-mediated Commitment
-/// missing its beneficiary (error), and a frame-less Event carrying an
+/// disjoint identity-axis overtyping (error) and a frame-less Event carrying an
 /// `eventType` so only the frame-relativity warning fires (warning). Under the
 /// closed-world validation-shape derivation it additionally trips the sh:not
 /// disjointness pair (Honorific-shape / PronounSet-shape), for a pinned
-/// 4-errors-1-warning shape. rdfs:domain/range are open-world INFERENCE axioms
+/// 3-errors-1-warning shape. rdfs:domain/range are open-world INFERENCE axioms
 /// (open-world by default, no ClosedWorldClosure opt-in on these properties), so
 /// they derive NO domain/range validation shape and the fixture's committedAgent
-/// / intentionGoal / eventType edges no longer trip a range/domain error.
+/// / intentionGoal / eventType edges no longer trip a range/domain error. The
+/// Commitment is fully WELL-FORMED (beneficiary included): its exactly-one /
+/// at-least-one obligations now ride the projected declarative surface, and a
+/// missing-beneficiary counter-witness would double-fire while the bundled
+/// shapes-archive still carries the retired hand-authored twin — that
+/// obligation's fail witness lives in `conformance_teleology` on the live
+/// production shape union instead.
 const FAIL_TTL: &str = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex: <https://example.org/> .
 
@@ -45,6 +50,7 @@ ex:p a gmeow:PronounSet, gmeow:Honorific .
 
 ex:c a gmeow:Commitment ;
     gmeow:committedAgent ex:agent ;
+    gmeow:commitmentBeneficiary ex:beneficiary ;
     gmeow:intentionGoal ex:goal .
 
 ex:e1 a gmeow:Event ;
@@ -52,7 +58,7 @@ ex:e1 a gmeow:Event ;
 "#;
 
 #[test]
-fn fail_fixture_yields_four_errors_one_warning_with_locations() {
+fn fail_fixture_yields_three_errors_one_warning_with_locations() {
     let gts = bundle_bytes();
     let report = data_validate::run(
         FAIL_TTL.as_bytes(),
@@ -77,8 +83,8 @@ fn fail_fixture_yields_four_errors_one_warning_with_locations() {
 
     assert_eq!(
         errors.len(),
-        4,
-        "expected exactly four errors, got: {errors:#?}"
+        3,
+        "expected exactly three errors, got: {errors:#?}"
     );
     assert_eq!(
         warnings.len(),
@@ -91,10 +97,13 @@ fn fail_fixture_yields_four_errors_one_warning_with_locations() {
     //   disjointness: shacl.SPARQLConstraintComponent + IdentityAxisDisjointnessConstraintShape
     //     (the P17 projection of gmeow:identityAxisDisjointness in constraint-shapes.ttl,
     //      the former hand-authored IdentityAxisOrthogonalityShape was migrated to logic:)
-    //   commitment:   shacl.MinCountConstraintComponent + CommitmentShape
     //   frame:        shacl.MinCountConstraintComponent + EventFrameRequirementShape (Warning)
+    // The former Commitment-mediation leg (MinCountConstraintComponent +
+    // the retired hand-authored CommitmentShape) migrated to the projected
+    // Commitment-shape; its fail witness rides
+    // `conformance_teleology::commitment_without_beneficiary_fails_on_union`,
+    // and the fixture's Commitment is now fully well-formed.
     const IDENTITY_SHAPE: &str = "IdentityAxisDisjointnessConstraintShape";
-    const COMMITMENT_SHAPE: &str = "CommitmentShape";
     const FRAME_SHAPE: &str = "EventFrameRequirementShape";
 
     assert!(
@@ -105,15 +114,6 @@ fn fail_fixture_yields_four_errors_one_warning_with_locations() {
                     .is_some_and(|d| d.contains(IDENTITY_SHAPE))
         }),
         "missing P9 disjointness error (IdentityAxisDisjointnessConstraintShape / SPARQLConstraintComponent)"
-    );
-    assert!(
-        errors.iter().any(|f| {
-            f.code == "shacl.MinCountConstraintComponent"
-                && f.detail
-                    .as_deref()
-                    .is_some_and(|d| d.contains(COMMITMENT_SHAPE))
-        }),
-        "missing Commitment-mediation error (CommitmentShape / MinCountConstraintComponent)"
     );
     assert!(
         warnings[0].code == "shacl.MinCountConstraintComponent"
@@ -264,14 +264,14 @@ fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
 #[test]
 fn deep_false_is_the_reasoner_free_default() {
     // AC3: the pinned Tier-1 fixture under the default (deep=false) keeps its exact
-    // 4-errors-1-warning shape AND carries no validate.deep.* findings — the deep
+    // 3-errors-1-warning shape AND carries no validate.deep.* findings — the deep
     // reasoner does not run without the flag.
     let gts = bundle_bytes();
     let report = data_validate::run(FAIL_TTL.as_bytes(), "turtle", &gts, NS, "fail.ttl", false)
         .expect("tier-1 run");
     assert_eq!(
         report.error_count(),
-        4,
+        3,
         "Tier-1 default error shape changed"
     );
     assert_eq!(

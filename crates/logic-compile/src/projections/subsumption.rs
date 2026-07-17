@@ -166,6 +166,19 @@ pub fn subsumes(strong: &ValidationShapeIr, weak: &ValidationShapeIr) -> bool {
         return false;
     }
     weak.properties.iter().all(|wp| {
+        // A weak property that enforces NOTHING (no cardinality floor/ceiling, no components, no
+        // reifier obligation) imposes no requirement, so strong trivially subsumes it — it needs
+        // no counterpart. This arises when a legacy `sh:property` carries only an unsupported
+        // construct (e.g. a nested `sh:node`) whose enforcement is recorded as residue, leaving an
+        // empty property shell; that residue is grounded separately, never through subsumption.
+        let enforces = wp.min_count.is_some()
+            || wp.max_count.is_some()
+            || !wp.components.is_empty()
+            || wp.reifier_shape.is_some()
+            || wp.reification_required;
+        if !enforces {
+            return true;
+        }
         strong
             .properties
             .iter()
