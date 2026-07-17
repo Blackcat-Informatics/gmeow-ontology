@@ -53,7 +53,7 @@ class Profile(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Profile", "curie": "gmeow:Profile", "definitionDigest": "blake3:547de60caa5c6ccdae501218f6351f811a3d674449f1929b23558444a8b90ae7", "iri": "https://blackcatinformatics.ca/gmeow/Profile"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Profile", "curie": "gmeow:Profile", "definitionDigest": "blake3:4b7e3e5e422bf1119cca655363a5dc1d74f3d5f6258fe88126322b0ca230a24f", "iri": "https://blackcatinformatics.ca/gmeow/Profile"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

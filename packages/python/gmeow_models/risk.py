@@ -148,7 +148,7 @@ class Cascade(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Cascade", "curie": "gmeow:Cascade", "definitionDigest": "blake3:9ad6c113932b1c3ff3c2cf1fdb20f5244b4eeb3f8c4291856b733444da52080a", "iri": "https://blackcatinformatics.ca/gmeow/Cascade"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Cascade", "curie": "gmeow:Cascade", "definitionDigest": "blake3:1fb701a940be87922d6566eaab94359fdd8abc1bfe7eb109f62449bf8f3aa3ab", "iri": "https://blackcatinformatics.ca/gmeow/Cascade"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -180,7 +180,7 @@ class CausalLink(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CausalLink", "curie": "gmeow:CausalLink", "definitionDigest": "blake3:67f1a8cc19ad48d91fd3bf8a90e9cdfed7e160e2c8a4900a1a94d23dd62940fe", "iri": "https://blackcatinformatics.ca/gmeow/CausalLink"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CausalLink", "curie": "gmeow:CausalLink", "definitionDigest": "blake3:8eed2899d41656a26882434a0680ace6dd6596f988176b699174ebbcbfbd0308", "iri": "https://blackcatinformatics.ca/gmeow/CausalLink"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -215,7 +215,7 @@ class Hazard(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Hazard", "curie": "gmeow:Hazard", "definitionDigest": "blake3:56e6b8da17834c48ac62cf1823425664fd40766a0291412b64af0b365314868a", "iri": "https://blackcatinformatics.ca/gmeow/Hazard"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Hazard", "curie": "gmeow:Hazard", "definitionDigest": "blake3:19ee64eee024564456e7996604928b0ccbce44861d9c78bdec10b34b9064b2ff", "iri": "https://blackcatinformatics.ca/gmeow/Hazard"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -250,7 +250,7 @@ class Mitigation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Mitigation", "curie": "gmeow:Mitigation", "definitionDigest": "blake3:966dde356bcd99477976b27d94fb12c961e9ab3a6c2d3009f879aa0e5718642d", "iri": "https://blackcatinformatics.ca/gmeow/Mitigation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Mitigation", "curie": "gmeow:Mitigation", "definitionDigest": "blake3:75a86af794613ce59013890a9395d4b3d86734b7bb9688ea2399dd0cc323ee15", "iri": "https://blackcatinformatics.ca/gmeow/Mitigation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

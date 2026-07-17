@@ -111,7 +111,7 @@ class Observation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Observation", "curie": "gmeow:Observation", "definitionDigest": "blake3:3bca512f4dd0b22ce02fa7578da4a29caca9d5ea4d7178dcd681eab9031ebefb", "iri": "https://blackcatinformatics.ca/gmeow/Observation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Observation", "curie": "gmeow:Observation", "definitionDigest": "blake3:695bdcb2731f8696aa51390b1e7cd98979631406efc176a007d1e20fd7407fd7", "iri": "https://blackcatinformatics.ca/gmeow/Observation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -162,7 +162,7 @@ class Measurement(Observation):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Measurement", "curie": "gmeow:Measurement", "definitionDigest": "blake3:49415f08f5da6f4081b0f87d8c4741a557263904f3dc8aa2179d55b82cadb838", "iri": "https://blackcatinformatics.ca/gmeow/Measurement"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Measurement", "curie": "gmeow:Measurement", "definitionDigest": "blake3:7381fd63cc63a6d0d66a4c0088e0476db5ce47c02680d5a13243f42e1447347f", "iri": "https://blackcatinformatics.ca/gmeow/Measurement"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -210,7 +210,7 @@ class MonetaryAmount(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MonetaryAmount", "curie": "gmeow:MonetaryAmount", "definitionDigest": "blake3:266f1abe7cc5d9dfe0537891bf7c4f83ed0629b3bcecb82b5cb1824aca8de552", "iri": "https://blackcatinformatics.ca/gmeow/MonetaryAmount"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MonetaryAmount", "curie": "gmeow:MonetaryAmount", "definitionDigest": "blake3:0ee88bd367fa03d8e0ab54146674041f98ada6868fd11558e9d1f9075e7f9814", "iri": "https://blackcatinformatics.ca/gmeow/MonetaryAmount"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -258,7 +258,7 @@ class SensoryObservation(Observation):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SensoryObservation", "curie": "gmeow:SensoryObservation", "definitionDigest": "blake3:09ea82d0f40697c4f9507e0b895698cc7f62f7bd6b17c2326744fc5393aba232", "iri": "https://blackcatinformatics.ca/gmeow/SensoryObservation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SensoryObservation", "curie": "gmeow:SensoryObservation", "definitionDigest": "blake3:68fde86f1c01acba016cab4589a0d1b091d2fe525b581b6fbfd563bbeaf8ee41", "iri": "https://blackcatinformatics.ca/gmeow/SensoryObservation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -315,7 +315,7 @@ class StandpointClaim(Observation):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/StandpointClaim", "curie": "gmeow:StandpointClaim", "definitionDigest": "blake3:e6c81c196b791f92b30d5afb7c2d84729b82aeb9ac699325f4ae2a5439846b96", "iri": "https://blackcatinformatics.ca/gmeow/StandpointClaim"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/StandpointClaim", "curie": "gmeow:StandpointClaim", "definitionDigest": "blake3:0768047806789b5cd4b1afe9b1c34c157611efb6d24e80a2dbf8f1a4259a0428", "iri": "https://blackcatinformatics.ca/gmeow/StandpointClaim"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

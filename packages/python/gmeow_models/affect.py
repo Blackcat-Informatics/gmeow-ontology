@@ -130,7 +130,7 @@ class AffectClassifierLabel(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel", "curie": "gmeow:AffectClassifierLabel", "definitionDigest": "blake3:6f2a0e1b88a01ecacfc17a4a09563c38baff3744d993965f17fcb85e721b288e", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel", "curie": "gmeow:AffectClassifierLabel", "definitionDigest": "blake3:ae18a2eada450df8e74f70fd3348a52fec9889bb7a02a3b122a4154d0bd615f0", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -186,7 +186,7 @@ class AffectClassifierOutput(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput", "curie": "gmeow:AffectClassifierOutput", "definitionDigest": "blake3:95a50b103e8827164ea4c89116db84844947406aeea5b5eaf977dad342a5d07a", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput", "curie": "gmeow:AffectClassifierOutput", "definitionDigest": "blake3:40039ea77b9b4cff59664621f411985052b99a1440419cf93c39bbe0e40846d8", "iri": "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -277,7 +277,7 @@ class AffectComposite(Emotion):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectComposite", "curie": "gmeow:AffectComposite", "definitionDigest": "blake3:5f5ed61dcf7e41e5000b466787c4e4b459192300df61ac6bfdeb8965eae72285", "iri": "https://blackcatinformatics.ca/gmeow/AffectComposite"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectComposite", "curie": "gmeow:AffectComposite", "definitionDigest": "blake3:232dd9c126d016317eb2eca3f50341f02f6c7c1dc05001bdf7c2c8c9bcd0e044", "iri": "https://blackcatinformatics.ca/gmeow/AffectComposite"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -399,7 +399,7 @@ class AffectScaleProfile(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile", "curie": "gmeow:AffectScaleProfile", "definitionDigest": "blake3:13a8859301445b24287025ae92bf7e41a3303302ec4163a6ff4a90c88760bade", "iri": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile", "curie": "gmeow:AffectScaleProfile", "definitionDigest": "blake3:8e2b0079091e1dbbe31326a28e81c4a1ca062844f49b0bbb18dad6a54042cacb", "iri": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -452,7 +452,7 @@ class AffectVectorObservation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation", "curie": "gmeow:AffectVectorObservation", "definitionDigest": "blake3:afd2e77d2066695f98a90c1c22615e4cffa51b8cfbb121afe5627cb580666236", "iri": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation", "curie": "gmeow:AffectVectorObservation", "definitionDigest": "blake3:3bce07df9960e361f756f8dd1b79b361d3a3becfa35493fa75ac70d8e09d02dd", "iri": "https://blackcatinformatics.ca/gmeow/AffectVectorObservation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -561,7 +561,7 @@ class AffectiveExperience(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectiveExperience", "curie": "gmeow:AffectiveExperience", "definitionDigest": "blake3:2c9912e6b77af01fddda7f3726b709858ba9c5e8282c91602a2f13914ebfa53b", "iri": "https://blackcatinformatics.ca/gmeow/AffectiveExperience"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/AffectiveExperience", "curie": "gmeow:AffectiveExperience", "definitionDigest": "blake3:28cdd43a630fc7163063dde14a8ab08ba2d26c3a63887864481f30278b6df5dc", "iri": "https://blackcatinformatics.ca/gmeow/AffectiveExperience"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -594,7 +594,7 @@ class Appraisal(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Appraisal", "curie": "gmeow:Appraisal", "definitionDigest": "blake3:e4d0d76a2d7dadca4bc48051586a0ca792a546d0302333188291ab8a93ddf2e7", "iri": "https://blackcatinformatics.ca/gmeow/Appraisal"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Appraisal", "curie": "gmeow:Appraisal", "definitionDigest": "blake3:8fa0d3c3c3a9e71ac732f48c6819b3fa091de08adb4e84b9a372d39ee13d6337", "iri": "https://blackcatinformatics.ca/gmeow/Appraisal"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -654,7 +654,7 @@ class DerivedAffectIntensityObservation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation", "curie": "gmeow:DerivedAffectIntensityObservation", "definitionDigest": "blake3:43214c64a6d02c3ef7e2d65b5a0c0e1798bedc4591eca647f9f6b243e6719a21", "iri": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation", "curie": "gmeow:DerivedAffectIntensityObservation", "definitionDigest": "blake3:d1d0f36ba2e7ace85577c22b354e82ec928972b0d7864d001f35ded4a63b0772", "iri": "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -706,7 +706,7 @@ class ModelInferenceRun(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun", "curie": "gmeow:ModelInferenceRun", "definitionDigest": "blake3:32b3b85a5753e06b6cdf9cc250f5532b03263d99a60e5271ff811d7e4077c09e", "iri": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun", "curie": "gmeow:ModelInferenceRun", "definitionDigest": "blake3:a98aa96c9a284f6d5c2aa840eb6287bae804770d495537c2464b57cdb721f376", "iri": "https://blackcatinformatics.ca/gmeow/ModelInferenceRun"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

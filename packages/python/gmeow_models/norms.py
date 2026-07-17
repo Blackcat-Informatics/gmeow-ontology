@@ -123,7 +123,7 @@ class Assessment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Assessment", "curie": "gmeow:Assessment", "definitionDigest": "blake3:883e201ebd1dd2c5bb721927604ca2960f6ab3a548dd63df55c4f3920627bbe0", "iri": "https://blackcatinformatics.ca/gmeow/Assessment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Assessment", "curie": "gmeow:Assessment", "definitionDigest": "blake3:d38b80d83b5347d09fea17b5eea0927924148b62c13f7992fbd7941dd9d613b0", "iri": "https://blackcatinformatics.ca/gmeow/Assessment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -175,7 +175,7 @@ class ComplianceAssessment(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment", "curie": "gmeow:ComplianceAssessment", "definitionDigest": "blake3:455539876a2e2f0763990678f1175045cbb23291d539cedb9de710f374d68b9d", "iri": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment", "curie": "gmeow:ComplianceAssessment", "definitionDigest": "blake3:0bfc4834adfb288baca736e9e8b2a452e7a0dd5039b40f3bc1f45b856f40561c", "iri": "https://blackcatinformatics.ca/gmeow/ComplianceAssessment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -229,7 +229,7 @@ class Condition(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Condition", "curie": "gmeow:Condition", "definitionDigest": "blake3:aa17ceb619458b0f4562031b352df9422d8b1d06aabf68465e751aed9b2f78c4", "iri": "https://blackcatinformatics.ca/gmeow/Condition"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Condition", "curie": "gmeow:Condition", "definitionDigest": "blake3:00c71fe88755df8c9604502b6060a4c4a123668075c005c710080cc6f0a39767", "iri": "https://blackcatinformatics.ca/gmeow/Condition"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -331,7 +331,7 @@ class ConditionExpression(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionExpression", "curie": "gmeow:ConditionExpression", "definitionDigest": "blake3:e244f21e496288f8403f2866cb613e66ad59f5b624d1de21edb9163a754bc11e", "iri": "https://blackcatinformatics.ca/gmeow/ConditionExpression"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionExpression", "curie": "gmeow:ConditionExpression", "definitionDigest": "blake3:2275542cb582f34e2848bd87bce656b89af91d4938fa5f20e6b8ebfb75062a42", "iri": "https://blackcatinformatics.ca/gmeow/ConditionExpression"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -379,7 +379,7 @@ class ConditionGroup(Condition):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionGroup", "curie": "gmeow:ConditionGroup", "definitionDigest": "blake3:a11376d86750da9faca6395e7b9a707257a74622a9d4f85924eeb022c4664229", "iri": "https://blackcatinformatics.ca/gmeow/ConditionGroup"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ConditionGroup", "curie": "gmeow:ConditionGroup", "definitionDigest": "blake3:61d045eb753857982931888abed84c61a609131abb7bf30009b529eaba8da8e5", "iri": "https://blackcatinformatics.ca/gmeow/ConditionGroup"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -473,7 +473,7 @@ class Criterion(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Criterion", "curie": "gmeow:Criterion", "definitionDigest": "blake3:bafbf9ef1403399a28112f3635f11cdafd976642ddababc47db78fb240f6abf3", "iri": "https://blackcatinformatics.ca/gmeow/Criterion"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Criterion", "curie": "gmeow:Criterion", "definitionDigest": "blake3:8e7cde1e9546d6e278d74834bf1388c3e95dcd804141ed6ca46134adf8ed5644", "iri": "https://blackcatinformatics.ca/gmeow/Criterion"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -526,7 +526,7 @@ class Exemplar(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Exemplar", "curie": "gmeow:Exemplar", "definitionDigest": "blake3:6de758542ab923123b6b9eec955a19904c7f1daf5bc530b7416294fdbdab6b0c", "iri": "https://blackcatinformatics.ca/gmeow/Exemplar"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Exemplar", "curie": "gmeow:Exemplar", "definitionDigest": "blake3:35f719d52d31e81ea20a9ab7dc7aaa00b01b77cd62913a29a4858692d63f16b4", "iri": "https://blackcatinformatics.ca/gmeow/Exemplar"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -693,7 +693,7 @@ class PrecedenceTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure", "curie": "gmeow:PrecedenceTenure", "definitionDigest": "blake3:86d60886091d98e03e7278d2408b8d7d77e3f4f3f9e2d8d0637716001066da24", "iri": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure", "curie": "gmeow:PrecedenceTenure", "definitionDigest": "blake3:5fd1d74b371fb010732a0d007331700823ac864fcfe1f04949c6880d9c2d77ba", "iri": "https://blackcatinformatics.ca/gmeow/PrecedenceTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -742,7 +742,7 @@ class ScoreAnchor(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreAnchor", "curie": "gmeow:ScoreAnchor", "definitionDigest": "blake3:cca80c6c21f098971d585d1be5345e1d5d07ea224c9e4c414701d7b8bf57af8d", "iri": "https://blackcatinformatics.ca/gmeow/ScoreAnchor"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreAnchor", "curie": "gmeow:ScoreAnchor", "definitionDigest": "blake3:48b0e9d39bcdcd78656cbb7d8d4b62493c9df699d2f6a04e3836d3b4a27843e0", "iri": "https://blackcatinformatics.ca/gmeow/ScoreAnchor"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -788,7 +788,7 @@ class ScoreScale(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreScale", "curie": "gmeow:ScoreScale", "definitionDigest": "blake3:15a1714b1e67514d41fe7a901bc236305e0ee0af231c0a7fc532c1044ceafb4f", "iri": "https://blackcatinformatics.ca/gmeow/ScoreScale"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ScoreScale", "curie": "gmeow:ScoreScale", "definitionDigest": "blake3:61060adb72ba8aad9fe5bd5316bee2d26a38db45ae1e585fb17276d0352d6345", "iri": "https://blackcatinformatics.ca/gmeow/ScoreScale"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

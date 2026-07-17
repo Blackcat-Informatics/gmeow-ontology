@@ -85,7 +85,7 @@ class DepictionUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DepictionUsage", "curie": "gmeow:DepictionUsage", "definitionDigest": "blake3:4a04e748a19a1b3521387458811f6880ba9056b3d5bc12699a0db1de33b9a4a3", "iri": "https://blackcatinformatics.ca/gmeow/DepictionUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DepictionUsage", "curie": "gmeow:DepictionUsage", "definitionDigest": "blake3:177ea057735e3bf2c14a6bb78603234fd6c8e8c287dfc56ec943d566026e41d2", "iri": "https://blackcatinformatics.ca/gmeow/DepictionUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -117,7 +117,7 @@ class ImageRegion(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ImageRegion", "curie": "gmeow:ImageRegion", "definitionDigest": "blake3:661e73ba0a3f2246e8e4038be53c2f79007365e95c9f28be723a56e4df6c0eb9", "iri": "https://blackcatinformatics.ca/gmeow/ImageRegion"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ImageRegion", "curie": "gmeow:ImageRegion", "definitionDigest": "blake3:9eff6d442df0caa253c0ca5288cde0019eded9103cccbb6db33483b252d17a45", "iri": "https://blackcatinformatics.ca/gmeow/ImageRegion"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -149,7 +149,7 @@ class RegionSelector(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RegionSelector", "curie": "gmeow:RegionSelector", "definitionDigest": "blake3:43d94267ccfcf7cb9f35a55a9c4399931644be223db5fc7e92285762ed77bf21", "iri": "https://blackcatinformatics.ca/gmeow/RegionSelector"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RegionSelector", "curie": "gmeow:RegionSelector", "definitionDigest": "blake3:22291de3b56e3b0071681d92766b8c3c216121a9e071977973add1c8b9ac5895", "iri": "https://blackcatinformatics.ca/gmeow/RegionSelector"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -180,7 +180,7 @@ class SceneGraphEdge(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge", "curie": "gmeow:SceneGraphEdge", "definitionDigest": "blake3:43f246d76132fd9eee2e8d74b61cd059bb17d570ed7a95b47606df3e6f10d039", "iri": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge", "curie": "gmeow:SceneGraphEdge", "definitionDigest": "blake3:2716cde25baf2f26a034ac9b45544efab01f8e932110915d3badf843311a9507", "iri": "https://blackcatinformatics.ca/gmeow/SceneGraphEdge"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

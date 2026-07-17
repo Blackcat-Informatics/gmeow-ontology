@@ -95,7 +95,7 @@ class Availability(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Availability", "curie": "gmeow:Availability", "definitionDigest": "blake3:feec9afa0041cb7bf901fcd3adf331f35f3af14b72359ba47524aa3b419cc4f1", "iri": "https://blackcatinformatics.ca/gmeow/Availability"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Availability", "curie": "gmeow:Availability", "definitionDigest": "blake3:daf4f01a16928f14e81c01d76f68a6f9aef39d7acbfc369e23bce5c06e51beb4", "iri": "https://blackcatinformatics.ca/gmeow/Availability"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -147,7 +147,7 @@ class EventInvitation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/EventInvitation", "curie": "gmeow:EventInvitation", "definitionDigest": "blake3:07f7bad1c2738ec1ad936cc82d33f9228cea4ecf2f69222b86b34d9f7d634637", "iri": "https://blackcatinformatics.ca/gmeow/EventInvitation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/EventInvitation", "curie": "gmeow:EventInvitation", "definitionDigest": "blake3:7cc80069ca30719c9e4c49c5ad26fcaaa4b4ce90d6f09e844f7c0ae4680a2bf4", "iri": "https://blackcatinformatics.ca/gmeow/EventInvitation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -246,7 +246,7 @@ class Reminder(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Reminder", "curie": "gmeow:Reminder", "definitionDigest": "blake3:35878c5dbd3a4de098ee63df159683463b77aeef353722f2346059480494763a", "iri": "https://blackcatinformatics.ca/gmeow/Reminder"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Reminder", "curie": "gmeow:Reminder", "definitionDigest": "blake3:8d0ff6bf961471c89f9a91541ffec222fd1834185b3cc8ad82eadabb829859c4", "iri": "https://blackcatinformatics.ca/gmeow/Reminder"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -346,7 +346,7 @@ class Task(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Task", "curie": "gmeow:Task", "definitionDigest": "blake3:17bfac90ddcec84dbf92391b81169477c07e70c3e8022756fdeda055b78586cc", "iri": "https://blackcatinformatics.ca/gmeow/Task"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Task", "curie": "gmeow:Task", "definitionDigest": "blake3:c9aaea27de073125fee49ae179ae0b86d9f3af56edc8248abf187ec5706e0b76", "iri": "https://blackcatinformatics.ca/gmeow/Task"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -392,7 +392,7 @@ class TimeZone(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TimeZone", "curie": "gmeow:TimeZone", "definitionDigest": "blake3:9930f6e41a09c96ae6a1df89cdc183edff5764ffd8a002882f88898528523f52", "iri": "https://blackcatinformatics.ca/gmeow/TimeZone"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TimeZone", "curie": "gmeow:TimeZone", "definitionDigest": "blake3:8ac7381192f1d2f301a4b803d86259aee0e7db8909cc2aa8d1cac4591fd9e7f6", "iri": "https://blackcatinformatics.ca/gmeow/TimeZone"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

@@ -113,7 +113,7 @@ class FinancialAccount(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialAccount", "curie": "gmeow:FinancialAccount", "definitionDigest": "blake3:0b2ea849e2257dbe66598b35b8b0dd7ea295df3814c85bcaba2629ee01cf672c", "iri": "https://blackcatinformatics.ca/gmeow/FinancialAccount"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialAccount", "curie": "gmeow:FinancialAccount", "definitionDigest": "blake3:2b806b174359249d720006c0823aa6d87f633c99eeba120c8c99ab1d303db565", "iri": "https://blackcatinformatics.ca/gmeow/FinancialAccount"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -145,7 +145,7 @@ class CryptoWallet(FinancialAccount):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CryptoWallet", "curie": "gmeow:CryptoWallet", "definitionDigest": "blake3:9b4672adec88b16047978d83523a1049185227b0e021f3483095b116b80cfbce", "iri": "https://blackcatinformatics.ca/gmeow/CryptoWallet"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CryptoWallet", "curie": "gmeow:CryptoWallet", "definitionDigest": "blake3:ece7b089edb34c4f986a40db60035dbebe6b654abb8d336a543663819a6b7556", "iri": "https://blackcatinformatics.ca/gmeow/CryptoWallet"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -175,7 +175,7 @@ class FinancialTransaction(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialTransaction", "curie": "gmeow:FinancialTransaction", "definitionDigest": "blake3:952f986a91720d8695a9b3b443634b4737ecb90d8342e0b03a420365c3b331cb", "iri": "https://blackcatinformatics.ca/gmeow/FinancialTransaction"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/FinancialTransaction", "curie": "gmeow:FinancialTransaction", "definitionDigest": "blake3:90496e273a018f64b82a6d8bdb6b24d1e93f063d161fd90db328ecb7f0e05eac", "iri": "https://blackcatinformatics.ca/gmeow/FinancialTransaction"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -205,7 +205,7 @@ class Holding(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Holding", "curie": "gmeow:Holding", "definitionDigest": "blake3:c34ea58f3dabfbdd5eb5be93648dce102da52dc795e7df38aa0daa5d21f380cd", "iri": "https://blackcatinformatics.ca/gmeow/Holding"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Holding", "curie": "gmeow:Holding", "definitionDigest": "blake3:932331feca34d2f83d607c1a90254a15599f95e18230dfd7bbcd107229156de5", "iri": "https://blackcatinformatics.ca/gmeow/Holding"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -235,7 +235,7 @@ class Invoice(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Invoice", "curie": "gmeow:Invoice", "definitionDigest": "blake3:1b95460e2a57c55dcb9c857f7f6270dd417ed90768cc22b221aeaeb70ece8490", "iri": "https://blackcatinformatics.ca/gmeow/Invoice"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Invoice", "curie": "gmeow:Invoice", "definitionDigest": "blake3:4c7fde29f54ffe87ca09a20c8f8eafca09220eccf9850b358e3ede4ff4738ac0", "iri": "https://blackcatinformatics.ca/gmeow/Invoice"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -264,7 +264,7 @@ class JournalEntry(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JournalEntry", "curie": "gmeow:JournalEntry", "definitionDigest": "blake3:79ba4acbf3e43a5822d87550accb37e38383c09b605bd6819c464286cc283794", "iri": "https://blackcatinformatics.ca/gmeow/JournalEntry"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JournalEntry", "curie": "gmeow:JournalEntry", "definitionDigest": "blake3:a76794f01c767083e741dd2bfd831958a2e5ce5126dde856ee6347ebbd8b563b", "iri": "https://blackcatinformatics.ca/gmeow/JournalEntry"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -294,7 +294,7 @@ class LedgerAccount(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LedgerAccount", "curie": "gmeow:LedgerAccount", "definitionDigest": "blake3:426cb03679ebb7aa4ae77c893597eea53abe8dbe367cc9b755f9a79ebfe8b4d3", "iri": "https://blackcatinformatics.ca/gmeow/LedgerAccount"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LedgerAccount", "curie": "gmeow:LedgerAccount", "definitionDigest": "blake3:04250786e49d4518ce5cb343698dc9a26bbbb39e6a5c79cfe0f522103dc3f54f", "iri": "https://blackcatinformatics.ca/gmeow/LedgerAccount"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -323,7 +323,7 @@ class Order(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Order", "curie": "gmeow:Order", "definitionDigest": "blake3:3479e39fb6a78e9aef29fa9ace247e10bf5c8a19a69056218a245cffa6a9b52b", "iri": "https://blackcatinformatics.ca/gmeow/Order"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Order", "curie": "gmeow:Order", "definitionDigest": "blake3:97aa16e8da45709ec26012f3c8600ccfa5a96e27c3ebd44707ceb4cdb246e938", "iri": "https://blackcatinformatics.ca/gmeow/Order"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -350,7 +350,7 @@ class Posting(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Posting", "curie": "gmeow:Posting", "definitionDigest": "blake3:4b6b169bc28895f6ee48c94141d31a7a59cc786a4b60c80be1f0cfba84372dd4", "iri": "https://blackcatinformatics.ca/gmeow/Posting"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Posting", "curie": "gmeow:Posting", "definitionDigest": "blake3:d0a585b083ef68eda66a5ed1e4b340e59d86af642da34b4efeda5742bbe29fe4", "iri": "https://blackcatinformatics.ca/gmeow/Posting"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

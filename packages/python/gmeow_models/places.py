@@ -242,7 +242,7 @@ class CadastralReference(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CadastralReference", "curie": "gmeow:CadastralReference", "definitionDigest": "blake3:c5648fcbd14c8a14396c61562232a37dcac36e94a31aee162504ab6e8c30859c", "iri": "https://blackcatinformatics.ca/gmeow/CadastralReference"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CadastralReference", "curie": "gmeow:CadastralReference", "definitionDigest": "blake3:a8024e74c5fff3797f3b627ea95d7bafb5c00e4a2cca08b2a0a001981c0b869d", "iri": "https://blackcatinformatics.ca/gmeow/CadastralReference"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -291,7 +291,7 @@ class ContainmentTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ContainmentTenure", "curie": "gmeow:ContainmentTenure", "definitionDigest": "blake3:f5037feba26bb18eb00d0edcb67d07981e4d71e8861a9f1d9ce2a7540ba78136", "iri": "https://blackcatinformatics.ca/gmeow/ContainmentTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ContainmentTenure", "curie": "gmeow:ContainmentTenure", "definitionDigest": "blake3:0b6aa4627342198a163eb49e213b540039817f354f3dc527b1d5915552a3a91f", "iri": "https://blackcatinformatics.ca/gmeow/ContainmentTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -483,7 +483,7 @@ class JurisdictionTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JurisdictionTenure", "curie": "gmeow:JurisdictionTenure", "definitionDigest": "blake3:e563bf9d01508aeefa480cfc97de624aac89c701e29f366d182ad4b9aa8b486a", "iri": "https://blackcatinformatics.ca/gmeow/JurisdictionTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/JurisdictionTenure", "curie": "gmeow:JurisdictionTenure", "definitionDigest": "blake3:54871bf85601a488f37728baed9a281e1a99dfb0cbbb707b117ba963194f7400", "iri": "https://blackcatinformatics.ca/gmeow/JurisdictionTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -535,7 +535,7 @@ class LandTenure(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LandTenure", "curie": "gmeow:LandTenure", "definitionDigest": "blake3:643817306fda14affb7736ed60b781ef0747a8015f23b8fa695a4c75b69487e7", "iri": "https://blackcatinformatics.ca/gmeow/LandTenure"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/LandTenure", "curie": "gmeow:LandTenure", "definitionDigest": "blake3:403c554806e0d8005b664e92e4f018ade945ce99e15f082cc8370dea42dcdc57", "iri": "https://blackcatinformatics.ca/gmeow/LandTenure"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -770,7 +770,7 @@ class Place(Location):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Place", "curie": "gmeow:Place", "definitionDigest": "blake3:7bcc24ecba10fde02f09b22b8755ba54f7c35dda62a0e91d557ea5422e8ebaaa", "iri": "https://blackcatinformatics.ca/gmeow/Place"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Place", "curie": "gmeow:Place", "definitionDigest": "blake3:c235c7bc73c8561fb2119b32a528ff0644b58d60cc650f28bbf91e53d6adb7f3", "iri": "https://blackcatinformatics.ca/gmeow/Place"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -816,7 +816,7 @@ class Pose(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Pose", "curie": "gmeow:Pose", "definitionDigest": "blake3:19963b252089c8ff35047e7bdaf758b3b4e4fe5d1d400b1b7119da489aa4e065", "iri": "https://blackcatinformatics.ca/gmeow/Pose"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Pose", "curie": "gmeow:Pose", "definitionDigest": "blake3:d87c4f8fc0b6d1a1a502e549b31027707758756e70b97db7c189a86c5acf445f", "iri": "https://blackcatinformatics.ca/gmeow/Pose"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -865,7 +865,7 @@ class ProximityMeasurement(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement", "curie": "gmeow:ProximityMeasurement", "definitionDigest": "blake3:43dc275c9a6840b7a8b4cbd5b3aae8b03e2add4b8c1c541a496f6bba15f0ebe9", "iri": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement", "curie": "gmeow:ProximityMeasurement", "definitionDigest": "blake3:61eae4ad76729e63d1163d2df564ab205342107724a9445b1869e105ffcdccc7", "iri": "https://blackcatinformatics.ca/gmeow/ProximityMeasurement"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -913,7 +913,7 @@ class ReferenceFrame(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ReferenceFrame", "curie": "gmeow:ReferenceFrame", "definitionDigest": "blake3:a12349f5f6c7520c40063b3944df56ae1d5010b73fdbe8323c7ca2be01e97d2d", "iri": "https://blackcatinformatics.ca/gmeow/ReferenceFrame"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ReferenceFrame", "curie": "gmeow:ReferenceFrame", "definitionDigest": "blake3:dd84c6f8d9b1e8796fd987a037754ec1901db6d38de7807d82ccf85758273934", "iri": "https://blackcatinformatics.ca/gmeow/ReferenceFrame"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -965,7 +965,7 @@ class RegulatoryOverlay(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RegulatoryOverlay", "curie": "gmeow:RegulatoryOverlay", "definitionDigest": "blake3:68940a311517fe41a60a5b0df62e8f4481e06ca26a0196670bec8dbef84ca817", "iri": "https://blackcatinformatics.ca/gmeow/RegulatoryOverlay"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RegulatoryOverlay", "curie": "gmeow:RegulatoryOverlay", "definitionDigest": "blake3:2746ad7bd53c054ac77f4a99ac864fea6ecd2e616fb6d001ff254e331847e309", "iri": "https://blackcatinformatics.ca/gmeow/RegulatoryOverlay"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

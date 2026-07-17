@@ -137,7 +137,7 @@ class IdentityFacet(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/IdentityFacet", "curie": "gmeow:IdentityFacet", "definitionDigest": "blake3:bb87010cece03a58b30b7206bdadef77da887ffd999f35f5a1adfe88e4daaefb", "iri": "https://blackcatinformatics.ca/gmeow/IdentityFacet"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/IdentityFacet", "curie": "gmeow:IdentityFacet", "definitionDigest": "blake3:c13643eeb288439e5726e761af167ed046a1650d5df8976c04037395ca9bf475", "iri": "https://blackcatinformatics.ca/gmeow/IdentityFacet"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -186,7 +186,7 @@ class GenderExpression(IdentityFacet):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GenderExpression", "curie": "gmeow:GenderExpression", "definitionDigest": "blake3:7e3093e05e43c00755789948feaaf4b3270f77582ad35c6f27ad267207eef833", "iri": "https://blackcatinformatics.ca/gmeow/GenderExpression"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GenderExpression", "curie": "gmeow:GenderExpression", "definitionDigest": "blake3:c1e15f7e0c92f38facc9aa0e64210a721dff102413691d38f108a568585fea31", "iri": "https://blackcatinformatics.ca/gmeow/GenderExpression"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -280,7 +280,7 @@ class GenderIdentity(IdentityFacet):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GenderIdentity", "curie": "gmeow:GenderIdentity", "definitionDigest": "blake3:8ed1ef0c057cf9fddb8dc9da3c25d9bd87e2fb89b292d553cd1820d5bf75f0e2", "iri": "https://blackcatinformatics.ca/gmeow/GenderIdentity"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/GenderIdentity", "curie": "gmeow:GenderIdentity", "definitionDigest": "blake3:b5e61fe00783d6fc1261589d8b8de47e897e0ee9058a800e271165f61ce2f94d", "iri": "https://blackcatinformatics.ca/gmeow/GenderIdentity"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
