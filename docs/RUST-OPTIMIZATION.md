@@ -218,9 +218,8 @@ gate:
 
 - Iterator/API shape only: `cargo test -p <crate> ...`, then `make rust-test`.
 - Reasoning behavior: focused `gmeow-logic` tests and relevant conformance tests.
-  Use `make reason-gate` when verification and the entailment-oracle comparison are
-  both needed from one result; use `make reason-verify`, `make reason-crosscheck`,
-  `make reason`, or `make verify` to isolate one side.
+  Use `make reason-verify` when reasoning and reasoned-graph verification are both
+  needed from one closure; use `make reason` or `make verify` to isolate one side.
 - Validation behavior: focused `gmeow-validate` / `gmeow-shacl` tests, then
   `make validate`.
 - Generated-output behavior: `make sync` followed by `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`.

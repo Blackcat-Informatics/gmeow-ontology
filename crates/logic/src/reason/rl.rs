@@ -3,9 +3,9 @@
 
 //! Native OWL 2 RL/RDF deductive closure.
 //!
-//! This is the Docker/Java-free **primary** entailment authority. The independent
-//! in-process `purrdf::entail` OWL-RL evaluator remains the on-gate agreement
-//! cross-check; it is not a production fallback.
+//! This is the Docker/Java-free **primary** entailment authority and the single
+//! reasoning authority on-gate — there is no external OWL-RL oracle running beside
+//! it.
 //!
 //! # Why a predicate-as-DATA encoding (not the [`crate::reason::el`] one)
 //!
@@ -65,8 +65,8 @@
 //! clash rules (`cax-dw`, `prp-irp`, …) are intentionally NOT materialised as
 //! *positive* entailments here: they either derive only `owl:sameAs` edges the
 //! suites never assert, or they detect inconsistency (the [`crate::reason::dl`]
-//! lane's job). The independent `purrdf::entail` cross-check confirms this subset
-//! on every fixture the suites use.
+//! lane's job). The native conformance corpus confirms this subset on every
+//! fixture the suites use.
 
 use std::collections::HashMap;
 

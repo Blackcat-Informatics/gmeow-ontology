@@ -196,17 +196,14 @@ from large, easily-derived presentation payloads (Principle 4).
 ```bash
 make reason          # Native Docker-free EL/DL reasoning authority
 make verify          # Native reasoned-graph negative tests
-make reason-gate     # One fresh native closure shared by verify + the purrdf-entail oracle
-make reason-verify   # Focused native reasoning + reasoned-graph verify
-make reason-crosscheck # Focused native subsumption cross-check against purrdf-entail
+make reason-verify   # Native reasoning + reasoned-graph verify, one closure (Docker-free)
 ```
 
-The reasoning cross-check is native and Docker-free: `gmeow-dev reason-crosscheck`
-runs the in-process `purrdf::entail` engine (OWL-RL subsumption + OWL-Direct-tableau
-consistency, 70/70 W3C-entailment conformance-tested). The aggregate
-`make reason-gate` shares one complete native result between verification and that
-oracle comparison; the focused commands remain independently runnable. There is no
-Java/Docker oracle lane to run separately.
+The native `logic:` engine is the single reasoning authority — Docker-free,
+in-process, and the sole production forward authority. `make reason-verify`
+shares one complete native result between reasoning and reasoned-graph
+verification; there is no Java/Docker lane to run separately, and no live
+second reasoner on-gate.
 
 ### Testing & Verification
 
@@ -223,9 +220,10 @@ single crate's tests, use `cargo nextest run -p <crate>`.
 Generic RDF 1.2 / RDF\* and SPARQL compliance belongs to PurRDF's own test
 suite. GMEOW does not duplicate that authority with queries that merely prove
 an upstream engine can execute. Repository query tests must assert expected
-GMEOW product behaviour. The separate `make reason-crosscheck` lane remains:
-it compares GMEOW's native reasoning calculus with the independent
-`purrdf-entail` oracle (Principles 4, 7, 18).
+GMEOW product behaviour. Engine-independent coverage of GMEOW's native
+reasoning calculus is retained without a live second engine: the committed,
+frozen `dl_oracle_gold` corpus and the native gap-zero DL⊇EL crosscheck
+ledger (Principles 4, 7, 18).
 
 ### Maintainer Tasks
 
@@ -588,8 +586,8 @@ make check
 ```
 
 All Docker-free local gates must pass: lint, validate, generated-artifact drift
-check, native reasoning, native verify (including the on-gate in-process
-`purrdf::entail` cross-check oracle), and the Rust tests.
+check, native reasoning, native verify (one closure via `make reason-verify`),
+and the Rust tests.
 
 ### Push
 
