@@ -8176,6 +8176,18 @@ logic:ValueRangeConstraint
     gmeow:howToUse "Name the target class, the value path, and at least one inclusive literal bound; the compiled condition flags any value outside the closed interval."@x-gmeow-english ;
     gmeow:useWhen "Use when every numeric value of one direct predicate on a class must lie in a closed interval under closed-world validation."@x-gmeow-english .
 
+logic:UniqueLangConstraint
+    a owl:Class ;
+    logic:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unique Language Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a per-property unique-language constraint: a logic:onClass target and a logic:valuePath predicate whose language-tagged literal values must each carry a DISTINCT language tag (no two values on that path share a tag). Expands declaratively to a sh:uniqueLang true property component on the target class node shape; a language-tagged prose predicate localizes at most once per language. Frontend-only authoring shortcut with no ShEx form (the uniqueLang facet is a disclosed ShEx drop)."@x-gmeow-english ;
+    skos:example "ex:oneNamePerLang a logic:UniqueLangConstraint ; logic:onClass ex:Place ; logic:valuePath ex:localName ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to cap total values (that is a cardinality restriction) or to constrain a non-language-tagged predicate; uniqueLang only bites language-tagged literals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class and the localizable-prose value path; the derived sh:uniqueLang true flags any focus carrying two values that share a language tag."@x-gmeow-english ;
+    gmeow:useWhen "Use when a language-tagged prose predicate on a class must localize at most once per language tag (the localizable-prose convention)."@x-gmeow-english .
+
 logic:AggregateConstraint
     a owl:Class ;
     rdfs:subClassOf logic:ConstraintSugar ;
@@ -8187,6 +8199,88 @@ logic:AggregateConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Specify the target, aggregate function, path, comparator, and literal or property-valued right-hand side; request DISTINCT only when duplicate values must collapse."@x-gmeow-english ;
     gmeow:useWhen "Use when validity depends on COUNT, SUM, MIN, or MAX over the values reached by one predicate."@x-gmeow-english .
+
+logic:AggregateBalanceConstraint
+    a owl:Class ;
+    logic:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Aggregate Balance Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a double-entry balance constraint: a logic:onClass target whose postings (logic:balancePostingPredicate) are partitioned by a partition predicate (logic:balancePartitionPredicate) into a debit side (logic:balanceDebitValue) and a credit side (logic:balanceCreditValue), each posting's numeric amount is read via logic:balanceAmountNodePredicate then logic:balanceValuePredicate, and the group key via logic:balanceAmountNodePredicate then logic:balanceGroupPredicate; within every group the two partition-sums must be EQUAL. Generalizes the single-aggregate logic:AggregateConstraint to a partitioned two-sum equality over a value-key group. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity plus a structured balance satellite, lowered to a SELECT $this … GROUP BY $this ?group HAVING(sumDebits != sumCredits) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
+    skos:example "ex:entryBalances a logic:AggregateBalanceConstraint ; logic:onClass ex:JournalEntry ; logic:balancePostingPredicate ex:posting ; logic:balancePartitionPredicate ex:direction ; logic:balanceDebitValue ex:debit ; logic:balanceCreditValue ex:credit ; logic:balanceAmountNodePredicate ex:amount ; logic:balanceValuePredicate ex:value ; logic:balanceGroupPredicate ex:currency ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a single aggregate compared to a constant (that is logic:AggregateConstraint) or when there is no debit/credit partition and per-currency grouping."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class, the posting predicate, the partition predicate and its two debit/credit values, the amount-node predicate, the numeric-value predicate, and the group-key predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use when validity requires that, per group, the sum of debit-partition amounts equals the sum of credit-partition amounts (double-entry bookkeeping)."@x-gmeow-english .
+
+logic:balancePostingPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance posting predicate"@x-gmeow-english ;
+    skos:definition "The predicate of a logic:AggregateBalanceConstraint from the focus to each posting aggregated in the balance ($this <posting> ?posting)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balancePartitionPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance partition predicate"@x-gmeow-english ;
+    skos:definition "The predicate of a logic:AggregateBalanceConstraint on a posting whose value selects its partition — the debit side (logic:balanceDebitValue) or the credit side (logic:balanceCreditValue)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balanceDebitValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance debit value"@x-gmeow-english ;
+    skos:definition "The logic:balancePartitionPredicate value marking a DEBIT posting in a logic:AggregateBalanceConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balanceCreditValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance credit value"@x-gmeow-english ;
+    skos:definition "The logic:balancePartitionPredicate value marking a CREDIT posting in a logic:AggregateBalanceConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balanceAmountNodePredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance amount node predicate"@x-gmeow-english ;
+    skos:definition "The predicate of a logic:AggregateBalanceConstraint from a posting to its amount node (?posting <amountNode> ?amount); both the numeric value and the group key hang off this shared amount node, so a value and its group key are always read from the same amount."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balanceValuePredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance value predicate"@x-gmeow-english ;
+    skos:definition "The predicate of a logic:AggregateBalanceConstraint from the amount node to its numeric value (?amount <value> ?val), the quantity summed per partition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balanceGroupPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balance group predicate"@x-gmeow-english ;
+    skos:definition "The predicate of a logic:AggregateBalanceConstraint from the amount node to the group key (?amount <group> ?group); the balance equality is asserted per group (e.g. per currency)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:balancedByGroup
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "balanced by group"@x-gmeow-english ;
+    skos:definition "The reified relation an expanded logic:AggregateBalanceConstraint carries as its honest FOL integrity: balancedByGroup(this, posting, partition, debit, credit, amountNode, value, group). The realized FOL formula core has no aggregate node, so this predication makes the double-entry-balance meaning complete in the FOL canon while the structured satellite drives the real GROUP BY/HAVING SPARQL projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termLangMatches
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term language matches"@x-gmeow-english ;
+    skos:definition "A language-tag introspection relation the procedural-constraint SPARQL fragment lowers to a case-insensitive FILTER ( REGEX(LANG(x), 'pattern', 'i') ) over a bound term (rather than a triple pattern). It mirrors logic:termRegex but matches against the value's LANGUAGE TAG rather than its lexical form; it binds nothing, only tests the tag against a literal pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termHasLang
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term has language tag"@x-gmeow-english ;
+    skos:definition "A language-tag presence relation the procedural-constraint SPARQL fragment lowers to a unary FILTER ( LANG(x) != \"\" ) over a bound term. The companion to logic:termLangMatches: it restricts a language-tag check to genuinely tagged literals, so a plain or typed literal is never swept into a tag-pattern violation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:onClass
     a owl:ObjectProperty ;
@@ -10957,6 +11051,143 @@ logic:fsfcNsGuard a logic:Formula ; logic:relation logic:termStrStarts ;
 logic:fsfcMembership a logic:Formula ; logic:relation rdfs:subClassOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri logic:LogicConformanceFailure ] .
 
+# =========================================================================== #
+# The flagship acceptance-manifest vocabulary, promoted here from the test-DSL  #
+# to a first-class ontology surface the shape-derive reads. gmeow:FlagshipScenario#
+# and its five wiring predicates are shared, slice-agnostic terms; this grounding #
+# slice is their ruled home. The shared structural wiring gate — every flagship   #
+# scenario binds exactly one worked example, competency question, native producer, #
+# counter-example, and enforcing failure class — is expressed declaratively (each  #
+# predicate min-1/max-1 on gmeow:FlagshipScenario) so the derived validation-shape #
+# reproduces the legacy gmeow:FlagshipScenarioShape, and the whole obligation is    #
+# ALSO carried as a logic:Constraint formalizing gmeow:FlagshipScenarioShape with   #
+# the gmeow:UnwiredFlagshipScenario failure identity the guard fixture resolves.     #
+# =========================================================================== #
+
+gmeow:FlagshipScenario a logic:Kind , owl:Class ;
+    rdfs:label "flagship scenario"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ;
+    skos:definition "A typed acceptance-manifest object reifying one of a grounding slice's flagship acceptance scenarios — its depth bar. Each gmeow:FlagshipScenario binds one scenario to the artifacts that realize and enforce it: the worked example (gmeow:demonstratedByExample), the competency question that pins its structure (gmeow:demonstratedByCompetency), the native producer that emits its output (gmeow:demonstratedByProducer), the counter-example that proves its gate bites (gmeow:guardedByCounterExample), and the named conformance-failure subclass that gate raises (gmeow:enforcesFailureClass). A scenario missing its example, competency, producer, counter-example, or enforcing class, or naming an enforcing class that is not one of the owning slice's conformance-failure subclasses, is unwired and ill-formed (gmeow:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    skos:example "exa:e8Symmetry a gmeow:FlagshipScenario ; gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ; gmeow:demonstratedByCompetency cq:cqE8RootSystem ; gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ; gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ; gmeow:enforcesFailureClass math:WrongE8WeylOrder ."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a grounding slice's acceptance bar a typed, gated object: one gmeow:FlagshipScenario per flagship, each binding the worked example, competency, producer, counter-example, and enforcing failure class that realize and enforce it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for ordinary well-formedness invariants (use gmeow:StructuralAssertion) or example-validation outcomes (use gmeow:ExampleConformance); a flagship scenario reifies a depth-bar acceptance case, not a single graph constraint."@x-gmeow-english ;
+    gmeow:howToUse "Author one gmeow:FlagshipScenario individual per flagship in the slice's examples/flagship-acceptance.ttl, binding gmeow:demonstratedByExample, gmeow:demonstratedByCompetency, gmeow:demonstratedByProducer, gmeow:guardedByCounterExample, and gmeow:enforcesFailureClass (the last pointing at the owning slice's own conformance-failure subclass)."@x-gmeow-english .
+
+# The five structural wiring obligations, declared as min-1/max-1 restrictions on the class so the
+# derived gmeow:FlagshipScenario validation-shape carries the exact cardinality gate. Existence is a
+# ClosedWorldClosure opt-in (sh:minCount 1 without minting a reasoner witness); at-most-one is a
+# functional property (the four scenario-only predicates) or a scoped max-qualified restriction
+# (the shared gmeow:enforcesFailureClass annotation, kept single-valued only on a flagship scenario).
+gmeow:FlagshipScenario logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByExample ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByProducer ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:guardedByCounterExample ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByCompetency ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:enforcesFailureClass ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:enforcesFailureClass ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByExample" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/guardedByCounterExample" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByCompetency" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/enforcesFailureClass" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnwiredFlagshipScenario a logic:Category , owl:Class ;
+    rdfs:label "unwired flagship scenario"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The shared abstract failure class for a gmeow:FlagshipScenario that is not fully wired: it is missing its worked example (gmeow:demonstratedByExample), competency question (gmeow:demonstratedByCompetency), producer (gmeow:demonstratedByProducer), counter-example (gmeow:guardedByCounterExample), or enforcing failure class (gmeow:enforcesFailureClass); or the class it names as enforcing is not one of the owning slice's conformance-failure subclasses. The depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all realizing/enforcing artifacts cannot claim the scenario is met. Each grounding slice's own <Slice>UnwiredFlagshipScenario subclasses ONLY its slice-local <Slice>ConformanceFailure root (never this spec-layer marker, which is never a subclass target); unwired-detection is instead enforced UNIFORMLY across every slice by the shared gmeow:FlagshipScenarioShape, which carries gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario, cross-referencing this shared name with the gate that raises it."@x-gmeow-english ;
+    skos:example "gmeow:FlagshipScenarioShape gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the shared, cross-slice-recognisable name for the wiring failure of an incompletely-wired gmeow:FlagshipScenario; the shared gmeow:FlagshipScenarioShape names it via gmeow:enforcesFailureClass so every slice's unwired scenarios are queryable under one common failure name."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing gmeow:enforcesFailureClass at this abstract marker on a scenario individual; the enforcing class of a real scenario is a concrete slice-local conformance failure, and this marker only names the WIRING failure of the acceptance object itself."@x-gmeow-english ;
+    gmeow:howToUse "In a grounding slice, make <Slice>UnwiredFlagshipScenario a subclass of only its own <Slice>ConformanceFailure root; this spec-layer marker itself is never a subclass target. The shared gmeow:FlagshipScenarioShape (not a per-slice shape) already carries gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario, so slice authors do not redeclare that annotation."@x-gmeow-english .
+
+gmeow:demonstratedByExample a owl:DatatypeProperty , owl:FunctionalProperty ;
+    logic:domain gmeow:FlagshipScenario ;
+    logic:range xsd:string ;
+    rdfs:label "demonstrated by example"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    skos:definition "Names the worked example that realizes a gmeow:FlagshipScenario, as a SLICE-RELATIVE path string (the same base as gmeow:exampleFile). The referenced *.ttl is the concrete artifact a reader inspects to see the scenario built, and the execution-discharge harness validates it clean."@x-gmeow-english ;
+    skos:example "exa:e8Symmetry gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative worked example that realizes it — the positive artifact the discharge harness validates clean."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative, like gmeow:exampleFile) and avoid naming more than one worked example per scenario."@x-gmeow-english .
+
+gmeow:demonstratedByCompetency a owl:ObjectProperty , owl:FunctionalProperty ;
+    logic:domain gmeow:FlagshipScenario ;
+    rdfs:label "demonstrated by competency"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    skos:definition "Names the competency question that pins a gmeow:FlagshipScenario's structure, referenced by IRI (a gmeow:CompetencyQuestion). The competency-question individual lives in the slice's tests/competency.ttl, so this reference is resolved and its gmeow:cqExpectRow expectation confirmed by the native flagship cross-check rather than by SHACL, which never loads the tests dataset."@x-gmeow-english ;
+    skos:example "exa:e8Symmetry gmeow:demonstratedByCompetency cq:cqE8RootSystem ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:FlagshipScenario to reference, by IRI, the gmeow:CompetencyQuestion that pins its structure and numbers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a literal here (the value is an IRI into tests/competency.ttl) and avoid pointing at a competency question that carries no gmeow:cqExpectRow — the cross-check requires a pinned green competency."@x-gmeow-english .
+
+gmeow:demonstratedByProducer a owl:DatatypeProperty , owl:FunctionalProperty ;
+    logic:domain gmeow:FlagshipScenario ;
+    logic:range xsd:string ;
+    rdfs:label "demonstrated by producer"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    skos:definition "Names the native producer entrypoint that emits a gmeow:FlagshipScenario's output, as a path-like identifier string (e.g. math::producers::e8_weyl_order, pipeline::stages::lang_form::build_corpus). REQUIRED on every gmeow:FlagshipScenario: a scenario carries this binding if and only if the execution-discharge harness actually runs that producer and pins its output — the acceptance bar is discharged by execution, never by an unrun label."@x-gmeow-english ;
+    skos:example "exa:e8Symmetry gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use on every gmeow:FlagshipScenario to name the native producer identifier the execution-discharge harness dispatches and runs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it (the producer binding is required) and avoid naming a producer the discharge harness does not actually run — an unrun label is not a discharged acceptance bar."@x-gmeow-english .
+
+gmeow:guardedByCounterExample a owl:DatatypeProperty , owl:FunctionalProperty ;
+    logic:domain gmeow:FlagshipScenario ;
+    logic:range xsd:string ;
+    rdfs:label "guarded by counter-example"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    skos:definition "Names the counter-example that proves a gmeow:FlagshipScenario's gate bites, as a SLICE-RELATIVE path string. The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's gmeow:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced, and the execution-discharge harness runs the fixture and confirms exactly that class fires."@x-gmeow-english ;
+    skos:example "exa:e8Symmetry gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative minimal counter-example that raises its enforcing failure class — the negative fixture that proves the gate bites."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative) and avoid a counter-example that raises any failure class other than the scenario's gmeow:enforcesFailureClass."@x-gmeow-english .
+
+gmeow:enforcesFailureClass a owl:AnnotationProperty ;
+    rdfs:label "enforces failure class"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    skos:definition "Links a gate — a SHACL shape or a gmeow:FlagshipScenario — to the conformance-failure subclass it enforces, so the machine-checked gate and the typed failure vocabulary are cross-referenced: a query can move from a gate to the named failure it raises and back. Carried on a SHACL shape (the shape enforcing that failure) or on a gmeow:FlagshipScenario (the failure its guarding counter-example must raise). An annotation property, never a reasoned axiom; its value is a slice-local <Slice>ConformanceFailure subclass."@x-gmeow-english ;
+    skos:example "math:UnsituatedNumberShape gmeow:enforcesFailureClass math:UnsituatedNumber ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a SHACL gate shape or a gmeow:FlagshipScenario to name the conformance-failure subclass it enforces, cross-referencing the machine-checked gate with the typed failure vocabulary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a reasoned axiom (it is an annotation) and avoid pointing it at a class that is not one of the owning slice's conformance-failure subclasses."@x-gmeow-english .
+
+# The shared structural wiring gate as a canonical logic: constraint: every gmeow:FlagshipScenario
+# binds min-1 of each of the five wiring predicates. It formalizes gmeow:FlagshipScenarioShape and
+# carries the gmeow:UnwiredFlagshipScenario failure identity the guard fixture resolves, and it
+# record-backs the derived declarative shape's typed-IRI enforcing-class obligation.
+gmeow:FlagshipScenarioWiringConstraint
+    a logic:Constraint ;
+    rdfs:label "Flagship scenario wiring constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:FlagshipScenario binds at least one worked example, competency question, native producer, counter-example, and enforcing failure class. An acceptance scenario missing any realizing/enforcing artifact is unwired (gmeow:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ;
+    logic:formalizes gmeow:FlagshipScenarioShape ;
+    logic:severity "Violation" ;
+    logic:message "A gmeow:FlagshipScenario must bind exactly one worked example, competency question, native producer, counter-example, and enforcing failure class; an acceptance scenario that does not wire all realizing artifacts is unwired." ;
+    logic:integrity logic:fswForall .
+logic:fswForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fswImpl .
+logic:fswImpl a logic:Formula ; logic:antecedent logic:fswGuard ; logic:consequent logic:fswAnd .
+logic:fswGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FlagshipScenario ] .
+logic:fswAnd a logic:Formula ; logic:and logic:fswExample , logic:fswCompetency , logic:fswProducer , logic:fswCounter , logic:fswFailure .
+logic:fswExample a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ex" ] ; logic:exists logic:fswExampleAtom .
+logic:fswExampleAtom a logic:Formula ; logic:relation gmeow:demonstratedByExample ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ex" ] .
+logic:fswCompetency a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cq" ] ; logic:exists logic:fswCompetencyAtom .
+logic:fswCompetencyAtom a logic:Formula ; logic:relation gmeow:demonstratedByCompetency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cq" ] .
+logic:fswProducer a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pr" ] ; logic:exists logic:fswProducerAtom .
+logic:fswProducerAtom a logic:Formula ; logic:relation gmeow:demonstratedByProducer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pr" ] .
+logic:fswCounter a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ce" ] ; logic:exists logic:fswCounterAtom .
+logic:fswCounterAtom a logic:Formula ; logic:relation gmeow:guardedByCounterExample ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ce" ] .
+logic:fswFailure a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "fc" ] ; logic:exists logic:fswFailureAtom .
+logic:fswFailureAtom a logic:Formula ; logic:relation gmeow:enforcesFailureClass ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fc" ] .
+
 # --- The five scenario acceptance-witness classes and their carriers -------- #
 
 logic:ClosureAcceptanceWitness
@@ -11028,6 +11259,189 @@ logic:carriesTerminationCertificate
     rdfs:label "carries termination certificate"@x-gmeow-english ;
     skos:definition "Relates a logic:ChaseAcceptanceWitness to the weak-acyclicity termination-certificate evidence (xsd:string, the ChaseAdmission::WeaklyAcyclic evidence summary) that admits its chase. Domain logic:ChaseAcceptanceWitness (stated in prose). A chase acceptance record with no certificate reports a closure that may never terminate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# The repo-wide gmeow: annotation-completeness meta-constraints. Each is a       #
+# whole-shape logic:Constraint reproducing the namespace-filter sh:SPARQLTarget  #
+# focus and the four annotation-completeness obligations (rdfs:label,            #
+# skos:definition, rdfs:isDefinedBy, gmeow:graphBoxRole), and formalizes the     #
+# corresponding validation-shape IRI. The structural minCount obligations are    #
+# machine-readable, so the semantic witness cross-check (structural-side pinned) #
+# proves the record reproduces the shape's judgments over every graph.          #
+# =========================================================================== #
+
+gmeow:GmeowClassCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW class annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced owl:Class carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowClassShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW class must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gccForall .
+logic:gccForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gccImpl .
+logic:gccImpl a logic:Formula ; logic:antecedent logic:gccTarget ; logic:consequent logic:gccAnd .
+logic:gccTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:gccAnd a logic:Formula ; logic:and logic:gccLabel , logic:gccDef , logic:gccDefBy , logic:gccRole .
+logic:gccLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gccLabelAtom .
+logic:gccLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gccDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gccDefAtom .
+logic:gccDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gccDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gccDefByAtom .
+logic:gccDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gccRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gccRoleAtom .
+logic:gccRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+gmeow:GmeowPropertyCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW property annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced owl object/datatype/annotation property carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowPropertyShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW property must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gpcForall .
+logic:gpcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gpcImpl .
+logic:gpcImpl a logic:Formula ; logic:antecedent logic:gpcTarget ; logic:consequent logic:gpcAnd .
+logic:gpcTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this a ?t .
+    FILTER(?t IN (
+        <http://www.w3.org/2002/07/owl#ObjectProperty>,
+        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+        <http://www.w3.org/2002/07/owl#AnnotationProperty>
+    ))
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:gpcAnd a logic:Formula ; logic:and logic:gpcLabel , logic:gpcDef , logic:gpcDefBy , logic:gpcRole .
+logic:gpcLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gpcLabelAtom .
+logic:gpcLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gpcDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gpcDefAtom .
+logic:gpcDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gpcDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gpcDefByAtom .
+logic:gpcDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gpcRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gpcRoleAtom .
+logic:gpcRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+# The repo-wide private-use language-tag gate. A whole-shape logic:Constraint whose focus is any
+# subject carrying a gmeow:-namespaced predicate with a language-tagged literal (a predicate-PREFIX
+# sh:SPARQLTarget, filtering on ?p — not ?this), obligating every such tagged literal to use the
+# private-use x-gmeow-* language-tag prefix. It introspects the value's LANGUAGE TAG through the
+# logic:termLangMatches / logic:termHasLang term algebra, so the tag-prefix convention is a
+# first-class logic: check. Formalizes gmeow:InternalLanguageTagShape.
+gmeow:GmeowInternalLanguageTagConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW internal private-use language-tag constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every language-tagged literal object of a gmeow:-namespaced predicate must carry a language tag under the private-use x-gmeow-* prefix (case-insensitive ^x-gmeow-[a-z0-9-]+$). Introspects the value's language tag via logic:termHasLang and logic:termLangMatches so the repo-wide localizable-prose convention is enforced by the logic: core, not a hand-authored shape surface."@x-gmeow-english ;
+    logic:formalizes gmeow:InternalLanguageTagShape ;
+    logic:severity "Violation" ;
+    logic:message "Literals in GMEOW must use the 'x-gmeow-' private-use prefix for language tags." ;
+    logic:integrity logic:iltForall .
+logic:iltForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:iltImpl .
+logic:iltImpl a logic:Formula ; logic:antecedent logic:iltTarget ; logic:consequent logic:iltOk .
+logic:iltTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT DISTINCT ?this WHERE {
+    ?this ?p ?value .
+    FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/"))
+    FILTER (isLiteral(?value) && lang(?value) != "")
+}""" ] .
+# The per-focus OK condition: no gmeow:-namespaced tagged literal violates the private-use prefix.
+logic:iltOk a logic:Formula ; logic:not logic:iltBad .
+logic:iltBad a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+    logic:exists logic:iltBadBody .
+logic:iltBadBody a logic:Formula ; logic:and logic:iltLink , logic:iltNs , logic:iltLit , logic:iltHasLang , logic:iltNotOk .
+logic:iltLink a logic:Formula ; logic:relation logic:linkVia ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "value" ] .
+logic:iltNs a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/gmeow/" ] .
+logic:iltLit a logic:Formula ; logic:relation logic:termIsLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+logic:iltHasLang a logic:Formula ; logic:relation logic:termHasLang ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+logic:iltNotOk a logic:Formula ; logic:not logic:iltMatch .
+logic:iltMatch a logic:Formula ; logic:relation logic:termLangMatches ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termLiteral "^x-gmeow-[a-z0-9-]+$" ] .
+
+gmeow:GmeowDatatypeCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW datatype annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced rdfs:Datatype carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowDatatypeShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW datatype must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gdcForall .
+logic:gdcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gdcImpl .
+logic:gdcImpl a logic:Formula ; logic:antecedent logic:gdcTarget ; logic:consequent logic:gdcAnd .
+logic:gdcTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Datatype> .
+    FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+}""" ] .
+logic:gdcAnd a logic:Formula ; logic:and logic:gdcLabel , logic:gdcDef , logic:gdcDefBy , logic:gdcRole .
+logic:gdcLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gdcLabelAtom .
+logic:gdcLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gdcDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gdcDefAtom .
+logic:gdcDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gdcDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gdcDefByAtom .
+logic:gdcDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gdcRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gdcRoleAtom .
+logic:gdcRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+gmeow:GmeowOntologyCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW ontology-header annotation-completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:-namespaced owl:Ontology header carries at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one gmeow:graphBoxRole."@x-gmeow-english ;
+    logic:formalizes gmeow:GmeowOntologyShape ;
+    logic:severity "Violation" ;
+    logic:message "Every GMEOW ontology header must carry at least one rdfs:label, one skos:definition, one rdfs:isDefinedBy, and one IRI-valued gmeow:graphBoxRole." ;
+    logic:integrity logic:gocForall .
+logic:gocForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gocImpl .
+logic:gocImpl a logic:Formula ; logic:antecedent logic:gocTarget ; logic:consequent logic:gocAnd .
+logic:gocTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+    FILTER(
+        STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/")
+        || STR(?this) = "https://blackcatinformatics.ca/gmeow"
+    )
+}""" ] .
+logic:gocAnd a logic:Formula ; logic:and logic:gocLabel , logic:gocDef , logic:gocDefBy , logic:gocRole .
+logic:gocLabel a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists logic:gocLabelAtom .
+logic:gocLabelAtom a logic:Formula ; logic:relation rdfs:label ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+logic:gocDef a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists logic:gocDefAtom .
+logic:gocDefAtom a logic:Formula ; logic:relation skos:definition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:gocDefBy a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists logic:gocDefByAtom .
+logic:gocDefByAtom a logic:Formula ; logic:relation rdfs:isDefinedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+logic:gocRole a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists logic:gocRoleAtom .
+logic:gocRoleAtom a logic:Formula ; logic:relation gmeow:graphBoxRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
 
 # ── Canonical OWL/RDFS construct vocabulary ────────────────────────────────────
 # These are the logic:-native terms the frontend lifts OWL into and the projection
