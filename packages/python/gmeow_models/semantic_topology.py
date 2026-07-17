@@ -44,7 +44,7 @@ class CompilationPreservationRecord(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CompilationPreservationRecord", "curie": "gmeow:CompilationPreservationRecord", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/gmeow/CompilationPreservationRecord"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CompilationPreservationRecord", "curie": "gmeow:CompilationPreservationRecord", "definitionDigest": "blake3:90635226c8aec4061bf5131b9245bbf000b533840df6046afa38f234e86ef04f", "iri": "https://blackcatinformatics.ca/gmeow/CompilationPreservationRecord"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -86,7 +86,7 @@ class ComplexCompilation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ComplexCompilation", "curie": "gmeow:ComplexCompilation", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/gmeow/ComplexCompilation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ComplexCompilation", "curie": "gmeow:ComplexCompilation", "definitionDigest": "blake3:68c07192c578837f780f0e57418424e8c324c61540a687abd1919283380f1415", "iri": "https://blackcatinformatics.ca/gmeow/ComplexCompilation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -127,7 +127,7 @@ class TopologyClaim(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TopologyClaim", "curie": "gmeow:TopologyClaim", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/gmeow/TopologyClaim"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TopologyClaim", "curie": "gmeow:TopologyClaim", "definitionDigest": "blake3:8867fd26d3d0e649e0649653d983ac4b7d73ebc7e53b9e6336a05b07a030fe5a", "iri": "https://blackcatinformatics.ca/gmeow/TopologyClaim"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -164,7 +164,7 @@ class TopologyComputation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TopologyComputation", "curie": "gmeow:TopologyComputation", "definitionDigest": "", "iri": "https://blackcatinformatics.ca/gmeow/TopologyComputation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/TopologyComputation", "curie": "gmeow:TopologyComputation", "definitionDigest": "blake3:b180a015e18c94e0e23385956b40948e0ba3bfbb2c7e16ae2ac73574edaa85b8", "iri": "https://blackcatinformatics.ca/gmeow/TopologyComputation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
