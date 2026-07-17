@@ -90,6 +90,19 @@ fn shacl_local(iri: &str) -> Option<&str> {
     iri.strip_prefix(SH)
 }
 
+/// The sentinel `sh:select` a TRULY TARGETLESS top-level shape reads to. SHACL gives a shape
+/// with no target an EMPTY focus set (it validates nothing), and this select provably binds no
+/// `?this`, so [`ShapeTarget::Sparql`] over it is the faithful IR of "no focus nodes" — a
+/// verdictable read for a documentation-only marker block instead of a hard read error.
+pub const TARGETLESS_SELECT: &str = "SELECT ?this WHERE { FILTER(false) }";
+
+/// The residue marker recorded when a raw (non-value-keyed) `sh:SPARQLTarget` select is adopted
+/// as the shape's [`ShapeTarget::Sparql`] target. The select has no OWL/RDFS antecedent, so the
+/// WHOLE shape is uncovered residue until an exact `logic:formalizes` record (plus the structural
+/// witness cross-check) grounds it.
+pub const RAW_SPARQL_TARGET_RESIDUE: &str =
+    "http://www.w3.org/ns/shacl#target (raw sh:SPARQLTarget select)";
+
 /// Build a `validate.parse` diagnostic from a preserved condition message. Every hard
 /// malformation the reader surfaces routes through this so the oracle reports on the shared
 /// diagnostic substrate rather than a bare string.
@@ -133,11 +146,18 @@ fn route_unhandled(pred: String, unsupported: &mut Vec<String>) {
 /// before the class is deletable.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ShapeRead {
-    /// The covered fragment as an enforcement-comparable IR.
+    /// The covered fragment as an enforcement-comparable IR (under the FIRST focus selector in
+    /// canonical target order when the shape authored several).
     pub ir: ValidationShapeIr,
     /// The genuinely-uncovered constructs found on the shape (full predicate IRIs),
     /// sorted and de-duplicated. Empty ⇒ the shape is fully covered.
     pub unsupported: Vec<String>,
+    /// The ADDITIONAL focus selectors of a multi-target shape (SHACL unions the focus sets of
+    /// multi-valued `sh:targetClass` / `sh:targetSubjectsOf` / …), in canonical target order.
+    /// The SAME constraint payload applies to each, so a deletion is clear only when EVERY
+    /// target's obligation is reproduced — the caller must judge each one. Empty for the
+    /// ordinary single-target shape.
+    pub extra_targets: Vec<ShapeTarget>,
 }
 
 /// Every `(predicate IRI, object id)` on `subject` in the default or any named graph.
@@ -475,6 +495,13 @@ impl CompAcc {
             }
             "qualifiedMinCount" => self.qvs_min = Some(obj_u32(ds, obj, &ctx)?),
             "qualifiedMaxCount" => self.qvs_max = Some(obj_u32(ds, obj, &ctx)?),
+            // `sh:uniqueLang true` is the per-property unique-language facet (no two
+            // language-tagged values share a tag); `false` is the vacuous default.
+            "uniqueLang" => {
+                if obj_lexical(ds, obj, &ctx)? == "true" {
+                    self.comps.push(ConstraintComponent::UniqueLang);
+                }
+            }
             // A SHACL-namespace predicate that is NOT a covered component predicate — the
             // caller routes it (presentation skip, structural, or residue).
             _ => return Ok(false),
@@ -594,7 +621,13 @@ fn parse_property_shape(
                     )));
                 }
             },
-            Some("minCount") => min_count = Some(obj_u32(ds, obj, &ctx)?),
+            // `sh:minCount 0` is a no-op (every focus has at least zero values), so it is
+            // normalized to "no minimum" — otherwise a legacy shape that spelled the vacuous
+            // bound explicitly would fail to match a projection that (correctly) omits it.
+            Some("minCount") => {
+                let n = obj_u32(ds, obj, &ctx)?;
+                min_count = (n > 0).then_some(n);
+            }
             Some("maxCount") => max_count = Some(obj_u32(ds, obj, &ctx)?),
             Some("reifierShape") => reifier_shape = Some(obj_iri(ds, obj, &ctx)?),
             Some("reificationRequired") => reification_required = obj_bool(ds, obj, &ctx)?,
@@ -643,6 +676,86 @@ fn parse_property_shape(
     Ok(Some(prop))
 }
 
+/// Conjunctively merge property shapes that share the same `(path, inverse)` selector, mirroring
+/// the frontend's `merge_same_path_properties`. A hand-authored legacy shape that splits an
+/// exactly-one obligation across two `sh:property` blocks (`[ sh:path P ; sh:minCount 1 ; sh:class C ]`
+/// and `[ sh:path P ; sh:maxCount 1 ; sh:class C ]`) states the SAME constraint the projector emits
+/// as one merged block; reading them unmerged would spuriously red the equivalence oracle (a legacy
+/// `min=1,max=None` block never matches the merged projected `min=1,max=1`). The merged cardinality
+/// is the tightest of the group's bounds (max of mins, min of maxes) and the union of value
+/// components; first-seen path order is preserved for determinism.
+fn merge_same_path_property_shapes(
+    props: Vec<PropertyConstraintIr>,
+) -> gmeow_errors::Result<Vec<PropertyConstraintIr>> {
+    let mut order: Vec<(String, bool)> = Vec::new();
+    let mut groups: std::collections::BTreeMap<(String, bool), Vec<PropertyConstraintIr>> =
+        std::collections::BTreeMap::new();
+    for p in props {
+        let key = (p.path.clone(), p.inverse);
+        if !groups.contains_key(&key) {
+            order.push(key.clone());
+        }
+        groups.entry(key).or_default().push(p);
+    }
+    let mut out = Vec::with_capacity(order.len());
+    for key in order {
+        let mut group = groups.remove(&key).expect("key present");
+        if group.len() == 1 {
+            out.push(group.pop().expect("one element"));
+            continue;
+        }
+        let mut min_count: Option<u32> = None;
+        let mut max_count: Option<u32> = None;
+        let mut components: Vec<ConstraintComponent> = Vec::new();
+        let mut severity: Option<ShaclSeverity> = None;
+        let mut message: Option<String> = None;
+        let mut reifier_shape: Option<String> = None;
+        let mut reification_required = false;
+        for p in &group {
+            min_count = match (min_count, p.min_count) {
+                (Some(a), Some(b)) => Some(a.max(b)),
+                (Some(a), None) => Some(a),
+                (None, b) => b,
+            };
+            max_count = match (max_count, p.max_count) {
+                (Some(a), Some(b)) => Some(a.min(b)),
+                (Some(a), None) => Some(a),
+                (None, b) => b,
+            };
+            for c in &p.components {
+                if !components.contains(c) {
+                    components.push(c.clone());
+                }
+            }
+            severity = severity.or(p.severity);
+            message = message.or_else(|| p.message.clone());
+            reifier_shape = reifier_shape.or_else(|| p.reifier_shape.clone());
+            reification_required = reification_required || p.reification_required;
+        }
+        let provenance =
+            (min_count.is_some() || max_count.is_some()).then_some(ConstraintProvenance::OptNative);
+        let (path, inverse) = key;
+        let mut merged =
+            PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?;
+        if inverse {
+            merged = merged.inverted();
+        }
+        if let Some(sev) = severity {
+            merged = merged.with_severity(sev);
+        }
+        if let Some(msg) = message
+            && !msg.trim().is_empty()
+        {
+            merged = merged.with_message(msg)?;
+        }
+        if reifier_shape.is_some() || reification_required {
+            merged = merged.with_reifier(reifier_shape, reification_required)?;
+        }
+        out.push(merged);
+    }
+    Ok(out)
+}
+
 /// Tokenize a SPARQL `sh:select` string into Turtle/SPARQL terms: `<iri>` and `"…"` /
 /// `"""…"""` are single tokens; `;` `.` `,` `(` `)` `{` `}` are punctuation tokens; the rest
 /// are whitespace-separated words (variables, keywords, CURIEs, the `a` shorthand). Only the
@@ -664,22 +777,32 @@ fn tokenize_select(s: &str) -> Vec<String> {
             }
             toks.push(t);
         } else if c == '"' {
-            // A `"""…"""` or `"…"` literal — consume through the matching closing quote run.
+            // A `"""…"""` or `"…"` literal — consume through the matching closing quote run. The
+            // triple/empty distinction needs the THIRD char: `""x` is an EMPTY string `""` followed
+            // by `x` (a two-quote token, closed), NOT the start of a `"""…"""` triple-string —
+            // otherwise a SPARQL `!= ""` swallows the rest of the query into one token.
             let mut t = String::new();
             t.push(chars.next().expect("peeked quote"));
-            let triple = chars.peek() == Some(&'"');
-            if triple {
+            let mut triple = false;
+            let mut closed = false;
+            if chars.peek() == Some(&'"') {
                 t.push(chars.next().expect("second quote"));
                 if chars.peek() == Some(&'"') {
                     t.push(chars.next().expect("third quote"));
+                    triple = true;
+                } else {
+                    // `""` — a complete empty string literal.
+                    closed = true;
                 }
             }
-            let mut run = 0usize;
-            for ch in chars.by_ref() {
-                t.push(ch);
-                run = if ch == '"' { run + 1 } else { 0 };
-                if (triple && run == 3) || (!triple && run == 1) {
-                    break;
+            if !closed {
+                let mut run = 0usize;
+                for ch in chars.by_ref() {
+                    t.push(ch);
+                    run = if ch == '"' { run + 1 } else { 0 };
+                    if (triple && run == 3) || (!triple && run == 1) {
+                        break;
+                    }
                 }
             }
             toks.push(t);
@@ -800,28 +923,43 @@ fn parse_value_key_select(select: &str) -> Option<(String, String, Vec<String>)>
     Some((predicate, value, type_classes))
 }
 
-/// Invert an `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]` blank node into a
-/// [`ShapeTarget::ValueKeyed`]. A non-`sh:SPARQLTarget` target, a target with no `sh:select`, or a
-/// `sh:select` that is not the value-keyed single-triple form is routed to `unsupported` (never a
-/// hard error), returning `None`. When the select carries extra `?this a <Class>` type patterns
-/// (which the IR value-keyed target cannot hold), those are surfaced to `unsupported` too.
+/// The three ways an `sh:target` blank node reads: a value-keyed select (a covered
+/// [`ShapeTarget::ValueKeyed`]), a raw select (routed to [`ShapeTarget::Sparql`] when the shape
+/// has no direct focus target — whole-shape residue), or an unreadable target construct (already
+/// recorded in the residue list by the parser).
+enum SparqlTargetRead {
+    /// The exact value-keyed single-triple select form.
+    ValueKeyed(ShapeTarget),
+    /// A raw `SELECT ?this WHERE { … }` body with no value-keyed inversion.
+    Raw(String),
+    /// Not a readable `sh:SPARQLTarget` at all (residue already recorded).
+    Unreadable,
+}
+
+/// Invert an `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]` blank node. The exact value-keyed
+/// single-triple form becomes a [`ShapeTarget::ValueKeyed`]; any other select is returned RAW so
+/// the caller can either adopt it as the shape's [`ShapeTarget::Sparql`] target (no direct focus
+/// target authored) or record it as residue beside a direct target. A non-`sh:SPARQLTarget`
+/// target or a target with no `sh:select` is routed to `unsupported` (never a hard error). When a
+/// value-keyed select carries extra `?this a <Class>` type patterns (which the IR value-keyed
+/// target cannot hold), those are surfaced to `unsupported` too.
 fn parse_sparql_target(
     ds: &RdfDataset,
     obj: TermId,
     ctx: &str,
     unsupported: &mut Vec<String>,
-) -> gmeow_errors::Result<Option<ShapeTarget>> {
+) -> gmeow_errors::Result<SparqlTargetRead> {
     let inner = quads_of(ds, obj);
     let is_sparql_target = inner.iter().any(|(p, o)| {
         p == RDF_TYPE && matches!(ds.resolve(*o), TermRef::Iri(s) if s == SH_SPARQLTARGET)
     });
     if !is_sparql_target {
         unsupported.push(format!("{SH}target (non-SPARQLTarget target)"));
-        return Ok(None);
+        return Ok(SparqlTargetRead::Unreadable);
     }
     let Some((_, sel)) = inner.iter().find(|(p, _)| shacl_local(p) == Some("select")) else {
         unsupported.push(format!("{SH}target (sh:SPARQLTarget without sh:select)"));
-        return Ok(None);
+        return Ok(SparqlTargetRead::Unreadable);
     };
     let select = obj_lexical(ds, *sel, ctx)?;
     match parse_value_key_select(&select) {
@@ -831,14 +969,12 @@ fn parse_sparql_target(
                     "sh:SPARQLTarget additional type constraint ?this a <{c}>"
                 ));
             }
-            Ok(Some(ShapeTarget::ValueKeyed { predicate, value }))
+            Ok(SparqlTargetRead::ValueKeyed(ShapeTarget::ValueKeyed {
+                predicate,
+                value,
+            }))
         }
-        None => {
-            unsupported.push(format!(
-                "{SH}target sh:select (not the value-keyed single-triple form)"
-            ));
-            Ok(None)
-        }
+        None => Ok(SparqlTargetRead::Raw(select)),
     }
 }
 
@@ -865,8 +1001,10 @@ fn direct_target_of(ds: &RdfDataset, node: TermId) -> Option<ShapeTarget> {
             }
             Some("target") => {
                 let mut sink = Vec::new();
-                if let Ok(Some(t)) = parse_sparql_target(ds, o, "owner-walk", &mut sink) {
-                    return Some(t);
+                match parse_sparql_target(ds, o, "owner-walk", &mut sink) {
+                    Ok(SparqlTargetRead::ValueKeyed(t)) => return Some(t),
+                    Ok(SparqlTargetRead::Raw(select)) => return Some(ShapeTarget::Sparql(select)),
+                    Ok(SparqlTargetRead::Unreadable) | Err(_) => {}
                 }
             }
             _ => {}
@@ -989,22 +1127,16 @@ pub fn read_shacl_shape(
         })?;
 
     let mut is_node_shape = false;
-    let mut target: Option<ShapeTarget> = None;
+    // ALL the direct focus selectors, in canonical target order after the loop. SHACL unions the
+    // focus sets of multi-valued `sh:targetClass`/`sh:targetSubjectsOf`/… targets, so a
+    // multi-target shape reads as ONE constraint payload under SEVERAL selectors (the first
+    // becomes `ir.target`, the rest ride [`ShapeRead::extra_targets`]).
+    let mut targets: Vec<ShapeTarget> = Vec::new();
+    let mut raw_sparql: Option<String> = None;
     let mut properties: Vec<PropertyConstraintIr> = Vec::new();
     let mut node_acc = CompAcc::new();
     let mut unsupported: Vec<String> = Vec::new();
     let mut failure_classes = BTreeSet::new();
-
-    let set_target = |t: ShapeTarget, cur: &mut Option<ShapeTarget>| -> gmeow_errors::Result<()> {
-        if cur.is_some() {
-            return Err(parse_err(format!(
-                "read_shacl_shape: <{node_shape_iri}> carries more than one target — a shape must \
-                 have exactly one focus-node selector"
-            )));
-        }
-        *cur = Some(t);
-        Ok(())
-    };
 
     for (pred, obj) in quads_of(graph, subject) {
         if pred == RDF_TYPE {
@@ -1022,25 +1154,38 @@ pub fn read_shacl_shape(
             continue;
         }
         match shacl_local(&pred) {
-            Some("targetClass") => set_target(
-                ShapeTarget::Class(obj_iri(graph, obj, node_shape_iri)?),
-                &mut target,
-            )?,
-            Some("targetSubjectsOf") => set_target(
-                ShapeTarget::SubjectsOf(obj_iri(graph, obj, node_shape_iri)?),
-                &mut target,
-            )?,
-            Some("targetObjectsOf") => set_target(
-                ShapeTarget::ObjectsOf(obj_iri(graph, obj, node_shape_iri)?),
-                &mut target,
-            )?,
-            // A value-keyed `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]`. A recognizable
-            // value-keyed select becomes a `ValueKeyed` target; anything else is routed to the
-            // residue list (never a hard error) by `parse_sparql_target`.
+            Some("targetClass") => {
+                targets.push(ShapeTarget::Class(obj_iri(graph, obj, node_shape_iri)?));
+            }
+            Some("targetSubjectsOf") => {
+                targets.push(ShapeTarget::SubjectsOf(obj_iri(
+                    graph,
+                    obj,
+                    node_shape_iri,
+                )?));
+            }
+            Some("targetObjectsOf") => {
+                targets.push(ShapeTarget::ObjectsOf(obj_iri(graph, obj, node_shape_iri)?));
+            }
+            // An `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]`. A recognizable value-keyed
+            // select becomes a `ValueKeyed` target; a raw select is held aside — it becomes the
+            // shape's `ShapeTarget::Sparql` target only when no direct focus target is authored
+            // (otherwise it stays residue beside the direct target, exactly as before). An
+            // unreadable target construct is routed to the residue list (never a hard error).
             Some("target") => {
-                if let Some(t) = parse_sparql_target(graph, obj, node_shape_iri, &mut unsupported)?
-                {
-                    set_target(t, &mut target)?;
+                match parse_sparql_target(graph, obj, node_shape_iri, &mut unsupported)? {
+                    SparqlTargetRead::ValueKeyed(t) => targets.push(t),
+                    SparqlTargetRead::Raw(select) => {
+                        if raw_sparql.is_some() {
+                            // A second raw select cannot be the (single) focus selector too.
+                            unsupported.push(format!(
+                                "{SH}target sh:select (not the value-keyed single-triple form)"
+                            ));
+                        } else {
+                            raw_sparql = Some(select);
+                        }
+                    }
+                    SparqlTargetRead::Unreadable => {}
                 }
             }
             Some("property") => {
@@ -1078,20 +1223,46 @@ pub fn read_shacl_shape(
             "read_shacl_shape: <{node_shape_iri}> carries distinct gmeow:enforcesFailureClass values: {failure_classes:?}"
         )));
     }
-    // A targetless inline / `sh:node` / property-only helper shape (e.g. one referenced by an
-    // owning node shape's `sh:node`) adopts the owning node shape's target by walking the inverse
-    // `sh:node` / `sh:property` edge. Only a genuinely orphan top-level targetless node shape (no
-    // targeted owner reachable) remains an `Err`.
-    let target = match target {
-        Some(t) => t,
-        None => target_via_owner(graph, subject).ok_or_else(|| {
-            parse_err(format!(
-                "read_shacl_shape: <{node_shape_iri}> has no sh:targetClass / sh:targetSubjectsOf \
-                 / sh:targetObjectsOf and no owning sh:node/sh:property shape to adopt a target from"
-            ))
-        })?,
+    // Resolve the focus selectors. Multi-valued direct targets sort into canonical order (the
+    // union semantics is order-independent; the first is `ir.target`, the rest are
+    // `extra_targets`). A raw `sh:SPARQLTarget` select beside a direct target stays residue (the
+    // direct target is the selector, exactly as before); with NO direct target it becomes the
+    // shape's `ShapeTarget::Sparql` target and marks the WHOLE shape residue (the select has no
+    // OWL/RDFS antecedent). A targetless inline / `sh:node` / property-only helper shape adopts
+    // the owning node shape's target by walking the inverse `sh:node` / `sh:property` edge. A
+    // top-level shape that carries an UNREADABLE target construct (`sh:targetNode`, an
+    // `sh:SPARQLTarget` without a select, …) and no other selector remains an `Err` — its focus
+    // set is authored but not representable. Only a TRULY targetless shape (no target construct
+    // at all — a documentation-only marker) reads to the empty-focus [`TARGETLESS_SELECT`]
+    // sentinel, because SHACL gives such a shape an empty focus set: it enforces nothing.
+    targets.sort();
+    targets.dedup();
+    let mut extra_targets = targets;
+    let target = if extra_targets.is_empty() {
+        if let Some(select) = raw_sparql {
+            unsupported.push(RAW_SPARQL_TARGET_RESIDUE.to_owned());
+            ShapeTarget::Sparql(select)
+        } else if let Some(t) = target_via_owner(graph, subject) {
+            t
+        } else if unsupported.iter().any(|u| u.contains("shacl#target")) {
+            return Err(parse_err(format!(
+                "read_shacl_shape: <{node_shape_iri}> has no sh:targetClass / \
+                 sh:targetSubjectsOf / sh:targetObjectsOf and no owning sh:node/sh:property \
+                 shape to adopt a target from"
+            )));
+        } else {
+            ShapeTarget::Sparql(TARGETLESS_SELECT.to_owned())
+        }
+    } else {
+        if raw_sparql.is_some() {
+            unsupported.push(format!(
+                "{SH}target sh:select (not the value-keyed single-triple form)"
+            ));
+        }
+        extra_targets.remove(0)
     };
     let node_components = node_acc.finish(node_shape_iri)?;
+    let properties = merge_same_path_property_shapes(properties)?;
     let mut ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
         .with_node_components(node_components)?;
     if let Some(failure_class) = failure_classes.first() {
@@ -1100,7 +1271,11 @@ pub fn read_shacl_shape(
 
     unsupported.sort();
     unsupported.dedup();
-    Ok(ShapeRead { ir, unsupported })
+    Ok(ShapeRead {
+        ir,
+        unsupported,
+        extra_targets,
+    })
 }
 
 // ── Part B: the oracle ─────────────────────────────────────────────────────────
@@ -1326,6 +1501,7 @@ fn property_component_witness(
             | ConstraintComponent::Not(_)
             | ConstraintComponent::Or(_)
             | ConstraintComponent::Xone(_)
+            | ConstraintComponent::UniqueLang
             | ConstraintComponent::OrProperties(_) => return None,
         }
     };
@@ -1372,6 +1548,7 @@ fn node_component_witness(
         | ConstraintComponent::QualifiedValueShape { .. }
         | ConstraintComponent::Not(_)
         | ConstraintComponent::Or(_)
+        | ConstraintComponent::UniqueLang
         | ConstraintComponent::Xone(_) => return None,
     };
     let focus = mint(idx);
@@ -1556,6 +1733,1249 @@ pub fn cross_check(
              in the data graph or witnesses)"
                 .to_owned(),
         ));
+    }
+    Ok(())
+}
+
+// ── Part C extension: semantic residue witnesses (sh:node / sh:xone / raw SPARQL targets) ──
+
+/// A semantic near-miss (or near-hit): a fresh focus node, the Turtle triples that put it in the
+/// shape's focus set and make it violate (or conform to) one construct, and the EXPECTED verdict.
+/// Unlike [`Witness`] (which compares full finding sets between two SHACL-Core-comparable
+/// graphs), a semantic witness compares only whether each side FLAGS the focus node — the legacy
+/// residue construct (`sh:node` / `sh:xone` / a raw-SPARQL-target block's structural property
+/// constraints) and its projected `logic:formalizes` record report through different SHACL
+/// component vocabularies, so focus-flag agreement is the comparable surface.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SemanticWitness {
+    /// The construct this witness discriminates (e.g. `sh:xone: two alternatives present`).
+    pub label: String,
+    /// The fresh focus-node IRI the witness introduces.
+    pub focus: String,
+    /// The Turtle triples (absolute IRIs, no prefixes) forming the witness data graph.
+    pub triples: String,
+    /// Whether BOTH the legacy shape and the projected record must flag `focus`.
+    pub expect_flagged: bool,
+}
+
+/// The witness plan for one legacy shape, split by what each witness exercises so the caller can
+/// scope the cross-check: `covered` witnesses exercise the covered property fragment (needed when
+/// the shape has NO declarative projected peer — a raw-SPARQL-target block — so the record must
+/// reproduce it), `residue` witnesses exercise the `sh:node` / `sh:xone` constructs, and
+/// `conforming` witnesses must be flagged by NEITHER side (the guard against a record that flags
+/// everything).
+#[derive(Debug, Clone, Default)]
+pub struct SemanticWitnessPlan {
+    /// Witnesses that must be flagged by neither side.
+    pub conforming: Vec<SemanticWitness>,
+    /// Near-misses of the covered property fragment (cardinality / class / datatype / nodeKind).
+    pub covered: Vec<SemanticWitness>,
+    /// Near-misses of the machine-readable residue constructs (`sh:node` / `sh:xone`).
+    pub residue: Vec<SemanticWitness>,
+}
+
+/// How to make a fresh witness focus a member of the shape's focus set.
+enum FocusMembership {
+    /// A directly-invertible target ([`target_triples`]).
+    Target(ShapeTarget),
+    /// The conservative skeleton of a raw `sh:SPARQLTarget` select: the focus must carry these
+    /// `rdf:type` classes, (when present) sit under this IRI namespace, and (when present) be the
+    /// OBJECT of these predicates from a subject of the paired type (`subject a T ; P focus` — an
+    /// object-of-property membership like a deception cue). Parsed ONLY to mint focus-MEMBERSHIP
+    /// triples — the select body is never used to derive constraint semantics, and an unparsable
+    /// select yields no membership at all (clearance is then impossible: the witness cross-check
+    /// hard-fails rather than passing vacuously).
+    Skeleton {
+        namespace: Option<String>,
+        types: Vec<String>,
+        /// `(subject rdf:type, predicate)` edges: a subject of the given type links to the focus
+        /// via the predicate (`?s a T . ?s P ?this`). `None` type ⇒ an untyped subject.
+        object_of: Vec<(Option<String>, String)>,
+    },
+}
+
+impl FocusMembership {
+    /// Derive the membership synthesizer from a shape target, or `Err` when no witness focus can
+    /// be synthesized (a targetless shape has an empty focus set; an out-of-skeleton select is
+    /// opaque).
+    fn from_target(target: &ShapeTarget) -> gmeow_errors::Result<Self> {
+        match target {
+            ShapeTarget::Sparql(select) if select == TARGETLESS_SELECT => Err(parse_err(
+                "semantic witnesses: a targetless shape has an EMPTY focus set — nothing to \
+                 witness"
+                    .to_owned(),
+            )),
+            ShapeTarget::Sparql(select) => {
+                let (namespace, types, object_of) =
+                    parse_target_skeleton(select).ok_or_else(|| {
+                        parse_err(format!(
+                            "semantic witnesses: the sh:SPARQLTarget select is outside the \
+                             machine-readable skeleton (type patterns + STRSTARTS namespace \
+                             filter + object-of-property membership); cannot synthesize focus \
+                             membership: {select}"
+                        ))
+                    })?;
+                Ok(FocusMembership::Skeleton {
+                    namespace,
+                    types,
+                    object_of,
+                })
+            }
+            other => Ok(FocusMembership::Target(other.clone())),
+        }
+    }
+
+    /// Mint a fresh focus IRI plus the triples that put it in the focus set.
+    fn mint(&self, idx: &mut usize) -> (String, String) {
+        let n = *idx;
+        *idx += 1;
+        match self {
+            FocusMembership::Target(t) => {
+                let focus = format!("https://gmeow.example/witness/{n}");
+                let triples = target_triples(t, &focus);
+                (focus, triples)
+            }
+            FocusMembership::Skeleton {
+                namespace,
+                types,
+                object_of,
+            } => {
+                let focus = format!(
+                    "{}gmeow-witness-{n}",
+                    namespace
+                        .as_deref()
+                        .unwrap_or("https://gmeow.example/witness/")
+                );
+                let mut triples = types
+                    .iter()
+                    .map(|c| format!("<{focus}> <{RDF_TYPE}> <{c}> .\n"))
+                    .collect::<String>();
+                // Object-of membership: mint a typed subject linking to the focus.
+                for (k, (subj_type, pred)) in object_of.iter().enumerate() {
+                    let subj = format!("{focus}/target-subject-{k}");
+                    if let Some(t) = subj_type {
+                        triples.push_str(&format!("<{subj}> <{RDF_TYPE}> <{t}> .\n"));
+                    }
+                    triples.push_str(&format!("<{subj}> <{pred}> <{focus}> .\n"));
+                }
+                (focus, triples)
+            }
+        }
+    }
+}
+
+/// Collect the `PREFIX name: <iri>` declarations across a tokenized select.
+fn select_prefixes(toks: &[String]) -> std::collections::BTreeMap<String, String> {
+    let mut prefixes = std::collections::BTreeMap::new();
+    let mut i = 0;
+    while i + 2 < toks.len() {
+        if toks[i].eq_ignore_ascii_case("prefix") {
+            let label = toks[i + 1].trim_end_matches(':').to_owned();
+            if let Some(iri) = toks[i + 2]
+                .strip_prefix('<')
+                .and_then(|t| t.strip_suffix('>'))
+            {
+                prefixes.insert(label, iri.to_owned());
+            }
+            i += 3;
+        } else {
+            i += 1;
+        }
+    }
+    prefixes
+}
+
+/// The end index (exclusive) of the balanced-paren token range starting at `open` (which must be
+/// a `(` token), or `None` when unbalanced.
+fn paren_close(toks: &[String], open: usize) -> Option<usize> {
+    let mut depth = 0i32;
+    for (i, t) in toks.iter().enumerate().skip(open) {
+        match t.as_str() {
+            "(" => depth += 1,
+            ")" => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(i + 1);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// The membership skeleton of a raw `sh:SPARQLTarget` select: `(namespace filter on ?this,
+/// rdf:type classes ?this must carry, object-of edges `(subject type, predicate)`)`.
+type TargetSkeleton = (Option<String>, Vec<String>, Vec<(Option<String>, String)>);
+
+/// Conservatively parse a raw `sh:SPARQLTarget` select into a MEMBERSHIP skeleton:
+/// `(namespace filter on ?this, rdf:type classes ?this must carry, object-of edges)`. Accepts
+/// EXACTLY the closed grammar the corpus meta-shapes author — `?this a <C> .`, `?this a ?v .`
+/// with a `FILTER(?v IN (<C1>, <C2>, …))` domain (the first class is chosen),
+/// `FILTER(STRSTARTS(STR(?this), "ns"))`, and OBJECT-OF membership `?s a <T> . ?s <P> ?this .`
+/// (the focus is the object of `P` from a subject of type `T`, e.g. a deception cue) — and returns
+/// `None` for ANYTHING else, so an opaque select can never mint a false focus member (the caller
+/// then hard-fails, it never clears).
+fn parse_target_skeleton(select: &str) -> Option<TargetSkeleton> {
+    let toks = tokenize_select(select);
+    let prefixes = select_prefixes(&toks);
+    let resolve = |t: &str| -> Option<String> {
+        if let Some(inner) = t.strip_prefix('<').and_then(|x| x.strip_suffix('>')) {
+            return Some(inner.to_owned());
+        }
+        let (label, local) = t.split_once(':')?;
+        prefixes.get(label).map(|ns| format!("{ns}{local}"))
+    };
+    let open = toks.iter().position(|t| t == "{")?;
+    let close = toks.iter().rposition(|t| t == "}")?;
+    if close <= open {
+        return None;
+    }
+    let body = &toks[open + 1..close];
+    let mut types: Vec<String> = Vec::new();
+    let mut type_vars: Vec<String> = Vec::new();
+    // Non-focus subject variables typed by an IRI class (`?s a <T>`), and object-of edges
+    // (`?s <P> ?this`) — resolved against the subject types after the body is scanned.
+    let mut subj_types: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
+    let mut object_edges: Vec<(String, String)> = Vec::new();
+    let mut var_domains: std::collections::BTreeMap<String, Vec<String>> =
+        std::collections::BTreeMap::new();
+    let mut namespace: Option<String> = None;
+    let mut i = 0;
+    while i < body.len() {
+        let t = &body[i];
+        if t == "." {
+            i += 1;
+            continue;
+        }
+        if t.eq_ignore_ascii_case("filter") {
+            // `FILTER NOT EXISTS { … }` is a subclass-exclusion refinement (a direct-type
+            // guard: exclude a focus that is ALSO typed a proper subclass of the target). A
+            // fresh witness typed EXACTLY the target class satisfies it, so it never changes
+            // focus membership — skip the braced block wholesale.
+            if body.get(i + 1).map(|s| s.eq_ignore_ascii_case("not")) == Some(true)
+                && body.get(i + 2).map(|s| s.eq_ignore_ascii_case("exists")) == Some(true)
+                && body.get(i + 3).map(String::as_str) == Some("{")
+            {
+                let mut depth = 0usize;
+                let mut j = i + 3;
+                loop {
+                    match body.get(j).map(String::as_str) {
+                        Some("{") => depth += 1,
+                        Some("}") => {
+                            depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                        }
+                        None => return None,
+                        _ => {}
+                    }
+                    j += 1;
+                }
+                i = j + 1;
+                continue;
+            }
+            if body.get(i + 1).map(String::as_str) != Some("(") {
+                return None;
+            }
+            let end = paren_close(body, i + 1)?;
+            let inner = &body[i + 2..end - 1];
+            // FILTER(STRSTARTS(STR(?this), "ns")) — optionally OR'd with an exact-IRI arm
+            // `|| STR(?this) = "exactIRI"` (the ontology-header meta-shape catches its own header
+            // IRI, which has no trailing-slash namespace prefix). The exact-IRI arm only ADDS a
+            // focus member, so extracting the STRSTARTS namespace still mints a sound focus member.
+            if inner.len() >= 9
+                && (inner.len() == 9 || inner[9] == "||")
+                && inner[0].eq_ignore_ascii_case("strstarts")
+                && inner[1] == "("
+                && inner[2].eq_ignore_ascii_case("str")
+                && inner[3] == "("
+                && inner[4] == "?this"
+                && inner[5] == ")"
+                && inner[6] == ","
+                && inner[7].starts_with('"')
+                && inner[8] == ")"
+            {
+                namespace = Some(inner[7].trim_matches('"').to_owned());
+            }
+            // FILTER(?v IN (<C1>, <C2>, …))
+            else if inner.len() >= 4
+                && inner[0].starts_with('?')
+                && inner[1].eq_ignore_ascii_case("in")
+                && inner[2] == "("
+                && inner[inner.len() - 1] == ")"
+            {
+                let mut classes = Vec::new();
+                for m in inner[3..inner.len() - 1].iter() {
+                    if m == "," {
+                        continue;
+                    }
+                    classes.push(resolve(m)?);
+                }
+                if classes.is_empty() {
+                    return None;
+                }
+                var_domains.insert(inner[0].clone(), classes);
+            } else {
+                return None;
+            }
+            i = end;
+            continue;
+        }
+        // A triple pattern `?S <pred> <obj>` with `?S` a variable subject.
+        if t.starts_with('?') {
+            let (Some(p), Some(o)) = (body.get(i + 1), body.get(i + 2)) else {
+                return None;
+            };
+            // `?S a <C>` / `?S a ?v` — a type triple.
+            if p == "a" {
+                if t == "?this" {
+                    if let Some(var) = o.strip_prefix('?') {
+                        type_vars.push(format!("?{var}"));
+                    } else {
+                        types.push(resolve(o)?);
+                    }
+                } else if o.starts_with('?') {
+                    // A non-focus subject typed by a variable is out of skeleton.
+                    return None;
+                } else {
+                    subj_types.insert(t.clone(), resolve(o)?);
+                }
+                i += 3;
+                continue;
+            }
+            // `?S <P> ?this` — an object-of membership edge (P an IRI predicate, focus the object).
+            if o == "?this" && p != "?this" {
+                object_edges.push((t.clone(), resolve(p)?));
+                i += 3;
+                continue;
+            }
+            return None;
+        }
+        return None;
+    }
+    for v in type_vars {
+        let domain = var_domains.remove(&v)?;
+        types.push(domain.into_iter().next().expect("non-empty domain"));
+    }
+    let object_of: Vec<(Option<String>, String)> = object_edges
+        .into_iter()
+        .map(|(subj, pred)| (subj_types.get(&subj).cloned(), pred))
+        .collect();
+    if types.is_empty() && namespace.is_none() && object_of.is_empty() {
+        return None;
+    }
+    Some((namespace, types, object_of))
+}
+
+/// The parsed structural form of one `sh:xone` branch or `sh:node` inner shape: a list of
+/// property constraints (parsed through the SAME [`parse_property_shape`] reader the covered
+/// fragment uses).
+type BranchProps = Vec<PropertyConstraintIr>;
+
+/// A property-level `sh:node [ … ]` construct: the outer path, and the inner node shape's
+/// property constraints the value node must satisfy.
+struct NodeUnderPath {
+    /// The outer `sh:path` predicate whose values the inner shape constrains.
+    path: String,
+    /// The inner shape's property constraints.
+    inner: BranchProps,
+}
+
+/// The machine-readable residue constructs authored on `subject`: the node-level `sh:xone`
+/// branches and the property-level `sh:node` inner shapes. Hard-fails on a malformed construct —
+/// a residue whose structure cannot be read can never be witness-checked, so it never clears.
+struct ResidueConstructs {
+    xone_branches: Vec<BranchProps>,
+    node_paths: Vec<NodeUnderPath>,
+}
+
+/// Parse one `sh:xone` list member: either a wrapper carrying `sh:property [ … ]` children, or a
+/// direct property-shape member (`[ sh:path P ; sh:minCount 1 ; … ]`).
+fn parse_branch(ds: &RdfDataset, member: TermId, shape: &str) -> gmeow_errors::Result<BranchProps> {
+    let mut sink = Vec::new();
+    let member_quads = quads_of(ds, member);
+    let prop_children: Vec<TermId> = member_quads
+        .iter()
+        .filter(|(p, _)| shacl_local(p) == Some("property"))
+        .map(|(_, o)| *o)
+        .collect();
+    let mut out = Vec::new();
+    if prop_children.is_empty() {
+        if let Some(p) = parse_property_shape(ds, member, shape, &mut sink)? {
+            out.push(p);
+        }
+    } else {
+        for child in prop_children {
+            if let Some(p) = parse_property_shape(ds, child, shape, &mut sink)? {
+                out.push(p);
+            }
+        }
+    }
+    if out.is_empty() {
+        return Err(parse_err(format!(
+            "semantic witnesses: <{shape}> carries an sh:xone branch with no readable property \
+             constraint"
+        )));
+    }
+    Ok(out)
+}
+
+/// Read the residue constructs of `shape_iri` out of its authored graph.
+fn residue_constructs(ds: &RdfDataset, shape_iri: &str) -> gmeow_errors::Result<ResidueConstructs> {
+    let subject = ds
+        .term_id_by_value(&TermValue::iri(shape_iri))
+        .ok_or_else(|| {
+            parse_err(format!(
+                "semantic witnesses: shape IRI <{shape_iri}> is not present in the graph"
+            ))
+        })?;
+    let mut xone_branches = Vec::new();
+    let mut node_paths = Vec::new();
+    for (pred, obj) in quads_of(ds, subject) {
+        match shacl_local(&pred) {
+            Some("xone") => {
+                let ctx = format!("semantic witnesses: <{shape_iri}> sh:xone");
+                for member in parse_rdf_list(ds, obj, &ctx)? {
+                    xone_branches.push(parse_branch(ds, member, shape_iri)?);
+                }
+            }
+            Some("property") => {
+                // A property shape carrying sh:node: read the outer path and the inner shape.
+                let prop_quads = quads_of(ds, obj);
+                let Some((_, inner_node)) = prop_quads
+                    .iter()
+                    .find(|(p, _)| shacl_local(p) == Some("node"))
+                else {
+                    continue;
+                };
+                let path = prop_quads
+                    .iter()
+                    .find(|(p, _)| shacl_local(p) == Some("path"))
+                    .and_then(|(_, o)| match ds.resolve(*o) {
+                        TermRef::Iri(p) => Some(p.to_owned()),
+                        _ => None,
+                    })
+                    .ok_or_else(|| {
+                        parse_err(format!(
+                            "semantic witnesses: <{shape_iri}> carries sh:node on a property \
+                             shape with no single-predicate sh:path"
+                        ))
+                    })?;
+                let inner = parse_branch(ds, *inner_node, shape_iri)?;
+                node_paths.push(NodeUnderPath { path, inner });
+            }
+            _ => {}
+        }
+    }
+    Ok(ResidueConstructs {
+        xone_branches,
+        node_paths,
+    })
+}
+
+/// A Turtle literal for datatype `d` whose lexical form is valid for the common XSD datatypes
+/// (so a conforming witness is genuinely conforming). The `tag` keeps repeated mints distinct.
+fn typed_literal_for(d: &str, tag: usize) -> String {
+    const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
+    match d.strip_prefix(XSD) {
+        Some("string") => format!("\"gmeow-ok-{tag}\""),
+        Some(
+            "integer" | "int" | "long" | "short" | "byte" | "nonNegativeInteger"
+            | "positiveInteger" | "unsignedInt" | "unsignedLong",
+        ) => format!("\"{}\"^^<{d}>", tag + 1),
+        Some("decimal" | "float" | "double") => format!("\"{}.5\"^^<{d}>", tag + 1),
+        Some("boolean") => format!("\"true\"^^<{d}>"),
+        Some("dateTime") => format!("\"2026-01-01T00:00:0{}Z\"^^<{d}>", tag % 10),
+        Some("date") => format!("\"2026-01-0{}\"^^<{d}>", (tag % 9) + 1),
+        Some("anyURI") => format!("\"https://gmeow.example/ok/{tag}\"^^<{d}>"),
+        _ => format!("\"gmeow-ok-{tag}\"^^<{d}>"),
+    }
+}
+
+/// Render a [`ShapeValue`] as a Turtle object term.
+fn shape_value_term(v: &ShapeValue) -> String {
+    match v {
+        ShapeValue::Iri(i) => format!("<{i}>"),
+        ShapeValue::Literal {
+            lexical,
+            datatype,
+            lang,
+        } => {
+            let quoted = format!("\"{}\"", lexical.replace('\\', "\\\\").replace('"', "\\\""));
+            match (datatype, lang) {
+                (Some(d), _) => format!("{quoted}^^<{d}>"),
+                (None, Some(l)) => format!("{quoted}@{l}"),
+                (None, None) => quoted,
+            }
+        }
+    }
+}
+
+/// A Turtle object term (plus companion triples) that SATISFIES every component of `pc`, or
+/// `None` when no confidently-satisfying value can be constructed. `None` only ever SUPPRESSES a
+/// witness — a suppressed witness can prevent clearance, never grant it.
+fn satisfying_object(
+    pc: &PropertyConstraintIr,
+    focus: &str,
+    tag: usize,
+) -> Option<(String, String)> {
+    let mut class_of: Option<&str> = None;
+    let mut datatype: Option<&str> = None;
+    let mut literal_kind = false;
+    for c in &pc.components {
+        match c {
+            ConstraintComponent::HasValue(v) => return Some((shape_value_term(v), String::new())),
+            ConstraintComponent::In(vals) => {
+                return vals.first().map(|v| (shape_value_term(v), String::new()));
+            }
+            ConstraintComponent::Class(c) => class_of = Some(c),
+            ConstraintComponent::Datatype(d) => datatype = Some(d),
+            ConstraintComponent::NodeKindShacl(
+                ShaclNodeKind::Iri | ShaclNodeKind::BlankNodeOrIri | ShaclNodeKind::IriOrLiteral,
+            ) => {}
+            ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal) => literal_kind = true,
+            // BlankNode kinds, patterns, facets, nested shapes: no confident satisfying value.
+            _ => return None,
+        }
+    }
+    if let Some(d) = datatype {
+        return Some((typed_literal_for(d, tag), String::new()));
+    }
+    if literal_kind {
+        return Some((format!("\"gmeow-ok-{tag}\""), String::new()));
+    }
+    let v = format!("{focus}/ok-{tag}");
+    let extra = class_of
+        .map(|c| format!("<{v}> <{RDF_TYPE}> <{c}> .\n"))
+        .unwrap_or_default();
+    Some((format!("<{v}>"), extra))
+}
+
+/// The triples that SATISFY one parsed branch / inner shape on `focus`: a satisfying value for
+/// every required member (`sh:minCount ≥ 1` or an `sh:hasValue` obligation), nothing for a
+/// `sh:maxCount 0` exclusion. `None` when any required member has no constructible value.
+fn satisfy_props(props: &BranchProps, focus: &str, tag: &mut usize) -> Option<String> {
+    let mut out = String::new();
+    for pc in props {
+        if pc.max_count == Some(0) {
+            continue;
+        }
+        let required = pc.min_count.unwrap_or(0) >= 1
+            || pc
+                .components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::HasValue(_)));
+        if !required {
+            continue;
+        }
+        let (term, extra) = satisfying_object(pc, focus, *tag)?;
+        *tag += 1;
+        out.push_str(&format!("<{focus}> <{}> {term} .\n", pc.path));
+        out.push_str(&extra);
+    }
+    Some(out)
+}
+
+/// A violating Turtle object term (plus the witness-label prefix) for one covered value
+/// component, or `None` for a component family with no confident near-miss.
+fn violating_object(comp: &ConstraintComponent, focus: &str) -> Option<(String, &'static str)> {
+    match comp {
+        ConstraintComponent::Class(_) => {
+            Some((format!("<{focus}/wrong-class-value>"), "sh:class@"))
+        }
+        ConstraintComponent::Datatype(d) => Some((wrong_datatype_literal(d), "sh:datatype@")),
+        ConstraintComponent::NodeKindShacl(k) => {
+            Some((wrong_node_kind_value(*k, focus), "sh:nodeKind@"))
+        }
+        _ => None,
+    }
+}
+
+/// Recognize a predicate-PREFIX, language-tagged-literal target select — the private-use
+/// language-tag gate's focus: any SUBJECT carrying a predicate under a namespace whose object is a
+/// language-tagged literal (`?this ?p ?value . FILTER(STRSTARTS(STR(?p), "ns")) FILTER(isLiteral(?value)
+/// && lang(?value) != "")`). Returns the namespace filter on the PREDICATE variable, or `None` for
+/// any other select. Distinct from [`parse_target_skeleton`], whose `STRSTARTS` filters on `?this`.
+fn parse_lang_tagged_predicate_target(select: &str) -> Option<String> {
+    let toks = tokenize_select(select);
+    let open = toks.iter().position(|t| t == "{")?;
+    let close = toks.iter().rposition(|t| t == "}")?;
+    if close <= open {
+        return None;
+    }
+    let body = &toks[open + 1..close];
+    // A `?this ?p ?value .` triple: `?this` subject, a VARIABLE predicate, a VARIABLE object.
+    let mut pred_var: Option<String> = None;
+    let mut i = 0;
+    while i + 2 < body.len() {
+        if body[i] == "?this"
+            && body[i + 1].starts_with('?')
+            && body[i + 2].starts_with('?')
+            && body[i + 1] != "?this"
+        {
+            pred_var = Some(body[i + 1].clone());
+            break;
+        }
+        i += 1;
+    }
+    let pred_var = pred_var?;
+    // A `STRSTARTS ( STR ( ?p ) , "ns" )` filter on the PREDICATE variable yields the namespace.
+    for w in body.windows(9) {
+        if w[0].eq_ignore_ascii_case("strstarts")
+            && w[1] == "("
+            && w[2].eq_ignore_ascii_case("str")
+            && w[3] == "("
+            && w[4] == pred_var
+            && w[5] == ")"
+            && w[6] == ","
+            && w[7].starts_with('"')
+        {
+            return Some(w[7].trim_matches('"').to_owned());
+        }
+    }
+    None
+}
+
+/// Whether `tag` is a syntactically valid RDF/BCP-47-shaped language tag
+/// (`ALPHA+ ('-' ALNUM+)*`) — so a synthesized witness literal `"…"@tag` always parses.
+fn is_valid_lang_tag(tag: &str) -> bool {
+    let mut parts = tag.split('-');
+    match parts.next() {
+        Some(first) if !first.is_empty() && first.chars().all(|c| c.is_ascii_alphabetic()) => {}
+        _ => return false,
+    }
+    parts.all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_alphanumeric()))
+}
+
+/// The anchored language-tag pattern a private-use language-tag gate tests `LANG(?value)` against
+/// (`regex(lang(?value), "PATTERN", "i")` in the shape's `sh:sparql` body), so the witness
+/// synthesizer can derive a conforming and a violating tag from the ACTUAL authored regex rather
+/// than a hard-coded convention. `None` when the shape carries no such `sh:sparql` regex.
+fn lang_tag_gate_pattern(ds: &RdfDataset, shape_iri: &str) -> Option<String> {
+    let shape = ds.term_id_by_value(&TermValue::iri(shape_iri))?;
+    let sparql = ds.term_id_by_value(&TermValue::iri(format!("{SH}sparql")))?;
+    let select = ds.term_id_by_value(&TermValue::iri(format!("{SH}select")))?;
+    for q in ds.quads_for_pattern(Some(shape), Some(sparql), None, GraphMatch::Any) {
+        for sel in ds.quads_for_pattern(Some(q.o), Some(select), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(sel.o) else {
+                continue;
+            };
+            // The pattern is the first quoted string after a `regex(` call over `lang(?value)`.
+            let low = lexical.to_ascii_lowercase();
+            let Some(rx) = low.find("regex(") else {
+                continue;
+            };
+            let after = &lexical[rx..];
+            let Some(q1) = after.find('"') else { continue };
+            let rest = &after[q1 + 1..];
+            let Some(q2) = rest.find('"') else { continue };
+            let pattern = &rest[..q2];
+            if !pattern.is_empty() {
+                return Some(pattern.to_owned());
+            }
+        }
+    }
+    None
+}
+
+/// Derive `(conforming_tag, violating_tag)` from an anchored language-tag pattern: a tag the pattern
+/// MATCHES (case-insensitively) and one it does NOT, both syntactically valid language tags. The
+/// conforming candidate is built from the pattern's literal prefix; every candidate is VERIFIED
+/// against the compiled regex, so a mis-derived tag yields `None` (clearance denied) rather than a
+/// false pass. `None` when the pattern will not compile, or no verified pair exists.
+fn derive_lang_tags(pattern: &str) -> Option<(String, String)> {
+    let re = regex::RegexBuilder::new(pattern)
+        .case_insensitive(true)
+        .build()
+        .ok()?;
+    // The literal prefix: chars after `^` up to the first regex metacharacter.
+    let body = pattern.trim_start_matches('^');
+    let mut prefix = String::new();
+    for c in body.chars() {
+        if "[](){}.*+?$|\\".contains(c) {
+            break;
+        }
+        prefix.push(c);
+    }
+    let good_candidates = [
+        format!("{prefix}a"),
+        format!("{prefix}en"),
+        prefix.trim_end_matches('-').to_owned(),
+        "x-gmeow-witness".to_owned(),
+    ];
+    let good = good_candidates
+        .into_iter()
+        .find(|t| is_valid_lang_tag(t) && re.is_match(t))?;
+    let bad = ["en", "und", "fr", "zz", "x-none"]
+        .into_iter()
+        .find(|t| is_valid_lang_tag(t) && !re.is_match(t))?
+        .to_owned();
+    Some((good, bad))
+}
+
+/// The dedicated witness plan for a private-use language-tag gate: a CONFORMING focus carrying a
+/// namespaced predicate with a tag the gate accepts, and a VIOLATING focus carrying one with a tag
+/// it rejects. Both tags are derived (and verified) from the shape's own authored `sh:sparql` regex,
+/// so the plan carries no baked-in convention; [`semantic_cross_check`] then re-checks each against
+/// the REAL legacy shape and the projected record, so a mis-derived tag can only DENY clearance.
+fn lang_tagged_witness_plan(
+    ds: &RdfDataset,
+    shape_iri: &str,
+    namespace: &str,
+) -> gmeow_errors::Result<SemanticWitnessPlan> {
+    let pattern = lang_tag_gate_pattern(ds, shape_iri).ok_or_else(|| {
+        parse_err(format!(
+            "semantic witnesses: <{shape_iri}> is a language-tag gate but carries no \
+             regex(lang(?value), …) sh:sparql body to derive witness tags from"
+        ))
+    })?;
+    let (good, bad) = derive_lang_tags(&pattern).ok_or_else(|| {
+        parse_err(format!(
+            "semantic witnesses: <{shape_iri}> language-tag pattern '{pattern}' admits no verified \
+             conforming/violating tag pair"
+        ))
+    })?;
+    let pred = format!("{namespace}languageTagWitnessPredicate");
+    let conforming_focus = "https://gmeow.example/witness/lang-conforming".to_owned();
+    let violating_focus = "https://gmeow.example/witness/lang-violating".to_owned();
+    let mut plan = SemanticWitnessPlan::default();
+    plan.conforming.push(SemanticWitness {
+        label: format!("lang-tag conforming @{good}"),
+        triples: format!("<{conforming_focus}> <{pred}> \"witness\"@{good} .\n"),
+        focus: conforming_focus,
+        expect_flagged: false,
+    });
+    plan.residue.push(SemanticWitness {
+        label: format!("lang-tag violating @{bad}"),
+        triples: format!("<{violating_focus}> <{pred}> \"witness\"@{bad} .\n"),
+        focus: violating_focus,
+        expect_flagged: true,
+    });
+    Ok(plan)
+}
+
+/// Build the semantic witness plan for one legacy shape: conforming witnesses (flagged by
+/// neither side), covered-fragment near-misses, and residue-construct (`sh:node` / `sh:xone`)
+/// near-misses. Witness focus membership is synthesized from the shape's target (for a raw
+/// SPARQL target: the conservative type/namespace skeleton — never the constraint semantics).
+///
+/// # Errors
+///
+/// * the target admits no focus-membership synthesis (targetless, or an out-of-skeleton select);
+/// * a residue construct is malformed (unreadable structure can never be witness-checked);
+/// * no conforming witness can be built (an unverifiable baseline is vacuous).
+pub fn semantic_witness_plan(
+    ds: &RdfDataset,
+    shape_iri: &str,
+    read: &ShapeRead,
+) -> gmeow_errors::Result<SemanticWitnessPlan> {
+    // The private-use language-tag gate (a predicate-PREFIX, language-tagged-literal focus:
+    // `?this ?p ?value . FILTER(STRSTARTS(STR(?p), "ns")) FILTER(isLiteral(?value) && lang != "")`)
+    // is outside the machine-readable membership skeleton — its focus filters on the PREDICATE, not
+    // on `?this` — so it gets a dedicated witness plan built from the tag pattern the shape's
+    // sh:sparql body tests. The generic covered/residue machinery below never applies (such a shape
+    // carries no covered property fragment or sh:node/sh:xone construct).
+    if let ShapeTarget::Sparql(select) = &read.ir.target
+        && let Some(namespace) = parse_lang_tagged_predicate_target(select)
+    {
+        return lang_tagged_witness_plan(ds, shape_iri, &namespace);
+    }
+    let membership = FocusMembership::from_target(&read.ir.target)?;
+    let constructs = residue_constructs(ds, shape_iri)?;
+    let mut idx = 0usize;
+
+    // The base conformance triples for one focus: a satisfying value for every required covered
+    // property (`exclude` omits one path for a minCount near-miss), an inner-satisfying value for
+    // every required sh:node path, and full satisfaction of ONE sh:xone branch (`branch`).
+    let base = |focus: &str,
+                exclude: Option<&str>,
+                node_exclude: Option<usize>,
+                branch: Option<usize>,
+                tag: &mut usize|
+     -> Option<String> {
+        let mut out = String::new();
+        for pc in &read.ir.properties {
+            if Some(pc.path.as_str()) == exclude {
+                continue;
+            }
+            if pc.min_count.unwrap_or(0) < 1 {
+                continue;
+            }
+            if let Some(np) = constructs.node_paths.iter().find(|n| n.path == pc.path) {
+                let v = format!("{focus}/node-ok-{tag}");
+                out.push_str(&format!("<{focus}> <{}> <{v}> .\n", np.path));
+                out.push_str(&satisfy_props(&np.inner, &v, tag)?);
+            } else {
+                let (term, extra) = satisfying_object(pc, focus, *tag)?;
+                *tag += 1;
+                out.push_str(&format!("<{focus}> <{}> {term} .\n", pc.path));
+                out.push_str(&extra);
+            }
+        }
+        // Satisfy the focus-node-level covered constructs (all but `node_exclude`): a `sh:class`
+        // types the focus, a node-level property-alternatives `sh:or` needs ONE alternative path
+        // present. (`sh:nodeKind` is definitionally met — the minted focus is an IRI.)
+        for (ni, nc) in read.ir.node_components.iter().enumerate() {
+            if Some(ni) == node_exclude {
+                continue;
+            }
+            match nc {
+                ConstraintComponent::Class(c) => {
+                    out.push_str(&format!("<{focus}> <{RDF_TYPE}> <{c}> .\n"));
+                }
+                ConstraintComponent::OrProperties(paths) => {
+                    if let Some(p0) = paths.first() {
+                        out.push_str(&format!("<{focus}> <{p0}> <{focus}/orprop-{tag}> .\n"));
+                        *tag += 1;
+                    }
+                }
+                _ => {}
+            }
+        }
+        if let Some(b) = branch {
+            out.push_str(&satisfy_props(&constructs.xone_branches[b], focus, tag)?);
+        }
+        Some(out)
+    };
+    let default_branch = (!constructs.xone_branches.is_empty()).then_some(0);
+
+    let mut plan = SemanticWitnessPlan::default();
+    let mut tag = 0usize;
+
+    // Conforming baseline: flagged by NEITHER side.
+    {
+        let (focus, mut triples) = membership.mint(&mut idx);
+        let body = base(&focus, None, None, default_branch, &mut tag).ok_or_else(|| {
+            parse_err(format!(
+                "semantic witnesses: <{shape_iri}> has no constructible conforming baseline \
+                 (a covered component admits no confident satisfying value)"
+            ))
+        })?;
+        triples.push_str(&body);
+        plan.conforming.push(SemanticWitness {
+            label: "conforming".to_owned(),
+            focus,
+            triples,
+            expect_flagged: false,
+        });
+    }
+
+    // Covered-fragment near-misses.
+    for pc in &read.ir.properties {
+        if constructs.node_paths.iter().any(|n| n.path == pc.path) {
+            continue; // exercised by the sh:node residue witnesses below
+        }
+        if pc.min_count.unwrap_or(0) >= 1 {
+            let (focus, mut triples) = membership.mint(&mut idx);
+            if let Some(body) = base(&focus, Some(&pc.path), None, default_branch, &mut tag) {
+                triples.push_str(&body);
+                plan.covered.push(SemanticWitness {
+                    label: format!("sh:minCount@{}", pc.path),
+                    focus,
+                    triples,
+                    expect_flagged: true,
+                });
+            }
+        }
+        if let Some(m) = pc.max_count
+            && m >= 1
+        {
+            let (focus, mut triples) = membership.mint(&mut idx);
+            let mut over = String::new();
+            let mut distinct: BTreeSet<String> = BTreeSet::new();
+            for _ in 0..=m {
+                if let Some((term, extra)) = satisfying_object(pc, &focus, tag) {
+                    tag += 1;
+                    distinct.insert(term.clone());
+                    over.push_str(&format!("<{focus}> <{}> {term} .\n{extra}", pc.path));
+                }
+            }
+            // Only m+1 DISTINCT satisfying values discriminate sh:maxCount — identical terms
+            // (an sh:hasValue path) collapse to one value, so the witness is suppressed.
+            if distinct.len() == (m as usize) + 1
+                && let Some(body) = base(&focus, Some(&pc.path), None, default_branch, &mut tag)
+            {
+                triples.push_str(&body);
+                triples.push_str(&over);
+                plan.covered.push(SemanticWitness {
+                    label: format!("sh:maxCount@{}", pc.path),
+                    focus,
+                    triples,
+                    expect_flagged: true,
+                });
+            }
+        }
+        for comp in &pc.components {
+            let (focus, mut triples) = membership.mint(&mut idx);
+            let Some((bad, kind)) = violating_object(comp, &focus) else {
+                continue;
+            };
+            if let Some(body) = base(&focus, Some(&pc.path), None, default_branch, &mut tag) {
+                triples.push_str(&body);
+                triples.push_str(&format!("<{focus}> <{}> {bad} .\n", pc.path));
+                plan.covered.push(SemanticWitness {
+                    label: format!("{kind}{}", pc.path),
+                    focus,
+                    triples,
+                    expect_flagged: true,
+                });
+            }
+        }
+    }
+
+    // Focus-node-level covered constructs near-misses: a `sh:class` the focus does NOT carry
+    // (flagged), and a node-level property-alternatives `sh:or` with NONE of its paths present
+    // (flagged — the at-least-one obligation fails). The conforming baseline above already
+    // exercises the satisfying case for each (typed / one-alternative-present).
+    for (ni, nc) in read.ir.node_components.iter().enumerate() {
+        match nc {
+            ConstraintComponent::Class(c) => {
+                let (focus, mut triples) = membership.mint(&mut idx);
+                if let Some(body) = base(&focus, None, Some(ni), default_branch, &mut tag) {
+                    triples.push_str(&body);
+                    plan.covered.push(SemanticWitness {
+                        label: format!("node:sh:class@{c}"),
+                        focus,
+                        triples,
+                        expect_flagged: true,
+                    });
+                }
+            }
+            ConstraintComponent::OrProperties(paths) => {
+                let (focus, mut triples) = membership.mint(&mut idx);
+                if let Some(body) = base(&focus, None, Some(ni), default_branch, &mut tag) {
+                    triples.push_str(&body);
+                    plan.residue.push(SemanticWitness {
+                        label: format!("node:sh:or-properties@{}", paths.join("|")),
+                        focus,
+                        triples,
+                        expect_flagged: true,
+                    });
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // sh:xone near-misses: zero branches satisfied, and (when two branches are constructible)
+    // two branches satisfied — the witness that discriminates exactly-one from at-least-one.
+    if !constructs.xone_branches.is_empty() {
+        let (focus, mut triples) = membership.mint(&mut idx);
+        if let Some(body) = base(&focus, None, None, None, &mut tag) {
+            triples.push_str(&body);
+            plan.residue.push(SemanticWitness {
+                label: "sh:xone: no alternative present".to_owned(),
+                focus,
+                triples,
+                expect_flagged: true,
+            });
+        }
+        if constructs.xone_branches.len() >= 2 {
+            let (focus, mut triples) = membership.mint(&mut idx);
+            if let (Some(body), Some(second)) = (
+                base(&focus, None, None, Some(0), &mut tag),
+                satisfy_props(&constructs.xone_branches[1], &focus, &mut tag),
+            ) {
+                triples.push_str(&body);
+                triples.push_str(&second);
+                plan.residue.push(SemanticWitness {
+                    label: "sh:xone: two alternatives present".to_owned(),
+                    focus,
+                    triples,
+                    expect_flagged: true,
+                });
+            }
+            // A second-branch conformer: exactly one (the OTHER) alternative present.
+            let (focus, mut triples) = membership.mint(&mut idx);
+            if let Some(body) = base(&focus, None, None, Some(1), &mut tag) {
+                triples.push_str(&body);
+                plan.conforming.push(SemanticWitness {
+                    label: "conforming (second alternative)".to_owned(),
+                    focus,
+                    triples,
+                    expect_flagged: false,
+                });
+            }
+        }
+    }
+
+    // sh:node near-misses: a value node violating the inner shape, and a value node satisfying it.
+    for np in &constructs.node_paths {
+        let inner_required = np.inner.iter().any(|pc| {
+            pc.min_count.unwrap_or(0) >= 1
+                || pc
+                    .components
+                    .iter()
+                    .any(|c| matches!(c, ConstraintComponent::HasValue(_)))
+        });
+        if inner_required {
+            let (focus, mut triples) = membership.mint(&mut idx);
+            if let Some(body) = base(&focus, Some(&np.path), None, default_branch, &mut tag) {
+                triples.push_str(&body);
+                triples.push_str(&format!(
+                    "<{focus}> <{}> <{focus}/node-near-miss> .\n",
+                    np.path
+                ));
+                plan.residue.push(SemanticWitness {
+                    label: format!("sh:node@{}", np.path),
+                    focus,
+                    triples,
+                    expect_flagged: true,
+                });
+            }
+        }
+        let (focus, mut triples) = membership.mint(&mut idx);
+        if let (Some(body), Some(inner_ok)) = (
+            base(&focus, Some(&np.path), None, default_branch, &mut tag),
+            satisfy_props(&np.inner, &format!("{focus}/node-conforms"), &mut tag),
+        ) {
+            triples.push_str(&body);
+            triples.push_str(&format!(
+                "<{focus}> <{}> <{focus}/node-conforms> .\n",
+                np.path
+            ));
+            triples.push_str(&inner_ok);
+            plan.conforming.push(SemanticWitness {
+                label: format!("conforming sh:node@{}", np.path),
+                focus,
+                triples,
+                expect_flagged: false,
+            });
+        }
+    }
+
+    Ok(plan)
+}
+
+/// Multi-sibling near-miss witnesses for a negated-conjunction obligation over a focus class:
+/// `∀this. C(this) ∧ trigger(this, tv) → (p₁ v₁ ∧ … ∧ pₙ vₙ)`. This is the shape a De-Morgan
+/// lowering that splits `¬(p₁ ∧ … ∧ pₙ)` into an UNSCOPED `{¬p₁} UNION … UNION {¬pₙ}` silently
+/// mis-projects: each union arm binds no variable, so SPARQL evaluates it independently of the
+/// guard join — `$this` is unbound inside the arm and `NOT EXISTS { $this pᵢ vᵢ }` degrades to a
+/// GLOBAL existence check that ANY sibling carrying `pᵢ vᵢ` clears.
+///
+/// For each conjunct k it mints (a) a NEAR-MISS focus that triggers the obligation and satisfies
+/// every conjunct BUT k, paired with a SIBLING that carries conjunct k (so the unscoped union
+/// arm for k — and every other arm, which the focus itself satisfies — is globally cleared), with
+/// `expect_flagged = true`; plus one CONFORMING focus that satisfies every conjunct
+/// (`expect_flagged = false`). A scoped `FILTER NOT EXISTS { $this p₁ v₁ . … . $this pₙ vₙ }`
+/// record flags each near-miss and passes; an unscoped union record flags none and is caught.
+///
+/// Object terms (`trigger_obj`, each conjunct object) are already-serialized Turtle terms
+/// (`<iri>` or a literal like `'true'^^<…boolean>`), so a boolean-triggered obligation is
+/// expressible.
+pub fn negated_conjunction_sibling_witnesses(
+    focus_class: &str,
+    trigger_pred: &str,
+    trigger_obj: &str,
+    conjuncts: &[(&str, &str)],
+) -> Vec<SemanticWitness> {
+    let base_ns = "https://gmeow.example/negconj";
+    let head = |focus: &str| {
+        format!(
+            "<{focus}> <{RDF_TYPE}> <{focus_class}> .\n<{focus}> <{trigger_pred}> {trigger_obj} .\n"
+        )
+    };
+    let mut out = Vec::new();
+
+    // Conforming: triggers the obligation and satisfies every conjunct.
+    {
+        let focus = format!("{base_ns}/conforming");
+        let mut triples = head(&focus);
+        for (p, v) in conjuncts {
+            triples.push_str(&format!("<{focus}> <{p}> {v} .\n"));
+        }
+        out.push(SemanticWitness {
+            label: "negated-conjunction: conforming (all conjuncts)".to_owned(),
+            focus,
+            triples,
+            expect_flagged: false,
+        });
+    }
+
+    // For each conjunct k: a near-miss focus (all conjuncts but k) + a sibling carrying k.
+    for (k, (pk, _vk)) in conjuncts.iter().enumerate() {
+        let focus = format!("{base_ns}/near-miss-{k}");
+        let sibling = format!("{base_ns}/sibling-{k}");
+        let mut triples = head(&focus);
+        for (i, (p, v)) in conjuncts.iter().enumerate() {
+            if i == k {
+                continue;
+            }
+            triples.push_str(&format!("<{focus}> <{p}> {v} .\n"));
+        }
+        // The sibling carries the OMITTED conjunct's exact (predicate, value) — the datum that
+        // clears the unscoped union arm globally.
+        let (pk_v, vk_v) = conjuncts[k];
+        let _ = pk;
+        triples.push_str(&format!("<{sibling}> <{RDF_TYPE}> <{focus_class}> .\n"));
+        triples.push_str(&format!("<{sibling}> <{pk_v}> {vk_v} .\n"));
+        out.push(SemanticWitness {
+            label: format!("negated-conjunction: near-miss missing conjunct {k} (sibling clears)"),
+            focus,
+            triples,
+            expect_flagged: true,
+        });
+    }
+
+    out
+}
+
+/// The Turtle serialization of the shape subgraphs rooted at `roots` in `ds`: every statement
+/// reachable from a root subject through blank-node objects, plus IRI-referenced helper shapes
+/// reached through `sh:node` / `sh:property`. Blank labels are namespaced by `blank_prefix` so
+/// two serializations can be concatenated into one parseable document.
+pub fn shape_subgraph_ttl(ds: &RdfDataset, roots: &[String], blank_prefix: &str) -> String {
+    let mut out = String::new();
+    let mut blanks: std::collections::BTreeMap<TermId, String> = std::collections::BTreeMap::new();
+    let mut next_blank = 0usize;
+    let term = |ds: &RdfDataset,
+                id: TermId,
+                blanks: &mut std::collections::BTreeMap<TermId, String>,
+                next_blank: &mut usize|
+     -> Option<String> {
+        match ds.resolve(id) {
+            TermRef::Iri(i) => Some(format!("<{i}>")),
+            TermRef::Blank { .. } => Some(
+                blanks
+                    .entry(id)
+                    .or_insert_with(|| {
+                        let l = format!("_:{blank_prefix}{next_blank}");
+                        *next_blank += 1;
+                        l
+                    })
+                    .clone(),
+            ),
+            TermRef::Literal {
+                lexical,
+                datatype,
+                language,
+                ..
+            } => {
+                let quoted = format!(
+                    "\"{}\"",
+                    lexical
+                        .replace('\\', "\\\\")
+                        .replace('"', "\\\"")
+                        .replace('\n', "\\n")
+                        .replace('\r', "\\r")
+                        .replace('\t', "\\t")
+                );
+                if let Some(lang) = language {
+                    return Some(format!("{quoted}@{lang}"));
+                }
+                match ds.resolve(datatype) {
+                    TermRef::Iri(XSD_STRING) => Some(quoted),
+                    TermRef::Iri(d) => Some(format!("{quoted}^^<{d}>")),
+                    _ => Some(quoted),
+                }
+            }
+            _ => None,
+        }
+    };
+    let mut queue: Vec<TermId> = roots
+        .iter()
+        .filter_map(|iri| ds.term_id_by_value(&TermValue::iri(iri)))
+        .collect();
+    let mut seen: BTreeSet<TermId> = queue.iter().copied().collect();
+    while let Some(subject) = queue.pop() {
+        for q in ds.quads_for_pattern(Some(subject), None, None, GraphMatch::Any) {
+            let (Some(s), Some(p), Some(o)) = (
+                term(ds, q.s, &mut blanks, &mut next_blank),
+                term(ds, q.p, &mut blanks, &mut next_blank),
+                term(ds, q.o, &mut blanks, &mut next_blank),
+            ) else {
+                continue;
+            };
+            let line = format!("{s} {p} {o} .\n");
+            if !out.contains(&line) {
+                out.push_str(&line);
+            }
+            let follow = match ds.resolve(q.o) {
+                TermRef::Blank { .. } => true,
+                TermRef::Iri(_) => matches!(
+                    ds.resolve(q.p),
+                    TermRef::Iri(p) if matches!(shacl_local(p), Some("node") | Some("property"))
+                ),
+                _ => false,
+            };
+            if follow && seen.insert(q.o) {
+                queue.push(q.o);
+            }
+        }
+    }
+    out
+}
+
+/// Run the legacy shape graph and its projected `logic:formalizes` record as REAL SHACL
+/// validators over every semantic witness, requiring focus-flag agreement with the witness's
+/// expectation on BOTH sides.
+///
+/// The legacy-side check is the soundness guard on witness synthesis itself: a witness the
+/// legacy shape does not judge as expected is mis-modelled and DENIES clearance (it never
+/// silently passes). The projected-side check is the clearance criterion: a record whose lowered
+/// constraint does not reproduce the residue semantics MUST NOT clear.
+///
+/// # Errors
+///
+/// * either shape graph fails to parse;
+/// * vacuity: the witness set lacks a violating or a conforming witness;
+/// * a witness's focus-flag verdict differs from its expectation on either side.
+pub fn semantic_cross_check(
+    legacy_shacl_ttl: &str,
+    projected_shacl_ttl: &str,
+    witnesses: &[SemanticWitness],
+) -> gmeow_errors::Result<()> {
+    if !witnesses.iter().any(|w| w.expect_flagged) || !witnesses.iter().any(|w| !w.expect_flagged) {
+        return Err(parse_err(
+            "semantic_cross_check: vacuous — the witness set must carry at least one violating \
+             AND one conforming witness"
+                .to_owned(),
+        ));
+    }
+    let legacy = purrdf::shapes::engine::parse_shapes(legacy_shacl_ttl).map_err(|e| {
+        parse_err(format!(
+            "semantic_cross_check: legacy shapes failed to parse: {e}"
+        ))
+    })?;
+    let projected = purrdf::shapes::engine::parse_shapes(projected_shacl_ttl).map_err(|e| {
+        parse_err(format!(
+            "semantic_cross_check: projected record shapes failed to parse: {e}"
+        ))
+    })?;
+    for w in witnesses {
+        let ds = parse_dataset(w.triples.as_bytes(), "text/turtle", None).map_err(|e| {
+            parse_err(format!(
+                "semantic_cross_check: witness '{}' failed to parse: {e}",
+                w.label
+            ))
+        })?;
+        let focus = format!("<{}>", w.focus);
+        let legacy_flagged = finding_keys(&ds, &legacy)
+            .iter()
+            .any(|(f, _, _)| *f == focus);
+        if legacy_flagged != w.expect_flagged {
+            return Err(parse_err(format!(
+                "semantic_cross_check: witness '{}' is mis-modelled against the legacy shape \
+                 itself (expected flagged={}, observed flagged={legacy_flagged}) — clearance \
+                 denied",
+                w.label, w.expect_flagged
+            )));
+        }
+        let projected_flagged = finding_keys(&ds, &projected)
+            .iter()
+            .any(|(f, _, _)| *f == focus);
+        if projected_flagged != w.expect_flagged {
+            return Err(parse_err(format!(
+                "semantic_cross_check: the projected record does not reproduce the residue \
+                 semantics on witness '{}' (expected flagged={}, observed \
+                 flagged={projected_flagged})",
+                w.label, w.expect_flagged
+            )));
+        }
     }
     Ok(())
 }
@@ -2118,6 +3538,7 @@ mod tests {
         let legacy = ShapeRead {
             ir: legacy_ir,
             unsupported: vec![],
+            extra_targets: vec![],
         };
         // The projected shape drops the MinLength(3) component — strictly weaker.
         let projected = ValidationShapeIr::new(
@@ -2323,5 +3744,427 @@ mod tests {
             !toks.contains(&".".to_owned()),
             "no bare dot inside the IRI: {toks:?}"
         );
+    }
+
+    /// A legacy fixture styled after the repo-wide meta-shapes: a raw `sh:SPARQLTarget` (type
+    /// pattern + STRSTARTS namespace filter) plus structural property constraints.
+    const META_SELECT: &str = "\n\
+        SELECT ?this WHERE {\n\
+            ?this a <http://www.w3.org/2002/07/owl#Class> .\n\
+            FILTER(STRSTARTS(STR(?this), \"https://example.test/ns/\"))\n\
+        }\n";
+
+    fn meta_shape_ttl() -> String {
+        format!(
+            "{HEADER}@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <https://ex/MetaShape> a sh:NodeShape ;\n\
+             \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"{META_SELECT}\"\"\" ] ;\n\
+             \x20\x20sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/role> ; sh:minCount 1 ; sh:nodeKind sh:IRI ] .\n"
+        )
+    }
+
+    #[test]
+    fn raw_sparql_target_shape_reads_as_sparql_target_with_whole_shape_residue() {
+        // A meta-shape-styled block with ONLY a raw sh:SPARQLTarget reads (no Err): the select
+        // becomes the ShapeTarget::Sparql focus selector, the whole shape is marked residue, and
+        // the structural property constraints survive as the covered fragment.
+        let ds = parse_ttl(&meta_shape_ttl());
+        let read = read_shacl_shape(&ds, "https://ex/MetaShape")
+            .expect("a raw-SPARQL-target shape must read, not Err");
+        assert!(
+            matches!(&read.ir.target, ShapeTarget::Sparql(s) if s.contains("STRSTARTS")),
+            "{:?}",
+            read.ir.target
+        );
+        assert!(
+            read.unsupported
+                .iter()
+                .any(|u| u == RAW_SPARQL_TARGET_RESIDUE),
+            "the raw target must mark the shape residue-bearing: {:?}",
+            read.unsupported
+        );
+        assert_eq!(read.ir.properties.len(), 2, "{:?}", read.ir.properties);
+    }
+
+    #[test]
+    fn truly_targetless_doc_shape_reads_to_the_empty_focus_sentinel() {
+        // A documentation-only marker (label + comment, no target construct, no constraint)
+        // reads to the TARGETLESS_SELECT sentinel with an empty residue list: SHACL gives it an
+        // empty focus set, so it enforces nothing.
+        let ttl = format!(
+            "{HEADER}@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <https://ex/DocMarker> a sh:NodeShape ;\n\
+             \x20\x20rdfs:label \"doc-only marker\" ;\n\
+             \x20\x20rdfs:comment \"asserts and enforces nothing\" .\n"
+        );
+        let read = read_shacl_shape(&parse_ttl(&ttl), "https://ex/DocMarker")
+            .expect("a truly targetless doc shape must be verdictable, not Err");
+        assert_eq!(
+            read.ir.target,
+            ShapeTarget::Sparql(TARGETLESS_SELECT.to_owned())
+        );
+        assert!(read.unsupported.is_empty(), "{:?}", read.unsupported);
+        assert!(read.ir.properties.is_empty());
+    }
+
+    #[test]
+    fn targetless_shape_with_unreadable_target_construct_stays_an_err() {
+        // sh:targetNode is an authored focus selector the reader cannot represent — such a
+        // shape must NOT silently read as targetless.
+        let ttl = format!(
+            "{HEADER}<https://ex/S> a sh:NodeShape ;\n\
+             \x20\x20sh:targetNode <https://ex/n> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ] .\n"
+        );
+        let err = read_shacl_shape(&parse_ttl(&ttl), "https://ex/S")
+            .expect_err("an unreadable target construct must stay a hard read error");
+        assert!(err.to_string().contains("no sh:targetClass"), "{err}");
+    }
+
+    #[test]
+    fn multi_target_shape_reads_all_selectors() {
+        let ttl = format!(
+            "{HEADER}<https://ex/S> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/B>, <https://ex/A>, <https://ex/C> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/p> ; sh:minCount 1 ] .\n"
+        );
+        let read = read_shacl_shape(&parse_ttl(&ttl), "https://ex/S")
+            .expect("a multi-target shape must read, not Err");
+        assert_eq!(read.ir.target, ShapeTarget::Class("https://ex/A".into()));
+        assert_eq!(
+            read.extra_targets,
+            vec![
+                ShapeTarget::Class("https://ex/B".into()),
+                ShapeTarget::Class("https://ex/C".into())
+            ],
+            "canonical order, primary excluded"
+        );
+    }
+
+    #[test]
+    fn target_skeleton_parses_type_pattern_and_namespace() {
+        let (ns, types, object_of) =
+            parse_target_skeleton(META_SELECT).expect("meta skeleton parses");
+        assert_eq!(ns.as_deref(), Some("https://example.test/ns/"));
+        assert_eq!(
+            types,
+            vec!["http://www.w3.org/2002/07/owl#Class".to_owned()]
+        );
+        assert!(object_of.is_empty());
+    }
+
+    #[test]
+    fn target_skeleton_parses_object_of_property_membership() {
+        // `?event a Event . ?event deceptionCue ?this` — the focus is the OBJECT of deceptionCue
+        // from an Event-typed subject (the deception-cue membership shape).
+        let select = "SELECT ?this WHERE { \
+             ?event a <https://ex/Event> . \
+             ?event <https://ex/deceptionCue> ?this . }";
+        let (ns, types, object_of) =
+            parse_target_skeleton(select).expect("object-of skeleton parses");
+        assert!(ns.is_none());
+        assert!(types.is_empty());
+        assert_eq!(
+            object_of,
+            vec![(
+                Some("https://ex/Event".to_owned()),
+                "https://ex/deceptionCue".to_owned()
+            )]
+        );
+    }
+
+    #[test]
+    fn target_skeleton_parses_type_variable_with_in_domain() {
+        let select = "\n\
+            SELECT ?this WHERE {\n\
+                ?this a ?t .\n\
+                FILTER(?t IN (\n\
+                    <http://www.w3.org/2002/07/owl#ObjectProperty>,\n\
+                    <http://www.w3.org/2002/07/owl#DatatypeProperty>\n\
+                ))\n\
+                FILTER(STRSTARTS(STR(?this), \"https://example.test/ns/\"))\n\
+            }\n";
+        let (ns, types, object_of) =
+            parse_target_skeleton(select).expect("IN-domain skeleton parses");
+        assert_eq!(ns.as_deref(), Some("https://example.test/ns/"));
+        assert_eq!(
+            types,
+            vec!["http://www.w3.org/2002/07/owl#ObjectProperty".to_owned()],
+            "the first domain class is the membership type"
+        );
+        assert!(object_of.is_empty());
+    }
+
+    #[test]
+    fn target_skeleton_rejects_opaque_selects() {
+        // A predicate-namespace guard (`?this ?p ?o` + STRSTARTS on ?p) is OUTSIDE the skeleton:
+        // no membership can be synthesized, so no witness can be minted (fail-safe).
+        let select = "SELECT ?this WHERE { ?this ?p ?o . \
+             FILTER(STRSTARTS(STR(?p), \"https://example.test/primary\")) }";
+        assert!(parse_target_skeleton(select).is_none());
+    }
+
+    /// The xone fixture: a covered property plus an exactly-one-of-two alternative.
+    fn xone_shape_ttl() -> String {
+        format!(
+            "{HEADER}<https://ex/ParamShape> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Param> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/name> ; sh:minCount 1 ; sh:maxCount 1 ] ;\n\
+             \x20\x20sh:xone (\n\
+             \x20\x20\x20\x20[ sh:property [ sh:path <https://ex/value> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ] ]\n\
+             \x20\x20\x20\x20[ sh:property [ sh:path <https://ex/entity> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ]\n\
+             \x20\x20) .\n"
+        )
+    }
+
+    /// The record that CORRECTLY lowers the xone: flags a focus with NEITHER alternative and a
+    /// focus with BOTH.
+    const XONE_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/ParamXoneConstraint> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/ParamShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/Param> ;\n\
+        \x20\x20sh:sparql [\n\
+        \x20\x20\x20\x20a sh:SPARQLConstraint ;\n\
+        \x20\x20\x20\x20sh:message \"exactly one of value/entity\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE {\n\
+            { FILTER NOT EXISTS { $this <https://ex/value> ?v } FILTER NOT EXISTS { $this <https://ex/entity> ?e } }\n\
+            UNION\n\
+            { $this <https://ex/value> ?v2 . $this <https://ex/entity> ?e2 . }\n\
+        }\"\"\" ;\n\
+        \x20\x20] .\n";
+
+    /// The WRONG-SEMANTICS record: an `sh:or` lowering (flags only when NEITHER alternative is
+    /// present) — it does NOT reproduce the exactly-one obligation.
+    const XONE_OR_LOWERED_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/ParamXoneConstraint> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/ParamShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/Param> ;\n\
+        \x20\x20sh:sparql [\n\
+        \x20\x20\x20\x20a sh:SPARQLConstraint ;\n\
+        \x20\x20\x20\x20sh:message \"at least one of value/entity\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE {\n\
+            FILTER NOT EXISTS { $this <https://ex/value> ?v }\n\
+            FILTER NOT EXISTS { $this <https://ex/entity> ?e }\n\
+        }\"\"\" ;\n\
+        \x20\x20] .\n";
+
+    #[test]
+    fn xone_witness_plan_carries_conforming_and_discriminating_residue_witnesses() {
+        let ds = parse_ttl(&xone_shape_ttl());
+        let read = read_shacl_shape(&ds, "https://ex/ParamShape").expect("fixture reads");
+        assert!(
+            read.unsupported
+                .iter()
+                .any(|u| u == "http://www.w3.org/ns/shacl#xone"),
+            "{:?}",
+            read.unsupported
+        );
+        let plan = semantic_witness_plan(&ds, "https://ex/ParamShape", &read)
+            .expect("the xone construct is machine-readable");
+        assert!(
+            plan.conforming.iter().any(|w| !w.expect_flagged),
+            "{plan:?}"
+        );
+        assert!(
+            plan.residue
+                .iter()
+                .any(|w| w.label.contains("no alternative")),
+            "{plan:?}"
+        );
+        assert!(
+            plan.residue
+                .iter()
+                .any(|w| w.label.contains("two alternatives")),
+            "the exactly-one discriminator must be present: {plan:?}"
+        );
+    }
+
+    #[test]
+    fn semantic_cross_check_accepts_the_faithful_xone_record() {
+        let ds = parse_ttl(&xone_shape_ttl());
+        let read = read_shacl_shape(&ds, "https://ex/ParamShape").expect("fixture reads");
+        let plan = semantic_witness_plan(&ds, "https://ex/ParamShape", &read).expect("plan");
+        let legacy_ttl = shape_subgraph_ttl(&ds, &["https://ex/ParamShape".to_owned()], "l");
+        let mut witnesses = plan.conforming.clone();
+        witnesses.extend(plan.residue.clone());
+        semantic_cross_check(&legacy_ttl, XONE_RECORD_TTL, &witnesses)
+            .expect("the faithful record reproduces the xone semantics");
+    }
+
+    #[test]
+    fn semantic_cross_check_rejects_the_or_lowered_xone_record() {
+        // The load-bearing falsifiability check: a record that lowers the exactly-one to an
+        // at-least-one does NOT flag the two-alternatives near-miss and MUST NOT clear.
+        let ds = parse_ttl(&xone_shape_ttl());
+        let read = read_shacl_shape(&ds, "https://ex/ParamShape").expect("fixture reads");
+        let plan = semantic_witness_plan(&ds, "https://ex/ParamShape", &read).expect("plan");
+        let legacy_ttl = shape_subgraph_ttl(&ds, &["https://ex/ParamShape".to_owned()], "l");
+        let mut witnesses = plan.conforming.clone();
+        witnesses.extend(plan.residue.clone());
+        let err = semantic_cross_check(&legacy_ttl, XONE_OR_LOWERED_RECORD_TTL, &witnesses)
+            .expect_err("an or-lowered record must not survive the witness cross-check");
+        assert!(err.to_string().contains("does not reproduce"), "{err}");
+    }
+
+    #[test]
+    fn semantic_cross_check_hard_fails_on_a_vacuous_witness_set() {
+        let err = semantic_cross_check("", "", &[])
+            .expect_err("an empty witness set is vacuous, not a pass");
+        assert!(err.to_string().contains("vacuous"), "{err}");
+    }
+
+    // The WP:GNG-triad negated-conjunction fixtures: a `CitationAct` asserting `supportsNotability
+    // true` must carry all three triad values. `NC_*` model the projected record two ways.
+    //
+    // The CORRECT scoped lowering: ONE `FILTER NOT EXISTS` over the whole triad conjunction, so
+    // `$this` stays bound and the check is per focus node.
+    const NC_SCOPED_TTL: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/NotabilityShape> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/NotabilityShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/CitationAct> ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:message \"WP:GNG triad\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { \
+        $this <https://ex/supportsNotability> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . \
+        FILTER NOT EXISTS { $this <https://ex/indep> <https://ex/independent> . \
+        $this <https://ex/tier> <https://ex/secondary> . \
+        $this <https://ex/cov> <https://ex/significant> . } }\"\"\" ] .\n";
+    // The BUGGY unscoped De-Morgan lowering: a UNION of per-conjunct `FILTER NOT EXISTS` arms.
+    // Each arm binds nothing, so `$this` is unbound and the check degrades to global existence.
+    const NC_UNION_TTL: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/NotabilityShape> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/NotabilityShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/CitationAct> ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:message \"WP:GNG triad\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { \
+        $this <https://ex/supportsNotability> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . \
+        { FILTER NOT EXISTS { $this <https://ex/indep> <https://ex/independent> . } } UNION \
+        { FILTER NOT EXISTS { $this <https://ex/tier> <https://ex/secondary> . } } UNION \
+        { FILTER NOT EXISTS { $this <https://ex/cov> <https://ex/significant> . } } }\"\"\" ] .\n";
+
+    fn nc_witnesses() -> Vec<SemanticWitness> {
+        negated_conjunction_sibling_witnesses(
+            "https://ex/CitationAct",
+            "https://ex/supportsNotability",
+            "'true'^^<http://www.w3.org/2001/XMLSchema#boolean>",
+            &[
+                ("https://ex/indep", "<https://ex/independent>"),
+                ("https://ex/tier", "<https://ex/secondary>"),
+                ("https://ex/cov", "<https://ex/significant>"),
+            ],
+        )
+    }
+
+    #[test]
+    fn negated_conjunction_witnesses_carry_a_conforming_and_a_multi_sibling_near_miss() {
+        let ws = nc_witnesses();
+        assert!(ws.iter().any(|w| !w.expect_flagged), "{ws:?}");
+        assert_eq!(
+            ws.iter().filter(|w| w.expect_flagged).count(),
+            3,
+            "one multi-sibling near-miss per triad conjunct: {ws:?}"
+        );
+        // Every near-miss carries a sibling that satisfies the omitted conjunct.
+        assert!(
+            ws.iter()
+                .filter(|w| w.expect_flagged)
+                .all(|w| w.triples.contains("/sibling-")),
+            "{ws:?}"
+        );
+    }
+
+    #[test]
+    fn semantic_cross_check_accepts_the_scoped_negated_conjunction_record() {
+        // The scoped single-NOT-EXISTS record reproduces the per-focus triad obligation.
+        semantic_cross_check(NC_SCOPED_TTL, NC_SCOPED_TTL, &nc_witnesses())
+            .expect("the scoped record reproduces the negated-conjunction semantics");
+    }
+
+    #[test]
+    fn semantic_cross_check_rejects_the_unscoped_union_negated_conjunction_projection() {
+        // The load-bearing guard: the pre-fix `{¬a} UNION {¬b} UNION {¬c}` lowering loses
+        // $this-scoping, so a sibling satisfying one conjunct globally clears the branch and the
+        // near-miss is NOT flagged — the oracle MUST catch it (guard against silent recurrence of
+        // the orgbook_notability_mutation projector bug).
+        let err = semantic_cross_check(NC_SCOPED_TTL, NC_UNION_TTL, &nc_witnesses())
+            .expect_err("an unscoped-union projection must not survive the witness cross-check");
+        assert!(err.to_string().contains("does not reproduce"), "{err}");
+    }
+
+    #[test]
+    fn sh_node_witness_plan_discriminates_the_inner_shape() {
+        // A StyleGuide-styled property-level sh:node: the inner shape requires a digest on the
+        // value node. Both the violating and the conforming witness must be present, and the
+        // legacy shape itself must judge them as expected (checked through the cross-check with
+        // the legacy graph on BOTH sides — a definitionally-faithful record).
+        let ttl = format!(
+            "{HEADER}<https://ex/GuideShape> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Guide> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/for> ; sh:minCount 1 ] ;\n\
+             \x20\x20sh:property [\n\
+             \x20\x20\x20\x20sh:path <https://ex/exemplifiedBy> ;\n\
+             \x20\x20\x20\x20sh:node [ sh:property [ sh:path <https://ex/digest> ; sh:minCount 1 ] ] ;\n\
+             \x20\x20] .\n"
+        );
+        let ds = parse_ttl(&ttl);
+        let read = read_shacl_shape(&ds, "https://ex/GuideShape").expect("fixture reads");
+        assert!(
+            read.unsupported
+                .iter()
+                .any(|u| u == "http://www.w3.org/ns/shacl#node"),
+            "{:?}",
+            read.unsupported
+        );
+        let plan = semantic_witness_plan(&ds, "https://ex/GuideShape", &read).expect("plan");
+        assert!(
+            plan.residue.iter().any(|w| w.label.contains("sh:node@")),
+            "{plan:?}"
+        );
+        assert!(
+            plan.conforming
+                .iter()
+                .any(|w| w.label.contains("conforming sh:node@")),
+            "{plan:?}"
+        );
+        let legacy_ttl = shape_subgraph_ttl(&ds, &["https://ex/GuideShape".to_owned()], "l");
+        let mut witnesses = plan.conforming.clone();
+        witnesses.extend(plan.residue.clone());
+        semantic_cross_check(&legacy_ttl, &legacy_ttl, &witnesses)
+            .expect("the legacy graph agrees with itself on every witness");
+    }
+
+    #[test]
+    fn meta_shape_witness_plan_pins_to_structural_property_constraints() {
+        let ds = parse_ttl(&meta_shape_ttl());
+        let read = read_shacl_shape(&ds, "https://ex/MetaShape").expect("fixture reads");
+        let plan = semantic_witness_plan(&ds, "https://ex/MetaShape", &read).expect("plan");
+        // Focus membership was synthesized from the skeleton: witnesses live under the namespace.
+        for w in plan.conforming.iter().chain(plan.covered.iter()) {
+            assert!(w.focus.starts_with("https://example.test/ns/"), "{w:?}");
+        }
+        assert!(
+            plan.covered.iter().any(|w| w
+                .label
+                .contains("sh:minCount@http://www.w3.org/2000/01/rdf-schema#label")),
+            "{plan:?}"
+        );
+        assert!(
+            plan.covered
+                .iter()
+                .any(|w| w.label.contains("sh:nodeKind@https://ex/role")),
+            "{plan:?}"
+        );
+        // The legacy shape agrees with itself over the full plan (target execution included).
+        let legacy_ttl = shape_subgraph_ttl(&ds, &["https://ex/MetaShape".to_owned()], "l");
+        let mut witnesses = plan.conforming.clone();
+        witnesses.extend(plan.covered.clone());
+        semantic_cross_check(&legacy_ttl, &legacy_ttl, &witnesses)
+            .expect("the meta shape agrees with itself on every structural witness");
     }
 }

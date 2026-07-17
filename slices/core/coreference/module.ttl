@@ -109,7 +109,7 @@ gmeow:AuthorityLinkMatchStrengthConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:authorityLink target is also asserted as a skos:exactMatch or skos:closeMatch of the same subject."@x-gmeow-english ;
-    logic:formalizes gmeow:authorityLink ;
+    logic:formalizes gmeow:AuthorityLinkMatchStrengthShape ;
     logic:severity "Warning" ;
     logic:message "An authority link should also assert skos:exactMatch or skos:closeMatch to record coreference strength." ;
     logic:integrity logic:almsForall .

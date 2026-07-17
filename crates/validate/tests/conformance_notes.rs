@@ -191,7 +191,7 @@ ex:note a gmeow:Note .
 ex:ann a gmeow:Annotation .
 ex:ann gmeow:annotationMotivation gmeow:motivationCommenting .
 "
-)).fails().violations_ci(&["annotationtarget"]))]
+)).shape_union().fails().fails_on_path("https://blackcatinformatics.ca/gmeow/annotationTarget", "MinCountConstraintComponent"))]
 // A Highlight without annotationTargetSpan must fail SHACL mentioning selector.
 #[case::highlight_without_selector_fails_shacl(Case::inline(format!(
     "{PREFIXES}\
@@ -200,7 +200,7 @@ ex:hl gmeow:annotationTarget ex:doc .
 ex:hl gmeow:annotationMotivation gmeow:motivationHighlighting .
 ex:doc a gmeow:Entity .
 "
-)).fails().violations_ci(&["selector"]))]
+)).shape_union().fails().fails_on_path("https://blackcatinformatics.ca/gmeow/annotationTargetSpan", "MinCountConstraintComponent"))]
 fn notes(#[case] case: Case) {
     case.run();
 }
