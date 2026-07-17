@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for the math:PersistenceMorphism frame (issue #1527): a
+# Counter-example for the math:PersistenceMorphism frame: a
 # math:PersistenceMorphism naming its math:morphismSource but omitting its
 # math:morphismTarget — a map of persistence modules that names only one endpoint. The
 # min-1 qualified restriction on math:morphismTarget derives a sh:qualifiedMinCount

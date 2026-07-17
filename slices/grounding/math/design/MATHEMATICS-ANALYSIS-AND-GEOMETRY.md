@@ -279,7 +279,7 @@ cross-linked to their activities through `rdfs:seeAlso`:
   the shipped `math:Functor` grounding (**L1 reuse** — a persistence module *is* a functor on its
   index poset), so no parallel category-theory structure is minted. It is held
   `owl:disjointWith math:PersistenceLifetime`: the whole functor versus one feature's decorated bar.
-- **`math:PersistenceMorphism`** (`⊑ math:Morphism`, U1-light) — a map of persistence modules,
+- **`math:PersistenceMorphism`** (`⊑ math:Morphism`) — a map of persistence modules,
   naming both endpoints through `math:morphismSource` / `math:morphismTarget`.
 - **`math:ZigzagDiagram`** (`⊑ math:MathematicalObject`) — a sequence whose structure maps
   (`math:zigzagArrow`) may point forward or backward, each declaring its `math:arrowDirection` over
@@ -353,7 +353,7 @@ The frame gates keep the surface honest: a global section must name its `math:ov
 declares actual stalk/restriction semantics (`math:IncompleteSheafSection`) so bare "the sections
 disagree" claims are unauthorable, and an obstruction must name the sheaf it obstructs
 (`math:UnanchoredGluingObstruction`). This global/local surface is the enforcement mechanism for
-**WS-B Req 7** (a computed feature is never automatically global truth): a downstream extension slice
+the topology-claim governing invariant (a computed feature is never automatically global truth): a downstream extension slice
 that computes a feature over a cover states it as local data, and only a discharged
 `math:GluingObstruction` promotes it to a global claim.
 

@@ -2583,7 +2583,7 @@ gmeow:eqMathGluingObstructionWd a gmeow:TermEquivalence, logic:GroundingCorrespo
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
 
-# --- Multiparameter / zigzag persistence objects → Wikidata (issue #1527) ---- #
+# --- Multiparameter / zigzag persistence objects → Wikidata ------------------ #
 # All three QIDs verified via the Wikidata search API. math:PersistenceModule is a
 # concept item (closeMatch); the zigzag and multidimensional persistence objects are
 # aligned to their defining scholarly-article items (relatedMatch, the OEIS/mathlib
@@ -2628,7 +2628,7 @@ gmeow:eqMathMultiparameterFiltrationWd a gmeow:TermEquivalence, logic:GroundingC
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
 
-# --- Connections / holonomy / parallel transport → Wikidata (issue #1527) ---- #
+# --- Connections / holonomy / parallel transport → Wikidata ------------------ #
 # All three QIDs verified via the Wikidata API (en.wikipedia sitelink + wbgetentities).
 # Each is a concept item aligned skos:closeMatch: the gmeow object commits to a discrete
 # sheaf-connection reading and an explicit frame that its Wikidata counterpart does not,

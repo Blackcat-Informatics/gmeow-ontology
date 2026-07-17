@@ -6,7 +6,7 @@
 # INDEPENDENT coordinates — distinct exact math:RationalValue components at indices 0
 # and 1 — rather than a single real math:filtrationThreshold. It names its parameter
 # poset through math:filtrationIndexPoset and its stage through the existing
-# math:hasFiltrationStage. This is the objects-vs-activities distinction (issue #1527):
+# math:hasFiltrationStage. This is the objects-vs-activities distinction:
 # the object math:MultiparameterFiltration is distinct from the analysis activity
 # math:MultiparameterPersistence that ranges over it. Because the two coordinates are
 # genuinely different, the filtration is NOT collapsed (a math:multiIndex is present) and

@@ -5,8 +5,8 @@
 # computation decomposes — the functor P: (index poset) → Vect. It names the index
 # poset it is a functor over through math:moduleIndex and one of its comparable-pair
 # transition maps through math:structureMap. Because math:PersistenceModule is a
-# subclass of the existing math:Functor grounding (L1 reuse — no parallel
-# category-theory structure is minted), this node IS a functor on its index poset. It
+# subclass of the existing math:Functor grounding (no parallel category-theory
+# structure is minted), this node IS a functor on its index poset. It
 # is distinct from a math:PersistenceLifetime (one feature's birth–death bar), held
 # owl:disjointWith it, and distinct from the analysis activity that produced it.
 @prefix math: <https://blackcatinformatics.ca/math/> .

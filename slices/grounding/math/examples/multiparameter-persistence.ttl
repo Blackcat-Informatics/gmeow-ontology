@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Bundle demonstrator (issue #1527, Commit D): the multiparameter / zigzag persistence
+# Bundle demonstrator: the multiparameter / zigzag persistence
 # OBJECTS shown together, distinct from the analysis ACTIVITIES that range over them.
 # It exhibits, all well-formed:
 #   * a math:MultiparameterFiltration indexed by a 2-parameter poset, its stage carrying

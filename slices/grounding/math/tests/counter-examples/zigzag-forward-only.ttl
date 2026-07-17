@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:DegenerateZigzagDiagramConstraint (issue #1527): a
+# Counter-example for math:DegenerateZigzagDiagramConstraint: a
 # math:ZigzagDiagram whose every math:zigzagArrow points FORWARD (math:forwardArrow) —
 # no math:backwardArrow at all — so it has collapsed to ordinary forward-only
 # single-parameter persistence. The guarded-existence constraint (a zigzag diagram must

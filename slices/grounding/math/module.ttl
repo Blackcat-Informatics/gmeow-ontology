@@ -7649,7 +7649,7 @@ math:homologyQuotientBoundary
     logic:preservationKind logic:Unsupported ;
     skos:definition "The loss-ledger boundary record backing the quotient-GROUP construction of the math:HomologyGroup H = Z/B: while the homologous-cycle EQUIVALENCE is first-order (math:homologyQuotientLaw), CONSTRUCTING the quotient group — forming the set of cosets z + B, quantifying over the subgroup B, and proving the coset operation well-defined — is genuinely higher-order (it quantifies over subgroups and their cosets, not first-order axiomatizable). So the quotient construction is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), the residue disclosed in the ledger and never faked as a first-order formula. The structural frame (H names its cycles and boundaries through math:homologyCycles / math:homologyBoundaries) and the homologous relation ARE authored; only the group-quotient construction is the boundary. A sibling of math:cellBoundarySumBoundary."@x-gmeow-english .
 
-# --- Law U3: constant sheaf recovers cellular homology --------------------- #
+# --- Law: constant sheaf recovers cellular homology ------------------------ #
 
 math:constantSheafRecoversHomologyLaw
     a logic:Formula ;
@@ -7914,7 +7914,7 @@ math:GluingObstruction
     skos:definition "The first-cohomology (H¹) witness recording WHY a family of math:LocalSections of a math:CellularSheaf may fail to lift to a single math:GlobalSection: the obstruction-to-gluing class whose non-vanishing certifies that consistent local data does not assemble into global truth. It names the sheaf it obstructs through math:obstructionOf. It is NOT a math:SheafRestrictionMap (it does not transport data; it measures the failure of transported data to agree), NOT a mere local disagreement on one overlap (a single pairwise mismatch is a coboundary, not necessarily a cohomology class), and NOT itself a section — it is the cohomological reason a global section may not exist."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-# --- Multiparameter / zigzag persistence OBJECTS (issue #1527, Commit D) ----- #
+# --- Multiparameter / zigzag persistence OBJECTS ----------------------------- #
 # The shipped math:MultiparameterPersistence and math:ZigzagPersistence are
 # ANALYSIS ACTIVITIES (⊑ math:PersistentHomology ⊑ gmeow:Activity). The OBJECTS
 # those activities range over — a filtration indexed by a poset of dimension ≥ 2,
@@ -7940,7 +7940,7 @@ math:PersistenceModule
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Persistence Module"@x-gmeow-english ;
     rdfs:seeAlso math:MultiparameterPersistence , math:PersistenceLifetime , math:Functor ;
-    skos:definition "The ALGEBRAIC object a persistence computation decomposes: the functor P assigning a vector space to each point of an index poset and a linear map to each comparable pair, P: (index poset as a category) → Vect. A subclass of math:MathematicalObject AND of the EXISTING math:Functor grounding — a persistence module IS a functor on its math:moduleIndex poset, so it reuses the shipped category-theory referent rather than minting a parallel structure (L1 reuse). It names the index poset it is defined over through math:moduleIndex and its comparable-pair transition maps through math:structureMap. It is NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso) that produces or decomposes it, and it is NOT a math:PersistenceLifetime — the birth–death interval of ONE feature is a single decorated bar, whereas a persistence module is the whole functor whose barcode decomposition those intervals summarise. The two are held owl:disjointWith and a node typed both is caught by math:PersistenceModuleLifetimeConflationConstraint (math:PersistenceModuleLifetimeConflation): a lifetime handed where a module is required is a caught error, never a silent one."@x-gmeow-english ;
+    skos:definition "The ALGEBRAIC object a persistence computation decomposes: the functor P assigning a vector space to each point of an index poset and a linear map to each comparable pair, P: (index poset as a category) → Vect. A subclass of math:MathematicalObject AND of the EXISTING math:Functor grounding — a persistence module IS a functor on its math:moduleIndex poset, so it reuses the shipped category-theory referent rather than minting a parallel structure. It names the index poset it is defined over through math:moduleIndex and its comparable-pair transition maps through math:structureMap. It is NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso) that produces or decomposes it, and it is NOT a math:PersistenceLifetime — the birth–death interval of ONE feature is a single decorated bar, whereas a persistence module is the whole functor whose barcode decomposition those intervals summarise. The two are held owl:disjointWith and a node typed both is caught by math:PersistenceModuleLifetimeConflationConstraint (math:PersistenceModuleLifetimeConflation): a lifetime handed where a module is required is a caught error, never a silent one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PersistenceMorphism
@@ -7948,7 +7948,7 @@ math:PersistenceMorphism
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Persistence Morphism"@x-gmeow-english ;
     rdfs:seeAlso math:PersistenceModule , math:MultiparameterPersistence ;
-    skos:definition "A map of persistence modules: a natural transformation between two math:PersistenceModule functors — a commuting family of linear maps, one at each index, intertwining the two modules' structure maps. A subclass of the EXISTING math:Morphism (U1-light: it reuses the object-layer morphism parent rather than re-deriving a category-theory frame). It names its domain module through math:morphismSource and its codomain module through math:morphismTarget, both math:PersistenceModule individuals. It is NOT a math:PersistenceModule itself (it is a map BETWEEN modules), and NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso). A persistence morphism naming no source or no target says nothing about which modules it relates and is ill-formed (math:IncompletePersistenceMorphism)."@x-gmeow-english ;
+    skos:definition "A map of persistence modules: a natural transformation between two math:PersistenceModule functors — a commuting family of linear maps, one at each index, intertwining the two modules' structure maps. A subclass of the EXISTING math:Morphism (it reuses the object-layer morphism parent rather than re-deriving a category-theory frame). It names its domain module through math:morphismSource and its codomain module through math:morphismTarget, both math:PersistenceModule individuals. It is NOT a math:PersistenceModule itself (it is a map BETWEEN modules), and NOT the analysis activity math:MultiparameterPersistence (rdfs:seeAlso). A persistence morphism naming no source or no target says nothing about which modules it relates and is ill-formed (math:IncompletePersistenceMorphism)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ZigzagDiagram
@@ -8034,7 +8034,7 @@ math:CoexactComponent
     skos:definition "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-# --- Connections, parallel transport, and holonomy (issue #1527, Commit E) --- #
+# --- Connections, parallel transport, and holonomy --------------------------- #
 # The PRIMARY reading is DISCRETE: the math:SheafRestrictionMaps of a math:CellularSheaf
 # ARE a connection; parallel transport is their composition along a path; holonomy is the
 # composite around a CLOSED loop; and flatness is the closedness (δ-kernel) of the
@@ -8873,7 +8873,7 @@ math:stalkValue
     skos:definition "Relates a math:SheafStalk to the exact integer value a math:GlobalSection of the sheaf assigns to it, carried as an xsd:integer so the gluing condition is checkable rather than asserted. Domain math:SheafStalk, range xsd:integer (stated in prose). For a sheaf carrying a single global section (the demonstrator case), the value transported along an identity/constant math:SheafRestrictionMap must agree at the map's source and target stalks; a declared assignment that disagrees across a restriction map witnesses the H¹ obstruction executably (math:SectionGluingInconsistency). It is NOT a general vector-valued stalk assignment (the exact-integer form is the executable identity-transport case) and NOT a decimal approximation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-# --- Multiparameter / zigzag persistence relations (issue #1527, Commit D) --- #
+# --- Multiparameter / zigzag persistence relations --------------------------- #
 
 math:filtrationIndexPoset
     a owl:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -9285,7 +9285,7 @@ math:UnanchoredGluingObstruction
     skos:definition "The failure raised when a math:GluingObstruction names no math:obstructionOf sheaf — an H¹ obstruction class floating free of the math:CellularSheaf whose local-to-global lifting it is supposed to obstruct. An obstruction is defined only relative to the sheaf whose sections may fail to glue; one that names no sheaf certifies nothing and is ill-formed. It is NOT a math:SheafRestrictionMap and NOT a section — it is the cohomological reason a global section may not exist, and it must say which sheaf it reasons about."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-# --- Multiparameter / zigzag persistence failures (issue #1527, Commit D) ---- #
+# --- Multiparameter / zigzag persistence failures ---------------------------- #
 
 math:IncompleteMultiparameterFiltration
     a owl:Class ; logic:subClassOf math:MathConformanceFailure ;
@@ -9460,7 +9460,7 @@ math:CellularSheaf logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:restrictionMap ; owl:allValuesFrom math:SheafRestrictionMap ] ;
     gmeow:enforcesFailureClass math:IncompleteCellularSheaf .
 
-# Global-section frame (F5): a math:GlobalSection names its carrier math:overSheaf (a
+# Global-section frame: a math:GlobalSection names its carrier math:overSheaf (a
 # math:CellularSheaf) and the math:sectionRegion it globalises over — the H⁰ frame. A
 # section missing either says nothing about what it globalises (math:IncompleteGlobalSection).
 # The wrong-scope case (region present but a proper subcomplex) is the separate cross-node
@@ -9473,7 +9473,7 @@ math:GlobalSection logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:sectionRegion ; owl:allValuesFrom math:CellComplex ] ;
     gmeow:enforcesFailureClass math:IncompleteGlobalSection .
 
-# Local-section frame (F6): a math:LocalSection declares the actual stalk-and-restriction
+# Local-section frame: a math:LocalSection declares the actual stalk-and-restriction
 # semantics it sections — its carrier math:overSheaf (whose math:CellularSheaf frame in turn
 # forces stalks and restriction maps) and the math:sectionRegion proper subcomplex it covers.
 # A local section anchored to no sheaf is a bare 'the sections disagree' claim over no declared
@@ -9487,7 +9487,7 @@ math:LocalSection logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:sectionRegion ; owl:allValuesFrom math:CellComplex ] ;
     gmeow:enforcesFailureClass math:IncompleteSheafSection .
 
-# Gluing-obstruction frame (F7): a math:GluingObstruction names the math:obstructionOf sheaf
+# Gluing-obstruction frame: a math:GluingObstruction names the math:obstructionOf sheaf
 # whose local-to-global lifting it obstructs — an H¹ class anchored to no sheaf is unanchored
 # (math:UnanchoredGluingObstruction).
 math:GluingObstruction logic:subClassOf
@@ -9496,7 +9496,7 @@ math:GluingObstruction logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:obstructionOf ; owl:allValuesFrom math:CellularSheaf ] ;
     gmeow:enforcesFailureClass math:UnanchoredGluingObstruction .
 
-# Multiparameter-filtration frame (issue #1527): a math:MultiparameterFiltration names its
+# Multiparameter-filtration frame: a math:MultiparameterFiltration names its
 # math:filtrationIndexPoset (the parameter poset) and at least one math:hasFiltrationStage —
 # two min-1 qualified restrictions deriving sh:qualifiedMinCount property shapes. A filtration
 # naming no poset or no stage isolates math:IncompleteMultiparameterFiltration. The stronger
@@ -9509,7 +9509,7 @@ math:MultiparameterFiltration logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:hasFiltrationStage ; owl:allValuesFrom math:FiltrationStage ] ;
     gmeow:enforcesFailureClass math:IncompleteMultiparameterFiltration .
 
-# Persistence-module frame (issue #1527): a math:PersistenceModule names its math:moduleIndex
+# Persistence-module frame: a math:PersistenceModule names its math:moduleIndex
 # poset and at least one math:structureMap transition map — two min-1 qualified restrictions.
 # A module naming no index or no structure map isolates math:IncompletePersistenceModule.
 math:PersistenceModule logic:subClassOf
@@ -9519,7 +9519,7 @@ math:PersistenceModule logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:structureMap ; owl:allValuesFrom math:MathematicalObject ] ;
     gmeow:enforcesFailureClass math:IncompletePersistenceModule .
 
-# Persistence-morphism frame (issue #1527): a math:PersistenceMorphism names BOTH its
+# Persistence-morphism frame: a math:PersistenceMorphism names BOTH its
 # math:morphismSource and math:morphismTarget math:PersistenceModule endpoints — two min-1
 # qualified restrictions. A morphism missing either endpoint isolates
 # math:IncompletePersistenceMorphism.
@@ -9530,7 +9530,7 @@ math:PersistenceMorphism logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:morphismTarget ; owl:allValuesFrom math:PersistenceModule ] ;
     gmeow:enforcesFailureClass math:IncompletePersistenceMorphism .
 
-# Connection frame (issue #1527, Commit E): a math:Connection names what it is a connection ON
+# Connection frame: a math:Connection names what it is a connection ON
 # through math:connectionOn — a math:CellularSheaf (its restriction maps ARE the discrete
 # connection, via the math:connectionOfSheaf refinement) or a math:Atlas/bundle for the manifold
 # reading. A min-1 qualified restriction (onClass owl:Thing, like the CliffordAlgebra scalarField
@@ -9541,7 +9541,7 @@ math:Connection logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:connectionOn ; owl:allValuesFrom owl:Thing ] ;
     gmeow:enforcesFailureClass math:IncompleteConnection .
 
-# Parallel-transport frame (issue #1527, Commit E): a math:ParallelTransport names BOTH its
+# Parallel-transport frame: a math:ParallelTransport names BOTH its
 # math:transportConnection (the math:Connection rule) and its math:transportAlong (the path) —
 # two min-1 qualified restrictions. A transport missing either isolates
 # math:IncompleteParallelTransport.
@@ -9552,7 +9552,7 @@ math:ParallelTransport logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:transportAlong ; owl:allValuesFrom owl:Thing ] ;
     gmeow:enforcesFailureClass math:IncompleteParallelTransport .
 
-# Holonomy frame (issue #1527, Commit E): a math:Holonomy names BOTH its math:holonomyLoop (the
+# Holonomy frame: a math:Holonomy names BOTH its math:holonomyLoop (the
 # closed loop) and its math:holonomyOf (the math:Connection) — two min-1 qualified restrictions.
 # A holonomy missing either isolates math:IncompleteHolonomy.
 math:Holonomy logic:subClassOf
@@ -9562,7 +9562,7 @@ math:Holonomy logic:subClassOf
     [ a owl:Restriction ; owl:onProperty math:holonomyOf ; owl:allValuesFrom math:Connection ] ;
     gmeow:enforcesFailureClass math:IncompleteHolonomy .
 
-# Flat-connection cocycle link (issue #1527, Commit E): flat ⇔ closed. A math:FlatConnection is a
+# Flat-connection cocycle link: flat ⇔ closed. A math:FlatConnection is a
 # math:Connection whose math:transportCochain is a math:Cocycle — the EL-safe min-1 qualified
 # restriction encodes 'a flat connection HAS a closed transport cochain', the paired allValuesFrom
 # that EVERY transport cochain it names is closed. This is the CHECKABLE discrete link, NOT the
@@ -12390,7 +12390,7 @@ math:cbszcIncBpA a logic:Formula ; logic:relation math:incidentTo ;
 math:cbszcIncCBp a logic:Formula ; logic:relation math:incidentTo ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termVariable "bp" ] .
 
-# General finite-complex layer (F1): the correct general-CW ∂∘∂ = 0 conformance —
+# General finite-complex layer: the correct general-CW ∂∘∂ = 0 conformance —
 # for every codimension-2 pair (coface, far-face), the finite signed SUM
 # Σ_b [coface:b]·[b:far] over all intermediate cells b must equal 0. Authored as the
 # sanctioned logic:JoinAggregateConstraint (P9): a two-leg join over math:CellIncidence
@@ -12450,7 +12450,7 @@ math:bcaSignJ a logic:Formula ; logic:relation math:incidenceSign ;
 math:bcaEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
 
-# Global-vs-local non-conflation (Task 3): a math:GlobalSection's math:sectionRegion must be
+# Global-vs-local non-conflation: a math:GlobalSection's math:sectionRegion must be
 # the WHOLE base of its math:overSheaf. A cross-node equality formula over (this, sheaf, base,
 # region): if the section names a sheaf whose base is B and its own region is R, then R = B; a
 # section typed global but scoped to a proper subcomplex R ≠ B is misscoped
@@ -12487,7 +12487,7 @@ math:mscRegion a logic:Formula ; logic:relation math:sectionRegion ;
 math:mscEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ] , [ logic:termIndex 1 ; logic:termVariable "base" ] .
 
-# Gluing executability (Task 3): a math:GlobalSection restricts CONSISTENTLY along every
+# Gluing executability: a math:GlobalSection restricts CONSISTENTLY along every
 # math:SheafRestrictionMap of its sheaf. A per-restriction-map cross-node equality formula
 # (NOT an aggregation, in the style of math:BoundaryCoboundaryAdjunctionConstraint): for a
 # global section with math:overSheaf S, a restriction map r of S with math:sourceObject stalk
@@ -12538,7 +12538,7 @@ math:sgcVt a logic:Formula ; logic:relation math:stalkValue ;
 math:sgcEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vs" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] .
 
-# Non-collapse (issue #1527, Commit D): a math:MultiparameterFiltration must NOT
+# Non-collapse: a math:MultiparameterFiltration must NOT
 # silently degrade to one parameter. A guarded existence formula (in the style of
 # math:BoundarySquareZeroConstraint's positive existential consequent): for a
 # multiparameter filtration, THERE MUST EXIST a stage carrying a math:multiIndex;
@@ -12573,7 +12573,7 @@ math:cmfA1 a logic:Formula ; logic:relation math:hasFiltrationStage ;
 math:cmfA2 a logic:Formula ; logic:relation math:multiIndex ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] .
 
-# Diagonal degeneracy (issue #1527): a 2-index whose two coordinates are functionally
+# Diagonal degeneracy: a 2-index whose two coordinates are functionally
 # dependent — the diagonal (t, t) — is genuinely one-parametric despite the 2-tuple. A
 # cross-node "NOT EXISTS a bad witness" formula (in the style of math:ChartDimensionConstraint):
 # a stage's math:multiIndex must NOT carry two components at DISTINCT indices sharing the same
@@ -12629,7 +12629,7 @@ math:ddfV1 a logic:Formula ; logic:relation math:componentValue ;
 math:ddfV2 a logic:Formula ; logic:relation math:componentValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "val" ] .
 
-# Zigzag non-degeneracy (issue #1527): a math:ZigzagDiagram must declare at least one
+# Zigzag non-degeneracy: a math:ZigzagDiagram must declare at least one
 # math:backwardArrow, or it has collapsed to forward-only single-parameter persistence. A
 # guarded existence formula (positive consequent, like math:BoundarySquareZeroConstraint):
 # for a zigzag diagram THERE MUST EXIST a math:zigzagArrow whose math:arrowDirection is
@@ -14286,14 +14286,14 @@ math:LogarithmBase a logic:AbstractIndividualType .
 math:MetricSpace a logic:AbstractIndividualType .
 math:NerveComplex a logic:AbstractIndividualType .
 
-# Multiparameter / zigzag persistence objects (issue #1527, Commit D)
+# Multiparameter / zigzag persistence objects
 math:MultiparameterFiltration a logic:AbstractIndividualType .
 math:PersistenceModule a logic:AbstractIndividualType .
 math:PersistenceMorphism a logic:AbstractIndividualType .
 math:ZigzagDiagram a logic:AbstractIndividualType .
 math:ArrowDirection a logic:AbstractIndividualType .
 
-# Connections / holonomy / parallel transport (issue #1527, Commit E)
+# Connections / holonomy / parallel transport
 math:Connection a logic:AbstractIndividualType .
 math:ParallelTransport a logic:AbstractIndividualType .
 math:Holonomy a logic:AbstractIndividualType .
@@ -14447,7 +14447,7 @@ math:IncompleteSheafSection a logic:Situation .
 math:UnanchoredGluingObstruction a logic:Situation .
 math:ZeroDenominator a logic:Situation .
 
-# Multiparameter / zigzag persistence failures (issue #1527, Commit D)
+# Multiparameter / zigzag persistence failures
 math:IncompleteMultiparameterFiltration a logic:Situation .
 math:CollapsedMultiparameterFiltration a logic:Situation .
 math:DiagonalDegenerateFiltration a logic:Situation .
@@ -14456,7 +14456,7 @@ math:IncompletePersistenceMorphism a logic:Situation .
 math:DegenerateZigzagDiagram a logic:Situation .
 math:PersistenceModuleLifetimeConflation a logic:Situation .
 
-# Connections / holonomy / parallel transport failures (issue #1527, Commit E)
+# Connections / holonomy / parallel transport failures
 math:IncompleteConnection a logic:Situation .
 math:IncompleteParallelTransport a logic:Situation .
 math:IncompleteHolonomy a logic:Situation .

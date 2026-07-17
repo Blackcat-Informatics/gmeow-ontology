@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for the math:Connection frame (issue #1527, Commit E): a math:Connection
+# Counter-example for the math:Connection frame: a math:Connection
 # naming NEITHER a math:CellularSheaf (via math:connectionOfSheaf, the discrete reading) NOR
 # a math:Atlas/bundle (via math:connectionOn, the manifold reading) — a connection with no
 # base to transport over. The min-1 qualified restriction on math:connectionOn derives a

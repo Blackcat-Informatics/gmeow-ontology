@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for gmeow:CompilationContextConstraint (gmeow:CompilationMissingContext,
-# Req 5): a gmeow:ComplexCompilation that records BOTH its correspondence and its
+# Counter-example for gmeow:CompilationContextConstraint (gmeow:CompilationMissingContext):
+# a gmeow:ComplexCompilation that records BOTH its correspondence and its
 # preservation/loss judgment and carries its possible-world and time-scope context, but
 # omits its gmeow:compilationStandpoint. The ∀→(∃∧∃∧∃) SPARQL constraint MUST reject it
 # with shacl.SPARQLConstraintComponent, and nothing else — every other required datum is

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for the math:PersistenceModule frame (issue #1527): a math:PersistenceModule
+# Counter-example for the math:PersistenceModule frame: a math:PersistenceModule
 # naming its math:moduleIndex but omitting any math:structureMap — the functor has vector spaces
 # but no functorial transition maps. The min-1 qualified restriction on math:structureMap derives
 # a sh:qualifiedMinCount property shape, so validation MUST emit

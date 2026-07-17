@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for the math:Holonomy frame (issue #1527, Commit E): a math:Holonomy
+# Counter-example for the math:Holonomy frame: a math:Holonomy
 # naming its math:holonomyOf connection but omitting its math:holonomyLoop — holonomy
 # without a closed loop measures nothing. The min-1 qualified restriction on
 # math:holonomyLoop derives a sh:qualifiedMinCount property shape, so validation MUST emit

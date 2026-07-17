@@ -1148,7 +1148,7 @@ ex:ecDependencyModelApproximateLossy a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A reasoning-facing math:FactorGraph whose math:probabilityModelLowering into logic:DependencyModel carries a NON-exact logic:preservationKind (logic:SoundUnderApproximation) with its dropped constructs enumerated through logic:unsupportedConstruct exercises the lossy branch of the lowering seam; it carries no SHACL target shape and validates with no findings, dogfooding the loss ledger on the non-exact polarity." .
 
-# === Task 8: the two co-equal flagship signed-radial-field scenes conform ==== #
+# === The two co-equal flagship signed-radial-field scenes conform ============ #
 
 ex:ecRadialFieldQualitative a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/signed-radial-field-qualitative.ttl" ;
@@ -1372,7 +1372,7 @@ ex:ecCoboundaryNotInImage a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:Coboundary declaring no math:coboundaryOf (sh:qualifiedMinCount 1 onClass math:CoboundaryOperator, derived from the min-1 qualified math:coboundaryOf restriction), so it is not grounded as the image of a coboundary operator; validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCoboundary)." .
 
-# === Multiparameter / zigzag persistence OBJECTS (issue #1527, Commit D) ===== #
+# === Multiparameter / zigzag persistence OBJECTS ============================= #
 
 ex:ecMultiparameterFiltrationComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/multiparameter-filtration-complete.ttl" ;
@@ -1435,7 +1435,7 @@ ex:ecPersistenceMorphismNoTarget a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:PersistenceMorphism naming its math:morphismSource but omitting its math:morphismTarget (sh:qualifiedMinCount 1, derived from the min-1 qualified math:morphismTarget restriction); the math:morphismSource arm stays satisfied by a well-formed math:PersistenceModule (naming its math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceMorphism)." .
 
-# === Rule: a connection names what it is ON; transport names rule + path; holonomy names loop + connection (issue #1527, Commit E) === #
+# === Rule: a connection names what it is ON; transport names rule + path; holonomy names loop + connection =========================== #
 
 ex:ecHolonomyLoopComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/holonomy-loop-complete.ttl" ;

@@ -7,8 +7,8 @@
 # relative) and pins its rows exactly (RowsExact). The four questions are the executable
 # half of this slice's contract: frame a compilation (correspondence + loss), prove a
 # computed feature is a math:LocalSection that is a global truth ONLY via extension +
-# discharge (the governing rule), frame the compilation's standpoint/world/time context
-# (Req 5), and frame a claim's vantage-attributed defeasible status (Req 6).
+# discharge (the governing rule), frame the compilation's standpoint/world/time context,
+# and frame a claim's vantage-attributed defeasible status.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -61,13 +61,13 @@ ex:cqTopologyClaimNotGlobalTruthRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "globalSection" ; gmeow:cellValueIri exd:globalsection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exd:obstruction ] .
 
-# --- CQ3 / Req 5: the compilation's standpoint/world/time context ------------ #
+# --- CQ3: the compilation's standpoint/world/time context -------------------- #
 ex:cqCompilationContextFrame a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/semantic-topology/queries/competency/st-compilation-context-frame.rq" ;
     gmeow:cqDataFile "examples/compilation-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCompilationContextFrameShape ;
-    gmeow:cqRationale "GMEOW must answer 'what perspective, world, and interval is a compiled topology relative to?' The worked compilation is indexed to ex:standpoint, ex:world, and ex:timescope; the asserted answer is exactly this one row, proving a compiled topology never floats free of its epistemic context (Req 5)." ;
+    gmeow:cqRationale "GMEOW must answer 'what perspective, world, and interval is a compiled topology relative to?' The worked compilation is indexed to ex:standpoint, ex:world, and ex:timescope; the asserted answer is exactly this one row, proving a compiled topology never floats free of its epistemic context." ;
     gmeow:cqExpectRow ex:cqCompilationContextFrameRow .
 
 ex:cqCompilationContextFrameShape a logic:ResultShape ;
@@ -83,13 +83,13 @@ ex:cqCompilationContextFrameRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "world" ; gmeow:cellValueIri exd:world ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "timeScope" ; gmeow:cellValueIri exd:timescope ] .
 
-# --- CQ4 / Req 6: the claim's vantage-attributed, defeasible status ---------- #
+# --- CQ4: the claim's vantage-attributed, defeasible status ------------------ #
 ex:cqTopologyClaimAttributedStatusFrame a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/semantic-topology/queries/competency/st-topology-claim-attributed-status-frame.rq" ;
     gmeow:cqDataFile "examples/compilation-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqTopologyClaimAttributedStatusFrameShape ;
-    gmeow:cqRationale "GMEOW must answer 'from whose vantage, and with what defeasible status, is a topology claim held?' The worked claim is held from ex:standpoint and lands as the defeasible gmeow:Finding ex:finding at gmeow:severityInfo; the asserted answer is exactly this one row, proving a computed feature lands as a vantage-attributed, defeasible claim, never an anonymous global truth (Req 6)." ;
+    gmeow:cqRationale "GMEOW must answer 'from whose vantage, and with what defeasible status, is a topology claim held?' The worked claim is held from ex:standpoint and lands as the defeasible gmeow:Finding ex:finding at gmeow:severityInfo; the asserted answer is exactly this one row, proving a computed feature lands as a vantage-attributed, defeasible claim, never an anonymous global truth." ;
     gmeow:cqExpectRow ex:cqTopologyClaimAttributedStatusFrameRow .
 
 ex:cqTopologyClaimAttributedStatusFrameShape a logic:ResultShape ;
