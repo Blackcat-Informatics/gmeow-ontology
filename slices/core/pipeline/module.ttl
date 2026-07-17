@@ -802,7 +802,7 @@ gmeow:stage-export-parquet
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: parquet"@x-gmeow-english ;
-    skos:definition "Project the composed dataset to the per-table Parquet columnar form."@x-gmeow-english ;
+    skos:definition "Project the WHOLE composed carrier (terms/quads/reifiers/annotations/blobs of every named graph, never scoped to one graph) to the five-table Parquet columnar form via purrdf's native columnar codec (purrdf::columnar::write), retiring gmeow's hand-rolled Arrow record-batch builders and parquet-crate writer. purrdf owns the dictionary encoding and the byte-deterministic Parquet Data Page V2 physical layout; the carrier's blob store is always empty (blob payloads live in the gts archive by reference, never the in-memory carrier). A fold-reading export leaf: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
