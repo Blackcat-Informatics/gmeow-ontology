@@ -121,6 +121,11 @@ pub(crate) enum UnsupportedKind {
     /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
     /// is evaluated normally.
     NonTerminatingArithmetic,
+    /// A clause body with more than 64 literals: the backward solver represents the
+    /// set of not-yet-selected body literals as a `u64` bitmask (one bit per literal),
+    /// so a wider body exceeds the mask. This is an explicit typed refusal (an authored
+    /// program can always be normalized to bodies ≤ 64 literals), never a silent cap.
+    ClauseBodyTooWide,
 }
 
 /// The result of a native-execution attempt: a decided value or a declared gap.
