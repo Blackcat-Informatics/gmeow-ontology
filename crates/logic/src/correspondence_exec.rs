@@ -9,7 +9,7 @@
 //! remains typed RDF, and a section discharges only when `put(get(source))` is exactly the
 //! original source atom set.
 //!
-//! A first-class [`RecoveryCaseIr`] supplies the complete query-class source pattern and its
+//! A first-class [`RecoveryCaseIr`](gmeow_logic_compile::ir::RecoveryCaseIr) supplies the complete query-class source pattern and its
 //! ordered source-to-view transform as canonical `logic:Formula`.  The supported execution
 //! fragment is `forall(vars, source -> view)`, where both sides are positive conjunctions of
 //! binary RDF atoms.  The executor deterministically instantiates the source, lowers the

@@ -174,7 +174,7 @@ fn comparison_block(corpus: &str, c: &ExternalComparison) -> (String, String) {
 /// IRI) and GTS-fold-stable, and non-empty whenever the corpus has any graded case.
 pub fn emit_divergence_nq(corpus: &str, comparisons: &[ExternalComparison]) -> String {
     let rows = compare_external_corpus(corpus, comparisons);
-    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = build_ledger(Vec::new(), Vec::new(), rows);
     let findings = divergence_findings(&ledger);
 
     let mut report = Report::new("conformance");
@@ -288,7 +288,7 @@ pub struct AgreementTally {
 /// CorpusOnly / DlGap rows, so `agree + corpus_only + dl_gap == cases`.
 pub fn agreement_tally(corpus: &str, comparisons: &[ExternalComparison]) -> AgreementTally {
     let rows = compare_external_corpus(corpus, comparisons);
-    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = build_ledger(Vec::new(), Vec::new(), rows);
     // `cases` is the true attempted count. `compare_external_corpus` is a total map
     // (one row per comparison, always exactly one of Agree/CorpusOnly/DlGap) and
     // `build_ledger` counts every row without dedup or filtering, so the partition

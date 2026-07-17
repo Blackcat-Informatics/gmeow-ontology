@@ -10,8 +10,9 @@
 //!   RDF 1.2 reifier annotated with its derivation provenance.
 //! * **reasoning-explanations** — a per-axiom proof skeleton linking each
 //!   conclusion (a triple term) to its premises and firing rule.
-//! * **dl-el-crosscheck-report** — the native↔oracle divergence ledger; `DlGap`
-//!   rows are coverage defects, so the committed bundle must emit zero.
+//! * **dl-el-crosscheck-report** — the native DL⊇EL divergence ledger, built from
+//!   native results only (no external oracle); `DlGap` rows are coverage defects,
+//!   so the committed bundle must emit zero.
 //!
 //! These builders are the canonical emitters for the reasoning artifacts (the
 //! Python `build_*_ttl` emitters in `gmeow_tools.reason` they replaced were
@@ -27,7 +28,6 @@ use purrdf::{
 
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
-use crate::reason::ledger::{DivergenceLedger, divergence_findings};
 use crate::result::ReasoningResult;
 use crate::term_codec::decode_term;
 
@@ -88,13 +88,13 @@ const EXPLANATIONS_HEADER: &str = "\
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 ";
 
-/// Banner + prefix block prepended to the native↔oracle divergence ledger.
+/// Banner + prefix block prepended to the native DL⊇EL divergence ledger.
 const LEDGER_HEADER: &str = "\
-# GMEOW native vs entail-oracle DL/EL crosscheck ledger.
-# Built from the native EL/DL reasoning lane (Java/Docker-free). The oracle
-# comparison runs the in-process purrdf-entail oracle; DlGap rows are native
-# coverage defects and the committed bundle must keep gapCount at 0.
-# DO NOT EDIT.
+# GMEOW native DL/EL crosscheck ledger.
+# Built from the native EL/DL reasoning lane (Java/Docker-free), from native
+# results ONLY — a native DL⊇EL fragment comparison, with no external oracle.
+# DlGap rows are native coverage defects and the committed bundle must keep
+# gapCount at 0. DO NOT EDIT.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -323,7 +323,7 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 
 // ── dl-el-crosscheck-report ─────────────────────────────────────────────────────
 
-/// Render the native↔oracle DL/EL crosscheck ledger as Turtle.
+/// Render the native DL⊇EL crosscheck ledger as Turtle.
 ///
 /// Built from the native results ONLY (the gate stays Java/Docker-free). Emits
 /// the ledger header, one `gmeow:LedgerEntry` of kind `gmeow:NativeOnly` per
@@ -331,7 +331,7 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
 pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
-    const CROSSCHECK_NOTE: &str = "the independent purrdf entailment cross-check validates the native result; native gaps fail";
+    const CROSSCHECK_NOTE: &str = "a native-only DL⊇EL subsumption entailment; a native DL coverage gap (DlGap) fails the gate";
     let mut out = String::from(LEDGER_HEADER);
 
     // The DL coverage gaps are reconstructed from the shared model's
@@ -358,8 +358,8 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
                 },
             ),
             (
-                gmeow("oracleCrosscheck"),
-                "\"classic-cross-check confirms the native result; DlGap is a failure\"@en"
+                gmeow("coverageNote"),
+                "\"native DL⊇EL gap-zero coverage (native results only, no external oracle); a DlGap is a native coverage defect and fails\"@en"
                     .to_owned(),
             ),
         ],
@@ -560,263 +560,6 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     }
 
     out.push_str(&emit_resource(&subject, &props));
-    out
-}
-
-// ── fragment-subsumption correspondence (EL, RL, … lattice edges) ─────────────────
-
-/// A certified fragment on the native-chase promotion lattice (EL ⊂ RL ⊂ DL …).
-///
-/// Carries the two pieces of per-fragment identity the correspondence artifact
-/// varies over: `slug` is the lowercase IRI-local token that keys the reified
-/// individuals (`{slug}-native-subsumption-correspondence`, …) so each fragment
-/// edge gets stable, distinct subjects in the bundle; `label` is the uppercase
-/// profile name used in the human-readable banner and comment. Everything else —
-/// relation, morphism, preservation, discharged section-law — is IDENTICAL across
-/// fragments (the whole point: one calculus, one claim shape per lattice edge).
-struct SubsumptionFragment {
-    /// IRI-local slug (`"el"`, `"rl"`) keying the reified individuals.
-    slug: &'static str,
-    /// Profile label (`"EL"`, `"RL"`) for the banner / comment prose.
-    label: &'static str,
-}
-
-/// The EL fragment edge of the native-chase promotion lattice.
-const EL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
-    slug: "el",
-    label: "EL",
-};
-
-/// The RL fragment edge (the next edge up: EL ⊂ RL) of the promotion lattice.
-const RL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
-    slug: "rl",
-    label: "RL",
-};
-
-/// The DL fragment edge — the terminal edge of the EL ⊂ RL ⊂ DL fragment
-/// lattice — over the world-scoped typed DL Horn closure. Existential obligations
-/// share the native structured restricted chase, so this correspondence certifies
-/// the same single-authority closure against the independent entailment reference.
-const DL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
-    slug: "dl",
-    label: "DL",
-};
-
-/// Banner for a native⊒oracle fragment-subsumption correspondence artifact.
-fn correspondence_header(fragment: &SubsumptionFragment) -> String {
-    let label = fragment.label;
-    format!(
-        "\
-# GMEOW native ⊒ oracle {label}-subsumption correspondence (RDF 1.2).
-# The reified logic:Correspondence recording that the native forward engine
-# SUBSUMES the independent purrdf entailment reference on the certified {label} fragment: the reference
-# closure is a section/retraction of the native closure (put ∘ get = id over the
-# {label} profile), a complete over-approximation carrying the native↔oracle
-# divergence ledger as its loss cell. Pure native-lane output. DO NOT EDIT.
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-"
-    )
-}
-
-/// Render the native⊒oracle EL-subsumption parity result as a bundle-borne
-/// `logic:Correspondence` individual (Part B of the native-chase promotion).
-///
-/// Thin wrapper over the shared subsumption-correspondence builder, pinned to the EL
-/// lattice edge; see that function for the full claim-shape rationale.
-pub fn build_el_subsumption_correspondence_ttl(
-    ledger: &DivergenceLedger,
-    contract_hash: &str,
-    view_engine: &str,
-) -> String {
-    build_subsumption_correspondence_ttl(&EL_FRAGMENT, ledger, contract_hash, view_engine)
-}
-
-/// Render the native⊒oracle RL-subsumption parity result as a bundle-borne
-/// `logic:Correspondence` individual (the next edge of the EL ⊂ RL lattice).
-///
-/// Thin wrapper over the shared subsumption-correspondence builder, pinned to the RL
-/// lattice edge; the RL closure is the larger OWL 2 RL/RDF deductive closure over
-/// the 4-ary generic-triple encoding, and the reified claim shape is identical to
-/// EL's (native ⊒ oracle, section/retraction, complete over-approximation, section
-/// law discharged within the certified fragment).
-pub fn build_rl_subsumption_correspondence_ttl(
-    ledger: &DivergenceLedger,
-    contract_hash: &str,
-    view_engine: &str,
-) -> String {
-    build_subsumption_correspondence_ttl(&RL_FRAGMENT, ledger, contract_hash, view_engine)
-}
-
-/// Render the native⊒oracle DL-subsumption parity result as a bundle-borne
-/// `logic:Correspondence` individual (the terminal edge of the EL ⊂ RL ⊂ DL
-/// lattice).
-///
-/// Thin wrapper over the shared subsumption-correspondence builder, pinned to the DL
-/// lattice edge. The certified fragment is the structured DL Horn closure (the EL
-/// calculus plus the clash-detection DL rules); the reified claim shape
-/// is identical to EL's and RL's (native ⊒ oracle, section/retraction, complete
-/// over-approximation, section law discharged within the certified fragment).
-pub fn build_dl_subsumption_correspondence_ttl(
-    ledger: &DivergenceLedger,
-    contract_hash: &str,
-    view_engine: &str,
-) -> String {
-    build_subsumption_correspondence_ttl(&DL_FRAGMENT, ledger, contract_hash, view_engine)
-}
-
-/// Render a native⊒oracle fragment-subsumption parity result as a bundle-borne
-/// `logic:Correspondence` individual (Part B of the native-chase promotion).
-///
-/// This REIFIES the gap-zero parity verdict as a first-class correspondence in
-/// the existing correspondence calculus, reusing only declared `logic:`
-/// vocabulary — no minted terms:
-///
-/// * `logic:correspondenceRelation logic:Subsumes` — the native closure subsumes
-///   the oracle's (native ⊇ oracle);
-/// * `logic:morphismClass logic:SectionRetraction` — the oracle closure is a
-///   section/retraction of the native closure (`put ∘ get = id_S` over the fragment);
-/// * `logic:preservationKind logic:CompleteOverApproximation` — the loss-ledger
-///   polarity: the target does not miss answers, it may add some (native ⊇ oracle);
-/// * `logic:mnemomorphic true` — the native get leg retains the full source
-///   witness (the complete fragment closure), which discharges the section law;
-/// * `logic:hasLawClaim` → a `logic:LawClaim` on `logic:SectionLaw` carrying
-///   `logic:lawDischargeVerdict logic:ObligationDischarged` under
-///   `logic:lawDischargeCondition logic:DischargeCertifiedFragment` — the exact
-///   declared way to say "proved within a certified complete fragment" (the
-///   profile over which the chase terminates and is complete);
-/// * `logic:contractHash` + `logic:engine` — the proof-certificate binding to the
-///   native contract and the two engines the parity ran between.
-///
-/// `fragment` selects the lattice edge (EL, RL, …): it keys the reified subjects
-/// and names the profile in the prose, but the relation / morphism / preservation
-/// / discharged-law claim is IDENTICAL across fragments (one calculus per edge).
-/// The [`DivergenceLedger`] rides as the loss cell: its per-kind tallies are
-/// carried as report-local `gmeow:` counts and every NON-`Agree` row is projected
-/// to a `gmeow:Finding` (via [`divergence_findings`]) — a gap-zero ledger carries
-/// zero findings, so a healthy run emits none. `contract_hash` is the native
-/// contract digest ([`crate::reason::native_contract_hash`]); `view_engine` names
-/// the comparison oracle.
-fn build_subsumption_correspondence_ttl(
-    fragment: &SubsumptionFragment,
-    ledger: &DivergenceLedger,
-    contract_hash: &str,
-    view_engine: &str,
-) -> String {
-    let mut out = correspondence_header(fragment);
-    out.push_str(&subsumption_correspondence_body(
-        fragment,
-        ledger,
-        contract_hash,
-        view_engine,
-    ));
-    out
-}
-
-/// The per-fragment body (everything after the prefix header) of a native⊒oracle
-/// subsumption correspondence: the reified `logic:Correspondence`, its discharged
-/// `logic:SectionLaw` claim, and the loss-cell findings. Factored out so the single
-/// (`build_subsumption_correspondence_ttl`) builders share one claim shape.
-fn subsumption_correspondence_body(
-    fragment: &SubsumptionFragment,
-    ledger: &DivergenceLedger,
-    contract_hash: &str,
-    view_engine: &str,
-) -> String {
-    let mut out = String::new();
-
-    let slug = fragment.slug;
-    let label = fragment.label;
-    let correspondence = gmeow(&format!("{slug}-native-subsumption-correspondence"));
-    let law_claim = gmeow(&format!("{slug}-native-subsumption-lawclaim"));
-
-    out.push_str(&format!(
-        "\n# --- the reified native ⊒ oracle {label} correspondence ---\n"
-    ));
-    out.push_str(&emit_resource(
-        &correspondence,
-        &[
-            (
-                RDF_TYPE.to_owned(),
-                format!("<{}>", logic("Correspondence")),
-            ),
-            (
-                logic("correspondenceRelation"),
-                format!("<{}>", logic("Subsumes")),
-            ),
-            (
-                logic("morphismClass"),
-                format!("<{}>", logic("SectionRetraction")),
-            ),
-            (
-                logic("preservationKind"),
-                format!("<{}>", logic("CompleteOverApproximation")),
-            ),
-            (logic("mnemomorphic"), "true".to_owned()),
-            (logic("hasLawClaim"), format!("<{law_claim}>")),
-            (
-                logic("contractHash"),
-                format!("\"{}\"", escape_literal(contract_hash)),
-            ),
-            (
-                logic("engine"),
-                format!("\"native ⊒ {}\"", escape_literal(view_engine)),
-            ),
-            (
-                RDFS_COMMENT.to_owned(),
-                format!(
-                    "\"native subsumes {} on the certified {label} fragment, proved gap-zero\"@en",
-                    escape_literal(view_engine)
-                ),
-            ),
-            (gmeow("agreeCount"), ledger.agree.to_string()),
-            (gmeow("nativeOnlyCount"), ledger.native_only.to_string()),
-            (gmeow("oracleOnlyCount"), ledger.oracle_only.to_string()),
-            (gmeow("dlGapCount"), ledger.dl_gap.to_string()),
-        ],
-    ));
-
-    // The section-law claim, discharged within the certified fragment — the
-    // declared "proved in a certified complete fragment" status (no minted term).
-    out.push_str("\n# --- the discharged section-law claim ---\n");
-    out.push_str(&emit_resource(
-        &law_claim,
-        &[
-            (RDF_TYPE.to_owned(), format!("<{}>", logic("LawClaim"))),
-            (logic("lawClaimed"), format!("<{}>", logic("SectionLaw"))),
-            (
-                logic("lawDischargeVerdict"),
-                format!("<{}>", logic("ObligationDischarged")),
-            ),
-            (
-                logic("lawDischargeCondition"),
-                format!("<{}>", logic("DischargeCertifiedFragment")),
-            ),
-        ],
-    ));
-
-    // The divergence ledger as the loss cell: every NON-Agree row is a gmeow:Finding.
-    // A gap-zero (native ⊒ oracle, no oracle-only/dl-gap) run emits zero findings.
-    out.push_str("\n# --- loss cell: the native↔oracle divergence ledger (findings) ---\n");
-    for (index, finding) in divergence_findings(ledger).iter().enumerate() {
-        out.push_str(&emit_resource(
-            &gmeow(&format!("{slug}-correspondence-finding-{index}")),
-            &[
-                (RDF_TYPE.to_owned(), format!("<{}>", gmeow("Finding"))),
-                (
-                    gmeow("findingCode"),
-                    format!("\"{}\"@en", escape_literal(&finding.code)),
-                ),
-                (
-                    RDFS_COMMENT.to_owned(),
-                    format!("\"{}\"@en", escape_literal(&finding.message)),
-                ),
-            ],
-        ));
-    }
-
     out
 }
 

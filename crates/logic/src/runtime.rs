@@ -7,13 +7,13 @@
 //! dataset it owns, resolve goals against it, and pin the engine it trusted. It is a
 //! curated projection of the RDF 1.2 view → selective fact source → native execution →
 //! certified result chain, plus the compatibility store/snapshot path and the
-//! self-describing [`EngineContract`] runtime pin.
+//! self-describing [`EngineContract`](crate::runtime::EngineContract) runtime pin.
 //!
 //! # What "stable" means here
 //!
 //! Stability is delivered **consumer-side**, never as a backwards-compat freeze of the
 //! core. The surface re-exported below is stable *within a pinned git tag*; across tags
-//! it may change, and [`EngineContract`] is how a consumer *detects* that change. The
+//! it may change, and [`EngineContract`](crate::runtime::EngineContract) is how a consumer *detects* that change. The
 //! `gmeow-logic` core (everything outside this module) is greenfield and free to churn;
 //! a consumer is protected by its git-tag/vendor pin plus the content-addressed
 //! contract, not by a repo promise to preserve these names. There is no crates.io semver
@@ -21,31 +21,31 @@
 //!
 //! # Pinning the engine
 //!
-//! At load, fetch [`EngineContract::current`] and record its
-//! [`descriptor_hash`](EngineContract::descriptor_hash) — or the
-//! [`to_nquads`](EngineContract::to_nquads) projection, folded into a (signed) ledger AS
+//! At load, fetch [`EngineContract::current`](crate::runtime::EngineContract::current) and record its
+//! [`descriptor_hash`](crate::runtime::EngineContract::descriptor_hash) — or the
+//! [`to_nquads`](crate::runtime::EngineContract::to_nquads) projection, folded into a (signed) ledger AS
 //! DATA. Before trusting a previously-minted answer, call
-//! [`assert_matches`](EngineContract::assert_matches): it hard-fails if the engine
+//! [`assert_matches`](crate::runtime::EngineContract::assert_matches): it hard-fails if the engine
 //! drifted from the pinned descriptor, exactly as a signed-ledger consumer refuses an
 //! entry under a wrong signature. Per invocation,
-//! [`EngineContract::query_contract_hash`] identifies the `profile`/`budget` an answer
+//! [`EngineContract::query_contract_hash`](crate::runtime::EngineContract::query_contract_hash) identifies the `profile`/`budget` an answer
 //! was decided under (two queries under different budgets share the descriptor but not
 //! the per-query contract). The annotated-query and selected-materialization helpers
 //! reproduce their richer invocation identities from the same canonical inputs.
 //!
 //! # Thread-safety / single-writer contract
 //!
-//! [`RdfDataset`], [`PagedDataset`], and [`PackView`] implement the frozen read contract;
+//! [`RdfDataset`](crate::runtime::RdfDataset), [`PagedDataset`](crate::runtime::PagedDataset), and [`PackView`](crate::runtime::PackView) implement the frozen read contract;
 //! share their supported handles across threads and create an operation-scoped fallible
 //! paged query view when provider reads need budgets/cancellation evidence. The direct
 //! dispatch/materialization functions borrow those views and own only rows admitted by
-//! their pushed patterns. [`WorldStore`] remains the mutable compatibility path: it wraps
+//! their pushed patterns. [`WorldStore`](crate::store::WorldStore) remains the mutable compatibility path: it wraps
 //! a `RefCell` and is **`!Sync`**, so refresh it from one writer, then take a
-//! [`WorldFactSnapshot`] before parallel snapshot dispatch.
+//! [`WorldFactSnapshot`](crate::seam::WorldFactSnapshot) before parallel snapshot dispatch.
 //!
 //! # Refusal semantics (three distinct outcomes)
 //!
-//! [`dispatch_query`] and [`dispatch_query_view`] return:
+//! [`dispatch_query`](crate::dispatch::dispatch_query) and [`dispatch_query_view`](crate::dispatch::dispatch_query_view) return:
 //! * `Ok(AnswerSet { bindings, .. })` — the engine DECIDED. An empty `bindings` means
 //!   "decided: no answers".
 //! * `Err(..)` — the engine REFUSED: a profile gate rejected the program, or the native
@@ -55,9 +55,9 @@
 //!
 //! A third semantic case is the caller's responsibility: querying a `world` IRI that is absent
 //! from the snapshot yields `Ok(empty)` (nothing to resolve against), indistinguishable
-//! from "decided: no answers". Precheck world existence with [`WorldStore::worlds`] if
+//! from "decided: no answers". Precheck world existence with [`WorldStore::worlds`](crate::store::WorldStore::worlds) if
 //! that distinction matters — world-scoping is the caller's job (as with
-//! [`WorldStore::select`]).
+//! [`WorldStore::select`](crate::store::WorldStore::select)).
 //!
 //! The fallible boundaries add an operational outcome: provider, page/byte budget,
 //! cancellation, deadline, or stale-generation failure. It is distinct from semantic
@@ -65,14 +65,14 @@
 //!
 //! # Direct resident, paged, and succinct-pack execution
 //!
-//! [`dispatch_query_view`] and [`dispatch_query_fallible_view`] bind
-//! [`RdfViewFactSource`] directly to a caller's view. The compiled query pushes its named
+//! [`dispatch_query_view`](crate::dispatch::dispatch_query_view) and [`dispatch_query_fallible_view`](crate::dispatch::dispatch_query_fallible_view) bind
+//! [`RdfViewFactSource`](crate::seam::RdfViewFactSource) directly to a caller's view. The compiled query pushes its named
 //! world, predicate, and bound subject/object values plus cardinality estimates into the
 //! view; unrelated pages are not copied or enumerated. The annotated variants preserve
-//! tuple lineage through the same physical pass. [`materialize_program_view`] and
-//! [`materialize_program_fallible_view`] provide the forward counterpart over explicit
+//! tuple lineage through the same physical pass. [`materialize_program_view`](crate::materialize::materialize_program_view) and
+//! [`materialize_program_fallible_view`](crate::materialize::materialize_program_fallible_view) provide the forward counterpart over explicit
 //! named worlds: they admit only predicates consumed or produced by the canonical
-//! program. [`materialize_program`] remains the explicit whole-dataset/complete-input-echo
+//! program. [`materialize_program`](crate::materialize::materialize_program) remains the explicit whole-dataset/complete-input-echo
 //! operation. A source plan that cannot name a predicate is refused rather than widened
 //! to an unconstrained scan.
 //!
@@ -390,14 +390,6 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "entail.rs",
         "native entailment-by-refutation (A ⊨ C iff premise ∪ ¬C inconsistent) composed over dl_consistency — forward consistency reduction, not backward query dispatch",
-    ),
-    (
-        "entail_crosscheck.rs",
-        "native vs entail-oracle OWL-RL subsumption divergence cross-check — forward reasoning-oracle gate, not backward dispatch",
-    ),
-    (
-        "entail_oracle.rs",
-        "native OWL-RL/RDFS forward-closure reasoning oracle, not backward dispatch",
     ),
     (
         "entrenchment.rs",

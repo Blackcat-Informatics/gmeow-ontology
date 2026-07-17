@@ -251,12 +251,6 @@ pub enum Commands {
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
-    /// Cross-check the native EL/DL reasoner against the entail oracle (Docker-free).
-    #[command(name = "reason-crosscheck")]
-    ReasonCrosscheck {
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
     /// Run native reasoning followed by reasoned-graph verify.
     #[command(name = "reason-verify")]
     ReasonVerify {
@@ -265,12 +259,6 @@ pub enum Commands {
         fresh: bool,
         #[arg(long = "merge")]
         merge: bool,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
-    /// Run verify and the entail oracle from one complete native closure.
-    #[command(name = "reason-gate")]
-    ReasonGate {
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
@@ -850,15 +838,11 @@ pub fn run() -> i32 {
             timings_json,
             ..
         } => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
-        Commands::ReasonCrosscheck { timings_json } => {
-            dev_reason::reason_crosscheck(timings_json.as_deref())
-        }
         Commands::ReasonVerify {
             fresh,
             merge: _,
             timings_json,
         } => dev_reason::reason_verify(fresh, timings_json.as_deref()),
-        Commands::ReasonGate { timings_json } => dev_reason::reason_gate(timings_json.as_deref()),
         Commands::Temporal {
             query,
             data,

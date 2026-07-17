@@ -119,7 +119,7 @@ fn native_reasoner_is_a_superset_of_the_frozen_oracle_gold() {
     gold_files.sort();
     assert!(
         !gold_files.is_empty(),
-        "no frozen oracle gold found under {} — run `make -C validations/classic-cross-check oracle-gold`",
+        "no frozen oracle gold found under {} — the committed frozen gold under coverage/external/697-dl-oracle-gold/expected/ is missing from the checkout",
         expected_dir.display()
     );
 

@@ -5,8 +5,9 @@
 //!
 //! There is a SINGLE vendored-corpus root — `conformance/logic/cases/` — under which
 //! every vendored corpus family lives, and a SINGLE gate that admits a corpus into
-//! that root: its `corpus.json` (this module's [`CorpusMeta`] schema) declaring an
-//! SPDX license that [`audit_vendorable`] confirms is IMPORT_OK. The two families
+//! that root: its `corpus.json` (this module's [`CorpusMeta`](crate::vendored::CorpusMeta)
+//! schema) declaring an SPDX license that
+//! [`audit_vendorable`](crate::vendored::audit_vendorable) confirms is IMPORT_OK. The two families
 //! that consume this one contract are:
 //!
 //! * **`cases/external/`** — third-party *correctness* suites (TPTP SZS problems, W3C
