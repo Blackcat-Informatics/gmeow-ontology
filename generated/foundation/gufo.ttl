@@ -25,6 +25,9 @@ logic:AggregateBalanceConstraint
 logic:FunctionTerm
     rdfs:subClassOf logic:ArgumentStructure .
 
+logic:JoinAggregateConstraint
+    rdfs:subClassOf logic:ConstraintSugar .
+
 logic:RecoveryCase
     rdfs:subClassOf <https://blackcatinformatics.ca/logic/restriction/9ad64a6f9e82> .
 

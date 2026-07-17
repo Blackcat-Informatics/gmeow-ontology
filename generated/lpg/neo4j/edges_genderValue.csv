@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:83c6e6e11b265efa,gmeow:examples/gi-alice,gmeow:genderWoman,genderValue,,2019-06-01T00:00:00Z,0.98,,,,,2019-06-01,

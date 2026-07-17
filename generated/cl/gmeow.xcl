@@ -94,6 +94,7 @@
 &lt;https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation&gt; &lt;https://blackcatinformatics.ca/logic/obligationDischargeCondition&gt; &lt;https://blackcatinformatics.ca/logic/DischargeSyntacticReachability&gt; .
 &lt;https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation&gt; &lt;https://blackcatinformatics.ca/logic/obligationDischargeVerdict&gt; &lt;https://blackcatinformatics.ca/logic/ObligationDischarged&gt; .
 &lt;https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation&gt; &lt;https://blackcatinformatics.ca/logic/obligationForbiddenPredicate&gt; "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim" .
+&lt;https://blackcatinformatics.ca/logic/JoinAggregateConstraint&gt; &lt;https://blackcatinformatics.ca/logic/subClassOf&gt; &lt;https://blackcatinformatics.ca/logic/ConstraintSugar&gt; .
 &lt;https://blackcatinformatics.ca/logic/MereologyProfile&gt; &lt;https://blackcatinformatics.ca/logic/instantiatesFramework&gt; &lt;https://blackcatinformatics.ca/logic/MereologicalFramework&gt; .
 &lt;https://blackcatinformatics.ca/logic/Path&gt; &lt;https://blackcatinformatics.ca/logic/instantiatesFramework&gt; &lt;https://blackcatinformatics.ca/logic/TemporalFramework&gt; .
 &lt;https://blackcatinformatics.ca/logic/PositiveHornProfile&gt; &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;https://blackcatinformatics.ca/logic/ReasoningPreset&gt; .

@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for the connection / parallel-transport / holonomy surface
+# It carries BOTH readings, each fully framed:
+#
+#   PRIMARY (discrete): a math:CellularSheaf on a closed 3-cell loop whose
+#   math:SheafRestrictionMaps ARE a math:FlatConnection (math:connectionOfSheaf /
+#   math:connectionOn); its math:transportCochain is a math:Cocycle (flat ⇔ closed);
+#   a math:ParallelTransport composes the maps along the loop; a math:Holonomy names
+#   the loop (math:holonomyLoop) and the connection (math:holonomyOf).
+#
+#   SECONDARY (manifold): a math:Atlas of two charts + a math:transitionMap; a
+#   math:Connection ON the atlas; a math:Holonomy around a coordinate loop.
+#
+# Every object satisfies its frame (a connection names what it is ON, a transport
+# names rule + path, a holonomy names loop + connection, a flat connection's
+# transport cochain is a cocycle), so validation emits NO findings.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+# --- PRIMARY: the discrete sheaf connection on a closed loop A → B → C → A ---- #
+
+ex:loopSheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:loopComplex ;
+    math:hasStalk ex:stalkA , ex:stalkB , ex:stalkC ;
+    math:restrictionMap ex:rAB , ex:rBC , ex:rCA .
+ex:loopComplex a math:CellComplex .
+ex:stalkA a math:SheafStalk ; math:stalkOverCell ex:cellA .
+ex:stalkB a math:SheafStalk ; math:stalkOverCell ex:cellB .
+ex:stalkC a math:SheafStalk ; math:stalkOverCell ex:cellC .
+ex:cellA a math:MathematicalObject .
+ex:cellB a math:MathematicalObject .
+ex:cellC a math:MathematicalObject .
+ex:rAB a math:SheafRestrictionMap ; math:sourceObject ex:stalkA ; math:targetObject ex:stalkB .
+ex:rBC a math:SheafRestrictionMap ; math:sourceObject ex:stalkB ; math:targetObject ex:stalkC .
+ex:rCA a math:SheafRestrictionMap ; math:sourceObject ex:stalkC ; math:targetObject ex:stalkA .
+
+ex:discreteConnection a math:FlatConnection , math:Connection ;
+    math:connectionOfSheaf ex:loopSheaf ;
+    math:connectionOn ex:loopSheaf ;
+    math:transportCochain ex:transportCocycle .
+ex:transportCocycle a math:Cocycle .
+ex:loop a math:MathematicalObject .
+ex:discreteTransport a math:ParallelTransport ;
+    math:transportConnection ex:discreteConnection ;
+    math:transportAlong ex:loop .
+ex:discreteHolonomy a math:Holonomy ;
+    math:holonomyLoop ex:loop ;
+    math:holonomyOf ex:discreteConnection .
+
+# --- SECONDARY: the manifold reading — an atlas, charts, transition, holonomy - #
+
+ex:atlas a math:Atlas ;
+    math:hasChart ex:chartU , ex:chartV ;
+    math:transitionMap ex:transitionUV .
+ex:chartU a math:Chart ;
+    math:chartDomain ex:regionU ;
+    math:coordinateMap ex:coordU ;
+    math:targetCoordinateSpace ex:coordSpace .
+ex:chartV a math:Chart ;
+    math:chartDomain ex:regionV ;
+    math:coordinateMap ex:coordV ;
+    math:targetCoordinateSpace ex:coordSpace .
+ex:regionU a math:OpenSet .
+ex:regionV a math:OpenSet .
+ex:coordU a math:CoordinateMap ; math:domain ex:regionU ; math:codomain ex:coordSpace .
+ex:coordV a math:CoordinateMap ; math:domain ex:regionV ; math:codomain ex:coordSpace .
+ex:coordSpace a math:Set ; math:spaceDimension 2 .
+ex:transitionUV a math:Function ; math:domain ex:coordSpace ; math:codomain ex:coordSpace .
+
+ex:manifoldConnection a math:Connection ;
+    math:connectionOn ex:atlas .
+ex:manifoldLoop a math:MathematicalObject .
+ex:manifoldHolonomy a math:Holonomy ;
+    math:holonomyLoop ex:manifoldLoop ;
+    math:holonomyOf ex:manifoldConnection .

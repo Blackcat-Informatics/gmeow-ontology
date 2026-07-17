@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:24befedd30f81c09,gmeow:examples/rights/photo-copyright,gmeow:examples/rights/jane,copyrightHolder,,2026-03-01T00:00:00Z,0.85,,gmeow:examples/rights/src-rights-register,,,,

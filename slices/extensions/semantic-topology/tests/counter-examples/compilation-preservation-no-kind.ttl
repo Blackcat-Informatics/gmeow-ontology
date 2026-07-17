@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the EL-safe exact-one cardinality restriction on
+# gmeow:CompilationPreservationRecord (owl:minQualifiedCardinality 1 on
+# logic:preservationKind, owl:onClass logic:PreservationKind): a gmeow:ComplexCompilation
+# whose correspondence (with a genuine row) and standpoint/world/time context are all
+# present and valid, and which DOES record a gmeow:CompilationPreservationRecord — but that
+# record names NO logic:preservationKind at all. A preservation record with an empty
+# ledger entry is dishonest by omission (Principle 17), so the sh:minCount 1 restriction
+# MUST reject it with shacl.MinCountConstraintComponent, and nothing else — because no
+# preservationKind is bound at all, gmeow:CompilationPreservationBoundaryConstraint's guard
+# never fires (its ∃k antecedent fails to bind), so this is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:compilationBad a gmeow:ComplexCompilation ;
+    gmeow:recordsCorrespondence ex:corr ;
+    gmeow:recordsPreservation ex:pres ;           # <-- present but names NO preservationKind
+    gmeow:compilationStandpoint ex:sp ;
+    gmeow:compilationWorld ex:w ;
+    gmeow:compilationTimeScope ex:t .
+
+ex:corr a gmeow:CellSourceCorrespondence ;
+    gmeow:correspondenceCell ex:cell .
+ex:cell a math:Cell ;
+    gmeow:cellSource ex:span .
+ex:span a gmeow:EvidenceSpan .
+ex:pres a gmeow:CompilationPreservationRecord .   # no logic:preservationKind at all
+ex:sp a gmeow:Standpoint .
+ex:w a logic:PossibleWorld .
+ex:t a gmeow:TimeScopedRelation .

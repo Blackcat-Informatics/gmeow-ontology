@@ -1,6 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:1c1c5f25d74418b9,gmeow:examples/event-fabrication-001,gmeow:examples/verificationresult-fabrication-001,implicates,gmeow:examples/standpoint-investigator,2026-06-08T00:00:00Z,0.85,,,,,,
-edge:1ecc3dd6b86dbf69,gmeow:examples/event-forgery-001,gmeow:examples/creativework-forged-001,implicates,gmeow:examples/standpoint-investigator,2026-06-09T00:00:00Z,0.85,,,,,,
-edge:8f2681f4fc269c63,gmeow:examples/event-impersonation-001,gmeow:examples/identityfacet-impersonation-001,implicates,gmeow:examples/standpoint-investigator,2026-06-10T00:00:00Z,0.85,,,,,,
-edge:cafa89a0befa4fce,gmeow:examples/event-paltering-001,gmeow:examples/proposition-paltering-implicated-001,implicates,,2026-06-02T00:00:00Z,0.75,,,,,,
-edge:cda896f0172e8483,gmeow:examples/event-forgery-001,gmeow:examples/cryptographicsignature-forgery-001,implicates,gmeow:examples/standpoint-investigator,2026-06-09T00:00:00Z,0.85,,,,,,
