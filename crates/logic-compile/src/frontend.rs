@@ -2917,14 +2917,15 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
     // above. Excluding every clause/query/probe root here is what lets
     // `extract_reasoning_programs` reuse `parse_formula` without giving one authored formula
     // two content-addressed IR homes.
+    let reasoning_programs = subjects_with(
+        store,
+        &nn(RDF_TYPE),
+        &Node::iri(logic_iri("ReasoningProgram")),
+    );
     for link in ["clause", "programQuery", "verdictProbe"] {
         let pred = nn(&logic_iri(link));
-        for program in subjects_with(
-            store,
-            &nn(RDF_TYPE),
-            &Node::iri(logic_iri("ReasoningProgram")),
-        ) {
-            for obj in objects(store, &program, &pred) {
+        for program in &reasoning_programs {
+            for obj in objects(store, program, &pred) {
                 referenced.insert(term_str(&obj));
             }
         }
