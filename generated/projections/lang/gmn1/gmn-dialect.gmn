@@ -12,6 +12,7 @@
 @c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: rdf__type, o: genv}
 @c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: gmeow__accordingTo, o: gmeow__examples-2f-lang-2f-coalitionDesk}
 @c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: gmeow__contentDigest, v: r_b3b1da41f296262a}
+@c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: gmeow__gmnCodebookDigest, v: r_ce3b9acc6cf62ab5}
 @c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: gmeow__gmnDictionaryVersion, v: r_27de2197ef596056}
 @c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: gmeow__gmnEnvelopeCorrespondence, o: gmeow__examples-2f-lang-2f-corrCoalitionEnvelope}
 @c{s: gmeow__examples-2f-lang-2f-coalitionEnvelope, p: gmeow__gmnGlyphTableVersion, v: r_69911df6e61584dd}
@@ -51,6 +52,7 @@
 @c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: rdf__type, o: genv}
 @c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: gmeow__accordingTo, o: gmeow__examples-2f-lang-2f-archiveKeeper}
 @c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: gmeow__contentDigest, v: r_86a34d88e142acd6}
+@c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: gmeow__gmnCodebookDigest, v: r_ce3b9acc6cf62ab5}
 @c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: gmeow__gmnDictionaryVersion, v: r_27de2197ef596056}
 @c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: gmeow__gmnEnvelopeCorrespondence, o: gmeow__examples-2f-lang-2f-corrNightlyEnvelope}
 @c{s: gmeow__examples-2f-lang-2f-nightlyEnvelope, p: gmeow__gmnGlyphTableVersion, v: r_69911df6e61584dd}

@@ -662,6 +662,7 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] ; sh:qualifiedMinCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnCodebookDigest> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> ; sh:minCount 1 ; sh:maxCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/Correspondence> ] ; sh:qualifiedMinCount 1 ] .
