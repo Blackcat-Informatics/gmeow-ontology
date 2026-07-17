@@ -8168,6 +8168,12 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/gmn1:conformance-pack>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:conformance-pack" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/gmn1:expression-rendering>
     a logic:ProjectionTarget ;
     rdfs:label "gmn1:expression-rendering" ;
@@ -125421,6 +125427,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/fno:f97ab23988289696> ,
         <https://blackcatinformatics.ca/logic/target/fno:fda31433851be3f9> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:authority-links> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:conformance-pack> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:expression-rendering> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:flagship-acceptance> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:forms-and-sign-systems> ,

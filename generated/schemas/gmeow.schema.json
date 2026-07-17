@@ -13549,6 +13549,16 @@
             }
           ]
         },
+        "gmeow:gmnCodebookDigest": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
         "gmeow:gmnDictionaryVersion": {},
         "gmeow:gmnEnvelopeCorrespondence": {
           "anyOf": [
@@ -13602,6 +13612,7 @@
       "required": [
         "gmeow:accordingTo",
         "gmeow:contentDigest",
+        "gmeow:gmnCodebookDigest",
         "gmeow:gmnDictionaryVersion",
         "gmeow:gmnGlyphTableVersion",
         "gmeow:gmnSchemaVersion",

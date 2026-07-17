@@ -51,6 +51,7 @@ md_matches=$(rg -n -e '#\d{3,}' \
     --glob '!docs/BRAND.md' \
     --glob '!.github/**' \
     --glob '!generated/**' \
+    --glob '!vendor/**' \
     .) || md_code=$?
 if [ "$md_code" -eq 2 ]; then exit 2; fi
 

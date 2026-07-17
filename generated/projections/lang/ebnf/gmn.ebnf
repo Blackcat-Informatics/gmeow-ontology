@@ -21,4 +21,5 @@ record ::= sigil recordBody EOL
 recordBody ::= '{' pairList '}'
 referenceToken ::= identifier | glyphToken
 sigil ::= '@c' | '@e' | '@s' | '@p' | '@d' | '@m' | '@π' | '@μ' | '@λ' | '@ℒ' | '@err' | '@patch' | '@retract'
-value ::= referenceToken | number | list
+tripleTerm ::= '(' value value value ')'
+value ::= referenceToken | number | list | tripleTerm

@@ -21,8 +21,13 @@ sigil ::= '@c' | '@e' | '@s' | '@p' | '@d' | '@m' | '@π' | '@μ' | '@λ' | '@�
 recordBody ::= '{' pairList '}'
 pairList ::= pair (',' pair)*
 pair ::= identifier ':' value
-value ::= referenceToken | number | list
+value ::= referenceToken | number | list | tripleTerm
 referenceToken ::= identifier | glyphToken
+# RDF 1.2 triple term in the object slot (`s rdf:reifies <<( a b c )>>`): the compact
+# GMN-1 surface `( s p o )` over three nested values, recovered by the codec's
+# paren-depth-aware split. Nests (`( a b ( c d e ) )`); inter-component whitespace is
+# carried by the codec, per this file's whitespace note.
+tripleTerm ::= '(' value value value ')'
 # GENERATOR SEAM: the pipeline replaces this whole production from the canonical
 # Denotation -> Grapheme registry before parsing or shipping the grammar. The
 # sentinel is deliberately not a glyph inventory; exactly one such production is
