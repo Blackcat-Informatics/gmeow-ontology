@@ -80,7 +80,7 @@ class RomanticOrientation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RomanticOrientation", "curie": "gmeow:RomanticOrientation", "definitionDigest": "blake3:d304fe485a30c52e3ff8b28d9e26c21101a3c6e684839eda4b10b4ef01a83408", "iri": "https://blackcatinformatics.ca/gmeow/RomanticOrientation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/RomanticOrientation", "curie": "gmeow:RomanticOrientation", "definitionDigest": "blake3:1241a483606f2a907040f792883bdcd5064d6b5426b17fb96aa8bd15604eee6c", "iri": "https://blackcatinformatics.ca/gmeow/RomanticOrientation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -183,7 +183,7 @@ class SexualOrientation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SexualOrientation", "curie": "gmeow:SexualOrientation", "definitionDigest": "blake3:0d463230db3184baed11bfebc4fcf82db2b9c597c311e099f514f0e10020ac8b", "iri": "https://blackcatinformatics.ca/gmeow/SexualOrientation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SexualOrientation", "curie": "gmeow:SexualOrientation", "definitionDigest": "blake3:b799bf134d62a815ed60296a1e794dd5d0c7ed9040304e712daa09a987d029bb", "iri": "https://blackcatinformatics.ca/gmeow/SexualOrientation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

@@ -53,7 +53,7 @@ class Annotation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Annotation", "curie": "gmeow:Annotation", "definitionDigest": "blake3:a5b6e3d578db7db5cef5352379d173789dfc5dc545abf59d0cb6ab377902329e", "iri": "https://blackcatinformatics.ca/gmeow/Annotation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Annotation", "curie": "gmeow:Annotation", "definitionDigest": "blake3:b3feaa840482e1e6274ce66cf82119c1aa7992675914eef53c1153d82cbca9fd", "iri": "https://blackcatinformatics.ca/gmeow/Annotation"},
     )
 
 
@@ -79,7 +79,7 @@ class Note(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Note", "curie": "gmeow:Note", "definitionDigest": "blake3:05f0b184862ede3f90d6fc925931997fbe7c955da2753156981654a21cae758e", "iri": "https://blackcatinformatics.ca/gmeow/Note"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Note", "curie": "gmeow:Note", "definitionDigest": "blake3:9b2217858d6f81ed04eddb7afb8a112838b5876ebc4923214897abfa3abff218", "iri": "https://blackcatinformatics.ca/gmeow/Note"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -108,7 +108,7 @@ class Comment(Note):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Comment", "curie": "gmeow:Comment", "definitionDigest": "blake3:54a84c69c51d01fe628fd373cc60147c32f5bce13014d374799423e76c7e1ddb", "iri": "https://blackcatinformatics.ca/gmeow/Comment"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Comment", "curie": "gmeow:Comment", "definitionDigest": "blake3:2719d2c378ae364d656e6dff90d16e5ca1f4963adc189516af3098bc611faa7b", "iri": "https://blackcatinformatics.ca/gmeow/Comment"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -136,7 +136,7 @@ class Highlight(Annotation):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Highlight", "curie": "gmeow:Highlight", "definitionDigest": "blake3:3e3903dcf9253551b577adcf66d8a4edfed6fb70f086bfab5e55a595f222930b", "iri": "https://blackcatinformatics.ca/gmeow/Highlight"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Highlight", "curie": "gmeow:Highlight", "definitionDigest": "blake3:779e2b6ba658f171b5b7d948594460b472751cd85a4457a45976848d6bc02c19", "iri": "https://blackcatinformatics.ca/gmeow/Highlight"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

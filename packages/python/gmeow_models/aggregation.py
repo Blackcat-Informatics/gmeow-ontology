@@ -48,7 +48,7 @@ class SpatialAggregation(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SpatialAggregation", "curie": "gmeow:SpatialAggregation", "definitionDigest": "blake3:6cff60937a99ce533a43ced36ad61ee815f569a0d1dde7f580e6cc1a996a71e5", "iri": "https://blackcatinformatics.ca/gmeow/SpatialAggregation"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/SpatialAggregation", "curie": "gmeow:SpatialAggregation", "definitionDigest": "blake3:dc63b05aba33d636adc986a9d0e8b37829c5e7f272176f6c7ec87b15b17c9e53", "iri": "https://blackcatinformatics.ca/gmeow/SpatialAggregation"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

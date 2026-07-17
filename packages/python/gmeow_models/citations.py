@@ -80,7 +80,7 @@ class CitationAct(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CitationAct", "curie": "gmeow:CitationAct", "definitionDigest": "blake3:a73c5476b1e8f1fcca9f11ff852c9bbdb20ec439362eea976fb07f6aae2257df", "iri": "https://blackcatinformatics.ca/gmeow/CitationAct"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CitationAct", "curie": "gmeow:CitationAct", "definitionDigest": "blake3:f3f4df8629fedceb7ff61053b5509f658cb824dc61117b1d8e1303d953273864", "iri": "https://blackcatinformatics.ca/gmeow/CitationAct"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

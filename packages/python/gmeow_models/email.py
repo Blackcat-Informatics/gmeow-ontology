@@ -105,7 +105,7 @@ class MessageParticipant(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MessageParticipant", "curie": "gmeow:MessageParticipant", "definitionDigest": "blake3:1a47cb2c1ddf14fd65f8b6ce33367dcfbe3c3293055404b4112d38084aa20ea0", "iri": "https://blackcatinformatics.ca/gmeow/MessageParticipant"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/MessageParticipant", "curie": "gmeow:MessageParticipant", "definitionDigest": "blake3:81d6186336c49097f64fc377cedf41a2694e0611c42484221fb3a686b66f7f44", "iri": "https://blackcatinformatics.ca/gmeow/MessageParticipant"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

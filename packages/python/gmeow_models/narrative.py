@@ -149,7 +149,7 @@ class ArcSample(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ArcSample", "curie": "gmeow:ArcSample", "definitionDigest": "blake3:9f53187d3298493fda7f609d66a94e478db3c7825594385a119368385d4677b3", "iri": "https://blackcatinformatics.ca/gmeow/ArcSample"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ArcSample", "curie": "gmeow:ArcSample", "definitionDigest": "blake3:decf42c69fa4f7e0e353ac4f63981518f4f771d9e22b44a296c1d962e5d04fff", "iri": "https://blackcatinformatics.ca/gmeow/ArcSample"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -182,7 +182,7 @@ class CharacterArc(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CharacterArc", "curie": "gmeow:CharacterArc", "definitionDigest": "blake3:0514a9682de84ec2aa5ce9090591a2e38ee9b99b9c94e39f125309ff146c692b", "iri": "https://blackcatinformatics.ca/gmeow/CharacterArc"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/CharacterArc", "curie": "gmeow:CharacterArc", "definitionDigest": "blake3:cff9bc29ee1dbfe3b7e4e61d95a1b6a2877cded7600b4971dd12b791282547ea", "iri": "https://blackcatinformatics.ca/gmeow/CharacterArc"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -219,7 +219,7 @@ class Motif(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Motif", "curie": "gmeow:Motif", "definitionDigest": "blake3:f9ef47050c365ecf4015fda7071afb4c7d4f0466db2ae3f2e9c94a27fb67b327", "iri": "https://blackcatinformatics.ca/gmeow/Motif"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Motif", "curie": "gmeow:Motif", "definitionDigest": "blake3:c06f0de90c4c1a05175f40360bec6c77b9431587037a0be968c0ba1ace9a9bd9", "iri": "https://blackcatinformatics.ca/gmeow/Motif"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -251,7 +251,7 @@ class Myth(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Myth", "curie": "gmeow:Myth", "definitionDigest": "blake3:140f7708a33f37d22eda985dd20b77aabe8943c3263f567d184402131fdc8ea0", "iri": "https://blackcatinformatics.ca/gmeow/Myth"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Myth", "curie": "gmeow:Myth", "definitionDigest": "blake3:7e13eea5c446c8c8758331821462597f187bfdbb49b71ee4532f8b2dd5b03162", "iri": "https://blackcatinformatics.ca/gmeow/Myth"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -285,7 +285,7 @@ class NarrationUsage(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrationUsage", "curie": "gmeow:NarrationUsage", "definitionDigest": "blake3:fdf7999264b90eade28020165625ba2c01ded612bd1471ab143bbe7f482baf26", "iri": "https://blackcatinformatics.ca/gmeow/NarrationUsage"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrationUsage", "curie": "gmeow:NarrationUsage", "definitionDigest": "blake3:8921620f5d21e688a5fcfaf63b148d9999aedc05065d73041a7df774c089c715", "iri": "https://blackcatinformatics.ca/gmeow/NarrationUsage"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -319,7 +319,7 @@ class NarrativeFrameLink(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink", "curie": "gmeow:NarrativeFrameLink", "definitionDigest": "blake3:85ecbd2d6876a565a4ea8f2894ffb15ac993bebb366da4f74b4e3979dfbd2e69", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink", "curie": "gmeow:NarrativeFrameLink", "definitionDigest": "blake3:a183572796b97a65ee246e39865e37031c30e986a2225c4f119daa6311011d95", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeFrameLink"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -386,7 +386,7 @@ class NarrativeReferenceFrame(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame", "curie": "gmeow:NarrativeReferenceFrame", "definitionDigest": "blake3:d7e9d5f4913b2421ebbc38fa08069016edc8271883b96b3b4e06b23e3f2b4b17", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame", "curie": "gmeow:NarrativeReferenceFrame", "definitionDigest": "blake3:092007419c9d041fe0c1bc2b433008a97e858d5a03a79f84b56f43cf9909a429", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -420,7 +420,7 @@ class NarrativeTimeFrame(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame", "curie": "gmeow:NarrativeTimeFrame", "definitionDigest": "blake3:a174647df3d9d90b69159fdacf9d7ec61bae7368f5b704b9008fa81eaaef048b", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame", "curie": "gmeow:NarrativeTimeFrame", "definitionDigest": "blake3:e6baae6cc1e8400bda6af3fa72b4f9fb5c2fcc4262b6990f3fd7421bba423de4", "iri": "https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
