@@ -130,7 +130,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "6404a31a781ff97847125d3633639894a2cd1a10" }
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.7.0" }
 
 [workspace.package]
 version = "0.1.0"
