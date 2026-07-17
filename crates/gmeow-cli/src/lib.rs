@@ -272,6 +272,76 @@ pub enum Commands {
         #[command(subcommand)]
         command: SliceCommands,
     },
+    /// Register an external relation provider and run a hybrid-retrieval query.
+    ///
+    /// Loads ordinary asserted RDF facts (Turtle or N-Triples) into an isolated
+    /// query world, parses a Datalog query program that references the
+    /// registered provider relation, seals a query-scoped, deterministically
+    /// budgeted [`gmeow_logic::external_relation::TableRelationProvider`] over a
+    /// caller-supplied candidate table, and dispatches the annotated query
+    /// end-to-end. Prints every resolved answer binding (with its composed
+    /// annotation) plus the query receipt: every contributing provider's
+    /// identity and artifact generation, and per-invocation
+    /// request/response/status evidence — the observable proof that the
+    /// query-scoped external-relation engine runs on the shipped `gmeow`
+    /// binary, not only inside `crates/logic`'s own test binary.
+    #[command(name = "hybrid-query")]
+    HybridQuery {
+        /// RDF facts (Turtle `.ttl`/`.turtle` or N-Triples `.nt`/`.ntriples`)
+        /// re-homed into an isolated query world and joined against the
+        /// provider relation.
+        #[arg(long = "facts")]
+        facts: PathBuf,
+        /// A Datalog query program (`:- prefix(...)` directives, rules, and a
+        /// single `?-` goal) that references the registered provider relation
+        /// IRI (`--relation`) plus any ordinary RDF predicates from `--facts`.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// The external provider's candidate tuples: DERIVED QUERY INPUTS,
+        /// never asserted ontology facts, so this is deliberately a plain
+        /// line-oriented table, not RDF. One tuple per line:
+        /// `<arg1-iri> <arg2-iri> annotation order-key`, whitespace-separated
+        /// (tabs or spaces, repeated whitespace collapses); blank lines and
+        /// lines starting with `#` are ignored. `arg1-iri`/`arg2-iri` MUST be
+        /// bracketed absolute IRIs (`<https://example.org/x>`); `annotation`
+        /// is a signed 64-bit ZWeight integer; `order-key` is the provider's
+        /// own lexical rank key for the pushed-down ascending total order
+        /// (ties break on canonical tuple order).
+        #[arg(long = "candidates")]
+        candidates: PathBuf,
+        /// The provider relation IRI referenced by `--program` (fixed arity 2,
+        /// both arguments IRIs, `logic:SimilarityAnnotation` dimension).
+        #[arg(long = "relation")]
+        relation: String,
+        /// Provider identity IRI (provenance only).
+        #[arg(
+            long = "provider-iri",
+            default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/provider"
+        )]
+        provider_iri: String,
+        /// Model/algorithm identity IRI (provenance only).
+        #[arg(
+            long = "model-iri",
+            default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/model"
+        )]
+        model_iri: String,
+        /// Immutable artifact-generation IRI the `--candidates` table is
+        /// pinned to (provenance only).
+        #[arg(
+            long = "artifact-generation",
+            default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/generation/1"
+        )]
+        artifact_generation: String,
+        /// Ordered-prefix row limit pushed into the provider on each call.
+        #[arg(long = "per-call-limit", default_value_t = 64)]
+        per_call_limit: usize,
+        /// Deterministic operation-wide provider call budget.
+        #[arg(long = "max-calls", default_value_t = 64)]
+        max_calls: u64,
+        /// Deterministic operation-wide provider row budget.
+        #[arg(long = "max-rows", default_value_t = 4096)]
+        max_rows: u64,
+    },
 }
 
 /// The `gmeow slice` nested subcommands.
@@ -560,5 +630,29 @@ pub fn run() -> i32 {
                 commands::slice_projection_ceilings(reporter, &format)
             }
         },
+        Commands::HybridQuery {
+            facts,
+            program,
+            candidates,
+            relation,
+            provider_iri,
+            model_iri,
+            artifact_generation,
+            per_call_limit,
+            max_calls,
+            max_rows,
+        } => commands::hybrid_query(
+            reporter,
+            &facts,
+            &program,
+            &candidates,
+            &relation,
+            &provider_iri,
+            &model_iri,
+            &artifact_generation,
+            per_call_limit,
+            max_calls,
+            max_rows,
+        ),
     }
 }

@@ -1745,6 +1745,7 @@ fn public_derivations<E: Clone>(
                 })
                 .collect(),
             tuple_sources: Vec::new(),
+            provider_sources: Vec::new(),
             annotation: derivation.annotation.clone(),
         })
         .collect()
@@ -1979,6 +1980,52 @@ where
         frontier: annotated.frontier,
         certification,
     }))
+}
+
+/// Provider-aware annotated resolution through the single arity-generic fixpoint.
+///
+/// Explicit query-scoped relation registration selects this route even for an all-binary
+/// program, because provider atoms and ordinary RDF EDB atoms must share one authored-SIPS
+/// evaluation. There is no scalar callback, scratch-world materialization, or second score
+/// pass.
+pub(crate) fn resolve_native_annotated_with_relations_under<A, F>(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    annotation: &AnnotationRequest<'_, A, F>,
+    relation_execution: &mut crate::external_relation::RelationExecution<'_, '_, '_, A>,
+) -> Result<
+    NativeOutcome<AnnotatedAnswerSet<A::Element>>,
+    super::magic_generic::ExternalRelationEvaluationError,
+>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    if profile_gate::has_cut(program) {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+    }
+    if program.goal.atoms.len() != 1 {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+    }
+    let outcome = super::magic_generic::resolve_native_generic_annotated_with_relations(
+        foreign,
+        world,
+        program,
+        budget,
+        annotation,
+        relation_execution,
+    )?;
+    match outcome {
+        NativeOutcome::Decided(mut answer) => {
+            relation_execution
+                .merge_preservation(&mut answer.preservation)
+                .map_err(super::magic_generic::ExternalRelationEvaluationError::Query)?;
+            Ok(NativeOutcome::Decided(answer))
+        }
+        NativeOutcome::Unsupported(kind) => Ok(NativeOutcome::Unsupported(kind)),
+    }
 }
 
 #[cfg(test)]

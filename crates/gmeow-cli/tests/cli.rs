@@ -786,3 +786,174 @@ fn conjecture_test_max_steps_bound_forces_open() {
         );
     std::fs::remove_dir_all(&dir).ok();
 }
+
+// ── hybrid-query (Gap E2/E3: external-relation provider on the shipped CLI) ──
+
+/// Ordinary asserted RDF facts: two documents, one active and one inactive.
+/// The hard RDF constraint `ex:status(D, ex:active)` filters the provider's
+/// candidate join down to exactly `doc/one`.
+fn hybrid_query_facts_ttl() -> String {
+    "<https://example.org/doc/one> <https://example.org/status> <https://example.org/active> .\n\
+     <https://example.org/doc/two> <https://example.org/status> <https://example.org/inactive> .\n"
+        .to_owned()
+}
+
+/// A provider/RDF join program: `eligible(Q, D)` holds when the lexical
+/// provider relation returns `D` for `Q` AND `D` is asserted `ex:active` —
+/// the same join shape as `crates/logic/tests/external_relations.rs`'s
+/// `bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint`.
+fn hybrid_query_program() -> String {
+    ":- prefix(ex, 'https://example.org/').\n\
+     ex:eligible(Q, D) :- ex:relation/lexical(Q, D), ex:status(D, ex:active).\n\
+     ?- ex:eligible(ex:cat, D).\n"
+        .to_owned()
+}
+
+/// Three lexical candidate tuples: two for `cat` (one active, one inactive
+/// document) and one for `dog` (irrelevant to the goal). Comments and blank
+/// lines are deliberately included to exercise the candidate-file grammar.
+fn hybrid_query_candidates_txt() -> String {
+    "# query        document                        annotation order-key\n\
+     \n\
+     <https://example.org/cat> <https://example.org/doc/one> 7 001\n\
+     <https://example.org/cat> <https://example.org/doc/two> 5 002\n\
+     <https://example.org/dog> <https://example.org/doc/three> 3 003\n"
+        .to_owned()
+}
+
+const HYBRID_QUERY_RELATION: &str = "https://example.org/relation/lexical";
+const HYBRID_QUERY_PROVIDER_IRI: &str = "https://example.org/hybrid-query-test/provider";
+
+/// The headline E3 acceptance test: `gmeow hybrid-query` registers a real
+/// `TableRelationProvider` and drives the query end-to-end on the SHIPPED
+/// binary, printing both the resolved answer binding (the RDF-constrained
+/// join keeps only the active document) and the query receipt naming the
+/// contributing provider — the observable proof this capability is reachable
+/// outside `crates/logic`'s own test binary.
+#[test]
+fn hybrid_query_prints_answer_binding_and_provider_lineage_receipt() {
+    let dir = scratch("hybrid-query");
+    let facts = dir.join("facts.ttl");
+    let program = dir.join("query.logic");
+    let candidates = dir.join("candidates.txt");
+    std::fs::write(&facts, hybrid_query_facts_ttl()).expect("write facts");
+    std::fs::write(&program, hybrid_query_program()).expect("write program");
+    std::fs::write(&candidates, hybrid_query_candidates_txt()).expect("write candidates");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--candidates")
+        .arg(&candidates)
+        .args(["--relation", HYBRID_QUERY_RELATION])
+        .args(["--provider-iri", HYBRID_QUERY_PROVIDER_IRI])
+        .assert()
+        .success()
+        .stdout(
+            // The RDF join admits ONLY the active document, with the provider's
+            // ZWeight annotation (7) composed against the asserted-fact identity
+            // (the CLI supplies no asserted-RDF scoring function).
+            predicate::str::contains("answer D=<https://example.org/doc/one> annotation=7")
+                // The excluded, inactive candidate must never appear as an answer.
+                .and(predicate::str::contains("doc/two").not())
+                .and(predicate::str::contains("status Ok"))
+                // The receipt must name the contributing provider by IRI — the
+                // acceptance criterion that provider lineage is observable.
+                .and(predicate::str::contains(format!(
+                    "receipt contributing-provider {HYBRID_QUERY_PROVIDER_IRI}"
+                )))
+                .and(predicate::str::contains(format!(
+                    "relation={HYBRID_QUERY_RELATION}"
+                )))
+                .and(predicate::str::contains(format!(
+                    "provider={HYBRID_QUERY_PROVIDER_IRI}"
+                )))
+                .and(predicate::str::contains("status=Complete"))
+                .and(predicate::str::contains("contributed=true")),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+/// A malformed `--candidates` line (only 3 fields, missing the order-key) is a
+/// specific, honest parse failure — never a silently empty/degraded provider.
+#[test]
+fn hybrid_query_malformed_candidates_line_fails_with_a_specific_diagnostic() {
+    let dir = scratch("hybrid-query-bad-candidates");
+    let facts = dir.join("facts.ttl");
+    let program = dir.join("query.logic");
+    let candidates = dir.join("candidates.txt");
+    std::fs::write(&facts, hybrid_query_facts_ttl()).expect("write facts");
+    std::fs::write(&program, hybrid_query_program()).expect("write program");
+    std::fs::write(
+        &candidates,
+        "<https://example.org/cat> <https://example.org/doc/one> 7\n",
+    )
+    .expect("write malformed candidates");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--candidates")
+        .arg(&candidates)
+        .args(["--relation", HYBRID_QUERY_RELATION])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("line 1").and(predicate::str::contains(
+                "expected 4 whitespace-separated fields",
+            )),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+/// A provider that is registered but never referenced by the program is
+/// legitimate (mirrors the `unused_vector` fixture in
+/// `crates/logic/tests/external_relations.rs`): the query still completes
+/// normally, simply without touching the unused provider — a syntactically
+/// valid, disjoint program is NOT an error path, and every asserted-RDF-only
+/// answer carries the multiplicative identity annotation (`1`).
+#[test]
+fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
+    let dir = scratch("hybrid-query-unused-provider");
+    let facts = dir.join("facts.ttl");
+    let program = dir.join("query.logic");
+    let candidates = dir.join("candidates.txt");
+    std::fs::write(&facts, hybrid_query_facts_ttl()).expect("write facts");
+    std::fs::write(
+        &program,
+        ":- prefix(ex, 'https://example.org/').\n\
+         ?- ex:status(S, D).\n",
+    )
+    .expect("write program");
+    std::fs::write(&candidates, hybrid_query_candidates_txt()).expect("write candidates");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--candidates")
+        .arg(&candidates)
+        .args(["--relation", HYBRID_QUERY_RELATION])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains(
+                "answer D=<https://example.org/active>, S=<https://example.org/doc/one> \
+                 annotation=1",
+            )
+            .and(predicate::str::contains(
+                "answer D=<https://example.org/inactive>, S=<https://example.org/doc/two> \
+                 annotation=1",
+            ))
+            .and(predicate::str::contains("status Ok")),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}

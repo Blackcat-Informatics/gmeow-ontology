@@ -119,6 +119,37 @@ Each query snapshots its world into the typed fact source, lowers the adorned go
 demand-transformed program, and evaluates that plan in the native fixpoint core. The snapshot and
 working relations are query-local, while immutable compiled plans may be cached by contract hash.
 
+### Query-scoped external relations
+
+A provider-aware query may carry an immutable set of **external relation descriptors** as an
+explicit DAG input. Each descriptor binds one relation IRI to a provider, artifact generation,
+model, positional RDF 1.2 argument schema, tuple-annotation dimension and algebra, total order,
+per-call limit, and preservation claim. Registration is borrowed by that query execution only:
+there is no global mutable provider registry, and providing no descriptor does not select a
+half-featured fallback. It simply describes a different query plan.
+
+An external relation atom is a physical EDB operator inside the same arity-generic annotated
+fixpoint as ordinary RDF EDB and recursive IDB atoms. At the atom's authored left-to-right SIPS
+position, the current binding becomes positional provider bounds; limit and total ordering are
+pushed with it. A complete batch is checked for artifact generation, arity, RDF 1.2 term kinds
+(including triple terms), bounds, limit, uniqueness, total order, and annotation consistency before
+any row becomes visible. Validated complete batches alone enter the query-local cache. Cache lookup
+precedes provider-budget charging, so recursive reuse is both deterministic and cheap.
+
+Provider tuples are **derived query inputs, not ontology assertions**. They live in the evaluator,
+lineage, and receipt; they are never inserted into `WorldStore`, a scratch named graph, or the
+committed ontology. Their annotations participate in the existing `⊗`/`⊕` equations and their
+preservation claims merge into the answer's ordinary preservation ledger. Provider failure,
+incompleteness, cancellation, budget exhaustion, stale generation, or malformed output is a typed
+non-result. Only a successful complete batch may denote an empty relation; incompleteness is never
+reported as semantic absence.
+
+The source/snapshot, resident-view, and fallible-view dispatch boundaries all retain this contract.
+A complete result binds the RDF source generation, engine descriptor, provider manifest, query
+contract, ordered invocation evidence, response hashes, and structural call/row counters. At a
+fallible RDF view, RDF operational failure remains distinct from provider/query failure and takes
+precedence over any partial internal work.
+
 ## The forward materialization ↔ backward resolution seam
 
 Forward materialization and backward demand evaluation share one relational core and exchange
