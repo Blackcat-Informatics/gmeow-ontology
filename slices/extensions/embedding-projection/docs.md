@@ -4,7 +4,7 @@
 # The embedding-projection extension — vectors as an auditable category
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/embedding-projection` · **tier: extension**
-> The GMEOW meaning of PurRDF's `.purremb` container (Blackcat-Informatics/purrdf, issue 131):
+> The GMEOW meaning of PurRDF's `.purremb` container (the PurRDF PURREMB v1 container format):
 > PurRDF owns the binary layout and access API; this slice owns what the projection MEANS.
 
 Every embedding stack quietly collapses four different things into one blob of
@@ -132,7 +132,7 @@ and the disclosure-monotonicity act — the terms with no prior home.
 
 ## Where the bytes live
 
-PurRDF's `.purremb` container (Blackcat-Informatics/purrdf, issue 131) is the binary
+PurRDF's `.purremb` container (the PurRDF PURREMB v1 container format) is the binary
 owner: the `PURREMB1` framing, the sorted section directory, the lossless dense
 matrices, the domain-separated identities, and the Exact / Certified verification
 modes. It mints no vocabulary. This slice is the meaning that rides on it — the

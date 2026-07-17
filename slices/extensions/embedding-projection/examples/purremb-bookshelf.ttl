@@ -27,7 +27,7 @@
 #      (gmeow:approximationRecall, gmeow:indexNondeterminism) stays explicit and
 #      whose rebuild is an append-only supersession, not an erasure.
 #
-# This scene is authored against the purrdf#131-aligned vocabulary: the model +
+# This scene is authored against the PURREMB-v1-aligned vocabulary: the model +
 # full generation contract lives on a gmeow:EmbeddingFamily (ex:familyA / ex:familyB)
 # that stores its top-dimensional matrix ONCE, while each comparable
 # gmeow:VectorSpaceContract is an EFFECTIVE space over that family — either the full
@@ -69,7 +69,7 @@ ex:bookshelfPack a gmeow:InformationObject ;
     gmeow:hasDisclosurePolicy gmeow:policyInternalOnly .
 
 # ===========================================================================
-# 2. Embedding family A + its EFFECTIVE vector spaces (purrdf#131 split).
+# 2. Embedding family A + its EFFECTIVE vector spaces (PURREMB v1 family/space split).
 #    ex:familyA is the model + FULL generation contract that produces and stores
 #    the top-dimensional matrix ONCE; its identity is the reused gmeow:contentDigest
 #    over the whole generation contract. ex:vscA is the FULL effective space over

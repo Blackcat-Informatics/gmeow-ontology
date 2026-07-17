@@ -6,7 +6,7 @@
 > The **profile charter** of the `embedding-projection` slice: what a GMEOW
 > `.purremb` embedding projection MEANS, what it MUST carry, and what a
 > conforming producer and consumer MUST do. The binary layout and the access API
-> are owned by PurRDF (Blackcat-Informatics/purrdf, issue 131); this document owns the
+> are owned by PurRDF (the PurRDF PURREMB v1 container format); this document owns the
 > semantics that ride on it. It is the normative peer of the slice narrative in
 > [`../docs.md`](../docs.md).
 >
