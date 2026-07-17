@@ -47,10 +47,10 @@ const DOCKER_PATTERNS: &[&str] = &[
     r"\b(?:javac|gradlew?)\b",
 ];
 
-static DOCKER_REGEXES: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+static DOCKER_REGEXES: LazyLock<Result<Vec<Regex>, regex::Error>> = LazyLock::new(|| {
     DOCKER_PATTERNS
         .iter()
-        .map(|pattern| Regex::new(&format!("(?i){pattern}")).expect("static regex"))
+        .map(|pattern| Regex::new(&format!("(?i){pattern}")))
         .collect()
 });
 
@@ -64,8 +64,8 @@ static DOCKER_REGEXES: LazyLock<Vec<Regex>> = LazyLock::new(|| {
 // frozen corpus and the native gap-zero `dl-el-crosscheck-report.ttl` ledger,
 // which appear as recipe artifact PATHS or `conformance` tests, never as gate
 // targets — stay green.
-static DIFFERENTIAL_ORACLE_TARGET: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)cross-?check").expect("static regex"));
+static DIFFERENTIAL_ORACLE_TARGET: LazyLock<Result<Regex, regex::Error>> =
+    LazyLock::new(|| Regex::new(r"(?i)cross-?check"));
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RepoStaticReport {
@@ -722,11 +722,20 @@ fn check_lane_purity(root: &Path, report: &mut RepoStaticReport) {
 /// stay green; only a live differential-oracle GATE is forbidden.
 fn check_differential_oracle_seal(root: &Path, report: &mut RepoStaticReport) {
     let rel = "Makefile";
+    let re = match &*DIFFERENTIAL_ORACLE_TARGET {
+        Ok(re) => re,
+        Err(e) => {
+            report.error(format!(
+                "{rel}: failed to compile differential-oracle target regex: {e}"
+            ));
+            return;
+        }
+    };
     let Some(text) = read_required(root, rel, report) else {
         return;
     };
     for target in makefile_recipes(&text).keys() {
-        if DIFFERENTIAL_ORACLE_TARGET.is_match(target) {
+        if re.is_match(target) {
             report.error(format!(
                 "{rel}: target {target:?} re-introduces a live differential reasoning oracle \
                  gate — #1572 retired the native-vs-purrdf reason-crosscheck lane; the native \
@@ -770,6 +779,14 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
         return;
     }
 
+    let docker_regexes = match &*DOCKER_REGEXES {
+        Ok(res) => res,
+        Err(e) => {
+            report.error(format!("{rel}: failed to compile docker lane regex: {e}"));
+            return;
+        }
+    };
+
     let mut required_jobs = needs.clone();
     required_jobs.push("quality".to_owned());
     for job_name in &required_jobs {
@@ -778,7 +795,7 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
             continue;
         };
         let blob = recursive_yaml_text(job);
-        let hits = forbidden_hits(&blob);
+        let hits = forbidden_hits(&blob, docker_regexes);
         if !hits.is_empty() {
             report.error(format!(
                 "required CI job {job_name:?} reaches Docker/Java: {}",
@@ -816,12 +833,19 @@ fn check_makefile_lane_purity(root: &Path, report: &mut RepoStaticReport) {
     };
     let recipes = makefile_recipes(&text);
     let lane_targets = LANE_MAKE_TARGETS.iter().copied().collect::<BTreeSet<_>>();
+    let docker_regexes = match &*DOCKER_REGEXES {
+        Ok(res) => res,
+        Err(e) => {
+            report.error(format!("{rel}: failed to compile docker lane regex: {e}"));
+            return;
+        }
+    };
 
     for (target, lines) in &recipes {
         if lane_targets.contains(target.as_str()) {
             continue;
         }
-        let hits = forbidden_hits(&lines.join("\n"));
+        let hits = forbidden_hits(&lines.join("\n"), docker_regexes);
         if !hits.is_empty() {
             report.error(format!(
                 "non-lane Makefile target {target:?} reaches Docker/Java: {}",
@@ -885,9 +909,9 @@ fn recursive_yaml_text(value: &Yaml) -> String {
     }
 }
 
-fn forbidden_hits(text: &str) -> BTreeSet<String> {
+fn forbidden_hits(text: &str, docker_regexes: &[Regex]) -> BTreeSet<String> {
     let mut hits = BTreeSet::new();
-    for (pattern, re) in DOCKER_PATTERNS.iter().zip(DOCKER_REGEXES.iter()) {
+    for (pattern, re) in DOCKER_PATTERNS.iter().zip(docker_regexes.iter()) {
         if re.is_match(text) {
             hits.insert((*pattern).to_owned());
         }
