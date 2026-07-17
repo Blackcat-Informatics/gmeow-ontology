@@ -79,6 +79,11 @@ impl GtsSinkStage {
                 "stage-export-frame-shapes".to_string(),
                 "stage-export-result-shapes".to_string(),
                 "stage-export-constraint-shapes".to_string(),
+                // The LinkML/TypeScript/GraphQL developer schema surfaces: co-derived
+                // from the same fresh shape compilation as json-schema/pydantic, folded
+                // into REP_GENERATED from THIS run's fresh product (never re-derived
+                // from the in-memory carrier — schemas is no longer carrier-projectable).
+                "stage-export-schemas".to_string(),
                 // The two slice-quality floor TSVs (P17 projection of the ontology
                 // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): opaque
                 // REP_GENERATED fanout members read off this leaf's product.
@@ -356,6 +361,10 @@ mod tests {
             "stage-export-metadata",
             "stage-export-governance-floors",
             "stage-export-projection-ceilings",
+            // The LinkML/TypeScript/GraphQL developer schema surfaces: read off this
+            // leaf's product (empty here — this unit test pins the sink's fail-closed
+            // wiring, not the real schema render).
+            "stage-export-schemas",
         ]
         .into_iter()
         .map(|id| StageProduct::from_artifacts(id, BTreeMap::new()))

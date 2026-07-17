@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:91ec0c0ae2a2e92e,gmeow:fixtureMathRockWork,gmeow:genreMathRock,hasGenre,gmeow:examples/music/standpoint-music-critics,,0.9,,,,gmeow:unequivocal,,
-edge:da86b2f21ad2f5c5,gmeow:fixtureMathRockWork,gmeow:genreMathRock,hasGenre,gmeow:examples/music/standpoint-the-band,,1,,,,gmeow:refuted,,

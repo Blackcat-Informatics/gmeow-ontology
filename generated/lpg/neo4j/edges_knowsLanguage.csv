@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:f29c90d3ea2803f7,gmeow:examples/alice,gmeow:examples/lang-toki-pona,knowsLanguage,,,0.6,2,gmeow:examples/agent-corpus-classifier,,,,

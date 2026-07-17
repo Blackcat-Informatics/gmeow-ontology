@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:485bded52be18c3a,gmeow:examples/rights/photo,gmeow:examples/rights/cc-by-4,hasLicense,,2026-01-01T00:00:00Z,0.95,,gmeow:examples/rights/src-license-deed,,,2026-01-01T00:00:00Z,2036-01-01T00:00:00Z

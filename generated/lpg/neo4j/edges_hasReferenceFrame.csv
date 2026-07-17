@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:ebd1635ebc801108,gmeow:examples/slam-cell-42,gmeow:referenceFrameRobotSLAM,hasReferenceFrame,gmeow:examples/robot-sensor-standpoint,2026-06-07T09:30:00Z,0.72,,,,,,

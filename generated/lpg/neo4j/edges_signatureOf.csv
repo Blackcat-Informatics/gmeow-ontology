@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:0ec9702093064263,gmeow:examples/cryptographicsignature-forgery-001,gmeow:examples/creativework-forged-001,signatureOf,gmeow:examples/standpoint-investigator,2026-06-09T00:00:00Z,0.95,,,,,,

@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:70739973d420c509,gmeow:examples/music/greensleeves-work,gmeow:examples/music/henry-viii,hasComposer,gmeow:examples/music/standpoint-popular-tradition,,0.6,,,,gmeow:conceivable,,
-edge:d8ea3e00adb75e79,gmeow:examples/music/greensleeves-work,gmeow:examples/music/anonymous-composer,hasComposer,gmeow:examples/music/standpoint-musicological-consensus,,0.95,,,,gmeow:unequivocal,,

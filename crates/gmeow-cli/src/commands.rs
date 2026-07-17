@@ -2116,8 +2116,6 @@ pub fn transpile(
             source,
             &maximal_inputs,
             &tag_map,
-            None,
-            None,
         ) {
             Ok(r) => r,
             Err(e) => return fail(reporter, "gmeow-cli.transpile.okf", e.to_string()),

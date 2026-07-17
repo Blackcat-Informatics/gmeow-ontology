@@ -1,4 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:89861aea44002f15,gmeow:examples/crimea,gmeow:examples/russia,containedInPlace,gmeow:examples/standpoint-ru,,0.9,,gmeow:examples/src-ru-decree,,,2014-03-18T00:00:00Z,
-edge:e39016eda50f80c4,gmeow:examples/territory-x,gmeow:examples/polity-y,containedInPlace,gmeow:examples/standpoint-2025-historiography,2025-01-01T00:00:00Z,,,,,gmeow:conceivable,1850-01-01T00:00:00Z,1860-12-31T00:00:00Z
-edge:f7e8d0941fe7d19d,gmeow:examples/crimea,gmeow:examples/ukraine,containedInPlace,gmeow:examples/standpoint-un,,0.9,,,,,1991-12-01T00:00:00Z,

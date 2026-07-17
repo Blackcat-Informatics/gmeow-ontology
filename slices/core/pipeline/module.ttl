@@ -782,12 +782,16 @@ gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: schemas"@x-gmeow-english ;
-    skos:definition "Project the carrier dataset to LinkML + downstream schema artifacts. A fold-reading export leaf over the carrier: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
+    skos:definition "Render the LinkML YAML, TypeScript declaration, and GraphQL SDL developer schema surfaces (plus the GraphQL canonical name map) via purrdf's native SHACL-derived emitters (purrdf::shapes::linkml/typescript/graphql), retiring the hand-rolled OWL→LinkML model. A fresh-union leaf: it reads the AUTHORED shape files from disk and consumes the same four generated-shape producers as the JSON-Schema/Pydantic leaves — gmeow:stage-compile-logic, gmeow:stage-export-result-shapes, gmeow:stage-export-frame-shapes, and gmeow:stage-export-constraint-shapes — so the union's generated/shapes/*.ttl members are THIS run's product bytes, never the previous run's committed files (the stale-disk-fold class), and the compiled `$defs` agree with the packed JSON Schema/Pydantic package by construction (the shared schema_compile builder). The sink folds its fresh output into REP_GENERATED."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "schemas" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes ;
     gmeow:producesFormat "linkml" .
 
 gmeow:stage-export-catalog
@@ -816,7 +820,7 @@ gmeow:stage-export-parquet
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: parquet"@x-gmeow-english ;
-    skos:definition "Project the composed dataset to the per-table Parquet columnar form."@x-gmeow-english ;
+    skos:definition "Project the WHOLE composed carrier (terms/quads/reifiers/annotations/blobs of every named graph, never scoped to one graph) to the five-table Parquet columnar form via purrdf's native columnar codec (purrdf::columnar::write), retiring gmeow's hand-rolled Arrow record-batch builders and parquet-crate writer. purrdf owns the dictionary encoding and the byte-deterministic Parquet Data Page V2 physical layout; the carrier's blob store is always empty (blob payloads live in the gts archive by reference, never the in-memory carrier). A fold-reading export leaf: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -828,7 +832,7 @@ gmeow:stage-export-export
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: flat views"@x-gmeow-english ;
-    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
+    skos:definition "Emit the flattened export views: Markdown, JSONL, and llms.txt, plus the dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, ShEx). The SKOS concept-scheme extract, OBO Graphs JSON, and CSVW package are purrdf's native RDF-1.2 projections (project_skos / project_obo_graphs / project_csvw_exact) rather than hand-rolled writers — gmeow owns only the scoping decision (the gmeow-namespace owl:Class taxonomy for SKOS/OBO Graphs; the default-graph TBox/ABox for CSVW) and the caller-owned semantic-role vocabulary, purrdf owns the encoding. CSVW now emits purrdf's generic, always-lossless RDF-1.2-in-CSV package (csvw-metadata.json + terms/quads/reifiers/annotations.csv) in place of the retired curated class/property/individual CSV tables. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1021,13 +1025,13 @@ gmeow:stage-export-lpg
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: LPG"@x-gmeow-english ;
-    skos:definition "Emit the labeled-property-graph artifacts (CSV, Cypher, JSON-LD)."@x-gmeow-english ;
+    skos:definition "Emit the labeled-property-graph artifacts — generic CSV, Neo4j Admin Import CSV, openCypher, and GraphML 1.0 — via purrdf's native LPG projections (project_lpg_csv/project_neo4j_csv/project_lpg_cypher/project_lpg_graphml), retiring gmeow's hand-rolled node/edge model and CSV/Cypher/GraphML writers. The projected view is the carrier's graph/statements named graph ONLY, scoped via purrdf's project_named_graph_full (plus the RDF-1.2 reifiers/annotations attached to those statements-graph triples) — the same business-layer typed-resource scope the retired hand-rolled emitter used, never the whole composed carrier. A fold-reading export leaf: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "lpg" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "lpg-cypher" .
+    gmeow:producesFormat "lpg-csv" , "lpg-neo4j-csv" , "lpg-cypher" , "lpg-graphml" .
 
 gmeow:stage-export-yaml-ld
     a gmeow:PipelineStage ;
@@ -1048,7 +1052,7 @@ gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1070,6 +1074,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-result-shapes ,
+        gmeow:stage-export-schemas ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
         gmeow:stage-export-projection-ceilings ,
