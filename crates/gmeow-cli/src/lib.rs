@@ -356,6 +356,20 @@ pub enum SliceCommands {
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
     },
+    /// Lint an external slice directory against the embedded gmeow.gts bundle (no
+    /// repo checkout): PASS if the roll-up tier meets the slice's own declared
+    /// gmeow:sliceQualityTier and any --min-tier bar; advisories are emitted as
+    /// graded findings but never gate. Exit 0 = met, 1 = below bar, 2 = hard fail.
+    Lint {
+        /// Path to the external slice directory to lint.
+        dir: PathBuf,
+        /// Also fail if the roll-up tier is below this rung (tier label or IRI local name).
+        #[arg(long = "min-tier")]
+        min_tier: Option<String>,
+        /// Output serialization: `human` (default), `json`, or `sarif`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
     /// Assemble and render a `gmeow:AuthoringPacket` authoring brief for a slice
     /// directory, computed over the slice's OWN sources (module.ttl, mappings/,
     /// i18n/) with the SINGLE canonical, SHACL-conformance-gated exemplar tiering. The
@@ -620,6 +634,11 @@ pub fn run() -> i32 {
             SliceCommands::Quality { dir, format } => {
                 commands::slice_quality(reporter, &dir, &format)
             }
+            SliceCommands::Lint {
+                dir,
+                min_tier,
+                format,
+            } => commands::slice_lint(reporter, &dir, min_tier.as_deref(), &format),
             SliceCommands::Brief {
                 dir,
                 axis,
