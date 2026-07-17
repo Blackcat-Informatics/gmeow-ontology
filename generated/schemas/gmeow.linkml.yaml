@@ -667,6 +667,12 @@ classes:
   CelestialReferenceOrigin:
     class_uri: https://blackcatinformatics.ca/gmeow/CelestialReferenceOrigin
     title: Celestial Reference Origin
+  CellSourceCorrespondence:
+    class_uri: https://blackcatinformatics.ca/gmeow/CellSourceCorrespondence
+    title: Cell-Source Correspondence
+    is_a: InformationObject
+    slots:
+    - correspondenceCell
   Certification:
     class_uri: https://blackcatinformatics.ca/gmeow/Certification
     title: Certification
@@ -797,6 +803,28 @@ classes:
     slots:
     - cqCellValueLiteral
     - cqCellVar
+  CompilationMissingContext:
+    class_uri: https://blackcatinformatics.ca/gmeow/CompilationMissingContext
+    title: Compilation Missing Context
+    is_a: TopologyConformanceFailure
+  CompilationPreservationRecord:
+    class_uri: https://blackcatinformatics.ca/gmeow/CompilationPreservationRecord
+    title: Compilation Preservation Record
+    is_a: InformationObject
+  ComplexCompilation:
+    class_uri: https://blackcatinformatics.ca/gmeow/ComplexCompilation
+    title: Complex Compilation
+    is_a: Activity
+    slots:
+    - compilationScenario
+    - compilationStandpoint
+    - compilationTimeScope
+    - compilationWorld
+    - compilesEvidence
+    - compilesToComplex
+    - compilesToFiltration
+    - recordsCorrespondence
+    - recordsPreservation
   ComplianceAssessment:
     class_uri: https://blackcatinformatics.ca/gmeow/ComplianceAssessment
     title: Compliance Assessment
@@ -3959,6 +3987,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Resource
     title: Resource
     is_a: SocialObject
+  ResultObjectConflation:
+    class_uri: https://blackcatinformatics.ca/gmeow/ResultObjectConflation
+    title: Result Object Conflation
+    is_a: TopologyConformanceFailure
   RetrievalEvent:
     class_uri: https://blackcatinformatics.ca/gmeow/RetrievalEvent
     title: Retrieval Event
@@ -4669,6 +4701,38 @@ classes:
     - toolArguments
     - toolResult
     - usedTool
+  TopologyClaim:
+    class_uri: https://blackcatinformatics.ca/gmeow/TopologyClaim
+    title: Topology Claim
+    is_a: StandpointClaim
+    slots:
+    - claimForComputation
+    - claimLocalSection
+    - claimResult
+    - dischargesObstruction
+    - extendsToGlobalSection
+  TopologyClaimMissingStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/TopologyClaimMissingStatus
+    title: Topology Claim Missing Status
+    is_a: TopologyConformanceFailure
+  TopologyComputation:
+    class_uri: https://blackcatinformatics.ca/gmeow/TopologyComputation
+    title: Topology Computation
+    is_a: Activity
+    slots:
+    - assertsGlobalTruth
+    - computationOverCompilation
+    - employsAnalysis
+    - producesResult
+  TopologyConformanceFailure:
+    class_uri: https://blackcatinformatics.ca/gmeow/TopologyConformanceFailure
+    title: Topology Conformance Failure
+  TopologyResult:
+    class_uri: https://blackcatinformatics.ca/gmeow/TopologyResult
+    title: Topology Result
+    is_a: InformationObject
+    slots:
+    - resultArtifact
   Trademark:
     class_uri: https://blackcatinformatics.ca/gmeow/Trademark
     title: Trademark
@@ -5409,6 +5473,12 @@ slots:
     range: Entity
     domain: AccessibilityAssertion
     multivalued: false
+  assertsGlobalTruth:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assertsGlobalTruth
+    title: asserts global truth
+    range: boolean
+    domain: TopologyComputation
+    multivalued: true
   assessedEntity:
     slot_uri: https://blackcatinformatics.ca/gmeow/assessedEntity
     title: assessed entity
@@ -6132,6 +6202,11 @@ slots:
     range: CelestialObjectType
     domain: CelestialLocation
     multivalued: true
+  cellSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cellSource
+    title: cell source
+    range: EvidenceSpan
+    multivalued: true
   centsFromOrigin:
     slot_uri: https://blackcatinformatics.ca/gmeow/centsFromOrigin
     title: cents from origin
@@ -6240,6 +6315,18 @@ slots:
     range: CredenceLevel
     domain: StandpointClaim
     multivalued: false
+  claimForComputation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimForComputation
+    title: claim for computation
+    range: TopologyComputation
+    domain: TopologyClaim
+    multivalued: true
+  claimLocalSection:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimLocalSection
+    title: claim local section
+    range: uriorcurie
+    domain: TopologyClaim
+    multivalued: true
   claimModalForce:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimModalForce
     title: claim modal force
@@ -6263,6 +6350,12 @@ slots:
     title: claim polarity
     range: Polarity
     domain: StandpointClaim
+    multivalued: false
+  claimResult:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimResult
+    title: claim result
+    range: TopologyResult
+    domain: TopologyClaim
     multivalued: false
   claimSupportStatus:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimSupportStatus
@@ -6489,6 +6582,48 @@ slots:
     range: StandpointClaim
     domain: StandpointClaim
     multivalued: true
+  compilationScenario:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilationScenario
+    title: compilation scenario
+    range: Scenario
+    domain: ComplexCompilation
+    multivalued: true
+  compilationStandpoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilationStandpoint
+    title: compilation standpoint
+    range: Standpoint
+    domain: ComplexCompilation
+    multivalued: true
+  compilationTimeScope:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilationTimeScope
+    title: compilation time scope
+    range: TimeScopedRelation
+    domain: ComplexCompilation
+    multivalued: true
+  compilationWorld:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilationWorld
+    title: compilation world
+    range: uriorcurie
+    domain: ComplexCompilation
+    multivalued: true
+  compilesEvidence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilesEvidence
+    title: compiles evidence
+    range: EvidenceSpan
+    domain: ComplexCompilation
+    multivalued: true
+  compilesToComplex:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilesToComplex
+    title: compiles to complex
+    range: uriorcurie
+    domain: ComplexCompilation
+    multivalued: true
+  compilesToFiltration:
+    slot_uri: https://blackcatinformatics.ca/gmeow/compilesToFiltration
+    title: compiles to filtration
+    range: uriorcurie
+    domain: ComplexCompilation
+    multivalued: true
   complianceVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/complianceVerdict
     title: compliance verdict
@@ -6507,6 +6642,12 @@ slots:
     range: Concept
     domain: Concept
     multivalued: true
+  computationOverCompilation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/computationOverCompilation
+    title: computation over compilation
+    range: ComplexCompilation
+    domain: TopologyComputation
+    multivalued: false
   conceptHoldsFor:
     slot_uri: https://blackcatinformatics.ca/gmeow/conceptHoldsFor
     title: concept holds for
@@ -6921,6 +7062,12 @@ slots:
     title: corpus member
     range: InformationObject
     domain: Corpus
+    multivalued: true
+  correspondenceCell:
+    slot_uri: https://blackcatinformatics.ca/gmeow/correspondenceCell
+    title: correspondence cell
+    range: uriorcurie
+    domain: CellSourceCorrespondence
     multivalued: true
   correspondingSource:
     slot_uri: https://blackcatinformatics.ca/gmeow/correspondingSource
@@ -7507,6 +7654,12 @@ slots:
     range: DimensionFamily
     domain: AppraisalDimension
     multivalued: true
+  dischargesObstruction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dischargesObstruction
+    title: discharges obstruction
+    range: uriorcurie
+    domain: TopologyClaim
+    multivalued: true
   discourseTimeOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/discourseTimeOf
     title: discourse time of
@@ -7933,6 +8086,12 @@ slots:
     range: EmploymentType
     domain: Employment
     multivalued: false
+  employsAnalysis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employsAnalysis
+    title: employs analysis
+    range: uriorcurie
+    domain: TopologyComputation
+    multivalued: true
   endedAtTime:
     slot_uri: https://blackcatinformatics.ca/gmeow/endedAtTime
     title: ended at time
@@ -8354,6 +8513,12 @@ slots:
     title: extended address
     range: string
     domain: PostalAddress
+    multivalued: true
+  extendsToGlobalSection:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extendsToGlobalSection
+    title: extends to global section
+    range: uriorcurie
+    domain: TopologyClaim
     multivalued: true
   extensionMember:
     slot_uri: https://blackcatinformatics.ca/gmeow/extensionMember
@@ -12975,6 +13140,12 @@ slots:
     range: MentalMoment
     domain: MentalProcess
     multivalued: true
+  producesResult:
+    slot_uri: https://blackcatinformatics.ca/gmeow/producesResult
+    title: produces result
+    range: TopologyResult
+    domain: TopologyComputation
+    multivalued: true
   proficiencyAgent:
     slot_uri: https://blackcatinformatics.ca/gmeow/proficiencyAgent
     title: proficiency agent
@@ -13354,6 +13525,18 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/recordedNoLaterThan
     title: recorded no later than
     range: datetime
+  recordsCorrespondence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/recordsCorrespondence
+    title: records correspondence
+    range: CellSourceCorrespondence
+    domain: ComplexCompilation
+    multivalued: true
+  recordsPreservation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/recordsPreservation
+    title: records preservation
+    range: CompilationPreservationRecord
+    domain: ComplexCompilation
+    multivalued: true
   recurrenceRuleText:
     slot_uri: https://blackcatinformatics.ca/gmeow/recurrenceRuleText
     title: recurrence rule text
@@ -13627,6 +13810,12 @@ slots:
     title: resolved by artifact
     range: Entity
     domain: Procedure
+    multivalued: true
+  resultArtifact:
+    slot_uri: https://blackcatinformatics.ca/gmeow/resultArtifact
+    title: result artifact
+    range: uriorcurie
+    domain: TopologyResult
     multivalued: true
   retrievalScore:
     slot_uri: https://blackcatinformatics.ca/gmeow/retrievalScore

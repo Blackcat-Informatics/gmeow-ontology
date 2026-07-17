@@ -5063,6 +5063,10 @@ export interface CelestialObjectType {
 export interface CelestialReferenceOrigin {
 }
 
+export interface CellSourceCorrespondence extends InformationObject {
+    correspondenceCell?: string[],
+}
+
 export interface Certification {
     certificationLevel?: string,
     certifiedIdentity?: Agent,
@@ -5164,6 +5168,24 @@ export interface CommunitySummary extends Summary {
 export interface CompetencyExpectedRow extends InformationObject {
     cqCellValueLiteral?: string[],
     cqCellVar?: string[],
+}
+
+export interface CompilationMissingContext extends TopologyConformanceFailure {
+}
+
+export interface CompilationPreservationRecord extends InformationObject {
+}
+
+export interface ComplexCompilation extends Activity {
+    compilationScenario?: Scenario[],
+    compilationStandpoint?: Standpoint[],
+    compilationTimeScope?: TimeScopedRelation[],
+    compilationWorld?: string[],
+    compilesEvidence?: EvidenceSpan[],
+    compilesToComplex?: string[],
+    compilesToFiltration?: string[],
+    recordsCorrespondence?: CellSourceCorrespondence[],
+    recordsPreservation?: CompilationPreservationRecord[],
 }
 
 export interface ComplianceAssessment extends Observation {
@@ -7790,6 +7812,9 @@ export interface RepositoryType {
 export interface Resource extends SocialObject {
 }
 
+export interface ResultObjectConflation extends TopologyConformanceFailure {
+}
+
 export interface RetrievalEvent extends Activity {
     againstIndex?: VectorIndex,
     forQuery?: string[],
@@ -8368,6 +8393,31 @@ export interface ToolCall extends Activity {
     toolArguments?: string,
     toolResult?: string,
     usedTool?: SoftwareAgent,
+}
+
+export interface TopologyClaim extends StandpointClaim {
+    claimForComputation?: TopologyComputation[],
+    claimLocalSection?: string[],
+    claimResult?: TopologyResult,
+    dischargesObstruction?: string[],
+    extendsToGlobalSection?: string[],
+}
+
+export interface TopologyClaimMissingStatus extends TopologyConformanceFailure {
+}
+
+export interface TopologyComputation extends Activity {
+    assertsGlobalTruth?: boolean[],
+    computationOverCompilation?: ComplexCompilation,
+    employsAnalysis?: string[],
+    producesResult?: TopologyResult[],
+}
+
+export interface TopologyConformanceFailure {
+}
+
+export interface TopologyResult extends InformationObject {
+    resultArtifact?: string[],
 }
 
 export interface Trademark {
