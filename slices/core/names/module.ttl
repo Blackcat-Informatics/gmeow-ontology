@@ -1644,7 +1644,7 @@ gmeow:SupersededNameSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a superseded gmeow:PersonName or deadname (one whose gmeow:namePurpose is namePurposeDeadname or namePurposeSuperseded) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:PersonName ;
+    logic:formalizes gmeow:DeadnameSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded name or deadname should set gmeow:displayable false." ;
     logic:integrity logic:supNmForall .
@@ -1705,3 +1705,36 @@ logic:pnhpAppatom a logic:Formula ; logic:relation gmeow:usageAppellation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "app" ] .
 logic:pnhpAppType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "app" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PlaceName ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/NameUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/usageAppellation> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NameUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/usageNamed> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NameUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/usageAppellation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NameUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/usageNamed" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: name-usage cardinality + name suppression / content grounding ---
+# gmeow:NameUsageShape — a NameUsage binds exactly one named entity and exactly one appellation.
+gmeow:NameUsage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:usageNamed ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:usageAppellation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:AppellationHasContentShape — an Appellation must carry content (a full name or at least one
+# typed part); a surname is NEVER required (mononyms and non-Western naming systems are first-class).
+gmeow:AppellationHasContentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Appellation has content constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an gmeow:Appellation carries a gmeow:fullName or at least one gmeow:hasNamePart; a surname is never required — mononyms and non-Western naming systems are first-class."@x-gmeow-english ;
+    logic:formalizes gmeow:AppellationHasContentShape ;
+    logic:onClass gmeow:Appellation ;
+    logic:anyOf gmeow:fullName , gmeow:hasNamePart ;
+    logic:message "An appellation must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .
+
+# gmeow:AppellationHasContentShape node-level sh:or → the OrProperties node-component projection
+# (an owl:unionOf of bare property existentials): an Appellation carries a gmeow:fullName or at
+# least one gmeow:hasNamePart. Reproduces the retired shape's covered disjunction declaratively
+# (the gmeow:AppellationHasContentConstraint above additionally carries the procedural image).
+gmeow:Appellation logic:subClassOf [ owl:unionOf (
+    [ a logic:Restriction ; logic:onProperty gmeow:fullName ; logic:someValuesFrom owl:Thing ]
+    [ a logic:Restriction ; logic:onProperty gmeow:hasNamePart ; logic:someValuesFrom owl:Thing ] ) ] .
