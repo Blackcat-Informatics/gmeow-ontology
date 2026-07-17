@@ -13,12 +13,12 @@
 //!
 //! Two laws are discharged whenever both legs already run:
 //!
-//! * [`CorrespondenceLaw::SectionLaw`] — `put ∘ get = id_S`. For each source seed `s`:
+//! * [`CorrespondenceLaw::SectionLaw`](gmeow_logic_compile::ir::CorrespondenceLaw::SectionLaw) — `put ∘ get = id_S`. For each source seed `s`:
 //!   run `get` over `s` → the forward image `v`; run `put` over `v` → the recovered source
 //!   `s'`; the law holds on that seed iff `s' == s` (no spurious atom fabricated, no source
 //!   atom dropped). Discharged iff every seed round-trips exactly; otherwise Violated with a
 //!   [`Countermodel`] naming the failing seed and its spurious/missing atoms.
-//! * [`CorrespondenceLaw::PutGet`] — `get ∘ put = id_V` on the forward image. For each seed:
+//! * [`CorrespondenceLaw::PutGet`](gmeow_logic_compile::ir::CorrespondenceLaw::PutGet) — `get ∘ put = id_V` on the forward image. For each seed:
 //!   `get(put(v)) == v`. Both legs already run for the section check, so this is computed for
 //!   free from the same executions.
 //!

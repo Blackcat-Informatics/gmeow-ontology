@@ -33,7 +33,8 @@
 //! # Rule families implemented
 //!
 //! Driven by the constructs the 8 conversion suites exercise (verified by the
-//! native↔`purrdf::entail` agreement loop) — a sound subset of OWL 2 RL/RDF:
+//! native RL conversion tests and their retained goldens) — a sound subset of
+//! OWL 2 RL/RDF:
 //!
 //! * **cax-sco** — class subsumption: `x a C1`, `C1 ⊑ C2` ⟹ `x a C2`.
 //! * **scm-sco** — subclass transitivity: `C1 ⊑ C2`, `C2 ⊑ C3` ⟹ `C1 ⊑ C3`.

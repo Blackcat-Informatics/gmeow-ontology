@@ -122,6 +122,13 @@ jobs:
         if: ${{ matrix.shard == 1 }}
         run: cargo clippy --all-targets -- -D warnings
 
+      # Fail on broken/redundant public rustdoc intra-doc links so the API docs
+      # stay navigable. Shard 1 only (it need not run 3×); private-item links are
+      # allowed (see the make target's RUSTDOCFLAGS).
+      - name: Rust API docs (broken-link gate)
+        if: ${{ matrix.shard == 1 }}
+        run: make rust-docs
+
       # The fixture is ~600 MB as raw JSON but highly compressible. Actions/cache
       # stores it compressed, avoiding the 3–4 minute cold model + three-language
       # render on every shard after the first run for a content state. This key is
