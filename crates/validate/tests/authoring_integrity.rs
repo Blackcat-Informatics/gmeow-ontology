@@ -532,6 +532,31 @@ fn run_level_authoring_integrity_fold_is_clean_on_the_real_corpus() {
 
     std::fs::remove_file(&probe).ok();
 
+    // NOTE on why this is NOT a blanket "zero Severity::Error over the whole
+    // report" assertion: it was tried and observed NOT robust. `probe` (the
+    // lone dataset-driving source this harness loads) is a bare `owl:Class`
+    // with an `@en`-tagged `rdfs:label`/`skos:definition` and no
+    // `gmeow:graphBoxRole`/stereotype pun — by design, its content is
+    // irrelevant to the fold under test (see `write_run_probe_source`'s doc
+    // comment). That trips REAL, unrelated `validate.lint.*` and generic
+    // `validate.error` (missing-stereotype) findings that have nothing to do
+    // with the committed corpus, so a total-zero assertion would be
+    // permanently red on an intentionally-minimal fixture, not a signal of a
+    // real regression. Evidence: `cargo nextest run -p gmeow-validate --test
+    // authoring_integrity run_level_authoring_integrity_fold_is_clean_on_the_real_corpus`
+    // with a total-zero assertion FAILED on the clean corpus with exactly
+    // those probe-fixture findings and nothing corpus-related.
+    //
+    // So instead: keep the existing authoring/slice-discipline family-prefix
+    // assertion (now also covering `slice-ownership.*`, Phase 5c's OTHER
+    // structured-code gate), AND add an explicit, code-independent check for
+    // the specific mask the completion-adversary found — the example-coverage
+    // gate interns its errors under the GENERIC `validate.error` code with a
+    // "no examples/*.ttl" message (see `check_example_coverage` in
+    // `validate_all.rs`), which no code-prefix filter can catch. Together
+    // these two assertions track every Phase 5b/5c gate-fatal regression this
+    // harness can produce, without being defeated by the probe fixture's own,
+    // deliberately-incomplete content.
     let authoring_family_errors: Vec<&gmeow_errors::Finding> = run
         .report
         .findings
@@ -539,14 +564,43 @@ fn run_level_authoring_integrity_fold_is_clean_on_the_real_corpus() {
         .filter(|f| {
             f.severity == gmeow_errors::Severity::Error
                 && (f.code.starts_with(codes::AUTHORING_FAMILY)
-                    || f.code.starts_with(codes::SLICE_DISCIPLINE_FAMILY))
+                    || f.code.starts_with(codes::SLICE_DISCIPLINE_FAMILY)
+                    || f.code.starts_with(codes::SLICE_OWNERSHIP_FAMILY))
         })
         .collect();
     assert!(
         authoring_family_errors.is_empty(),
-        "the folded authoring-integrity gate must be clean on the committed corpus via \
-         ValidationRun::run:\n{}",
+        "the folded authoring-integrity/slice-ownership gates must be clean on the \
+         committed corpus via ValidationRun::run:\n{}",
         authoring_family_errors
+            .iter()
+            .map(|f| format!("{}: {}", f.code, f.message))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+
+    // Coverage-tracking assertion: the example-coverage gate (Phase 5c) has NO
+    // dedicated code — it folds through the generic-code `intern_phase` path
+    // (code `validate.error`) alongside unrelated cheap-phase errors, so it is
+    // identified by its message shape, not its code. This is exactly the mask
+    // the completion-adversary found: a missing `examples/*.ttl` regression
+    // would fail live `make validate` while the family-prefix assertion above
+    // stayed green. Falsified below by temporarily removing
+    // `slices/profile/agent-runtime/examples/agent-runtime.ttl`.
+    let coverage_errors: Vec<&gmeow_errors::Finding> = run
+        .report
+        .findings
+        .iter()
+        .filter(|f| {
+            f.severity == gmeow_errors::Severity::Error && f.message.contains("no examples/*.ttl")
+        })
+        .collect();
+    assert!(
+        coverage_errors.is_empty(),
+        "the example-coverage gate (Phase 5c, generic `validate.error` code) must be \
+         clean on the committed corpus via ValidationRun::run — every slice must ship \
+         at least one examples/*.ttl:\n{}",
+        coverage_errors
             .iter()
             .map(|f| format!("{}: {}", f.code, f.message))
             .collect::<Vec<_>>()
