@@ -60,6 +60,7 @@ pub mod gts_sink;
 pub mod json_schema;
 pub mod lang_docs_rendering;
 pub mod lang_form;
+pub mod lang_glossary;
 pub mod lang_lowering;
 pub mod lang_projection;
 pub mod lang_translation;
