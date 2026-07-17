@@ -345,6 +345,11 @@ pub enum ConstraintComponent {
     /// here names a whole property path required with `sh:minCount 1`. Paths sorted + deduped at
     /// construction. Meaningful only in a shape's node-level component list.
     OrProperties(Vec<String>),
+    /// A per-property unique-language facet (`sh:uniqueLang true`): no two language-tagged literal
+    /// values on the path may share a language tag. The closed-world grounding of the
+    /// localizable-prose convention (a `logic:UniqueLangConstraint` sugar record). Faithful in
+    /// SHACL Core; it has NO ShEx form (a disclosed ShEx drop, carried in the loss ledger).
+    UniqueLang,
 }
 
 impl ConstraintComponent {
@@ -540,6 +545,7 @@ impl ConstraintComponent {
             ConstraintComponent::OrProperties(paths) => {
                 format!("orprops={}", key_list(paths.iter().cloned()))
             }
+            ConstraintComponent::UniqueLang => "uniquelang".to_owned(),
         }
     }
 

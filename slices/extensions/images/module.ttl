@@ -611,3 +611,69 @@ GOVERNING TENETS.
     skos:definition "The GMEOW Images Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/DepictionUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/depictionContext> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/DepictionContext> ] .
+<https://blackcatinformatics.ca/gmeow/DepictionUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/depictionImage> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MediaObject> ] .
+<https://blackcatinformatics.ca/gmeow/ImageRegion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/regionOf> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MediaObject> ] .
+<https://blackcatinformatics.ca/gmeow/ImageRegion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/regionSelector> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/RegionSelector> ] .
+<https://blackcatinformatics.ca/gmeow/RegionSelector> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/selectorType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/SelectorType> ] .
+<https://blackcatinformatics.ca/gmeow/RegionSelector> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/selectorValue> ; logic:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/SceneGraphEdge> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sceneConfidence> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/SceneGraphEdge> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sceneObject> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ImageRegion> ] .
+<https://blackcatinformatics.ca/gmeow/SceneGraphEdge> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sceneRelation> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/SceneRelationType> ] .
+<https://blackcatinformatics.ca/gmeow/SceneGraphEdge> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sceneSubject> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ImageRegion> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DepictionUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/depictionContext" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DepictionUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/depictionImage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ImageRegion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/regionOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ImageRegion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/regionSelector" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegionSelector> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/selectorType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegionSelector> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/selectorValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SceneGraphEdge> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/sceneObject" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SceneGraphEdge> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/sceneRelation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SceneGraphEdge> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/sceneSubject" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: image depiction / region / scene-edge cardinality + range grounding ---
+# gmeow:DepictionUsageShape — exactly one depicted subject, one image, one depiction context. The
+# retired shape also carried sh:class gmeow:Entity on gmeow:depictionSubject; that closed-world
+# class check is a data-soundness casualty (Tier-1 SHACL runs without inference, and a conformant
+# depicted subject is typed with its specific sortal — a gmeow:Person, gmeow:Place — not the
+# redundant explicit gmeow:Entity the guidance forbids), so only the exactly-one cardinality is
+# closed-world here; the range stays the open-world rdfs:range on gmeow:depictionSubject.
+gmeow:DepictionUsage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionImage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionContext ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionSubject ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:ImageRegionShape — a region of exactly one MediaObject with exactly one selector.
+gmeow:ImageRegion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:regionOf ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:regionSelector ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:RegionSelectorShape — exactly one selector type and exactly one literal selector value.
+gmeow:RegionSelector logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:selectorType ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:selectorValue ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:SceneGraphEdgeShape — exactly one subject region, object region, and relation; at most one
+# confidence in [0.0, 1.0]. The bounded numeric range is validation-only (no OWL faceted-datatype
+# axiom the native reasoner can decide once a literal is asserted).
+gmeow:SceneGraphEdge logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneObject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneRelation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneConfidence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+
+gmeow:SceneGraphEdgeConfidenceRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:label "Scene graph edge confidence range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A validation-only integrity constraint: when present, gmeow:sceneConfidence on a gmeow:SceneGraphEdge is a decimal in the closed interval [0.0, 1.0]."@x-gmeow-english ;
+    logic:formalizes gmeow:SceneGraphEdgeShape ;
+    logic:onClass gmeow:SceneGraphEdge ;
+    logic:valuePath gmeow:sceneConfidence ;
+    logic:minInclusiveBound 0.0 ;
+    logic:maxInclusiveBound 1.0 ;
+    logic:message "When present, gmeow:sceneConfidence must be a decimal in [0.0, 1.0]." .

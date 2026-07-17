@@ -1115,3 +1115,137 @@ logic:supOrdStatus a logic:Formula ; logic:relation gmeow:orderStatus ;
 logic:supOrdNotSuppressed a logic:Formula ; logic:not logic:supOrdDisp .
 logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/CryptoWallet> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/walletScheme> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/WalletScheme> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/accountCurrency> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/accountHolder> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/accountType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FinancialAccountType> ] .
+<https://blackcatinformatics.ca/gmeow/FinancialTransaction> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/transactionAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingAgent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingAsset> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Asset> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingQuantity> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Invoice> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/invoiceAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/LedgerAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ledgerAccountType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccountType> ] .
+<https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderBuyer> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderSeller> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingAccount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccount> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingDirection> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/PostingDirection> ] .
+<https://blackcatinformatics.ca/gmeow/Posting> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/postingJournalEntry> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/JournalEntry> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CryptoWallet> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/walletScheme" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/FinancialAccount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/accountHolder" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/FinancialTransaction> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/transactionAmount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Holding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/holdingAgent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Holding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/holdingAsset" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Holding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/holdingQuantity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Invoice> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/invoiceAmount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LedgerAccount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/ledgerAccountType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Order> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/orderAmount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Order> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/orderBuyer" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Order> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/orderSeller" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Posting> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/postingAccount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Posting> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/postingAmount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Posting> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/postingDirection" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Posting> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/postingJournalEntry" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# =========================================================================== #
+# Canonical logic: grounding for the finance closed-world constraints. Records  #
+# formalize the suppression validation-shape IRIs and ground the                #
+# transaction-parties disjunction, the two-posting count, and the               #
+# posting-direction value set. The gmeow:Agent obligations on                   #
+# ledgerAccountHolder / invoiceIssuer / invoiceRecipient hold under reasoning    #
+# (gmeow:Organization logic:subClassOf gmeow:Agent), so they ground              #
+# declaratively via owl:allValuesFrom gmeow:Agent.                              #
+# =========================================================================== #
+
+gmeow:ReversedTransactionSuppressionConstraint logic:formalizes gmeow:ReversedTransactionSuppressionShape .
+gmeow:CancelledInvoiceSuppressionConstraint logic:formalizes gmeow:CancelledInvoiceSuppressionShape .
+gmeow:CancelledOrderSuppressionConstraint logic:formalizes gmeow:CancelledOrderSuppressionShape .
+
+# A gmeow:FinancialTransaction has at least one participant: either the flat
+# gmeow:hasParticipant shortcut OR a reified gmeow:Participation relator whose
+# gmeow:participationEvent points back at the transaction (the sh:or of the shape).
+gmeow:TransactionPartiesConstraint
+    a logic:Constraint ;
+    rdfs:label "Transaction has-parties constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:FinancialTransaction has at least one participant, bound either through the flat gmeow:hasParticipant shortcut or through a gmeow:Participation relator whose gmeow:participationEvent is the transaction."@x-gmeow-english ;
+    logic:formalizes gmeow:TransactionHasPartiesShape ;
+    logic:message "A FinancialTransaction must have at least one participant (gmeow:hasParticipant or a gmeow:Participation relator)." ;
+    logic:integrity logic:txpForall .
+logic:txpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:txpImpl .
+logic:txpImpl a logic:Formula ; logic:antecedent logic:txpGuard ; logic:consequent logic:txpOr .
+logic:txpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FinancialTransaction ] .
+logic:txpOr a logic:Formula ; logic:or logic:txpFlat , logic:txpRelator .
+logic:txpFlat a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:txpFlatAtom .
+logic:txpFlatAtom a logic:Formula ; logic:relation gmeow:hasParticipant ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:txpRelator a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q" ] ;
+    logic:exists logic:txpRelatorAtom .
+logic:txpRelatorAtom a logic:Formula ; logic:relation gmeow:participationEvent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+# A gmeow:JournalEntry has at least two gmeow:journalEntryPostings (double-entry).
+gmeow:JournalEntryPostingsCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "JournalEntry postings-count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:JournalEntry binds at least two gmeow:journalEntryPostings."@x-gmeow-english ;
+    logic:onClass gmeow:JournalEntry ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:journalEntryPostings ;
+    logic:aggComparator ">=" ;
+    logic:aggCompareTo "2"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+    logic:formalizes gmeow:JournalEntryHasPostingsShape ;
+    logic:message "A JournalEntry must have at least two postings (gmeow:journalEntryPostings)." .
+
+# postingDirection sh:in value set → owl:oneOf antecedent (declarative sh:in).
+gmeow:Posting logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:postingDirection ; logic:allValuesFrom [ logic:oneOf ( gmeow:postingDirectionDebit gmeow:postingDirectionCredit ) ] ] .
+
+# Data-sound gmeow:Agent obligations (gmeow:Organization logic:subClassOf gmeow:Agent).
+gmeow:LedgerAccount logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:ledgerAccountHolder ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:LedgerAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/ledgerAccountHolder" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Invoice logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:invoiceIssuer ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:invoiceRecipient ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceIssuer" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceRecipient" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# JournalEntry: at least two postings, projected as a BARE sh:minCount 2 (owl:Thing
+# filler collapses the qualified count to the plain minimum the legacy shape stated).
+gmeow:JournalEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:journalEntryPostings ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
+
+# The double-entry balance invariant: within each currency, the sum of a JournalEntry's debit
+# postings equals the sum of its credit postings. A first-class aggregate-balance constraint
+# (partitioned two-sum equality over a value-key group), lowered to a GROUP BY $this ?currency
+# HAVING(sumDebits != sumCredits) violation SELECT.
+gmeow:JournalEntryBalanceConstraint
+    a logic:AggregateBalanceConstraint ;
+    rdfs:label "Journal entry balance constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: for each gmeow:JournalEntry, within every currency bucket the sum of debit-posting amounts must equal the sum of credit-posting amounts. Partitions the entry's postings by gmeow:postingDirection (debit vs credit), reads each posting's amount via gmeow:postingAmount then gmeow:monetaryValue and its currency via gmeow:postingAmount then gmeow:currency, and asserts the two partition-sums are equal per currency."@x-gmeow-english ;
+    logic:onClass gmeow:JournalEntry ;
+    logic:balancePostingPredicate gmeow:journalEntryPostings ;
+    logic:balancePartitionPredicate gmeow:postingDirection ;
+    logic:balanceDebitValue gmeow:postingDirectionDebit ;
+    logic:balanceCreditValue gmeow:postingDirectionCredit ;
+    logic:balanceAmountNodePredicate gmeow:postingAmount ;
+    logic:balanceValuePredicate gmeow:monetaryValue ;
+    logic:balanceGroupPredicate gmeow:currency ;
+    logic:severity "Violation" ;
+    logic:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
+    logic:formalizes gmeow:JournalEntryBalancedShape .
