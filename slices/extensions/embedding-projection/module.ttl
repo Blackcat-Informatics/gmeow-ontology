@@ -1116,6 +1116,7 @@ gmeow:DerivedVectorIndex logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingProjection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/projectionSource" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingProjection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasSensitivity" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingProjection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/projectionSourceDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingProjection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reproducibilityLevel" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/effectiveOfFamily" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingFamily ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1446,9 +1447,15 @@ gmeow:SimilarityObservation logic:disjointWith gmeow:RetrievalEvent .
 # Closed value set: gmeow:reproducibilityLevel ranges over exactly the three
 # determinism levels (owl:oneOf, projected to sh:in) — the math:PValue /
 # math:alternativeSidedness idiom, an allValuesFrom-oneOf restriction on the domain class.
+# The second restriction is the requiredness carrier: logic:allValuesFrom the named
+# gmeow:ReproducibilityLevel class (a Class filler the oneOf blank node is not),
+# closed to sh:minCount 1 by its class-scoped ClosureEntry below — every projection
+# MUST declare a get-leg determinism level.
 gmeow:EmbeddingProjection logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:reproducibilityLevel ;
-      logic:allValuesFrom [ logic:oneOf ( gmeow:reproducibleExact gmeow:reproducibleWithinTolerance gmeow:regenerableOnly ) ] ] .
+      logic:allValuesFrom [ logic:oneOf ( gmeow:reproducibleExact gmeow:reproducibleWithinTolerance gmeow:regenerableOnly ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reproducibilityLevel ;
+      logic:allValuesFrom gmeow:ReproducibilityLevel ] .
 
 # Conditional requiredness: a projection whose gmeow:reproducibilityLevel is
 # gmeow:reproducibleWithinTolerance MUST carry a gmeow:reproducibilityTolerance
