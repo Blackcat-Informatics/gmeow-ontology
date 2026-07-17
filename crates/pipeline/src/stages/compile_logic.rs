@@ -190,6 +190,22 @@ pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/pred
 /// affine cell is authored `logic:` TTL, not a `CorrespondenceProgram` literal in code.
 pub const CORRESPONDENCE_EXAMPLE_PATH: &str =
     "slices/grounding/logic/examples/affine-correspondence.ttl";
+/// The authored goal-directed demonstrator corpus (Task 5): six `logic:ReasoningProgram`
+/// individuals (Peano addition, cons-list membership, three-valued SLG-WFS negation, the
+/// positive/negative order-sorted math-subsort pair, and the function-free reachability
+/// oracle fixture) that `stage-goal-directed` compiles and evaluates through the native
+/// backward engine.
+///
+/// A SCOPED worked-example source (the `PATH_SHAPES_EXAMPLE_PATH` / `CORRESPONDENCE_EXAMPLE_PATH`
+/// precedent): parsed INDEPENDENTLY of the merged authored corpus via `parse_logic_str`, and
+/// only its [`gmeow_logic_compile::ir::ReasoningProgramIr`]s are folded onto `program` — never
+/// its axioms (e.g. the `ex:one a math:Integer` order-sort typing triple, which
+/// `extract_reasoning_programs` already captures into each program's own `constant_sorts`),
+/// rules, contracts, or formulas, which stay scoped to this file and are discarded (L3: the
+/// cell's clause `Formula`s must never enter `graph/logic` / `graph/relational-core` as
+/// top-level rules/formulas).
+pub const REASONING_PROGRAMS_EXAMPLE_PATH: &str =
+    "slices/grounding/logic/examples/reasoning-programs.ttl";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -434,7 +450,11 @@ impl Stage for CompileLogicStage {
         // authored corpus) instead of re-parsing the corpus from disk; the whole-corpus file
         // list is dropped from `input_files` and freshness rides the typed `consumed_entities`
         // edge.
-        "compile-logic.v8"
+        // v9: the authored goal-directed demonstrator corpus
+        // (`REASONING_PROGRAMS_EXAMPLE_PATH`) is now folded into `program.reasoning_programs`,
+        // so `stage-goal-directed` compiles authored `logic:ReasoningProgram`s instead of the
+        // hand-interned Rust demonstrator constants.
+        "compile-logic.v9"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
@@ -451,6 +471,7 @@ impl Stage for CompileLogicStage {
             root.join(OPT_TEST_DATATYPES_PATH),
             root.join(PATH_SHAPES_EXAMPLE_PATH),
             root.join(CORRESPONDENCE_EXAMPLE_PATH),
+            root.join(REASONING_PROGRAMS_EXAMPLE_PATH),
         ])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -549,6 +570,36 @@ impl Stage for CompileLogicStage {
         let mut path_shapes = program.path_shapes.clone();
         path_shapes.extend(path_shapes_program.path_shapes);
         let program = program.with_path_shapes(path_shapes);
+
+        // Fold in the authored goal-directed demonstrator corpus (see
+        // `REASONING_PROGRAMS_EXAMPLE_PATH`'s doc comment): parse the cell as an
+        // INDEPENDENT logic: source and take ONLY its `reasoning_programs` — its
+        // axioms (the `ex:one a math:Integer` order-sort typing triple is captured
+        // by `extract_reasoning_programs` into each program's own `constant_sorts`,
+        // not through the plain-axiom lane)/rules/contracts/formulas stay scoped to
+        // this file and are discarded, so the demonstrator corpus never pollutes the
+        // compiled program's domain axioms or reaches graph/logic /
+        // graph/relational-core as top-level rules/formulas (L3). Its diagnostics ARE
+        // folded in (never silently dropped), same as every other frontend diagnostic
+        // here.
+        let reasoning_programs_source =
+            std::fs::read_to_string(input.root.join(REASONING_PROGRAMS_EXAMPLE_PATH))
+                .map_err(|e| stage_err(format!("read {REASONING_PROGRAMS_EXAMPLE_PATH}: {e}")))?;
+        let (reasoning_programs_program, reasoning_programs_diagnostics) = parse_logic_str(
+            &reasoning_programs_source,
+            Some(REASONING_PROGRAMS_EXAMPLE_PATH.to_string()),
+        )
+        .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+        diagnostics.extend(reasoning_programs_diagnostics);
+        if reasoning_programs_program.reasoning_programs.is_empty() {
+            return Err(stage_err(format!(
+                "{REASONING_PROGRAMS_EXAMPLE_PATH} carries zero logic:ReasoningProgram \
+                 individuals — the goal-directed demonstrator corpus is missing (corrupt \
+                 worked-example source)"
+            )));
+        }
+        let program =
+            program.with_reasoning_programs(reasoning_programs_program.reasoning_programs);
 
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.

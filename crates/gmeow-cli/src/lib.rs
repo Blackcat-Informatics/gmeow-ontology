@@ -267,6 +267,12 @@ pub enum Commands {
         /// The conclusion RDF graph `C`.
         conclusion: PathBuf,
     },
+    /// Native `logic:` reasoning-engine tools, driven directly over authored
+    /// `logic:` cells (no repository or pipeline run required).
+    Logic {
+        #[command(subcommand)]
+        command: LogicCommands,
+    },
     /// GMEOW slice-quality tools: score an external slice directory against the embedded bundle.
     Slice {
         #[command(subcommand)]
@@ -433,6 +439,47 @@ pub enum ConjectureCommands {
         /// `--max-steps`). Omitted = unbounded.
         #[arg(long = "max-answers")]
         max_answers: Option<usize>,
+    },
+}
+
+/// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
+#[derive(Debug, Subcommand)]
+pub enum LogicCommands {
+    /// Evaluate one or more authored `logic:ReasoningProgram` cells through the
+    /// native proof-carrying SLG-WFS backward (goal-directed) engine
+    /// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
+    /// production path `stage-goal-directed` folds into `gmeow.gts`'s
+    /// `graph/goal-directed`, run interactively over a caller-supplied cell
+    /// instead of through a full pipeline regeneration. Prints every
+    /// proof-checked answer (atom, bindings, derivation IRI) and every
+    /// three-valued well-founded verdict, in the engine's own deterministic
+    /// order. Hard-fails (never a silent empty success) on a missing
+    /// `--program-file`, a cell carrying zero `logic:ReasoningProgram`
+    /// individuals, or a `--program-iri` naming no program in the cell.
+    Backward {
+        /// A Turtle document naming one or more `logic:ReasoningProgram`
+        /// individuals, e.g. `slices/grounding/logic/examples/reasoning-programs.ttl`.
+        #[arg(long = "program-file")]
+        program_file: PathBuf,
+        /// Evaluate only the `logic:ReasoningProgram` with this exact IRI
+        /// (default: evaluate every program the cell carries). A bare CURIE
+        /// (`ex:peanoAdd`) is NOT accepted — pass the program's full IRI.
+        #[arg(long = "program-iri")]
+        program_iri: Option<String>,
+        /// An additional Turtle document whose told `rdfs:subClassOf` edges seed
+        /// the order-sorted unification lattice — e.g.
+        /// `slices/grounding/math/module.ttl`, whose `math:Integer ⊑
+        /// math:RationalNumber ⊑ math:RealNumber ⊑ …` chain the engine composes
+        /// into `math:Integer ⊑ math:RealNumber` internally (the engine computes
+        /// its own reflexive-transitive closure over whatever covering edges it
+        /// is given, so passing the told chain is sufficient — never a
+        /// pre-reasoned closure). Default: use ONLY the `rdfs:subClassOf` edges
+        /// told in `--program-file` itself. A program whose sort obligation
+        /// needs an edge absent from every source resolves to ZERO order-sorted
+        /// answers for that obligation — a correct, honest gap, never a silent
+        /// hardcoded fallback to some vocabulary's subsort tower.
+        #[arg(long = "subsort-source")]
+        subsort_source: Option<PathBuf>,
     },
 }
 
@@ -630,6 +677,18 @@ pub fn run() -> i32 {
             premise,
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
+        Commands::Logic { command } => match command {
+            LogicCommands::Backward {
+                program_file,
+                program_iri,
+                subsort_source,
+            } => commands::logic_backward(
+                reporter,
+                &program_file,
+                program_iri.as_deref(),
+                subsort_source.as_deref(),
+            ),
+        },
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {
                 commands::slice_quality(reporter, &dir, &format)
