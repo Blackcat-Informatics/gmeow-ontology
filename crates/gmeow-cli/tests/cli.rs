@@ -1014,6 +1014,8 @@ fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
                 )))
                 .and(predicate::str::contains("program memberCons"))
                 .and(predicate::str::contains(format!("binding M = {EX}a")))
+                .and(predicate::str::contains(format!("binding M = {EX}b")))
+                .and(predicate::str::contains(format!("binding M = {EX}c")))
                 .and(predicate::str::contains("program winWfs"))
                 .and(predicate::str::contains(format!(
                     "verdict atom={EX}win({EX}a) verdict=undefined"
@@ -1026,6 +1028,24 @@ fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
                 )))
                 .and(predicate::str::contains("program mathSubsort"))
                 .and(predicate::str::contains("program mathSubsortControl")),
+        );
+
+    // Narrowed to just `mathSubsort`, with no `--subsort-source` supplied,
+    // the order-sorted lattice is empty and the demonstrator honestly
+    // produces zero answers — proving the positive case exercised elsewhere
+    // (`logic_backward_subsort_source_seeds_the_order_sorted_lattice`) is
+    // reasoned-closure-driven from the told `math:` subsort chain, never a
+    // hardcoded math tower baked into the engine.
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsort")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsort")
+                .and(predicate::str::contains("answer atom=").not()),
         );
 }
 
