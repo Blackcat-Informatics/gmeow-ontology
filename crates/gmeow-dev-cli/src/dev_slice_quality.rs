@@ -1321,7 +1321,7 @@ fn format_floor_value(score: f64) -> String {
 fn format_floor_line(slice_iri: &str, axis_local: &str, score: f64) -> String {
     let slice_local = axis_local_name(slice_iri);
     format!(
-        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; rdfs:label \"axis-floor commitment — {slice_local} / {axis_local}\"@x-gmeow-english ; skos:definition \"The committed raise-only measured-score floor for the {axis_local} quality axis on the {slice_local} slice; the gate reds if the slice's measured score falls below it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
+        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; rdfs:label \"axis-floor commitment — {slice_local} / {axis_local}\"@x-gmeow-english ; skos:definition \"The committed raise-only measured-score floor for the {axis_local} quality axis on the {slice_local} slice; the gate reds if the slice's measured score falls below it.\"@x-gmeow-english ; rdfs:isDefinedBy <{slice_iri}> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
         format_floor_value(score)
     )
 }
@@ -1382,8 +1382,9 @@ fn collect_seed_lines(
 
 /// `gmeow-dev slice-quality-seed-floors` — emit `gmeow:AxisFloorCommitment` TTL for
 /// the live measured scores, so a human can seed a NEW axis's floors at the actual
-/// live measurement and paste them into
-/// `slices/core/slice-quality-rubric/module.ttl`.
+/// live measurement and paste them into the owning slice's own `module.ttl`
+/// (the floor is authored by the slice it governs, not necessarily the rubric
+/// slice — see `rdfs:isDefinedBy <{slice_iri}>` in [`format_floor_line`]).
 ///
 /// EXACTLY ONE of `--axis <axis-local>` (seed the one named rubric axis) or
 /// `--all-axes` (seed every rubric axis a slice grades that lacks a floor) must be
@@ -1467,7 +1468,7 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
         SeedSelector::All => "all unfloored axes".to_owned(),
     };
     println!(
-        "# seeded gmeow:AxisFloorCommitment individuals for axis {scope} — paste into {RUBRIC_MODULE}"
+        "# seeded gmeow:AxisFloorCommitment individuals for axis {scope} — paste into the owning slice's own module.ttl"
     );
     for line in &lines {
         println!("{line}");
@@ -1484,15 +1485,16 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
 fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> String {
     let slice_local = axis_local_name(slice_iri);
     format!(
-        "gmeow:pcc-{slice_local}-{vocab_prefix} a gmeow:ProjectionCeilingCommitment ; rdfs:label \"projection-ceiling commitment — {slice_local} / {vocab_prefix}\"@x-gmeow-english ; skos:definition \"The committed lower-only ungrounded-residue ceiling for the {vocab_prefix} projection vocabulary on the {slice_local} slice; the gate reds if the slice's measured residue rises above it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <{slice_iri}> ; gmeow:ceilingVocabulary gmeow:projVocab-{vocab_prefix} ; gmeow:ceilingCount {count} ."
+        "gmeow:pcc-{slice_local}-{vocab_prefix} a gmeow:ProjectionCeilingCommitment ; rdfs:label \"projection-ceiling commitment — {slice_local} / {vocab_prefix}\"@x-gmeow-english ; skos:definition \"The committed lower-only ungrounded-residue ceiling for the {vocab_prefix} projection vocabulary on the {slice_local} slice; the gate reds if the slice's measured residue rises above it.\"@x-gmeow-english ; rdfs:isDefinedBy <{slice_iri}> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <{slice_iri}> ; gmeow:ceilingVocabulary gmeow:projVocab-{vocab_prefix} ; gmeow:ceilingCount {count} ."
     )
 }
 
 /// `gmeow-dev slice-quality-seed-ceilings` — emit `gmeow:ProjectionCeilingCommitment`
 /// TTL at the CURRENT measured ungrounded residue for every (slice, guarded
 /// projection-vocabulary) pair with nonzero residue, so a human can grandfather the
-/// existing residue and paste it into
-/// `slices/core/slice-quality-rubric/module.ttl`.
+/// existing residue and paste it into the owning slice's own `module.ttl`
+/// (the ceiling is authored by the slice it governs, not necessarily the rubric
+/// slice — see `rdfs:isDefinedBy <{slice_iri}>` in [`format_ceiling_line`]).
 ///
 /// Reads the guarded vocabulary registry off the loaded rubric
 /// (`rubric.floors.vocabularies` — the ontology-resident set Task 2 seeded) and
@@ -1549,7 +1551,9 @@ pub fn slice_quality_seed_ceilings() -> i32 {
     entries.sort_by(|a, b| a.0.cmp(&b.0));
 
     // A short comment header (no issue/PR numbers) — then only the TTL lines.
-    println!("# seeded gmeow:ProjectionCeilingCommitment individuals — paste into {RUBRIC_MODULE}");
+    println!(
+        "# seeded gmeow:ProjectionCeilingCommitment individuals — paste into the owning slice's own module.ttl"
+    );
     for (_, line) in &entries {
         println!("{line}");
     }
