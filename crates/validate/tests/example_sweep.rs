@@ -137,6 +137,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/extensions/notes/examples/annotations-and-notes.ttl", // gmeow:commentParent → Entity not typed standalone
     "slices/extensions/sensory/examples/sensor-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/extensions/sensory-environment/examples/measured-vs-perceived.ttl", // gmeow:environmentAtLocation → Location not typed standalone (the room is gmeow:Place)
+    "slices/profile/agent-runtime/examples/agent-runtime.ttl", // gmeow:inhabitationLocusKind → shared locusVessel individual untyped standalone; gmeow:inhabitationSubject/assignmentSubject → Agent not typed standalone (SoftwareAgent⊑Agent chain); gmeow:inhabitedHost → Entity not typed standalone (PhysicalObject⊑Entity chain); validates unioned with the modules by make validate
     // Bucket B — `sh:minCount` (MinCountConstraintComponent): the example omits a
     // P11-required reference / temporal frame on a value or interval. The frame
     // lives in the full ontology context; standalone the fixture is illustrative.

@@ -47,4 +47,4 @@ logic:correspondence-program
 
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat>
     rdf:type logic:CorrespondenceCaveat ;
-    rdfs:comment "foaf:Person denotes an agent/person; schema:ContactPoint denotes a contact channel/role. Both project through the contact-bearing facet of gmeow:contact; they are not equivalent and neither subsumes the other." .
+    rdfs:comment "foaf:Person denotes an agent/person; schema:ContactPoint denotes a contact channel/role. Both project through the contact-bearing facet of gmeow:contact; they are not equivalent and neither subsumes the other."@x-gmeow-english .
