@@ -156,6 +156,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws",
             "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus",
+            "https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus",

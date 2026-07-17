@@ -639,7 +639,7 @@ fn bcp47_to_internal_map(root: &Path) -> BTreeMap<String, String> {
 /// declarations (never on the derived glossary entries, which carry `gmeow:glossarySource`),
 /// so this predicate-scoped read can never pick up a derived entry literal and silently
 /// widen the exempt set.
-fn declared_homograph_sources(root: &Path) -> BTreeSet<String> {
+pub fn declared_homograph_sources(root: &Path) -> BTreeSet<String> {
     const HOMOGRAPH_SOURCE_PRED: &str = "https://blackcatinformatics.ca/lang/homographSource";
     let mut out = BTreeSet::new();
     for source in authored_turtle_files(root) {
