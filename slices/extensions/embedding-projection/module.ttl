@@ -71,11 +71,11 @@ gmeow:EmbeddingFamily
             logic:onProperty gmeow:contentDigest ;
             logic:allValuesFrom rdfs:Literal ;
         ] ;
-    skos:definition "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED graphrag gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), tokenizer (gmeow:tokenizerContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:contentDigest over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."@x-gmeow-english ;
+    skos:definition "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED graphrag gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), execution configuration (gmeow:executionContract — precision mode / deterministic-inference settings), tokenizer (gmeow:tokenizerContract), subject-projection / text-serialization (gmeow:subjectProjectionContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), generation-time normalization (gmeow:generationNormalizationContract), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:contentDigest over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."@x-gmeow-english ;
     skos:example "ex:fam1 a gmeow:EmbeddingFamily ; gmeow:embeddingModel ex:bgeM3 ; gmeow:inferenceEngine ex:onnxRuntime ; gmeow:poolingKind ex:poolingMean ; gmeow:vectorDtype \"float32\" ; gmeow:vectorByteOrder gmeow:byteOrderLittleEndian ; gmeow:quantizationContract \"none\" ; gmeow:contentDigest \"blake3:5c1e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding the effective/prefix dimension, distance metric, or per-prefix normalization into the family (those name the comparable space on a gmeow:VectorSpaceContract) and avoid minting a separate familyId — the REUSED gmeow:contentDigest over the generation contract IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from graphrag; inference engine, tokenizer, preprocessing, chunking, pooling, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:contentDigest — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily."@x-gmeow-english ;
+    gmeow:howToUse "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from graphrag; inference engine, execution configuration, tokenizer, subject-projection/text-serialization, preprocessing, chunking, pooling, generation-time normalization, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:contentDigest — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily."@x-gmeow-english ;
     gmeow:useWhen "Use to declare the model and full generation contract that produces a family's highest-dimensional vectors — the once-stored matrix that one or more effective (prefix) vector spaces are declared over."@x-gmeow-english .
 
 gmeow:EmbeddingProjection
@@ -337,6 +337,19 @@ gmeow:effectiveOfFamily
     gmeow:howToUse "Assert exactly one gmeow:effectiveOfFamily from a gmeow:VectorSpaceContract to the gmeow:EmbeddingFamily whose full or prefix space it names; the family's gmeow:contentDigest folds into the effective space's digest."@x-gmeow-english ;
     gmeow:useWhen "Use to anchor an effective vector space to the embedding family it is a full or prefix space of."@x-gmeow-english .
 
+gmeow:executionContract
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmbeddingFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "execution contract"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "An opaque, content-addressable reference to the inference-EXECUTION configuration folded into an embedding family's generation contract — the precision mode (e.g. fp32/fp16/bf16), deterministic-inference settings, and other execution choices that can change the produced vector VALUES even under one model and one gmeow:inferenceEngine. Recorded because two families that execute the same model under materially different precision or determinism settings do not produce comparable vectors. Its semantics stay in the solver layer (P12); the graph carries the reference that completes the family's identity. It describes the family (the vector-producing generation contract), not the effective/prefix space a gmeow:VectorSpaceContract names, and is distinct from the engine identity gmeow:inferenceEngine records."@x-gmeow-english ;
+    skos:example "ex:fam1 gmeow:executionContract \"fp16;deterministic=true\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid unfolding the execution runtime's internals into the graph (P12 — carry the digest/config reference, not the implementation) and avoid dropping it from a family whose precision or determinism settings bear on the produced vectors; it is part of the family's identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:executionContract on a gmeow:EmbeddingFamily as a digest or verbatim config string naming the precision mode and deterministic-inference settings; it folds into the family's gmeow:contentDigest identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the inference-execution configuration (precision mode, deterministic-inference settings) an embedding family commits to — a generation-contract component the family's digest covers, distinct from the inference engine itself."@x-gmeow-english .
+
 gmeow:externalRole
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:ExternalBinding ;
@@ -349,6 +362,19 @@ gmeow:externalRole
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Carry gmeow:externalRole on a gmeow:ExternalBinding as a verbatim caller-supplied role/scope string."@x-gmeow-english ;
     gmeow:useWhen "Use to record the caller-supplied role a projection references an external artifact under."@x-gmeow-english .
+
+gmeow:generationNormalizationContract
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmbeddingFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "generation normalization contract"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "An opaque, content-addressable reference to the GENERATION-TIME normalization folded into an embedding family's generation contract — the normalization applied when the family's top-dimensional matrix is PRODUCED, independent of and prior to the per-prefix gmeow:normalizationKind an effective gmeow:VectorSpaceContract declares of its own. Recorded because two families normalized differently at generation time do not produce comparable vectors even under one model. Its semantics stay in the solver layer (P12); the graph carries the reference that completes the family's identity. It describes the family (the vector-producing generation contract), not the per-prefix postprocessing a gmeow:VectorSpaceContract names — the two normalization axes are distinct and both bear on comparability."@x-gmeow-english ;
+    skos:example "ex:fam1 gmeow:generationNormalizationContract \"l2\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the per-prefix gmeow:normalizationKind on an effective space (this is the family's generation-time normalization; that is the effective space's postprocessing) and avoid dropping it from a family whose generation-time normalization bears on the produced vectors; it is part of the family's identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:generationNormalizationContract on a gmeow:EmbeddingFamily as a digest or verbatim config string naming the generation-time normalization; it folds into the family's gmeow:contentDigest identity, separate from the per-prefix gmeow:normalizationKind."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the generation-time normalization an embedding family applies when producing its stored matrix — a generation-contract component the family's digest covers, distinct from the per-prefix normalization of an effective space."@x-gmeow-english .
 
 gmeow:hasTargetSet
     a owl:FunctionalProperty ,
@@ -609,6 +635,19 @@ gmeow:similarityScore
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Bind gmeow:similarityScore from a gmeow:SimilarityObservation to a math:Quantity; read it as a logic:Vague graded claim under the observation's gmeow:withMetric, never a crisp truth."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the graded magnitude of a pairwise similarity observation as an auditable quantity — the weighable value behind ranked retrieval."@x-gmeow-english .
+
+gmeow:subjectProjectionContract
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmbeddingFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "subject projection contract"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "An opaque, content-addressable reference to the SUBJECT-PROJECTION / text-serialization configuration folded into an embedding family's generation contract — how each source subject (a chunk, an RDF 1.2 statement, a term) is rendered to the exact text/token stream the model embeds (the always-applied serialization step, prior to tokenization). Recorded because two families that serialize their subjects differently produce different vectors even under one model and tokenizer. Its semantics stay in the solver layer (P12); the graph carries the reference that completes the family's identity. It describes the family (the vector-producing generation contract), not the effective/prefix space a gmeow:VectorSpaceContract names, and is distinct from the tokenizer identity gmeow:tokenizerContract records."@x-gmeow-english ;
+    skos:example "ex:fam1 gmeow:subjectProjectionContract \"blake3:5e11…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with tokenization (gmeow:tokenizerContract — this is the text serialization that FEEDS the tokenizer) and avoid dropping it from a family; the subject-projection step is always applied and part of the family's identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:subjectProjectionContract on a gmeow:EmbeddingFamily as a digest or verbatim config string naming how source subjects are serialized to embed-ready text; it folds into the family's gmeow:contentDigest identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the subject-projection / text-serialization configuration an embedding family commits to — the always-applied step that renders a source subject to the exact text the model embeds, a generation-contract component the family's digest covers."@x-gmeow-english .
 
 gmeow:targetByteEnd
     a owl:DatatypeProperty ;

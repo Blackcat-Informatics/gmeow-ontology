@@ -132,6 +132,28 @@ ep:epCqDistinctVectorSpaceIdViolation a gmeow:CompetencyQuestion ;
     gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "a" ; gmeow:cellValueIri ce:collideFull ] ,
                                      [ gmeow:cellVar "b" ; gmeow:cellValueIri ce:collidePrefix ] ] .
 
+# CT2 (family axis) — distinct family identity over the generation contract. EMPTY
+# over the scene (each family carries its own digest); a companion collision fixture
+# differing only in gmeow:executionContract makes it non-empty, so the execution /
+# subject-projection / generation-normalization axes are identity-bearing.
+ep:epCqDistinctFamilyId a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/distinct-family-id.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeSpacePairEmpty ;
+    gmeow:cqRationale "No two embedding families that differ in a generation-contract component share a digest over the worked scene — each family carries a distinct content digest. Zero rows." ;
+    gmeow:cqExpectRowCount 0 .
+
+ep:epCqDistinctFamilyIdViolation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/distinct-family-id.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-distinct-family-id.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeSpacePairExact ;
+    gmeow:cqRationale "Two families differing only in gmeow:executionContract (a material generation-contract component) that COLLIDE on one content digest are caught: the pair (ce:famCollideA, ce:famCollideB)." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "a" ; gmeow:cellValueIri ce:famCollideA ] ,
+                                     [ gmeow:cellVar "b" ; gmeow:cellValueIri ce:famCollideB ] ] .
+
 # =========================================================================== #
 # CT3 — cross-space comparison rejected (C2). Violation over a cross-prefix      #
 # observation with no bridging correspondence; empty over the scene.            #
