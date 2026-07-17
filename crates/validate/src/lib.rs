@@ -58,6 +58,12 @@ pub mod store;
 // gmeow-slice) and cannot cross-compile to wasm.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod advisory;
+// The ontology-surface authoring gates (shape-IRI ownership, profile/catalog
+// closure, term-declaration + language-tag discipline, graft isolation, slice
+// discipline) — native-only: they read the on-disk slice/shape corpus via
+// `purrdf::slice` + `purrdf::shapes`.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod authoring_integrity;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod box_roles;
 #[cfg(not(target_arch = "wasm32"))]

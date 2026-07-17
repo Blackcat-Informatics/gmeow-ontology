@@ -571,6 +571,39 @@ impl ValidationRun {
             }
         }
 
+        // Phase 5b: ontology-surface authoring gates — the whole-corpus structural
+        // invariants (shape-IRI ownership, graft isolation, slice discipline). Same
+        // cached-real-repo posture as ownership: both read the on-disk slice/shape
+        // corpus, so they fold exactly when `slice_analysis` ran (cache + slices_dir
+        // present). Error findings gate `make validate` — a duplicate slice IRI, a
+        // missing tier, a merged-shape IRI collision, or a norms graft leaking into
+        // the core `rights` module HARD-FAILS on the live path, not just in a test.
+        if slice_analysis.is_some()
+            && let (Some(project_root), Some(slices_dir)) =
+                (&options.project_root, &options.slices_dir)
+        {
+            let slices_path = std::path::Path::new(slices_dir);
+            let mut authoring =
+                crate::authoring_integrity::shape_iri_collision_findings(project_root)?;
+            authoring.extend(crate::authoring_integrity::graft_isolation_findings(
+                project_root,
+            )?);
+            authoring.extend(crate::authoring_integrity::slice_discipline_findings(
+                slices_path,
+            )?);
+            for finding in authoring
+                .into_iter()
+                .filter(|finding| finding.severity == Severity::Error)
+            {
+                intern_finding(
+                    &mut run_ledger,
+                    StageId::new("validate.authoring_integrity"),
+                    Standpoint::Binding,
+                    &finding,
+                );
+            }
+        }
+
         // Phase 8: merged SHACL validation against the shared store.
         //
         // The whole-ontology merged-SHACL source key is the S6a semantic Merkle
