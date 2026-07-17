@@ -5958,39 +5958,84 @@ fn int_object(edges: &[(String, RdfTerm)], pred: &str) -> Option<i64> {
 /// Read one `gmeow:GroundingCoverage` cell subject into JSON — the present fr/zh/external
 /// incidences the packet materializes (fr/zh translations ride `gmeow:groundingValue`).
 fn grounding_cell_json(cell_iri: &str, edges: &[(String, RdfTerm)]) -> Value {
-    let g = |local: &str| format!("{GMEOW_NS}{local}");
-    let attribute = iri_object(edges, &g("groundingAttribute"))
-        .map(|iri| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string());
+    // Single O(N) pass: every grounding predicate lives under GMEOW_NS, so strip the prefix once
+    // and match on the local name. First occurrence wins (the `iri_object`/`lit_object` find_map
+    // semantics this replaces); the object type is matched inline so an IRI-only or literal-only
+    // predicate is picked exactly as before. Fields are collected into locals, then inserted in a
+    // FIXED order so the JSON is byte-identical regardless of edge order.
+    let mut term = None;
+    let mut attribute = None;
+    let mut predicate = None;
+    let mut value = None;
+    let mut external_entity = None;
+    let mut external_label = None;
+    let mut align_predicate = None;
+    let mut confidence_lit = None;
+    let mut conflict_lit = None;
+    let mut conflict_with = None;
+
+    for (p, o) in edges {
+        let Some(local) = p.strip_prefix(GMEOW_NS) else {
+            continue;
+        };
+        match (local, o) {
+            ("groundingTerm", RdfTerm::Iri(iri)) if term.is_none() => term = Some(iri.as_str()),
+            ("groundingAttribute", RdfTerm::Iri(iri)) if attribute.is_none() => {
+                attribute = Some(iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string());
+            }
+            ("groundingPredicate", RdfTerm::Literal(l)) if predicate.is_none() => {
+                predicate = Some(l.lexical_form.as_str());
+            }
+            ("groundingValue", RdfTerm::Literal(l)) if value.is_none() => {
+                value = Some(l.lexical_form.as_str());
+            }
+            ("groundingExternalEntity", RdfTerm::Iri(iri)) if external_entity.is_none() => {
+                external_entity = Some(iri.as_str());
+            }
+            ("groundingExternalLabel", RdfTerm::Literal(l)) if external_label.is_none() => {
+                external_label = Some(l.lexical_form.as_str());
+            }
+            ("groundingAlignPredicate", RdfTerm::Literal(l)) if align_predicate.is_none() => {
+                align_predicate = Some(l.lexical_form.as_str());
+            }
+            ("groundingConfidence", RdfTerm::Literal(l)) if confidence_lit.is_none() => {
+                confidence_lit = Some(l.lexical_form.as_str());
+            }
+            ("groundingConflict", RdfTerm::Literal(l)) if conflict_lit.is_none() => {
+                conflict_lit = Some(l.lexical_form.as_str());
+            }
+            ("groundingConflictWith", RdfTerm::Iri(iri)) if conflict_with.is_none() => {
+                conflict_with = Some(iri.as_str());
+            }
+            _ => {}
+        }
+    }
+
     let mut obj = serde_json::Map::new();
     obj.insert("cell".to_string(), json!(cell_iri));
-    obj.insert(
-        "term".to_string(),
-        json!(iri_object(edges, &g("groundingTerm"))),
-    );
+    obj.insert("term".to_string(), json!(term));
     obj.insert("attribute".to_string(), json!(attribute));
-    if let Some(v) = lit_object(edges, &g("groundingPredicate")) {
+    if let Some(v) = predicate {
         obj.insert("predicate".to_string(), json!(v));
     }
-    if let Some(v) = lit_object(edges, &g("groundingValue")) {
+    if let Some(v) = value {
         obj.insert("value".to_string(), json!(v));
     }
-    if let Some(v) = iri_object(edges, &g("groundingExternalEntity")) {
+    if let Some(v) = external_entity {
         obj.insert("external_entity".to_string(), json!(v));
     }
-    if let Some(v) = lit_object(edges, &g("groundingExternalLabel")) {
+    if let Some(v) = external_label {
         obj.insert("external_label".to_string(), json!(v));
     }
-    if let Some(v) = lit_object(edges, &g("groundingAlignPredicate")) {
+    if let Some(v) = align_predicate {
         obj.insert("align_predicate".to_string(), json!(v));
     }
-    if let Some(v) =
-        lit_object(edges, &g("groundingConfidence")).and_then(|s| s.parse::<f64>().ok())
-    {
+    if let Some(v) = confidence_lit.and_then(|s| s.parse::<f64>().ok()) {
         obj.insert("confidence".to_string(), json!(v));
     }
-    if lit_object(edges, &g("groundingConflict")) == Some("true") {
+    if conflict_lit == Some("true") {
         obj.insert("conflict".to_string(), json!(true));
-        if let Some(v) = iri_object(edges, &g("groundingConflictWith")) {
+        if let Some(v) = conflict_with {
             obj.insert("conflict_with".to_string(), json!(v));
         }
     }
