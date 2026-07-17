@@ -541,6 +541,494 @@ gmeow:gtsProfilePurrEmb
         gmeow:boxConfigBox .
 
 # =========================================================================== #
+# Procedural constraints — supporting terms                                   #
+# Terms the logic:Constraint ASTs below quantify over: the projection-header  #
+# digest/head-id records, the pairwise-comparison endpoints, the disclosure   #
+# total order, and the profile-surface container/manifest view.               #
+# =========================================================================== #
+
+gmeow:projectionSourceDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmbeddingProjection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "projection source digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The source-pack content digest RECORDED in a projection's header at build time — the value the projection asserts its source had. It is checked against the resolved gmeow:projectionSource's EXISTING gmeow:contentDigest by gmeow:SourceDigestMatchConstraint: a recorded digest that disagrees with the live source is a HARD FAIL (the projection was built over different bytes than it now points at), never a silent reconciliation."@x-gmeow-english ;
+    skos:example "ex:proj1 gmeow:projectionSourceDigest \"blake3:aa02…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as the projection's own digest (it records the SOURCE's digest as seen at build) and avoid omitting it on a projection whose provenance must be verifiable against a re-resolved source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:projectionSourceDigest on a gmeow:EmbeddingProjection as the source digest recorded in its header; gmeow:SourceDigestMatchConstraint compares it to the resolved source's gmeow:contentDigest."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, in the projection header, the exact source-pack digest the projection was built over — the value checked for drift against the live source."@x-gmeow-english .
+
+gmeow:projectionSourceGtsHeadId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmbeddingProjection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "projection source GTS head id"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The certified GTS head id a projection PROPAGATES from a certified GTS source — the committed-history anchor carried forward into the projection header. gmeow:GtsHeadIdPropagationConstraint requires that when a gmeow:projectionSource carries the EXISTING gmeow:gtsHeadId, the projection propagates the SAME id here: a certified source's history must travel with its projection, never be dropped."@x-gmeow-english ;
+    skos:example "ex:proj1 gmeow:projectionSourceGtsHeadId \"g1t2…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid propagating a head id that differs from the certified source's gmeow:gtsHeadId (the propagation constraint rejects it) and avoid dropping it when the source is a certified GTS artifact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:projectionSourceGtsHeadId on a gmeow:EmbeddingProjection equal to the certified source's gmeow:gtsHeadId; the propagation constraint checks the equality."@x-gmeow-english ;
+    gmeow:useWhen "Use to propagate a certified GTS source's committed-history head id into the projection header so the projection's lineage stays certifiable."@x-gmeow-english .
+
+gmeow:comparesLeft
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SimilarityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "compares left"@x-gmeow-english ;
+    rdfs:range gmeow:EmbeddingProjection ;
+    skos:definition "The left projection whose vector a pairwise gmeow:SimilarityObservation compares. Together with gmeow:comparesRight it names the two projections a similarity claim is made across; gmeow:CrossSpaceComparisonConstraint uses the pair to demand a justifying correspondence whenever their vector-space contracts differ."@x-gmeow-english ;
+    skos:example "ex:sim1 gmeow:comparesLeft ex:projA ; gmeow:comparesRight ex:projB ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a within-space single-projection observation (it names the LEFT operand of a pairwise CROSS-projection comparison) and avoid leaving its gmeow:comparesRight partner unset."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:comparesLeft from a gmeow:SimilarityObservation to the left gmeow:EmbeddingProjection; pair it with gmeow:comparesRight for the right operand."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the left projection of a pairwise similarity observation across two projections."@x-gmeow-english .
+
+gmeow:comparesRight
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SimilarityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "compares right"@x-gmeow-english ;
+    rdfs:range gmeow:EmbeddingProjection ;
+    skos:definition "The right projection whose vector a pairwise gmeow:SimilarityObservation compares. Together with gmeow:comparesLeft it names the two projections a similarity claim is made across; gmeow:CrossSpaceComparisonConstraint uses the pair to demand a justifying correspondence whenever their vector-space contracts differ."@x-gmeow-english ;
+    skos:example "ex:sim1 gmeow:comparesLeft ex:projA ; gmeow:comparesRight ex:projB ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a within-space single-projection observation (it names the RIGHT operand of a pairwise CROSS-projection comparison) and avoid leaving its gmeow:comparesLeft partner unset."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:comparesRight from a gmeow:SimilarityObservation to the right gmeow:EmbeddingProjection; pair it with gmeow:comparesLeft for the left operand."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the right projection of a pairwise similarity observation across two projections."@x-gmeow-english .
+
+gmeow:sensitivityRank
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:SensitivityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "sensitivity rank"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The total-order rank of a REUSED kernel gmeow:SensitivityLevel — a monotone integer where a HIGHER rank is MORE sensitive. It exists so gmeow:SecurityMonotonicityConstraint can compare a projection's disclosure level against its source's numerically (logic:termGreater on the ranks) rather than by prose. It ranks the existing kernel levels; it does not redeclare them."@x-gmeow-english ;
+    skos:example "gmeow:sensitivityInternal gmeow:sensitivityRank 1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a higher rank as LESS sensitive (higher = more sensitive) and avoid minting ranks that break the total order the monotonicity constraint depends on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:sensitivityRank on each kernel gmeow:SensitivityLevel individual as an ordered integer; gmeow:SecurityMonotonicityConstraint compares source and projection ranks with logic:termGreater."@x-gmeow-english ;
+    gmeow:useWhen "Use to give the kernel sensitivity levels a numeric total order so disclosure monotonicity is a decidable rank comparison."@x-gmeow-english .
+
+# Disclosure total order over the REUSED kernel gmeow:SensitivityLevel individuals
+# (higher rank = more sensitive). These are ADDITIVE rank axioms on the existing
+# kernel individuals — NOT re-declarations — establishing the order that
+# gmeow:SecurityMonotonicityConstraint compares source against projection over.
+gmeow:sensitivityPublic gmeow:sensitivityRank 0 .
+gmeow:sensitivityInternal gmeow:sensitivityRank 1 .
+gmeow:sensitivityConfidential gmeow:sensitivityRank 2 .
+gmeow:sensitivityRestricted gmeow:sensitivityRank 3 .
+gmeow:sensitivitySensitivePersonal gmeow:sensitivityRank 4 .
+
+gmeow:ProfileSurface
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "Profile Surface"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:profileSurfaceOf ;
+            owl:someValuesFrom gmeow:EmbeddingProjection ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:profileSurfaceKind ;
+            owl:someValuesFrom gmeow:ProfileSurfaceKind ;
+        ] ;
+    skos:definition "A view of an embedding projection that records the digests of the referents it shares with its siblings — either the container view (gmeow:surfaceContainer, the digests as the packaged .purremb container carries them) or the sidecar-manifest view (gmeow:surfaceManifest, the digests as the accompanying manifest declares them). The two views of one projection MUST agree on the source-pack, model-contract, and target-table digests (gmeow:ProfileSourceDigestAgreementConstraint and its siblings); disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
+    skos:example "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"blake3:aa02…\" ; gmeow:recordsModelContractDigest \"blake3:9ab3…\" ; gmeow:recordsTargetTableDigest \"blake3:7d21…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as the projection itself (it is a digest-recording VIEW of a projection) and avoid letting a container and a manifest surface of one projection disagree on any recorded digest — that is a hard fail."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type each digest-recording view gmeow:ProfileSurface, bind it to its projection with gmeow:profileSurfaceOf, classify it gmeow:surfaceContainer or gmeow:surfaceManifest with gmeow:profileSurfaceKind, and record the three shared-referent digests with gmeow:recordsSourceDigest, gmeow:recordsModelContractDigest, and gmeow:recordsTargetTableDigest."@x-gmeow-english ;
+    gmeow:useWhen "Use for the container or sidecar-manifest view of a projection that records the shared-referent digests whose container/manifest agreement the profile-surface constraints enforce."@x-gmeow-english .
+
+gmeow:ProfileSurfaceKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "Profile Surface Kind"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The value vocabulary of profile-surface views — gmeow:surfaceContainer (the packaged .purremb container) and gmeow:surfaceManifest (the accompanying sidecar manifest). Modelled like graphrag's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9)."@x-gmeow-english ;
+    skos:example "gmeow:surfaceContainer a gmeow:ProfileSurfaceKind ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a surface-kind SUBCLASS of gmeow:ProfileSurface (the kind is a value, P9) and avoid conflating the container view with the manifest view — they are the two operands the agreement constraints compare."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference gmeow:surfaceContainer or gmeow:surfaceManifest from a gmeow:ProfileSurface via gmeow:profileSurfaceKind."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value axis distinguishing a projection's container view from its sidecar-manifest view."@x-gmeow-english .
+
+gmeow:surfaceContainer
+    a gmeow:ProfileSurfaceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "container"@x-gmeow-english ;
+    skos:definition "The profile-surface view carried by the packaged .purremb container itself — the digests as the container records them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:surfaceManifest
+    a gmeow:ProfileSurfaceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "manifest"@x-gmeow-english ;
+    skos:definition "The profile-surface view carried by the accompanying sidecar manifest — the digests as the manifest declares them, to be checked against the container's."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:profileSurfaceOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ProfileSurface ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "profile surface of"@x-gmeow-english ;
+    rdfs:range gmeow:EmbeddingProjection ;
+    skos:definition "The embedding projection a profile surface is a view of. Functional: one surface views exactly one projection, so the container and manifest agreement constraints join two surfaces through the single projection they share."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:profileSurfaceOf ex:proj1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid binding one surface to two projections (it is functional) and avoid leaving it unset; a surface with no projection cannot participate in the agreement check."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:profileSurfaceOf from a gmeow:ProfileSurface to the gmeow:EmbeddingProjection it views."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a profile surface to the projection whose shared-referent digests it records."@x-gmeow-english .
+
+gmeow:profileSurfaceKind
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ProfileSurface ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "profile surface kind"@x-gmeow-english ;
+    rdfs:range gmeow:ProfileSurfaceKind ;
+    skos:definition "Which view a profile surface is — gmeow:surfaceContainer or gmeow:surfaceManifest. Functional: a surface is one kind, so the agreement constraints can pick out the container operand and the manifest operand of a projection unambiguously."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:profileSurfaceKind gmeow:surfaceContainer ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid two kinds on one surface (it is functional) and avoid minting a kind SUBCLASS of gmeow:ProfileSurface; the kind is a value (P9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a gmeow:ProfileSurface at one gmeow:ProfileSurfaceKind individual with gmeow:profileSurfaceKind."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a profile surface as the container or the manifest view of its projection."@x-gmeow-english .
+
+gmeow:recordsSourceDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ProfileSurface ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "records source digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The source-pack digest a profile surface records for its projection. The container and manifest surfaces of one projection MUST record the same value (gmeow:ProfileSourceDigestAgreementConstraint); a disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:recordsSourceDigest \"blake3:aa02…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid letting a container and a manifest surface record differing source digests (the agreement constraint reds it) and avoid omitting it on a surface that must be cross-checked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:recordsSourceDigest on each gmeow:ProfileSurface; the container and manifest values are compared by gmeow:ProfileSourceDigestAgreementConstraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, on a profile surface, the source-pack digest whose container/manifest agreement must be enforced."@x-gmeow-english .
+
+gmeow:recordsModelContractDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ProfileSurface ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "records model contract digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The model/vector-space-contract digest a profile surface records for its projection. The container and manifest surfaces of one projection MUST record the same value (gmeow:ProfileModelContractAgreementConstraint); a disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:recordsModelContractDigest \"blake3:9ab3…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid letting a container and a manifest surface record differing model-contract digests (the agreement constraint reds it) and avoid omitting it on a surface that must be cross-checked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:recordsModelContractDigest on each gmeow:ProfileSurface; the container and manifest values are compared by gmeow:ProfileModelContractAgreementConstraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, on a profile surface, the model-contract digest whose container/manifest agreement must be enforced."@x-gmeow-english .
+
+gmeow:recordsTargetTableDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ProfileSurface ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "records target table digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The target-table digest a profile surface records for its projection. The container and manifest surfaces of one projection MUST record the same value (gmeow:ProfileTargetTableAgreementConstraint); a disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
+    skos:example "ex:sc1 gmeow:recordsTargetTableDigest \"blake3:7d21…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid letting a container and a manifest surface record differing target-table digests (the agreement constraint reds it) and avoid omitting it on a surface that must be cross-checked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry gmeow:recordsTargetTableDigest on each gmeow:ProfileSurface; the container and manifest values are compared by gmeow:ProfileTargetTableAgreementConstraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, on a profile surface, the target-table digest whose container/manifest agreement must be enforced."@x-gmeow-english .
+
+# =========================================================================== #
+# Procedural constraints — declarative requiredness (CT8, DerivedVectorIndex) #
+# Purely existence → EL-safe OWL, NOT a procedural logic:Constraint. A derived #
+# vector index requires its projection and a measured approximation-recall     #
+# quantity (owl:someValuesFrom, projected to sh:minCount by Principle 17).      #
+# =========================================================================== #
+
+gmeow:DerivedVectorIndex rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:indexOfProjection ; owl:someValuesFrom gmeow:EmbeddingProjection ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:approximationRecall ; owl:someValuesFrom math:Quantity ] .
+
+# =========================================================================== #
+# Procedural constraints — logic:Constraint + logic:Formula ASTs              #
+# Guarded closed-world integrity checks (Principle 17). Each logic:formalizes  #
+# a generated gmeow:{Name}Shape (the greenfield convention of the deception /   #
+# citations constraints: strip "Constraint", append "Shape"). Existence        #
+# consequents lower to FILTER NOT EXISTS; the C4 disjunction to a logic:or of   #
+# two logic:exists bodies (docs/MIGRATING-SHAPES-TO-LOGIC.md).                  #
+# =========================================================================== #
+
+# C1 (CT1): a projection's RECORDED source digest must equal the resolved
+# source's live gmeow:contentDigest — else the projection was built over
+# different bytes than it now points at.
+gmeow:SourceDigestMatchConstraint
+    a logic:Constraint ;
+    rdfs:label "Source-digest match constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:EmbeddingProjection's recorded gmeow:projectionSourceDigest must equal the gmeow:contentDigest of its resolved gmeow:projectionSource. A mismatch is a HARD FAIL — the projection was built over bytes that differ from the source it now resolves to, so its provenance is invalid; the digests are never silently reconciled."@x-gmeow-english ;
+    logic:formalizes gmeow:SourceDigestMatchShape ;
+    logic:message "A projection's recorded source digest (gmeow:projectionSourceDigest) must equal the resolved source's gmeow:contentDigest — the projection was built over different bytes than its source now carries." ;
+    logic:integrity gmeow:sdmcForall .
+gmeow:sdmcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] , [ logic:termIndex 2 ; logic:termVariable "d1" ] , [ logic:termIndex 3 ; logic:termVariable "d2" ] ;
+    logic:forall gmeow:sdmcImpl .
+gmeow:sdmcImpl a logic:Formula ; logic:antecedent gmeow:sdmcGuard ; logic:consequent gmeow:sdmcEq .
+gmeow:sdmcGuard a logic:Formula ; logic:and gmeow:sdmcType , gmeow:sdmcRecorded , gmeow:sdmcSource , gmeow:sdmcResolved .
+gmeow:sdmcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmbeddingProjection ] .
+gmeow:sdmcRecorded a logic:Formula ; logic:relation gmeow:projectionSourceDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "d1" ] .
+gmeow:sdmcSource a logic:Formula ; logic:relation gmeow:projectionSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] .
+gmeow:sdmcResolved a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "src" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+gmeow:sdmcEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "d1" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+
+# C2 (CT2/CT3): a cross-space similarity observation — one whose two projections'
+# vector-space contracts have DISTINCT digests — requires a justifying
+# logic:Correspondence between those contracts (existential consequent).
+gmeow:CrossSpaceComparisonConstraint
+    a logic:Constraint ;
+    rdfs:label "Cross-space comparison constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SimilarityObservation comparing two projections whose gmeow:hasVectorSpaceContract digests DIFFER requires a justifying logic:Correspondence whose logic:sourceEndpoint/logic:targetEndpoint are those two contracts. Same-digest (same-space) comparisons are exempt; a cross-space comparison with no correspondence is ill-formed — proximity across unrelated spaces is meaningless without the bridge."@x-gmeow-english ;
+    logic:formalizes gmeow:CrossSpaceComparisonShape ;
+    logic:message "A similarity observation across two DIFFERENT vector spaces (distinct contract digests) requires a justifying logic:Correspondence between the two gmeow:VectorSpaceContracts." ;
+    logic:integrity gmeow:csccForall .
+gmeow:csccForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "pL" ] , [ logic:termIndex 2 ; logic:termVariable "pR" ] , [ logic:termIndex 3 ; logic:termVariable "cL" ] , [ logic:termIndex 4 ; logic:termVariable "cR" ] , [ logic:termIndex 5 ; logic:termVariable "dL" ] , [ logic:termIndex 6 ; logic:termVariable "dR" ] ;
+    logic:forall gmeow:csccImpl .
+gmeow:csccImpl a logic:Formula ; logic:antecedent gmeow:csccGuard ; logic:consequent gmeow:csccExists .
+gmeow:csccGuard a logic:Formula ; logic:and gmeow:csccType , gmeow:csccLeft , gmeow:csccRight , gmeow:csccContractL , gmeow:csccContractR , gmeow:csccDigestL , gmeow:csccDigestR , gmeow:csccDistinct .
+gmeow:csccType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SimilarityObservation ] .
+gmeow:csccLeft a logic:Formula ; logic:relation gmeow:comparesLeft ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "pL" ] .
+gmeow:csccRight a logic:Formula ; logic:relation gmeow:comparesRight ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "pR" ] .
+gmeow:csccContractL a logic:Formula ; logic:relation gmeow:hasVectorSpaceContract ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pL" ] , [ logic:termIndex 1 ; logic:termVariable "cL" ] .
+gmeow:csccContractR a logic:Formula ; logic:relation gmeow:hasVectorSpaceContract ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pR" ] , [ logic:termIndex 1 ; logic:termVariable "cR" ] .
+gmeow:csccDigestL a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cL" ] , [ logic:termIndex 1 ; logic:termVariable "dL" ] .
+gmeow:csccDigestR a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cR" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
+gmeow:csccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dL" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
+gmeow:csccExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "corr" ] ;
+    logic:exists gmeow:csccBody .
+gmeow:csccBody a logic:Formula ; logic:and gmeow:csccCorrType , gmeow:csccSrc , gmeow:csccTgt .
+gmeow:csccCorrType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "corr" ] , [ logic:termIndex 1 ; logic:termIri logic:Correspondence ] .
+gmeow:csccSrc a logic:Formula ; logic:relation logic:sourceEndpoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "corr" ] , [ logic:termIndex 1 ; logic:termVariable "cL" ] .
+gmeow:csccTgt a logic:Formula ; logic:relation logic:targetEndpoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "corr" ] , [ logic:termIndex 1 ; logic:termVariable "cR" ] .
+
+# C3 (CT7): a projection whose disclosure sensitivity is WEAKER (lower rank) than
+# its source's requires an explicit gmeow:DeclassificationAct (existential
+# consequent) — sensitivity never drops silently (P15).
+gmeow:SecurityMonotonicityConstraint
+    a logic:Constraint ;
+    rdfs:label "Security monotonicity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: when a gmeow:EmbeddingProjection's sensitivity rank is LOWER than its gmeow:projectionSource's (the source is more sensitive, gmeow:sensitivityRank source > projection), an explicit gmeow:DeclassificationAct that gmeow:declassifies the projection must exist. Absent that reviewable act, a projection may never sit below its source's classification — disclosure sensitivity never degrades silently (P15)."@x-gmeow-english ;
+    logic:formalizes gmeow:SecurityMonotonicityShape ;
+    logic:message "A projection whose sensitivity is below its source's requires an explicit gmeow:DeclassificationAct declassifying it — sensitivity never drops silently (P15)." ;
+    logic:integrity gmeow:smonForall .
+gmeow:smonForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "ps" ] , [ logic:termIndex 2 ; logic:termVariable "pr" ] , [ logic:termIndex 3 ; logic:termVariable "src" ] , [ logic:termIndex 4 ; logic:termVariable "ss" ] , [ logic:termIndex 5 ; logic:termVariable "sr" ] ;
+    logic:forall gmeow:smonImpl .
+gmeow:smonImpl a logic:Formula ; logic:antecedent gmeow:smonGuard ; logic:consequent gmeow:smonExists .
+gmeow:smonGuard a logic:Formula ; logic:and gmeow:smonType , gmeow:smonProjSens , gmeow:smonProjRank , gmeow:smonSource , gmeow:smonSrcSens , gmeow:smonSrcRank , gmeow:smonGt .
+gmeow:smonType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmbeddingProjection ] .
+gmeow:smonProjSens a logic:Formula ; logic:relation gmeow:hasSensitivity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "ps" ] .
+gmeow:smonProjRank a logic:Formula ; logic:relation gmeow:sensitivityRank ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ps" ] , [ logic:termIndex 1 ; logic:termVariable "pr" ] .
+gmeow:smonSource a logic:Formula ; logic:relation gmeow:projectionSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] .
+gmeow:smonSrcSens a logic:Formula ; logic:relation gmeow:hasSensitivity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "src" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] .
+gmeow:smonSrcRank a logic:Formula ; logic:relation gmeow:sensitivityRank ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ss" ] , [ logic:termIndex 1 ; logic:termVariable "sr" ] .
+gmeow:smonGt a logic:Formula ; logic:relation logic:termGreater ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sr" ] , [ logic:termIndex 1 ; logic:termVariable "pr" ] .
+gmeow:smonExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "act" ] ;
+    logic:exists gmeow:smonBody .
+gmeow:smonBody a logic:Formula ; logic:and gmeow:smonActType , gmeow:smonDeclassifies .
+gmeow:smonActType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DeclassificationAct ] .
+gmeow:smonDeclassifies a logic:Formula ; logic:relation gmeow:declassifies ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+# C4 (CT4): a vector target must carry an EXACT identity — a gmeow:targetsResource
+# OR a gmeow:contentDigest — never a bare gmeow:targetOrdinal (a non-identifying
+# hint). The RDF 1.2 statement-term case is covered because such a target still
+# uses gmeow:targetsResource pointing at the reifier. Consequent = logic:or of
+# two logic:exists bodies.
+gmeow:TargetExactIdentityConstraint
+    a logic:Constraint ;
+    rdfs:label "Target exact-identity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:VectorTarget carries an EXACT identity — either a gmeow:targetsResource binding or its own gmeow:contentDigest — never only a gmeow:targetOrdinal, which is a non-identifying acceleration hint. The RDF 1.2 statement-term case is covered by the first disjunct: such a target still uses gmeow:targetsResource pointing at the rdf:reifies reifier, so it satisfies the exact-identity requirement. A bare ordinal with neither disjunct present is a violation."@x-gmeow-english ;
+    logic:formalizes gmeow:TargetExactIdentityShape ;
+    logic:message "A vector target must carry an exact identity — a gmeow:targetsResource or a gmeow:contentDigest — not just a non-identifying gmeow:targetOrdinal." ;
+    logic:integrity gmeow:teicForall .
+gmeow:teicForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vt" ] ;
+    logic:forall gmeow:teicImpl .
+gmeow:teicImpl a logic:Formula ; logic:antecedent gmeow:teicType ; logic:consequent gmeow:teicOr .
+gmeow:teicType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vt" ] , [ logic:termIndex 1 ; logic:termIri gmeow:VectorTarget ] .
+gmeow:teicOr a logic:Formula ; logic:or gmeow:teicResExists , gmeow:teicDigExists .
+gmeow:teicResExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ;
+    logic:exists gmeow:teicResAtom .
+gmeow:teicResAtom a logic:Formula ; logic:relation gmeow:targetsResource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vt" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+gmeow:teicDigExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists gmeow:teicDigAtom .
+gmeow:teicDigAtom a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vt" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
+# C5a (CT10/R5): the container and manifest surfaces of one projection must
+# record the SAME source-pack digest.
+gmeow:ProfileSourceDigestAgreementConstraint
+    a logic:Constraint ;
+    rdfs:label "Profile source-digest agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: for one gmeow:EmbeddingProjection, its gmeow:surfaceContainer and gmeow:surfaceManifest profile surfaces must record the SAME gmeow:recordsSourceDigest. Disagreement is a HARD FAIL — the container and its sidecar manifest describe different source packs — never a heuristic reconciliation of the two digests."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileSourceDigestAgreementShape ;
+    logic:message "A projection's container and manifest profile surfaces must record the same source-pack digest (gmeow:recordsSourceDigest) — disagreement is a hard fail." ;
+    logic:integrity gmeow:psdaForall .
+gmeow:psdaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "proj" ] , [ logic:termIndex 1 ; logic:termVariable "sc" ] , [ logic:termIndex 2 ; logic:termVariable "sm" ] , [ logic:termIndex 3 ; logic:termVariable "x" ] , [ logic:termIndex 4 ; logic:termVariable "y" ] ;
+    logic:forall gmeow:psdaImpl .
+gmeow:psdaImpl a logic:Formula ; logic:antecedent gmeow:psdaGuard ; logic:consequent gmeow:psdaEq .
+gmeow:psdaGuard a logic:Formula ; logic:and gmeow:psdaContainerOf , gmeow:psdaContainerKind , gmeow:psdaManifestOf , gmeow:psdaManifestKind , gmeow:psdaContainerDigest , gmeow:psdaManifestDigest .
+gmeow:psdaContainerOf a logic:Formula ; logic:relation gmeow:profileSurfaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termVariable "proj" ] .
+gmeow:psdaContainerKind a logic:Formula ; logic:relation gmeow:profileSurfaceKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:surfaceContainer ] .
+gmeow:psdaManifestOf a logic:Formula ; logic:relation gmeow:profileSurfaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termVariable "proj" ] .
+gmeow:psdaManifestKind a logic:Formula ; logic:relation gmeow:profileSurfaceKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termIri gmeow:surfaceManifest ] .
+gmeow:psdaContainerDigest a logic:Formula ; logic:relation gmeow:recordsSourceDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+gmeow:psdaManifestDigest a logic:Formula ; logic:relation gmeow:recordsSourceDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+gmeow:psdaEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+
+# C5b (CT10/R5): the container and manifest surfaces of one projection must
+# record the SAME model-contract digest.
+gmeow:ProfileModelContractAgreementConstraint
+    a logic:Constraint ;
+    rdfs:label "Profile model-contract agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: for one gmeow:EmbeddingProjection, its gmeow:surfaceContainer and gmeow:surfaceManifest profile surfaces must record the SAME gmeow:recordsModelContractDigest. Disagreement is a HARD FAIL — the container and its sidecar manifest describe different vector-space contracts — never a heuristic reconciliation of the two digests."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileModelContractAgreementShape ;
+    logic:message "A projection's container and manifest profile surfaces must record the same model-contract digest (gmeow:recordsModelContractDigest) — disagreement is a hard fail." ;
+    logic:integrity gmeow:pmcaForall .
+gmeow:pmcaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "proj" ] , [ logic:termIndex 1 ; logic:termVariable "sc" ] , [ logic:termIndex 2 ; logic:termVariable "sm" ] , [ logic:termIndex 3 ; logic:termVariable "x" ] , [ logic:termIndex 4 ; logic:termVariable "y" ] ;
+    logic:forall gmeow:pmcaImpl .
+gmeow:pmcaImpl a logic:Formula ; logic:antecedent gmeow:pmcaGuard ; logic:consequent gmeow:pmcaEq .
+gmeow:pmcaGuard a logic:Formula ; logic:and gmeow:pmcaContainerOf , gmeow:pmcaContainerKind , gmeow:pmcaManifestOf , gmeow:pmcaManifestKind , gmeow:pmcaContainerDigest , gmeow:pmcaManifestDigest .
+gmeow:pmcaContainerOf a logic:Formula ; logic:relation gmeow:profileSurfaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termVariable "proj" ] .
+gmeow:pmcaContainerKind a logic:Formula ; logic:relation gmeow:profileSurfaceKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:surfaceContainer ] .
+gmeow:pmcaManifestOf a logic:Formula ; logic:relation gmeow:profileSurfaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termVariable "proj" ] .
+gmeow:pmcaManifestKind a logic:Formula ; logic:relation gmeow:profileSurfaceKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termIri gmeow:surfaceManifest ] .
+gmeow:pmcaContainerDigest a logic:Formula ; logic:relation gmeow:recordsModelContractDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+gmeow:pmcaManifestDigest a logic:Formula ; logic:relation gmeow:recordsModelContractDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+gmeow:pmcaEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+
+# C5c (CT10/R5): the container and manifest surfaces of one projection must
+# record the SAME target-table digest.
+gmeow:ProfileTargetTableAgreementConstraint
+    a logic:Constraint ;
+    rdfs:label "Profile target-table agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: for one gmeow:EmbeddingProjection, its gmeow:surfaceContainer and gmeow:surfaceManifest profile surfaces must record the SAME gmeow:recordsTargetTableDigest. Disagreement is a HARD FAIL — the container and its sidecar manifest describe different target tables — never a heuristic reconciliation of the two digests."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileTargetTableAgreementShape ;
+    logic:message "A projection's container and manifest profile surfaces must record the same target-table digest (gmeow:recordsTargetTableDigest) — disagreement is a hard fail." ;
+    logic:integrity gmeow:pttaForall .
+gmeow:pttaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "proj" ] , [ logic:termIndex 1 ; logic:termVariable "sc" ] , [ logic:termIndex 2 ; logic:termVariable "sm" ] , [ logic:termIndex 3 ; logic:termVariable "x" ] , [ logic:termIndex 4 ; logic:termVariable "y" ] ;
+    logic:forall gmeow:pttaImpl .
+gmeow:pttaImpl a logic:Formula ; logic:antecedent gmeow:pttaGuard ; logic:consequent gmeow:pttaEq .
+gmeow:pttaGuard a logic:Formula ; logic:and gmeow:pttaContainerOf , gmeow:pttaContainerKind , gmeow:pttaManifestOf , gmeow:pttaManifestKind , gmeow:pttaContainerDigest , gmeow:pttaManifestDigest .
+gmeow:pttaContainerOf a logic:Formula ; logic:relation gmeow:profileSurfaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termVariable "proj" ] .
+gmeow:pttaContainerKind a logic:Formula ; logic:relation gmeow:profileSurfaceKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:surfaceContainer ] .
+gmeow:pttaManifestOf a logic:Formula ; logic:relation gmeow:profileSurfaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termVariable "proj" ] .
+gmeow:pttaManifestKind a logic:Formula ; logic:relation gmeow:profileSurfaceKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termIri gmeow:surfaceManifest ] .
+gmeow:pttaContainerDigest a logic:Formula ; logic:relation gmeow:recordsTargetTableDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+gmeow:pttaManifestDigest a logic:Formula ; logic:relation gmeow:recordsTargetTableDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sm" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+gmeow:pttaEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+
+# C6 (R1): a certified source's gmeow:gtsHeadId must be PROPAGATED into the
+# projection as gmeow:projectionSourceGtsHeadId with the SAME value (existential
+# consequent with an equality atom).
+gmeow:GtsHeadIdPropagationConstraint
+    a logic:Constraint ;
+    rdfs:label "GTS head-id propagation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: when a gmeow:EmbeddingProjection's gmeow:projectionSource carries a certified gmeow:gtsHeadId, the projection must propagate the SAME id via gmeow:projectionSourceGtsHeadId. A certified source's committed history must travel with its projection — it is never dropped, and a propagated id that differs from the source's is a violation."@x-gmeow-english ;
+    logic:formalizes gmeow:GtsHeadIdPropagationShape ;
+    logic:message "A certified source's gmeow:gtsHeadId must be propagated into the projection as an equal gmeow:projectionSourceGtsHeadId." ;
+    logic:integrity gmeow:ghipForall .
+gmeow:ghipForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] , [ logic:termIndex 2 ; logic:termVariable "h" ] ;
+    logic:forall gmeow:ghipImpl .
+gmeow:ghipImpl a logic:Formula ; logic:antecedent gmeow:ghipGuard ; logic:consequent gmeow:ghipExists .
+gmeow:ghipGuard a logic:Formula ; logic:and gmeow:ghipType , gmeow:ghipSource , gmeow:ghipSrcHead .
+gmeow:ghipType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmbeddingProjection ] .
+gmeow:ghipSource a logic:Formula ; logic:relation gmeow:projectionSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] .
+gmeow:ghipSrcHead a logic:Formula ; logic:relation gmeow:gtsHeadId ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "src" ] , [ logic:termIndex 1 ; logic:termVariable "h" ] .
+gmeow:ghipExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "h2" ] ;
+    logic:exists gmeow:ghipBody .
+gmeow:ghipBody a logic:Formula ; logic:and gmeow:ghipProp , gmeow:ghipEq .
+gmeow:ghipProp a logic:Formula ; logic:relation gmeow:projectionSourceGtsHeadId ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "h2" ] .
+gmeow:ghipEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "h" ] , [ logic:termIndex 1 ; logic:termVariable "h2" ] .
+
+# =========================================================================== #
 # Ontology declaration                                                        #
 # =========================================================================== #
 
