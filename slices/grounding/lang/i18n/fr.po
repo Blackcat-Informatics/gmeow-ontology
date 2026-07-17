@@ -634,8 +634,8 @@ msgid "homograph source"
 msgstr "source d'homographe"
 
 msgctxt "https://blackcatinformatics.ca/lang/homographSource|skos:definition"
-msgid "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. Functional: one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."
-msgstr "La forme de surface anglaise qu'une lang:DeclaredTerminologyHomograph marque comme homographe — la chaîne que le contrôle de cohérence de glossaire exempte. Fonctionnel : une surface par déclaration. Domaine lang:DeclaredTerminologyHomograph, portée xsd:string. Distinct de gmeow:glossarySource (qui est délimité à l'entrée et dérivé) : ce prédicat n'est rédigé que sur des déclarations d'homographe, de sorte que la lecture de l'ensemble d'exemption par le contrôle ne récupère jamais de littéraux d'entrée dérivés."
+msgid "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. At most one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."
+msgstr "La forme de surface anglaise qu'une lang:DeclaredTerminologyHomograph marque comme homographe — la chaîne que le contrôle de cohérence de glossaire exempte. Au plus une surface par déclaration. Domaine lang:DeclaredTerminologyHomograph, portée xsd:string. Distinct de gmeow:glossarySource (qui est délimité à l'entrée et dérivé) : ce prédicat n'est rédigé que sur des déclarations d'homographe, de sorte que la lecture de l'ensemble d'exemption par le contrôle ne récupère jamais de littéraux d'entrée dérivés."
 
 msgctxt "https://blackcatinformatics.ca/lang/homographConcept|rdfs:label"
 msgid "homograph concept"

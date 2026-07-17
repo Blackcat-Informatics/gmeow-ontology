@@ -3219,7 +3219,8 @@ lang:DeclaredTerminologyHomograph
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Declared Terminology Homograph"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [ a owl:Restriction ; owl:onProperty lang:homographSource ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ;
     skos:definition "An explicit declaration that one English surface form (lang:homographSource) is a homograph in the terminology — it legitimately evokes two or more DISTINCT lang:LexicalConcepts (lang:homographConcept), each of which may take its own target-language rendering. It is the ontology-resident escape the glossary-consistency gate consults: a source so declared is exempted from the raw-source consistency check (its entries are projected onto distinct concepts), so a genuine homograph is never a false positive. A discrete modelled fact, never a calibrated knob: it costs naming two real concepts, and the exemption is granted only when two or more distinct lang:homographConcept senses are present — a declaration naming fewer than two grants no exemption (it is not a homograph) and the source stays under the consistency check."@x-gmeow-english ;
     skos:example "ex:homographRead a lang:DeclaredTerminologyHomograph ; lang:homographSource \"read\" ; lang:homographConcept ex:conceptReadPresent , ex:conceptReadPast ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
@@ -3230,13 +3231,12 @@ lang:DeclaredTerminologyHomograph
     gmeow:useWhen "Use to declare, as a modelled semantic fact, that one English term has two senses that may legitimately render differently — the honest alternative to a tuned exception list."@x-gmeow-english .
 
 lang:homographSource
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain lang:DeclaredTerminologyHomograph ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "homograph source"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. Functional: one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."@x-gmeow-english ;
+    skos:definition "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. At most one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid a declaration with no lang:homographSource — it exempts nothing."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
