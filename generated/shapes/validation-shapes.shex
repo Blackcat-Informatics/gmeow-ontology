@@ -1560,10 +1560,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/SexualOrientationValue-shape> {
 }
 
-# targetClass <https://blackcatinformatics.ca/gmeow/SimilarityObservation> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/SimilarityObservation-shape> {
-}
-
 # targetClass <https://blackcatinformatics.ca/gmeow/SkillProficiency> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/SkillProficiency-shape> {
   <https://blackcatinformatics.ca/gmeow/skillProficiencyOf> IRI ;
@@ -5035,10 +5031,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/reproducibilityLevel-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> . {0,1} ;
-}
-
-<https://blackcatinformatics.ca/gmeow/reproducibilityLevel-https://blackcatinformatics.ca/gmeow/reproducibleWithinTolerance-value-shape> {
-  <https://blackcatinformatics.ca/gmeow/reproducibilityTolerance> IRI ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/reproducibilityTolerance> (associate via ShapeMap)

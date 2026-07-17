@@ -5460,6 +5460,8 @@ export type Repository = {
 
 export type RepositoryTypeEnum = (string & ("gmeow:repoTypeFossil" | "gmeow:repoTypeGit" | "gmeow:repoTypeHg" | "gmeow:repoTypeJJ" | "gmeow:repoTypePijul" | "gmeow:repoTypeSVN"));
 
+export type ReproducibilityLevelEnum = (string & ("gmeow:regenerableOnly" | "gmeow:reproducibleExact" | "gmeow:reproducibleWithinTolerance"));
+
 export type RetrievalEvent = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;

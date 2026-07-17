@@ -42613,6 +42613,14 @@
       ],
       "type": "string"
     },
+    "ReproducibilityLevelEnum": {
+      "enum": [
+        "gmeow:regenerableOnly",
+        "gmeow:reproducibleExact",
+        "gmeow:reproducibleWithinTolerance"
+      ],
+      "type": "string"
+    },
     "RetrievalEvent": {
       "properties": {
         "@annotation": {

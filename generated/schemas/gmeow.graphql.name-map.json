@@ -1990,6 +1990,10 @@
       "output_type": "RepositoryTypeEnum",
       "input_type": "RepositoryTypeEnum"
     },
+    "ReproducibilityLevelEnum": {
+      "output_type": "ReproducibilityLevelEnum",
+      "input_type": "ReproducibilityLevelEnum"
+    },
     "RetrievalEvent": {
       "output_type": "RetrievalEvent",
       "input_type": "RetrievalEventInput"
@@ -14280,6 +14284,20 @@
       {
         "source_value": "gmeow:repoTypeSVN",
         "graphql_name": "VALUE_5"
+      }
+    ],
+    "#/$defs/ReproducibilityLevelEnum": [
+      {
+        "source_value": "gmeow:regenerableOnly",
+        "graphql_name": "VALUE_0"
+      },
+      {
+        "source_value": "gmeow:reproducibleExact",
+        "graphql_name": "VALUE_1"
+      },
+      {
+        "source_value": "gmeow:reproducibleWithinTolerance",
+        "graphql_name": "VALUE_2"
       }
     ],
     "#/$defs/RightsActionEnum": [

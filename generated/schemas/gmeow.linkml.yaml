@@ -44206,6 +44206,12 @@ enums:
       gmeow:repoTypeJJ: {}
       gmeow:repoTypePijul: {}
       gmeow:repoTypeSVN: {}
+  ReproducibilityLevelEnum:
+    enum_uri: gmeow:ReproducibilityLevelEnum
+    permissible_values:
+      gmeow:regenerableOnly: {}
+      gmeow:reproducibleExact: {}
+      gmeow:reproducibleWithinTolerance: {}
   RightsActionEnum:
     enum_uri: gmeow:RightsActionEnum
     permissible_values:

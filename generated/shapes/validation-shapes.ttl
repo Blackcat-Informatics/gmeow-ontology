@@ -1474,10 +1474,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/GenderExpressionStyle> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/RomanticOrientationValue> ] .
 
-<https://blackcatinformatics.ca/gmeow/SimilarityObservation-shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/SimilarityObservation> ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/RetrievalEvent> ] .
-
 <https://blackcatinformatics.ca/gmeow/SkillProficiency-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/SkillProficiency> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/skillProficiencyOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Skill> ] ;
@@ -4288,10 +4284,6 @@
 <https://blackcatinformatics.ca/gmeow/reproducibilityLevel-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/reproducibilityLevel-https://blackcatinformatics.ca/gmeow/reproducibleWithinTolerance-value-shape> a sh:NodeShape ;
-    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> <https://blackcatinformatics.ca/gmeow/reproducibleWithinTolerance> }""" ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/reproducibilityTolerance> ; sh:class <https://blackcatinformatics.ca/math/Quantity> ] .
 
 <https://blackcatinformatics.ca/gmeow/reproducibilityTolerance-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/reproducibilityTolerance> ;
