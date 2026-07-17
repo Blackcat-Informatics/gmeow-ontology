@@ -4865,6 +4865,11 @@ export interface AuthorIdentity extends InformationObject {
     canonicalizedIdentity?: Agent[],
 }
 
+export interface AuthoringCandidate {
+    candidateForPacket?: AuthoringPacket[],
+    candidateForSlice?: string[],
+}
+
 export interface AuthoringPacket {
     exemplarShortfall?: number[],
     packetAxis?: string[],
