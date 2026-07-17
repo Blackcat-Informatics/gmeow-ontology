@@ -9885,6 +9885,60 @@ mod tests {
     }
 
     #[test]
+    fn submit_candidate_refuted_leaves_populated_library_byte_identical() {
+        // AC6, strengthened: the "stages nothing" invariant must hold against a NON-EMPTY store,
+        // not just an absent one. Admit a corroborated candidate (the library now holds real
+        // bytes), snapshot them, then submit a genuinely refuted candidate — the polarity gate
+        // must leave the on-disk library BYTE-IDENTICAL (no append, no truncation, no rewrite).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_candidate();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Populate the library with one admissible candidate.
+        let admit = text_payload(server.call_tool_result(
+            "submit_candidate",
+            &json!({
+                "formula": reified_ground_atom_candidate("B"),
+                "kb": ground_atom_entailing_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(
+            admit["committed"], true,
+            "setup: admissible candidate commits"
+        );
+        let populated = std::fs::read(&path).expect("library exists after an admitted candidate");
+        assert!(
+            !populated.is_empty(),
+            "the populated library holds real bytes"
+        );
+
+        // A refuted submit against the POPULATED store must write nothing.
+        let resp = text_payload(server.call_tool_result(
+            "submit_candidate",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(
+            resp["ok"], false,
+            "refuted candidate is not admitted: {resp}"
+        );
+        assert_eq!(resp["admissible"], false);
+        assert_eq!(resp["verdict"]["lifecycle"], "refuted-in-standpoint");
+
+        let after = std::fs::read(&path).expect("library still present");
+        assert_eq!(
+            after, populated,
+            "a refuted submit must leave the populated library byte-identical"
+        );
+    }
+
+    #[test]
     fn submit_candidate_dry_run_writes_nothing() {
         // A dry-run on an ADMISSIBLE candidate computes the verdict via a hypothetical commit but
         // writes nothing.
