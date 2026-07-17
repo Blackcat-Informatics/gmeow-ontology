@@ -7287,7 +7287,9 @@ math:CochainComplex
     a owl:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cochain Complex"@x-gmeow-english ;
-    skos:definition "A cochain complex: the dual graded sequence of modules connected by coboundary maps δ whose consecutive composite δ∘δ is zero — the degree-raising dual of a math:ChainComplex. A subclass of math:MathematicalObject naming its coboundary operator through math:cochainCoboundary. It is NOT the math:ChainComplex it is dual to (the arrows raise degree rather than lower it), and it is not a graded collection alone: the square-zero coboundary law is constitutive. A cochain complex naming no coboundary operator is ill-formed (math:IncompleteCochainComplex)."@x-gmeow-english ;
+    skos:definition "A cochain complex: the dual graded sequence of modules connected by coboundary maps δ whose consecutive composite δ∘δ is zero — the degree-raising dual of a math:ChainComplex. A subclass of math:MathematicalObject naming its coboundary operator through math:cochainCoboundary. It is NOT the math:ChainComplex it is dual to (the arrows raise degree rather than lower it), and it is not a graded collection alone: the square-zero coboundary law is constitutive, authored as the first-order math:coboundarySquareZeroLaw. A cochain complex naming no coboundary operator is ill-formed (math:IncompleteCochainComplex)."@x-gmeow-english ;
+    math:definingLaw math:coboundarySquareZeroLaw ;
+    rdfs:seeAlso math:coboundarySquareZeroLaw ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Cycle
