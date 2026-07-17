@@ -21,9 +21,9 @@
 //! [`shipped_demonstrators`]; this module ships the minimal Peano-addition demonstrator so
 //! the stage has a real, proof-checked answer to fold.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr};
+use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
 use purrdf::TermValue;
 
 use crate::physical::id::{MetaId, NodeId, TermId};
@@ -34,6 +34,9 @@ use crate::physical::resolve_fol::{
 use crate::physical::term_dag::TermDag;
 use crate::physical::unify::{SortContext, SortOrder};
 use crate::query_ir::Budget;
+use crate::rule_ir::{
+    EvalAtom, EvalRule, EvalTerm, Fact, FactStore, Solution, least_model_of_reduct, match_atom,
+};
 
 /// The gmeow namespace every projected goal-directed IRI/predicate lives under.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -92,6 +95,18 @@ pub struct GoalDirectedEvaluation {
     /// determinism. Non-empty only for a negation demonstrator (e.g. `win`/`move`), where it
     /// carries the `undefined` loop atoms alongside the founded `true`/`false` atoms.
     pub verdicts: Vec<GoalDirectedVerdict>,
+    /// The AUTHORED program's own clauses, each rendered to its functional surface via the
+    /// SAME [`render`] helper the answers use (`"head."` for a fact, `"head :- b1, b2."` for
+    /// a rule, a negation-as-failure body literal rendered `"not atom"`), in the program's own
+    /// (authored, sort-key-canonical) clause order. [`project_goal_directed`] projects these
+    /// alongside the evaluated answers/verdicts, so the shipped bundle carries "here is the
+    /// authored program" and not only "here is its well-founded model".
+    pub clauses: Vec<String>,
+    /// Every `logic:verdictProbe` atom's rendered functional surface (the SAME rendering
+    /// [`GoalDirectedVerdict::atom`] carries), independent of the evaluated verdict value —
+    /// the authored PROGRAM structure's probe set, not its evaluation. Empty for a program
+    /// with no verdict probes.
+    pub verdict_probe_atoms: Vec<String>,
 }
 
 /// Evaluate every shipped goal-directed demonstrator: run each through the proof-carrying
@@ -215,6 +230,20 @@ fn evaluate_demonstrator(
     } = built;
     // Render the goal template BEFORE resolution (free metavariables still present).
     let goal = render(&dag, program.goal);
+    // U2: render the AUTHORED program structure itself (clauses + verdict-probe atoms) via
+    // the SAME `render` helper the goal/answers use, so the shipped bundle carries the
+    // authored program alongside its evaluated result. Rendered from `program`/`dag` BEFORE
+    // resolution mutates `dag` further — the clause/probe NodeIds are unaffected either way
+    // (the arena only grows), but this mirrors `goal`'s own pre-resolution rendering.
+    let clauses: Vec<String> = program
+        .clauses
+        .iter()
+        .map(|clause| render_clause(&dag, clause))
+        .collect();
+    let verdict_probe_atoms: Vec<String> = verdict_probes
+        .iter()
+        .map(|probe| render(&dag, *probe))
+        .collect();
     let outcome = match resolve_fol(&mut dag, &program, &ctx, &Budget::default())? {
         FolControl::Decided(outcome) => outcome,
         FolControl::Unsupported(kind) => {
@@ -278,7 +307,30 @@ fn evaluate_demonstrator(
         status,
         answers,
         verdicts,
+        clauses,
+        verdict_probe_atoms,
     })
+}
+
+/// Render one program clause to its authored functional surface via the SAME [`render`]
+/// helper the answer/goal surfaces use, so the projected program-structure text is
+/// byte-consistent with the evaluated answers: `"head."` for a fact (empty body), and
+/// `"head :- b1, b2."` for a rule, with a negation-as-failure body literal rendered
+/// `"not atom"` (mirrors the authored `logic:not[atom]` surface).
+fn render_clause(dag: &TermDag, clause: &FolClause) -> String {
+    let head = render(dag, clause.head);
+    if clause.body.is_empty() {
+        return format!("{head}.");
+    }
+    let body: Vec<String> = clause
+        .body
+        .iter()
+        .map(|lit| match lit {
+            FolLit::Pos(node) => render(dag, *node),
+            FolLit::Neg(node) => format!("not {}", render(dag, *node)),
+        })
+        .collect();
+    format!("{head} :- {}.", body.join(", "))
 }
 
 /// Intern an atomic IRI leaf under a program-local surface name.
@@ -599,14 +651,272 @@ pub fn evaluate_reasoning_programs(
             program.clauses.len(),
             program.mode.as_str(),
         );
-        evals.push(evaluate_demonstrator(
-            local_name(&program.iri),
-            &description,
-            built,
-        )?);
+        let eval = evaluate_demonstrator(local_name(&program.iri), &description, built)?;
+        // T3: the cross-engine (backward-vs-forward) fixpoint-agreement oracle. Only a
+        // program inside the forward-evaluable definite/function-free/binary fragment is
+        // checked (see `is_definite_function_free_binary`'s doc for exactly which shipped
+        // programs qualify); every other program is evaluated exactly as before.
+        if is_definite_function_free_binary(program) {
+            cross_check_forward_agreement(program, &eval)?;
+        }
+        evals.push(eval);
     }
     evals.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(evals)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────
+// T3 — the cross-engine fixpoint-agreement oracle (definite, function-free fragment).
+// ─────────────────────────────────────────────────────────────────────────────────────
+//
+// A shipped, dogfooded soundness+completeness invariant for the fragment `rule_ir`'s forward
+// chase (`least_model_of_reduct`, the same engine `relational_core::lower_formulas` feeds)
+// can actually evaluate: FUNCTION-FREE definite Horn clauses with fixed-arity BINARY atoms.
+// For every authored `logic:ReasoningProgram` inside that fragment, this independently
+// computes the forward least model over the program's OWN lowered clauses and HARD-FAILS if
+// it disagrees with the backward SLG answer set `evaluate_demonstrator` already produced —
+// never a second source of truth for the shipped answers, only a cross-check that the two
+// engines agree on the fragment both can evaluate.
+
+/// Whether `program` is inside the T3 oracle's forward-evaluable fragment: no
+/// `logic:verdictProbe`s, no negation-as-failure (`Formula::Not`) anywhere in its clauses, no
+/// compound function-term application (`Term::App`) anywhere in its clauses/query, and every
+/// atom (every clause head/body literal, plus the query) is exactly binary. This is precisely
+/// the "function-free definite Horn clauses with fixed-arity (binary) atoms" fragment
+/// `rule_ir::least_model_of_reduct` evaluates:
+///
+/// - `peano-add`/`member-cons` fail on `Term::App` (their `s(...)`/`cons(...)` function
+///   symbols) — correctly SKIPPED;
+/// - `win-wfs-negation` fails on both `Formula::Not` and its non-empty `verdictProbe`s —
+///   correctly SKIPPED;
+/// - `math-subsort`/`math-subsort-control`'s `p(X)` is UNARY, not binary — correctly SKIPPED
+///   (a unary atom would need the n-ary reifier/restricted-chase lane this oracle
+///   deliberately does not exercise);
+/// - `reachability`'s `edge`/`reach` clauses and query are all definite, function-free,
+///   binary atoms — the one shipped program the oracle actually cross-checks.
+fn is_definite_function_free_binary(program: &ReasoningProgramIr) -> bool {
+    if !program.verdict_probes.is_empty() {
+        return false;
+    }
+    if !formula_is_binary_atom(&program.query) {
+        return false;
+    }
+    program
+        .clauses
+        .iter()
+        .all(clause_is_definite_function_free_binary)
+}
+
+/// A clause is inside the fragment iff its head is a binary atom and (for a rule) its
+/// antecedent is a conjunction of binary atoms — never a negation, disjunction, or nested
+/// quantifier.
+fn clause_is_definite_function_free_binary(clause: &Formula) -> bool {
+    match clause {
+        Formula::Atom { .. } => formula_is_binary_atom(clause),
+        Formula::Implies(antecedent, consequent) => {
+            formula_is_binary_atom(consequent) && body_is_definite_function_free_binary(antecedent)
+        }
+        _ => false,
+    }
+}
+
+/// A rule antecedent is inside the fragment iff it is a (possibly-flattened) conjunction of
+/// binary atoms — no `Formula::Not` (negation-as-failure), disjunction, or quantifier.
+fn body_is_definite_function_free_binary(body: &Formula) -> bool {
+    match body {
+        Formula::And(parts) => parts.iter().all(body_is_definite_function_free_binary),
+        Formula::Atom { .. } => formula_is_binary_atom(body),
+        _ => false,
+    }
+}
+
+/// `true` iff `formula` is a single atomic predication with an IRI relation and exactly two
+/// function-free (`Var`/`Iri`/`Literal`) arguments.
+fn formula_is_binary_atom(formula: &Formula) -> bool {
+    match formula {
+        Formula::Atom { relation, args } => {
+            matches!(relation, Term::Iri(_))
+                && args.len() == 2
+                && args.iter().all(term_is_function_free)
+        }
+        _ => false,
+    }
+}
+
+/// `true` for a term the oracle's binary EDB/rule lowering can represent directly: a
+/// variable, an IRI constant, or a data literal — never a compound [`Term::App`] or a
+/// [`Term::SequenceMarker`].
+fn term_is_function_free(term: &Term) -> bool {
+    matches!(term, Term::Var(_) | Term::Iri(_) | Term::Literal { .. })
+}
+
+/// Lower one gated (definite, function-free, binary) [`Formula`] atom to an [`EvalAtom`]:
+/// an IRI relation becomes the predicate, and each of its exactly-two arguments lowers via
+/// [`oracle_eval_term`]. HARD-fails if `formula` is not a binary atom — a defensive re-check
+/// of [`formula_is_binary_atom`], which every caller has already gated on.
+fn oracle_eval_atom(formula: &Formula) -> gmeow_errors::Result<EvalAtom> {
+    let Formula::Atom { relation, args } = formula else {
+        return Err(reasoning_program_err(format!(
+            "T3 cross-engine oracle: expected an atomic logic:Formula, found {formula:?}"
+        )));
+    };
+    let Term::Iri(predicate) = relation else {
+        return Err(reasoning_program_err(
+            "T3 cross-engine oracle: an atom's relation must be a Term::Iri".to_owned(),
+        ));
+    };
+    if args.len() != 2 {
+        return Err(reasoning_program_err(format!(
+            "T3 cross-engine oracle: atom {predicate} is not binary (arity {}); outside the \
+             oracle's fixed-arity fragment",
+            args.len()
+        )));
+    }
+    Ok(EvalAtom {
+        subject: oracle_eval_term(&args[0])?,
+        predicate: predicate.clone(),
+        object: oracle_eval_term(&args[1])?,
+        negated: false,
+    })
+}
+
+/// Lower a function-free [`Term`] to an [`EvalTerm`]: a variable stays a variable (`?`-sigil
+/// prefixed, matching [`EvalTerm::Var`]'s surface convention), an IRI becomes a named
+/// constant, and a literal becomes a constant literal (typed when a datatype is authored).
+fn oracle_eval_term(term: &Term) -> gmeow_errors::Result<EvalTerm> {
+    match term {
+        Term::Var(name) => Ok(EvalTerm::Var(format!("?{name}"))),
+        Term::Iri(iri) => Ok(EvalTerm::ConstNamed(iri.clone())),
+        Term::Literal { lexical, datatype } => Ok(EvalTerm::ConstLit(match datatype {
+            Some(dt) => TermValue::typed_literal(lexical.clone(), dt.clone()),
+            None => TermValue::simple_literal(lexical.clone()),
+        })),
+        other => Err(reasoning_program_err(format!(
+            "T3 cross-engine oracle: term {other:?} is outside the function-free binary \
+             fragment (every caller gates on `term_is_function_free` before reaching this)"
+        ))),
+    }
+}
+
+/// Flatten a rule antecedent into its [`EvalAtom`] body, mirroring [`lower_body`]'s
+/// conjunction-flattening but restricted to the DEFINITE fragment: a conjunction flattens
+/// into its conjuncts, a bare atom is a single body literal, and anything else (in
+/// particular a negation) is a hard fail — every caller has already gated on
+/// [`body_is_definite_function_free_binary`].
+fn oracle_body_atoms(formula: &Formula, out: &mut Vec<EvalAtom>) -> gmeow_errors::Result<()> {
+    match formula {
+        Formula::And(parts) => {
+            for part in parts {
+                oracle_body_atoms(part, out)?;
+            }
+            Ok(())
+        }
+        Formula::Atom { .. } => {
+            out.push(oracle_eval_atom(formula)?);
+            Ok(())
+        }
+        other => Err(reasoning_program_err(format!(
+            "T3 cross-engine oracle: rule body literal must be a conjunction of atomic \
+             formulas (the definite fragment); found {other:?}"
+        ))),
+    }
+}
+
+/// Lower one gated clause [`Formula`] (a bare fact atom, or an `Implies(antecedent,
+/// consequent)` rule) into an [`EvalRule`] for the forward chase. `idx` seeds a purely
+/// internal, non-content-addressed `rule_iri`: it is never projected or otherwise observed
+/// outside this in-engine computation (the oracle compares the resulting FACT SET only), so
+/// positional naming here carries none of the determinism risk it would for shipped bundle
+/// content.
+fn oracle_eval_rule(idx: usize, clause: &Formula) -> gmeow_errors::Result<EvalRule> {
+    let (head_formula, body) = match clause {
+        Formula::Atom { .. } => (clause, Vec::new()),
+        Formula::Implies(antecedent, consequent) => {
+            let mut body = Vec::new();
+            oracle_body_atoms(antecedent, &mut body)?;
+            (consequent.as_ref(), body)
+        }
+        other => {
+            return Err(reasoning_program_err(format!(
+                "T3 cross-engine oracle: clause must be an atomic fact or an \
+                 antecedent/consequent rule; found {other:?}"
+            )));
+        }
+    };
+    Ok(EvalRule {
+        head: oracle_eval_atom(head_formula)?,
+        body,
+        rule_iri: format!("{GMEOW}goal-directed/oracle-rule/{idx}"),
+        distinct_pairs: Vec::new(),
+        builtins: Vec::new(),
+    })
+}
+
+/// Render one forward-derived ground [`Fact`] to the SAME functional surface
+/// `render`/`GoalDirectedAnswer::atom` uses (`pred(subject,object)`, bare IRI text), so the
+/// forward and backward answer sets compare as plain strings.
+fn oracle_render_fact(fact: &Fact) -> String {
+    format!(
+        "{}({},{})",
+        fact.predicate,
+        oracle_term_bare(&fact.subject),
+        oracle_term_bare(&fact.object)
+    )
+}
+
+/// The bare (unbracketed) surface of a ground [`TermValue`]: an IRI's plain string, or (for
+/// the fragment's other legal ground term, a literal) its display form.
+fn oracle_term_bare(value: &TermValue) -> String {
+    match value {
+        TermValue::Iri(iri) => iri.clone(),
+        other => crate::provenance::term_display(other),
+    }
+}
+
+/// Compute the forward least model of `program`'s OWN lowered (definite, function-free,
+/// binary) clauses via `rule_ir::least_model_of_reduct` — the identical forward-chase engine
+/// `relational_core::lower_formulas` feeds — project it onto the query atom, and HARD-FAIL if
+/// that set disagrees with the backward SLG answer set already computed into `eval.answers`.
+///
+/// Every clause becomes an [`EvalRule`] directly (no separate `edb`: a fact clause is simply
+/// a zero-body rule, which `least_model_of_reduct`'s join fires unconditionally in round one)
+/// and there is no negation to guard (the DEFINITE gate already excludes it), so `reference`
+/// is passed as an empty store too.
+fn cross_check_forward_agreement(
+    program: &ReasoningProgramIr,
+    eval: &GoalDirectedEvaluation,
+) -> gmeow_errors::Result<()> {
+    let rules: Vec<EvalRule> = program
+        .clauses
+        .iter()
+        .enumerate()
+        .map(|(idx, clause)| oracle_eval_rule(idx, clause))
+        .collect::<gmeow_errors::Result<_>>()?;
+    let empty = FactStore::new();
+    let result = least_model_of_reduct(&empty, &rules, &empty)?;
+
+    let query_atom = oracle_eval_atom(&program.query)?;
+    let probe_sol = Solution {
+        bindings: Vec::new(),
+        source_facts: Vec::new(),
+    };
+    let mut forward: BTreeSet<String> = BTreeSet::new();
+    for &i in result.store.facts_for_predicate(&query_atom.predicate) {
+        let fact = &result.store.facts()[i];
+        if match_atom(&query_atom, fact, &probe_sol).is_some() {
+            forward.insert(oracle_render_fact(fact));
+        }
+    }
+    let backward: BTreeSet<String> = eval.answers.iter().map(|ans| ans.atom.clone()).collect();
+    if forward != backward {
+        return Err(reasoning_program_err(format!(
+            "goal-directed program {:?} FAILED the T3 cross-engine fixpoint-agreement oracle: \
+             the backward SLG answer set {backward:?} does not equal the forward \
+             relational-core least model's projection onto the query atom {forward:?}",
+            program.iri
+        )));
+    }
+    Ok(())
 }
 
 /// The Peano-addition demonstrator: `add(zero,Y,Y). add(s(X),Y,s(Z)) :- add(X,Y,Z).`
@@ -901,6 +1211,28 @@ fn verdict_iri(name: &str, idx: usize) -> String {
     format!("{GMEOW}goal-directed/{name}/verdict/{idx}")
 }
 
+/// U2: mint a content-addressed `gmeow:GoalDirectedProgram` IRI from the evaluation's OWN
+/// rendered program text (its name, clauses, query, and verdict-probe atoms) — a `blake3`
+/// hash, never a [`NodeId`]/index, so the SAME authored program always mints the SAME
+/// program IRI regardless of interning/evaluation order (byte-stable across independent
+/// runs, exactly like [`content_addressed_rule_iri`]).
+fn program_iri_for(eval: &GoalDirectedEvaluation) -> String {
+    let mut key = String::new();
+    key.push_str(&eval.name);
+    for clause in &eval.clauses {
+        key.push('\u{0}');
+        key.push_str(clause);
+    }
+    key.push('\u{0}');
+    key.push_str(&eval.goal);
+    for probe in &eval.verdict_probe_atoms {
+        key.push('\u{0}');
+        key.push_str(probe);
+    }
+    let hash = blake3::hash(key.as_bytes()).to_hex();
+    format!("{GMEOW}goal-directed/program/{hash}")
+}
+
 /// Project evaluated demonstrators into deterministic (sorted) N-Triples for the
 /// `graph/goal-directed` fold. Each demonstrator is a `gmeow:GoalDirectedQuery` carrying
 /// its description, goal template, and status; each answer is a `gmeow:GoalDirectedAnswer`
@@ -955,6 +1287,29 @@ pub fn project_goal_directed(evals: &[GoalDirectedEvaluation]) -> String {
             lines.push(triple_iri(&vi, RDF_TYPE, &p("GoalDirectedVerdict")));
             lines.push(triple_lit(&vi, &p("goalDirectedVerdictAtom"), &v.atom));
             lines.push(triple_lit(&vi, &p("goalDirectedVerdict"), &v.verdict));
+        }
+        // U2: project the AUTHORED program structure itself — its own clauses, query, and
+        // verdict-probe atoms — into the SAME graph/goal-directed, content-addressed and
+        // linked from the existing query node, so the shipped bundle carries the authored
+        // program alongside its evaluated well-founded model, not only the answers.
+        let prog = program_iri_for(eval);
+        lines.push(triple_iri(&q, &p("hasGoalDirectedProgram"), &prog));
+        lines.push(triple_iri(&prog, RDF_TYPE, &p("GoalDirectedProgram")));
+        lines.push(triple_lit(&prog, &p("goalDirectedProgramName"), &eval.name));
+        for clause in &eval.clauses {
+            lines.push(triple_lit(&prog, &p("goalDirectedClause"), clause));
+        }
+        lines.push(triple_lit(
+            &prog,
+            &p("goalDirectedProgramQuery"),
+            &eval.goal,
+        ));
+        for probe in &eval.verdict_probe_atoms {
+            lines.push(triple_lit(
+                &prog,
+                &p("goalDirectedProgramVerdictProbe"),
+                probe,
+            ));
         }
     }
     lines.sort();
@@ -1330,6 +1685,172 @@ mod tests {
         );
     }
 
+    // ── T3: cross-engine (backward vs. forward) fixpoint-agreement oracle ───────────────
+    //
+    // `ex:reachability`: `edge(a,b). edge(b,c). reach(X,Y):-edge(X,Y). reach(X,Z):-edge(X,Y),
+    // reach(Y,Z).` with goal `?- reach(a,W)`. Definite, function-free, and every atom binary
+    // — squarely inside `is_definite_function_free_binary`'s fragment, so
+    // `evaluate_reasoning_programs` runs the T3 oracle over it.
+
+    const REACHABILITY_REASONING_PROGRAM_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/goal-directed-test/> .\n\
+        \n\
+        ex:reachability a logic:ReasoningProgram ;\n\
+            logic:evaluationMode logic:BackwardEvaluation ;\n\
+            logic:programQuery [ a logic:Formula ;\n\
+                logic:relation ex:reach ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,\n\
+                               [ logic:termIndex 1 ; logic:termVariable \"W\" ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:edge ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,\n\
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:relation ex:edge ;\n\
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ,\n\
+                               [ logic:termIndex 1 ; logic:termIri ex:c ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:antecedent [ a logic:Formula ;\n\
+                    logic:relation ex:edge ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termVariable \"Y\" ]\n\
+                ] ;\n\
+                logic:consequent [ a logic:Formula ;\n\
+                    logic:relation ex:reach ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termVariable \"Y\" ]\n\
+                ]\n\
+            ] ;\n\
+            logic:clause [ a logic:Formula ;\n\
+                logic:antecedent [ a logic:Formula ;\n\
+                    logic:and [ a logic:Formula ;\n\
+                            logic:relation ex:edge ;\n\
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                           [ logic:termIndex 1 ; logic:termVariable \"Y\" ]\n\
+                        ] ,\n\
+                        [ a logic:Formula ;\n\
+                            logic:relation ex:reach ;\n\
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable \"Y\" ] ,\n\
+                                           [ logic:termIndex 1 ; logic:termVariable \"Z\" ]\n\
+                        ]\n\
+                ] ;\n\
+                logic:consequent [ a logic:Formula ;\n\
+                    logic:relation ex:reach ;\n\
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,\n\
+                                   [ logic:termIndex 1 ; logic:termVariable \"Z\" ]\n\
+                ]\n\
+            ] .\n\
+    ";
+
+    #[test]
+    fn reachability_program_is_gated_into_the_oracle_fragment_and_passes_it() {
+        let (prog, diags) = gmeow_logic_compile::frontend::parse_logic_str(
+            REACHABILITY_REASONING_PROGRAM_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert_eq!(prog.reasoning_programs.len(), 1);
+        assert!(
+            is_definite_function_free_binary(&prog.reasoning_programs[0]),
+            "reachability is definite, function-free, and every atom is binary — squarely \
+             inside the T3 oracle's fragment"
+        );
+
+        // `evaluate_reasoning_programs` runs the oracle inline; a mismatch would HARD-FAIL
+        // here, so success itself proves backward == forward for this program.
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate + cross-check the reachability program");
+        assert_eq!(evals.len(), 1);
+        let reach = &evals[0];
+        assert_eq!(reach.status, "ok");
+        const EX: &str = "https://example.org/goal-directed-test/";
+        let mut bound: Vec<String> = reach
+            .answers
+            .iter()
+            .map(|a| a.bindings["W"].clone())
+            .collect();
+        bound.sort();
+        assert_eq!(
+            bound,
+            vec![format!("{EX}b"), format!("{EX}c")],
+            "backward resolution of reach(a,W) enumerates W ∈ {{b,c}}"
+        );
+    }
+
+    #[test]
+    fn programs_with_function_symbols_negation_or_non_binary_atoms_are_excluded_from_the_oracle() {
+        // Peano add carries `s(...)` function-term applications: NOT function-free.
+        let (peano, _) =
+            gmeow_logic_compile::frontend::parse_logic_str(PEANO_ADD_REASONING_PROGRAM_TTL, None)
+                .expect("parse succeeds");
+        assert!(
+            !is_definite_function_free_binary(&peano.reasoning_programs[0]),
+            "peano-add's s(...) function terms exclude it from the oracle's fragment"
+        );
+
+        // Math-subsort's `p(X)` is unary: NOT binary.
+        let (subsort, _) = gmeow_logic_compile::frontend::parse_logic_str(
+            MATH_SUBSORT_REASONING_PROGRAMS_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        for program in &subsort.reasoning_programs {
+            assert!(
+                !is_definite_function_free_binary(program),
+                "{}'s unary p(X) atom excludes it from the oracle's binary-atom fragment",
+                program.iri
+            );
+        }
+    }
+
+    #[test]
+    fn the_cross_engine_oracle_hard_fails_a_deliberately_wrong_answer_set() {
+        // Proves the oracle is not vacuous: corrupt a REAL, oracle-passing evaluation's
+        // answer set and confirm `cross_check_forward_agreement` actually detects and
+        // rejects the mismatch, rather than trivially succeeding for any input.
+        let (prog, _) = gmeow_logic_compile::frontend::parse_logic_str(
+            REACHABILITY_REASONING_PROGRAM_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        let program = &prog.reasoning_programs[0];
+        let evals = evaluate_reasoning_programs(std::slice::from_ref(program), &[])
+            .expect("the real program passes the oracle");
+        let real_eval = &evals[0];
+        assert!(
+            !real_eval.answers.is_empty(),
+            "the real program has at least one answer to corrupt"
+        );
+
+        let mut wrong = real_eval.clone();
+        wrong.answers.pop();
+        wrong.answers.push(GoalDirectedAnswer {
+            atom: "https://example.org/goal-directed-test/reach(https://example.org/\
+                   goal-directed-test/a,https://example.org/goal-directed-test/nonexistent)"
+                .to_owned(),
+            bindings: BTreeMap::new(),
+            derivation_iri: "https://blackcatinformatics.ca/gmeow/derivation/bogus".to_owned(),
+            proof_checks: true,
+        });
+
+        let result = cross_check_forward_agreement(program, &wrong);
+        assert!(
+            result.is_err(),
+            "the oracle must HARD-FAIL when the (corrupted) backward answer set disagrees \
+             with the forward least model — proving the check is not vacuous"
+        );
+    }
+
     #[test]
     fn peano_add_demonstrator_resolves_and_proof_checks() {
         let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
@@ -1373,6 +1894,64 @@ mod tests {
         // Deterministic: a second projection is byte-identical.
         let nt2 = project_goal_directed(&evals);
         assert_eq!(nt, nt2, "the projection is byte-stable");
+    }
+
+    // ── U2: the authored PROGRAM STRUCTURE itself is projected, not only its answers ────
+
+    #[test]
+    fn projection_carries_the_authored_peano_program_structure_and_is_byte_stable_across_runs() {
+        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
+        let nt = project_goal_directed(&evals);
+        assert!(
+            nt.contains("GoalDirectedProgram"),
+            "the projection types the authored program node:\n{nt}"
+        );
+        assert!(
+            nt.contains("hasGoalDirectedProgram"),
+            "the query node links to its authored program:\n{nt}"
+        );
+        assert!(
+            nt.contains("goalDirectedClause"),
+            "the projection carries the authored clauses:\n{nt}"
+        );
+        assert!(
+            nt.contains("goalDirectedProgramQuery"),
+            "the projection carries the authored program's query:\n{nt}"
+        );
+        // The Peano program's own fact clause and the recursive rule's body both surface as
+        // rendered `goalDirectedClause` literals.
+        assert!(
+            nt.contains("add(zero,"),
+            "the Peano fact clause add(zero,Y,Y). is projected:\n{nt}"
+        );
+        assert!(
+            nt.contains(" :- add("),
+            "the Peano recursive rule's antecedent is projected:\n{nt}"
+        );
+        // The query linkage: the peano-add query node's `hasGoalDirectedProgram` object is a
+        // `GoalDirectedProgram` individual carrying that SAME program's `goalDirectedProgramQuery`
+        // literal, equal to the query node's own `goalDirectedGoal` literal (the SAME `render`
+        // surface, reused rather than re-derived).
+        let peano = evals
+            .iter()
+            .find(|e| e.name == "peano-add")
+            .expect("the peano-add demonstrator is shipped");
+        let expected_query_triple =
+            format!("<{GMEOW}goalDirectedProgramQuery> \"{}\" .", peano.goal);
+        assert!(
+            nt.lines().any(|l| l.ends_with(&expected_query_triple)),
+            "the program node's goalDirectedProgramQuery literal equals the query node's own \
+             rendered goal:\n{nt}"
+        );
+
+        // Byte-stability ACROSS two independent evaluations (not merely two projections of
+        // the same `evals`): content-addressed, never interning/mint-order dependent.
+        let evals2 = evaluate_shipped_demonstrators().expect("second evaluation");
+        let nt2 = project_goal_directed(&evals2);
+        assert_eq!(
+            nt, nt2,
+            "the authored-program projection is byte-identical across independent evaluations"
+        );
     }
 
     // ── Positive structured demonstrator: member over cons/nil ──────────────────────────

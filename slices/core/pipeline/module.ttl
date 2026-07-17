@@ -445,6 +445,21 @@ gmeow:pipeline-dataflow-validate-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
+# stage-goal-directed reads ONLY the graph/reasoning named graph of stage-reason's
+# product (the typed Reasoning handle's backing graph): the reasoned rdfs:subClassOf
+# closure's derived, non-EDB axioms are the subsort_edges the order-sorted
+# math-subsort demonstrator's unification lattice is seeded from.
+gmeow:pipeline-dataflow-goal-directed-reason
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: reason → goal-directed"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-goal-directed: the goal-directed stage reads only the graph/reasoning named graph of the reason product — the typed Reasoning handle's backing graph, whose derived (non-EDB) rdfs:subClassOf axioms seed the order-sorted math-subsort demonstrator's unification lattice. Records the artifact-level dependency so the stage's cache key folds that one graph's digest rather than the whole reason product (its committed closure/explanations/ledger byte lanes)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-reason ;
+    gmeow:buildFlowTo gmeow:stage-goal-directed ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+
 # =========================================================================== #
 # The canonical build DAG (gmeow:pipeline-build) — dogfooded as data.         #
 #                                                                             #
@@ -607,12 +622,14 @@ gmeow:stage-goal-directed
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "goal directed"@x-gmeow-english ;
-    skos:definition "Run the native proof-carrying full-FOL backward engine over the shipped goal-directed demonstrator corpus and fold its checked answers into gmeow.gts — the production consumer that makes the backward engine non-dark. It evaluates each shipped structured (function-symbol) demonstrator through gmeow_logic::goal_directed, validates every answer's Curry–Howard proof (a proof that does not re-derive its answer atom HARD-fails), and attaches the checked answers + content-addressed proof derivations as the graph/goal-directed named graph, which stage-snapshot folds into the bundle. The demonstrator corpus is a SET, so appending a demonstrator reaches the bundle with no stage change. graph/goal-directed is bundle-internal, a sibling of graph/reasoning, excluded from the object-level EDB (it asserts derived answers, not axioms)."@x-gmeow-english ;
+    skos:definition "Run the native proof-carrying full-FOL backward engine over the authored goal-directed demonstrator corpus and fold its checked answers into gmeow.gts — the production consumer that makes the backward engine non-dark. It compiles the authored logic:ReasoningProgram individuals (read off the stage-compile-logic product's typed Logic handle) through gmeow_logic::goal_directed::evaluate_reasoning_programs, seeding the order-sorted unification lattice from the reasoned rdfs:subClassOf closure (read off the stage-reason product's typed Reasoning handle's derived, non-EDB axioms — the math: subsort tower the order-sorted math-subsort demonstrator needs), validates every answer's Curry–Howard proof (a proof that does not re-derive its answer atom HARD-fails), and attaches the checked answers + content-addressed proof derivations as the graph/goal-directed named graph, which stage-snapshot folds into the bundle. The demonstrator corpus is a SET authored in slices/grounding/logic/examples/reasoning-programs.ttl, so appending a demonstrator reaches the bundle with no stage change. graph/goal-directed is bundle-internal, a sibling of graph/reasoning, excluded from the object-level EDB (it asserts derived answers, not axioms)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "goal_directed" ;
-    gmeow:dataflowConsumes gmeow:stage-compile-logic .
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-reason .
 
 gmeow:stage-gts-compose
     a gmeow:PipelineStage ;
