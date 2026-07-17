@@ -92,6 +92,50 @@ pub fn codebook_digest(codebook: &CurrentCodebook, dict: &GmnDictionary) -> Stri
     )
 }
 
+/// The content-addressed **conformance-pack Merkle root** (`gmeow:gmnPackRoot`): the GMN-1
+/// version identity an independent decoder pins against. A blake3 root over exactly three
+/// ordered part leaves, folded with the SAME wire format as [`codebook_digest`] — each part
+/// contributes `label␟leaf\n` (`␟` = [`FIELD_SEP`]) to the root pre-image IN THIS ORDER,
+/// `root = blake3(pre-image)`, returned as `"blake3:<64-hex>"`:
+///
+/// | # | label             | leaf |
+/// |---|-------------------|------|
+/// | 1 | `codebook-digest` | the codebook digest string VERBATIM (algorithm-tagged `blake3:<hex>`) — the pack pins the codebook by its PUBLISHED identity, so a consumer recomputes the root directly from the value the codebook already carries |
+/// | 2 | `gmn-grammar`     | `blake3(authored gmn.ebnf bytes)`, lowercase hex — the authored grammar template byte-exact (the `glyphToken` seam is realized from leaf 3, so the template and the glyph table are pinned independently) |
+/// | 3 | `sigil-table`     | the [`leaf_hex`] of the executable sigil→glyph binding rows (the glyph table then the fallback table), each row `sigil␟surface␟fixity␟arity␟term`, NFC-normalized + sorted — the SAME per-part canonicalization the codebook's glyph leaves use |
+///
+/// Deterministic and input-only (no clock, rng, or environment). The pack is self-certifying:
+/// a consumer recomputes this root from the three parts the pack `gmeow:references` and
+/// refuses a pack whose declared root disagrees.
+#[must_use]
+pub fn pack_root(codebook_digest: &str, dict: &GmnDictionary, grammar_bytes: &[u8]) -> String {
+    let glyphs = dict.glyph_registry();
+    let five = |(a, b, c, d, e): (String, String, String, String, String)| {
+        format!("{a}{FIELD_SEP}{b}{FIELD_SEP}{c}{FIELD_SEP}{d}{FIELD_SEP}{e}")
+    };
+    let mut sigil_rows: Vec<String> = glyphs.glyph_binding_rows().into_iter().map(five).collect();
+    sigil_rows.extend(glyphs.fallback_binding_rows().into_iter().map(five));
+    let parts: [(&'static str, String); 3] = [
+        ("codebook-digest", codebook_digest.to_owned()),
+        (
+            "gmn-grammar",
+            blake3::hash(grammar_bytes).to_hex().to_string(),
+        ),
+        ("sigil-table", leaf_hex(sigil_rows)),
+    ];
+    let mut preimage = String::new();
+    for (label, leaf) in &parts {
+        preimage.push_str(label);
+        preimage.push(FIELD_SEP);
+        preimage.push_str(leaf);
+        preimage.push('\n');
+    }
+    format!(
+        "{ALGO_PREFIX}{}",
+        blake3::hash(preimage.as_bytes()).to_hex()
+    )
+}
+
 /// The byte-exact identity of a GMN-0 model: blake3 over its RDFC-1.0 canonical N-Quads
 /// ([`Gmn0Model::canonical_nquads`], already NFC per the RDFC-1.0 pipeline). This is the
 /// envelope's `gmeow:contentDigest` domain.
