@@ -78,5 +78,7 @@ Maintainer-only targets are prefixed with `maint-`. Use `make help` for the
 complete list. Common lanes are `make maint-wikidata-live` and
 `make maint-rust-heavy` (the off-gate heavy Rust suite). The native,
 Docker-free reasoning-oracle cross-check (`gmeow-dev reason-crosscheck` over
-`purrdf::entail`) runs on-gate as its own `make check` target
-(`make reason-crosscheck`), not as a `maint-` lane.
+`purrdf::entail`) runs on-gate inside `make reason-gate`, which shares one
+fresh native closure between reasoned-graph verification and the purrdf-entail
+oracle. `make reason-crosscheck` remains a standalone, focused convenience lane
+(not a `maint-` lane), but it is no longer a separate `make check` gate task.
