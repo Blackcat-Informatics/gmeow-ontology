@@ -1418,3 +1418,42 @@ artifact recomputed byte-identical (measurement-invariant on live data), no stal
 - Note (latent-until-#1537): the G0 pipeline fuzzy-gating is byte-neutral on today's live data
   (no live slice PO carries `#, fuzzy`); it activates the moment #1537 seeds fuzzy entries. It is
   fixed NOW (not deferred) so unreviewed content can never project as live into `gmeow.gts`.
+
+## 2026-07-16 — #1448 shapes-grounding drain, stage-2/3 close-out (branch paudley/1448-ground-gmeow-shapes)
+
+- HUMAN-SIGNED-OFF SPLIT (verbatim user direction): the derived SHACL/Python projection drops
+  `sh:maxCount 1` on ~8 single-valued `owl:FunctionalProperty` facets (vectorProfile, segmentType,
+  segmentIndex, conditionText, unit, narrative frame facets) because the pipeline does not lower
+  `owl:FunctionalProperty` -> `sh:maxCount 1`. The CANONICAL logic-core constraint is preserved
+  (the properties are functional); only the projected validation surface is unfaithful. User ruling
+  when shown the gap: "Make issue for (1), and proceed without doing any work on it now." Filed as
+  issue #1579 (projector lowering + oracle cardinality-loss guard); NO projector work on this branch.
+  The four gemini-code-assist list-typing comments are symptoms of this and are answered by #1579.
+
+- MAINTAINER-SANCTIONED SCOPE EXPANSION: the flagship first-class promotion edited
+  `dsl/tests/vocabulary.ttl` (retiring the gmeow:FlagshipScenario duplicate), outside the plan's
+  "never touch dsl/" fence. Kept per user ruling ("Keep, record as sanctioned expansion") — it was
+  required to ground FlagshipScenarioShape and reach drain-to-zero, and follows the 2026-07-15
+  "grounding/logic record" maintainer ruling.
+
+- MERGE RECONCILIATION (main retired gmeow:ScalarQuantity/Quantity/MeasuredValue/quantityValue in
+  favour of math:Quantity): our re-homed ScalarQuantityShape grounding in core/observations was
+  DROPPED (not re-homed) as superseded by main's math:Quantity canon (math:Quantity cardinality +
+  gmeow:UnitBearingQuantity); the ProximityMeasurement and SpatialAggregation result-type
+  constraints were RE-POINTED to math:Quantity (Proximity) and math:Quantity v gmeow:MonetaryAmount
+  (SpatialAggregation). No enforcement lost; retired-class references drop to zero triples in live
+  module.ttl (satisfying main's saRetiredQuantityAliasesAbsent + math FILTER-NOT-EXISTS gates).
+
+- REPORT-ONLY REBASELINE (recorded per the ratchet's own doctrine): merging origin/main raised the
+  report-only coverage-ratchet baseline (crates/docs coverage_ratchet_baseline) — the per-code
+  "missing annotation" WARNING counts rose with main's newly-merged, not-yet-fully-annotated terms.
+  Report-only (gate stays green); snapshot accepted to track the merged reality.
+
+- WEAKER VERIFICATION PROXY (recorded honestly): a single clean end-to-end `make check` on the final
+  merged tree was NOT obtained — the last two attempts were interrupted during the `sync` step. Per
+  explicit maintainer decision the branch proceeded on INDIVIDUALLY-verified gates: the last
+  completed make check passed validate/reason-gate/slice-quality-gate/coherence-gate-teeth and every
+  other gate except check-lint (a cargo fmt nit, since fixed — clippy clean) and rust-gate (the math
+  LimitResult conformance test + docs goldens, both since fixed and confirmed green via targeted
+  `cargo nextest`: math conformance PASS, 716 logic-compile PASS, orgbook_notability PASS). No gate
+  was left failing; only the single-run end-to-end re-confirmation is unproven.

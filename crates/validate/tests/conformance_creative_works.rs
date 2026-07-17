@@ -84,6 +84,10 @@ ex:item gmeow:exemplifies ex:manifestation .
 "
 )))]
 #[case::expression_without_work_fails_shacl(
+    // The realizes existence migrated to the projected surface
+    // (generated/shapes/validation-shapes.ttl, Expression-shape sh:minCount 1),
+    // which the fixture corpus deliberately excludes — witness it on the LIVE
+    // production shape union by path (projected shapes carry no sh:message).
     Case::inline(format!(
         "{PREFIXES}\
 ex:expression a gmeow:Expression .
@@ -92,8 +96,12 @@ ex:expression gmeow:hasReferenceFrame ex:englishFrame .
 {REFERENCE_FRAME_TTL}\
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["Expression must realize"])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/realizes",
+        "MinCountConstraintComponent"
+    )
 )]
 #[case::manifestation_without_expression_fails_shacl(
     Case::inline(format!(
@@ -106,14 +114,20 @@ ex:manifestation rdfs:label \"Orphan Manifestation\" .
     .violations(&["Manifestation must embody"])
 )]
 #[case::item_without_manifestation_fails_shacl(
+    // Same migration: the exemplifies existence rides the projected
+    // Item-shape (sh:minCount 1) on the production union.
     Case::inline(format!(
         "{PREFIXES}\
 ex:item a gmeow:Item .
 ex:item rdfs:label \"Orphan Item\" .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["Item must exemplify"])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/exemplifies",
+        "MinCountConstraintComponent"
+    )
 )]
 #[case::contribution_shacl_passes(Case::inline(format!(
     "{PREFIXES}\
@@ -137,8 +151,14 @@ ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["Contribution must specify exactly one role"])
+    // The role existence rides the projected Contribution-shape (sh:minCount 1)
+    // on the production union; projected shapes carry no sh:message.
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/contributionRole",
+        "MinCountConstraintComponent"
+    )
 )]
 #[case::content_segment_shacl_passes(Case::inline(format!(
     "{PREFIXES}\
@@ -156,8 +176,14 @@ ex:chapter1 a gmeow:ContentSegment .
 ex:chapter1 rdfs:label \"Orphan Chapter\" .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["ContentSegment must be part of"])
+    // The segmentOf existence rides the projected ContentSegment-shape
+    // (sh:minCount 1) on the production union.
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/segmentOf",
+        "MinCountConstraintComponent"
+    )
 )]
 fn creative_works(#[case] case: Case) {
     case.run();

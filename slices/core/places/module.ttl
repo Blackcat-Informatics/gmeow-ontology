@@ -5378,7 +5378,7 @@ gmeow:FrameAxisTypeConstraint
     logic:onClass gmeow:ReferenceFrame ;
     logic:valuePath gmeow:hasAxis ;
     logic:valueClass gmeow:Axis ;
-    logic:formalizes gmeow:ReferenceFrame ;
+    logic:formalizes gmeow:ReferenceFrame , gmeow:FrameProfileShape ;
     logic:message "A reference frame's coordinate axis (gmeow:hasAxis) must be a gmeow:Axis." .
 
 # A reference frame's declared gmeow:dimensionCount must equal the number of
@@ -5396,8 +5396,8 @@ gmeow:FrameDimensionCountConstraint
     logic:aggPath gmeow:hasAxis ;
     logic:aggComparator "=" ;
     logic:aggCompareTo gmeow:dimensionCount ;
-    logic:formalizes gmeow:ReferenceFrame ;
-    logic:message "A reference frame's dimension count (gmeow:dimensionCount) must equal its number of coordinate axes (gmeow:hasAxis)." .
+    logic:formalizes gmeow:ReferenceFrame , gmeow:FrameProfileShape ;
+    logic:message "A reference frame's dimension count must equal its number of coordinate axes." .
 
 # =========================================================================== #
 # Suppression constraint (#1194) — projection of SupersededPlaceSuppressionShape.
@@ -5411,7 +5411,7 @@ gmeow:SupersededPlaceSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a superseded gmeow:Place (one carrying gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:Place ;
+    logic:formalizes gmeow:Place , gmeow:SupersededPlaceSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded place (one with gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supPlForall .
@@ -5442,7 +5442,7 @@ gmeow:CoarsenToReachabilityConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world reachability constraint: for every gmeow:coarsenTo target level, some gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the coarsened value has a replacement."@x-gmeow-english ;
-    logic:formalizes gmeow:coarsenTo ;
+    logic:formalizes gmeow:CoarsenToShape ;
     logic:severity "Warning" ;
     logic:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
     logic:integrity logic:ctrForall .
@@ -5460,3 +5460,274 @@ logic:ctrReach a logic:Formula ; logic:relation logic:transitiveReach ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:containedInPlace ] , [ logic:termIndex 2 ; logic:termVariable "ancestor" ] .
 logic:ctrGran a logic:Formula ; logic:relation gmeow:hasGranularity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ancestor" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceAuthority> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceJurisdiction> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/containmentChild> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/containmentParent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureParty> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenurePlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Place> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasCentroid> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Geometry> ] .
+<https://blackcatinformatics.ca/gmeow/Pose> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasPoseOrientation> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Orientation> ] .
+<https://blackcatinformatics.ca/gmeow/Pose> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasPosePosition> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/SpatialCoordinates> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/proximityTo> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/determinacyModel> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Determinacy> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/dimensionCount> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameKind> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasAxis> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Axis> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasMetricKind> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MetricKind> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/parentFrame> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/transformsTo> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/overlayAuthority> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/overlayPlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceAuthority" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceJurisdiction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/containmentChild" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/containmentParent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/jurisdictionPlace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/jurisdictionPolity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenureParty" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenurePlace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenureType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Pose> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasPoseOrientation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Pose> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasPosePosition" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationResult" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/proximityTo" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/determinacyModel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/dimensionCount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/frameKind" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/frameRealm" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasAxis" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/requiresHost" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/overlayAuthority" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/overlayPlace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B2 shape-drain: places at-most-one restorations (non-functional paths) ---
+# gmeow:hasPosePosition / gmeow:hasPoseOrientation / gmeow:hasCentroid carry a per-shape sh:maxCount 1
+# but are NOT globally owl:FunctionalProperty, so the bound rides a class-scoped max-qualified
+# antecedent (logic:onClass owl:Thing degrades to the plain sh:maxCount 1 the oracle compares).
+gmeow:Pose logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPosePosition ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPoseOrientation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Place logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasCentroid ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:CadastralReferenceShape — a CadastralReference records exactly one gmeow:referenceValue.
+# referenceValue is literal-valued, so the existence axiom ranges over rdfs:Literal (logic:allValuesFrom
+# owl:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject the literal); the closure entry
+# projects sh:minCount 1, and the owl:FunctionalProperty contract supplies the sh:maxCount 1.
+gmeow:CadastralReference logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:referenceValue ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CadastralReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/referenceValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# --- Wave B2 shape-drain: places procedural residue (logic: canon; project to generated/shapes) ---
+
+# gmeow:GeocodeShape — a Geocode carries exactly one code value across the eight code systems: a
+# choice-group exclusive-disjunction (sh:xone). Its datatype/node-kind facets ride each predicate's
+# rdfs:range (xsd:string / rdfs:Literal), so the choice group is over predicate presence.
+gmeow:GeocodeCodeChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Geocode code-value choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Geocode binds exactly one of gmeow:geocodeValue, gmeow:plusCode, gmeow:what3words, gmeow:geohash, gmeow:mgrs, gmeow:unLocode, gmeow:mileMarker or gmeow:hasCoordinateMatrix — one code in one system per Geocode instance (Principle 9)."@x-gmeow-english ;
+    logic:onClass gmeow:Geocode ;
+    logic:choicePredicate gmeow:geocodeValue , gmeow:plusCode , gmeow:what3words , gmeow:geohash , gmeow:mgrs , gmeow:unLocode , gmeow:mileMarker , gmeow:hasCoordinateMatrix ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:GeocodeShape ;
+    logic:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." .
+
+# gmeow:OrientationShape — an Orientation carries at least one representation: a complete unit
+# quaternion (x,y,z,w), complete Euler angles with eulerOrder (yaw,pitch,roll,order), a heading, a
+# bearing, or a homogeneous coordinate matrix — a node-level disjunction of conjunctions (sh:or).
+gmeow:OrientationRepresentationConstraint
+    a logic:Constraint ;
+    rdfs:label "Orientation representation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Orientation carries a complete unit quaternion (x,y,z,w), complete Euler angles with eulerOrder (yaw,pitch,roll,order), a heading, a bearing, or a homogeneous coordinate matrix."@x-gmeow-english ;
+    logic:formalizes gmeow:OrientationShape ;
+    logic:severity "Violation" ;
+    logic:message "An Orientation must carry at least one of: a complete unit quaternion (x,y,z,w); complete Euler angles with eulerOrder (yaw,pitch,roll,order); a heading; a bearing; or a homogeneous coordinate matrix." ;
+    logic:integrity logic:ornForall .
+logic:ornForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ornImpl .
+logic:ornImpl a logic:Formula ; logic:antecedent logic:ornGuard ; logic:consequent logic:ornOr .
+logic:ornGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Orientation ] .
+logic:ornOr a logic:Formula ; logic:or logic:ornQuat , logic:ornEuler , logic:ornHeading , logic:ornBearing , logic:ornMatrix .
+logic:ornQuat a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "qx" ] , [ logic:termIndex 1 ; logic:termVariable "qy" ] , [ logic:termIndex 2 ; logic:termVariable "qz" ] , [ logic:termIndex 3 ; logic:termVariable "qw" ] ;
+    logic:exists logic:ornQuatBody .
+logic:ornQuatBody a logic:Formula ; logic:and logic:ornQx , logic:ornQy , logic:ornQz , logic:ornQw .
+logic:ornQx a logic:Formula ; logic:relation gmeow:quaternionX ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qx" ] .
+logic:ornQy a logic:Formula ; logic:relation gmeow:quaternionY ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qy" ] .
+logic:ornQz a logic:Formula ; logic:relation gmeow:quaternionZ ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qz" ] .
+logic:ornQw a logic:Formula ; logic:relation gmeow:quaternionW ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qw" ] .
+logic:ornEuler a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "yaw" ] , [ logic:termIndex 1 ; logic:termVariable "pitch" ] , [ logic:termIndex 2 ; logic:termVariable "roll" ] , [ logic:termIndex 3 ; logic:termVariable "eord" ] ;
+    logic:exists logic:ornEulerBody .
+logic:ornEulerBody a logic:Formula ; logic:and logic:ornYaw , logic:ornPitch , logic:ornRoll , logic:ornOrder .
+logic:ornYaw a logic:Formula ; logic:relation gmeow:yaw ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "yaw" ] .
+logic:ornPitch a logic:Formula ; logic:relation gmeow:pitch ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pitch" ] .
+logic:ornRoll a logic:Formula ; logic:relation gmeow:roll ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "roll" ] .
+logic:ornOrder a logic:Formula ; logic:relation gmeow:eulerOrder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "eord" ] .
+logic:ornHeading a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "h" ] ;
+    logic:exists logic:ornHeadingAtom .
+logic:ornHeadingAtom a logic:Formula ; logic:relation gmeow:heading ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "h" ] .
+logic:ornBearing a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
+    logic:exists logic:ornBearingAtom .
+logic:ornBearingAtom a logic:Formula ; logic:relation gmeow:bearing ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+logic:ornMatrix a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ;
+    logic:exists logic:ornMatrixAtom .
+logic:ornMatrixAtom a logic:Formula ; logic:relation gmeow:hasCoordinateMatrix ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
+
+# gmeow:ProximityMeasurementShape — a ProximityMeasurement's gmeow:observationResult value is a
+# math:Quantity (the sole quantity authority; the retired scalar-quantity aliases are gone): a
+# property-scoped value-type obligation carried in the logic: canon.
+gmeow:ProximityResultTypeConstraint
+    a logic:Constraint ;
+    rdfs:label "Proximity result-type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:observationResult value of a gmeow:ProximityMeasurement is a math:Quantity."@x-gmeow-english ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:severity "Violation" ;
+    logic:message "A ProximityMeasurement must yield a math:Quantity result." ;
+    logic:integrity logic:prtForall .
+logic:prtForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:prtImpl .
+logic:prtImpl a logic:Formula ; logic:antecedent logic:prtGuard ; logic:consequent logic:prtQuantity .
+logic:prtGuard a logic:Formula ; logic:and logic:prtType , logic:prtResult .
+logic:prtType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProximityMeasurement ] .
+logic:prtResult a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:prtQuantity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:Quantity ] .
+
+# gmeow:PlaceNamingHasPlayersShape — a gmeow:NameUsage that names a gmeow:Place must bind a
+# gmeow:PlaceName appellation (a guarded existence over the naming relator).
+gmeow:PlaceNamingAppellationBindingConstraint
+    a logic:Constraint ;
+    rdfs:label "Place-naming appellation-binding constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NameUsage whose gmeow:usageNamed value is a gmeow:Place binds a gmeow:PlaceName via gmeow:usageAppellation."@x-gmeow-english ;
+    logic:formalizes gmeow:PlaceNamingHasPlayersShape ;
+    logic:severity "Violation" ;
+    logic:message "A name-usage that names a gmeow:Place must bind a gmeow:PlaceName via gmeow:usageAppellation." ;
+    logic:integrity logic:pnhForall .
+logic:pnhForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "place" ] ;
+    logic:forall logic:pnhImpl .
+logic:pnhImpl a logic:Formula ; logic:antecedent logic:pnhGuard ; logic:consequent logic:pnhAppExists .
+logic:pnhGuard a logic:Formula ; logic:and logic:pnhType , logic:pnhNamed , logic:pnhPlaceType .
+logic:pnhType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:NameUsage ] .
+logic:pnhNamed a logic:Formula ; logic:relation gmeow:usageNamed ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "place" ] .
+logic:pnhPlaceType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "place" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Place ] .
+logic:pnhAppExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "app" ] ;
+    logic:exists logic:pnhAppBody .
+logic:pnhAppBody a logic:Formula ; logic:and logic:pnhAppAtom , logic:pnhAppType .
+logic:pnhAppAtom a logic:Formula ; logic:relation gmeow:usageAppellation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "app" ] .
+logic:pnhAppType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "app" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PlaceName ] .
+
+# gmeow:FrameProfileShape / gmeow:ProximityMeasurementShape — the required-property EXISTENCE halves
+# carried procedurally so the fixture-conformance corpus (which excludes the declarative
+# validation-shape surface) still catches a missing property; the closure entries + functional
+# contracts carry the same bounds to the production gate. Messages mirror the retired shapes verbatim.
+gmeow:FrameRealmPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Reference-frame realm-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ReferenceFrame declares a gmeow:frameRealm."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:anyOf gmeow:frameRealm ;
+    logic:formalizes gmeow:FrameProfileShape ;
+    logic:message "A reference frame must declare its frame realm." .
+
+gmeow:FrameAxisPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Reference-frame axis-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ReferenceFrame carries at least one gmeow:hasAxis coordinate axis."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:anyOf gmeow:hasAxis ;
+    logic:formalizes gmeow:FrameProfileShape ;
+    logic:message "A reference frame must have at least one coordinate axis." .
+
+gmeow:ProximityObservedFeaturePresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Proximity observed-feature present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProximityMeasurement names a gmeow:observedFeature starting entity."@x-gmeow-english ;
+    logic:onClass gmeow:ProximityMeasurement ;
+    logic:anyOf gmeow:observedFeature ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:message "A ProximityMeasurement must name exactly one starting entity (gmeow:observedFeature)." .
+
+gmeow:ProximityToPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Proximity target present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProximityMeasurement names a gmeow:proximityTo target entity."@x-gmeow-english ;
+    logic:onClass gmeow:ProximityMeasurement ;
+    logic:anyOf gmeow:proximityTo ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:message "A ProximityMeasurement must name exactly one target entity (gmeow:proximityTo)." .
+
+gmeow:ProximityResultPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Proximity result present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProximityMeasurement yields a gmeow:observationResult."@x-gmeow-english ;
+    logic:onClass gmeow:ProximityMeasurement ;
+    logic:anyOf gmeow:observationResult ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:message "A ProximityMeasurement must yield at least one math:Quantity result." .

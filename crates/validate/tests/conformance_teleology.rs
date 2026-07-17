@@ -71,3 +71,30 @@ fn no_preferred_or_primary_goal_terms() {
         "preferred/primary goal selectors must not exist: {offenders:?}"
     );
 }
+
+/// The Commitment at-least-one-beneficiary obligation of the retired
+/// hand-authored `gmeow:CommitmentShape` now rides the projected declarative
+/// surface (`generated/shapes/validation-shapes.ttl`, `Commitment-shape`
+/// `sh:minCount 1` on `gmeow:commitmentBeneficiary`), which the fixture corpus
+/// deliberately excludes — witness it by path on the LIVE production shape
+/// union (projected shapes carry no `sh:message`).
+#[test]
+fn commitment_without_beneficiary_fails_on_union() {
+    Case::inline(
+        "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+ex:c a gmeow:Commitment ;
+    gmeow:committedAgent ex:agent ;
+    gmeow:intentionGoal ex:goal .
+"
+        .to_owned(),
+    )
+    .shape_union()
+    .fails()
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/commitmentBeneficiary",
+        "MinCountConstraintComponent",
+    )
+    .run();
+}
