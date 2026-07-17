@@ -181,10 +181,12 @@ pub fn repo_root() -> PathBuf {
         .expect("repo root canonicalizes")
 }
 
-/// The shared shapes graph carrying `gmeow:FlagshipScenarioShape` (the cardinality gate whose
-/// `gmeow:enforcesFailureClass` is `gmeow:UnwiredFlagshipScenario`).
+/// The projected shape surface carrying the derived `gmeow:FlagshipScenario-shape` (the flagship
+/// cardinality gate, `sh:targetClass gmeow:FlagshipScenario`, whose `gmeow:enforcesFailureClass` is
+/// `gmeow:UnwiredFlagshipScenario`). The shared wiring gate is authored declaratively in the logic
+/// grounding slice and projected here; the root `shapes/gmeow-shapes.ttl` no longer holds it.
 pub fn shared_shapes_path() -> PathBuf {
-    repo_root().join("shapes").join("gmeow-shapes.ttl")
+    repo_root().join("generated/shapes/validation-shapes.ttl")
 }
 
 /// Every enforcing SHACL surface that may own one slice's conformance rules.

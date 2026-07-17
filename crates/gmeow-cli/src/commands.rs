@@ -2801,6 +2801,84 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
     }
 }
 
+/// `gmeow slice lint` — the checkout-free tier-domination gate over an external
+/// slice directory scored against the embedded `gmeow.gts` bundle. PASS (exit
+/// `0`) iff the measured roll-up tier meets the effective bar: the higher-rank
+/// of the slice's OWN declared `gmeow:sliceQualityTier` claim and any explicit
+/// `--min-tier`; `1` when below the bar; `2` on an operational hard fail
+/// (unscorable dir, unknown `--min-tier`, unreadable declared claim, or unknown
+/// `--format`). Advisories are always emitted (graded `Error`/`Warning` relative
+/// to the bar) but never gate — see [`gmeow_slice_quality::lint_report`].
+pub fn slice_lint(
+    reporter: &dyn Reporter,
+    dir: &Path,
+    min_tier: Option<&str>,
+    format: &str,
+) -> i32 {
+    let report = match gmeow_slice_quality::score_external_slice_bytes(BUNDLE_GTS, dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail_code(
+                reporter,
+                "gmeow-cli.slice.lint.score",
+                format!("cannot score {}: {e}", dir.display()),
+                2,
+            );
+        }
+    };
+    let required = match min_tier {
+        None => None,
+        Some(name) => match gmeow_slice_quality::resolve_min_tier(&report.standard, name) {
+            Ok(t) => Some(t.clone()),
+            Err(e) => {
+                return fail_code(
+                    reporter,
+                    "gmeow-cli.slice.lint.unknown-tier",
+                    format!("{e}"),
+                    2,
+                );
+            }
+        },
+    };
+    let declared = match gmeow_slice_quality::declared_quality_tier(dir, &report.standard) {
+        Ok(t) => t,
+        Err(e) => {
+            return fail_code(
+                reporter,
+                "gmeow-cli.slice.lint.declared-tier",
+                format!("cannot read declared tier for {}: {e}", dir.display()),
+                2,
+            );
+        }
+    };
+    let outcome = gmeow_slice_quality::lint_report(&report, declared.as_ref(), required.as_ref());
+    let rendered = match format {
+        "human" => Ok(outcome.render_text(&report)),
+        "json" => gmeow_errors::render::to_json(&outcome.findings),
+        "sarif" => gmeow_errors::render::to_sarif(&outcome.findings),
+        other => {
+            return fail_code(
+                reporter,
+                "gmeow-cli.slice.lint.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or sarif"),
+                2,
+            );
+        }
+    };
+    match rendered {
+        Ok(text) => {
+            print!("{text}");
+            if outcome.passed { 0 } else { 1 }
+        }
+        Err(e) => fail_code(
+            reporter,
+            "gmeow-cli.slice.lint.render",
+            format!("cannot render slice-lint report: {e}"),
+            2,
+        ),
+    }
+}
+
 // ── slice brief ──────────────────────────────────────────────────────────────
 
 /// `gmeow slice brief` — assemble and render a `gmeow:AuthoringPacket` for a slice

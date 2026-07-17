@@ -270,6 +270,7 @@ fn component_label(c: &ConstraintComponent) -> &'static str {
         ConstraintComponent::Or(_) => "sh:or",
         ConstraintComponent::Xone(_) => "sh:xone",
         ConstraintComponent::OrProperties(_) => "sh:or over sh:path branches",
+        ConstraintComponent::UniqueLang => "sh:uniqueLang",
     }
 }
 

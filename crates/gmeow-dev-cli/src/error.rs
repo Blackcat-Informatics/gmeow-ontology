@@ -93,6 +93,17 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A legacy shape's structural residue (`sh:node` / `sh:xone` / a raw
+    /// `sh:SPARQLTarget`) failed the semantic clearance: no exact
+    /// `logic:formalizes` record, or the record's projected constraint surface
+    /// did not reproduce the construct's semantics under the witness cross-check.
+    pub struct ShapeClearanceUngrounded { detail: String }
+    code = "gmeow-dev-cli.shapes.clearance-ungrounded";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
     /// Unified synchronization could not acquire its worktree boundary or
     /// reconcile one of its owned output trees.
     pub struct SyncFailed { detail: String }
@@ -123,6 +134,7 @@ ctor!(logic, LogicQueryFailed);
 ctor!(feedback, FeedbackBundleFailed);
 ctor!(refresh, TargetRefreshFailed);
 ctor!(vendored_corpus, VendoredCorpusDescriptorInvalid);
+ctor!(clearance, ShapeClearanceUngrounded);
 ctor!(sync, SyncFailed);
 
 /// The complete developer-CLI diagnostic-code catalog, in registration order.
@@ -138,6 +150,7 @@ pub const GMEOW_DEV_CLI_DIAG_CODES: &[&str] = &[
     FeedbackBundleFailed::CODE,
     TargetRefreshFailed::CODE,
     VendoredCorpusDescriptorInvalid::CODE,
+    ShapeClearanceUngrounded::CODE,
     SyncFailed::CODE,
 ];
 
@@ -155,6 +168,7 @@ pub fn register_all() -> Vec<Code> {
         FeedbackBundleFailed::register(),
         TargetRefreshFailed::register(),
         VendoredCorpusDescriptorInvalid::register(),
+        ShapeClearanceUngrounded::register(),
         SyncFailed::register(),
     ]
 }

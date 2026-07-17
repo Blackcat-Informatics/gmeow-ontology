@@ -3132,7 +3132,9 @@ impl LogicProgram {
 
 mod constraint;
 mod validation;
-pub use constraint::{AggregateComparator, AggregateComparison, AggregateRhs, ConstraintIr};
+pub use constraint::{
+    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, ConstraintIr,
+};
 pub use validation::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,
     ShapeTarget, ShapeValue, ValidationShapeIr,

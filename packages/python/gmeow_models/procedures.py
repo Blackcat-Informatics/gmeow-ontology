@@ -74,14 +74,14 @@ class ControlFlow(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ControlFlow", "curie": "gmeow:ControlFlow", "definitionDigest": "blake3:98b1ed51f16760450df949683d33aa706fe1740f900dc32b8b33becc94927261", "iri": "https://blackcatinformatics.ca/gmeow/ControlFlow"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/ControlFlow", "curie": "gmeow:ControlFlow", "definitionDigest": "blake3:f10b4fc2b20dd16f76b0fd35d33fecfa78d37575cbd25d0bf755e43f39bb8000", "iri": "https://blackcatinformatics.ca/gmeow/ControlFlow"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    flowSource: list[ProcedureStep] | None = Field(default=None, description="The source ProcedureStep of a control-flow relator — a specialization of the canonical logic:flowFrom leg. Functional: one source per control-flow edge.", alias="gmeow:flowSource")
-    flowTarget: list[ProcedureStep] | None = Field(default=None, description="The target ProcedureStep of a control-flow relator — a specialization of the canonical logic:flowTo leg. Functional: one target per control-flow edge.", alias="gmeow:flowTarget")
+    flowSource: ProcedureStep = Field(description="The source ProcedureStep of a control-flow relator — a specialization of the canonical logic:flowFrom leg. Functional: one source per control-flow edge.", alias="gmeow:flowSource")
+    flowTarget: ProcedureStep = Field(description="The target ProcedureStep of a control-flow relator — a specialization of the canonical logic:flowTo leg. Functional: one target per control-flow edge.", alias="gmeow:flowTarget")
 
 
 class DataFlow(ConfiguredBaseModel):
@@ -106,14 +106,14 @@ class DataFlow(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DataFlow", "curie": "gmeow:DataFlow", "definitionDigest": "blake3:d84b052500e550c7d80aa51085c3a6a5185268587a028a44773c4231ab65ad22", "iri": "https://blackcatinformatics.ca/gmeow/DataFlow"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/DataFlow", "curie": "gmeow:DataFlow", "definitionDigest": "blake3:a3fd3d7869f8145cd00d7659599ade3f3d91e7797f85744be7107ff60fbdf2ef", "iri": "https://blackcatinformatics.ca/gmeow/DataFlow"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    dataFlowSource: list[ProcedureStep] | None = Field(default=None, description="The producing ProcedureStep of a data-flow relator — a specialization of the canonical logic:flowFrom leg. Functional: one source per data-flow edge.", alias="gmeow:dataFlowSource")
-    dataFlowTarget: list[ProcedureStep] | None = Field(default=None, description="The consuming ProcedureStep of a data-flow relator — a specialization of the canonical logic:flowTo leg. Functional: one target per data-flow edge.", alias="gmeow:dataFlowTarget")
+    dataFlowSource: ProcedureStep = Field(description="The producing ProcedureStep of a data-flow relator — a specialization of the canonical logic:flowFrom leg. Functional: one source per data-flow edge.", alias="gmeow:dataFlowSource")
+    dataFlowTarget: ProcedureStep = Field(description="The consuming ProcedureStep of a data-flow relator — a specialization of the canonical logic:flowTo leg. Functional: one target per data-flow edge.", alias="gmeow:dataFlowTarget")
 
 
 class Execution(ConfiguredBaseModel):
