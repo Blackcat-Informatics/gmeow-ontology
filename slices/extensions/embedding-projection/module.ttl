@@ -522,7 +522,7 @@ gmeow:withMetric
     rdfs:range gmeow:DistanceMetric ;
     skos:definition "The distance/similarity metric under which a gmeow:SimilarityObservation's proximity was computed — a reuse of graphrag's gmeow:DistanceMetric value vocabulary (gmeow:distanceMetricCosine, gmeow:distanceMetricDotProduct, …). It is the metric the OBSERVATION was stated under, which must match the metric its gmeow:overVectorSpace contract declares via gmeow:distanceMetric; recording it on the observation makes a proximity number self-describing (a cosine 0.9 and a dot-product 0.9 are not the same claim). Functional: one observation, one metric."@x-gmeow-english ;
     skos:example "ex:sim1 gmeow:withMetric gmeow:distanceMetricCosine ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it (a bare gmeow:similarityScore is uninterpretable without the metric) and avoid stating a metric that disagrees with the observation's gmeow:overVectorSpace contract's gmeow:distanceMetric."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it (a bare gmeow:similarityScore is uninterpretable without the metric) and avoid stating a metric that disagrees with the observation's gmeow:overVectorSpace contract's gmeow:distanceMetric — gmeow:WithMetricAgreementConstraint rejects a disagreeing metric as a hard fail."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert exactly one gmeow:withMetric from a gmeow:SimilarityObservation to a graphrag gmeow:DistanceMetric individual; it names the measure under which the proximity is a logic:Vague graded claim."@x-gmeow-english ;
     gmeow:useWhen "Use to record the metric a similarity proximity was computed under, so the score is self-describing."@x-gmeow-english .
@@ -1446,6 +1446,33 @@ logic:ghipProp a logic:Formula ; logic:relation gmeow:projectionSourceGtsHeadId 
     logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "h2" ] .
 logic:ghipEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "h" ] , [ logic:termIndex 1 ; logic:termVariable "h2" ] .
+
+# C7: a gmeow:SimilarityObservation's gmeow:withMetric must equal the
+# gmeow:distanceMetric of its gmeow:overVectorSpace — a similarity claim is made
+# UNDER a metric, and a metric that disagrees with the space it is observed over
+# makes the score uninterpretable (a hard fail, never a silent reconciliation).
+gmeow:WithMetricAgreementConstraint
+    a logic:Constraint ;
+    rdfs:label "With-metric agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SimilarityObservation's gmeow:withMetric must equal the gmeow:distanceMetric of its gmeow:overVectorSpace. A pairwise similarity claim is made UNDER a distance metric, so a metric that disagrees with the effective space the observation is made over is a HARD FAIL — the score is uninterpretable — never a silent reconciliation of the two metrics."@x-gmeow-english ;
+    logic:formalizes gmeow:WithMetricAgreementShape ;
+    logic:message "A similarity observation's gmeow:withMetric must equal its gmeow:overVectorSpace's gmeow:distanceMetric — a disagreeing metric is a hard fail." ;
+    logic:integrity logic:wmaForall .
+logic:wmaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "vsc" ] , [ logic:termIndex 2 ; logic:termVariable "m" ] , [ logic:termIndex 3 ; logic:termVariable "sm" ] ;
+    logic:forall logic:wmaImpl .
+logic:wmaImpl a logic:Formula ; logic:antecedent logic:wmaGuard ; logic:consequent logic:wmaEq .
+logic:wmaGuard a logic:Formula ; logic:and logic:wmaOver , logic:wmaWith , logic:wmaSpaceMetric .
+logic:wmaOver a logic:Formula ; logic:relation gmeow:overVectorSpace ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "vsc" ] .
+logic:wmaWith a logic:Formula ; logic:relation gmeow:withMetric ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
+logic:wmaSpaceMetric a logic:Formula ; logic:relation gmeow:distanceMetric ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vsc" ] , [ logic:termIndex 1 ; logic:termVariable "sm" ] .
+logic:wmaEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "sm" ] .
 
 # =========================================================================== #
 # Ontology declaration                                                        #
