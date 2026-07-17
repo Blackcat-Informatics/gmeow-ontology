@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:TopologyClaimStatusConstraint (gmeow:TopologyClaimMissingStatus):
+# a gmeow:TopologyClaim that carries its inherited gmeow:observationMethod (so the
+# gmeow:StandpointClaim exactly-one observation-method obligation is satisfied and NOT the
+# violation under test) and its result, but carries NO gmeow:vantage attribution. A computed
+# feature must land as a vantage-attributed, defeasible claim, so the ∀→∃ SPARQL constraint
+# MUST reject it with shacl.SPARQLConstraintComponent, and nothing else — the anonymous,
+# unattributed claim is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:claimBad a gmeow:TopologyClaim ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;   # StandpointClaim obligation satisfied
+    gmeow:claimResult ex:result .                              # <-- but NO gmeow:vantage
+
+ex:result a gmeow:TopologyResult .

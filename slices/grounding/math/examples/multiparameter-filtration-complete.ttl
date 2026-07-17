@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed math:MultiparameterFiltration: a filtration indexed by a 2-parameter
+# poset (a distance × density grid), whose stage carries a math:multiIndex tuple with
+# INDEPENDENT coordinates — distinct exact math:RationalValue components at indices 0
+# and 1 — rather than a single real math:filtrationThreshold. It names its parameter
+# poset through math:filtrationIndexPoset and its stage through the existing
+# math:hasFiltrationStage. This is the objects-vs-activities distinction:
+# the object math:MultiparameterFiltration is distinct from the analysis activity
+# math:MultiparameterPersistence that ranges over it. Because the two coordinates are
+# genuinely different, the filtration is NOT collapsed (a math:multiIndex is present) and
+# NOT diagonal-degenerate (the coordinates are not functionally dependent).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix exmf: <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration/> .
+
+exmf:filtration a math:MultiparameterFiltration ;
+    rdfs:label "distance × density bifiltration of a point cloud"@x-gmeow-english ;
+    math:filtrationAmbient exmf:pointCloud ;
+    math:filtrationIndexPoset exmf:grid ;
+    math:hasFiltrationStage exmf:stage .
+
+exmf:pointCloud a math:MathematicalObject ; rdfs:label "sampled point cloud"@x-gmeow-english .
+exmf:grid a math:MathematicalObject ; rdfs:label "distance × density parameter poset (dimension 2)"@x-gmeow-english .
+
+# The stage sits at the 2-index (1, 3): its coordinates are INDEPENDENT (distinct
+# values at distinct positions), the hallmark of a genuine two-parameter filtration.
+exmf:stage a math:FiltrationStage ;
+    rdfs:label "stage at multi-index (1, 3)"@x-gmeow-english ;
+    math:multiIndex exmf:index ;
+    math:stageStructure exmf:subcomplex .
+
+exmf:subcomplex a math:TopologicalSpace ; rdfs:label "substructure at (1, 3)"@x-gmeow-english .
+
+exmf:index a math:Vector ;
+    rdfs:label "multi-index (1, 3)"@x-gmeow-english ;
+    math:hasComponent exmf:coord0 , exmf:coord1 .
+exmf:coord0 a math:VectorComponent ; math:atIndex 0 ; math:componentValue exmf:one .
+exmf:coord1 a math:VectorComponent ; math:atIndex 1 ; math:componentValue exmf:three .
+
+exmf:one a math:RationalValue ; math:numerator 1 ; math:denominator 1 ; math:isExact true .
+exmf:three a math:RationalValue ; math:numerator 3 ; math:denominator 1 ; math:isExact true .

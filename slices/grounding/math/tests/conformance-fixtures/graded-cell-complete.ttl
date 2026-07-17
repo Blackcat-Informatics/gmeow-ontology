@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: an oriented simplicial triangle as a graded cell complex. Every
+# math:Cell declares its math:cellDimension (a situated, exact math:NaturalNumber),
+# the codimension-1 faces are named through math:incidentTo, and the boundary of the
+# 2-cell is reified as three signed math:CellIncidences with ±1 signs. Conforms to
+# the derived math:Cell and math:CellIncidence frame shapes with no findings.
+# Bound by ex:ecGradedCellComplete.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:triangle a math:SimplicialComplex ;
+    math:hasCell ex:faceABC ,
+        ex:edgeAB , ex:edgeBC , ex:edgeAC ,
+        ex:vertexA , ex:vertexB , ex:vertexC .
+
+ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+
+ex:faceABC a math:Cell ;
+    math:cellDimension ex:dim2 ;
+    math:orientation math:positivelyOriented ;
+    math:incidentTo ex:edgeAB , ex:edgeBC , ex:edgeAC .
+
+ex:edgeAB a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexA , ex:vertexB .
+ex:edgeBC a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexB , ex:vertexC .
+ex:edgeAC a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexA , ex:vertexC .
+
+ex:vertexA a math:Cell ; math:cellDimension ex:dim0 .
+ex:vertexB a math:Cell ; math:cellDimension ex:dim0 .
+ex:vertexC a math:Cell ; math:cellDimension ex:dim0 .
+
+ex:incFaceAB a math:CellIncidence ;
+    math:incidenceCoface ex:faceABC ; math:incidenceFace ex:edgeAB ; math:incidenceSign 1 .
+ex:incFaceBC a math:CellIncidence ;
+    math:incidenceCoface ex:faceABC ; math:incidenceFace ex:edgeBC ; math:incidenceSign 1 .
+ex:incFaceAC a math:CellIncidence ;
+    math:incidenceCoface ex:faceABC ; math:incidenceFace ex:edgeAC ; math:incidenceSign -1 .

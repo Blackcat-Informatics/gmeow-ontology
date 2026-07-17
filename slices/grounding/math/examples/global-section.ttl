@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A worked global section and its H¹ gluing obstruction. It demonstrates the
+# core sheaf reading that a computed feature is never automatically global truth:
+# a math:GlobalSection is a section over the WHOLE math:sheafBaseComplex whose
+# stalk values restrict CONSISTENTLY along every math:SheafRestrictionMap (an
+# element of H⁰), while a math:GluingObstruction is the first-cohomology (H¹)
+# witness recording why a family of math:LocalSections may fail to lift to one
+# global section. Here the restriction map's declared identity action sends the
+# vertex stalk's value 1 to 1, which agrees with the edge stalk's value 1, so the
+# local data glue and the global section is genuine.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exs:  <https://blackcatinformatics.ca/gmeow/examples/math/global-section/> .
+
+# The cellular sheaf on a two-cell base: a vertex and an incident edge.
+exs:sheaf a math:CellularSheaf ;
+    rdfs:label "constant-field sheaf on a vertex–edge complex"@x-gmeow-english ;
+    math:sheafBaseComplex exs:base ;
+    math:hasStalk exs:vertexStalk , exs:edgeStalk ;
+    math:restrictionMap exs:vertexToEdge ;
+    math:hasGlobalSection exs:global .
+exs:base a math:CellComplex ; rdfs:label "vertex–edge base complex"@x-gmeow-english .
+exs:subregion a math:CellComplex ; rdfs:label "vertex-only subcomplex"@x-gmeow-english .
+
+# Cell-indexed stalks, each carrying the exact integer value the global section
+# assigns to it. The identity restriction map transports vertex → edge: its declared
+# math:RestrictionImage records that it sends the source value 1 to 1.
+exs:vertexStalk a math:SheafStalk ; math:stalkOverCell exs:vertex ; math:stalkValue 1 .
+exs:edgeStalk a math:SheafStalk ; math:stalkOverCell exs:edge ; math:stalkValue 1 .
+exs:vertexToEdge a math:SheafRestrictionMap ;
+    rdfs:label "restriction vertex → edge"@x-gmeow-english ;
+    math:sourceObject exs:vertexStalk ;
+    math:targetObject exs:edgeStalk ;
+    math:restrictionImage exs:vertexToEdgeImage .
+exs:vertexToEdgeImage a math:RestrictionImage ;
+    rdfs:label "identity image: 1 ↦ 1"@x-gmeow-english ;
+    math:imageSourceValue 1 ; math:imageTargetValue 1 .
+
+# The GLOBAL section over the whole base (H⁰): correctly scoped, and gluing.
+exs:global a math:GlobalSection ;
+    rdfs:label "global section over the whole base"@x-gmeow-english ;
+    math:overSheaf exs:sheaf ;
+    math:sectionRegion exs:base .
+
+# A LOCAL section over a proper subcomplex — the datum gluing must reconcile.
+exs:local a math:LocalSection ;
+    rdfs:label "local section over the vertex-only subcomplex"@x-gmeow-english ;
+    math:overSheaf exs:sheaf ;
+    math:sectionRegion exs:subregion .
+
+# The H¹ gluing obstruction, anchored to the sheaf it reasons about.
+exs:obstruction a math:GluingObstruction ;
+    rdfs:label "H¹ gluing obstruction of the sheaf"@x-gmeow-english ;
+    math:obstructionOf exs:sheaf .
+
+exs:vertex a math:MathematicalObject ; rdfs:label "vertex cell"@x-gmeow-english .
+exs:edge a math:MathematicalObject ; rdfs:label "edge cell"@x-gmeow-english .

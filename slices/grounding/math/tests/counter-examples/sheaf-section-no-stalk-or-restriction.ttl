@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IncompleteSheafSection: a math:LocalSection that names its
+# math:sectionRegion but declares NO math:overSheaf — so it is anchored to no
+# math:CellularSheaf and therefore to no actual stalk/restriction semantics. Local
+# disagreement asserted over no declared stalk/restriction data is not a section at
+# all. The math:LocalSection frame's qualified min-count on math:overSheaf fails, so
+# validation MUST emit shacl.QualifiedMinCountConstraintComponent (and no other
+# finding): the region is present, isolating the missing sheaf anchor.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/gluing/> .
+
+ex:region a math:CellComplex .
+
+# A local section with a region but no carrier sheaf — no stalk/restriction semantics.
+ex:orphanSection a math:LocalSection ;
+    math:sectionRegion ex:region .
