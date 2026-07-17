@@ -5281,6 +5281,12 @@ type CelestialReferenceOrigin {
   iri: String
 }
 
+type CellSourceCorrespondence {
+  id: String
+  iri: String
+  correspondenceCell: [String!]
+}
+
 type Certification {
   id: String
   iri: String
@@ -5422,6 +5428,30 @@ type CompetencyExpectedRow {
   iri: String
   cqCellValueLiteral: [String!]
   cqCellVar: [String!]
+}
+
+type CompilationMissingContext {
+  id: String
+  iri: String
+}
+
+type CompilationPreservationRecord {
+  id: String
+  iri: String
+}
+
+type ComplexCompilation {
+  id: String
+  iri: String
+  compilationScenario: [Scenario!]
+  compilationStandpoint: [Standpoint!]
+  compilationTimeScope: [TimeScopedRelation!]
+  compilationWorld: [String!]
+  compilesEvidence: [EvidenceSpan!]
+  compilesToComplex: [String!]
+  compilesToFiltration: [String!]
+  recordsCorrespondence: [CellSourceCorrespondence!]
+  recordsPreservation: [CompilationPreservationRecord!]
 }
 
 type ComplianceAssessment {
@@ -9024,6 +9054,11 @@ type Resource {
   iri: String
 }
 
+type ResultObjectConflation {
+  id: String
+  iri: String
+}
+
 type RetrievalEvent {
   id: String
   iri: String
@@ -9860,6 +9895,41 @@ type ToolCall {
   toolArguments: String
   toolResult: String
   usedTool: SoftwareAgent
+}
+
+type TopologyClaim {
+  id: String
+  iri: String
+  claimForComputation: [TopologyComputation!]
+  claimLocalSection: [String!]
+  claimResult: TopologyResult
+  dischargesObstruction: [String!]
+  extendsToGlobalSection: [String!]
+}
+
+type TopologyClaimMissingStatus {
+  id: String
+  iri: String
+}
+
+type TopologyComputation {
+  id: String
+  iri: String
+  assertsGlobalTruth: [Boolean!]
+  computationOverCompilation: ComplexCompilation
+  employsAnalysis: [String!]
+  producesResult: [TopologyResult!]
+}
+
+type TopologyConformanceFailure {
+  id: String
+  iri: String
+}
+
+type TopologyResult {
+  id: String
+  iri: String
+  resultArtifact: [String!]
 }
 
 type Trademark {

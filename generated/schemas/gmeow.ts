@@ -5069,6 +5069,10 @@ export interface CelestialObjectType {
 export interface CelestialReferenceOrigin {
 }
 
+export interface CellSourceCorrespondence {
+    correspondenceCell?: string[],
+}
+
 export interface Certification {
     certificationLevel?: string,
     certifiedIdentity?: Agent,
@@ -5170,6 +5174,24 @@ export interface CommunitySummary extends Summary {
 export interface CompetencyExpectedRow extends InformationObject {
     cqCellValueLiteral?: string[],
     cqCellVar?: string[],
+}
+
+export interface CompilationMissingContext {
+}
+
+export interface CompilationPreservationRecord {
+}
+
+export interface ComplexCompilation {
+    compilationScenario?: Scenario[],
+    compilationStandpoint?: Standpoint[],
+    compilationTimeScope?: TimeScopedRelation[],
+    compilationWorld?: string[],
+    compilesEvidence?: EvidenceSpan[],
+    compilesToComplex?: string[],
+    compilesToFiltration?: string[],
+    recordsCorrespondence?: CellSourceCorrespondence[],
+    recordsPreservation?: CompilationPreservationRecord[],
 }
 
 export interface ComplianceAssessment extends Observation {
@@ -7796,6 +7818,9 @@ export interface RepositoryType {
 export interface Resource extends SocialObject {
 }
 
+export interface ResultObjectConflation {
+}
+
 export interface RetrievalEvent extends Activity {
     againstIndex?: VectorIndex,
     forQuery?: string[],
@@ -8374,6 +8399,31 @@ export interface ToolCall extends Activity {
     toolArguments?: string,
     toolResult?: string,
     usedTool?: SoftwareAgent,
+}
+
+export interface TopologyClaim {
+    claimForComputation?: TopologyComputation[],
+    claimLocalSection?: string[],
+    claimResult?: TopologyResult,
+    dischargesObstruction?: string[],
+    extendsToGlobalSection?: string[],
+}
+
+export interface TopologyClaimMissingStatus {
+}
+
+export interface TopologyComputation {
+    assertsGlobalTruth?: boolean[],
+    computationOverCompilation?: ComplexCompilation,
+    employsAnalysis?: string[],
+    producesResult?: TopologyResult[],
+}
+
+export interface TopologyConformanceFailure {
+}
+
+export interface TopologyResult {
+    resultArtifact?: string[],
 }
 
 export interface Trademark {

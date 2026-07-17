@@ -67,7 +67,7 @@
   "gmeow-math-obcs.sssom.tsv": 5,
   "gmeow-math-qb.sssom.tsv": 1,
   "gmeow-math-stato.sssom.tsv": 5,
-  "gmeow-mathlib.sssom.tsv": 11,
+  "gmeow-mathlib.sssom.tsv": 13,
   "gmeow-mentation.sssom.tsv": 1,
   "gmeow-model-serving.sssom.tsv": 7,
   "gmeow-music.sssom.tsv": 49,
@@ -99,10 +99,10 @@
   "gmeow-temporal.sssom.tsv": 66,
   "gmeow-trust.sssom.tsv": 12,
   "gmeow-versions.sssom.tsv": 4,
-  "gmeow-wikidata.sssom.tsv": 205,
+  "gmeow-wikidata.sssom.tsv": 219,
   "gmeow-wordnet.sssom.tsv": 3
  },
- "equivalences": 2098,
+ "equivalences": 2114,
  "functions": 59,
  "mapping_sets": 98,
  "projections": 635

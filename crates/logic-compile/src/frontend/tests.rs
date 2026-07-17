@@ -3088,6 +3088,173 @@ fn value_range_record_without_any_bound_is_a_malformed_record() {
 }
 
 #[test]
+fn join_aggregate_record_expands_and_contributes_nothing_to_the_reasoned_axiom_set() {
+    // A well-formed two-leg join-aggregate record expands to exactly one canonical logic:Constraint
+    // carrying the JoinAggregate satellite, targets the guarded class, and none of its structural
+    // triples (joinPath / leg role predicates / the leg blank nodes) leak into prog.axioms.
+    let (prog, diags) = parse(
+        "ex:boundarySquareZero a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+             [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert_eq!(prog.constraints.len(), 1, "exactly one constraint expands");
+    let c = &prog.constraints[0];
+    let ja = c
+        .join_aggregate
+        .as_ref()
+        .expect("the join-aggregate satellite must be present");
+    assert_eq!(ja.function, "SUM");
+    assert_eq!(ja.legs.len(), 2, "two legs — a genuine multi-hop join");
+    assert_eq!(ja.threshold_lexical, "0");
+    assert!(
+        matches!(&c.target, ShapeTarget::Class(cl) if cl.ends_with("/TopCell")),
+        "the join-aggregate must target the guarded class: {:?}",
+        c.target
+    );
+    assert!(
+        !prog.axioms.iter().any(|a| {
+            a.predicate.contains("/legSource")
+                || a.predicate.contains("/legTarget")
+                || a.predicate.contains("/legValue")
+                || a.predicate.contains("/legRecordType")
+                || a.predicate.contains("/joinPath")
+        }),
+        "no join-aggregate structural triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+#[test]
+fn join_aggregate_leg_missing_a_value_predicate_is_a_malformed_record() {
+    // A leg without logic:legValue cannot form the group product — fail-soft: one
+    // MALFORMED_CONSTRAINT diagnostic, never a silent partial constraint.
+    let (prog, diags) = parse(
+        "ex:brokenLeg a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+    );
+    assert!(prog.constraints.is_empty(), "no constraint may expand");
+    assert!(
+        diags.iter().any(|d| d.message.contains("legValue")),
+        "a value-less leg must diagnose: {diags:?}"
+    );
+}
+
+#[test]
+fn join_aggregate_single_leg_is_not_a_join() {
+    // One hop is a plain aggregate, not a JOIN — the record is malformed (needs ≥ 2 legs).
+    let (prog, diags) = parse(
+        "ex:oneHop a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+    );
+    assert!(prog.constraints.is_empty(), "no constraint may expand");
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("at least two join legs")),
+        "a single-leg record must diagnose: {diags:?}"
+    );
+}
+
+/// Build a two-leg `logic:joinPath` Turtle fragment where `bad_pred`'s value on the FIRST leg is
+/// replaced with `bad_value_ttl` (a literal or blank node), and every other structural predicate
+/// on that leg — plus the whole second leg — is a well-formed IRI. Used to falsify Gap 12b: each
+/// of `legSource`/`legTarget`/`legValue`/`legRecordType` must reject a non-IRI value rather than
+/// silently stringify it.
+fn join_leg_with_bad_value(bad_pred: &str, bad_value_ttl: &str) -> String {
+    let mut fields = Vec::new();
+    for (pred, iri) in [
+        ("legSource", "ex:incidenceCoface"),
+        ("legTarget", "ex:incidenceFace"),
+        ("legValue", "ex:incidenceSign"),
+    ] {
+        if pred == bad_pred {
+            fields.push(format!("logic:{pred} {bad_value_ttl}"));
+        } else {
+            fields.push(format!("logic:{pred} {iri}"));
+        }
+    }
+    if bad_pred == "legRecordType" {
+        fields.push(format!("logic:legRecordType {bad_value_ttl}"));
+    }
+    format!(
+        "ex:badLeg a logic:JoinAggregateConstraint ;\n\
+           logic:onClass ex:TopCell ;\n\
+           logic:aggFunction \"SUM\" ;\n\
+           logic:aggComparator \"=\" ;\n\
+           logic:aggThreshold 0 ;\n\
+           logic:joinPath (\n\
+             [ {} ]\n\
+             [ logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           ) ;\n\
+           logic:formalizes ex:BoundaryOperator .",
+        fields.join(" ; "),
+    )
+}
+
+#[test]
+fn join_aggregate_leg_rejects_a_literal_value_for_every_structural_predicate() {
+    // legSource/legTarget/legValue/legRecordType are record→endpoint/value PREDICATES; a
+    // literal value must be rejected as malformed, not silently stringified (Gap 12b).
+    for bad_pred in ["legSource", "legTarget", "legValue", "legRecordType"] {
+        let (prog, diags) = parse(&join_leg_with_bad_value(bad_pred, "\"not-an-iri\""));
+        assert!(
+            prog.constraints.is_empty(),
+            "a leg with a literal {bad_pred} must not expand: {:?}",
+            prog.constraints
+        );
+        assert!(
+            diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"
+                && d.message.contains(bad_pred)
+                && d.message.contains("must be an IRI")),
+            "a literal {bad_pred} must diagnose as malformed: {diags:?}"
+        );
+    }
+}
+
+#[test]
+fn join_aggregate_leg_rejects_a_blank_node_value_for_every_structural_predicate() {
+    // Same as above, but the malformed value is a blank node rather than a literal — neither
+    // is an IRI, and both must be rejected the same way (Gap 12b).
+    for bad_pred in ["legSource", "legTarget", "legValue", "legRecordType"] {
+        let (prog, diags) = parse(&join_leg_with_bad_value(bad_pred, "[ ]"));
+        assert!(
+            prog.constraints.is_empty(),
+            "a leg with a blank-node {bad_pred} must not expand: {:?}",
+            prog.constraints
+        );
+        assert!(
+            diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"
+                && d.message.contains(bad_pred)
+                && d.message.contains("must be an IRI")),
+            "a blank-node {bad_pred} must diagnose as malformed: {diags:?}"
+        );
+    }
+}
+
+#[test]
 fn pinned_forbidden_pattern_record_contributes_nothing_to_the_reasoned_axiom_set() {
     // The record is a validation descriptor: it expands to exactly one canonical
     // logic:Constraint and its structural triples MUST NOT leak into `prog.axioms`

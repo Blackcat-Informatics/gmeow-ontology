@@ -29,6 +29,7 @@ gmeow:full
         <https://blackcatinformatics.ca/gmeow/slices/notes> ,
         <https://blackcatinformatics.ca/gmeow/slices/procedures> ,
         <https://blackcatinformatics.ca/gmeow/slices/risk> ,
+        <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ,
         <https://blackcatinformatics.ca/gmeow/slices/sensory> ,
         <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ,
         <https://blackcatinformatics.ca/gmeow/slices/software> ;

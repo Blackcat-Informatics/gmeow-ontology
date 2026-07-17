@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed math:ZigzagDiagram: a sequence V0 → V1 ← V2 whose structure maps may
+# point FORWARD or BACKWARD. It names its arrows through math:zigzagArrow, and each
+# arrow declares its orientation through math:arrowDirection over the open
+# math:ArrowDirection vocabulary. Crucially it declares a REAL math:backwardArrow
+# (arrow12), so it is genuinely bidirectional and NOT degenerate — the backward arrow
+# is exactly what distinguishes a zigzag from a forward-only filtration. It is distinct
+# from the analysis activity math:ZigzagPersistence that computes over it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exz:  <https://blackcatinformatics.ca/gmeow/examples/math/zigzag-diagram/> .
+
+exz:diagram a math:ZigzagDiagram ;
+    rdfs:label "zigzag V0 → V1 ← V2"@x-gmeow-english ;
+    math:zigzagArrow exz:arrow01 , exz:arrow12 .
+
+# A FORWARD arrow V0 → V1 (inclusion-like) and a BACKWARD arrow V1 ← V2 (the reversal
+# only a zigzag admits).
+exz:arrow01 a math:Morphism ;
+    rdfs:label "forward map V0 → V1"@x-gmeow-english ;
+    math:arrowDirection math:forwardArrow .
+exz:arrow12 a math:Morphism ;
+    rdfs:label "backward map V1 ← V2"@x-gmeow-english ;
+    math:arrowDirection math:backwardArrow .

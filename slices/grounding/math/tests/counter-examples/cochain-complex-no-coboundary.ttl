@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: a math:CochainComplex declaring no math:cochainCoboundary. A cochain
+# complex is defined by its coboundary operator; one naming none is ill-formed. It fires
+# the derived qualified-min-count frame (shacl.QualifiedMinCountConstraintComponent →
+# math:IncompleteCochainComplex) and NO other finding: it carries no cells, so no
+# co-diamond constraint targets it.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/cochain-no-coboundary/> .
+
+ex:cochain a math:CochainComplex .

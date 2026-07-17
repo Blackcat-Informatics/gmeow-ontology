@@ -1417,6 +1417,49 @@ razor note; zero issue-numbers in repo docs). No human sign-off was required (no
   and let_chains is stable since Rust 1.88; the code compiles clean. Reply posted in-thread; no
   code change (rewriting correct code to satisfy an incorrect premise would be needless churn).
 
+## 2026-07-17 — #1527 / math + semantic-topology epic, stage-2 gap remediation
+Completion-adversary STAGE=2 exit gate returned PASS with ZERO open findings against green
+HEAD 712423a62: every acceptance criterion (C1–C7) DEMONSTRATED-IN-PRODUCTION on the shipped
+surface (regenerated generated/shapes derived SHACL, both live conformance sweeps
+grounding/math + extensions/semantic-topology, folded gmeow.gts + pydantic fanout, Rust
+no-optionality hard-fails). FULL `make check` passed green on HEAD ("all checks passed"; sync,
+validate, slice-quality-gate, rust-gate, reason-verify, coherence-gate-teeth, compliance-report;
+DL⊇EL soak 3/3 gap-zero with byte-identical finding-graph digests). No human sign-off was
+required at the exit gate (no findings).
+
+Two recorded HUMAN decisions (not self-cleared):
+- AC7 "decompose the epic into dependency-ordered issues before code changes" was superseded by
+  two verbatim AskUserQuestion confirmations (recorded in the #1527 plan comment) to implement
+  the gaps directly as one code PR including Workstream B. A recorded supersession, not a silent
+  skip. (Process criterion, discharged by human sign-off.)
+- The epic's Workstream-A "combinatorial Laplacians" item: pre-existing math:HodgeLaplacian/
+  SheafLaplacian/HodgeDecomposition already grounded Hodge on main; per an explicit user decision
+  the literal item was closed by MINTING a new math:CombinatorialLaplacian (L_k = ∂∂*+∂*∂ over the
+  cell complex's own signed boundary operators, non-conflated with the Hodge/sheaf Laplacians)
+  rather than re-minting Hodge. Full delivery, not a descope.
+
+One honest scoped boundary (shipped as a first-class ontology term, not a deferral):
+- Multiparameter non-collapse (AC4). The reviewer asked to "detect any functionally dependent
+  multi-index." The concrete asked cases — literal diagonal (t,t), affine (t,2t)/(t,t+1) — ARE
+  detected (math:DiagonalDegenerateFiltrationConstraint + math:MultiparameterFunctionalDependence
+  Constraint's fix-one-vary-another declaration-completeness witness, with firing counter-examples
+  and a conformant grid bifiltration). Detecting an ARBITRARY latent dependence t₂=f(t₁) from a
+  finite set of stage samples is mathematically undecidable (any finite point set lies on some
+  curve), so that residue is carried as the honest logic:expressivenessBoundary
+  math:multiparameterDependenceBoundary (logic:SecondOrder, logic:Unsupported) — a sibling of the
+  pre-existing math:cellBoundarySumBoundary / math:smoothnessBoundary. FORWARD PATH: none — this is
+  the correct mathematical ceiling, not a proxy awaiting replacement.
+
+One cross-cutting core-gate enhancement (SUBSUME/EXTEND/ENHANCE, MAXIMAL GROUNDING):
+- The OntoUML identity gate (crates/validate/src/gufo.rs proper_ancestors / gmeow_subclasses)
+  traced sortal Kind-ancestry over rdfs:subClassOf only, forcing a new SubKind slice to hand-author
+  an ungrounded rdfs:subClassOf SubKind→Kind edge (which the projection-residue ratchet then blocks
+  for a brand-new slice). Fixed at root: the gate now ALSO traverses the canonical logic:subClassOf,
+  so gmeow:TopologyClaim is grounded as logic:subClassOf gmeow:StandpointClaim (semantic-topology
+  rdfs residue → 0, slice-quality-gate green) with the identity checks intact (all 20 gufo unit
+  tests pass; no new MixIden across the full ontology at make check). Not a ceiling exception —
+  the ungrounded residue was eliminated, not grandfathered.
+
 ================================================================================
 2026-07-17 — Issue #1536 (stage 1): MCP surface for the slice authoring factory
 ================================================================================
