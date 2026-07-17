@@ -43,7 +43,8 @@ ex:citeSquareImageGlyph
 # --- A complete GMN envelope: the full nine-field contract ------------------ #
 # One envelope per serialized GMN payload: the three dialect coordinates, the
 # boundary ring, the asserting standpoint, the generating activity, the
-# byte-exact digest, and the losslessness judgment — a logic:Correspondence.
+# codebook-frame digest (gmeow:gmnCodebookDigest), the byte-exact content
+# digest, and the losslessness judgment — a logic:Correspondence.
 
 ex:archiveKeeper a gmeow:Agent .
 ex:nightlyGmnWrite a gmeow:Activity .

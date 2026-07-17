@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Graph-tier negative (native/SHACL gate, lang:GmnMissingEnvelopeField): a gmeow:GmnEnvelope
-# that omits its gmeow:gmnCodebookDigest contract field entirely. This is a graph/native
-# negative — NOT a malformed .gmn codec-byte negative — discharged by the SHACL/native tier
-# in a later task. Every other contract field is present so exactly the missing-field rule fires.
+# Graph-tier negative (native/derived-SHACL envelope-contract gate, lang:GmnMissingEnvelopeField):
+# a gmeow:GmnEnvelope that omits its gmeow:gmnCodebookDigest contract field entirely. This is a
+# graph/native negative — NOT a malformed .gmn codec-byte negative — discharged by the live
+# native/derived-SHACL envelope-contract tier. Every other contract field is present so exactly
+# the missing-field rule fires.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
