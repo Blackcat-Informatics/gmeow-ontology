@@ -1297,3 +1297,46 @@ ex:ecVectorSymbolicNonInvertibility a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic unbinding — vector space, basis, bound vector, key, recovered operand, and capacity descriptor — but omits its required recovery-loss (fidelity) contract, so it cannot certify the retrieval as invertible and isolates math:IncompleteVectorSymbolicOperation." .
+
+# === Chain/cochain complexes: the square-zero laws and their adjunction ===== #
+
+ex:ecChainComplexComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/chain-complex-square-zero-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The filled oriented triangle with its two-level signed incidences has ∂∘∂ = 0 at every vertex (every codimension-2 (coface, far-face) group's signed incidence-sign-product sum is 0), so it satisfies math:BoundarySquareZeroConstraint (the simplicial diamond) and math:GeneralBoundarySquareZeroConstraint (the finite signed sum); its math:Cycle, bounding math:Boundary, math:HomologyGroup (H₁ = Z/B), and constant sheaf are each fully framed, and it validates with no findings." .
+
+ex:ecSquareZeroBroken a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/square-zero-broken.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:SimplicialComplex with a codimension-2 composition path (faceX ▷ edgeP ▷ vertexQ) that has no distinct partner face — a broken diamond breaking ∂∘∂ = 0 — so the sh:sparql constraint of math:BoundarySquareZeroConstraint fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). It carries no math:CellIncidence (so math:GeneralBoundarySquareZeroConstraint has nothing to sum) and is not a math:CochainComplex, isolating the single violation." .
+
+ex:ecGeneralCwSquareZeroBroken a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/general-cw-square-zero-broken.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a general math:CellComplex (not simplicial) whose codimension-2 (coface cX, far-face aZ) group has a single boundary composition of sign product +1, so the finite signed sum Σ_b [cX:b]·[b:aZ] = +1 ≠ 0; the logic:JoinAggregateConstraint math:GeneralBoundarySquareZeroConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). Being a plain math:CellComplex, the simplicial math:BoundarySquareZeroConstraint does not target it, isolating the single violation." .
+
+ex:ecCoboundarySquareZeroBroken a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/coboundary-square-zero-broken.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:CochainComplex with a codimension-2 co-composition path (vertexA ◁ edgeB ◁ faceC) that has no distinct partner coface — a broken co-diamond breaking δ∘δ = 0 — so the sh:sparql constraint of math:CoboundarySquareZeroConstraint fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenCoboundarySquareZero). It names its math:cochainCoboundary (so the cochain-complex frame is satisfied) and is not a math:SimplicialComplex, isolating the single violation." .
+
+ex:ecAdjunctionInconsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/adjunction-inconsistent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example links a boundary math:CellIncidence and its declared transpose coboundary math:CellIncidence (math:adjointIncidence) carrying disagreeing ±1 signs (+1 vs −1), so the adjunction δ = ∂* fails; the sh:sparql constraint of math:BoundaryCoboundaryAdjunctionConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundaryCoboundaryAdjunction). The two incidences are on disjoint cells, forming no boundary composition the general-sum constraint would score, isolating the single violation." .
+
+ex:ecCochainComplexNoCoboundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cochain-complex-no-coboundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:CochainComplex declaring no math:cochainCoboundary (sh:qualifiedMinCount 1 onClass math:CoboundaryOperator, derived from the min-1 qualified math:cochainCoboundary restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCochainComplex). It carries no cells, so no co-diamond constraint targets it, isolating the single violation." .
+
+ex:ecCoboundaryNotInImage a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/coboundary-not-in-image.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Coboundary declaring no math:coboundaryOf (sh:qualifiedMinCount 1 onClass math:CoboundaryOperator, derived from the min-1 qualified math:coboundaryOf restriction), so it is not grounded as the image of a coboundary operator; validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCoboundary)." .

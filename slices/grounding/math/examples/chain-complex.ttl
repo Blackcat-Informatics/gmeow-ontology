@@ -1,0 +1,123 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The worked chain complex of an oriented simplicial triangle (a filled 2-simplex),
+# and the LIVE-ENTAILMENT witness for the square-zero laws.
+#
+# The two-level signed boundary is ∂(faceABC) = +edgeAB + edgeBC − edgeAC and
+# ∂(edge) = (head − tail), so ∂∘∂(faceABC) = 0: at every vertex the two incident
+# edges' sign products cancel (e.g. at vertexA: [face:edgeAB]·[edgeAB:vertexA] +
+# [face:edgeAC]·[edgeAC:vertexA] = (+1)(−1) + (−1)(−1) = 0). It demonstrates the
+# math:Chain / math:Cycle / math:Boundary element carriers, and the general-CW
+# math:GeneralBoundarySquareZeroConstraint sums to 0 on it.
+#
+# The pre-reified relation atoms at the bottom are the fixed-arity n-ary encoding the
+# native logic: reasoner evaluates (logic:instanceOf <Rel> + logic:naryArg0/naryArg1):
+# firing math:boundarySquareZeroLaw over them DERIVES the binary consequent
+# math:cancellingPairRel(edgeAB, edgeAC), and firing math:coboundarySquareZeroLaw
+# DERIVES math:coCancellingPairRel(edgeAB, edgeAC) — tuples present in the reasoned
+# closure ONLY because the laws fired. The competency questions query exactly those.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
+
+# --- The filled triangle as a simplicial complex --------------------------- #
+excc:triangle a math:SimplicialComplex ;
+    rdfs:label "filled oriented triangle (2-simplex)"@x-gmeow-english ;
+    math:hasCell excc:faceABC ,
+        excc:edgeAB , excc:edgeBC , excc:edgeAC ,
+        excc:vertexA , excc:vertexB , excc:vertexC .
+
+excc:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ; rdfs:label "0"@x-gmeow-english .
+excc:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ; rdfs:label "1"@x-gmeow-english .
+excc:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true ; rdfs:label "2"@x-gmeow-english .
+
+excc:faceABC a math:Cell ; rdfs:label "face ABC"@x-gmeow-english ;
+    math:cellDimension excc:dim2 ; math:orientation math:positivelyOriented ;
+    math:incidentTo excc:edgeAB , excc:edgeBC , excc:edgeAC .
+excc:edgeAB a math:Cell ; rdfs:label "edge A→B"@x-gmeow-english ;
+    math:cellDimension excc:dim1 ; math:orientation math:positivelyOriented ;
+    math:incidentTo excc:vertexA , excc:vertexB .
+excc:edgeBC a math:Cell ; rdfs:label "edge B→C"@x-gmeow-english ;
+    math:cellDimension excc:dim1 ; math:orientation math:positivelyOriented ;
+    math:incidentTo excc:vertexB , excc:vertexC .
+excc:edgeAC a math:Cell ; rdfs:label "edge A→C"@x-gmeow-english ;
+    math:cellDimension excc:dim1 ; math:orientation math:positivelyOriented ;
+    math:incidentTo excc:vertexA , excc:vertexC .
+excc:vertexA a math:Cell ; rdfs:label "vertex A"@x-gmeow-english ; math:cellDimension excc:dim0 .
+excc:vertexB a math:Cell ; rdfs:label "vertex B"@x-gmeow-english ; math:cellDimension excc:dim0 .
+excc:vertexC a math:Cell ; rdfs:label "vertex C"@x-gmeow-english ; math:cellDimension excc:dim0 .
+
+# --- The reified signed boundary coefficients (both grades) ----------------- #
+# ∂(faceABC) = +edgeAB + edgeBC − edgeAC
+excc:incFaceAB a math:CellIncidence ; rdfs:label "⟨face:edgeAB⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface excc:faceABC ; math:incidenceFace excc:edgeAB ; math:incidenceSign 1 .
+excc:incFaceBC a math:CellIncidence ; rdfs:label "⟨face:edgeBC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface excc:faceABC ; math:incidenceFace excc:edgeBC ; math:incidenceSign 1 .
+excc:incFaceAC a math:CellIncidence ; rdfs:label "⟨face:edgeAC⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface excc:faceABC ; math:incidenceFace excc:edgeAC ; math:incidenceSign -1 .
+# ∂(edgeAB) = vertexB − vertexA
+excc:incEabB a math:CellIncidence ; rdfs:label "⟨edgeAB:vertexB⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface excc:edgeAB ; math:incidenceFace excc:vertexB ; math:incidenceSign 1 .
+excc:incEabA a math:CellIncidence ; rdfs:label "⟨edgeAB:vertexA⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface excc:edgeAB ; math:incidenceFace excc:vertexA ; math:incidenceSign -1 .
+# ∂(edgeBC) = vertexC − vertexB
+excc:incEbcC a math:CellIncidence ; rdfs:label "⟨edgeBC:vertexC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface excc:edgeBC ; math:incidenceFace excc:vertexC ; math:incidenceSign 1 .
+excc:incEbcB a math:CellIncidence ; rdfs:label "⟨edgeBC:vertexB⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface excc:edgeBC ; math:incidenceFace excc:vertexB ; math:incidenceSign -1 .
+# ∂(edgeAC) = vertexC − vertexA
+excc:incEacC a math:CellIncidence ; rdfs:label "⟨edgeAC:vertexC⟩ = +1"@x-gmeow-english ;
+    math:incidenceCoface excc:edgeAC ; math:incidenceFace excc:vertexC ; math:incidenceSign 1 .
+excc:incEacA a math:CellIncidence ; rdfs:label "⟨edgeAC:vertexA⟩ = −1"@x-gmeow-english ;
+    math:incidenceCoface excc:edgeAC ; math:incidenceFace excc:vertexA ; math:incidenceSign -1 .
+
+# --- The chain and cochain complexes and their operators -------------------- #
+excc:chainComplex a math:ChainComplex ; rdfs:label "cellular chain complex C•(triangle)"@x-gmeow-english ;
+    math:chainBoundary excc:boundaryOp .
+excc:boundaryOp a math:BoundaryOperator ; rdfs:label "∂"@x-gmeow-english .
+excc:cochainComplex a math:CochainComplex ; rdfs:label "cellular cochain complex C•(triangle)"@x-gmeow-english ;
+    math:cochainCoboundary excc:coboundaryOp .
+excc:coboundaryOp a math:CoboundaryOperator ; rdfs:label "δ"@x-gmeow-english .
+
+# --- Chain / cycle / boundary element carriers ----------------------------- #
+# The 1-chain ∂(faceABC) = edgeAB + edgeBC − edgeAC is BOTH a cycle (∂ of it is 0)
+# and a boundary (it bounds faceABC), so its homology class is zero — H₁ of a filled
+# triangle is trivial, the H = Z/B quotient made concrete.
+excc:oneChain a math:Chain ; rdfs:label "1-chain edgeAB + edgeBC − edgeAC"@x-gmeow-english ;
+    math:chainOf excc:chainComplex .
+excc:cycleZ a math:Cycle ; rdfs:label "1-cycle ∂(faceABC)"@x-gmeow-english ;
+    math:chainOf excc:chainComplex ; math:cycleOf excc:chainComplex .
+excc:boundaryB a math:Boundary ; rdfs:label "1-boundary ∂(faceABC)"@x-gmeow-english ;
+    math:chainOf excc:chainComplex ; math:boundaryOf excc:chainComplex .
+
+# =========================================================================== #
+# LIVE-ENTAILMENT WITNESS EDB — the square-zero laws as evaluable consumers.
+# =========================================================================== #
+# The reified relations math:incidentToRel / math:chainBoundaryRel / math:cofaceRel /
+# math:oppositeIncidenceProductRel are BINARY, so — per the reified-binary doctrine
+# (crates/logic nary.rs: a binary predication is already a binary atom, matched as a
+# direct triple over the relation IRI, exactly as the derived binary consequent
+# exa:eqRel is read as `?v exa:eqRel ?v`) — the witness facts are authored as direct
+# triples over each relation IRI, not as logic:naryArg reifications (which are only for
+# arity ≥ 3).
+#
+# Boundary diamond at vertexA: the two intermediate edges edgeAB, edgeAC compose the
+# face to vertexA with OPPOSITE sign products, so they are a cancelling pair. Firing
+# math:boundarySquareZeroLaw over these atoms DERIVES math:cancellingPairRel(edgeAB, edgeAC).
+excc:chainComplex math:chainBoundaryRel excc:boundaryOp .
+excc:faceABC math:incidentToRel excc:edgeAB , excc:edgeAC .
+excc:edgeAB math:incidentToRel excc:vertexA .
+excc:edgeAC math:incidentToRel excc:vertexA .
+excc:edgeAB math:oppositeIncidenceProductRel excc:edgeAC .
+
+# Coboundary co-diamond at vertexA (upward, via math:cofaceRel = incidentTo reversed):
+# the same two intermediate edges are cofaces of vertexA and faces of the face, with
+# opposite products. Firing math:coboundarySquareZeroLaw DERIVES
+# math:coCancellingPairRel(edgeAB, edgeAC).
+excc:cochainComplex math:chainBoundaryRel excc:coboundaryOp .
+excc:vertexA math:cofaceRel excc:edgeAB , excc:edgeAC .
+excc:edgeAB math:cofaceRel excc:faceABC .
+excc:edgeAC math:cofaceRel excc:faceABC .

@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A conforming chain complex: the filled oriented triangle with its two-level signed
+# incidences (∂∘∂ = 0 at every vertex), its math:Cycle and bounding math:Boundary, the
+# math:HomologyGroup H₁ = Z/B they generate, and the constant sheaf whose cohomology
+# recovers that cellular homology. Every codimension-2 (coface, far-face) group's signed
+# incidence-sign-product sum is 0, so it satisfies math:BoundarySquareZeroConstraint and
+# math:GeneralBoundarySquareZeroConstraint and validates with no findings.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/math/chain-complex/> .
+
+# --- The filled triangle --------------------------------------------------- #
+ex:triangle a math:SimplicialComplex ;
+    math:hasCell ex:faceABC , ex:edgeAB , ex:edgeBC , ex:edgeAC , ex:vertexA , ex:vertexB , ex:vertexC .
+
+ex:dim0 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim1 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+ex:dim2 a math:NaturalNumber ; math:inNumberSystem math:naturalNumbers ; math:isExact true .
+
+ex:faceABC a math:Cell ; math:cellDimension ex:dim2 ; math:orientation math:positivelyOriented ;
+    math:incidentTo ex:edgeAB , ex:edgeBC , ex:edgeAC .
+ex:edgeAB a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexA , ex:vertexB .
+ex:edgeBC a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexB , ex:vertexC .
+ex:edgeAC a math:Cell ; math:cellDimension ex:dim1 ; math:incidentTo ex:vertexA , ex:vertexC .
+ex:vertexA a math:Cell ; math:cellDimension ex:dim0 .
+ex:vertexB a math:Cell ; math:cellDimension ex:dim0 .
+ex:vertexC a math:Cell ; math:cellDimension ex:dim0 .
+
+# ∂(faceABC) = +edgeAB + edgeBC − edgeAC
+ex:incFaceAB a math:CellIncidence ; math:incidenceCoface ex:faceABC ; math:incidenceFace ex:edgeAB ; math:incidenceSign 1 .
+ex:incFaceBC a math:CellIncidence ; math:incidenceCoface ex:faceABC ; math:incidenceFace ex:edgeBC ; math:incidenceSign 1 .
+ex:incFaceAC a math:CellIncidence ; math:incidenceCoface ex:faceABC ; math:incidenceFace ex:edgeAC ; math:incidenceSign -1 .
+# ∂(edgeAB) = vertexB − vertexA
+ex:incEabB a math:CellIncidence ; math:incidenceCoface ex:edgeAB ; math:incidenceFace ex:vertexB ; math:incidenceSign 1 .
+ex:incEabA a math:CellIncidence ; math:incidenceCoface ex:edgeAB ; math:incidenceFace ex:vertexA ; math:incidenceSign -1 .
+# ∂(edgeBC) = vertexC − vertexB
+ex:incEbcC a math:CellIncidence ; math:incidenceCoface ex:edgeBC ; math:incidenceFace ex:vertexC ; math:incidenceSign 1 .
+ex:incEbcB a math:CellIncidence ; math:incidenceCoface ex:edgeBC ; math:incidenceFace ex:vertexB ; math:incidenceSign -1 .
+# ∂(edgeAC) = vertexC − vertexA
+ex:incEacC a math:CellIncidence ; math:incidenceCoface ex:edgeAC ; math:incidenceFace ex:vertexC ; math:incidenceSign 1 .
+ex:incEacA a math:CellIncidence ; math:incidenceCoface ex:edgeAC ; math:incidenceFace ex:vertexA ; math:incidenceSign -1 .
+
+# --- Chain complex, cycle, boundary ---------------------------------------- #
+ex:chainComplex a math:ChainComplex ; math:chainBoundary ex:boundaryOp .
+ex:boundaryOp a math:BoundaryOperator .
+ex:cycleZ a math:Cycle ; math:chainOf ex:chainComplex ; math:cycleOf ex:chainComplex .
+ex:boundaryB a math:Boundary ; math:chainOf ex:chainComplex ; math:boundaryOf ex:chainComplex .
+
+# --- The homology group H₁ = Z/B (trivial here: the cycle bounds) ----------- #
+ex:homologyH1 a math:HomologyGroup ;
+    math:underlyingSet ex:h1set ;
+    math:structureOperation ex:h1plus ;
+    math:satisfiesAxiom ex:h1commutativity ;
+    math:homologyCycles ex:cycleZ ;
+    math:homologyBoundaries ex:boundaryB .
+ex:h1set a math:Set ; rdfs:label "the underlying set of H₁ (the trivial group {0})"@x-gmeow-english .
+ex:h1plus a math:Operation ; rdfs:label "H₁ group addition"@x-gmeow-english .
+ex:h1commutativity rdfs:label "H₁ is abelian"@x-gmeow-english .
+
+# --- The constant sheaf whose cohomology recovers cellular homology --------- #
+ex:constantSheaf a math:ConstantSheaf ;
+    math:sheafBaseComplex ex:triangle ;
+    math:hasStalk ex:vertexStalk , ex:edgeStalk ;
+    math:restrictionMap ex:vertexToEdge ;
+    math:recoversHomology ex:homologyH1 .
+ex:vertexStalk a math:SheafStalk ; math:stalkOverCell ex:vertexA .
+ex:edgeStalk a math:SheafStalk ; math:stalkOverCell ex:edgeAB .
+ex:vertexToEdge a math:SheafRestrictionMap ; math:sourceObject ex:vertexStalk ; math:targetObject ex:edgeStalk .
