@@ -2090,7 +2090,7 @@ gmeow:geohash
     rdfs:range xsd:string ;
     skos:definition "A geohash string — a hierarchical spatial indexing system encoding latitude and longitude into a base32 string (e.g. 'u4pruydqqvj')."@x-gmeow-english ;
     skos:example "ex:ghLoc gmeow:geohash \"u4pruydqqvj\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid mixing systems on one Geocode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing a geohash base32 string with another geocoding system (e.g. MGRS) on one Geocode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:geohash on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameGeohash."@x-gmeow-english ;
     gmeow:useWhen "Use for a geohash base32 string on a Geocode."@x-gmeow-english .
@@ -2784,7 +2784,7 @@ gmeow:mgrs
     rdfs:range xsd:string ;
     skos:definition "A Military Grid Reference System coordinate — a geocoordinate standard used by NATO militaries (e.g. '33TWN00020001')."@x-gmeow-english ;
     skos:example "ex:mgrsLoc gmeow:mgrs \"33TWN00020001\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid mixing systems on one Geocode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing an MGRS coordinate with another geocoding system (e.g. geohash) on one Geocode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:mgrs on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameMGRS."@x-gmeow-english ;
     gmeow:useWhen "Use for a Military Grid Reference System coordinate on a Geocode."@x-gmeow-english .
@@ -2904,7 +2904,7 @@ gmeow:occupancyOf
     rdfs:subPropertyOf gmeow:observedFeature ;
     skos:definition "The location whose occupancy is measured. Functional: an occupancy measurement concerns exactly one location (constitutive of the measurement's identity)."@x-gmeow-english ;
     skos:example "ex:occ gmeow:occupancyOf ex:hall ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid several locations per measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid several locations per Occupancy measurement; an occupancy count is constitutively about exactly one location."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set exactly one gmeow:occupancyOf per Occupancy."@x-gmeow-english ;
     gmeow:useWhen "Use to name the single location an occupancy measurement concerns; functional, a subproperty of gmeow:observedFeature."@x-gmeow-english .
@@ -3000,7 +3000,7 @@ gmeow:overlayType
     rdfs:range gmeow:RegulatoryOverlayType ;
     skos:definition "The kind(s) of regulatory overlay (a gmeow:RegulatoryOverlayType individual). Non-functional: a single overlay may be classified by multiple sources as different types (e.g. a zone that is both a protected area and an indigenous territory), and those claims coexist as evidence (Principle 9)."@x-gmeow-english ;
     skos:example "ex:ov gmeow:overlayType gmeow:overlayTypeProtectedArea ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid encoding the kind as a subclass (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding a regulatory-overlay kind (e.g. protected area, control zone) as a RegulatoryOverlay subclass; use a gmeow:RegulatoryOverlayType value instead (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:RegulatoryOverlayType individuals; competing classifications coexist as evidence."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a regulatory overlay by one or more gmeow:RegulatoryOverlayType values; non-functional, so multi-source classifications coexist."@x-gmeow-english .
@@ -3221,7 +3221,7 @@ gmeow:pitch
     rdfs:range xsd:double ;
     skos:definition "Rotation about the lateral (typically y) axis, in degrees or radians as indicated by the reference frame."@x-gmeow-english ;
     skos:example "ex:ori gmeow:pitch 0.0 ; gmeow:eulerOrder \"ZYX\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid Euler angles without gmeow:eulerOrder."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid setting pitch (lateral-axis rotation) without gmeow:eulerOrder to disambiguate the Euler sequence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:pitch with gmeow:yaw, gmeow:roll, and gmeow:eulerOrder."@x-gmeow-english ;
     gmeow:useWhen "Use for rotation about the lateral axis in the Euler-angle facet."@x-gmeow-english .
@@ -3445,7 +3445,7 @@ gmeow:quaternionW
     rdfs:range xsd:double ;
     skos:definition "The w (scalar) component of a unit quaternion representing orientation."@x-gmeow-english ;
     skos:example "ex:ori gmeow:quaternionW 1.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a partial quaternion; supply all four components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a partial quaternion; the scalar (real) w-part alone is meaningless without the X/Y/Z vector components."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:quaternionW with X/Y/Z on the same Orientation."@x-gmeow-english ;
     gmeow:useWhen "Use for the w (scalar) component of a unit quaternion orientation facet."@x-gmeow-english .
@@ -3471,7 +3471,7 @@ gmeow:quaternionY
     rdfs:range xsd:double ;
     skos:definition "The y component of a unit quaternion representing orientation."@x-gmeow-english ;
     skos:example "ex:ori gmeow:quaternionY 0.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a partial quaternion; supply all four components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a partial quaternion; the y vector (imaginary) part alone is meaningless without W/X/Z."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:quaternionY with X/Z/W on the same Orientation."@x-gmeow-english ;
     gmeow:useWhen "Use for the y component of a unit quaternion orientation facet."@x-gmeow-english .
@@ -3484,7 +3484,7 @@ gmeow:quaternionZ
     rdfs:range xsd:double ;
     skos:definition "The z component of a unit quaternion representing orientation."@x-gmeow-english ;
     skos:example "ex:ori gmeow:quaternionZ 0.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a partial quaternion; supply all four components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a partial quaternion; the z vector (imaginary) part alone is meaningless without W/X/Y."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:quaternionZ with X/Y/W on the same Orientation."@x-gmeow-english ;
     gmeow:useWhen "Use for the z component of a unit quaternion orientation facet."@x-gmeow-english .
@@ -4664,7 +4664,7 @@ gmeow:roll
     rdfs:range xsd:double ;
     skos:definition "Rotation about the longitudinal (typically x) axis, in degrees or radians as indicated by the reference frame."@x-gmeow-english ;
     skos:example "ex:ori gmeow:roll 0.0 ; gmeow:eulerOrder \"ZYX\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid Euler angles without gmeow:eulerOrder."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid setting roll (longitudinal-axis rotation) without gmeow:eulerOrder to disambiguate the Euler sequence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:roll with gmeow:yaw, gmeow:pitch, and gmeow:eulerOrder."@x-gmeow-english ;
     gmeow:useWhen "Use for rotation about the longitudinal axis in the Euler-angle facet."@x-gmeow-english .
@@ -5070,7 +5070,7 @@ gmeow:tenureType
     rdfs:range gmeow:LandTenureType ;
     skos:definition "The kind(s) of land tenure (a gmeow:LandTenureType individual). Non-functional: a single tenure may be classified by multiple sources as different types, and those claims coexist as evidence (Principle 9)."@x-gmeow-english ;
     skos:example "ex:lt gmeow:tenureType gmeow:tenureTypeLeasehold ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid encoding the kind as a subclass (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding a land-tenure kind (e.g. freehold, leasehold) as a LandTenure subclass; use a gmeow:LandTenureType value instead (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:LandTenureType individuals; competing classifications coexist as evidence."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a land tenure by one or more gmeow:LandTenureType values; non-functional, so multi-source classifications coexist."@x-gmeow-english .
@@ -5203,7 +5203,7 @@ gmeow:utilizationOf
     rdfs:subPropertyOf gmeow:observedFeature ;
     skos:definition "The location whose utilization is measured. Functional: a utilization measurement concerns exactly one location (constitutive of the measurement's identity)."@x-gmeow-english ;
     skos:example "ex:util gmeow:utilizationOf ex:hall ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid several locations per measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid several locations per Utilization measurement; a utilization ratio is constitutively about exactly one location."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set exactly one gmeow:utilizationOf per Utilization."@x-gmeow-english ;
     gmeow:useWhen "Use to name the single location a utilization measurement concerns; functional, a subproperty of gmeow:observedFeature."@x-gmeow-english .

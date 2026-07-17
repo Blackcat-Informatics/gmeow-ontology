@@ -69,7 +69,7 @@ gmeow:HonorificPosition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific Position"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
+    skos:definition "The value set of honorific render positions — prefix and suffix — enumerating where an honorific may be placed relative to the name."@x-gmeow-english ;
     skos:example "ex:honorific gmeow:honorificPosition gmeow:honorificPositionSuffix ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a Honorific subclass per position (positions are individuals) and avoid using it for anything but render placement — class/domain of the honorific is gmeow:HonorificClass."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -426,7 +426,7 @@ gmeow:hasPronounSet
     rdfs:range gmeow:PronounSet ;
     skos:definition "Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
     skos:example "ex:person gmeow:hasPronounSet gmeow:pronounTheyThem ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid inferring it from, or asserting it to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid making it functional, since it is a co-equal facet (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a person's pronoun set from, or asserting it to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid making gmeow:hasPronounSet functional, since pronoun set is a co-equal facet alongside honorific (Principle 9)."@x-gmeow-english ;
     gmeow:coequalFacet true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach a seeded or freshly-minted gmeow:PronounSet to a person with gmeow:hasPronounSet (non-functional); keep it orthogonal to the gender/orientation axes."@x-gmeow-english ;
@@ -440,7 +440,7 @@ gmeow:honorific
     rdfs:range gmeow:Honorific ;
     skos:definition "An honorific/title of address for a person (a gmeow:Honorific value). Non-functional and contextual. A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
     skos:example "ex:person gmeow:honorific gmeow:honorificDr ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid inferring it from, or asserting it to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid making it functional, since it is a co-equal facet (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a person's honorific from, or asserting it to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid making gmeow:honorific functional, since honorific is a co-equal facet alongside pronoun set (Principle 9)."@x-gmeow-english ;
     gmeow:coequalFacet true ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach a gmeow:Honorific value to a person with gmeow:honorific (non-functional); the title's render placement and domain come from gmeow:honorificPosition and gmeow:honorificClass on the value."@x-gmeow-english ;
@@ -589,7 +589,7 @@ gmeow:honorificPosition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "honorific position"@x-gmeow-english ;
     rdfs:range gmeow:HonorificPosition ;
-    skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:Honorific to its gmeow:HonorificPosition, asserting whether that honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
     skos:example "gmeow:honorificSan gmeow:honorificPosition gmeow:honorificPositionSuffix ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for the honorific's social domain (that is gmeow:honorificClass) and avoid a free-text position — reference gmeow:honorificPositionPrefix or gmeow:honorificPositionSuffix."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1271,7 +1271,7 @@ gmeow:pronounObject
     rdfs:range rdfs:Literal ;
     skos:definition "The object (accusative) form of a pronoun set, e.g. \"her\", \"them\", \"xem\"."@x-gmeow-english ;
     skos:example "ex:set gmeow:pronounObject \"them\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid filling only some of the five forms on a specifying set and avoid it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaving the object (accusative) form blank while filling the other four forms on a specifying set, and avoid supplying it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:pronounObject once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the object (accusative) form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english .
@@ -1337,7 +1337,7 @@ gmeow:pronounReflexive
     rdfs:range rdfs:Literal ;
     skos:definition "The reflexive form of a pronoun set, e.g. \"herself\", \"themself\", \"xemself\"."@x-gmeow-english ;
     skos:example "ex:set gmeow:pronounReflexive \"themself\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid filling only some of the five forms on a specifying set and avoid it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaving the reflexive form (e.g. \"themself\") blank while filling the other four forms on a specifying set, and avoid supplying it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:pronounReflexive once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the reflexive form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english .
