@@ -27,6 +27,18 @@
 #      (gmeow:approximationRecall, gmeow:indexNondeterminism) stays explicit and
 #      whose rebuild is an append-only supersession, not an erasure.
 #
+# This scene is authored against the purrdf#131-aligned vocabulary: the model +
+# full generation contract lives on a gmeow:EmbeddingFamily (ex:familyA / ex:familyB)
+# that stores its top-dimensional matrix ONCE, while each comparable
+# gmeow:VectorSpaceContract is an EFFECTIVE space over that family — either the full
+# family space (gmeow:matryoshkaFixed, ex:vscA / ex:vscB) or a declared leading
+# prefix over the SAME stored matrix (gmeow:matryoshkaPrefix, ex:vscAprefix), each
+# with its own content-digest identity so a cross-dimension comparison is cross-space.
+# The projection's matrix rows map to an ordered gmeow:TargetSet (ex:targetSetA) of
+# gmeow:VectorTarget members whose subject-family hierarchy rides gmeow:targetParent,
+# and its external content-addressed source text is kept out of the graph by a
+# gmeow:ExternalBinding (ex:extChunkText, P12).
+#
 # Every non-ex: predicate below is a shipped term of the slice or a reused
 # kernel / graphrag / logic / math term; ex: and gr: are used ONLY for instance
 # subjects/objects, never as predicates. Each gmeow:SimilarityObservation names
@@ -57,33 +69,64 @@ ex:bookshelfPack a gmeow:InformationObject ;
     gmeow:hasDisclosurePolicy gmeow:policyInternalOnly .
 
 # ===========================================================================
-# 2. Vector-space contract A — the FULL comparability contract. Its identity is
-#    the reused gmeow:contentDigest over the whole contract: same space ⇔ same
-#    digest. Model / dimensions / metric are reused from graphrag; tokenizer /
-#    preprocessing / chunking / pooling / normalization / dtype / quantization
-#    are the slice's own comparability components.
+# 2. Embedding family A + its EFFECTIVE vector spaces (purrdf#131 split).
+#    ex:familyA is the model + FULL generation contract that produces and stores
+#    the top-dimensional matrix ONCE; its identity is the reused gmeow:contentDigest
+#    over the whole generation contract. ex:vscA is the FULL effective space over
+#    that family (gmeow:matryoshkaFixed, 1024-d), and ex:vscAprefix is a declared
+#    256-d leading PREFIX over the SAME stored matrix (gmeow:matryoshkaPrefix) — one
+#    family, two effective spaces, each with its own digest identity, so comparing a
+#    1024-d vector against a 256-d prefix vector is a CROSS-space comparison. The
+#    family carries model / inference engine / tokenizer / preprocessing / chunking /
+#    pooling / truncation / dtype / byte order / quantization; each effective space
+#    carries only the effective dimension / metric / normalization / prefix policy.
 # ===========================================================================
 ex:bgeM3 a gmeow:SoftwareAgent ;
     rdfs:label "BGE-M3 embedding model"@en .
+ex:onnxRuntime a gmeow:SoftwareAgent ;
+    rdfs:label "ONNX Runtime inference engine (v1.17, CPU execution provider)"@en .
 
 ex:poolingMean a gmeow:PoolingKind ;
     rdfs:label "mean"@x-gmeow-english .
 ex:normalizationL2 a gmeow:NormalizationKind ;
     rdfs:label "L2"@x-gmeow-english .
 
-ex:vscA a gmeow:VectorSpaceContract ;
-    rdfs:label "bookshelf vector space A (BGE-M3, 1024-d, cosine, L2, mean)"@en ;
-    gmeow:embeddingModel       ex:bgeM3 ;
-    gmeow:embeddingDimensions  "1024"^^xsd:positiveInteger ;
-    gmeow:distanceMetric       gmeow:distanceMetricCosine ;
+ex:familyA a gmeow:EmbeddingFamily ;
+    rdfs:label "BGE-M3 embedding family (generation contract, 1024-d stored matrix)"@en ;
+    gmeow:embeddingModel         ex:bgeM3 ;
+    gmeow:inferenceEngine        ex:onnxRuntime ;
     gmeow:tokenizerContract      "blake3:3e90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e" ;
     gmeow:preprocessingContract  "blake3:7d21c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e" ;
     gmeow:chunkingContract       "blake3:c40a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8" ;
-    gmeow:poolingKind          ex:poolingMean ;
+    gmeow:poolingKind            ex:poolingMean ;
+    gmeow:truncationContract     "max_seq=8192;side=right" ;
+    gmeow:vectorDtype            "float32" ;
+    gmeow:vectorByteOrder        gmeow:byteOrderLittleEndian ;
+    gmeow:quantizationContract   "none" ;
+    gmeow:contentDigest          "blake3:fa71a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d70" .
+
+ex:vscA a gmeow:VectorSpaceContract ;
+    rdfs:label "bookshelf effective space A (familyA, full 1024-d, cosine, L2)"@en ;
+    gmeow:effectiveOfFamily    ex:familyA ;
+    gmeow:embeddingDimensions  "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric       gmeow:distanceMetricCosine ;
     gmeow:normalizationKind    ex:normalizationL2 ;
-    gmeow:vectorDtype          "float32" ;
-    gmeow:quantizationContract   "blake3:be55a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e" ;
+    gmeow:matryoshkaPolicy     gmeow:matryoshkaFixed ;
     gmeow:contentDigest        "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" .
+
+# The Matryoshka PREFIX effective space over the SAME familyA stored matrix: a
+# declared 256-d leading prefix, sharing familyA's stored 1024-d matrix WITHOUT
+# duplication. Its distinct gmeow:contentDigest is its own identity, so a proximity
+# comparison between an ex:vscA (1024-d) vector and an ex:vscAprefix (256-d) vector
+# is a cross-space comparison, decidable by digest inequality.
+ex:vscAprefix a gmeow:VectorSpaceContract ;
+    rdfs:label "bookshelf effective space A/prefix (familyA, 256-d Matryoshka prefix, cosine, L2)"@en ;
+    gmeow:effectiveOfFamily    ex:familyA ;
+    gmeow:embeddingDimensions  "256"^^xsd:positiveInteger ;
+    gmeow:distanceMetric       gmeow:distanceMetricCosine ;
+    gmeow:normalizationKind    ex:normalizationL2 ;
+    gmeow:matryoshkaPolicy     gmeow:matryoshkaPrefix ;
+    gmeow:contentDigest        "blake3:9ab3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8092" .
 
 # ===========================================================================
 # 3. Vector targets — one row→resource binding per vector, each with an EXACT
@@ -110,6 +153,9 @@ ex:tgtChunk a gmeow:VectorTarget ;
     rdfs:label "row 1 → a retrieval-sized chunk, pinned by its own digest"@en ;
     gmeow:vectorTargetKind gmeow:vectorTargetChunk ;
     gmeow:contentDigest    "blake3:4444444455556666777788889999000011112222aaaabbbbccccddddeeee0003" ;
+    gmeow:targetParent     ex:tgtDoc ;
+    gmeow:targetByteStart  "1024"^^xsd:nonNegativeInteger ;
+    gmeow:targetByteEnd    "2048"^^xsd:nonNegativeInteger ;
     gmeow:targetOrdinal    "1"^^xsd:nonNegativeInteger .
 
 # The statement-term reifier, authored in the base-quad-foldable reification form
@@ -128,6 +174,15 @@ ex:tgtStmt a gmeow:VectorTarget ;
     gmeow:vectorTargetKind gmeow:vectorTargetStatement ;
     gmeow:targetsResource  ex:stmtReifierMaintains ;
     gmeow:targetOrdinal    "2"^^xsd:nonNegativeInteger .
+
+# The ordered target NAMESPACE projection A's matrix rows map to (row 0 → doc,
+# row 1 → chunk, row 2 → statement). Its gmeow:contentDigest identity folds over the
+# ordered membership; it equals the target-table digest the profile surfaces record
+# (C5c), tying the row→target namespace to the sidecar/container manifests.
+ex:targetSetA a gmeow:TargetSet ;
+    rdfs:label "projection A target set (row order: document, chunk, statement)"@en ;
+    gmeow:contentDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" ;
+    gmeow:targetSetMember ex:tgtDoc , ex:tgtChunk , ex:tgtStmt .
 
 # ===========================================================================
 # 4. The projection A — the whole .purremb pack. It AGGREGATES graphrag
@@ -163,10 +218,19 @@ ex:tol1 a math:Quantity ;
 ex:projBuildActivity a gmeow:Activity ;
     rdfs:label "purremb bookshelf projection build (space A)"@en .
 
+# The external content-addressed chunk source text — kept OUTSIDE the graph by
+# reference (P12); the binding carries only its digest and a caller-supplied role.
+ex:extChunkText a gmeow:ExternalBinding ;
+    rdfs:label "external content-addressed chunk source text"@en ;
+    gmeow:contentDigest "blake3:e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d0008" ;
+    gmeow:externalRole  "content-addressed chunk source text (kept external, P12)" .
+
 ex:bookshelfProjA a gmeow:EmbeddingProjection ;
     rdfs:label "bookshelf embedding projection A (.purremb)"@en ;
     gmeow:aggregatesEmbedding      ex:embRowDoc , ex:embRowChunk ;
     gmeow:hasVectorSpaceContract   ex:vscA ;
+    gmeow:hasTargetSet             ex:targetSetA ;
+    gmeow:bindsExternal            ex:extChunkText ;
     gmeow:projectionSource         ex:bookshelfPack ;
     gmeow:projectionSourceDigest   "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
     gmeow:projectionSourceGtsHeadId "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
@@ -247,9 +311,12 @@ ex:indexBuildActivity a gmeow:Activity ;
 ex:annIndexA a gmeow:DerivedVectorIndex ;
     rdfs:label "HNSW accelerator over projection A (retired)"@en ;
     gmeow:indexOfProjection  ex:bookshelfProjA ;
+    gmeow:indexOverSpace     ex:vscA ;
     gmeow:approximationRecall ex:recall1 ;
     gmeow:indexNondeterminism true ;
     gmeow:indexAlgorithm     gmeow:indexAlgorithmHnsw ;
+    gmeow:indexParameters    "{\"M\":16,\"efConstruction\":200}" ;
+    gmeow:indexLossContract  "recall@10>=0.98" ;
     gmeow:distanceMetric     gmeow:distanceMetricCosine ;
     gmeow:contentDigest      "blake3:cccc0000111122223333444455556666777788889999ddddeeeeffff0000a004" ;
     gmeow:wasGeneratedBy     ex:indexBuildActivity ;
@@ -269,9 +336,12 @@ ex:rebuildActivity a gmeow:Activity ;
 ex:annIndexA2 a gmeow:DerivedVectorIndex ;
     rdfs:label "HNSW accelerator over projection A (rebuilt successor)"@en ;
     gmeow:indexOfProjection  ex:bookshelfProjA ;
+    gmeow:indexOverSpace     ex:vscA ;
     gmeow:approximationRecall ex:recall2 ;
     gmeow:indexNondeterminism true ;
     gmeow:indexAlgorithm     gmeow:indexAlgorithmHnsw ;
+    gmeow:indexParameters    "{\"M\":32,\"efConstruction\":400}" ;
+    gmeow:indexLossContract  "recall@10>=0.99" ;
     gmeow:distanceMetric     gmeow:distanceMetricCosine ;
     gmeow:contentDigest      "blake3:dddd0000111122223333444455556666777788889999eeeeffff00110000a005" ;
     gmeow:wasGeneratedBy     ex:rebuildActivity .
@@ -303,18 +373,30 @@ ex:poolingCls a gmeow:PoolingKind ;
 ex:normalizationNone a gmeow:NormalizationKind ;
     rdfs:label "none"@x-gmeow-english .
 
-ex:vscB a gmeow:VectorSpaceContract ;
-    rdfs:label "bookshelf vector space B (MiniLM, 384-d, dot, int8, CLS)"@en ;
-    gmeow:embeddingModel       ex:miniLm ;
-    gmeow:embeddingDimensions  "384"^^xsd:positiveInteger ;
-    gmeow:distanceMetric       gmeow:distanceMetricDotProduct ;
+# Family B — a SECOND generation contract (different model / dtype / digest),
+# producing an independent 384-d stored matrix. Its full effective space ex:vscB
+# is a legitimately independent projection of the identical confidential pack.
+ex:familyB a gmeow:EmbeddingFamily ;
+    rdfs:label "MiniLM embedding family (generation contract, 384-d stored matrix)"@en ;
+    gmeow:embeddingModel         ex:miniLm ;
+    gmeow:inferenceEngine        ex:onnxRuntime ;
     gmeow:tokenizerContract      "blake3:5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809100" ;
     gmeow:preprocessingContract  "blake3:6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80910011" ;
     gmeow:chunkingContract       "blake3:7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001122" ;
-    gmeow:poolingKind          ex:poolingCls ;
+    gmeow:poolingKind            ex:poolingCls ;
+    gmeow:truncationContract     "max_seq=256;side=right" ;
+    gmeow:vectorDtype            "int8" ;
+    gmeow:vectorByteOrder        gmeow:byteOrderLittleEndian ;
+    gmeow:quantizationContract   "scalar-int8-symmetric" ;
+    gmeow:contentDigest          "blake3:fb82c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001b" .
+
+ex:vscB a gmeow:VectorSpaceContract ;
+    rdfs:label "bookshelf effective space B (familyB, full 384-d, dot)"@en ;
+    gmeow:effectiveOfFamily    ex:familyB ;
+    gmeow:embeddingDimensions  "384"^^xsd:positiveInteger ;
+    gmeow:distanceMetric       gmeow:distanceMetricDotProduct ;
     gmeow:normalizationKind    ex:normalizationNone ;
-    gmeow:vectorDtype          "int8" ;
-    gmeow:quantizationContract   "blake3:8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809100112233" ;
+    gmeow:matryoshkaPolicy     gmeow:matryoshkaFixed ;
     gmeow:contentDigest        "blake3:5555555566667777888899990000111122223333aaaabbbbccccddddeeee0004" .
 
 ex:embRowB a gmeow:Embedding ;
