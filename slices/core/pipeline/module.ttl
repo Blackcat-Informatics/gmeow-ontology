@@ -814,7 +814,7 @@ gmeow:stage-export-export
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: flat views"@x-gmeow-english ;
-    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
+    skos:definition "Emit the flattened export views: Markdown, JSONL, and llms.txt, plus the dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, ShEx). The SKOS concept-scheme extract, OBO Graphs JSON, and CSVW package are purrdf's native RDF-1.2 projections (project_skos / project_obo_graphs / project_csvw_exact) rather than hand-rolled writers — gmeow owns only the scoping decision (the gmeow-namespace owl:Class taxonomy for SKOS/OBO Graphs; the default-graph TBox/ABox for CSVW) and the caller-owned semantic-role vocabulary, purrdf owns the encoding. CSVW now emits purrdf's generic, always-lossless RDF-1.2-in-CSV package (csvw-metadata.json + terms/quads/reifiers/annotations.csv) in place of the retired curated class/property/individual CSV tables. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
