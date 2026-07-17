@@ -18710,6 +18710,9 @@ enums:
       pipeline-dataflow-compile-logic-source-load:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-compile-logic-source-load
         title: 'dataflow: source-load → compile-logic'
+      pipeline-dataflow-goal-directed-reason:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-goal-directed-reason
+        title: 'dataflow: reason → goal-directed'
       pipeline-dataflow-reason-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
         title: 'dataflow: compile-logic → reason'

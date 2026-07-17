@@ -1,0 +1,330 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The goal-directed demonstrator corpus, authored as slice content rather than
+# hand-interned Rust `TermDag` constants (see crates/logic/src/goal_directed.rs,
+# Task 4's `lower_reasoning_program`). Each `logic:ReasoningProgram` below is a
+# named clause set plus a goal, evaluated by SLG-WFS goal-directed backward
+# resolution (`logic:evaluationMode logic:BackwardEvaluation`):
+#
+#   * ex:peanoAdd             — structured (function-symbol) resolution: Peano
+#                                successor addition, proof-checked.
+#   * ex:memberCons           — structured resolution over cons/nil lists, with
+#                                deliberately reused clause-local variable names.
+#   * ex:winWfs               — three-valued well-founded negation (SLG-WFS) over
+#                                a cyclic move graph: undefined / true / false.
+#   * ex:mathSubsort          — order-sorted unification accepting an Integer
+#                                constant for a RealNumber-sorted variable (ℤ ⊑ ℝ).
+#   * ex:mathSubsortControl   — the negative control: the same constant refused by
+#                                an incomparable Set-sorted variable.
+#   * ex:reachability         — function-free binary Datalog transitive closure,
+#                                also forward-evaluable (the Task 6 cross-engine
+#                                oracle fixture).
+#
+# The authoring shape mirrors crates/logic/src/goal_directed.rs's proven
+# `compiled_peano_add_reasoning_program_*` / `compiled_member_cons_reasoning_program_*`
+# test fixtures exactly: a fact clause is a bare `logic:Formula` atom; a Horn rule
+# clause is `logic:antecedent`/`logic:consequent` over atom (or `logic:and`-conjoined
+# atom) formulas; a negation-as-failure body literal is `logic:not[atom]`; a compound
+# term is a `logic:FunctionTerm` reached through an argument carrier's
+# `logic:termApplication`, with zero-based `logic:termIndex` carriers throughout.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# =========================================================================== #
+# ex:peanoAdd — Peano addition by structural recursion.
+#   add(zero,Y,Y).
+#   add(s(X),Y,s(Z)) :- add(X,Y,Z).
+#   ?- add(s(s(zero)),s(zero),R).        expected: R = s(s(s(zero)))
+# =========================================================================== #
+
+ex:peanoAdd
+    a logic:ReasoningProgram ;
+    rdfs:label "Reasoning program: Peano addition by structural recursion"@x-gmeow-english ;
+    skos:definition "Peano addition by structural recursion, authored as a logic:ReasoningProgram: the base fact clause add(zero,Y,Y), the recursive clause add(s(X),Y,s(Z)) :- add(X,Y,Z), and the query ?- add(s(s(zero)),s(zero),R), backward-resolved by SLG-WFS to the single proof-checked answer R = s(s(s(zero))). The successor terms are authored as logic:FunctionTerm applications of the reified function symbol ex:s over a zero-based logic:argument carrier, and zero is the constant ex:zero carried on logic:termIri."@x-gmeow-english ;
+    logic:evaluationMode logic:BackwardEvaluation ;
+    logic:programQuery [ a logic:Formula ;
+        logic:relation ex:add ;
+        logic:argument [ logic:termIndex 0 ; logic:termApplication ex:peanoAddSSZero ] ,
+                       [ logic:termIndex 1 ; logic:termApplication ex:peanoAddSZero ] ,
+                       [ logic:termIndex 2 ; logic:termVariable "R" ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:add ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:zero ] ,
+                       [ logic:termIndex 1 ; logic:termVariable "Y" ] ,
+                       [ logic:termIndex 2 ; logic:termVariable "Y" ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation ex:add ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable "Y" ] ,
+                           [ logic:termIndex 2 ; logic:termVariable "Z" ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:relation ex:add ;
+            logic:argument [ logic:termIndex 0 ; logic:termApplication ex:peanoAddSX ] ,
+                           [ logic:termIndex 1 ; logic:termVariable "Y" ] ,
+                           [ logic:termIndex 2 ; logic:termApplication ex:peanoAddSZ ]
+        ]
+    ] .
+
+ex:peanoAddSZero a logic:FunctionTerm ;
+    logic:functionSymbol ex:s ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri ex:zero ] .
+
+ex:peanoAddSSZero a logic:FunctionTerm ;
+    logic:functionSymbol ex:s ;
+    logic:argument [ logic:termIndex 0 ; logic:termApplication ex:peanoAddSZero ] .
+
+ex:peanoAddSX a logic:FunctionTerm ;
+    logic:functionSymbol ex:s ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] .
+
+ex:peanoAddSZ a logic:FunctionTerm ;
+    logic:functionSymbol ex:s ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "Z" ] .
+
+# =========================================================================== #
+# ex:memberCons — list membership over cons/nil constructors.
+#   member(X,cons(X,T)).
+#   member(X,cons(H,T)) :- member(X,T).
+#   ?- member(M,cons(a,cons(b,cons(c,nil)))).   expected: M ∈ {a,b,c}
+# The base and recursive clauses deliberately reuse the variable names X/T across
+# clauses, exercising per-clause variable-scope freshness (mirrors the proven
+# MEMBER_CONS_REASONING_PROGRAM_TTL fixture exactly).
+# =========================================================================== #
+
+ex:memberCons
+    a logic:ReasoningProgram ;
+    rdfs:label "Reasoning program: list membership over cons/nil"@x-gmeow-english ;
+    skos:definition "List membership over cons/nil constructors, authored as a logic:ReasoningProgram: the base clause member(X,cons(X,T)) and the recursive clause member(X,cons(H,T)) :- member(X,T), deliberately reusing the variable names X and T across the two clauses to exercise per-clause variable scoping. The query ?- member(M,cons(a,cons(b,cons(c,nil)))) backward-resolves to the three proof-checked answers M = a, M = b, M = c, each carrying a structured derivation over the authored cons spine."@x-gmeow-english ;
+    logic:evaluationMode logic:BackwardEvaluation ;
+    logic:programQuery [ a logic:Formula ;
+        logic:relation ex:member ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "M" ] ,
+                       [ logic:termIndex 1 ; logic:termApplication ex:memberConsList1 ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:member ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                       [ logic:termIndex 1 ; logic:termApplication ex:memberConsXT ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation ex:member ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable "T" ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:relation ex:member ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                           [ logic:termIndex 1 ; logic:termApplication ex:memberConsHT ]
+        ]
+    ] .
+
+ex:memberConsXT a logic:FunctionTerm ;
+    logic:functionSymbol ex:cons ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                   [ logic:termIndex 1 ; logic:termVariable "T" ] .
+
+ex:memberConsHT a logic:FunctionTerm ;
+    logic:functionSymbol ex:cons ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "H" ] ,
+                   [ logic:termIndex 1 ; logic:termVariable "T" ] .
+
+ex:memberConsList1 a logic:FunctionTerm ;
+    logic:functionSymbol ex:cons ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                   [ logic:termIndex 1 ; logic:termApplication ex:memberConsList2 ] .
+
+ex:memberConsList2 a logic:FunctionTerm ;
+    logic:functionSymbol ex:cons ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ,
+                   [ logic:termIndex 1 ; logic:termApplication ex:memberConsList3 ] .
+
+ex:memberConsList3 a logic:FunctionTerm ;
+    logic:functionSymbol ex:cons ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri ex:c ] ,
+                   [ logic:termIndex 1 ; logic:termIri ex:nil ] .
+
+# =========================================================================== #
+# ex:winWfs — three-valued well-founded negation (SLG-WFS) over a move graph.
+#   move(a,b). move(b,a). move(c,d).
+#   win(X) :- move(X,Y), not win(Y).
+#   ?- win(W).                 expected: W = c (the only founded win)
+#   verdict probes: win(a) undefined, win(b) undefined, win(c) true, win(d) false.
+# The conjunctive rule body (a positive literal AND a negation-as-failure literal)
+# is authored as a logic:and of two Formula operands on the antecedent node —
+# the SAME logic:and construct typed-ir.ttl exercises for ordinary conjunction.
+# =========================================================================== #
+
+ex:winWfs
+    a logic:ReasoningProgram ;
+    rdfs:label "Reasoning program: three-valued well-founded negation over a move graph"@x-gmeow-english ;
+    skos:definition "Three-valued well-founded negation (SLG-WFS), authored as a logic:ReasoningProgram: the facts move(a,b), move(b,a), move(c,d), and the rule win(X) :- move(X,Y), not win(Y), whose conjunctive body is authored as a logic:and of a positive move(X,Y) literal and a logic:not-negated win(Y) literal. The query ?- win(W) and the four logic:verdictProbe atoms win(a), win(b), win(c), win(d) together surface the well-founded model: the a⇄b cycle traps win(a) and win(b) as undefined, win(c) is a founded true (a move to the lost d), and win(d) is a founded false (no move)."@x-gmeow-english ;
+    logic:evaluationMode logic:BackwardEvaluation ;
+    logic:programQuery [ a logic:Formula ;
+        logic:relation ex:win ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "W" ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:move ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                       [ logic:termIndex 1 ; logic:termIri ex:b ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:move ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ,
+                       [ logic:termIndex 1 ; logic:termIri ex:a ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:move ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:c ] ,
+                       [ logic:termIndex 1 ; logic:termIri ex:d ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                    logic:relation ex:move ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                                   [ logic:termIndex 1 ; logic:termVariable "Y" ]
+                ] ,
+                [ a logic:Formula ;
+                    logic:not [ a logic:Formula ;
+                        logic:relation ex:win ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "Y" ]
+                    ]
+                ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:relation ex:win ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ]
+        ]
+    ] ;
+    logic:verdictProbe [ a logic:Formula ;
+        logic:relation ex:win ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ]
+    ] ;
+    logic:verdictProbe [ a logic:Formula ;
+        logic:relation ex:win ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ]
+    ] ;
+    logic:verdictProbe [ a logic:Formula ;
+        logic:relation ex:win ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:c ]
+    ] ;
+    logic:verdictProbe [ a logic:Formula ;
+        logic:relation ex:win ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:d ]
+    ] .
+
+# =========================================================================== #
+# ex:mathSubsort / ex:mathSubsortControl — order-sorted unification against the
+# authored math: subsort tower ℕ⊑ℤ⊑ℚ⊑ℝ⊑ℂ (slices/grounding/math/module.ttl).
+#   p(one).                 with one declared a math:Integer
+#   ?- p(X)   [X : math:RealNumber]       expected: X = one   (ℤ ⊑ ℝ accepts)
+#   ?- p(X)   [X : math:Set]              expected: NO answer (Integer ⋢ Set)
+# The subsort is declared here only (logic:variableSort on the query's answer
+# variable, plus ex:one's math:Integer typing); the reasoned rdfs:subClassOf
+# closure that makes ℤ ⊑ ℝ hold is computed downstream by the pipeline (Task 6),
+# never re-authored as subclass edges in this cell.
+# =========================================================================== #
+
+ex:one a math:Integer .
+
+ex:mathSubsort
+    a logic:ReasoningProgram ;
+    rdfs:label "Reasoning program: order-sorted unification accepts Integer for a RealNumber-sorted variable"@x-gmeow-english ;
+    skos:definition "The positive order-sorted unification demonstrator, authored as a logic:ReasoningProgram: the fact p(one) with the constant ex:one declared a math:Integer, and the query ?- p(X) whose answer variable X carries logic:variableSort math:RealNumber. Because the reasoned math: subsort tower entails Integer ⊑ RealNumber (ℤ ⊑ ℝ), order-sorted unification accepts the binding and the query resolves to the single proof-checked answer X = one. The subsort ordering itself is the reasoned rdfs:subClassOf closure of slices/grounding/math/module.ttl, never re-authored here."@x-gmeow-english ;
+    logic:evaluationMode logic:BackwardEvaluation ;
+    logic:programQuery [ a logic:Formula ;
+        logic:relation ex:p ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ; logic:variableSort math:RealNumber ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:p ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:one ]
+    ] .
+
+ex:mathSubsortControl
+    a logic:ReasoningProgram ;
+    rdfs:label "Reasoning program: order-sorted unification refuses an incomparable Set-sorted variable (negative control)"@x-gmeow-english ;
+    skos:definition "The negative control for order-sorted unification, authored as a logic:ReasoningProgram: the SAME fact p(one) with ex:one declared a math:Integer, against the query ?- p(X) whose answer variable X carries logic:variableSort math:Set — a sort INCOMPARABLE to Integer in the math: tower (Integer ⋢ Set). Order-sorted unification correctly refuses the binding, so the query resolves to zero answers with status ok, the observable evidence that the sort lattice gates resolution rather than being ignored."@x-gmeow-english ;
+    logic:evaluationMode logic:BackwardEvaluation ;
+    logic:programQuery [ a logic:Formula ;
+        logic:relation ex:p ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ; logic:variableSort math:Set ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:p ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:one ]
+    ] .
+
+# =========================================================================== #
+# ex:reachability — function-free binary Datalog transitive-closure reachability.
+#   edge(a,b). edge(b,c).
+#   reach(X,Y) :- edge(X,Y).
+#   reach(X,Z) :- edge(X,Y), reach(Y,Z).
+#   ?- reach(a,W).             expected: W ∈ {b,c}
+# Carries no logic:FunctionTerm compound arguments, so this program is ALSO
+# forward-evaluable — it feeds the Task 6 cross-engine (backward vs. forward
+# chase) oracle, not only the backward demonstrator corpus.
+# =========================================================================== #
+
+ex:reachability
+    a logic:ReasoningProgram ;
+    rdfs:label "Reasoning program: transitive-closure reachability over a directed graph"@x-gmeow-english ;
+    skos:definition "Function-free binary Datalog transitive-closure reachability, authored as a logic:ReasoningProgram: the facts edge(a,b), edge(b,c), the base rule reach(X,Y) :- edge(X,Y), and the recursive rule reach(X,Z) :- edge(X,Y), reach(Y,Z). The query ?- reach(a,W) backward-resolves to the two proof-checked answers W = b and W = c. Carrying no logic:FunctionTerm compound arguments, this program is also forward-evaluable, so it doubles as the cross-engine oracle fixture the forward relational-core lane checks the backward engine's answers against."@x-gmeow-english ;
+    logic:evaluationMode logic:BackwardEvaluation ;
+    logic:programQuery [ a logic:Formula ;
+        logic:relation ex:reach ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                       [ logic:termIndex 1 ; logic:termVariable "W" ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:edge ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                       [ logic:termIndex 1 ; logic:termIri ex:b ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:relation ex:edge ;
+        logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ,
+                       [ logic:termIndex 1 ; logic:termIri ex:c ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation ex:edge ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable "Y" ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:relation ex:reach ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable "Y" ]
+        ]
+    ] ;
+    logic:clause [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                    logic:relation ex:edge ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                                   [ logic:termIndex 1 ; logic:termVariable "Y" ]
+                ] ,
+                [ a logic:Formula ;
+                    logic:relation ex:reach ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "Y" ] ,
+                                   [ logic:termIndex 1 ; logic:termVariable "Z" ]
+                ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:relation ex:reach ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] ,
+                           [ logic:termIndex 1 ; logic:termVariable "Z" ]
+        ]
+    ] .
