@@ -119,6 +119,29 @@ Homotopy and homology give the algebraic-topology bridge (a
 Little external ontology exists — the content is in prover libraries (mathlib, Isabelle/AFP), so the
 depth is **authored** and **cited**.
 
+### Graded cells and incidence
+
+Beneath every complex, filtration, and cellular sheaf sits the graded cell. A `math:Cell` is one
+building block of a `math:CellComplex` — a 0-cell vertex, a 1-cell edge, a 2-cell face — and it carries
+its grade *n* through the single canonical `math:cellDimension` (a `math:NaturalNumber`; "grade" is a
+label synonym, never a second `math:grade` property). A cell whose dimension is left implicit is
+ill-formed (`math:IncompleteCell`), because an undimensioned cell cannot sit in the graded boundary
+chain. Cells relate through two distinct surfaces. `math:incidentTo` is the **unsigned** codimension-1
+face relation (Cell → Cell) that the boundary operator runs over; it is the load-bearing relation for the
+boundary-square-zero law (∂∘∂ = 0), which a downstream constraint predicates over it. The
+**signed** boundary coefficient is reified as a `math:CellIncidence`, which names its coface
+(`math:incidenceCoface`), its codimension-1 face (`math:incidenceFace`), and the exact orientation sign
+±1 (`math:incidenceSign`, an `xsd:integer`, never a decimal) — one inspectable entry of the signed
+incidence matrix. A `math:CellIncidence` missing any of the three is ill-formed
+(`math:UnorientedIncidence`). Orientation itself is the open `math:CellOrientation` vocabulary
+(`math:positivelyOriented`, `math:negativelyOriented`), attached to a cell through `math:orientation`
+exactly as `math:MonotonicityKind` attaches to a function — an open `owl:NamedIndividual` set, never an
+`owl:oneOf` enumeration; the cell's orientation is qualitative and distinct from the numeric
+`math:incidenceSign`. This surface covers the **presence** of the boundary signs; their **coherence**
+— that composing incidences makes the twice-applied boundary vanish — is a separate law, not this frame.
+The worked triangle in `examples/graded-cell-complex.ttl` demonstrates the whole surface as the oriented
+2-simplex whose boundary is ∂(faceABC) = +edgeAB + edgeBC − edgeAC.
+
 ### Persistent homology — filtrations, lifetimes, and stability
 
 Core classes: `math:CellComplex`, `math:SimplicialComplex`, `math:VietorisRipsComplex`,
