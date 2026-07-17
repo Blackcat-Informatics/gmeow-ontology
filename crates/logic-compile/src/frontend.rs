@@ -49,7 +49,7 @@ use super::ir::{
     Correspondence, EvaluationMode, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality,
     LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract,
     ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue,
-    Term, ValidationShapeIr,
+    Term, ValidationShapeIr, VariableSortScope,
 };
 use super::restriction;
 
@@ -3731,7 +3731,7 @@ fn read_reasoning_program(
 
     // Verdict probes: zero-or-more logic:verdictProbe roots. Atomicity is enforced by
     // ReasoningProgramIr::new, not duplicated here.
-    let mut verdict_probes = Vec::new();
+    let mut probe_nodes = Vec::new();
     for obj in formula_objects(store, node, "verdictProbe") {
         let probe_node = term_as_subject(&obj).ok_or_else(|| {
             formula_err(
@@ -3741,7 +3741,11 @@ fn read_reasoning_program(
                 ),
             )
         })?;
-        verdict_probes.push(parse_formula(store, &probe_node)?);
+        probe_nodes.push(probe_node);
+    }
+    let mut verdict_probes = Vec::with_capacity(probe_nodes.len());
+    for probe_node in &probe_nodes {
+        verdict_probes.push(parse_formula(store, probe_node)?);
     }
 
     // Evaluation strategy: exactly one logic:evaluationMode, drawn from the closed
@@ -3781,11 +3785,33 @@ fn read_reasoning_program(
     // carriers (logic:variableSort on a logic:TermCarrier). Both are already known
     // well-formed (parse_formula above returned Ok), so this is a read-only companion walk
     // over the SAME validated links, not a second clause reader.
-    let mut variable_sorts = Vec::new();
-    for clause_node in &clause_nodes {
-        collect_variable_sorts(store, clause_node, &mut variable_sorts)?;
+    // Each clause / the query / each probe is a SEPARATE variable scope (a fresh set of
+    // metavariables): the same authored name in two clauses is two unrelated variables, so a
+    // sort declared on `X` in one scope must not constrain an unrelated `X` in another. The
+    // scope is identified by the owning clause/probe's `Formula::content_key` (stable across
+    // the canonical sort `ReasoningProgramIr::new` applies), so it survives reordering.
+    let mut variable_sorts: Vec<(VariableSortScope, String, String)> = Vec::new();
+    // Every position a `logic:variableSort` can attach to, paired with the scope that owns it.
+    // Probes must be ground (enforced by `ReasoningProgramIr::new`), so their walk collects
+    // nothing for a well-formed program; including them keeps the scope taxonomy total.
+    let scoped_roots = clause_nodes
+        .iter()
+        .zip(clauses.iter())
+        .map(|(node, clause)| (node, VariableSortScope::Clause(clause.content_key())))
+        .chain(std::iter::once((&query_node, VariableSortScope::Query)))
+        .chain(
+            probe_nodes
+                .iter()
+                .zip(verdict_probes.iter())
+                .map(|(node, probe)| (node, VariableSortScope::Probe(probe.content_key()))),
+        );
+    for (root, scope) in scoped_roots {
+        let mut pairs = Vec::new();
+        collect_variable_sorts(store, root, &mut pairs)?;
+        for (name, sort) in pairs {
+            variable_sorts.push((scope.clone(), name, sort));
+        }
     }
-    collect_variable_sorts(store, &query_node, &mut variable_sorts)?;
 
     // Per-constant order-sort declarations: every `Term::Iri` constant referenced in
     // argument position across the clause set, query, and verdict probes, paired with

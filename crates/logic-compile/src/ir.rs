@@ -2181,6 +2181,17 @@ impl Term {
         matches!(self, Self::App { .. })
     }
 
+    /// `true` iff this term carries a [`Term::Var`] or [`Term::SequenceMarker`] anywhere
+    /// (recursing into a compound [`Term::App`]'s arguments) — i.e. it is NON-ground. An IRI
+    /// or literal is ground; an application is ground iff every argument is.
+    pub(crate) fn has_variable(&self) -> bool {
+        match self {
+            Self::Var(_) | Self::SequenceMarker(_) => true,
+            Self::Iri(_) | Self::Literal { .. } => false,
+            Self::App { args, .. } => args.iter().any(Term::has_variable),
+        }
+    }
+
     /// The canonical key fragment for this term under a binding environment `env`
     /// (innermost binder last). A `Var`/`SequenceMarker` whose name is bound resolves
     /// to its binder-relative token; a free one resolves to a stable `free_<name>`.
@@ -2514,6 +2525,23 @@ impl Formula {
         }
     }
 
+    /// `true` iff this formula carries NO free/authored variable anywhere — every argument
+    /// term is ground ([`Term::has_variable`] is false), recursing through every connective,
+    /// quantifier, and negation. Used to reject a non-ground `logic:verdictProbe` (a probe
+    /// reports one GROUND atom's three-valued verdict — a variable-bearing probe has no
+    /// single verdict to report and is a hard fail, never a silent `false`).
+    pub fn is_ground(&self) -> bool {
+        match self {
+            Self::Atom { relation, args } => {
+                !relation.has_variable() && !args.iter().any(Term::has_variable)
+            }
+            Self::Not(f) => f.is_ground(),
+            Self::And(fs) | Self::Or(fs) => fs.iter().all(Formula::is_ground),
+            Self::Implies(a, b) | Self::Iff(a, b) => a.is_ground() && b.is_ground(),
+            Self::Forall { body, .. } | Self::Exists { body, .. } => body.is_ground(),
+        }
+    }
+
     /// The normalizing walk. `env` maps an authored bound name to its binder-relative
     /// token (innermost binder last); `depth` is the number of enclosing quantifier
     /// blocks (used to build de-Bruijn-style tokens `q{depth}_{i}`).
@@ -2639,6 +2667,41 @@ impl EvaluationMode {
     }
 }
 
+/// The owning lexical scope of a `logic:variableSort` declaration inside a
+/// [`ReasoningProgramIr`]. Each clause, the query, and each verdict probe is a SEPARATE
+/// variable scope (a fresh set of metavariables): the same authored variable name in two
+/// different clauses denotes two unrelated variables, so a sort declared on `X` in one
+/// clause must NOT constrain an unrelated `X` in another. Carrying the scope with every
+/// `(name → sort)` declaration is what keeps [`ReasoningProgramIr::variable_sorts`] a
+/// per-scope map rather than a program-global one.
+///
+/// A scope is identified by the CONTENT KEY of the clause/probe it belongs to (stable across
+/// the canonical clause sort [`ReasoningProgramIr::new`] applies), never a positional index —
+/// so the scope survives reordering exactly like every other content-addressed identity here.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum VariableSortScope {
+    /// A variable occurring in the clause whose [`Formula::content_key`] is given.
+    Clause(String),
+    /// A variable occurring in the single program query.
+    Query,
+    /// A variable occurring in the verdict probe whose [`Formula::content_key`] is given.
+    /// (A probe MUST be ground — see [`ReasoningProgramIr::new`] — so this scope carries no
+    /// declarations in practice; it exists so the scope taxonomy is total over every position
+    /// a `logic:variableSort` could syntactically attach to.)
+    Probe(String),
+}
+
+impl VariableSortScope {
+    /// A stable string token for this scope, folded into [`ReasoningProgramIr::content_key`].
+    fn key_token(&self) -> String {
+        match self {
+            VariableSortScope::Clause(k) => format!("clause{SEP}{k}"),
+            VariableSortScope::Query => "query".to_owned(),
+            VariableSortScope::Probe(k) => format!("probe{SEP}{k}"),
+        }
+    }
+}
+
 /// A compiled `logic:ReasoningProgram`: a named clause set plus a goal, evaluated under a
 /// selected strategy. Reuses the SAME [`Formula`] type the forward relational-core lane
 /// already lowers from for [`Self::clauses`] / [`Self::query`] / [`Self::verdict_probes`] —
@@ -2666,13 +2729,16 @@ pub struct ReasoningProgramIr {
     /// (sort-key) order. Each MUST be an atomic [`Formula::Atom`] — a probe reports a
     /// single atom's well-founded verdict, never a compound formula's.
     pub verdict_probes: Vec<Formula>,
-    /// Per-variable order-sort declarations (`logic:variableSort` on a `logic:TermCarrier`
-    /// reached from [`Self::clauses`] or [`Self::query`]): `(variable name, sort IRI)`
-    /// pairs, deduplicated and sorted for determinism — the seed for the order-sorted
-    /// unification context a backward-resolution engine builds. A variable with no
-    /// authored sort simply has no entry (sort-checking is opt-in per variable, not a
-    /// closed-world requirement).
-    pub variable_sorts: Vec<(String, String)>,
+    /// Per-scope, per-variable order-sort declarations (`logic:variableSort` on a
+    /// `logic:TermCarrier` reached from [`Self::clauses`] or [`Self::query`]):
+    /// `(owning scope, variable name, sort IRI)` triples, deduplicated and sorted for
+    /// determinism — the seed for the order-sorted unification context a backward-resolution
+    /// engine builds. The scope ([`VariableSortScope`]) is REQUIRED because each clause / the
+    /// query is a fresh variable scope: the same authored name in two clauses is two unrelated
+    /// variables, so a sort declared on `X` in clause 1 must not constrain an unrelated `X` in
+    /// clause 2. A variable with no authored sort simply has no entry (sort-checking is opt-in
+    /// per variable, not a closed-world requirement).
+    pub variable_sorts: Vec<(VariableSortScope, String, String)>,
     /// Per-constant order-sort declarations: `(constant IRI, `rdf:type` IRI)` pairs for
     /// every `Term::Iri` constant appearing in argument position across [`Self::clauses`],
     /// [`Self::query`], and [`Self::verdict_probes`], deduplicated and sorted for
@@ -2698,8 +2764,15 @@ impl ReasoningProgramIr {
     /// * an empty IRI or `clauses` (a program with nothing to resolve its goal against);
     /// * a `verdict_probes` entry that is not an atomic [`Formula::Atom`] (a probe reports
     ///   one atom's three-valued verdict, never a compound formula's);
-    /// * the same variable name paired with two DIFFERENT sort IRIs in `variable_sorts`
-    ///   (an ambiguous order-sort context the unifier cannot seed deterministically).
+    /// * a `verdict_probes` entry that is NON-ground (carries a variable): a probe reports
+    ///   ONE ground atom's well-founded verdict, so a variable-bearing probe like `win(X)` has
+    ///   no single verdict to report — it lowers to `win(?0)` whose three-valued truth is a
+    ///   silent MISREPORT, so it is a hard fail here rather than a fabricated `false`;
+    /// * the same variable name paired with two DIFFERENT sort IRIs WITHIN ONE SCOPE in
+    ///   `variable_sorts` (an ambiguous order-sort context the unifier cannot seed
+    ///   deterministically). The SAME name in two DIFFERENT scopes (clauses, or a clause and
+    ///   the query) may carry different sorts — they are unrelated variables — so the guard
+    ///   fires only within a single [`VariableSortScope`].
     ///
     /// `constant_sorts` carries NO analogous conflict guard: unlike a variable (whose order-
     /// sort context must be unambiguous), a constant legitimately carries several asserted
@@ -2711,7 +2784,7 @@ impl ReasoningProgramIr {
         clauses: Vec<Formula>,
         query: Formula,
         verdict_probes: Vec<Formula>,
-        variable_sorts: Vec<(String, String)>,
+        variable_sorts: Vec<(VariableSortScope, String, String)>,
         constant_sorts: Vec<(String, String)>,
     ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
@@ -2737,6 +2810,15 @@ impl ReasoningProgramIr {
                     ),
                 }));
             }
+            if !probe.is_ground() {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "ReasoningProgramIr {iri} logic:verdictProbe must be a GROUND atom (a \
+                         probe reports one ground atom's three-valued well-founded verdict); a \
+                         variable-bearing probe has no single verdict to report"
+                    ),
+                }));
+            }
         }
         let mut clauses = clauses;
         clauses.sort_by_cached_key(Formula::sort_key);
@@ -2745,14 +2827,17 @@ impl ReasoningProgramIr {
         let mut variable_sorts = variable_sorts;
         variable_sorts.sort();
         variable_sorts.dedup();
+        // A conflict is the SAME variable name in the SAME scope carrying two distinct sorts.
+        // After the sort+dedup, entries sharing a `(scope, name)` prefix are adjacent, so any
+        // surviving adjacent pair with equal scope+name necessarily differs only in sort.
         for pair in variable_sorts.windows(2) {
-            if pair[0].0 == pair[1].0 {
+            if pair[0].0 == pair[1].0 && pair[0].1 == pair[1].1 {
                 return Err(Diag::of_kind(crate::error::Ir {
                     detail: format!(
                         "ReasoningProgramIr {iri} logic:variableSort assigns variable {:?} two \
-                         distinct sorts ({:?} and {:?}); an order-sort context must be \
-                         unambiguous",
-                        pair[0].0, pair[0].1, pair[1].1
+                         distinct sorts ({:?} and {:?}) within one scope ({:?}); an order-sort \
+                         context must be unambiguous per scope",
+                        pair[0].1, pair[0].2, pair[1].2, pair[0].0
                     ),
                 }));
             }
@@ -2790,7 +2875,7 @@ impl ReasoningProgramIr {
         let sorts = self
             .variable_sorts
             .iter()
-            .map(|(v, s)| format!("{v}{SEP}{s}"))
+            .map(|(scope, v, s)| format!("{}{SEP}{v}{SEP}{s}", scope.key_token()))
             .collect::<Vec<_>>()
             .join(",");
         let const_sorts = self

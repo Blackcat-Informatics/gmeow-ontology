@@ -3359,9 +3359,13 @@ fn reasoning_program_with_compound_clause_and_negation_parses() {
         rp.query
     );
     assert!(
-        rp.variable_sorts
-            .contains(&("X".to_owned(), format!("{ex}Nat"))),
-        "the antecedent's X carrier's logic:variableSort must be captured: {:?}",
+        rp.variable_sorts.iter().any(|(scope, v, s)| {
+            matches!(scope, crate::ir::VariableSortScope::Clause(_))
+                && v == "X"
+                && *s == format!("{ex}Nat")
+        }),
+        "the antecedent's X carrier's logic:variableSort must be captured, scoped to its OWN \
+         clause: {:?}",
         rp.variable_sorts
     );
 
@@ -3623,11 +3627,65 @@ fn reasoning_program_with_unknown_evaluation_mode_is_hard_failed() {
 }
 
 #[test]
-fn reasoning_program_with_conflicting_variable_sorts_is_hard_failed() {
-    // The same variable `X` is assigned two DIFFERENT sorts across its two carriers — an
-    // ambiguous order-sort context the unifier cannot seed deterministically
-    // (`ReasoningProgramIr::new`'s conflict guard, not a `module.ttl` cardinality rule).
+fn reasoning_program_with_non_ground_verdict_probe_is_hard_failed() {
+    // A `logic:verdictProbe` reports ONE ground atom's three-valued well-founded verdict, so a
+    // variable-bearing probe (`win(X)`) has no single verdict to report — it would lower to
+    // `win(?0)` whose truth is a silent MISREPORT (`false`). `ReasoningProgramIr::new` hard-fails
+    // it instead.
     assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] ;
+            logic:verdictProbe [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "must be a GROUND atom",
+    );
+}
+
+#[test]
+fn reasoning_program_with_conflicting_variable_sorts_within_one_scope_is_hard_failed() {
+    // The same variable `X` is assigned two DIFFERENT sorts on its two carriers WITHIN ONE
+    // clause — an ambiguous order-sort context the unifier cannot seed deterministically
+    // (`ReasoningProgramIr::new`'s per-scope conflict guard, not a `module.ttl` cardinality
+    // rule). Both `X` occurrences are the SAME variable (one clause is one scope), so the two
+    // sorts genuinely conflict.
+    assert_malformed_reasoning_program(
+        "ex:prog a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:clause [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Nat ] ,
+                               [ logic:termIndex 1 ; logic:termVariable \"X\" ; logic:variableSort ex:Str ]
+            ] ;
+            logic:programQuery [ a logic:Formula ;
+                logic:relation ex:p ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ,
+                               [ logic:termIndex 1 ; logic:termIri ex:b ]
+            ] .",
+        "two distinct sorts",
+    );
+}
+
+#[test]
+fn reasoning_program_same_name_different_sorts_across_scopes_is_accepted() {
+    // The SAME authored name `X` carries `ex:Nat` in the clause and `ex:Str` in the query.
+    // These are DIFFERENT scopes (each clause / the query is a fresh variable scope), so the
+    // two `X`s are UNRELATED variables and may legitimately carry different sorts — this must
+    // NOT be a conflict. Both declarations are captured, each tagged with its owning scope.
+    let ex = "https://example.org/test/";
+    let (prog, diags) = parse(
         "ex:prog a logic:ReasoningProgram ;
             logic:evaluationMode logic:BackwardEvaluation ;
             logic:clause [ a logic:Formula ;
@@ -3640,6 +3698,27 @@ fn reasoning_program_with_conflicting_variable_sorts_is_hard_failed() {
                 logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" ; logic:variableSort ex:Str ] ,
                                [ logic:termIndex 1 ; logic:termIri ex:b ]
             ] .",
-        "two distinct sorts",
+    );
+    assert!(
+        diags.iter().all(|d| d.severity != Severity::Error),
+        "same-named vars in different scopes must NOT conflict: {diags:#?}"
+    );
+    assert_eq!(prog.reasoning_programs.len(), 1);
+    let rp = &prog.reasoning_programs[0];
+    assert!(
+        rp.variable_sorts.iter().any(|(scope, v, s)| {
+            matches!(scope, crate::ir::VariableSortScope::Clause(_))
+                && v == "X"
+                && *s == format!("{ex}Nat")
+        }),
+        "the clause's X:Nat is captured under its clause scope: {:?}",
+        rp.variable_sorts
+    );
+    assert!(
+        rp.variable_sorts.iter().any(|(scope, v, s)| {
+            *scope == crate::ir::VariableSortScope::Query && v == "X" && *s == format!("{ex}Str")
+        }),
+        "the query's X:Str is captured under the query scope: {:?}",
+        rp.variable_sorts
     );
 }
