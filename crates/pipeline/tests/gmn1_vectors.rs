@@ -24,8 +24,9 @@
 //!   `.in.ttl` write input) each raising EXACTLY its recorded [`Gmn1Error`] class through the
 //!   production codec. Expectations live in `negative-codec/expected.ttl`.
 //! * GRAPH-tier negatives (`negative-graph/`) — envelope TTL fixtures with a wrong/missing
-//!   `gmeow:gmnCodebookDigest`, for the SHACL/native gate in a LATER task. Here they are only
-//!   shape-asserted (no SHACL run is forced).
+//!   `gmeow:gmnCodebookDigest`. Their `lang:GmnCodebookDigestMismatch` /
+//!   `lang:GmnMissingEnvelopeField` discharge is the live native gate's job
+//!   (`gmn1_gate::check_gmn1_codebook_digest_on_gate`); here they are only shape-asserted.
 //!
 //! The [`completeness_invariant_covers_every_required_construct`] test enumerates the required
 //! coverage set (all thirteen sigils, triple term, reifier, by-reference annotation, and each
@@ -262,13 +263,14 @@ fn codec_tier_negatives_raise_their_recorded_class() {
     }
 }
 
-// ── (C) GRAPH-tier negatives: shape-asserted only (SHACL/native discharge is a later task) ──
+// ── (C) GRAPH-tier negatives: shape-asserted here; discharged by the live native gate ──────
 
-/// The `negative-graph/` envelope fixtures are shape-asserted here (NOT driven through SHACL):
-/// the mismatch fixture declares a `gmeow:gmnCodebookDigest` that differs from the recomputed
-/// codebook digest, and the missing fixture declares a `gmeow:GmnEnvelope` with no digest field
-/// at all. Their `lang:GmnCodebookDigestMismatch` / `lang:GmnMissingEnvelopeField` discharge is
-/// the native/SHACL gate's job in a later task.
+/// The `negative-graph/` envelope fixtures are shape-asserted here (this test asserts their
+/// declared shape, not their discharge): the mismatch fixture declares a
+/// `gmeow:gmnCodebookDigest` that differs from the recomputed codebook digest, and the missing
+/// fixture declares a `gmeow:GmnEnvelope` with no digest field at all. Their
+/// `lang:GmnCodebookDigestMismatch` / `lang:GmnMissingEnvelopeField` discharge is the live native
+/// gate's job (`gmn1_gate::check_gmn1_codebook_digest_on_gate`, wired on the reconcile path).
 #[test]
 fn graph_tier_negatives_have_the_declared_envelope_shape() {
     let dir = vectors_dir().join("negative-graph");
@@ -287,7 +289,15 @@ fn graph_tier_negatives_have_the_declared_envelope_shape() {
          (else it is not a mismatch negative)"
     );
 
-    let missing = envelope_digests(&parse_ttl(&dir.join("envelope-missing-digest.ttl")));
+    let missing_ds = parse_ttl(&dir.join("envelope-missing-digest.ttl"));
+    // Assert the fixture actually declares exactly one GmnEnvelope FIRST — otherwise the
+    // empty-digest assertion below passes vacuously for a fixture that declares no envelope at all.
+    assert_eq!(
+        envelope_subjects(&missing_ds).len(),
+        1,
+        "the missing-digest fixture must declare exactly one gmeow:GmnEnvelope"
+    );
+    let missing = envelope_digests(&missing_ds);
     assert!(
         missing.is_empty(),
         "the missing-digest fixture must declare a GmnEnvelope with NO gmnCodebookDigest, found {missing:?}"
@@ -412,7 +422,9 @@ fn features_of(text: &str) -> BTreeSet<String> {
 // ── Small structural helpers ───────────────────────────────────────────────────────────
 
 fn bless_enabled() -> bool {
-    std::env::var_os("GMN1_VECTORS_BLESS").is_some()
+    // Truthy value ONLY — `GMN1_VECTORS_BLESS=0` / `=""` (or mere presence) must NOT rewrite the
+    // frozen corpus before the byte-compare, which would defeat the freeze gate.
+    std::env::var("GMN1_VECTORS_BLESS").is_ok_and(|v| v == "1")
 }
 
 fn local_name(iri: &str) -> String {
@@ -486,16 +498,20 @@ fn expected_negative_classes(neg_dir: &Path) -> BTreeMap<String, String> {
     out
 }
 
-/// The `gmeow:gmnCodebookDigest` lexical values declared on any `gmeow:GmnEnvelope` subject.
-fn envelope_digests(ds: &RdfDataset) -> Vec<String> {
-    let envelopes: BTreeSet<String> = ds
-        .owned_quads()
+/// The set of `gmeow:GmnEnvelope`-typed subjects declared in a dataset.
+fn envelope_subjects(ds: &RdfDataset) -> BTreeSet<String> {
+    ds.owned_quads()
         .filter(|q| q.predicate == RDF_TYPE)
         .filter_map(|q| match (&q.subject, &q.object) {
             (RdfTerm::Iri(s), RdfTerm::Iri(o)) if o == GMN_ENVELOPE => Some(s.clone()),
             _ => None,
         })
-        .collect();
+        .collect()
+}
+
+/// The `gmeow:gmnCodebookDigest` lexical values declared on any `gmeow:GmnEnvelope` subject.
+fn envelope_digests(ds: &RdfDataset) -> Vec<String> {
+    let envelopes = envelope_subjects(ds);
     ds.owned_quads()
         .filter(|q| q.predicate == GMN_CODEBOOK_DIGEST)
         .filter(|q| matches!(&q.subject, RdfTerm::Iri(s) if envelopes.contains(s)))
