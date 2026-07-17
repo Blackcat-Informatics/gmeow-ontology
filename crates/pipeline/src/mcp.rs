@@ -2273,6 +2273,44 @@ impl McpServer {
                     ("batch", "integer"),
                 ],
             ),
+            tool(
+                "submit_candidate",
+                "Propose/verify seam: test a candidate logic: formula against a KB and — ONLY if \
+                 the isolated-world verdict CORROBORATES it (admissible) — append it to the \
+                 append-only candidate library. A refuted or open candidate is never admitted and \
+                 stages nothing. `formula`/`kb`/`standpoint` are as conjecture_test; optional \
+                 `for_slice`/`for_packet` record target provenance; `dry_run=true` returns the \
+                 verdict but writes nothing.",
+                &[
+                    ("formula", "string"),
+                    ("kb", "string"),
+                    ("standpoint", "string"),
+                    ("math_conjecture", "string"),
+                    ("for_slice", "string"),
+                    ("for_packet", "string"),
+                    ("dry_run", "boolean"),
+                ],
+            ),
+            tool(
+                "withdraw_candidate",
+                "The P10 compensating withdrawal of a persisted candidate: append a 'withdrawn' \
+                 segment flipping the candidate's effective lifecycle (recorded, never deleted). \
+                 An unknown or already-withdrawn id hard-fails before writing. `dry_run=true` \
+                 witnesses the withdrawal but writes nothing.",
+                &[
+                    ("candidate_id", "string"),
+                    ("reason", "string"),
+                    ("dry_run", "boolean"),
+                ],
+            ),
+            tool(
+                "list_candidates",
+                "List every admitted candidate in the library with its effective disposition \
+                 (in-library | withdrawn) and target provenance (for_slice / for_packet). \
+                 Optional `slice` filters by target provenance and `disposition` by effective \
+                 state. A missing library is an empty list.",
+                &[("slice", "string"), ("disposition", "string")],
+            ),
         ];
         if self.mode.includes_dev_tools() {
             tools.extend([
@@ -2358,6 +2396,9 @@ impl McpServer {
             "competency_questions" => self.tool_competency_questions(args),
             "slice_quality" => self.tool_slice_quality(args),
             "slice_brief" => self.tool_slice_brief(args),
+            "submit_candidate" => self.tool_submit_candidate(args),
+            "withdraw_candidate" => self.tool_withdraw_candidate(args),
+            "list_candidates" => self.tool_list_candidates(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "sync" if self.mode.includes_dev_tools() => self.tool_sync(),
@@ -3137,7 +3178,7 @@ impl McpServer {
             // segment can never leave the withdrawal applied without its audit record, or vice
             // versa. The library is still append-only overall: no PRIOR segment's bytes are
             // touched, only new bytes are added.
-            let withdrawal_segment = build_conjecture_verdict_segment(&nt_body)?;
+            let withdrawal_segment = build_nt_segment(&nt_body)?;
             let call_id = format!(
                 "urn:gmeow:conjecture-call:{}",
                 sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
@@ -3232,6 +3273,261 @@ impl McpServer {
         let slice_iri = expand_slice_iri(slice);
         let out = extract_authoring_packets(self.view.authoring_briefs(), &slice_iri, axis, batch)?;
         Ok(out.to_string())
+    }
+
+    /// `submit_candidate` — the neurosymbolic propose/verify seam's WRITE leg: test a candidate
+    /// `logic:` formula against a KB, and — POLARITY-gated on the `submitCandidate` schema
+    /// (admissible iff corroborated) — APPEND it to the append-only candidate library. Runs the
+    /// SAME evaluation as `conjecture_test`; a refuted or open candidate is NOT admitted and
+    /// stages nothing. `formula`/`kb`/`standpoint`/`math_conjecture` are as `conjecture_test`;
+    /// optional `for_slice`/`for_packet` record target provenance; `dry_run=true` computes the
+    /// verdict but WRITES NOTHING.
+    fn tool_submit_candidate(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let formula_src = required_str(args, "formula")?;
+        let kb_src = required_str(args, "kb")?;
+        let standpoint = required_str(args, "standpoint")?;
+        let math_conjecture = optional_str(args, "math_conjecture");
+        let for_slice = optional_str(args, "for_slice");
+        let for_packet = optional_str(args, "for_packet");
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let max_answers = optional_limit(args, "max_answers")?;
+        let budget = governed_budget(max_steps, max_answers);
+
+        let out = run_submit_candidate(&CandidateSubmitInput {
+            formula_ttl: formula_src,
+            kb_ttl: kb_src,
+            standpoint,
+            math_conjecture,
+            for_slice,
+            for_packet,
+            dry_run,
+            max_steps: budget.max_steps,
+            max_answers: budget.max_answers,
+        })?;
+
+        let witness_json = out.witness.as_ref().map(|w| {
+            json!({
+                "individual": w.individual,
+                "world": w.world,
+                "premises": w.premises,
+            })
+        });
+        let verdict_json = json!({
+            "information": out.information,
+            "evaluation": out.evaluation,
+            "completeness": out.completeness,
+            "lifecycle": out.lifecycle,
+            "discharge": out.discharge,
+        });
+
+        // NOT admissible (refuted / open) OR a dry sandbox on a non-admissible candidate: the
+        // precondition was unmet, so NOTHING was appended (AC6). The verdict is still carried.
+        if let Some(reason) = &out.precondition_unmet {
+            return Ok(json!({
+                "ok": false,
+                "error": format!("submitCandidate precondition unmet (candidate not admissible): {reason}"),
+                "admissible": out.admissible,
+                "verdict": verdict_json,
+                "witness": witness_json,
+                "transaction": txn_json(&out.receipt),
+                "judgment_nquads": out.verdict_nt,
+            })
+            .to_string());
+        }
+        if out.dry_run {
+            return Ok(json!({
+                "ok": true,
+                "dry_run": true,
+                "admissible": out.admissible,
+                "verdict": verdict_json,
+                "witness": witness_json,
+                "candidate": out.node_iri,
+                "transaction": txn_json(&out.receipt),
+                "judgment_nquads": out.verdict_nt,
+            })
+            .to_string());
+        }
+
+        // Admissible + committed: the candidate segment was appended (AC5).
+        Ok(json!({
+            "ok": true,
+            "admissible": out.admissible,
+            "committed": out.committed,
+            "verdict": verdict_json,
+            "witness": witness_json,
+            "candidate": out.node_iri,
+            "transaction": txn_json(&out.receipt),
+            "judgment_nquads": out.verdict_nt,
+        })
+        .to_string())
+    }
+
+    /// `withdraw_candidate` — the compensating author-WITHDRAWAL counterpart of
+    /// `submit_candidate` (P10, exactly as `refute_conjecture` compensates `store_conjecture`).
+    /// It appends one compensating "withdrawn" segment to the append-only candidate library,
+    /// flipping the target node's EFFECTIVE lifecycle to `logic:ConjectureWithdrawn` — recorded,
+    /// never deleted. The write is a REAL TR gate on the `withdrawCandidate` schema, whose
+    /// precondition — the candidate is still in the library and not already withdrawn — is
+    /// DERIVED from the live library state read back by SEGMENT ORDER. An unknown id or an
+    /// already-withdrawn node fails the commit and returns `ok:false` before writing.
+    fn tool_withdraw_candidate(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let candidate_id = required_str(args, "candidate_id")?;
+        let reason = optional_str(args, "reason").unwrap_or("");
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+        let path = candidate_path()?;
+
+        // The read → precondition-check → (on a real commit) append sequence runs entirely
+        // inside ONE held exclusive lock, so two concurrent withdrawals cannot both observe
+        // "not yet withdrawn" and both commit (lost-update).
+        with_conjecture_lock(&path, || {
+            let library = read_conjecture_library(&path)?;
+            let effective = library.get(candidate_id).copied();
+            let exists = effective.is_some();
+            let in_library = matches!(
+                effective,
+                Some(state) if state != ConjectureLifecycleState::Withdrawn
+            );
+
+            let mut obtains: Vec<&str> = Vec::new();
+            if in_library {
+                obtains.push(MCP_CANDIDATE_IN_LIBRARY);
+            }
+            let receipt = execute_memory_txn(MCP_WITHDRAW_CANDIDATE_SCHEMA, &obtains, dry_run)?;
+            let nt_body = project_conjecture_withdrawal(candidate_id, reason);
+            match &receipt {
+                TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
+                    let detail = if exists {
+                        format!("candidate already withdrawn: {candidate_id}")
+                    } else {
+                        format!("unknown candidate id: {candidate_id}")
+                    };
+                    return Ok(json!({
+                        "ok": false,
+                        "error": format!("withdrawCandidate precondition unmet: {detail}"),
+                        "transaction": txn_json(&receipt),
+                    })
+                    .to_string());
+                }
+                TxReceipt::HypotheticalSuccess { .. } => {
+                    return Ok(json!({
+                        "ok": true,
+                        "dry_run": true,
+                        "candidate": candidate_id,
+                        "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                        "transaction": txn_json(&receipt),
+                        "judgment_nquads": nt_body,
+                    })
+                    .to_string());
+                }
+                TxReceipt::CommittedSuccess { .. } => {}
+            }
+
+            let withdrawal_segment = build_nt_segment(&nt_body)?;
+            let call_id = format!(
+                "urn:gmeow:candidate-call:{}",
+                sha256_hex(format!("withdraw\u{1}{candidate_id}\u{1}{reason}").as_bytes())
+            );
+            let audit_segment = build_audit_segment(
+                &call_id,
+                MCP_WITHDRAW_CANDIDATE_SCHEMA,
+                &[MCP_CANDIDATE_IN_LIBRARY],
+                "1970-01-01T00:00:00Z",
+            );
+            append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
+            Ok(json!({
+                "ok": true,
+                "candidate": candidate_id,
+                "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                "transaction": txn_json(&receipt),
+                "judgment_nquads": nt_body,
+            })
+            .to_string())
+        })
+    }
+
+    /// `list_candidates` — read the append-only candidate library and return every admitted
+    /// candidate with its effective disposition (`in-library` | `withdrawn`) and target
+    /// provenance (`for_slice` / `for_packet`). The effective lifecycle is resolved by SEGMENT
+    /// ORDER (a later withdrawal supersedes the admission); the immutable type/provenance is
+    /// read from the unioned dataset. Optional `slice` filters by target provenance and
+    /// `disposition` filters by effective state. A missing library is an EMPTY list, not an error.
+    fn tool_list_candidates(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let filter_slice = optional_str(args, "slice");
+        let filter_disposition = optional_str(args, "disposition");
+        let path = candidate_path()?;
+
+        // Effective, segment-order-resolved lifecycle per stored node (last-writer-wins).
+        let lifecycles = read_conjecture_library(&path)?;
+
+        // Immutable type + provenance from the unioned dataset (set once at submit, never
+        // superseded, so the union is sound for these fields).
+        let mut for_slice: BTreeMap<String, String> = BTreeMap::new();
+        let mut for_packet: BTreeMap<String, String> = BTreeMap::new();
+        let mut is_candidate: BTreeSet<String> = BTreeSet::new();
+        match fs::read(&path) {
+            Ok(bytes) => {
+                let bundle = purrdf::import_gts_events(&bytes)
+                    .with_ctx(|| "read candidate library".to_string())?;
+                for quad in bundle.dataset.owned_quads() {
+                    let (RdfTerm::Iri(subj), RdfTerm::Iri(obj)) = (&quad.subject, &quad.object)
+                    else {
+                        continue;
+                    };
+                    match quad.predicate.as_str() {
+                        RDF_TYPE if obj == GMEOW_AUTHORING_CANDIDATE => {
+                            is_candidate.insert(subj.clone());
+                        }
+                        GMEOW_CANDIDATE_FOR_SLICE => {
+                            for_slice.insert(subj.clone(), obj.clone());
+                        }
+                        GMEOW_CANDIDATE_FOR_PACKET => {
+                            for_packet.insert(subj.clone(), obj.clone());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        let mut candidates: Vec<Value> = Vec::new();
+        for (node, state) in &lifecycles {
+            // Only nodes typed gmeow:AuthoringCandidate (belt-and-suspenders: every candidate is
+            // one; a bare logic:Conjecture in this library would be foreign).
+            if !is_candidate.contains(node) {
+                continue;
+            }
+            let disposition = if *state == ConjectureLifecycleState::Withdrawn {
+                "withdrawn"
+            } else {
+                "in-library"
+            };
+            if filter_disposition.is_some_and(|d| d != disposition) {
+                continue;
+            }
+            let slice = for_slice.get(node);
+            if let Some(want) = filter_slice
+                && slice.map(String::as_str) != Some(want)
+            {
+                continue;
+            }
+            candidates.push(json!({
+                "candidate": node,
+                "disposition": disposition,
+                "lifecycle": state.wire(),
+                "for_slice": slice,
+                "for_packet": for_packet.get(node),
+            }));
+        }
+
+        Ok(json!({
+            "ok": true,
+            "candidate_count": candidates.len(),
+            "candidates": candidates,
+        })
+        .to_string())
     }
 
     fn tool_sync(&self) -> gmeow_errors::Result<String> {
@@ -3693,7 +3989,7 @@ pub fn run_conjecture_test(
     //     atomic file replace under ONE held lock, so a failure building or committing either
     //     segment can never leave the library holding the verdict without its audit record.
     let path = conjecture_path()?;
-    let verdict_segment = build_conjecture_verdict_segment(&out.verdict_nt)?;
+    let verdict_segment = build_nt_segment(&out.verdict_nt)?;
     let call_id = format!(
         "urn:gmeow:conjecture-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
@@ -3702,6 +3998,213 @@ pub fn run_conjecture_test(
         &call_id,
         MCP_PERSIST_CONJECTURE_SCHEMA,
         &obtains,
+        "1970-01-01T00:00:00Z",
+    );
+    with_conjecture_lock(&path, || {
+        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+    })?;
+    out.committed = true;
+    Ok(out)
+}
+
+// ── Candidate submission: the neurosymbolic propose/verify seam ───────────────
+//
+// A candidate is a proposed authoring contribution — a candidate `logic:` formula tested
+// against a KB, exactly like a conjecture — whose ADMISSIBILITY (a corroborated isolated-world
+// verdict) gates its append to the SEPARATE, append-only candidate library. It reuses
+// `evaluate_conjecture` VERBATIM for the verdict (the trusted symbolic half of propose/verify)
+// and differs from `run_conjecture_test` in exactly two ways: (1) the TR precondition is
+// DERIVED FROM VERDICT POLARITY (`candidateAdmissible` obtains iff corroborated) rather than set
+// unconditionally, so a refuted/open candidate stages nothing (AC5/AC6); (2) the appended node
+// carries its authoring role (`gmeow:AuthoringCandidate`) and target provenance, and lands in
+// `candidates.gts`, not `conjectures.gts`.
+
+/// The inputs to one candidate submission: [`ConjectureRunInput`]'s test fields plus the
+/// optional target provenance (`for_slice` / `for_packet`) recorded on the admitted node.
+pub struct CandidateSubmitInput<'a> {
+    /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
+    pub formula_ttl: &'a str,
+    /// The KB the candidate is tested against, as Turtle.
+    pub kb_ttl: &'a str,
+    /// The required reified standpoint scope IRI (Principle 9).
+    pub standpoint: &'a str,
+    /// Optionally, the `math:Conjecture` twin IRI (as `conjecture_test`).
+    pub math_conjecture: Option<&'a str>,
+    /// Optional provenance: the slice IRI this candidate is proposed FOR.
+    pub for_slice: Option<&'a str>,
+    /// Optional provenance: the `gmeow:AuthoringPacket` IRI this candidate answers.
+    pub for_packet: Option<&'a str>,
+    /// When true, compute the verdict but WRITE NOTHING to the library.
+    pub dry_run: bool,
+    /// Optional post-hoc derived-closure-size ceiling; `None` = unbounded.
+    pub max_steps: Option<u64>,
+    /// Optional post-hoc derived-closure-size ceiling; `None` = unbounded.
+    pub max_answers: Option<usize>,
+}
+
+/// The outcome of a [`run_submit_candidate`] call: the projected verdict facets, the
+/// admissibility decision, the refutation witness (when refuted), the content-addressed node
+/// IRI, the projected N-Triples body, and the TR receipt gating the append. `committed` is true
+/// exactly when the admissible candidate segment was appended.
+pub struct CandidateSubmitOutput {
+    /// True exactly when the candidate segment + audit were appended (admissible, committed,
+    /// non-dry run).
+    pub committed: bool,
+    /// True when the run was a sandbox (`dry_run`): the verdict is computed, nothing is written.
+    pub dry_run: bool,
+    /// `Some(reason)` when the TR precondition was UNMET — the candidate was NOT admissible
+    /// (refuted or open) or a dry sandbox on a non-admissible candidate — so nothing was written.
+    pub precondition_unmet: Option<String>,
+    /// The admissibility decision: true iff the isolated-world verdict CORROBORATED the candidate.
+    pub admissible: bool,
+    /// The epistemic lifecycle wire value (`open` | `corroborated` | `refuted-in-standpoint`).
+    pub lifecycle: String,
+    /// The Belnap information-state wire value.
+    pub information: String,
+    /// The evaluation-axis wire value.
+    pub evaluation: String,
+    /// The completeness-axis wire value.
+    pub completeness: String,
+    /// The discharge carrier local name.
+    pub discharge: String,
+    /// The refutation witness, present exactly when refuted.
+    pub witness: Option<ConjectureRunWitness>,
+    /// The content-addressed candidate node IRI (shared with its `logic:Conjecture` verdict).
+    pub node_iri: String,
+    /// The deterministic N-Triples verdict body (before the candidate role/provenance lines).
+    pub verdict_nt: String,
+    /// The TR receipt gating the append.
+    pub receipt: TxReceipt,
+}
+
+/// The authoring-role + provenance N-Triples a submitted candidate node carries IN ADDITION to
+/// its `logic:Conjecture` verdict: `rdf:type gmeow:AuthoringCandidate` plus the optional
+/// `gmeow:candidateForSlice` / `gmeow:candidateForPacket` target links. Every predicate/type is
+/// a canonically-authored guides-slice term (no unauthored vocabulary).
+fn candidate_provenance_nt(
+    node_iri: &str,
+    for_slice: Option<&str>,
+    for_packet: Option<&str>,
+) -> String {
+    let mut s = format!("<{node_iri}> <{RDF_TYPE}> <{GMEOW_AUTHORING_CANDIDATE}> .\n");
+    if let Some(slice) = for_slice {
+        s.push_str(&format!(
+            "<{node_iri}> <{GMEOW_CANDIDATE_FOR_SLICE}> <{slice}> .\n"
+        ));
+    }
+    if let Some(packet) = for_packet {
+        s.push_str(&format!(
+            "<{node_iri}> <{GMEOW_CANDIDATE_FOR_PACKET}> <{packet}> .\n"
+        ));
+    }
+    s
+}
+
+/// Submit one candidate end-to-end — the neurosymbolic propose/verify seam: evaluate the
+/// candidate against the KB (reusing [`evaluate_conjecture`] verbatim), POLARITY-gate the write
+/// on the `submitCandidate` schema (admissible iff corroborated), and — on a committed,
+/// admissible, non-dry run — APPEND the candidate verdict segment (verdict + authoring role +
+/// provenance) plus a cold-auditable trajectory segment to the append-only candidate library.
+///
+/// This is the shared core behind both the MCP `submit_candidate` tool and the `gmeow candidate
+/// submit` CLI subcommand. It never mutates the caller's KB (isolation is inherent) and, on a
+/// `dry_run` or a non-admissible run, writes nothing.
+///
+/// # Errors
+///
+/// Returns an error if [`evaluate_conjecture`] fails, or if the TR transaction or the library
+/// append fails.
+pub fn run_submit_candidate(
+    input: &CandidateSubmitInput,
+) -> gmeow_errors::Result<CandidateSubmitOutput> {
+    let CandidateSubmitInput {
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        for_slice,
+        for_packet,
+        dry_run,
+        max_steps,
+        max_answers,
+    } = *input;
+
+    let ConjectureEvaluation {
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        content_key,
+    } = evaluate_conjecture(
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    )?;
+
+    // Polarity gate (AC5/AC6): the candidate is ADMISSIBLE iff the isolated-world verdict
+    // CORROBORATED it. A refuted or open verdict is NOT admissible, so the `candidateAdmissible`
+    // precondition does not obtain, the executional-entailment commit FAILS, and nothing is
+    // appended — the score moves only via gate-passing content.
+    let admissible = lifecycle == ConjectureLifecycleState::Corroborated.wire();
+    let obtains: &[&str] = if admissible {
+        &[MCP_CANDIDATE_ADMISSIBLE]
+    } else {
+        &[]
+    };
+    let receipt = execute_memory_txn(MCP_SUBMIT_CANDIDATE_SCHEMA, obtains, dry_run)?;
+
+    let mut out = CandidateSubmitOutput {
+        committed: false,
+        dry_run,
+        precondition_unmet: None,
+        admissible,
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        receipt,
+    };
+
+    match &out.receipt {
+        TxReceipt::CommittedFailure { reason } | TxReceipt::HypotheticalFailure { reason } => {
+            out.precondition_unmet = Some(reason.clone());
+            return Ok(out);
+        }
+        // Sandbox run on an admissible candidate: the verdict is observed, nothing is appended.
+        TxReceipt::HypotheticalSuccess { .. } => return Ok(out),
+        TxReceipt::CommittedSuccess { .. } => {}
+    }
+
+    // Committed + admissible: APPEND the candidate verdict segment (verdict N-Triples + the
+    // authoring-role/provenance lines on the same node) plus its cold-auditable trajectory
+    // segment to the append-only candidate library — TOGETHER, as ONE atomic file replace under
+    // ONE held lock (reusing the same GTS-library primitives the conjecture library uses).
+    let path = candidate_path()?;
+    let body = format!(
+        "{}\n{}",
+        out.verdict_nt.trim_end(),
+        candidate_provenance_nt(&out.node_iri, for_slice, for_packet)
+    );
+    let verdict_segment = build_nt_segment(&body)?;
+    let call_id = format!(
+        "urn:gmeow:candidate-call:{}",
+        sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
+    );
+    let audit_segment = build_audit_segment(
+        &call_id,
+        MCP_SUBMIT_CANDIDATE_SCHEMA,
+        obtains,
         "1970-01-01T00:00:00Z",
     );
     with_conjecture_lock(&path, || {
@@ -3884,6 +4387,7 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                     | "text"
                     | "claim_id"
                     | "conjecture_id"
+                    | "candidate_id"
                     | "path"
                     | "slice"
                     | "target_iri"
@@ -4597,6 +5101,34 @@ const MCP_WITHDRAW_CONJECTURE_SCHEMA: &str =
 const MCP_CONJECTURE_IN_LIBRARY: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureInLibrary";
 
+/// The `submitCandidate` action schema + its precondition situation, defined by
+/// `mcp-action-policy.ttl`. The candidate-submission write triad instantiates this schema; the
+/// executional-entailment verdict over the precondition gates the append to the candidate
+/// library. Unlike `persistConjecture`'s `conjectureVerdictPresented`, the precondition
+/// `candidateAdmissible` is DERIVED FROM VERDICT POLARITY (corroborated, not merely present),
+/// so a refuted or open candidate never obtains it and stages nothing (AC5/AC6).
+const MCP_SUBMIT_CANDIDATE_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/submitCandidate";
+const MCP_CANDIDATE_ADMISSIBLE: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/candidateAdmissible";
+
+/// The `withdrawCandidate` action schema + its precondition situation, defined by
+/// `mcp-action-policy.ttl`. The compensating author-withdrawal counterpart of
+/// `submitCandidate` (P10, `logic:compensation`): the precondition — the candidate is still in
+/// the library (not already withdrawn) — gates the compensating append.
+const MCP_WITHDRAW_CANDIDATE_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/withdrawCandidate";
+const MCP_CANDIDATE_IN_LIBRARY: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/candidateInLibrary";
+
+/// The `gmeow:AuthoringCandidate` class and its provenance predicates (authored in the guides
+/// slice `module.ttl`) — the authoring-role type and target links a submitted candidate node
+/// carries IN ADDITION to its `logic:Conjecture` verdict, so the candidate library is queryable
+/// by slice/packet and distinct from the conjecture library.
+const GMEOW_AUTHORING_CANDIDATE: &str = "https://blackcatinformatics.ca/gmeow/AuthoringCandidate";
+const GMEOW_CANDIDATE_FOR_SLICE: &str = "https://blackcatinformatics.ca/gmeow/candidateForSlice";
+const GMEOW_CANDIDATE_FOR_PACKET: &str = "https://blackcatinformatics.ca/gmeow/candidateForPacket";
+
 /// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
 /// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
 /// KB facts with the asserted / evaluated candidate), and the run is inherently isolated —
@@ -4840,6 +5372,25 @@ fn conjecture_path() -> gmeow_errors::Result<PathBuf> {
     Ok(Path::new(&home).join(".gmeow").join("conjectures.gts"))
 }
 
+/// The candidate-library path: `GMEOW_CANDIDATE_PATH` (home-expanded) when set, else
+/// `~/.gmeow/candidates.gts`. The candidate library is a SEPARATE, append-only GTS collection
+/// — the read-only twin of the conjecture library — holding admissibility-gated authoring
+/// candidates. It is NEVER folded into base-KB reasoning (R2). Mirrors [`conjecture_path`].
+fn candidate_path() -> gmeow_errors::Result<PathBuf> {
+    if let Ok(path) = env::var("GMEOW_CANDIDATE_PATH")
+        && !path.trim().is_empty()
+    {
+        return Ok(PathBuf::from(path).expand_home());
+    }
+    let home = home_dir().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: "neither HOME nor USERPROFILE is set and GMEOW_CANDIDATE_PATH is empty"
+                .to_string(),
+        })
+    })?;
+    Ok(Path::new(&home).join(".gmeow").join("candidates.gts"))
+}
+
 /// A deterministic lowercase-hex SHA-256 of `bytes` (the KB-world content address seed).
 fn sha256_hex(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);
@@ -4936,14 +5487,16 @@ fn intern_nt_term(
     id
 }
 
-/// Build one conjecture-verdict segment (the `project_conjecture_verdict` N-Triples body) as
-/// a GTS `ai-package` segment's serialized bytes — the PURE, side-effect-free half of the old
-/// `write_conjecture_segment`. The body is parsed into `(subject, predicate, object)` triples,
-/// interned as GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
-/// written via [`GtsWriter`]. Building the bytes is separated from appending them so a caller
-/// can assemble MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory
-/// and commit them together as one atomic file replace — see [`append_conjecture_segments`].
-fn build_conjecture_verdict_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
+/// Build one N-Triples body (e.g. the `project_conjecture_verdict` verdict, or a candidate
+/// verdict carrying its authoring-role + provenance triples) into a GTS `ai-package` segment's
+/// serialized bytes — the PURE, side-effect-free segment builder shared by the conjecture and
+/// candidate libraries. The body is parsed into `(subject, predicate, object)` triples, interned
+/// as RDF-1.2-native GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
+/// written via [`GtsWriter`] — no plain-RDF / quad shortcut, so the append-only libraries stay
+/// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
+/// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
+/// together as one atomic file replace — see [`append_conjecture_segments`].
+fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
@@ -5588,7 +6141,7 @@ mod tests {
     /// and commit them together via [`append_conjecture_segments`] directly (one atomic replace
     /// covering both), rather than through this single-segment helper.
     fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
-        let segment = build_conjecture_verdict_segment(nt_body)?;
+        let segment = build_nt_segment(nt_body)?;
         with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
     }
 
@@ -8372,6 +8925,7 @@ mod tests {
                 "GMEOW_LANG",
                 "GMEOW_MEMORY_PATH",
                 "GMEOW_CONJECTURE_PATH",
+                "GMEOW_CANDIDATE_PATH",
                 "HOME",
                 "USERPROFILE",
             ]);
@@ -8953,7 +9507,7 @@ mod tests {
         fs::set_permissions(&dir, fs::Permissions::from_mode(0o555)).expect("chmod read-only");
 
         let outcome = (|| -> gmeow_errors::Result<()> {
-            let lib_segment = build_conjecture_verdict_segment(&format!(
+            let lib_segment = build_nt_segment(&format!(
                 "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
             ))?;
             let audit_segment = build_audit_segment(
@@ -9162,6 +9716,223 @@ mod tests {
         assert_eq!(out.lifecycle, "corroborated");
         assert_eq!(out.information, "supported");
         assert_eq!(out.evaluation, "completed");
+    }
+
+    fn temp_candidate() -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("candidates.gts");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_CANDIDATE_PATH", &path);
+        }
+        (dir, path)
+    }
+
+    #[test]
+    fn submit_candidate_admits_corroborated_records_provenance_and_lists() {
+        // AC5: a candidate whose isolated-world verdict CORROBORATES it is admissible, so it is
+        // committed to the append-only candidate library — carrying its target provenance — and
+        // becomes visible to list_candidates.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_candidate();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists(), "library must not exist before the call");
+        let resp = text_payload(server.call_tool_result(
+            "submit_candidate",
+            &json!({
+                "formula": reified_ground_atom_candidate("B"),
+                "kb": ground_atom_entailing_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+                "for_slice": "https://blackcatinformatics.ca/gmeow/slices/logic",
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "an admissible candidate commits: {resp}");
+        assert_eq!(resp["admissible"], true);
+        assert_eq!(resp["committed"], true);
+        assert_eq!(resp["verdict"]["lifecycle"], "corroborated");
+        let node = resp["candidate"]
+            .as_str()
+            .expect("candidate iri")
+            .to_string();
+        assert!(path.exists(), "the admissible candidate was appended");
+
+        // list_candidates surfaces it, in-library, with its provenance.
+        let list = text_payload(server.call_tool_result("list_candidates", &json!({})));
+        assert_eq!(list["ok"], true);
+        assert_eq!(list["candidate_count"], 1, "one admitted candidate: {list}");
+        let c = &list["candidates"][0];
+        assert_eq!(c["candidate"], node);
+        assert_eq!(c["disposition"], "in-library");
+        assert_eq!(
+            c["for_slice"],
+            "https://blackcatinformatics.ca/gmeow/slices/logic"
+        );
+
+        // The slice-provenance filter matches and mismatches correctly.
+        let filtered = text_payload(server.call_tool_result(
+            "list_candidates",
+            &json!({"slice": "https://blackcatinformatics.ca/gmeow/slices/logic"}),
+        ));
+        assert_eq!(filtered["candidate_count"], 1);
+        let other = text_payload(
+            server.call_tool_result("list_candidates", &json!({"slice": "http://ex/nope"})),
+        );
+        assert_eq!(other["candidate_count"], 0);
+    }
+
+    #[test]
+    fn submit_candidate_stages_nothing_on_refuted_or_open() {
+        // AC6: a refuted (or open) candidate is NOT admissible — the candidateAdmissible
+        // precondition never obtains, the commit fails, and the library file stays byte-identical
+        // (here: absent). This is the polarity gate a verbatim conjecture clone would get WRONG
+        // (it would commit a refuted node).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let bytes = snapshot();
+
+        for (label, formula, kb, expect_lifecycle) in [
+            (
+                "refuted",
+                forall_horn_candidate("B"),
+                refuting_kb("B"),
+                "refuted-in-standpoint",
+            ),
+            ("open", forall_horn_candidate("B"), open_kb("B"), "open"),
+        ] {
+            let (_env, _cg) = ConjEnvGuard::set();
+            let (_dir, path) = temp_candidate();
+            let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+            assert!(!path.exists(), "{label}: library absent before the call");
+
+            let resp = text_payload(server.call_tool_result(
+                "submit_candidate",
+                &json!({
+                    "formula": formula,
+                    "kb": kb,
+                    "standpoint": "http://ex/standpoint/alice",
+                }),
+            ));
+            assert_eq!(resp["ok"], false, "{label}: not admitted: {resp}");
+            assert_eq!(resp["admissible"], false, "{label}");
+            assert_eq!(resp["verdict"]["lifecycle"], expect_lifecycle, "{label}");
+            assert!(
+                !path.exists(),
+                "{label}: a non-admissible candidate must write NOTHING to the library"
+            );
+        }
+    }
+
+    #[test]
+    fn submit_candidate_dry_run_writes_nothing() {
+        // A dry-run on an ADMISSIBLE candidate computes the verdict via a hypothetical commit but
+        // writes nothing.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_candidate();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let resp = text_payload(server.call_tool_result(
+            "submit_candidate",
+            &json!({
+                "formula": reified_ground_atom_candidate("B"),
+                "kb": ground_atom_entailing_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+                "dry_run": true,
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "{resp}");
+        assert_eq!(resp["dry_run"], true);
+        assert_eq!(resp["admissible"], true);
+        assert!(
+            !path.exists(),
+            "a dry-run submit must write nothing to the library"
+        );
+    }
+
+    #[test]
+    fn withdraw_candidate_supersedes_and_gates() {
+        // Submit an admissible candidate, then withdraw it: list flips it to `withdrawn`
+        // (superseded, never deleted). Withdrawing an unknown id hard-fails before writing.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_candidate();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let submit = text_payload(server.call_tool_result(
+            "submit_candidate",
+            &json!({
+                "formula": reified_ground_atom_candidate("B"),
+                "kb": ground_atom_entailing_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        let node = submit["candidate"]
+            .as_str()
+            .expect("candidate iri")
+            .to_string();
+
+        // Withdrawing an unknown id fails the precondition (nothing appended for it).
+        let unknown = text_payload(server.call_tool_result(
+            "withdraw_candidate",
+            &json!({"candidate_id": "urn:gmeow:not-a-candidate"}),
+        ));
+        assert_eq!(unknown["ok"], false, "unknown id must hard-fail: {unknown}");
+
+        // Withdrawing the real node succeeds and supersedes it.
+        let withdraw = text_payload(
+            server.call_tool_result("withdraw_candidate", &json!({"candidate_id": node})),
+        );
+        assert_eq!(withdraw["ok"], true, "withdraw the real node: {withdraw}");
+        assert!(path.exists());
+
+        let list = text_payload(server.call_tool_result("list_candidates", &json!({})));
+        assert_eq!(
+            list["candidate_count"], 1,
+            "still listed (superseded): {list}"
+        );
+        assert_eq!(list["candidates"][0]["disposition"], "withdrawn");
+
+        // The disposition filter narrows correctly.
+        let in_library = text_payload(
+            server.call_tool_result("list_candidates", &json!({"disposition": "in-library"})),
+        );
+        assert_eq!(in_library["candidate_count"], 0);
+    }
+
+    #[test]
+    fn action_policy_covers_the_candidate_submission_pair() {
+        // The submit_candidate ⇄ withdraw_candidate governed-write pair must be REPRESENTED in
+        // the canonical action theory the engine parses (the same projected N-Quads the TR run
+        // feeds), with the mutual P10 compensation pairing — not merely documented.
+        const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/";
+        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        const LOGIC_MCP_ACTION_SCHEMA: &str =
+            "https://blackcatinformatics.ca/logic/McpActionSchema";
+        const LOGIC_COMPENSATION: &str = "https://blackcatinformatics.ca/logic/compensation";
+
+        let policy = action_policy_nquads();
+        for (schema, compensation) in [
+            ("submitCandidate", "withdrawCandidate"),
+            ("withdrawCandidate", "submitCandidate"),
+        ] {
+            let type_line =
+                format!("<{EX}{schema}> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> .");
+            let comp_line = format!(
+                "<{EX}{schema}> <{LOGIC_COMPENSATION}> <{EX}{compensation}> <{TXN_WORLD}> ."
+            );
+            assert!(
+                policy.contains(&type_line),
+                "{schema} must be typed logic:McpActionSchema: missing {type_line:?}"
+            );
+            assert!(
+                policy.contains(&comp_line),
+                "{schema}'s compensation must be {compensation}: missing {comp_line:?}"
+            );
+        }
     }
 
     /// A KB whose `ex:trigger` fires the `∀`-Horn candidate on SEVERAL individuals, so the
