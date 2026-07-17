@@ -785,25 +785,115 @@ impl IncrementalSession {
     }
 }
 
-fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
+/// The typed reason one rule falls outside finite positive binary Datalog — the
+/// fragment the incremental circuit maintains.
+///
+/// Each variant is the exact condition [`validate_fragment`] refuses today; keeping it
+/// typed (rather than only a [`gmeow_errors::Diag`] string) lets the operational
+/// `ReasoningSession` façade classify the FIXED program ONCE at `open` and route every
+/// later `apply` to a typed `UnsupportedFragment` outcome, without string-matching a
+/// diagnostic. `validate_fragment` is the single behavioural source of truth: it calls
+/// [`classify_incremental_fragment`] and maps each reason back to the same Diag string
+/// it has always emitted, so there is no second copy of the checks to drift.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum UnsupportedFragmentReason {
+    /// A rule with an empty body (an asserted fact masquerading as a rule).
+    Bodyless,
+    /// A negation-as-failure body atom.
+    Negation,
+    /// An arithmetic / comparison builtin.
+    Builtins,
+    /// A head variable not bound by any positive body atom.
+    UnsafeHeadVar,
+    /// An inequality (`distinct`) variable not bound by any positive body atom.
+    UnsafeInequalityVar,
+}
+
+/// A typed fragment refusal: the offending rule IRI plus the [`UnsupportedFragmentReason`].
+///
+/// The IRI is retained so [`validate_fragment`] can reproduce its historical
+/// per-rule Diag message byte-for-byte while the façade consumes only the typed
+/// [`Self::reason`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct FragmentRefusal {
+    pub(crate) rule_iri: String,
+    pub(crate) reason: UnsupportedFragmentReason,
+    /// The specific offending variable name for the unsafe-variable reasons; `None`
+    /// for the reasons that name no variable. Carried so [`Self::message`] reproduces
+    /// the historical per-variable Diag text without re-scanning the rule.
+    offending_var: Option<String>,
+}
+
+impl FragmentRefusal {
+    /// The exact diagnostic message [`validate_fragment`] emitted before the typed
+    /// classifier was factored out — the single-source-of-truth text, keyed by reason.
+    fn message(&self) -> String {
+        match &self.reason {
+            UnsupportedFragmentReason::Bodyless => format!(
+                "incremental circuit does not admit a bodyless rule <{}>; asserted facts belong in the EDB",
+                self.rule_iri
+            ),
+            UnsupportedFragmentReason::Negation => format!(
+                "incremental circuit does not admit negation-as-failure in rule <{}>",
+                self.rule_iri
+            ),
+            UnsupportedFragmentReason::Builtins => format!(
+                "incremental circuit does not admit arithmetic/comparison builtins in rule <{}>",
+                self.rule_iri
+            ),
+            UnsupportedFragmentReason::UnsafeHeadVar => format!(
+                "incremental circuit rule <{}> is unsafe: head variable {var} is not bound by a positive body atom",
+                self.rule_iri,
+                var = self.unsafe_head_var().unwrap_or_default(),
+            ),
+            UnsupportedFragmentReason::UnsafeInequalityVar => format!(
+                "incremental circuit rule <{}> is unsafe: inequality variable {var} is not bound by a positive body atom",
+                self.rule_iri,
+                var = self.unsafe_inequality_var().unwrap_or_default(),
+            ),
+        }
+    }
+
+    /// Re-locate the specific unbound head variable name for message parity. The
+    /// classifier records only the reason + rule IRI (the façade needs no variable
+    /// name), so the exact offending variable is recovered here from the same rule.
+    fn unsafe_head_var(&self) -> Option<String> {
+        self.offending_var.clone()
+    }
+
+    fn unsafe_inequality_var(&self) -> Option<String> {
+        self.offending_var.clone()
+    }
+}
+
+/// Classify a rule set against the incremental circuit's admissible fragment
+/// (finite positive binary Datalog), returning the FIRST typed refusal.
+///
+/// This performs exactly the checks [`validate_fragment`] performed inline, in the
+/// same order, so the two can never disagree: `validate_fragment` is now a thin
+/// diagnostic-projection over this function.
+pub(crate) fn classify_incremental_fragment(rules: &[EvalRule]) -> Result<(), FragmentRefusal> {
     for rule in rules {
         if rule.body.is_empty() {
-            return Err(incremental_err(format!(
-                "incremental circuit does not admit a bodyless rule <{}>; asserted facts belong in the EDB",
-                rule.rule_iri
-            )));
+            return Err(FragmentRefusal {
+                rule_iri: rule.rule_iri.clone(),
+                reason: UnsupportedFragmentReason::Bodyless,
+                offending_var: None,
+            });
         }
         if rule.body.iter().any(|atom| atom.negated) {
-            return Err(incremental_err(format!(
-                "incremental circuit does not admit negation-as-failure in rule <{}>",
-                rule.rule_iri
-            )));
+            return Err(FragmentRefusal {
+                rule_iri: rule.rule_iri.clone(),
+                reason: UnsupportedFragmentReason::Negation,
+                offending_var: None,
+            });
         }
         if !rule.builtins.is_empty() {
-            return Err(incremental_err(format!(
-                "incremental circuit does not admit arithmetic/comparison builtins in rule <{}>",
-                rule.rule_iri
-            )));
+            return Err(FragmentRefusal {
+                rule_iri: rule.rule_iri.clone(),
+                reason: UnsupportedFragmentReason::Builtins,
+                offending_var: None,
+            });
         }
 
         let mut positively_bound = BTreeSet::new();
@@ -818,24 +908,33 @@ fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
             if let EvalTerm::Var(variable) = term
                 && !positively_bound.contains(variable.as_str())
             {
-                return Err(incremental_err(format!(
-                    "incremental circuit rule <{}> is unsafe: head variable {variable} is not bound by a positive body atom",
-                    rule.rule_iri
-                )));
+                return Err(FragmentRefusal {
+                    rule_iri: rule.rule_iri.clone(),
+                    reason: UnsupportedFragmentReason::UnsafeHeadVar,
+                    offending_var: Some(variable.clone()),
+                });
             }
         }
         for (left, right) in &rule.distinct_pairs {
             for variable in [left, right] {
                 if !positively_bound.contains(variable.as_str()) {
-                    return Err(incremental_err(format!(
-                        "incremental circuit rule <{}> is unsafe: inequality variable {variable} is not bound by a positive body atom",
-                        rule.rule_iri
-                    )));
+                    return Err(FragmentRefusal {
+                        rule_iri: rule.rule_iri.clone(),
+                        reason: UnsupportedFragmentReason::UnsafeInequalityVar,
+                        offending_var: Some(variable.clone()),
+                    });
                 }
             }
         }
     }
     Ok(())
+}
+
+fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
+    match classify_incremental_fragment(rules) {
+        Ok(()) => Ok(()),
+        Err(refusal) => Err(incremental_err(refusal.message())),
+    }
 }
 
 fn consolidate_input(
@@ -1447,6 +1546,66 @@ mod tests {
             error.message().contains("inequality variable ?Z"),
             "{error}"
         );
+    }
+
+    #[test]
+    fn validate_fragment_subsumes_the_typed_classifier() {
+        // The typed classifier and the diagnostic projection must never disagree:
+        // whenever `classify_incremental_fragment` returns a typed refusal,
+        // `validate_fragment` errors with the SAME message that refusal renders, and
+        // whenever the classifier accepts, `validate_fragment` accepts.
+        let ok_rules = transitive_rules();
+        assert!(classify_incremental_fragment(&ok_rules).is_ok());
+        assert!(validate_fragment(&ok_rules).is_ok());
+
+        let mut negated = rule(
+            "negated",
+            atom("p", var("X"), var("Y")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+        negated.body[0].negated = true;
+
+        let mut arithmetic = rule(
+            "arithmetic",
+            atom("p", var("X"), var("Y")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+        arithmetic.builtins.push(QBuiltin::Is {
+            target: QTerm::Var("?N".to_owned()),
+            lhs: QTerm::Num(1),
+            op: ArithOp::Add,
+            rhs: QTerm::Num(1),
+        });
+
+        let head_unbound = rule(
+            "head-unbound",
+            atom("p", var("X"), var("Z")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+
+        let bodyless = EvalRule {
+            head: atom("p", var("X"), var("Y")),
+            body: Vec::new(),
+            rule_iri: format!("{NS}rule/bodyless"),
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+        };
+
+        for rules in [
+            vec![negated],
+            vec![arithmetic],
+            vec![head_unbound],
+            vec![bodyless],
+        ] {
+            let refusal =
+                classify_incremental_fragment(&rules).expect_err("must be a typed refusal");
+            let diag = validate_fragment(&rules).expect_err("must project to the same Diag");
+            assert_eq!(
+                diag.message(),
+                refusal.message(),
+                "validate_fragment must reproduce the typed refusal's message verbatim"
+            );
+        }
     }
 
     #[test]

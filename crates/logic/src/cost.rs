@@ -692,6 +692,33 @@ pub struct SignedForwardRow {
     pub weight: i64,
 }
 
+/// The proof provenance of one newly-derived fact in an incremental transaction —
+/// the genuine per-fact witness the differential circuit computes.
+///
+/// The subject/predicate/object and `premises` are rendered with the same
+/// [`crate::provenance::term_display`] surface the full-recompute oracle
+/// ([`crate::reason::reason_program`] → [`crate::reason::InferredAxiom`]) uses, so an
+/// incremental witness is directly comparable, field-for-field, against the from-scratch
+/// oracle's `(rule_name, premises)` for the same derived `(subject, predicate, object)`.
+/// `weight` is the genuinely-computed signed Z-set multiplicity at the set boundary
+/// (`+1` for a newly-present derived fact); no proof-height annotation is fabricated
+/// here (the incremental circuit does not compute one).
+#[derive(Debug, Clone, PartialEq)]
+pub struct DerivedProvenance {
+    /// The derived fact's subject surface (`term_display`).
+    pub subject: String,
+    /// The derived fact's predicate IRI.
+    pub predicate: String,
+    /// The derived fact's object surface (`term_display`).
+    pub object: String,
+    /// The firing rule IRI that committed this derivation.
+    pub rule_iri: String,
+    /// The antecedent premises `(subject, predicate, object)` (all `term_display`).
+    pub premises: Vec<(String, String, String)>,
+    /// The signed Z-set multiplicity at the set boundary (`+1` for a newly-present fact).
+    pub weight: i64,
+}
+
 /// The deterministic result of one incremental forward transaction.
 #[derive(Debug, Clone)]
 pub struct NativeIncrementalRun {
@@ -710,6 +737,10 @@ pub struct NativeIncrementalRun {
     /// The positive derived-change cost vector. Retractions never receive a
     /// fabricated reverse-rule attribution.
     pub cost: CostVector,
+    /// Per-newly-derived-fact proof provenance (firing rule + premises + signed
+    /// Z-weight) — the maintained closure's genuine derivation witnesses for this
+    /// transaction, comparable against the full-recompute oracle.
+    pub derivations: Vec<DerivedProvenance>,
     /// Whether an inline step bound completed or cut the transaction.
     pub status: crate::seam::BudgetStatus,
     /// Native engine identity.
@@ -1069,6 +1100,19 @@ impl IncrementalForwardSession {
         Ok(run)
     }
 
+    /// The maintained least-model closure as a deterministically-ordered public row
+    /// set — the current fixed point after every committed transaction.
+    ///
+    /// This is the closure reader the operational `ReasoningSession` façade surfaces
+    /// (e.g. the `gmeow logic session facts` command) right after `open`, before any
+    /// delta has produced a [`NativeIncrementalRun`]. It reuses the same
+    /// `forward_row_from_fact` projection as [`Self::insert`]/[`Self::retract`], so the
+    /// rows are byte-comparable with a run's `rows`.
+    #[must_use]
+    pub fn closure_rows(&self) -> ForwardRows {
+        forward_rows_from_facts(&self.inner.closure(), &self.world)
+    }
+
     /// Apply an unbounded retract-only dataset.
     ///
     /// Bounded deletion deliberately remains outside this seam until a sound partial
@@ -1132,6 +1176,37 @@ fn incremental_run(
     })? as u64;
     let cost = CostVector::from_incremental_delta(&delta, strata, asserted_changes)?;
     let rows = forward_rows_from_facts(&closure, world);
+    // Per-newly-derived-fact provenance: match each positive closure change against its
+    // canonical firing witness. Rendered with `term_display` so it is comparable to the
+    // full-recompute `InferredAxiom` oracle field-for-field.
+    let derivations: Vec<DerivedProvenance> = delta
+        .changes
+        .iter()
+        .filter(|change| change.weight > 0)
+        .filter_map(|change| {
+            delta
+                .derivations
+                .get(&change.fact.key())
+                .map(|witness| DerivedProvenance {
+                    subject: crate::provenance::term_display(&change.fact.subject),
+                    predicate: change.fact.predicate.clone(),
+                    object: crate::provenance::term_display(&change.fact.object),
+                    rule_iri: witness.rule_iri.clone(),
+                    premises: witness
+                        .premises
+                        .iter()
+                        .map(|premise| {
+                            (
+                                crate::provenance::term_display(&premise.subject),
+                                premise.predicate.clone(),
+                                crate::provenance::term_display(&premise.object),
+                            )
+                        })
+                        .collect(),
+                    weight: change.weight,
+                })
+        })
+        .collect();
     let changes = delta
         .changes
         .into_iter()
@@ -1148,6 +1223,7 @@ fn incremental_run(
         joined_rows: delta.joined_rows,
         inner_iterations: delta.inner_iterations,
         cost,
+        derivations,
         status,
         engine: EngineId::native(),
     })
