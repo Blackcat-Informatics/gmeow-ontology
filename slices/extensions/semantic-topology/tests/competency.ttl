@@ -45,11 +45,12 @@ ex:cqTopologyClaimNotGlobalTruth a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/compilation-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqTopologyClaimNotGlobalTruthShape ;
-    gmeow:cqRationale "GMEOW must answer 'when is a computed topological feature a global truth?' The governing rule: a feature over a standpoint's sub-evidence is a math:LocalSection (ex:localsection) and is a global truth ONLY when it extends to a math:GlobalSection (ex:globalsection, H⁰) AND discharges the H¹ math:GluingObstruction (ex:obstruction). The asserted answer is exactly this one row binding the claim to all three — a raw local feature with no extension/discharge would not appear." ;
+    gmeow:cqRationale "GMEOW must answer 'when is a computed topological feature ACTUALLY a global truth?' — not merely 'does some claim carry a local/global/obstruction triple'. The query JOINS through gmeow:claimForComputation to the gmeow:TopologyComputation that gmeow:assertsGlobalTruth true, proving the governing rule executably: for the one computation asserting global truth, exactly one claim (ex:claim) both carries its feature as a math:LocalSection (ex:localsection), extends it to a math:GlobalSection (ex:globalsection, H⁰), AND discharges the H¹ math:GluingObstruction (ex:obstruction) — the discharge the assertion requires, not an unrelated claim that merely happens to carry the three fields." ;
     gmeow:cqExpectRow ex:cqTopologyClaimNotGlobalTruthRow .
 
 ex:cqTopologyClaimNotGlobalTruthShape a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "computation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "localSection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "globalSection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "obstruction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
@@ -57,6 +58,7 @@ ex:cqTopologyClaimNotGlobalTruthShape a logic:ResultShape ;
 
 ex:cqTopologyClaimNotGlobalTruthRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "computation" ; gmeow:cellValueIri exd:computation ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "localSection" ; gmeow:cellValueIri exd:localsection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "globalSection" ; gmeow:cellValueIri exd:globalsection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exd:obstruction ] .

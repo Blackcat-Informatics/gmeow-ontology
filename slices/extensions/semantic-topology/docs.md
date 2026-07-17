@@ -55,15 +55,20 @@ Source ─(core)─ EvidenceSpan ─compilesEvidence⁻¹─┐
   standpoint's sub-evidence. It certifies *nothing* global on its own. Global truth
   holds only when the local data lift to a `math:GlobalSection`, and the
   `gmeow:AssertedTopologyResultConstraint` forbids a raw result asserted as global
-  truth (`gmeow:assertsGlobalTruth`) without both the claim wrapper and a discharged
-  H¹ `math:GluingObstruction`.
+  truth (`gmeow:assertsGlobalTruth`) without both a discharging claim — one genuinely
+  TYPED `gmeow:TopologyClaim`, never any resource that merely carries the discharge
+  edges — and a discharged H¹ `math:GluingObstruction`.
 - **Compose, don't re-ground.** The `math:` topology objects and the `logic:` loss
   ledger are shipped grounding. This slice mints only bridge terms over them; it
   authors no `logic:GroundingCorrespondence` and mints no preservation vocabulary
   (Principle 19/17/5).
 - **Audit + honesty.** Every compilation MUST record a `gmeow:CellSourceCorrespondence`
-  (cells trace to evidence spans) and a `gmeow:CompilationPreservationRecord` (the
-  `logic:` loss ledger names what it preserved or dropped, Principle 17).
+  carrying at least one genuine `gmeow:correspondenceCell` row (a cell that itself carries
+  a `gmeow:cellSource`) — an empty correspondence record is exactly as much a black box as
+  a missing one — and a `gmeow:CompilationPreservationRecord` naming EXACTLY ONE
+  `logic:preservationKind` (an EL-safe cardinality restriction) that, for any kind other
+  than `logic:ExactPreservation`, also names a `logic:expressivenessBoundary`
+  (`gmeow:CompilationPreservationBoundaryConstraint`, Principle 17).
 - **Attributed and defeasible.** A result lands as a `gmeow:vantage`-attributed
   `gmeow:TopologyClaim` with a `gmeow:Finding`-carried status, carrying a
   theorem-warranted `logic:confidence` (via `math:StabilityCalibrationRecord`,
@@ -82,19 +87,26 @@ spine (`gmeow:compilesEvidence` → `gmeow:EvidenceSpan`) and produces a
 `math:Filtration` (`gmeow:compilesToFiltration`). Its build provenance rides the
 existing `gmeow:wasGeneratedBy`/`gmeow:wasDerivedFrom`.
 
-### gmeow:CellSourceCorrespondence · gmeow:cellSource · gmeow:recordsCorrespondence
+### gmeow:CellSourceCorrespondence · gmeow:correspondenceCell · gmeow:cellSource · gmeow:recordsCorrespondence
 
-The per-compilation audit record mapping cells to sources. `gmeow:cellSource`
-(⊑ `gmeow:wasDerivedFrom`) relates a `math:Cell` to the `gmeow:EvidenceSpan` it was
-built from — reusing the provenance spine, not a parallel one. Every compilation MUST
-`gmeow:recordsCorrespondence` one (`gmeow:CompilationMustRecordCorrespondence`).
+The per-compilation audit record mapping cells to sources. `gmeow:correspondenceCell`
+(record → `math:Cell`) is the row-membership edge scoping which cells a correspondence
+covers; `gmeow:cellSource` (⊑ `gmeow:wasDerivedFrom`) relates that `math:Cell` to the
+`gmeow:EvidenceSpan` it was built from — reusing the provenance spine, not a parallel
+one. Every compilation MUST `gmeow:recordsCorrespondence` one carrying AT LEAST ONE
+genuine row (`gmeow:CompilationMustRecordCorrespondence`): a correspondence record that
+exists but names zero cells is rejected exactly like a missing one.
 
 ### gmeow:CompilationPreservationRecord · gmeow:recordsPreservation
 
 The per-compilation preservation/loss judgment, stated in the shipped `logic:` loss
-ledger and nothing new: `logic:preservationKind` (exact / sound-under-approximation /
-lossy-lens / unsupported) and, when lossy, a `logic:expressivenessBoundary`. Every
-compilation MUST `gmeow:recordsPreservation` one (`gmeow:CompilationMustRecordLoss`).
+ledger and nothing new: EXACTLY ONE `logic:preservationKind` (an EL-safe cardinality
+restriction — `logic:ExactPreservation`, `logic:SoundUnderApproximation`,
+`logic:CompleteOverApproximation`, `logic:ValidationOnly`, or `logic:Unsupported`) and,
+for any kind OTHER than `logic:ExactPreservation`, a `logic:expressivenessBoundary`
+(`gmeow:CompilationPreservationBoundaryConstraint`). Every compilation MUST
+`gmeow:recordsPreservation` one (`gmeow:CompilationMustRecordLoss`); a record naming no
+kind, or a lossy/unsupported kind naming no boundary, is a hollow ledger entry.
 
 ### gmeow:compilationStandpoint · gmeow:compilationWorld · gmeow:compilationTimeScope · gmeow:compilationScenario
 
@@ -111,7 +123,10 @@ compilation (`gmeow:computationOverCompilation`), employs a `math:PersistentHomo
 (`gmeow:employsAnalysis`), and produces a `gmeow:TopologyResult` (`gmeow:producesResult`)
 that references a raw `math:` object (`gmeow:resultArtifact` → a
 `math:PersistenceDiagram`/`math:PersistenceBarcode`/`math:PersistenceLandscape`/`math:BettiSummary`/`math:HodgeDecomposition`/`math:Holonomy`).
-Pointing `gmeow:producesResult` at a raw `math:` object is `gmeow:ResultObjectConflation`.
+`gmeow:producesResult`'s value MUST be POSITIVELY typed `gmeow:TopologyResult` (not merely
+"not a raw math: object" — an untyped or unrelated resource fails too); either failure —
+an untyped result or one conflated with a raw `math:` object — is
+`gmeow:ResultObjectConflation` (`gmeow:ResultObjectConflationConstraint`).
 
 ### gmeow:TopologyClaim · gmeow:claimResult · gmeow:claimForComputation · gmeow:claimLocalSection · gmeow:extendsToGlobalSection · gmeow:dischargesObstruction · gmeow:assertsGlobalTruth
 
@@ -121,8 +136,11 @@ EL-safe axiom), held from a `gmeow:vantage`, carrying its feature as a
 `gmeow:extendsToGlobalSection` (a `math:GlobalSection`, H⁰) **and**
 `gmeow:dischargesObstruction` (a `math:GluingObstruction`, H¹). A
 `gmeow:TopologyComputation` may set `gmeow:assertsGlobalTruth` only under such a
-discharging claim (`gmeow:AssertedTopologyResultConstraint`). Its `logic:confidence` is
-theorem-warranted via a `math:StabilityCalibrationRecord`.
+discharging claim (`gmeow:AssertedTopologyResultConstraint`) — and the discharge witness
+MUST itself be TYPED `gmeow:TopologyClaim`; any resource merely carrying the three
+discharge edges (`gmeow:claimForComputation`, `gmeow:dischargesObstruction`,
+`gmeow:extendsToGlobalSection`) without that type does not satisfy the gate. Its
+`logic:confidence` is theorem-warranted via a `math:StabilityCalibrationRecord`.
 
 ### Conformance failures
 

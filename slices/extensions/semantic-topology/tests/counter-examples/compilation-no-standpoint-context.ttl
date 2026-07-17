@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Counter-example for gmeow:CompilationContextConstraint (gmeow:CompilationMissingContext):
-# a gmeow:ComplexCompilation that records BOTH its correspondence and its
-# preservation/loss judgment and carries its possible-world and time-scope context, but
+# a gmeow:ComplexCompilation that records BOTH its correspondence (with a genuine row)
+# and its preservation/loss judgment (exactly one kind, logic:ExactPreservation, so no
+# boundary is required) and carries its possible-world and time-scope context, but
 # omits its gmeow:compilationStandpoint. The ∀→(∃∧∃∧∃) SPARQL constraint MUST reject it
 # with shacl.SPARQLConstraintComponent, and nothing else — every other required datum is
 # present, so the missing standpoint is the sole violation.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
 
 ex:compilationBad a gmeow:ComplexCompilation ;
@@ -18,7 +20,11 @@ ex:compilationBad a gmeow:ComplexCompilation ;
     gmeow:compilationWorld ex:w ;
     gmeow:compilationTimeScope ex:t .             # <-- but NO gmeow:compilationStandpoint
 
-ex:corr a gmeow:CellSourceCorrespondence .
+ex:corr a gmeow:CellSourceCorrespondence ;
+    gmeow:correspondenceCell ex:cell .
+ex:cell a math:Cell ;
+    gmeow:cellSource ex:span .
+ex:span a gmeow:EvidenceSpan .
 ex:pres a gmeow:CompilationPreservationRecord ;
     logic:preservationKind logic:ExactPreservation .
 ex:w a logic:PossibleWorld .

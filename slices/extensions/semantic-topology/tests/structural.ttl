@@ -72,21 +72,50 @@ ASK {
 }""" ;
     gmeow:saRationale "The local-vs-global grounding MUST compose the shipped math: Task-3 terms: gmeow:claimLocalSection ranges over math:LocalSection, gmeow:extendsToGlobalSection over math:GlobalSection (H⁰), gmeow:dischargesObstruction over math:GluingObstruction (H¹), and gmeow:resultArtifact over math:MathematicalObject — the extension composes them, it does not re-ground them." .
 
-# --- 5. The six slice gates are logic:Constraints (SPARQL-derived) ----------- #
+# --- 5. The seven slice gates are logic:Constraints (SPARQL-derived) --------- #
 ex:saSliceGatesAreConstraints a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:CompilationMustRecordCorrespondence a logic:Constraint .
-    gmeow:CompilationMustRecordLoss           a logic:Constraint .
-    gmeow:CompilationContextConstraint        a logic:Constraint ; gmeow:enforcesFailureClass gmeow:CompilationMissingContext .
-    gmeow:TopologyClaimStatusConstraint       a logic:Constraint ; gmeow:enforcesFailureClass gmeow:TopologyClaimMissingStatus .
-    gmeow:AssertedTopologyResultConstraint    a logic:Constraint .
-    gmeow:ResultObjectConflationConstraint    a logic:Constraint ; gmeow:enforcesFailureClass gmeow:ResultObjectConflation .
+    gmeow:CompilationMustRecordCorrespondence   a logic:Constraint .
+    gmeow:CompilationMustRecordLoss             a logic:Constraint .
+    gmeow:CompilationPreservationBoundaryConstraint a logic:Constraint ; logic:formalizes gmeow:CompilationPreservationRecord .
+    gmeow:CompilationContextConstraint          a logic:Constraint ; gmeow:enforcesFailureClass gmeow:CompilationMissingContext .
+    gmeow:TopologyClaimStatusConstraint         a logic:Constraint ; gmeow:enforcesFailureClass gmeow:TopologyClaimMissingStatus .
+    gmeow:AssertedTopologyResultConstraint      a logic:Constraint .
+    gmeow:ResultObjectConflationConstraint      a logic:Constraint ; gmeow:enforcesFailureClass gmeow:ResultObjectConflation .
 }""" ;
     gmeow:saRationale "Every slice validation gate MUST be authored as a logic:Constraint (the pipeline DERIVES the SHACL sh:SPARQLConstraint); the failure-carrying gates MUST name their typed gmeow:TopologyConformanceFailure subclass through gmeow:enforcesFailureClass." .
+
+# --- 8. The row-membership edge and the exact-one preservation-kind cardinality #
+ex:saCorrespondenceRowAndPreservationCardinality a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:correspondenceCell a owl:ObjectProperty ;
+        rdfs:domain gmeow:CellSourceCorrespondence ;
+        rdfs:range math:Cell .
+    gmeow:CompilationPreservationRecord rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty logic:preservationKind ;
+        owl:minQualifiedCardinality 1 ;
+        owl:onClass logic:PreservationKind
+    ] .
+    gmeow:CompilationPreservationRecord rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty logic:preservationKind ;
+        owl:maxQualifiedCardinality 1 ;
+        owl:onClass logic:PreservationKind
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:correspondenceCell MUST be the row-membership edge (CellSourceCorrespondence → math:Cell) that scopes a cell↔evidence mapping to the record that vouches for it, and gmeow:CompilationPreservationRecord MUST carry an EL-safe exact-one (min + max qualified) cardinality restriction on logic:preservationKind — the two declarative fixes that make gmeow:CompilationMustRecordCorrespondence and the preservation ledger non-vacuous." .
 
 # --- 6. Slice purity: no hand-authored external grounding here (Principle 19) - #
 ex:saNoHandAuthoredGrounding a gmeow:StructuralAssertion ;
