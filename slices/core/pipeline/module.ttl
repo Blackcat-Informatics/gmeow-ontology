@@ -1007,13 +1007,13 @@ gmeow:stage-export-lpg
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: LPG"@x-gmeow-english ;
-    skos:definition "Emit the labeled-property-graph artifacts (CSV, Cypher, JSON-LD)."@x-gmeow-english ;
+    skos:definition "Emit the labeled-property-graph artifacts — generic CSV, Neo4j Admin Import CSV, openCypher, and GraphML 1.0 — via purrdf's native LPG projections (project_lpg_csv/project_neo4j_csv/project_lpg_cypher/project_lpg_graphml), retiring gmeow's hand-rolled node/edge model and CSV/Cypher/GraphML writers. The projected view is the carrier's graph/statements named graph ONLY, scoped via purrdf's project_named_graph_full (plus the RDF-1.2 reifiers/annotations attached to those statements-graph triples) — the same business-layer typed-resource scope the retired hand-rolled emitter used, never the whole composed carrier. A fold-reading export leaf: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "lpg" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "lpg-cypher" .
+    gmeow:producesFormat "lpg-csv" , "lpg-neo4j-csv" , "lpg-cypher" , "lpg-graphml" .
 
 gmeow:stage-export-yaml-ld
     a gmeow:PipelineStage ;
