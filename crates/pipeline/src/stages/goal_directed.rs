@@ -134,6 +134,13 @@ fn read_subsort_edges(
         .collect();
     edges.sort();
     edges.dedup();
+    if edges.is_empty() {
+        return Err(stage_err(
+            "the reasoned rdfs:subClassOf closure carries ZERO derived edges — the \
+             order-sorted math-subsort demonstrator cannot be driven (never a silent \
+             empty-edges fallback that would make it vacuous)",
+        ));
+    }
     Ok(edges)
 }
 

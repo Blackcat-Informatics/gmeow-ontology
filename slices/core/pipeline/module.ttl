@@ -493,7 +493,8 @@ gmeow:pipeline-build
     logic:planFlowEdge
         gmeow:pipeline-dataflow-compile-logic-source-load ,
         gmeow:pipeline-dataflow-reason-compile-logic ,
-        gmeow:pipeline-dataflow-validate-compile-logic ;
+        gmeow:pipeline-dataflow-validate-compile-logic ,
+        gmeow:pipeline-dataflow-goal-directed-reason ;
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
