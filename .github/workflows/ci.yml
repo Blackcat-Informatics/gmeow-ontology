@@ -202,7 +202,7 @@ jobs:
   # Every remaining gate lands in exactly one job:
   #   ontology-validate  : validate
   #   ontology-generated : sync, constitution-check, crate-check
-  #   ontology-reason    : reason-gate, acceptance, coverage, coherence gate teeth
+  #   ontology-reason    : reason-verify, acceptance, coverage, coherence gate teeth
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, golden soak, compliance-report
   ontology-validate:
@@ -405,12 +405,14 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   #
-  # The classic Java/Docker oracle lane has been REMOVED (Principle 18); its
-  # replacement is the native in-process `purrdf::entail` cross-check, which runs
-  # ON-GATE inside the required reason lane rather than as a separate job. The
-  # required gate stays Docker-free and Java-free. Statements now run natively via
-  # the gmeow-rdf codec inside the generated-artifact job's strict sync — there is no
-  # separate statements lane.
+  # The classic Java/Docker oracle lane has been REMOVED (Principle 18), and the live
+  # in-process `purrdf::entail` differential cross-check that once replaced it has
+  # also been REMOVED. The native `logic:` engine is now the sole on-gate reasoning
+  # authority: `ontology-reason` runs `make reason-verify` (one closure, native
+  # consistency/entailment verify + reasoned-graph negatives) with no live second or
+  # differential reasoner on any required gate. The required gate stays Docker-free
+  # and Java-free. Statements now run natively via the gmeow-rdf codec inside the
+  # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
     needs: [lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
