@@ -22,9 +22,11 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 use gmeow_errors::{Diag, Finding, Location, Result, Severity};
 use purrdf::slice::rdf_query::{Dataset, Object, Subject};
+use regex::Regex;
 
 use crate::codes;
 
@@ -48,6 +50,24 @@ const NORMS_EXTENSION_TERMS: &[&str] = &[
     "https://blackcatinformatics.ca/gmeow/normIssuer",
     "https://blackcatinformatics.ca/gmeow/normBearer",
 ];
+
+// ── docs-term extraction regexes ─────────────────────────────────────────────
+//
+// Each pattern is a compile-time-constant literal; the `.expect` fires only if
+// that exact literal is malformed, which is a programming error a unit test
+// (forcing the `LazyLock` to compile) catches in CI — never a data-dependent
+// runtime panic on the library path. Compiled once per process instead of once
+// per markdown file.
+
+/// Backticked inline term reference, e.g. `` `gmeow:Foo` ``.
+static GMEOW_INLINE_TERM: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"`gmeow:([A-Za-z][A-Za-z0-9_]*)`").expect("valid static regex"));
+/// Bare (non-backticked) `gmeow:Foo` reference, matched inside fenced code.
+static GMEOW_BARE_TERM: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\bgmeow:([A-Za-z][A-Za-z0-9_]*)\b").expect("valid static regex"));
+/// Fenced ```turtle ... ``` code block.
+static TURTLE_FENCE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?s)```turtle\n(.*?)\n```").expect("valid static regex"));
 
 // ── shared helpers ───────────────────────────────────────────────────────────
 
@@ -978,27 +998,22 @@ const DOCS_DOCUMENTATION_ONLY_TERMS: &[&str] = &[
 /// fenced ```turtle blocks (backticked and bare) and inline `` `gmeow:Name` `` —
 /// as full IRIs. Pure over the text, so a unit test can drive it.
 fn extract_gmeow_terms_from_markdown(text: &str) -> BTreeSet<String> {
-    use regex::Regex;
-    // Compiled once per call — docs corpora are small and this runs off-gate.
-    let inline = Regex::new(r"`gmeow:([A-Za-z][A-Za-z0-9_]*)`").expect("static regex");
-    let bare = Regex::new(r"\bgmeow:([A-Za-z][A-Za-z0-9_]*)\b").expect("static regex");
-    let fence = Regex::new(r"(?s)```turtle\n(.*?)\n```").expect("static regex");
     let mut out = BTreeSet::new();
     let mut add = |name: &str| {
         out.insert(format!("{GMEOW_NS}{name}"));
     };
     // Fenced turtle blocks: both backticked and bare prefixed names.
-    for block in fence.captures_iter(text) {
+    for block in TURTLE_FENCE.captures_iter(text) {
         let body = &block[1];
-        for cap in inline.captures_iter(body) {
+        for cap in GMEOW_INLINE_TERM.captures_iter(body) {
             add(&cap[1]);
         }
-        for cap in bare.captures_iter(body) {
+        for cap in GMEOW_BARE_TERM.captures_iter(body) {
             add(&cap[1]);
         }
     }
     // Inline backticked terms anywhere in the prose.
-    for cap in inline.captures_iter(text) {
+    for cap in GMEOW_INLINE_TERM.captures_iter(text) {
         add(&cap[1]);
     }
     out
